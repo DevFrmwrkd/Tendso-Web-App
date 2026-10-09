@@ -112,6 +112,7 @@ describe('affiliate-attributed owner intake', () => {
         expect(stored).toMatchObject({
             creatorId: affiliateId, amount: 1999, creatorPayout: 1000, websiteListPrice: WEBSITE_PRICE,
             source: 'affiliate_qr', status: 'submitted', contentSource: 'owner_intake',
+            affiliateHandle: handle,
             photos: args.photos, interviewQa: args.qa, submissionType: 'standard', domainStatus: 'not_requested', domainChargedPHP: 0,
         });
         expect(stored?.campaign).toBeUndefined();
@@ -144,6 +145,7 @@ describe('affiliate-attributed owner intake', () => {
             expect(stored).toMatchObject({ creatorId: houseId, amount: WEBSITE_PRICE, creatorPayout: 0 });
             expect(stored?.campaign).toBeUndefined();
             expect(stored?.websiteListPrice).toBeUndefined();
+            expect(stored?.affiliateHandle).toBeUndefined();
         }
     });
 
@@ -185,7 +187,7 @@ describe('affiliate-attributed owner intake', () => {
         await t.action(internal.payments.processDeposit, {
             ...deposit, amount: 1, transactionId: 'affiliate-partial',
         });
-        expect(await t.query(api.paymentTokens.getBySubmissionId, { submissionId: id })).toMatchObject({
+        expect(await t.query(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: id })).toMatchObject({
             amount: 2700, status: 'pending',
         });
         const unpaid = (await t.run((ctx) => ctx.db.get(id)))!;
@@ -203,7 +205,7 @@ describe('affiliate-attributed owner intake', () => {
 
         const settledDeposit = { ...deposit, amount: token.amount, transactionId: 'affiliate-settled' };
         await t.action(internal.payments.processDeposit, settledDeposit);
-        expect(await t.query(api.paymentTokens.getBySubmissionId, { submissionId: id })).toMatchObject({
+        expect(await t.query(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: id })).toMatchObject({
             amount: 2700, status: 'paid', wiseTransactionId: 'affiliate-settled',
         });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
@@ -241,7 +243,7 @@ describe('affiliate-attributed owner intake', () => {
             submissionId: id, referenceCode: 'AFFILIATE-ORDER', amount: 1,
         });
         expect(token).toMatchObject({ submissionId: id, amount: 2700 });
-        expect(await t.query(api.paymentTokens.getBySubmissionId, { submissionId: id })).toMatchObject({ amount: 2700 });
+        expect(await t.query(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: id })).toMatchObject({ amount: 2700 });
         await t.run(async (ctx) => {
             await ctx.db.patch(affiliateId, { affiliatePrice: WEBSITE_PRICE, status: 'suspended' });
             await ctx.db.patch(id, { status: 'paid', paidAt: NOW });
@@ -284,6 +286,8 @@ describe('affiliate-attributed owner intake', () => {
 
     it('ignores generic monetary overrides for owner intake and affiliate orders while allowing nonfinancial updates', async () => {
         const { t, affiliateId } = await setup();
+        await t.run((ctx) => ctx.db.insert('creators', { clerkId: 'review-admin', email: 'admin@example.com', role: 'admin' }));
+        const admin = t.withIdentity({ subject: 'review-admin' });
         const affiliateOrder = await t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(1), affiliateHandle: handle });
         const fallbackOrder = await t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(2), affiliateHandle: 'missing-affiliate' });
         const campaignOrder = await t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(3), campaign: 'otr' });
@@ -295,7 +299,7 @@ describe('affiliate-attributed owner intake', () => {
         }));
         for (const id of [affiliateOrder, fallbackOrder, campaignOrder, legacyOrder]) {
             const before = (await t.run((ctx) => ctx.db.get(id)))!;
-            await t.mutation(api.submissions.update, {
+            await admin.mutation(api.submissions.update, {
                 id, amount: 1, creatorPayout: 1000000, platformFee: 0,
                 websiteUrl: 'https://example.com/published-shop', transcript: 'Updated transcript',
             });
@@ -307,7 +311,7 @@ describe('affiliate-attributed owner intake', () => {
             expect(after.platformFee).toBe(before.platformFee);
             expect(after.websiteListPrice).toBe(before.websiteListPrice);
             expect(after.domainChargedPHP).toBe(before.domainChargedPHP);
-            await expect(t.mutation(api.submissions.setDomainTier, {
+            await expect(admin.mutation(api.submissions.setDomainTier, {
                 id, submissionType: 'standard', sellPrice: 1,
             })).rejects.toThrow('orders cannot use creator pricing');
             expect(await t.run((ctx) => ctx.db.get(id))).toEqual(after);
@@ -327,7 +331,7 @@ describe('affiliate-attributed owner intake', () => {
                 ownerPhone: '09170000001', address: 'Main Street', city: 'Quezon City', status: 'draft', amount: 999, creatorPayout: 500,
             });
         });
-        await t.mutation(api.submissions.update, { id, amount: 2999, creatorPayout: 1500, platformFee: 1499 });
+        await t.withIdentity({ subject: 'mobile-creator' }).mutation(api.submissions.update, { id, amount: 2999, creatorPayout: 1500, platformFee: 1499 });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ amount: 2999, creatorPayout: 1500, platformFee: 1499 });
         expect(await t.action(api.paymentTokens.createPaymentToken, { submissionId: id, referenceCode: 'MOBILE-CREATOR', amount: 1 })).toMatchObject({ amount: 2999 });
     });

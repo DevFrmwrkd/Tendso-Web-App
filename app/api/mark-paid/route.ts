@@ -11,14 +11,18 @@ import { sendPaymentConfirmationEmail } from '@/lib/email/service'
  */
 export async function POST(request: NextRequest) {
     try {
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Verify admin role
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest) {
         // Get submission
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
         await fetchMutation(api.admin.markPaid, {
             submissionId: submissionId as Id<"submissions">,
             adminId: userId,
-        })
+        }, { token })
 
         // Send confirmation email to business owner if email exists
         let emailSent = false
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
             try {
                 const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
                     submissionId: submissionId as Id<"submissions">
-                })
+                }, { token })
                 publishedUrl = website?.publishedUrl || ''
             } catch {
                 // Website URL is optional for confirmation email
@@ -78,7 +82,7 @@ export async function POST(request: NextRequest) {
             submissionId: submissionId as Id<"submissions">,
             adminId: userId,
             emailSent,
-        })
+        }, { token })
 
         return NextResponse.json({
             success: true,

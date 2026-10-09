@@ -32,14 +32,18 @@ function isWrappedObject(v: any): boolean {
 export async function POST(request: NextRequest) {
     try {
         // Check Clerk authentication
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Check if user is admin using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -62,7 +66,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get submission from Convex
-        const submissionData = await fetchQuery(api.submissions.getById, { id: submissionId as any })
+        const submissionData = await fetchQuery(api.submissions.getById, { id: submissionId as any }, { token })
 
         if (!submissionData) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest) {
         // Check if there's an existing generated website with edited content (from Convex)
         const existingWebsite = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionData._id
-        })
+        }, { token })
 
         // Get or extract content - prioritization:
         // 0. In PREVIEW mode, the admin's UNSAVED draft (from the request body) — so
@@ -446,7 +450,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             if (!enhancedImages) {
                 const wcViaChain = await fetchQuery(api.websiteContent.getBySubmissionId, {
                     submissionId: submissionData._id
-                })
+                }, { token })
                 enhancedImages = wcViaChain?.enhancedImages || null
                 enhancedSource = enhancedImages ? 'websiteContent (via websiteId chain)' : null
             }
@@ -455,7 +459,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             if (!enhancedImages) {
                 const wcDirect = await fetchQuery(api.websiteContent.getDirectBySubmissionId, {
                     submissionId: submissionData._id
-                })
+                }, { token })
                 enhancedImages = wcDirect?.enhancedImages || null
                 enhancedSource = enhancedImages ? 'websiteContent (direct by submissionId)' : null
             }
@@ -498,7 +502,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                     try {
                         resolvedStorageUrls = await fetchQuery(api.files.getMultipleUrls, {
                             storageIds: storageIdsToResolve
-                        })
+                        }, { token })
                         console.log(`[IMAGES] Resolved ${resolvedStorageUrls.filter(Boolean).length}/${storageIdsToResolve.length} enhanced image storage IDs`)
                     } catch (error) {
                         console.error('[IMAGES] Failed to resolve enhanced image storage IDs:', error)
@@ -605,7 +609,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 if (storageIds.length > 0) {
                     const resolvedUrls = await fetchQuery(api.files.getMultipleUrls, {
                         storageIds: storageIds
-                    })
+                    }, { token })
                     resolvedFromStorage = resolvedUrls.filter((url: any): url is string => url !== null)
                     console.log(`[IMAGES] Resolved ${resolvedFromStorage.length}/${storageIds.length} storage IDs`)
                 }
@@ -626,7 +630,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 const storagePhotos = subPhotos.filter((p: string) => p && !p.startsWith('http'))
                 let resolved: string[] = []
                 if (storagePhotos.length > 0) {
-                    const urls = await fetchQuery(api.files.getMultipleUrls, { storageIds: storagePhotos })
+                    const urls = await fetchQuery(api.files.getMultipleUrls, { storageIds: storagePhotos }, { token })
                     resolved = urls.filter((u: any): u is string => u !== null)
                 }
                 photos = [...httpPhotos, ...resolved]
@@ -663,7 +667,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 if (storageIdsToResolve.length > 0) {
                     const resolvedUrls = await fetchQuery(api.files.getMultipleUrls, {
                         storageIds: storageIdsToResolve
-                    })
+                    }, { token })
 
                     // Map back to original order
                     resolvedAboutImages = aboutImageStorageIds.map((img: string) => {
@@ -698,7 +702,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             try {
                 const resolvedUrls = await fetchQuery(api.files.getMultipleUrls, {
                     storageIds: [servicesImageStorageId]
-                })
+                }, { token })
                 if (resolvedUrls[0]) {
                     resolvedServicesImage = resolvedUrls[0]
                 }
@@ -735,7 +739,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 if (storageIdsToResolve.length > 0) {
                     const resolvedUrls = await fetchQuery(api.files.getMultipleUrls, {
                         storageIds: storageIdsToResolve
-                    })
+                    }, { token })
 
                     // Map back to original order
                     resolvedFeaturedImages = featuredImageStorageIds.map((img: string) => {
@@ -768,7 +772,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 try {
                     const resolvedUrls = await fetchQuery(api.files.getMultipleUrls, {
                         storageIds: productImageIds
-                    })
+                    }, { token })
                     resolvedProducts = rawProducts.map((p: any) => {
                         if (!p.image || p.image.startsWith('http')) return p
                         const cleanId = p.image.replace(/^convex:/, '')
@@ -1080,7 +1084,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
         // htmlUrl the getBySubmission* queries return — see lib/website-html.ts.
         const htmlStorageId = await fetchAction(api.generatedWebsites.storeHtml, {
             html: generatedHtml,
-        })
+        }, { token })
 
         // Save generated website to Convex (legacy table - kept for backward compatibility)
         const websiteId = await fetchMutation(api.generatedWebsites.upsert, {
@@ -1090,7 +1094,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             customizations: finalCustomizations,
             htmlStorageId,
             status: 'draft',
-        })
+        }, { token })
 
         // Also save to the new websiteContent table (normalized content storage)
         await fetchMutation(api.websiteContent.upsert, {
@@ -1244,13 +1248,13 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             },
         })
 
-        // Update submission status to website_generated (but don't regress if already deployed+)
+        // Update submission status to website_generated (but don't regress if already deployed+, { token })
         const keepStatuses = ['deployed', 'pending_payment', 'paid']
         if (!keepStatuses.includes(submissionData.status)) {
             await fetchMutation(api.submissions.updateStatus, {
                 id: submissionId as any,
                 status: 'website_generated',
-            })
+            }, { token })
         }
 
         return NextResponse.json({

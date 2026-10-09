@@ -31,6 +31,7 @@ import { OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { isActiveTeamAccount } from "@/lib/admin-access";
 
 import { AiKeyCard } from "./AiKeyCard";
 import { EditProfileDrawer } from "./EditProfileDrawer";
@@ -293,7 +294,7 @@ function TeamAccount({ creator, signIn }: { creator: Doc<"creators">; signIn: Si
                         </AccountCard>
                         {/* The team has a creators row, so the AI key works for them as it
                             did on /connect-ai; it powers the help AI for everyone. */}
-                        <AiKeyCard autoOpen={edit === "ai"} />
+                        {isActiveTeamAccount(creator) && <AiKeyCard autoOpen={edit === "ai"} />}
                     </>
                 }
             />

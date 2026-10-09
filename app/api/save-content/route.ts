@@ -14,14 +14,18 @@ const PAYMENT_LIFECYCLE_STATUSES = ['pending_payment', 'paid', 'completed']
 export async function POST(request: NextRequest) {
     try {
         // Check Clerk authentication
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Check if user is admin using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -34,7 +38,7 @@ export async function POST(request: NextRequest) {
         // Get existing website to get current template and other data
         const existingWebsite = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId
-        })
+        }, { token })
 
         if (!existingWebsite) {
             return NextResponse.json({ error: 'Website not found. Generate it first.' }, { status: 404 })
@@ -53,7 +57,7 @@ export async function POST(request: NextRequest) {
             htmlContent: existingWebsite.htmlContent,
             htmlStorageId: existingWebsite.htmlStorageId,
             status: existingWebsite.status,
-        })
+        }, { token })
 
         // Regenerate the website with new content
         const regenerateResponse = await fetch(`${request.nextUrl.origin}/api/generate-website`, {
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
             // Snapshot what a republish must NOT change (see restore below).
             const submissionBefore = await fetchQuery(api.submissions.getById, {
                 id: submissionId as Id<'submissions'>
-            }).catch(() => null)
+            }, { token }).catch(() => null)
 
             let republishedUrl: string | undefined
             try {
@@ -146,7 +150,7 @@ export async function POST(request: NextRequest) {
                         await fetchMutation(api.generatedWebsites.updatePublishingInfo, {
                             submissionId: submissionId as Id<'submissions'>,
                             publishedUrl: existingWebsite.publishedUrl,
-                        })
+                        }, { token })
                     } catch (err: any) {
                         console.error('Could not restore publishedUrl after auto-republish:', err?.message || err)
                     }
@@ -158,7 +162,7 @@ export async function POST(request: NextRequest) {
                             await fetchMutation(api.submissions.updateStatus, {
                                 id: submissionId as Id<'submissions'>,
                                 status: submissionBefore.status as any,
-                            })
+                            }, { token })
                         } catch (err: any) {
                             console.error('Could not restore submission status after auto-republish:', err?.message || err)
                         }
@@ -168,7 +172,7 @@ export async function POST(request: NextRequest) {
                             await fetchMutation(api.submissions.update, {
                                 id: submissionId as Id<'submissions'>,
                                 websiteUrl: submissionBefore.websiteUrl,
-                            })
+                            }, { token })
                         } catch (err: any) {
                             console.error('Could not restore submission websiteUrl after auto-republish:', err?.message || err)
                         }

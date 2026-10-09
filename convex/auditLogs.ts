@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation, internalMutation } from './_generated/server';
+import { requireAdmin } from './lib/auth';
 
 // ==================== INTERNAL MUTATIONS ====================
 
@@ -70,6 +71,7 @@ export const getByTarget = query({
         targetId: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         return await ctx.db
             .query('auditLogs')
             .withIndex('by_target', (q) =>
@@ -86,6 +88,7 @@ export const getByTarget = query({
 export const getRecent = query({
     args: { limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const limit = args.limit ?? 50;
         const logs = await ctx.db
             .query('auditLogs')
@@ -125,6 +128,7 @@ export const getByAdmin = query({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const limit = args.limit ?? 50;
         return await ctx.db
             .query('auditLogs')
@@ -143,6 +147,7 @@ export const getByAdmin = query({
 export const backfillFromSubmissions = mutation({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const submissions = await ctx.db.query('submissions').collect();
         let created = 0;
 

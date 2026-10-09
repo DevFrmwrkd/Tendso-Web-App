@@ -63,21 +63,20 @@ describe('giveaway review rejection', () => {
     });
 
     it('keeps the ordinary/mobile optional reason contract without mailing a giveaway rejection', async () => {
-        const { t, id, row, jobs } = await setup(false);
-        await t.mutation(api.admin.rejectSubmission, { submissionId: id, adminId });
+        const { admin, id, row, jobs } = await setup(false);
+        await admin.mutation(api.admin.rejectSubmission, { submissionId: id, adminId });
         expect((await row())?.status).toBe('rejected');
         expect(await jobs()).toEqual([]);
     });
     it('blocks the generic status mutation from bypassing the giveaway rejection reason and email', async () => {
         const { t, admin, id, row, jobs } = await setup();
-        for (const caller of [t, admin]) {
-            await expect(caller.mutation(api.submissions.updateStatus, { id, status: 'rejected' })).rejects.toThrow('admin review action');
-        }
+        await expect(t.mutation(api.submissions.updateStatus, { id, status: 'rejected' })).rejects.toThrow('Not authenticated');
+        await expect(admin.mutation(api.submissions.updateStatus, { id, status: 'rejected' })).rejects.toThrow('admin review action');
         expect((await row())?.status).toBe('submitted');
         expect(await jobs()).toEqual([]);
         expect((await t.query(api.giveaway.giveawayStatus)).slotsLeft).toBe(0);
         const ordinary = await setup(false);
-        await ordinary.t.mutation(api.submissions.updateStatus, { id: ordinary.id, status: 'rejected' });
+        await ordinary.admin.mutation(api.submissions.updateStatus, { id: ordinary.id, status: 'rejected' });
         expect((await ordinary.row())?.status).toBe('rejected');
     });
 

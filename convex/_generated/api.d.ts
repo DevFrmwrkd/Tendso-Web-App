@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as adminAccess from "../adminAccess.js";
 import type * as affiliates from "../affiliates.js";
 import type * as aiKeys from "../aiKeys.js";
 import type * as airtable from "../airtable.js";
@@ -45,6 +46,7 @@ import type * as knowledgeSeed from "../knowledgeSeed.js";
 import type * as knowledgeTraining from "../knowledgeTraining.js";
 import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
+import type * as lib_affiliateOffer from "../lib/affiliateOffer.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_availability from "../lib/availability.js";
 import type * as lib_calendarCalls from "../lib/calendarCalls.js";
@@ -56,6 +58,7 @@ import type * as lib_giveaway from "../lib/giveaway.js";
 import type * as lib_h3 from "../lib/h3.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
 import type * as lib_mediaChunker from "../lib/mediaChunker.js";
+import type * as lib_paymentPricing from "../lib/paymentPricing.js";
 import type * as lib_phone from "../lib/phone.js";
 import type * as lib_quality from "../lib/quality.js";
 import type * as lib_reminders from "../lib/reminders.js";
@@ -95,6 +98,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  adminAccess: typeof adminAccess;
   affiliates: typeof affiliates;
   aiKeys: typeof aiKeys;
   airtable: typeof airtable;
@@ -131,6 +135,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeTraining: typeof knowledgeTraining;
   leadNotes: typeof leadNotes;
   leads: typeof leads;
+  "lib/affiliateOffer": typeof lib_affiliateOffer;
   "lib/auth": typeof lib_auth;
   "lib/availability": typeof lib_availability;
   "lib/calendarCalls": typeof lib_calendarCalls;
@@ -142,6 +147,7 @@ declare const fullApi: ApiFromModules<{
   "lib/h3": typeof lib_h3;
   "lib/hostinger": typeof lib_hostinger;
   "lib/mediaChunker": typeof lib_mediaChunker;
+  "lib/paymentPricing": typeof lib_paymentPricing;
   "lib/phone": typeof lib_phone;
   "lib/quality": typeof lib_quality;
   "lib/reminders": typeof lib_reminders;

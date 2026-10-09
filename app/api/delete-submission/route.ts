@@ -94,13 +94,17 @@ function collectSectionImageUrls(images: any): string[] {
 export async function POST(request: NextRequest) {
     try {
         // ── Auth ──
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -114,7 +118,7 @@ export async function POST(request: NextRequest) {
         // ── Step 1: Resource Discovery ──
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -122,14 +126,14 @@ export async function POST(request: NextRequest) {
 
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         // Also fetch websiteContent for enhanced images and section images
         let websiteContent: any = null
         try {
             websiteContent = await fetchQuery(api.websiteContent.getBySubmissionId, {
                 submissionId: submissionId as Id<"submissions">
-            })
+            }, { token })
         } catch {
             // websiteContent may not exist
         }
@@ -355,7 +359,7 @@ export async function POST(request: NextRequest) {
                         deleted: deletedAssets,
                         failed: failedAssets,
                     },
-                })
+                }, { token })
                 break
             } catch (err: any) {
                 if (attempt === 1 && (err?.cause?.code === 'ECONNRESET' || err?.message?.includes('fetch failed'))) {

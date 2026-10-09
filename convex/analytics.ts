@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, internalMutation } from './_generated/server';
+import { requireAccountOwner, requireAdmin } from './lib/auth';
 
 // ==================== HELPERS ====================
 
@@ -176,6 +177,7 @@ export const getCreatorStats = query({
         toPeriod: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireAccountOwner(ctx, args.creatorId);
         let q = ctx.db
             .query('analytics')
             .withIndex('by_creator_period', (q) =>
@@ -202,6 +204,7 @@ export const getPlatformStats = query({
         period: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const records = await ctx.db
             .query('analytics')
             .withIndex('by_period', (q) =>
@@ -231,6 +234,9 @@ export const getWebsiteStats = query({
         toDate: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission) throw new Error('Submission not found');
+        await requireAccountOwner(ctx, submission.creatorId);
         const records = await ctx.db
             .query('websiteAnalytics')
             .withIndex('by_submission_date', (q) =>
@@ -263,6 +269,7 @@ export const getWebsiteStats = query({
 export const getWebsiteStatsByDate = query({
     args: { date: v.string() },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         return await ctx.db
             .query('websiteAnalytics')
             .withIndex('by_date', (q) => q.eq('date', args.date))
@@ -278,6 +285,7 @@ export const getAllAnalytics = query({
         periodType: v.optional(v.union(v.literal('daily'), v.literal('monthly'))),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         if (args.periodType) {
             return await ctx.db
                 .query('analytics')

@@ -153,6 +153,8 @@ export default defineSchema({
         // what somebody was quoted. See convex/ownerIntake.ts.
         campaign: v.optional(v.string()),
         source: v.optional(v.string()),
+        // Resolved by the server at intake. Optional for existing orders/mobile.
+        affiliateHandle: v.optional(v.string()),
         // The website's list price when the creator set their price, frozen by
         // submissions.setDomainTier. The owner's bill strikes it through beside
         // the creator's price (lib/pricing creatorDiscount). Absent on self-serve

@@ -38,8 +38,8 @@ async function setup() {
 
 describe('affiliate separation from field creators', () => {
     it('keeps affiliate, staff, admin and deleted rows out of field-creator totals and Discord approvals', async () => {
-        const { t, ids } = await setup();
-        const stats = await t.query(api.admin.getDashboardStats);
+        const { t, ids, admin } = await setup();
+        const stats = await admin.query(api.admin.getDashboardStats);
         expect(stats.totalCreators).toBe(2);
         expect(stats.activeCreators).toBe(2);
         const pending = await t.query(internal.approvals.listPendingCreators);

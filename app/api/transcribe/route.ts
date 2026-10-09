@@ -3,16 +3,23 @@ import { auth } from '@clerk/nextjs/server'
 import { groqService } from '@/lib/services/groq.service'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
+import type { Doc, Id } from '@/convex/_generated/dataModel'
 import { isCreatorAccount } from '@/lib/accounts'
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+type TranscriptionUpdate = {
+    transcriptionStatus: 'processing' | 'complete' | 'failed'
+    transcript?: string
+    transcriptionUpdatedAt?: number
+}
 
 // Allow up to 3 minutes for large file chunked transcription (500MB+ files)
 export const maxDuration = 180
 
 export async function POST(request: NextRequest) {
     let submissionId: string | undefined
+    // Only assigned after the submission and caller are authorized. Errors
+    // while checking access must never write "failed" onto somebody's row.
+    let updateTranscription: ((update: TranscriptionUpdate) => Promise<unknown>) | undefined
 
     try {
         // Allow server-to-server calls from Convex (scheduled transcribeMedia action)
@@ -23,23 +30,59 @@ export async function POST(request: NextRequest) {
         const isInternalCall = !!expectedSecret && providedSecret === expectedSecret
 
         let authedUserId: string | null = null
+        let token: string | null = null
         if (!isInternalCall) {
-            const { userId } = await auth()
+            const { userId, getToken } = await auth()
             if (!userId) {
                 return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
             }
             authedUserId = userId
+            token = await getToken({ template: 'convex' })
+            if (!token) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
+        }
 
-            const account = await convex.query(api.creators.getByClerkId, { clerkId: userId })
-            if (!account || (!isCreatorAccount(account) && account.role !== 'admin') || account.status === 'suspended' || account.status === 'deleted') {
+        // A client belongs to this request only. Sharing a mutable auth token
+        // between concurrent requests would let one caller act as another.
+        const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+        if (token) convex.setAuth(token)
+
+        let account: Doc<'creators'> | null = null
+        if (!isInternalCall) {
+            const session = await convex.query(api.adminAccess.me, {})
+            account = session?.creator ?? null
+            if (session?.clerkId !== authedUserId || !account || (!isCreatorAccount(account) && account.role !== 'admin') || account.isDeleted || account.status === 'suspended' || account.status === 'deleted') {
                 return NextResponse.json({ error: 'Creator access required' }, { status: 403 })
             }
+        }
 
+        const body = await request.json()
+        const { audioUrl, useConvexStorage, videoStorageId, audioStorageId, videoUrl } = body
+        if (body.submissionId !== undefined && (typeof body.submissionId !== 'string' || !body.submissionId.trim())) {
+            return NextResponse.json({ error: 'Invalid submission ID' }, { status: 400 })
+        }
+        submissionId = body.submissionId
+        const submission = submissionId ? await convex.query(api.submissions.getById, {
+            id: submissionId as Id<'submissions'>,
+        }) : null
+        if (submissionId) {
+            if (!submission) return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
+            if (!isInternalCall && account?.role !== 'admin' && submission.creatorId !== account?._id) {
+                return NextResponse.json({ error: 'You can only transcribe your own submissions' }, { status: 403 })
+            }
+            const id = submissionId as Id<'submissions'>
+            updateTranscription = (update) => isInternalCall
+                ? convex.mutation(api.submissions.recordTranscriptionFromServer, { id, internalSecret: providedSecret!, ...update })
+                : convex.mutation(api.submissions.update, { id, ...update })
+        }
+
+        if (!isInternalCall) {
             // Rate limit: expensive operation (5/min) — only applied to user-initiated calls.
             // Internal calls come from our own scheduler so we don't rate-limit them.
             const { checkRateLimit, RATE_LIMITS } = await import('@/lib/security')
             const { allowed } = checkRateLimit(
-                `transcribe:${userId}`,
+                `transcribe:${authedUserId}`,
                 RATE_LIMITS.expensive.maxRequests,
                 RATE_LIMITS.expensive.windowMs
             )
@@ -47,20 +90,13 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: 'Too many transcription requests. Please wait a moment.' }, { status: 429 })
             }
         }
-        // Suppress unused-var warning when called as internal (userId may be used
-        // later for per-user audit logs).
-        void authedUserId
-
-        const body = await request.json()
-        const { audioUrl, useConvexStorage, videoStorageId, audioStorageId, videoUrl } = body
-        submissionId = body.submissionId
 
         // Resolve a submitted field (url or storage id) into a fetchable URL.
         // Handles full https URLs, R2 relative paths (audio/..., videos/..., images/...),
         // and the `convex:` prefix. Returns null for Convex storage IDs we can't resolve here.
         const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
         const resolveToUrl = (val?: string | null): string | null => {
-            if (!val) return null
+            if (typeof val !== 'string' || !val) return null
             if (val.startsWith('http://') || val.startsWith('https://')) return val
             if (/^(images|videos|audio)\//.test(val) && r2Prefix) return `${r2Prefix}/${val}`
             return null
@@ -91,11 +127,9 @@ export async function POST(request: NextRequest) {
         // sent stale values. A creator who just uploaded audio on an older tab
         // might have a submission row with audioUrl set even if the client
         // state didn't reflect it yet.
-        if (!mediaUrl && submissionId) {
+        if (!mediaUrl && submission) {
             try {
-                const fresh: any = await convex.query(api.submissions.getById, {
-                    id: submissionId as Id<"submissions">,
-                })
+                const fresh = submission
                 if (fresh) {
                     mediaUrl =
                         resolveToUrl(fresh.videoUrl) ||
@@ -134,15 +168,10 @@ export async function POST(request: NextRequest) {
         void useConvexStorage
 
         // Set transcription status to processing
-        if (submissionId) {
-            try {
-                await convex.mutation(api.submissions.update, {
-                    id: submissionId as Id<"submissions">,
-                    transcriptionStatus: 'processing',
-                })
-            } catch (err) {
-                console.error('Error setting transcription status:', err)
-            }
+        if (updateTranscription) {
+            // This also rechecks backend authorization before paid work. A
+            // rejected write must stop here, even if access just changed.
+            await updateTranscription({ transcriptionStatus: 'processing' })
         }
 
         // Check file size before transcribing
@@ -170,10 +199,9 @@ export async function POST(request: NextRequest) {
         const transcript = await groqService.transcribeAudioFromUrl(mediaUrl)
 
         // Update submission with transcript and status if submissionId provided
-        if (submissionId) {
+        if (updateTranscription) {
             try {
-                await convex.mutation(api.submissions.update, {
-                    id: submissionId as Id<"submissions">,
+                await updateTranscription({
                     transcript: transcript,
                     transcriptionStatus: 'complete',
                     transcriptionUpdatedAt: Date.now(),
@@ -188,30 +216,28 @@ export async function POST(request: NextRequest) {
             success: true,
             transcript,
         })
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Transcription API error:', error)
+        const message = error instanceof Error ? error.message : 'Failed to transcribe audio'
 
         // Check for specific error types
         let statusCode = 500
-        let errorMessage = error.message || 'Failed to transcribe audio'
+        let errorMessage = message
 
-        if (error.message?.includes('413') || error.message?.includes('Entity Too Large')) {
+        if (message.includes('413') || message.includes('Entity Too Large')) {
             statusCode = 413
             errorMessage = 'File is too large for transcription. Please upload a smaller file.'
-        } else if (error.message?.includes('Invalid file')) {
+        } else if (message.includes('Invalid file')) {
             errorMessage = 'Invalid audio/video file format. Please use MP3, WAV, MP4, or WebM.'
-        } else if (error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+        } else if (message.includes('timeout') || message.includes('Timeout')) {
             statusCode = 504
             errorMessage = 'Transcription took too long. Please try again with a shorter file.'
         }
 
         // Set transcription status to failed
-        if (submissionId) {
+        if (updateTranscription) {
             try {
-                await convex.mutation(api.submissions.update, {
-                    id: submissionId as Id<"submissions">,
-                    transcriptionStatus: 'failed',
-                })
+                await updateTranscription({ transcriptionStatus: 'failed' })
             } catch (updateErr) {
                 console.error('Error setting failed status:', updateErr)
             }

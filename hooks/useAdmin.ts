@@ -1,53 +1,47 @@
 "use client"
 
 import { useUser } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
+import { useConvexAuth, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { adminClientAccess, isActiveTeamAccount } from '@/lib/admin-access'
 
 /**
- * Hook to check if user is admin and redirect if not
- * Uses Clerk for auth and Convex for role check
+ * Wait for Clerk and Convex authentication before resolving the session's
+ * own role. Staff permissions depend on the current route, including after
+ * navigation inside the persistent server layout.
  */
-export function useAdminAuth() {
+export function useAdminAuth({ allowAccountPage = false }: { allowAccountPage?: boolean } = {}) {
     const router = useRouter()
-    const { user, isLoaded, isSignedIn } = useUser()
-    const [hasRedirected, setHasRedirected] = useState(false)
-
-    // Get creator profile from Convex
-    const creator = useQuery(
-        api.creators.getByClerkId,
-        user ? { clerkId: user.id } : "skip"
+    const pathname = usePathname()
+    const { user, isLoaded } = useUser()
+    const { isLoading: convexLoading, isAuthenticated } = useConvexAuth()
+    const session = useQuery(
+        api.adminAccess.me,
+        isLoaded && user && isAuthenticated && !convexLoading ? {} : "skip"
     )
+    const access = adminClientAccess({
+        clerkLoaded: isLoaded,
+        userId: user?.id ?? null,
+        convexLoading,
+        convexAuthenticated: isAuthenticated,
+        session,
+        pathname,
+        allowAccountPage,
+    })
+    const creator = !access.loading && isAuthenticated && session?.clerkId === user?.id
+        ? session?.creator
+        : undefined
+    const isAdmin = access.allowed && isActiveTeamAccount(creator) && creator?.role === 'admin'
+    const isStaff = access.allowed && isActiveTeamAccount(creator) && creator?.role === 'staff'
+    const redirectTo = access.redirectTo
 
-    // Determine if user is admin
-    const isAdmin = creator?.role === 'admin'
-    const loading = !isLoaded || (isSignedIn && creator === undefined)
-
-    // Handle redirects - only for truly unauthorized users
     useEffect(() => {
-        if (hasRedirected) return // Prevent multiple redirects
+        if (redirectTo) router.replace(redirectTo)
+    }, [redirectTo, router])
 
-        if (isLoaded && !isSignedIn) {
-            setHasRedirected(true)
-            router.push('/login')
-            return
-        }
-
-        // Wait for creator data to load
-        if (isSignedIn && creator !== undefined) {
-            if (creator === null) {
-                // No profile, redirect to onboarding
-                setHasRedirected(true)
-                router.push('/onboarding')
-            }
-            // Note: Non-admins are NOT redirected here anymore
-            // The admin page will just show unauthorized message
-        }
-    }, [isLoaded, isSignedIn, creator, router, hasRedirected])
-
-    return { isAdmin, loading, creator }
+    return { isAdmin, isStaff, canAccess: access.allowed, loading: access.loading, creator }
 }
 
 /**
