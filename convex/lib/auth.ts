@@ -1,6 +1,8 @@
 import type { ActionCtx, MutationCtx, QueryCtx } from "../_generated/server";
 import type { UserIdentity } from "convex/server";
 import type { Doc, Id } from "../_generated/dataModel";
+// Convex queries cannot use import(). This generated module only exports references.
+import { internal } from "../_generated/api";
 import { isCreatorAccount } from "../../lib/accounts";
 
 /**
@@ -31,7 +33,6 @@ export async function requireAuth(ctx: AnyCtx): Promise<UserIdentity> {
 /** Creator capture/CRM access, with admin access for existing operational tools. */
 export async function requireCreatorAccount(ctx: AnyCtx, creatorId?: Id<"creators">): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
     const identity = await requireAuth(ctx);
-    const { internal } = await import("../_generated/api");
     const me: Doc<"creators"> | null = isActionCtx(ctx)
         ? await ctx.runQuery(internal.creators.getMeForAuthInternal, { clerkId: identity.subject })
         : await ctx.db.query("creators").withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
@@ -64,8 +65,6 @@ export async function requireAdmin(ctx: AnyCtx): Promise<{ identity: UserIdentit
 
     let me: Doc<"creators"> | null;
     if (isActionCtx(ctx)) {
-        // Lazy import to avoid circular ref at module-eval time.
-        const { internal } = await import("../_generated/api");
         me = await ctx.runQuery(internal.creators.getMeForAuthInternal, {
             clerkId: identity.subject,
         });
@@ -96,7 +95,6 @@ export async function requireStaff(ctx: AnyCtx): Promise<{ identity: UserIdentit
 
     let me: Doc<"creators"> | null;
     if (isActionCtx(ctx)) {
-        const { internal } = await import("../_generated/api");
         me = await ctx.runQuery(internal.creators.getMeForAuthInternal, {
             clerkId: identity.subject,
         });
