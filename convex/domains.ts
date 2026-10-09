@@ -1,7 +1,8 @@
 import { v } from 'convex/values'
 import { action, mutation, query, internalAction, internalMutation, internalQuery, type ActionCtx } from './_generated/server'
-import { internal, api } from './_generated/api'
+import { internal } from './_generated/api'
 import { Id } from './_generated/dataModel'
+import { requireAccountOwner, requireAdmin, requireAdminActor } from './lib/auth'
 import {
     checkAvailability as registrarCheckAvailability,
     suggestAlternatives as registrarSuggestAlternatives,
@@ -167,11 +168,7 @@ export const purchaseDomainForSubmission = action({
         adminClerkId: v.string(),
     },
     handler: async (ctx, args): Promise<{ success: boolean; message: string }> => {
-        // Verify admin
-        const creator = await ctx.runQuery(api.creators.getByClerkId, { clerkId: args.adminClerkId })
-        if (!creator || creator.role !== 'admin') {
-            throw new Error('Admin access required')
-        }
+        await requireAdminActor(ctx, args.adminClerkId)
 
         const submission = await ctx.runQuery(internal.submissions.getByIdInternal, {
             id: args.submissionId,
@@ -314,6 +311,7 @@ export const setRegistrarMetadata = internalMutation({
 export const getTotalHostingerDomainCostsPHP = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx)
         const submissions = await ctx.db
             .query('submissions')
             .withIndex('by_domainStatus')
@@ -379,6 +377,7 @@ export const getSubmissionDomainInfo = query({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId)
         if (!submission) return null
+        await requireAccountOwner(ctx, submission.creatorId)
         return {
             submissionType: (submission as any).submissionType,
             requestedDomain: (submission as any).requestedDomain,
@@ -962,6 +961,7 @@ export const setupForSubmission = internalAction({
 export const getHostingerPaymentMethodStatus = action({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx)
         return await registrarGetPaymentMethodStatus()
     },
 })

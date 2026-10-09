@@ -1,11 +1,13 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
-import { useConvexAuth, useQuery } from "convex/react"
+import { useQuery } from "convex/react"
 import { Home, Inbox, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet, LayoutTemplate } from "lucide-react"
 
 import { AppShell, type NavEntry, type SidebarProps } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
+import { useAdminAuth } from "@/hooks/useAdmin"
+import { isActiveTeamAccount } from "@/lib/admin-access"
 
 /**
  * The admin and staff frame (board AdminHome, ComponentKit "Sidebars").
@@ -18,20 +20,20 @@ import { api } from "@/convex/_generated/api"
  * Stats tab of Calls, App release is the App links tab of Site settings.
  */
 
-// The internal 'staff' role reaches exactly two screens, so the rest of the
-// sidebar would be a list of dead ends for them. The pages themselves are
-// gated server-side; this is only about not offering doors that will not open.
+// Staff reach Today and Calls. The legacy call-stats URL redirects to Calls.
 const STAFF_ROUTES = new Set(["/admin", "/admin/bookings"])
 
-type Me = { role?: string; firstName?: string; lastName?: string } | null | undefined
+/** No page, sidebar, or protected query mounts while access is unresolved. */
+export function AdminAccessGate({ children }: { children: React.ReactNode }) {
+    const { canAccess } = useAdminAuth()
+    return canAccess ? children : null
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     // Who is looking. Needed BEFORE the badge queries below, which are
     // admin-only and may throw rather than return undefined for anyone else.
     const { user } = useUser()
-    const { isAuthenticated } = useConvexAuth()
-    const me = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip") as Me
-    const isAdmin = me?.role === "admin" && isAuthenticated
+    const { isAdmin, isStaff, canAccess, creator: me } = useAdminAuth({ allowAccountPage: true })
 
     // Badges are SKIPPED for everyone but an admin, deliberately.
     // `listPendingApproval` THROWS "Forbidden: admin access required" for a
@@ -76,7 +78,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/audit", label: "Audit log", icon: ListChecks },
     ]
 
-    const isStaff = me?.role === "staff"
     const visible: NavEntry[] = isStaff
         ? items.filter((e): e is Exclude<NavEntry, "separator"> => e !== "separator" && STAFF_ROUTES.has(e.href))
         : items
@@ -91,5 +92,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         me: name ? { name, meta: roleLabel, href: "/profile" } : null,
     }
 
-    return <AppShell sidebar={sidebar}>{children}</AppShell>
+    if (!canAccess) return null
+    // A suspended team member can still use Account, including Sign out,
+    // without seeing the admin frame or starting its protected queries.
+    return isActiveTeamAccount(me) ? <AppShell sidebar={sidebar}>{children}</AppShell> : children
 }

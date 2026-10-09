@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, internalQuery, action, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import { requireAdmin } from './lib/auth';
 
 // Get generated website by submission ID.
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
@@ -39,12 +40,12 @@ export const getBySubmissionInternal = internalQuery({
 // to save as `htmlStorageId`. STORE-ONLY — it never deletes: the previous blob
 // is GC'd by `upsert` (via the internal `deleteBlob`) AFTER the new reference is
 // committed, so a failed upsert can never strand a row on a deleted blob.
-// SECURITY follow-up: like every generatedWebsites mutation this is a public,
-// ungated action; a later pass should gate the whole table's API (shared secret
-// / internal-only caller) so anonymous callers can't spam orphan blobs.
+// Administrative builds authenticate before storing anything; internal blob
+// cleanup remains separate so scheduled cleanup does not need a Clerk session.
 export const storeHtml = action({
     args: { html: v.string() },
     handler: async (ctx, args): Promise<Id<'_storage'>> => {
+        await requireAdmin(ctx);
         return await ctx.storage.store(new Blob([args.html], { type: 'text/html' }));
     },
 });
@@ -71,6 +72,7 @@ export const upsert = mutation({
         status: v.optional(v.union(v.literal('draft'), v.literal('published'))),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         // Check if website already exists for this submission
         const existing = await ctx.db
             .query('generatedWebsites')
@@ -121,6 +123,7 @@ export const updatePublishingInfo = mutation({
         status: v.optional(v.union(v.literal('draft'), v.literal('published'))),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -330,6 +333,7 @@ export const publish = mutation({
         slug: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -367,6 +371,7 @@ export const publish = mutation({
 export const markOffline = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -388,6 +393,7 @@ export const unpublish = mutation({
         submissionId: v.id('submissions'),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -413,6 +419,7 @@ export const unpublish = mutation({
 export const remove = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))

@@ -12,13 +12,15 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/security'
  */
 export async function GET(request: NextRequest) {
     try {
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ connected: false, error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) return NextResponse.json({ connected: false, error: 'Unauthorized' }, { status: 401 })
 
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ connected: false, error: 'Admin access required' }, { status: 403 })
         }
 
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ connected: false, error: 'Too many requests' }, { status: 429 })
         }
 
-        const status = await fetchAction(api.domains.getHostingerPaymentMethodStatus, {})
+        const status = await fetchAction(api.domains.getHostingerPaymentMethodStatus, {}, { token })
         return NextResponse.json(status)
     } catch (error: any) {
         console.error('Hostinger status error:', error)

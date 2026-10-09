@@ -661,6 +661,7 @@ export const submitOwnerIntake = mutation({
             websiteListPrice: affiliateOffer ? WEBSITE_PRICE : undefined,
             campaign: campaign ?? undefined,
             source: source ?? undefined,
+            affiliateHandle: affiliateOffer?.affiliate.affiliateHandle,
             // Only an active affiliate offer earns a commission. Freeze the
             // website-only share now; domain add-ons never enter that payout.
             // House attribution and giveaway applications keep an explicit 0.

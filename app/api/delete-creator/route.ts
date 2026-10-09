@@ -74,13 +74,17 @@ function collectSectionImageUrls(images: any): string[] {
 export async function POST(request: NextRequest) {
     try {
         // Auth
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
-        const adminCreator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!adminCreator || adminCreator.role !== 'admin') {
+        const adminCreator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!adminCreator || adminCreator.role !== 'admin' || adminCreator.isDeleted || adminCreator.status === 'deleted' || adminCreator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -94,7 +98,7 @@ export async function POST(request: NextRequest) {
         // Fetch creator
         const creator = await fetchQuery(api.creators.getById, {
             id: creatorId as Id<"creators">
-        })
+        }, { token })
 
         if (!creator) {
             return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
@@ -119,7 +123,7 @@ export async function POST(request: NextRequest) {
         // Step 1: Get all submissions for this creator
         const submissions = await fetchQuery(api.submissions.getByCreatorId, {
             creatorId: creatorId as Id<"creators">
-        })
+        }, { token })
 
         console.log(`[delete-creator] Found ${submissions?.length || 0} submissions to delete`)
 
@@ -156,7 +160,7 @@ export async function POST(request: NextRequest) {
                 try {
                     const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
                         submissionId: submission._id
-                    })
+                    }, { token })
 
                     if (website) {
                         // Delete Cloudflare Pages project
@@ -188,7 +192,7 @@ export async function POST(request: NextRequest) {
 
                     const websiteContent = await fetchQuery(api.websiteContent.getBySubmissionId, {
                         submissionId: submission._id
-                    })
+                    }, { token })
                     if (websiteContent) {
                         allR2Urls.push(...collectEnhancedImageUrls(websiteContent.enhancedImages))
                         allR2Urls.push(...collectSectionImageUrls(websiteContent.images))
@@ -263,7 +267,7 @@ export async function POST(request: NextRequest) {
                         deleted: deletedAssets,
                         failed: failedAssets,
                     },
-                })
+                }, { token })
                 break
             } catch (err: any) {
                 if (attempt === 1 && (err?.cause?.code === 'ECONNRESET' || err?.message?.includes('fetch failed'))) {

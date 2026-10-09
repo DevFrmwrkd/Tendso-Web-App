@@ -97,7 +97,7 @@ describe('acknowledgement bridge', () => {
 
 describe('admin giveaway email previews', () => {
     beforeEach(() => {
-        authMock.mockResolvedValue({ userId: 'admin' });
+        authMock.mockResolvedValue({ userId: 'admin', getToken: jest.fn().mockResolvedValue('convex-admin-token') });
         fetchMock.mockImplementation((query: string) => Promise.resolve(query === 'creator' ? { role: 'admin' } : query === 'submission' ? submission : null));
     });
     it.each(['giveaway_received', 'giveaway_rejected'])('renders the same %s template without sending mail', async (type) => {

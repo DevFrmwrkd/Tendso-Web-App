@@ -1,6 +1,7 @@
 "use client"
 
 import { cx, Loading, RowButton, Skeleton, Status, TableHead } from "@/components/r1"
+import { affiliateAttribution } from "@/lib/submissionAttribution"
 
 import {
     businessName,
@@ -43,7 +44,7 @@ export function QueueHead() {
     return (
         <TableHead className="hidden lg:flex">
             <span className={COL.biz}>Business</span>
-            <span className={COL.creator}>Creator</span>
+            <span className={COL.creator}>Submitted by</span>
             <span className={COL.status}>Status</span>
             <span className={COL.pay}>Owner pays</span>
             <span className={COL.wait}>Waiting since</span>
@@ -67,7 +68,8 @@ export function QueueRowButton({
     // A row has room for one line under the status: the most urgent (a failed domain first).
     const note = statusNotes(row)[0] ?? null
     const owner = isOwnerSubmitted(row)
-    const creator = creatorName(row.creator)
+    const affiliate = affiliateAttribution(row)
+    const creator = affiliate?.name ?? creatorName(row.creator)
     const why = priceNote(row)
     const wait = waitingDays(row, now)
     const date = shortDate(row._creationTime, now)
@@ -87,10 +89,11 @@ export function QueueRowButton({
                             Giveaway
                         </span>
                     )}
+                    {affiliate && <span className="rounded-full border border-r1-line bg-r1-fill px-2 py-0.5 text-[11px] font-medium text-r1-ink-2">Affiliate</span>}
                 </span>
                 <span className="t-meta hidden truncate lg:block">{placeLine(row)}</span>
                 {/* Phone: the creator column folds into the meta line. */}
-                <span className="t-meta truncate lg:hidden">{joinDot(row.city, owner ? "Owner-submitted" : creator)}</span>
+                <span className="t-meta truncate lg:hidden">{joinDot(row.city, affiliate ? `${affiliate.name} · ${affiliate.label}` : owner ? "Owner-submitted" : creator)}</span>
                 <span className="mt-1 flex min-w-0 items-center gap-1.5 lg:hidden">
                     <Status {...status} />
                     {note && <span className={cx("t-meta min-w-0 truncate", note.problem && "text-r1-red")}>· {note.text}</span>}
@@ -98,7 +101,7 @@ export function QueueRowButton({
             </span>
             <span className={COL.creator}>
                 <span className="t-body truncate">{creator}</span>
-                {owner && <span className="t-meta truncate">Owner-submitted</span>}
+                {(affiliate || owner) && <span className="t-meta truncate">{affiliate?.label ?? "Owner-submitted"}</span>}
             </span>
             <span className={COL.status}>
                 <Status {...status} />

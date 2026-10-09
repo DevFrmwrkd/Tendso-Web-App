@@ -14,13 +14,15 @@ import { checkRateLimit, RATE_LIMITS, validateString, validateId } from '@/lib/s
  */
 export async function POST(request: NextRequest) {
     try {
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
             submissionId: submissionId as Id<'submissions'>,
             domain,
             adminClerkId: userId,
-        })
+        }, { token })
 
         return NextResponse.json(result)
     } catch (error: any) {

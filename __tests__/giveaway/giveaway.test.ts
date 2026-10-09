@@ -105,7 +105,7 @@ describe('giveawayStatus and slot lifecycle', () => {
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 0 });
         await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.rejectSubmission, { submissionId: first, adminId: ADMIN_ID, reason: 'The poster is not visible.' });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 1, given: 0 });
-        await t.mutation(api.admin.deleteSubmissionRecords, { submissionId: second, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.deleteSubmissionRecords, { submissionId: second, adminId: ADMIN_ID });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 2, given: 0 });
     });
 
@@ -281,8 +281,8 @@ describe('shared submission mutations', () => {
         const { t, creatorId } = await setup({ enabled: true, cap: 1 });
         const rejected = await seedApplication(t, creatorId, 1, { status: 'rejected' });
         await seedApplication(t, creatorId, 2);
-        await expect(t.mutation(api.submissions.updateStatus, { id: rejected, status: 'submitted' })).rejects.toThrow(GIVEAWAY_CLOSED_MESSAGE);
-        await expect(t.mutation(api.admin.approveSubmission, { submissionId: rejected, adminId: ADMIN_ID })).rejects.toThrow(GIVEAWAY_CLOSED_MESSAGE);
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.updateStatus, { id: rejected, status: 'submitted' })).rejects.toThrow(GIVEAWAY_CLOSED_MESSAGE);
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.approveSubmission, { submissionId: rejected, adminId: ADMIN_ID })).rejects.toThrow(GIVEAWAY_CLOSED_MESSAGE);
         expect((await storedSubmission(t, rejected))?.status).toBe('rejected');
     });
 
@@ -290,14 +290,14 @@ describe('shared submission mutations', () => {
         const { t, creatorId } = await setup();
         const rejected = await seedApplication(t, creatorId, 1, { status: 'rejected' });
         await seedApplication(t, creatorId, 2, { ownerEmail: application(1).ownerEmail });
-        await expect(t.mutation(api.submissions.updateStatus, { id: rejected, status: 'approved' })).rejects.toThrow('already exists');
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.updateStatus, { id: rejected, status: 'approved' })).rejects.toThrow('already exists');
         expect((await storedSubmission(t, rejected))?.status).toBe('rejected');
     });
 
     it('reacquires a slot on restoration and alerts when it fills capacity', async () => {
         const { t, creatorId } = await setup({ enabled: true, cap: 1 });
         const rejected = await seedApplication(t, creatorId, 1, { status: 'rejected' });
-        await t.mutation(api.submissions.updateStatus, { id: rejected, status: 'submitted' });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.updateStatus, { id: rejected, status: 'submitted' });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 0 });
         expect(await milestones(t)).toEqual([{ milestone: 'all_held', held: 1, given: 0, cap: 1 }]);
     });
@@ -305,9 +305,9 @@ describe('shared submission mutations', () => {
     it('prevents domains and repricing through shared mobile/admin mutations', async () => {
         const { t, creatorId } = await setup();
         const id = await seedApplication(t, creatorId, 1);
-        await expect(t.mutation(api.submissions.setDomainTier, { id, submissionType: 'with_custom_domain', requestedDomain: 'shop.com' })).rejects.toThrow('Tendso web address');
-        await t.mutation(api.submissions.setDomainTier, { id, submissionType: 'standard', sellPrice: 9999, domainPricePHP: 500 });
-        await t.mutation(api.submissions.update, { id, amount: 4999, creatorPayout: 2500, platformFee: 100 });
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.setDomainTier, { id, submissionType: 'with_custom_domain', requestedDomain: 'shop.com' })).rejects.toThrow('Tendso web address');
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.setDomainTier, { id, submissionType: 'standard', sellPrice: 9999, domainPricePHP: 500 });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.update, { id, amount: 4999, creatorPayout: 2500, platformFee: 100 });
         expect(await storedSubmission(t, id)).toMatchObject({ amount: 0, creatorPayout: 0, platformFee: 0, domainStatus: 'not_requested', submissionType: 'standard' });
         expect((await storedSubmission(t, id))?.requestedDomain).toBeUndefined();
     });
@@ -316,8 +316,8 @@ describe('shared submission mutations', () => {
         const { t, creatorId } = await setup();
         await seedApplication(t, creatorId, 1);
         const second = await seedApplication(t, creatorId, 2);
-        await expect(t.mutation(api.submissions.update, { id: second, ownerEmail: ' SHOP1@EXAMPLE.COM ' })).rejects.toThrow('already exists');
-        await expect(t.mutation(api.submissions.updateStatus, { id: second, status: 'paid' })).rejects.toThrow('given away');
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.update, { id: second, ownerEmail: ' SHOP1@EXAMPLE.COM ' })).rejects.toThrow('already exists');
+        await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.updateStatus, { id: second, status: 'paid' })).rejects.toThrow('given away');
         expect((await storedSubmission(t, second))?.ownerEmail).toBe(application(2).ownerEmail);
     });
 
@@ -327,7 +327,7 @@ describe('shared submission mutations', () => {
     ])('keeps the original normalized %s reserved after both contact fields are edited', async (_kind, original) => {
         const { t } = await setup();
         const id = await t.mutation(api.ownerIntake.submitOwnerIntake, application(1));
-        await t.mutation(api.submissions.update, { id, ownerPhone: application(2).ownerPhone, ownerEmail: application(2).ownerEmail });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.update, { id, ownerPhone: application(2).ownerPhone, ownerEmail: application(2).ownerEmail });
         expect(await storedSubmission(t, id)).toMatchObject({ giveawayPhoneKey: '9170000001', giveawayEmailKey: 'shop1@example.com' });
         await expect(t.mutation(api.ownerIntake.submitOwnerIntake, { ...application(3), ...original })).rejects.toThrow('already exists');
         await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.rejectSubmission, { submissionId: id, adminId: ADMIN_ID, reason: 'The poster is not visible.' });
@@ -366,8 +366,8 @@ describe('markComped and Discord milestones', () => {
         const id = await t.mutation(api.ownerIntake.submitOwnerIntake, application(100));
         await t.run(async (ctx) => ctx.db.insert('generatedWebsites', { submissionId: id }));
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 99 });
-        await t.mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
-        await t.mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 100 });
         expect((await storedSubmission(t, id))?.pricingMode).toBe('comped');
         expect(await milestones(t)).toEqual([
@@ -380,7 +380,7 @@ describe('markComped and Discord milestones', () => {
         const { t, creatorId } = await setup();
         const id = await seedApplication(t, creatorId, 1, { giveawayApplication: undefined, amount: WEBSITE_PRICE });
         await t.run(async (ctx) => ctx.db.insert('generatedWebsites', { submissionId: id }));
-        await t.mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.markComped, { submissionId: id, adminId: ADMIN_ID });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 100, given: 0 });
         expect(await milestones(t)).toEqual([]);
     });
@@ -389,7 +389,7 @@ describe('markComped and Discord milestones', () => {
         const { t, creatorId } = await setup();
         for (let n = 1; n <= 99; n++) await seedApplication(t, creatorId, n, { pricingMode: 'comped', status: 'completed' });
         const restored = await seedApplication(t, creatorId, 100, { pricingMode: 'comped', status: 'rejected' });
-        await t.mutation(api.submissions.updateStatus, { id: restored, status: 'website_generated' });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.submissions.updateStatus, { id: restored, status: 'website_generated' });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 100 });
         expect(await milestones(t)).toEqual([
             { milestone: 'all_held', held: 100, given: 100, cap: 100 },

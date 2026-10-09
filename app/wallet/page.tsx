@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type ReactNode } from "react";
@@ -49,6 +49,7 @@ const SUB = "How much can I take out, and when?";
 export default function WalletPage() {
     const router = useRouter();
     const { user, isLoaded, isSignedIn } = useUser();
+    const { isAuthenticated } = useConvexAuth();
 
     const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
@@ -66,7 +67,7 @@ export default function WalletPage() {
 
     // Still loading, signed out, or on the way to onboarding: the page's own
     // shape stays on screen until the redirect or the data arrives.
-    if (!isLoaded || !isSignedIn || creator === undefined || creator === null) {
+    if (!isLoaded || !isSignedIn || !isAuthenticated || creator === undefined || creator === null) {
         return (
             <CreatorShell>
                 <PageHeader title={TITLE} sub={SUB} />

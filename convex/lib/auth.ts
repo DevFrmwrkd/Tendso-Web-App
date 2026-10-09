@@ -75,8 +75,32 @@ export async function requireAdmin(ctx: AnyCtx): Promise<{ identity: UserIdentit
             .first();
     }
 
-    if (!me || me.role !== "admin") {
+    if (!me || me.role !== "admin" || me.isDeleted || me.status === "deleted" || me.status === "suspended") {
         throw new Error("Forbidden: admin access required");
+    }
+    return { identity, me };
+}
+
+/** Bind legacy administrator arguments to the actual signed-in caller. */
+export async function requireAdminActor(ctx: AnyCtx, adminId?: string): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
+    const actor = await requireAdmin(ctx);
+    if (adminId !== undefined && adminId !== actor.identity.subject) {
+        throw new Error("Forbidden: administrator identity does not match");
+    }
+    return actor;
+}
+
+/** Private account data belongs to the signed-in account, with an admin override. */
+export async function requireAccountOwner(ctx: AnyCtx, creatorId: Id<"creators">): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
+    const identity = await requireAuth(ctx);
+    const me: Doc<"creators"> | null = isActionCtx(ctx)
+        ? await ctx.runQuery(internal.creators.getMeForAuthInternal, { clerkId: identity.subject })
+        : await ctx.db.query("creators").withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
+    if (!me || me.isDeleted || me.status === "deleted" || me.status === "suspended") {
+        throw new Error("Forbidden: account access required");
+    }
+    if (me._id !== creatorId && me.role !== "admin") {
+        throw new Error("Forbidden: you can only access your own account");
     }
     return { identity, me };
 }
@@ -105,7 +129,7 @@ export async function requireStaff(ctx: AnyCtx): Promise<{ identity: UserIdentit
             .first();
     }
 
-    if (!me || (me.role !== "admin" && me.role !== "staff")) {
+    if (!me || (me.role !== "admin" && me.role !== "staff") || me.isDeleted || me.status === "deleted" || me.status === "suspended") {
         throw new Error("Forbidden: staff access required");
     }
     return { identity, me, isAdmin: me.role === "admin" };

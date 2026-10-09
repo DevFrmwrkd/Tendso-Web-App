@@ -31,14 +31,18 @@ import { revalidatePath } from 'next/cache'
 export async function POST(request: NextRequest) {
     try {
         // Verify Clerk authentication
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Verify admin role using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
         // Get the generated website from Convex
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!website) {
             return NextResponse.json({ error: 'Website not found. Generate it first.' }, { status: 404 })
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
         // Get the submission for business name
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
         // move the site.
         let siteSlug = website.slug ?? null
         if (!siteSlug) {
-            const taken = await fetchQuery(api.generatedWebsites.listSlugs, {})
+            const taken = await fetchQuery(api.generatedWebsites.listSlugs, {}, { token })
             siteSlug = resolveSiteSlug(submission.businessName, taken, String(submissionId))
         }
         const hostedUrl = siteUrlForSlug(siteSlug)
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest) {
                 // keeps it.
                 ...(workerName ? { cfPagesProjectName: workerName } : {}),
                 slug: siteSlug,
-            })
+            }, { token })
         } catch (updateError: any) {
             console.error('Database update error:', updateError?.message || updateError)
         }
@@ -140,7 +144,7 @@ export async function POST(request: NextRequest) {
             await fetchMutation(api.submissions.updateStatus, {
                 id: submissionId as Id<"submissions">,
                 status: 'deployed'
-            })
+            }, { token })
         } catch (statusError: any) {
             console.error('Status update error:', statusError?.message || statusError)
         }
@@ -149,7 +153,7 @@ export async function POST(request: NextRequest) {
             await fetchMutation(api.submissions.update, {
                 id: submissionId as Id<"submissions">,
                 websiteUrl: publishedUrl,
-            })
+            }, { token })
         } catch (urlError: any) {
             console.error('Submission websiteUrl update error:', urlError?.message || urlError)
         }

@@ -96,10 +96,11 @@ export const sendReminder = action({
         const internalSecret = process.env.INTERNAL_API_SECRET || '';
         let sent = false;
         try {
+            const paymentToken = await ctx.runQuery(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: args.submissionId });
             const response = await fetch(`${baseUrl}/api/internal/send-creator-reminder`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': internalSecret },
-                body: JSON.stringify({ submissionId: args.submissionId, creatorName: claimed.creatorName }),
+                body: JSON.stringify({ submissionId: args.submissionId, creatorName: claimed.creatorName, referenceCode: paymentToken?.referenceCode }),
             });
             sent = response.ok;
             if (!sent) console.error(`[creatorReminders] send failed for ${args.submissionId}: ${response.status} ${await response.text()}`);

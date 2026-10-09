@@ -14,14 +14,18 @@ import { getPaymentConfig } from '@/lib/payment/config'
 export async function POST(request: NextRequest) {
     try {
         // Verify Clerk authentication
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Verify admin role using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
         // Get the submission from Convex
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
         // Check if payment token already exists for this submission
         const existingToken = await fetchQuery(api.paymentTokens.getBySubmissionId, {
             submissionId: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         let paymentToken = existingToken
 
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
                 submissionId: submissionId as Id<"submissions">,
                 referenceCode: referenceCode,
                 amount: submission.amount ?? 0,
-            })
+            }, { token })
         }
 
         if (!paymentToken) {
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest) {
         if (!publishedUrl) {
             const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
                 submissionId: submissionId as Id<"submissions">
-            })
+            }, { token })
             publishedUrl = website?.publishedUrl
         }
 
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
         try {
             const claim = await fetchMutation(api.businessOwners.issueClaimTokenForEmail, {
                 submissionId: submissionId as Id<"submissions">,
-            })
+            }, { token })
             const base = process.env.NEXT_PUBLIC_SITE_URL?.startsWith('https://')
                 ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
                 : 'https://tendso.com'
@@ -131,13 +135,13 @@ export async function POST(request: NextRequest) {
         // Record email sent timestamp
         await fetchMutation(api.paymentTokens.recordEmailSent, {
             token: paymentToken.token,
-        })
+        }, { token })
 
         // Mark status as pending_payment and record sentEmailAt
         await fetchMutation(api.admin.markEmailSent, {
             submissionId: submissionId as Id<"submissions">,
             adminId: userId,
-        })
+        }, { token })
 
         return NextResponse.json({
             success: true,

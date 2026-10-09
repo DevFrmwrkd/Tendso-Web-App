@@ -34,14 +34,18 @@ import { needsCloudflareWorker } from '@/lib/publish-target'
 export async function POST(request: NextRequest) {
     try {
         // Verify Clerk authentication
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Verify admin role using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
 
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!website) {
             return NextResponse.json({ error: 'Website not found' }, { status: 404 })
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
 
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         // cfPagesProjectName holds the Worker script name despite the field's
         // name (see convex/domains.ts, which attaches custom domains to it).
@@ -113,7 +117,7 @@ export async function POST(request: NextRequest) {
 
         await fetchMutation(api.generatedWebsites.markOffline, {
             submissionId: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         // The hosted route caches a live page effectively forever, so without
         // this purge a site taken offline would keep being served from the edge
@@ -134,7 +138,7 @@ export async function POST(request: NextRequest) {
         try {
             await fetchMutation(api.submissions.setUnpublished, {
                 id: submissionId as Id<"submissions">
-            })
+            }, { token })
         } catch (statusError) {
             console.error('Status update error:', statusError)
         }

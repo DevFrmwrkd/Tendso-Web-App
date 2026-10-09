@@ -4,6 +4,7 @@ import { ArrowRight, Check, Eye, MoreHorizontal, Trash2, X } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Avatar, Button, ButtonLink, cx, Drawer, Icon, MoreMenu, Status, type MenuItem } from "@/components/r1"
+import { affiliateAttribution } from "@/lib/submissionAttribution"
 
 import {
     businessName,
@@ -105,7 +106,8 @@ function Details({ row, now }: { row: QueueRow; now: number }) {
     const notes = statusNotes(row)
     const wait = waitingDays(row, now)
     const owner = isOwnerSubmitted(row)
-    const creator = creatorName(row.creator)
+    const affiliate = affiliateAttribution(row)
+    const creator = affiliate?.name ?? creatorName(row.creator)
     const when = ownerPaysWhen(row)
     const checks = checklist(row)
     const done = checks.filter((c) => c.done).length
@@ -127,12 +129,12 @@ function Details({ row, now }: { row: QueueRow; now: number }) {
                     {wait !== null && <span className="t-meta">Waiting {daysText(wait)}</span>}
                 </Fact>
 
-                <Fact term="Creator" className="flex-row items-center gap-2.5">
+                <Fact term={affiliate ? "Affiliate" : "Creator"} className="flex-row items-center gap-2.5">
                     <Avatar name={creator} />
                     <span className="flex min-w-0 flex-col">
                         <span className="t-body break-words text-r1-ink">{creator}</span>
                         <span className="t-meta">
-                            {owner ? ((row.creatorPayout ?? 0) > 0 ? "Owner-submitted" : "Owner-submitted, no creator payout") : "Creator"}
+                            {affiliate ? `${affiliate.label} · Owner-submitted via /start` : owner ? ((row.creatorPayout ?? 0) > 0 ? "Owner-submitted" : "Owner-submitted, no creator payout") : "Creator"}
                         </span>
                     </span>
                 </Fact>
@@ -147,7 +149,7 @@ function Details({ row, now }: { row: QueueRow; now: number }) {
                     {when && <span className="t-meta">{when}</span>}
                 </Fact>
 
-                <Fact term="Creator gets">
+                <Fact term={affiliate ? "Affiliate gets" : "Creator gets"}>
                     <span className="t-body t-num text-r1-ink">{creatorGets(row)}</span>
                 </Fact>
             </dl>

@@ -27,6 +27,7 @@ import {
     submissionStatus,
 } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
+import { affiliateAttribution } from "@/lib/submissionAttribution"
 import { useCallSchedule, useNow, type FinishedCall } from "@/hooks/useCallSchedule"
 
 import { CalendarNote } from "./CallList"
@@ -387,8 +388,10 @@ function MoneyFold({
 
 // ── Recent submissions ─────────────────────────────────────────────────────
 
-/** Who brought it in: the owner on a self-serve site, otherwise the creator. */
+/** Who brought it in: the affiliate, self-serve owner, or field creator. */
 function byLine(s: Submission): string {
+    const affiliate = affiliateAttribution(s)
+    if (affiliate) return `${affiliate.label} · ${affiliate.name}`
     if (s.contentSource === "owner_intake") return s.ownerName ? `Owner self-serve · ${s.ownerName}` : "Owner self-serve"
     const name = [s.creator?.firstName, s.creator?.lastName].filter(Boolean).join(" ")
     return name ? `by ${name}` : "Creator unknown"

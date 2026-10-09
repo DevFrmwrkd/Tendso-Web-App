@@ -1,9 +1,22 @@
 import { action, mutation, query, internalMutation, internalQuery } from './_generated/server'
 import { v } from 'convex/values'
-import { api, internal } from './_generated/api'
-import type { Id } from './_generated/dataModel'
+import { internal } from './_generated/api'
 import type { PaymentTokenStatus } from '../types/payment-tokens'
-import { isComped, ownerChargeFor } from '../lib/pricing'
+import { isComped } from '../lib/pricing'
+import { requireAccountOwner, requireAdmin } from './lib/auth'
+import { validatePaymentPricing } from './lib/paymentPricing'
+import type { Id } from './_generated/dataModel'
+import type { QueryCtx } from './_generated/server'
+
+async function orderPricing(ctx: Pick<QueryCtx, 'db'>, submissionId: Id<'submissions'>) {
+    const submission = await ctx.db.get(submissionId)
+    if (!submission) throw new Error('Submission not found')
+    if (submission.giveawayApplication) {
+        throw new Error('Giveaway applications cannot be billed. Give the website through the comped flow instead.')
+    }
+    if (isComped(submission)) throw new Error('Comped websites cannot be billed.')
+    return validatePaymentPricing(submission)
+}
 
 /**
  * Generate a cryptographic payment token using Web Crypto API
@@ -31,16 +44,9 @@ export const storePaymentToken = internalMutation({
         expiresAt: v.number(),
     },
     handler: async (ctx, args) => {
-        const submission = await ctx.db.get(args.submissionId)
-        if (!submission) throw new Error('Submission not found')
-        if (submission.giveawayApplication) {
-            throw new Error('Giveaway applications cannot be billed. Give the website through the comped flow instead.')
-        }
-        if (isComped(submission)) throw new Error('Comped websites cannot be billed.')
         // The public action retains its mobile amount argument, but the order
         // owns the charge. A browser-created cheap token cannot settle it.
-        const amount = ownerChargeFor(submission)
-        if (!Number.isFinite(amount) || amount <= 0) throw new Error('A positive order amount is required.')
+        const { amount } = await orderPricing(ctx, args.submissionId)
         return await ctx.db.insert('paymentTokens', {
             submissionId: args.submissionId,
             token: args.token,
@@ -123,6 +129,7 @@ export const getByTokenInternal = internalQuery({
 export const getByReference = query({
     args: { referenceCode: v.string() },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx)
         const token = await ctx.db
             .query('paymentTokens')
             .withIndex('by_reference', (q) => q.eq('referenceCode', args.referenceCode))
@@ -171,12 +178,31 @@ export const findPendingByAmount = internalQuery({
 export const getBySubmissionId = query({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId)
+        if (!submission) throw new Error('Submission not found')
+        await requireAccountOwner(ctx, submission.creatorId)
         const token = await ctx.db
             .query('paymentTokens')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
             .first()
 
         return token || null
+    },
+})
+
+/** Recheck stored money before a webhook can settle an existing invoice. */
+export const getOrderPricingInternal = internalQuery({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => orderPricing(ctx, args.submissionId),
+})
+
+// Trusted server email/reminder pipelines do not have a browser Clerk session.
+export const getBySubmissionIdInternal = internalQuery({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        return await ctx.db.query('paymentTokens')
+            .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
+            .first()
     },
 })
 
@@ -237,6 +263,7 @@ export const markCancelled = mutation({
         reason: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx)
         const paymentToken = await ctx.db
             .query('paymentTokens')
             .withIndex('by_token', (q) => q.eq('token', args.token))
@@ -259,6 +286,7 @@ export const markCancelled = mutation({
 export const recordEmailSent = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx)
         const paymentToken = await ctx.db
             .query('paymentTokens')
             .withIndex('by_token', (q) => q.eq('token', args.token))
@@ -282,6 +310,7 @@ export const listPending = query({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx)
         const tokens = await ctx.db
             .query('paymentTokens')
             .withIndex('by_status', (q) => q.eq('status', 'pending'))
@@ -298,6 +327,7 @@ export const getExpiringTokens = query({
         withinDays: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx)
         const days = args.withinDays || 7
         const now = Date.now()
         const threshold = now + days * 24 * 60 * 60 * 1000

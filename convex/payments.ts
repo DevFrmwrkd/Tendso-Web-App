@@ -5,6 +5,7 @@ import { extractReferenceFromText } from '../lib/payments/referenceCode'
 import { determinePaymentStatus } from '../lib/payments/webhookParser'
 import { REFERRAL_BONUS, PRICING_MODE_COMPED, isComped, ownerChargeFor } from '../lib/pricing'
 import { isCreatorAccount } from '../lib/accounts'
+import { validatePaymentPricing } from './lib/paymentPricing'
 
 // ==================== SHARED CREDIT LOGIC ====================
 // Used by both admin.markPaid (manual) and auto-payment (webhook)
@@ -27,6 +28,7 @@ export const creditCreatorForPayment = internalMutation({
         triggeredBy: v.string(), // 'admin:<clerkId>' or 'system:auto-payment'
         paymentRefCode: v.optional(v.string()),
         comped: v.optional(v.boolean()),
+        expectedOwnerCharge: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId)
@@ -51,6 +53,13 @@ export const creditCreatorForPayment = internalMutation({
             // An admin can reject while this scheduled credit is pending. Do
             // not revive the row and silently reacquire its released slot.
             if (submission.status === 'rejected') return
+        }
+
+        if (!comped && !submission.giveawayApplication) {
+            const { amount } = validatePaymentPricing(submission)
+            if (args.expectedOwnerCharge !== undefined && amount !== args.expectedOwnerCharge) {
+                throw new Error('Payment token amount no longer matches the order.')
+            }
         }
 
         const payoutAmount = submission.giveawayApplication ? 0 : submission.creatorPayout ?? 0
@@ -297,6 +306,13 @@ export const processDeposit = internalAction({
             return
         }
 
+        const orderPricing = await ctx.runQuery(internal.paymentTokens.getOrderPricingInternal, {
+            submissionId: paymentToken.submissionId,
+        })
+        if (orderPricing.amount !== paymentToken.amount) {
+            throw new Error('Payment token amount no longer matches the order.')
+        }
+
         // Determine payment status
         const paymentStatus = determinePaymentStatus(args.amount, paymentToken.amount)
         console.log(`[PAYMENTS] Token ${paymentToken.referenceCode}: status=${paymentStatus}, expected=₱${paymentToken.amount}, received=₱${args.amount}, matched_by=${matchMethod}`)
@@ -318,18 +334,19 @@ export const processDeposit = internalAction({
             return
         }
 
-        // Mark token as paid
-        await ctx.runMutation(internal.paymentTokens.markUsed, {
-            token: paymentToken.token,
-            wiseTransactionId: args.transactionId,
-        })
-
-        // Credit creator + trigger domain pipeline
+        // Validate and credit in one mutation before consuming the token.
+        // A changed price or payout must leave the invoice available for review.
         console.log(`[PAYMENTS] ✓ Auto-crediting submission ${paymentToken.submissionId} (matched_by=${matchMethod})`)
         await ctx.runMutation(internal.payments.creditCreatorForPayment, {
             submissionId: paymentToken.submissionId,
             triggeredBy: 'system:auto-payment',
             paymentRefCode: paymentToken.referenceCode,
+            expectedOwnerCharge: paymentToken.amount,
+        })
+
+        await ctx.runMutation(internal.paymentTokens.markUsed, {
+            token: paymentToken.token,
+            wiseTransactionId: args.transactionId,
         })
     },
 })

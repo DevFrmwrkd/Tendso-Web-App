@@ -1,23 +1,9 @@
 import { v } from 'convex/values';
 import { query, mutation, action, internalMutation, internalAction, internalQuery } from './_generated/server';
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
 import { settlementBlockReason } from './lib/settlement';
 import { greetingName } from '../lib/email/greeting';
-
-/**
- * Resolve an adminId to a real admin row. The withdrawal mutations below take
- * adminId as a plain argument and, before this, used it only as an audit-log
- * label — so `updateStatus` and `adminRetry` were public mutations that moved
- * money for any caller who supplied any string. Mirrors admin.markComped.
- */
-async function assertAdmin(ctx: any, adminId: string) {
-    const actor = await ctx.db
-        .query('creators')
-        .withIndex('by_clerk_id', (q: any) => q.eq('clerkId', adminId))
-        .first();
-    if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
-    return actor;
-}
+import { requireAccountOwner, requireAdmin, requireAdminActor } from './lib/auth';
 
 // ==================== MUTATIONS ====================
 
@@ -58,11 +44,12 @@ export const create = mutation({
         wiseEmail: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<any> => {
+        await requireAccountOwner(ctx, args.creatorId);
         // No fixed minimum — only floor is amount > 0. Fee absorption (createQuote
         // uses targetAmount) means the platform pays Wise's per-transfer fee, not
         // the creator. Reintroducing a hardcoded floor would contradict the UI.
         // See docs/changes/WISE-WITHDRAWAL-FIX-MIN.md.
-        if (args.amount <= 0) {
+        if (!Number.isFinite(args.amount) || args.amount <= 0) {
             throw new Error('Withdrawal amount must be greater than zero');
         }
 
@@ -317,7 +304,7 @@ export const adminRetry = mutation({
         notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        await assertAdmin(ctx, args.adminId);
+        await requireAdminActor(ctx, args.adminId);
 
         const withdrawal = await ctx.db.get(args.id);
         if (!withdrawal) throw new Error('Withdrawal not found');
@@ -375,7 +362,7 @@ export const updateStatus = mutation({
         failureReason: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        await assertAdmin(ctx, args.adminId);
+        await requireAdminActor(ctx, args.adminId);
 
         const withdrawal = await ctx.db.get(args.id);
         if (!withdrawal) throw new Error('Withdrawal not found');
@@ -445,6 +432,7 @@ export const updateStatus = mutation({
 export const getByCreator = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireAccountOwner(ctx, args.creatorId);
         return await ctx.db
             .query('withdrawals')
             .withIndex('by_creator', (q) => q.eq('creatorId', args.creatorId))
@@ -466,6 +454,7 @@ export const getByStatus = query({
         ),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const withdrawals = await ctx.db
             .query('withdrawals')
             .withIndex('by_status', (q) => q.eq('status', args.status))
@@ -493,6 +482,7 @@ export const getByStatus = query({
 export const getAll = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const withdrawals = await ctx.db
             .query('withdrawals')
             .order('desc')
@@ -771,9 +761,8 @@ export const recordStatusCheck = internalMutation({
  * conclusion that leads to paying the same creator twice. This closes that
  * window: fund, refresh, see the truth.
  *
- * Admin-gated by resolving adminId to a real admin row rather than trusting the
- * string, the same way admin.markPaid does — this reaches the Wise API and can
- * move a withdrawal into a terminal state that credits totalWithdrawn.
+ * Requires the authenticated admin to match the audit actor — this reaches
+ * the Wise API and can settle a withdrawal and credit totalWithdrawn.
  *
  * Deliberately does NOT email the creator. The cron owns creator comms and
  * throttles them to one a day; an admin clicking refresh three times while
@@ -790,8 +779,7 @@ export const refreshFromWise = action({
         wiseDetailedState?: string
         statusChangedTo?: string
     }> => {
-        const actor = await ctx.runQuery(api.creators.getByClerkId, { clerkId: args.adminId });
-        if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
+        await requireAdminActor(ctx, args.adminId);
 
         const withdrawal: any = await ctx.runQuery(internal.withdrawals.getByIdInternal, {
             id: args.withdrawalId,

@@ -5,12 +5,15 @@ import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, clampSellPrice, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
 import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
-import { requireAdmin, requireCreatorAccount } from './lib/auth';
+import { requireAccountOwner, requireAdmin, requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 
-/** Shared server pipelines still call these endpoints without a Clerk token. */
-async function requireCreatorCallerIfSignedIn(ctx: MutationCtx) {
-    if (await ctx.auth.getUserIdentity()) await requireCreatorAccount(ctx);
+/** Capture edits belong to their creator; admin publishing can edit any account's content. */
+async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>) {
+    const { me } = await requireCreatorAccount(ctx);
+    if (me.role !== 'admin' && me._id !== creatorId) {
+        throw new Error('Forbidden: you can only edit your own submission');
+    }
 }
 
 /** Mobile reads drafts before its token hydrates; preserve that read contract. */
@@ -52,6 +55,7 @@ export const getByIdInternal = internalQuery({
 export const getByIdWithCreator = query({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) return null;
 
@@ -76,6 +80,7 @@ export const getByIdWithCreator = query({
                     lastName: creator.lastName,
                     email: creator.email,
                     phone: creator.phone,
+                    ...(creator.role === 'affiliate' ? { role: creator.role, affiliateHandle: creator.affiliateHandle, affiliateDisplayName: creator.affiliateDisplayName } : {}),
                 }
                 : null,
         };
@@ -88,6 +93,7 @@ export const getByIdWithCreator = query({
 export const getByCreatorId = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireAccountOwner(ctx, args.creatorId);
         return await ctx.db
             .query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
@@ -119,6 +125,7 @@ export const getDraftByCreatorId = query({
 export const getAll = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         return await ctx.db.query('submissions').order('desc').collect();
     },
 });
@@ -129,6 +136,7 @@ export const getAll = query({
 export const getAllWithCreator = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const submissions = await ctx.db.query('submissions').order('desc').collect();
 
         // Cache reviewer lookups to avoid repeated queries
@@ -163,6 +171,7 @@ export const getAllWithCreator = query({
                             lastName: creator.lastName,
                             email: creator.email,
                             phone: creator.phone,
+                            ...(creator.role === 'affiliate' ? { role: creator.role, affiliateHandle: creator.affiliateHandle, affiliateDisplayName: creator.affiliateDisplayName } : {}),
                         }
                         : null,
                 };
@@ -192,6 +201,7 @@ export const getByStatus = query({
         ),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         return await ctx.db
             .query('submissions')
             .withIndex('by_status', (q) => q.eq('status', args.status))
@@ -387,7 +397,10 @@ export const create = mutation({
         prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
-        await requireCreatorAccount(ctx, args.creatorId);
+        const { me } = await requireCreatorAccount(ctx, args.creatorId);
+        if (args.status && args.status !== 'draft' && args.status !== 'submitted' && me.role !== 'admin') {
+            throw new Error('Forbidden: admin access required to set submission status');
+        }
         const submissionId = await ctx.db.insert('submissions', {
             creatorId: args.creatorId,
             businessName: args.businessName,
@@ -467,7 +480,6 @@ export const update = mutation({
         prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
-        await requireCreatorCallerIfSignedIn(ctx);
         // prospectLeadId is pulled out of the generic spread deliberately: it
         // needs validation, and letting it flow through filteredUpdates would
         // let a re-entry silently re-point an in-progress interview at a
@@ -481,6 +493,7 @@ export const update = mutation({
 
         const submission = await ctx.db.get(id);
         if (!submission) throw new Error('Submission not found');
+        await requireSubmissionEditor(ctx, submission.creatorId);
         const attributedAccount = await ctx.db.get(submission.creatorId);
         if (submission.contentSource === 'owner_intake' || attributedAccount?.role === 'affiliate') {
             // Shared publish/transcription callers can still edit content. They
@@ -580,7 +593,7 @@ export const setDomainTier = mutation({
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
-        await requireCreatorCallerIfSignedIn(ctx);
+        await requireSubmissionEditor(ctx, submission.creatorId);
         const account = await ctx.db.get(submission.creatorId);
         if (account?.role === 'affiliate') throw new Error('Affiliate orders cannot use creator pricing.');
         if (submission.contentSource === 'owner_intake' && !submission.giveawayApplication) {
@@ -668,6 +681,7 @@ export const updateStatus = mutation({
         ),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
         if (submission.giveawayApplication && args.status === 'rejected') {
@@ -694,6 +708,7 @@ export const updateStatus = mutation({
 export const setUnpublished = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
         await assertGiveawayCanActivate(ctx, submission);
@@ -827,6 +842,7 @@ export const saveWebsite = mutation({
         websiteCode: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
         await assertGiveawayCanActivate(ctx, submission);
@@ -847,6 +863,7 @@ export const markPaid = mutation({
         paymentReference: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
         if (submission.giveawayApplication) {
@@ -880,6 +897,9 @@ export const markFollowUpSent = mutation({
 export const requestPayout = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        await requireAccountOwner(ctx, submission.creatorId);
         await ctx.db.patch(args.id, {
             payoutRequestedAt: Date.now(),
         });
@@ -892,6 +912,7 @@ export const requestPayout = mutation({
 export const markPayoutComplete = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
@@ -922,9 +943,9 @@ export const markPayoutComplete = mutation({
 export const remove = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
-        await requireCreatorCallerIfSignedIn(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
+        await requireSubmissionEditor(ctx, submission.creatorId);
 
         if (submission.status !== 'draft') {
             throw new Error('Can only delete draft submissions');
@@ -935,6 +956,28 @@ export const remove = mutation({
 });
 
 // ==================== TRANSCRIPTION INTERNALS ====================
+
+/** Existing server transcription bridge, limited to transcript bookkeeping. */
+export const recordTranscriptionFromServer = mutation({
+    args: {
+        id: v.id('submissions'),
+        internalSecret: v.string(),
+        transcriptionStatus: v.union(v.literal('processing'), v.literal('complete'), v.literal('failed')),
+        transcript: v.optional(v.string()),
+        transcriptionUpdatedAt: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        const expectedSecret = process.env.INTERNAL_API_SECRET;
+        if (!expectedSecret || args.internalSecret !== expectedSecret) throw new Error('Forbidden: internal access required');
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        await ctx.db.patch(args.id, {
+            transcriptionStatus: args.transcriptionStatus,
+            ...(args.transcript !== undefined ? { transcript: args.transcript } : {}),
+            ...(args.transcriptionUpdatedAt !== undefined ? { transcriptionUpdatedAt: args.transcriptionUpdatedAt } : {}),
+        });
+    },
+});
 //
 // These three functions are referenced by the mobile app (Google Play binary).
 // Mobile's `submissions.update` mutation and internal transcription pipeline

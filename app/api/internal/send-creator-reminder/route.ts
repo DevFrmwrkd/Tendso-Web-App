@@ -13,7 +13,7 @@ import { sendCreatorReminderEmail } from '@/lib/email/service'
  * records the reminder, and takes it back if this fails.
  *
  * Auth: shared secret in X-Internal-Secret header (matches INTERNAL_API_SECRET env var)
- * Body: { submissionId: string, creatorName: string }
+ * Body: { submissionId: string, creatorName: string, referenceCode?: string }
  */
 export async function POST(request: NextRequest) {
     try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { submissionId, creatorName } = (await request.json()) as { submissionId?: string; creatorName?: string }
+        const { submissionId, creatorName, referenceCode } = (await request.json()) as { submissionId?: string; creatorName?: string; referenceCode?: string }
         if (!submissionId || !creatorName) {
             return NextResponse.json({ error: 'submissionId and creatorName required' }, { status: 400 })
         }
@@ -37,10 +37,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Business owner email not found' }, { status: 400 })
         }
 
-        const [website, token] = await Promise.all([
-            fetchQuery(api.generatedWebsites.getBySubmissionId, { submissionId: id }).catch(() => null),
-            fetchQuery(api.paymentTokens.getBySubmissionId, { submissionId: id }).catch(() => null),
-        ])
+        const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, { submissionId: id }).catch(() => null)
 
         await sendCreatorReminderEmail({
             creatorName,
@@ -49,7 +46,7 @@ export async function POST(request: NextRequest) {
             businessOwnerEmail: submission.ownerEmail,
             amount: submission.amount ?? 0,
             websiteUrl: website?.publishedUrl || submission.websiteUrl || undefined,
-            referenceCode: token?.referenceCode ?? submission.paymentReference,
+            referenceCode: referenceCode ?? submission.paymentReference,
             customDomain: submission.requestedDomain || undefined,
             domainCostPHP: submission.domainCostPHP || undefined,
             domainChargedPHP: submission.domainChargedPHP,

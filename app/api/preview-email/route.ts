@@ -11,14 +11,16 @@ import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
  */
 export async function GET(request: NextRequest) {
     try {
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
         // Verify admin role
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
 
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
         try {
             const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
                 submissionId: submissionId as Id<"submissions">
-            })
+            }, { token })
             publishedUrl = website?.publishedUrl || ''
         } catch {
             // Website URL is optional
@@ -95,11 +97,11 @@ export async function GET(request: NextRequest) {
 
             let referenceCode = submission.paymentReference || 'ND-XXXX-XXXX'
             try {
-                const token = await fetchQuery(api.paymentTokens.getBySubmissionId, {
+                const paymentToken = await fetchQuery(api.paymentTokens.getBySubmissionId, {
                     submissionId: submissionId as Id<'submissions'>,
-                })
-                if (token) {
-                    referenceCode = token.referenceCode
+                }, { token })
+                if (paymentToken) {
+                    referenceCode = paymentToken.referenceCode
                 }
             } catch {
                 // Preview-only — placeholder is fine if token lookup fails
@@ -125,7 +127,7 @@ export async function GET(request: NextRequest) {
             try {
                 const withCreator = await fetchQuery(api.submissions.getByIdWithCreator, {
                     id: submissionId as Id<'submissions'>,
-                })
+                }, { token })
                 // A self-serve site's creator is the house account, not a person:
                 // the real email names whoever the admin types at "Give free", so
                 // the preview takes ?giftedBy= and otherwise shows the unnamed variant.

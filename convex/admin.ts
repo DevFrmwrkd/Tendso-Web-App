@@ -3,7 +3,7 @@ import { query, mutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { PRICING_MODE_COMPED, isComped } from '../lib/pricing';
 import { assertGiveawayCanActivate, readGiveaway } from './lib/giveaway';
-import { requireAdmin } from './lib/auth';
+import { requireAdmin, requireAdminActor } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 
 // ==================== QUERIES ====================
@@ -14,12 +14,14 @@ import { isCreatorAccount } from '../lib/accounts';
 export const isAdmin = query({
     args: { clerkId: v.string() },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity || identity.subject !== args.clerkId) return false;
         const creator = await ctx.db
             .query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
             .unique();
 
-        return creator?.role === 'admin';
+        return creator?.role === 'admin' && !creator.isDeleted && creator.status !== 'deleted' && creator.status !== 'suspended';
     },
 });
 
@@ -29,6 +31,7 @@ export const isAdmin = query({
 export const getPendingPayouts = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const submissions = await ctx.db
             .query('submissions')
             .filter((q) =>
@@ -70,6 +73,7 @@ export const getPendingPayouts = query({
 export const getPayoutStats = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const allSubmissions = await ctx.db.query('submissions').collect();
 
         // Pending payouts
@@ -108,6 +112,7 @@ export const getPayoutStats = query({
 export const getDashboardStats = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const submissions = await ctx.db.query('submissions').collect();
         const creators = (await ctx.db.query('creators').collect()).filter((c) => isCreatorAccount(c) && !c.isDeleted && c.status !== 'deleted');
 
@@ -148,6 +153,8 @@ export const approveSubmission = mutation({
         adminId: v.string(),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -157,13 +164,13 @@ export const approveSubmission = mutation({
         await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.submissionId, {
             status: 'approved',
-            reviewedBy: args.adminId,
+            reviewedBy: adminId,
             reviewedAt: Date.now(),
         });
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'submission_approved',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -221,14 +228,14 @@ export const rejectSubmission = mutation({
         reason: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
         const previousStatus = submission.status;
         let reason = args.reason;
         if (submission.giveawayApplication) {
-            const { identity } = await requireAdmin(ctx);
-            if (identity.subject !== args.adminId) throw new Error('Forbidden: reviewer identity does not match');
             reason = args.reason?.trim();
             if (!reason) throw new Error('Give the owner a reason for rejecting their giveaway application.');
             if (reason.length > 2000) throw new Error('Keep the rejection reason under 2,000 characters.');
@@ -244,7 +251,7 @@ export const rejectSubmission = mutation({
         // Update submission status
         const updates: any = {
             status: 'rejected',
-            reviewedBy: args.adminId,
+            reviewedBy: adminId,
             reviewedAt,
         };
         if (reason) {
@@ -262,7 +269,7 @@ export const rejectSubmission = mutation({
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'submission_rejected',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -317,6 +324,8 @@ export const markWebsiteGenerated = mutation({
         websiteUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -326,7 +335,7 @@ export const markWebsiteGenerated = mutation({
         await ctx.db.patch(args.submissionId, updates);
 
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'website_generated',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -344,6 +353,7 @@ export const markWebsiteGenerated = mutation({
 export const getAllSubmissionsWithCreators = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const submissions = await ctx.db
             .query('submissions')
             .order('desc')
@@ -377,6 +387,8 @@ export const markDeployed = mutation({
         websiteUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -398,7 +410,7 @@ export const markDeployed = mutation({
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'website_deployed',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -436,34 +448,15 @@ export const markDeployed = mutation({
     },
 });
 
-/**
- * Mark a submission as paid — creates earning record, updates creator, triggers audit + notification + analytics
- *
- * Public, like every mutation the Next routes reach through `fetchMutation`
- * (which forwards no Clerk token, so `ctx.auth` is always null here — see
- * deleteCreatorRecords). It therefore re-checks what /api/mark-paid already
- * checked, the same way that mutation does: `adminId` must RESOLVE to a real
- * admin row rather than being trusted as an opaque string.
- *
- * Not optional. This mutation is the trigger for creditCreatorForPayment, which
- * schedules domains.setupForSubmission — the one code path that spends money at
- * a registrar on a saved card. Without the resolve, anyone holding a submission
- * id could call this and buy a domain; owner intake hands every submitter their
- * own id (ownerIntake.submitOwnerIntake returns it), so that id is no longer a
- * secret only staff hold.
- */
+/** Mark a submission paid after authenticating the matching admin session. */
 export const markPaid = mutation({
     args: {
         submissionId: v.id('submissions'),
         adminId: v.string(),
     },
     handler: async (ctx, args) => {
-        const actor = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.adminId))
-            .first();
-        if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
-
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
         if (submission.giveawayApplication) {
@@ -473,7 +466,7 @@ export const markPaid = mutation({
         // Delegate to shared credit logic (also used by auto-payment webhook)
         await ctx.scheduler.runAfter(0, internal.payments.creditCreatorForPayment, {
             submissionId: args.submissionId,
-            triggeredBy: `admin:${args.adminId}`,
+            triggeredBy: `admin:${adminId}`,
         });
 
         return args.submissionId;
@@ -488,9 +481,7 @@ export const markPaid = mutation({
  * and it is recorded as one: `pricingMode: 'comped'` is what every downstream
  * reader keys off to keep the promo out of revenue.
  *
- * Same admin resolve as markPaid, for the same reason — this mutation is public
- * (the Next routes reach it via fetchMutation, which forwards no Clerk token)
- * and it moves money onto a creator's withdrawable balance.
+ * The recorded actor comes from the authenticated admin session.
  *
  * Two things it deliberately will not do:
  *
@@ -511,12 +502,8 @@ export const markComped = mutation({
         reason: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const actor = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.adminId))
-            .first();
-        if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
-
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -557,7 +544,7 @@ export const markComped = mutation({
         // even if the flag it is passed were ever dropped.
         await ctx.db.patch(args.submissionId, {
             pricingMode: PRICING_MODE_COMPED,
-            compedBy: args.adminId,
+            compedBy: adminId,
             compedAt: Date.now(),
             compedReason: args.reason?.trim() || undefined,
             ...(submission.giveawayApplication ? {
@@ -586,7 +573,7 @@ export const markComped = mutation({
 
         await ctx.scheduler.runAfter(0, internal.payments.creditCreatorForPayment, {
             submissionId: args.submissionId,
-            triggeredBy: `admin:${args.adminId}`,
+            triggeredBy: `admin:${adminId}`,
             comped: true,
         });
 
@@ -602,6 +589,7 @@ export const markComped = mutation({
 export const getPromoStats = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const all = await ctx.db.query('submissions').collect();
         const comped = all.filter((s) => isComped(s as any));
 
@@ -626,11 +614,13 @@ export const logPaymentConfirmed = mutation({
         emailSent: v.boolean(),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'payment_confirmed' as const,
             targetType: 'submission',
             targetId: args.submissionId,
@@ -657,6 +647,8 @@ export const markEmailSent = mutation({
         adminId: v.string(),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -671,7 +663,7 @@ export const markEmailSent = mutation({
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'payment_sent',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -697,6 +689,8 @@ export const deleteSubmissionRecords = mutation({
         deletedAssets: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -769,7 +763,7 @@ export const deleteSubmissionRecords = mutation({
 
         // 6. Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'submission_deleted',
             targetType: 'submission',
             targetId: args.submissionId,
@@ -792,12 +786,7 @@ export const deleteSubmissionRecords = mutation({
  * leads, leadNotes, notifications, pushTokens, referrals, analytics, and the creator record.
  * Creates an audit log entry.
  *
- * This is the most destructive mutation in the codebase and it is public, so it
- * re-checks what the route already checked. It cannot use `ctx.auth` — Next
- * routes here call Convex through `fetchMutation` without forwarding a Clerk
- * token, so `getUserIdentity()` is always null server-side and an identity check
- * would break admin deletion outright. Second best: `adminId` must resolve to a
- * real admin row instead of being trusted as an opaque string.
+ * The authenticated admin must match the legacy adminId argument.
  */
 export const deleteCreatorRecords = mutation({
     args: {
@@ -806,12 +795,8 @@ export const deleteCreatorRecords = mutation({
         deletedAssets: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
-        const actor = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.adminId))
-            .first();
-        if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
-
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         const creator = await ctx.db.get(args.creatorId);
         if (!creator) throw new Error('Creator not found');
 
@@ -965,7 +950,7 @@ export const deleteCreatorRecords = mutation({
 
         // 4. Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'creator_updated',
             targetType: 'creator',
             targetId: args.creatorId,
@@ -989,6 +974,7 @@ export const deleteCreatorRecords = mutation({
 export const markPayoutPaid = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
@@ -1009,6 +995,7 @@ export const markPayoutPaid = mutation({
 export const checkBackfillNeeded = query({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         try {
             const targetStatuses = ['deployed', 'pending_payment', 'paid', 'completed'] as const;
 
@@ -1051,6 +1038,7 @@ export const checkBackfillNeeded = query({
 export const backfillWebsiteUrls = mutation({
     args: {},
     handler: async (ctx) => {
+        await requireAdmin(ctx);
         const targetStatuses = ['deployed', 'pending_payment', 'paid', 'completed'] as const;
         let updatedSubmissions = 0;
         let updatedWebsites = 0;
@@ -1101,8 +1089,10 @@ export const logTranscriptionRegenerated = mutation({
         businessName: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'transcription_regenerated' as const,
             targetType: 'submission' as const,
             targetId: args.submissionId,
@@ -1124,8 +1114,10 @@ export const logImagesEnhanced = mutation({
         businessName: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const { identity } = await requireAdminActor(ctx, args.adminId);
+        const adminId = identity.subject;
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: args.adminId,
+            adminId: adminId,
             action: 'images_enhanced' as const,
             targetType: 'submission' as const,
             targetId: args.submissionId,
@@ -1140,6 +1132,7 @@ export const logImagesEnhanced = mutation({
 export const bulkMarkPayoutsPaid = mutation({
     args: { submissionIds: v.array(v.id('submissions')) },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const now = Date.now();
 
         for (const id of args.submissionIds) {

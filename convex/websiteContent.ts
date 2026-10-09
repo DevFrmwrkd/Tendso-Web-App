@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { requireAdmin } from './lib/auth';
 
 // ==================== QUERIES ====================
 
@@ -199,6 +200,7 @@ export const upsert = mutation({
         })),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const { websiteId, ...contentData } = args;
 
         // Check if content already exists
@@ -360,6 +362,7 @@ export const update = mutation({
         })),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const { websiteId, ...updates } = args;
 
         // Find existing content
@@ -390,6 +393,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { websiteId: v.id('generatedWebsites') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const content = await ctx.db
             .query('websiteContent')
             .withIndex('by_websiteId', (q) => q.eq('websiteId', args.websiteId))

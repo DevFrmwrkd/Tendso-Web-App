@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 import { isSitesHost, slugFromHost, SITE_PATH_HEADER } from '@/lib/siteSlug';
+import { ADMIN_PATH_HEADER } from '@/lib/admin-access';
 
 const isPublicRoute = createRouteMatcher([
     '/',
@@ -159,6 +160,13 @@ export default clerkMiddleware(async (auth, req) => {
         const signInUrl = new URL('/login', req.url);
         signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
         return NextResponse.redirect(signInUrl);
+    }
+    if (req.nextUrl.pathname === '/admin' || req.nextUrl.pathname.startsWith('/admin/')) {
+        // The server layout needs the real requested route to enforce staff
+        // access on direct visits. Never trust a header supplied by a caller.
+        const headers = new Headers(req.headers);
+        headers.set(ADMIN_PATH_HEADER, req.nextUrl.pathname);
+        return NextResponse.next({ request: { headers } });
     }
 });
 

@@ -31,7 +31,7 @@ afterAll(() => {
 
 beforeEach(() => {
     jest.clearAllMocks();
-    (auth as unknown as jest.Mock).mockResolvedValue({ userId: 'admin-clerk-id' });
+    (auth as unknown as jest.Mock).mockResolvedValue({ userId: 'admin-clerk-id', getToken: jest.fn().mockResolvedValue('admin-convex-token') });
     mockSend.mockResolvedValue({ data: { id: 'test-message' }, error: null });
     (fetchMutation as jest.Mock).mockResolvedValue({ token: 'test-claim' });
     (fetchAction as jest.Mock).mockResolvedValue({ token: 'test-payment', referenceCode: 'ND-ABCD-EFGH' });
@@ -101,7 +101,7 @@ describe.each(saleCases)('affiliate sale at $price (domain=$domain, registrarCos
         if (route === paymentLink) {
             expect(fetchAction).toHaveBeenCalledWith('createToken', expect.objectContaining({
                 submissionId: sale._id, amount: sale.amount,
-            }));
+            }), { token: 'admin-convex-token' });
         }
     });
 });

@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Dot, Icon, SkeletonText, Status, domainStatus, formatMoney, submissionStatus } from "@/components/r1";
 import { campaignDiscountRate, campaignListPrice, isComped, normalizeCampaign } from "@/lib/pricing";
 import { isHouseCreator } from "@/lib/houseCreator";
+import { affiliateAttribution } from "@/lib/submissionAttribution";
 
 import { DomainFold } from "./DomainFold";
 import { DriveFact } from "./DriveFact";
@@ -119,9 +120,14 @@ export function priceFact(s: SubmissionDoc): { text: string; meta: string | null
     return { text: formatMoney(s.amount), meta: parts.join(" · ") };
 }
 
-/** Who made it: a creator, or the house account for owner self-serve. */
+/** Who receives the commission: a creator, affiliate, or the self-serve house account. */
 export function creatorFact(s: SubmissionDoc, isOwnerSubmitted: boolean): { text: string; meta: string } {
     const payout = `payout ${formatMoney(s.creatorPayout ?? 0)}`;
+    const affiliate = affiliateAttribution(s);
+    if (affiliate) return {
+        text: affiliate.name,
+        meta: [affiliate.label, isOwnerSubmitted ? "Owner-submitted via /start" : null, payout].filter(Boolean).join(" · "),
+    };
     if (isHouseCreator(s.creator)) {
         return {
             text: "Tendso self-serve",
@@ -137,7 +143,7 @@ export function creatorFact(s: SubmissionDoc, isOwnerSubmitted: boolean): { text
 
 /** Where the submission came from: the campaign that priced it, the placement that sent it. */
 export function cameFrom(s: SubmissionDoc): string | null {
-    const parts = [s.campaign ? `${String(s.campaign).toUpperCase()} campaign` : null, s.source ? `from ${s.source}` : null].filter(Boolean);
+    const parts = [affiliateAttribution(s)?.label, s.campaign ? `${String(s.campaign).toUpperCase()} campaign` : null, s.source ? `from ${s.source}` : null].filter(Boolean);
     return parts.length ? parts.join(" · ") : null;
 }
 

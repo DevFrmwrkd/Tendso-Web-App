@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { Bell, Check } from "lucide-react";
 import { useState } from "react";
 
@@ -33,9 +33,10 @@ function destinationOf(n: Notification): string | null {
  * `creator` null = signed in without a creator profile: nothing to list.
  */
 export function NotificationsDrawer({ open, onClose, creator }: { open: boolean; onClose: () => void; creator: Doc<"creators"> | null | undefined }) {
+    const { isAuthenticated } = useConvexAuth();
     const notifications = useQuery(api.notifications.getByCreator, creator ? { creatorId: creator._id } : "skip");
     // For the "all caught up" line only; the creator shell runs this same subscription.
-    const submissions = useQuery(api.submissions.getByCreatorId, creator ? { creatorId: creator._id } : "skip");
+    const submissions = useQuery(api.submissions.getByCreatorId, isAuthenticated && creator ? { creatorId: creator._id } : "skip");
     const markAsRead = useMutation(api.notifications.markAsRead);
     const markAllAsRead = useMutation(api.notifications.markAllAsRead);
 

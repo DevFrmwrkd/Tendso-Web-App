@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { query, action, internalMutation, internalAction, internalQuery } from './_generated/server';
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
+import { requireAdminActor } from './lib/auth';
 import { selectTargets, isSendable, type AudienceKey, type AudienceRow } from '../lib/announcements/audience';
 import { notificationPreview } from '../lib/notifications/preview';
 import { greetingName } from '../lib/email/greeting';
@@ -12,10 +13,8 @@ import { greetingName } from '../lib/email/greeting';
  *
  * The one admin action with no undo. Everything here is shaped around that:
  *
- *   * Every entry point is admin-gated by resolving adminId against a real
- *     creator row, the way admin.markComped does. `withdrawals.updateStatus`
- *     took an adminId it never checked and became a public money mutation;
- *     this file does not repeat that.
+ *   * Every entry point verifies the authenticated admin and checks that the
+ *     supplied audit actor matches that session.
  *
  *   * previewAudience and send share ONE selection rule
  *     (lib/announcements/audience.ts). If they could drift, the recipient count
@@ -27,15 +26,6 @@ import { greetingName } from '../lib/email/greeting';
  */
 
 const EMAIL_STAGGER_MS = 700; // ~1.4/sec, comfortably under Resend's ~2/sec
-
-async function assertAdmin(ctx: any, adminId: string) {
-    const actor = await ctx.db
-        .query('creators')
-        .withIndex('by_clerk_id', (q: any) => q.eq('clerkId', adminId))
-        .first();
-    if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
-    return actor;
-}
 
 /**
  * Who would receive this, and how many. Read by the admin page on every
@@ -50,7 +40,7 @@ export const previewAudience = query({
         creatorIds: v.optional(v.array(v.id('creators'))),
     },
     handler: async (ctx, args) => {
-        await assertAdmin(ctx, args.adminId);
+        await requireAdminActor(ctx, args.adminId);
 
         const all = await ctx.db.query('creators').collect();
         const selected = selectTargets(all as unknown as (AudienceRow & { _id?: unknown })[], {
@@ -80,7 +70,7 @@ export const previewAudience = query({
 export const searchRecipients = query({
     args: { adminId: v.string(), q: v.string() },
     handler: async (ctx, args) => {
-        await assertAdmin(ctx, args.adminId);
+        await requireAdminActor(ctx, args.adminId);
 
         const needle = args.q.trim().toLowerCase();
         if (needle.length < 2) return [];
@@ -102,7 +92,7 @@ export const searchRecipients = query({
 export const list = query({
     args: { adminId: v.string() },
     handler: async (ctx, args) => {
-        await assertAdmin(ctx, args.adminId);
+        await requireAdminActor(ctx, args.adminId);
         return await ctx.db.query('announcements').order('desc').take(30);
     },
 });
@@ -253,8 +243,7 @@ export const send = action({
         announcementId?: string;
         test?: boolean;
     }> => {
-        const actor = await ctx.runQuery(api.creators.getByClerkId, { clerkId: args.adminId });
-        if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
+        const { me: actor } = await requireAdminActor(ctx, args.adminId);
 
         const title = args.title.trim();
         const body = args.body.trim();

@@ -11,6 +11,7 @@ import { formatMoney } from "@/components/r1/money"
 import { domainStatus, submissionStatus, type StatusWord } from "@/components/r1/statusWords"
 import type { api } from "@/convex/_generated/api"
 import { isComped, normalizeCampaign, ownerChargeFor } from "@/lib/pricing"
+import { affiliateAttribution } from "@/lib/submissionAttribution"
 
 export type QueueRow = FunctionReturnType<typeof api.submissions.getAllWithCreator>[number]
 
@@ -109,7 +110,7 @@ function compareRows(sort: SortKey, a: QueueRow, b: QueueRow): number {
 // ── Search and filters ───────────────────────────────────────────────────
 
 /** What the search box looks at, in words, for the "nothing matches" state. */
-export const SEARCH_SCOPE = "Search looks at business, owner, creator, city, phone, email and domain."
+export const SEARCH_SCOPE = "Search looks at business, owner, creator, affiliate, city, phone, email and domain."
 
 /** `q` is already trimmed and lower-cased. */
 export function matchesSearch(s: QueueRow, q: string): boolean {
@@ -123,6 +124,8 @@ export function matchesSearch(s: QueueRow, q: string): boolean {
         s.requestedDomain,
         s.websiteUrl,
         creatorName(s.creator),
+        affiliateAttribution(s)?.name,
+        affiliateAttribution(s)?.handle,
     ]
         .filter(Boolean)
         .some((field) => String(field).toLowerCase().includes(q))
@@ -149,6 +152,7 @@ export function listRows(rows: QueueRow[], f: ListFilter): QueueRow[] {
 /** Both creator names are optional in the schema; a row whose creator is gone still needs a name. */
 export function creatorName(creator: QueueRow["creator"]): string {
     if (!creator) return "Unknown creator"
+    if (creator.role === "affiliate" && creator.affiliateDisplayName?.trim()) return creator.affiliateDisplayName.trim()
     const name = `${creator.firstName ?? ""} ${creator.lastName ?? ""}`.trim()
     return name || "Unknown creator"
 }
@@ -156,8 +160,8 @@ export function creatorName(creator: QueueRow["creator"]): string {
 /**
  * Sent in by the owner through the self-serve /start funnel. 'owner_intake' is
  * the only value and it never changes (convex/schema.ts). Those rows sit under
- * the house creator ("Tendso Self-Serve"), which makes them look like any
- * other, so the queue says it out loud: no field visit, no recorded interview.
+ * the house creator ("Tendso Self-Serve") or the referring affiliate. The
+ * queue keeps the owner-submitted label: no field visit or recorded interview.
  */
 export function isOwnerSubmitted(s: QueueRow): boolean {
     return s.contentSource === "owner_intake"
@@ -285,7 +289,7 @@ export function ownerPaysWhen(s: QueueRow): string | null {
  * The drawer's "Creator gets". The creator's share is credited when the owner
  * pays (or when an admin gives the site away: the promo still pays the
  * creator), which moves the row to `completed` and stamps creatorPaidAt.
- * Owner-submitted rows carry an explicit ₱0 (convex/ownerIntake.ts).
+ * House-attributed owner submissions carry ₱0; affiliate orders retain their commission.
  */
 export function creatorGets(s: QueueRow): string {
     const payout = s.creatorPayout ?? 0

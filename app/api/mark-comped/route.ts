@@ -17,14 +17,18 @@ import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
  */
 export async function POST(request: NextRequest) {
     try {
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) {
+            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+        }
 
         // Verify admin role
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-        if (!creator || creator.role !== 'admin') {
+        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
         }
 
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
         // gave the site away, and this is the query that already resolves them.
         const submission = await fetchQuery(api.submissions.getByIdWithCreator, {
             id: submissionId as Id<'submissions'>,
-        })
+        }, { token })
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -72,7 +76,7 @@ export async function POST(request: NextRequest) {
             submissionId: submissionId as Id<'submissions'>,
             adminId: userId,
             reason: storedReason || undefined,
-        })
+        }, { token })
 
         // Tell the owner their site is live and free. NOT the payment
         // confirmation email — see sendPromoWebsiteLiveEmail.
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
             try {
                 const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
                     submissionId: submissionId as Id<'submissions'>,
-                })
+                }, { token })
                 publishedUrl = website?.publishedUrl || ''
             } catch {
                 // Non-fatal: the credit is already booked and the owner can be
