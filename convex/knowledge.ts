@@ -240,6 +240,9 @@ export const upsertArticle = mutation({
             .withIndex('by_slug', (q) => q.eq('slug', args.categorySlug))
             .first();
         if (!category) throw new Error(`Unknown category slug: ${args.categorySlug}`);
+        if (category.workspace !== args.workspace) {
+            throw new Error('The category must belong to the selected workspace.');
+        }
 
         const now = Date.now();
         const existing = await ctx.db

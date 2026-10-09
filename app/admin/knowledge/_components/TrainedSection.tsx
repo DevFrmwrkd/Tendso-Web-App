@@ -231,23 +231,25 @@ function EditTrainedForm({
     // would be flattened by this form, so such an article is left alone.
     const plain = article.body.every((b) => b.t === "p")
     const [question, setQuestion] = useState(article.title)
+    const [summary, setSummary] = useState(article.summary)
     const [answer, setAnswer] = useState(() => article.body.map((b) => ("text" in b ? b.text : "")).join("\n\n"))
     const [workspace, setWorkspace] = useState<Workspace>(article.workspace)
+    const [categorySlugs, setCategorySlugs] = useState<Record<Workspace, string>>(() => ({
+        help: (categories.help.find((c) => c._id === article.categoryId) ?? categories.help[0])?.slug ?? "",
+        wiki: (categories.wiki.find((c) => c._id === article.categoryId) ?? categories.wiki[0])?.slug ?? "",
+    }))
     const [error, setError] = useState("")
     const [saving, setSaving] = useState(false)
+    const categoryOptions = categories[workspace]
+    const selectedCategory = categoryOptions.find((c) => c.slug === categorySlugs[workspace]) ?? categoryOptions[0]
 
     async function save() {
         if (question.trim().length < 4 || answer.trim().length < 2) {
             setError("Both the question and the answer need some text.")
             return
         }
-        // Keep the article's own category while it stays in its workspace;
-        // moved to the other one, it joins that workspace's first category,
-        // as a new trained answer would.
-        const list = categories[workspace]
-        const category = list.find((c) => c._id === article.categoryId) ?? list[0]
-        if (!category) {
-            setError(`The ${WORKSPACE_NAME[workspace]} has no category yet, so the answer can’t move there.`)
+        if (!selectedCategory) {
+            setError(`Choose a category in the ${WORKSPACE_NAME[workspace]} before saving.`)
             return
         }
         const paras = answer
@@ -262,9 +264,8 @@ function EditTrainedForm({
             await upsertArticle({
                 slug: article.slug,
                 title: question.replace(/\s+/g, " ").trim(),
-                // The list's preview, cut the way trainQAPairs cuts it.
-                summary: paras.join(" ").slice(0, 300),
-                categorySlug: category.slug,
+                summary: summary.trim() || paras.join(" ").slice(0, 300),
+                categorySlug: selectedCategory.slug,
                 workspace,
                 body: paras.map((text) => ({ t: "p" as const, text })),
                 keywords: article.keywords,
@@ -299,8 +300,20 @@ function EditTrainedForm({
                 <Input
                     type="text"
                     value={question}
+                    disabled={saving}
                     onChange={(e) => {
                         setQuestion(e.target.value)
+                        setError("")
+                    }}
+                />
+            </Field>
+            <Field label="Summary" help="Shown in search. Leave blank to use the start of the answer.">
+                <Textarea
+                    rows={2}
+                    value={summary}
+                    disabled={saving}
+                    onChange={(e) => {
+                        setSummary(e.target.value)
                         setError("")
                     }}
                 />
@@ -309,15 +322,23 @@ function EditTrainedForm({
                 <Textarea
                     rows={4}
                     value={answer}
+                    disabled={saving}
                     onChange={(e) => {
                         setAnswer(e.target.value)
                         setError("")
                     }}
                 />
             </Field>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <Field label="Where the AI can use it" className="sm:w-[300px]">
-                    <Select value={workspace} onChange={(e) => setWorkspace(e.target.value as Workspace)}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Field label="Where the AI can use it">
+                    <Select
+                        value={workspace}
+                        disabled={saving}
+                        onChange={(e) => {
+                            setWorkspace(e.target.value as Workspace)
+                            setError("")
+                        }}
+                    >
                         {WORKSPACE_OPTIONS.map((o) => (
                             <option key={o.value} value={o.value}>
                                 {o.label}
@@ -325,14 +346,32 @@ function EditTrainedForm({
                         ))}
                     </Select>
                 </Field>
-                <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={onDone} disabled={saving}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={save} disabled={saving} aria-busy={saving}>
-                        {saving ? "Saving…" : "Save changes"}
-                    </Button>
-                </div>
+                <Field label="Category" help={categoryOptions.length === 0 ? "No categories in this workspace yet." : undefined}>
+                    <Select
+                        value={selectedCategory?.slug ?? ""}
+                        disabled={saving || categoryOptions.length === 0}
+                        onChange={(e) => {
+                            setCategorySlugs((current) => ({ ...current, [workspace]: e.target.value }))
+                            setError("")
+                        }}
+                    >
+                        {categoryOptions.length === 0 ? (
+                            <option value="">No categories available</option>
+                        ) : categoryOptions.map((category) => (
+                            <option key={category._id} value={category.slug}>
+                                {category.title}
+                            </option>
+                        ))}
+                    </Select>
+                </Field>
+            </div>
+            <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={onDone} disabled={saving}>
+                    Cancel
+                </Button>
+                <Button variant="primary" onClick={save} disabled={saving || categoryOptions.length === 0} aria-busy={saving}>
+                    {saving ? "Saving…" : "Save changes"}
+                </Button>
             </div>
         </div>
     )
