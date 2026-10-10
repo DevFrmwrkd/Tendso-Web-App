@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
-import { requireAdmin, requireAuth } from './lib/auth';
+import { requireAccountOwner, requireAdmin, requireAuth } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 
 // ==================== QUERIES ====================
@@ -306,6 +306,7 @@ export const update = mutation({
         wiseEmail: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await requireAccountOwner(ctx, args.id);
         const { id, ...updates } = args;
 
         // Filter out undefined values

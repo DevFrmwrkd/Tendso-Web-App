@@ -1,4 +1,6 @@
 import type { FeedLead } from "@/app/dashboard/_lib/home";
+import type { AffiliateSale } from "@/app/affiliates/dashboard/_components/Sales";
+import type { AffiliatePortal } from "@/app/affiliates/dashboard/_lib/portal";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
 
 // Display-only fixtures. These ids must never be sent to Convex.
@@ -19,9 +21,34 @@ export const sampleAffiliate: Doc<"creators"> = {
     affiliateMessage: "Let's get your shop online. Get a website your customers can visit anytime.",
     affiliatePrice: 1999,
     referralCode: "SAMPLE-A",
-    balance: 1100,
-    totalEarnings: 1100,
+    balance: 1600,
+    totalEarnings: 2600,
+    totalWithdrawn: 500,
     wiseEmail: "affiliate@example.com",
+};
+
+export const sampleAffiliateSales: readonly AffiliateSale[] = [
+    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", createdAt: Date.UTC(2026, 9, 8, 3) },
+    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", createdAt: Date.UTC(2026, 9, 7, 6) },
+    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", createdAt: Date.UTC(2026, 9, 6, 1) },
+];
+
+export const sampleAffiliatePortal: AffiliatePortal = {
+    summary: { balance: 1600, totalEarned: 2600, totalWithdrawn: 500, pendingCommission: 1000, inFlight: 500 },
+    earnings: [
+        { _id: "preview-affiliate-sale" as Id<"earnings">, amount: 1100, type: "website_sale", status: "available", createdAt: Date.UTC(2026, 9, 8, 3), businessName: "Luna's Salon" },
+        { _id: "preview-affiliate-referral" as Id<"earnings">, amount: 1000, type: "referral_bonus", status: "available", createdAt: Date.UTC(2026, 9, 7, 3), businessName: "Unknown" },
+        { _id: "preview-affiliate-earlier-sale" as Id<"earnings">, amount: 500, type: "website_sale", status: "available", createdAt: Date.UTC(2026, 9, 4, 3), businessName: "Sunrise Bakery" },
+    ],
+    withdrawals: [
+        { _id: "preview-affiliate-moving" as Id<"withdrawals">, _creationTime: createdAt, creatorId: sampleAffiliate._id, amount: 500, payoutMethod: "wise_email", accountDetails: "affiliate@example.com", wiseEmail: "affiliate@example.com", status: "processing", createdAt: Date.UTC(2026, 9, 9, 2) },
+        { _id: "preview-affiliate-paid" as Id<"withdrawals">, _creationTime: createdAt, creatorId: sampleAffiliate._id, amount: 500, payoutMethod: "wise_email", accountDetails: "affiliate@example.com", wiseEmail: "affiliate@example.com", status: "completed", createdAt: Date.UTC(2026, 9, 6, 2) },
+    ],
+    referrals: [
+        { _id: "preview-referral-paid" as Id<"referrals">, referredName: "Sam Reyes", status: "paid", bonusAmount: 1000, createdAt: Date.UTC(2026, 9, 6, 2) },
+        { _id: "preview-referral-pending" as Id<"referrals">, referredName: "Jamie Cruz", status: "pending", bonusAmount: 0, createdAt: Date.UTC(2026, 9, 5, 2) },
+    ],
+    referralStats: { total: 2, pending: 1, qualified: 0, paid: 1, totalEarned: 1000 },
 };
 
 export const sampleCreator: Doc<"creators"> = {

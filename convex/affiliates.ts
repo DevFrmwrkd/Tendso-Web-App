@@ -177,6 +177,76 @@ export const sales = query({
     },
 });
 
+/** Wallet history belongs to the signed-in affiliate, including while suspended. */
+export const portal = query({
+    args: {},
+    handler: async (ctx) => {
+        const identity = await requireAuth(ctx);
+        const affiliate = await ctx.db.query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
+        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted
+            || (affiliate.status !== 'active' && affiliate.status !== 'suspended')) {
+            throw new ConvexError('An affiliate account is required.');
+        }
+
+        const [earningRows, withdrawals, referralRows, deployed, pendingPayment] = await Promise.all([
+            ctx.db.query('earnings').withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).order('desc').collect(),
+            ctx.db.query('withdrawals').withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).order('desc').collect(),
+            ctx.db.query('referrals').withIndex('by_referrer', (q) => q.eq('referrerId', affiliate._id)).order('desc').collect(),
+            ctx.db.query('submissions').withIndex('by_creator_status', (q) => q.eq('creatorId', affiliate._id).eq('status', 'deployed')).collect(),
+            ctx.db.query('submissions').withIndex('by_creator_status', (q) => q.eq('creatorId', affiliate._id).eq('status', 'pending_payment')).collect(),
+        ]);
+        const [earnings, referrals] = await Promise.all([
+            Promise.all(earningRows.map(async (earning) => {
+                const submission = await ctx.db.get(earning.submissionId);
+                return {
+                    _id: earning._id,
+                    amount: earning.amount,
+                    type: earning.type,
+                    status: earning.status,
+                    createdAt: earning.createdAt,
+                    businessName: submission?.businessName ?? 'Unknown',
+                };
+            })),
+            Promise.all(referralRows.map(async (referral) => {
+                const referred = await ctx.db.get(referral.referredId);
+                return {
+                    _id: referral._id,
+                    referredName: [referred?.firstName, referred?.lastName].filter(Boolean).join(' ') || 'Unknown',
+                    status: referral.status,
+                    bonusAmount: referral.bonusAmount ?? 0,
+                    createdAt: referral.createdAt,
+                };
+            })),
+        ]);
+
+        return {
+            summary: {
+                // Ledger statuses are historical; withdrawals reserve balance separately.
+                balance: affiliate.balance ?? 0,
+                totalEarned: affiliate.totalEarnings ?? earningRows.reduce((sum, row) => sum + row.amount, 0),
+                totalWithdrawn: affiliate.totalWithdrawn ?? withdrawals
+                    .filter((row) => row.status === 'completed').reduce((sum, row) => sum + row.amount, 0),
+                pendingCommission: [...deployed, ...pendingPayment]
+                    .filter((row) => row.creatorPaidAt === undefined && (row.creatorPayout ?? 0) > 0)
+                    .reduce((sum, row) => sum + row.creatorPayout!, 0),
+                inFlight: withdrawals.filter((row) => row.status === 'pending' || row.status === 'processing')
+                    .reduce((sum, row) => sum + row.amount, 0),
+            },
+            earnings,
+            withdrawals,
+            referrals,
+            referralStats: {
+                total: referrals.length,
+                pending: referrals.filter((row) => row.status === 'pending').length,
+                qualified: referrals.filter((row) => row.status === 'qualified').length,
+                paid: referrals.filter((row) => row.status === 'paid').length,
+                totalEarned: referrals.reduce((sum, row) => sum + row.bonusAmount, 0),
+            },
+        };
+    },
+});
+
 /** Affiliate administration stays separate from creator training/approval lists. */
 export const list = query({
     args: {},

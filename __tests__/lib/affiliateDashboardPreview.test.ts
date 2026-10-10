@@ -2,14 +2,10 @@ import { useAction, useConvexAuth, useMutation, usePaginatedQuery } from "convex
 import { createElement, isValidElement, type FormEvent, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { AffiliatePayouts } from "@/app/affiliates/dashboard/_components/AffiliatePayouts";
 import { DashboardContent } from "@/app/affiliates/dashboard/_components/Dashboard";
 import { PageSettings } from "@/app/affiliates/dashboard/_components/PageSettings";
 import { PriceSettings } from "@/app/affiliates/dashboard/_components/PriceSettings";
 import { Sales, SalesList, type AffiliateSale } from "@/app/affiliates/dashboard/_components/Sales";
-import { PayoutDialog } from "@/app/wallet/_components/PayoutDialog";
-import { formatMoney, submissionStatus } from "@/components/r1";
-import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { AFFILIATE_MESSAGE_MAX_LENGTH } from "@/lib/affiliates";
 import { formatPHP } from "@/lib/pricing";
@@ -26,7 +22,6 @@ jest.mock("@/convex/_generated/api", () => ({
         r2: { generateUploadUrl: "r2:generateUploadUrl" },
     },
 }));
-jest.mock("@/app/wallet/_components/PayoutDialog", () => ({ PayoutDialog: jest.fn(() => null) }));
 jest.mock("@/app/affiliates/dashboard/_components/ShareTools.module.css", () => ({}));
 
 const account: Doc<"creators"> = {
@@ -107,37 +102,30 @@ beforeEach(() => {
 });
 
 describe("affiliate dashboard preview", () => {
-    it("shows sample sales and Wise payout details without mounting live financial components", () => {
+    it("renders only the page editor and offer without subscribing to sales or payouts", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
 
-        expect(html).toContain("Luna&#x27;s Salon");
-        expect(html).toContain("Corner Coffee");
-        expect(html).toContain("Maya&#x27;s Flower Shop");
+        expect(html).toContain("My page");
+        expect(html).toContain("Ana&#x27;s local offers");
         expect(html).toContain(formatPHP(2200));
         expect(html).toContain(formatPHP(1100));
-        expect(html).toContain(submissionStatus("completed", "creator").word);
-        expect(html).toContain(submissionStatus("pending_payment", "creator").word);
-        expect(html).toContain(submissionStatus("submitted", "creator").word);
-        expect(html).toContain("Getting paid");
-        expect(html).toContain(`${account.wiseEmail} on Wise`);
-        expect(html).toContain(formatMoney(account.balance!));
+        expect(html).not.toContain("Getting paid");
+        expect(html).not.toContain(account.wiseEmail);
         expect(html).not.toContain(liveSale.businessName);
         expect(useConvexAuth).not.toHaveBeenCalled();
         expect(usePaginatedQuery).not.toHaveBeenCalled();
-        expect(PayoutDialog).not.toHaveBeenCalled();
         expect(updatePage).not.toHaveBeenCalled();
         expect(generateUploadUrl).not.toHaveBeenCalled();
     });
 
-    it("disables photo uploads and financial buttons despite a positive sample balance", () => {
+    it("disables photo uploads and sharing in the sample editor", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
 
-        for (const label of ["Change photo", "Change Wise email", "Withdraw", "Download QR PNG", "Print A4 poster"]) {
+        for (const label of ["Change photo", "Download QR PNG", "Print A4 poster"]) {
             expect(buttonTag(html, label)).toContain('disabled=""');
         }
         expect(html.match(/<input\b[^>]*type="file"[^>]*>/)?.[0]).toContain('disabled=""');
         expect(html).toContain("Photo uploads are disabled in this preview.");
-        expect(html).toContain("Payout changes and withdrawals are disabled in this preview.");
     });
 
     it("keeps the sample page and price editors usable", () => {
@@ -190,27 +178,15 @@ describe("affiliate dashboard preview", () => {
         expect(usePaginatedQuery).not.toHaveBeenCalled();
     });
 
-    it("retains live subscriptions, payout setup and upload controls when preview is omitted", () => {
+    it("retains live page/upload controls while leaving financial subscriptions in their own sections", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
 
-        expect(usePaginatedQuery).toHaveBeenCalledWith(api.affiliates.sales, {}, { initialNumItems: 5 });
-        expect(html).toContain(liveSale.businessName);
-        expect(html).not.toContain("Luna&#x27;s Salon");
-        expect(PayoutDialog).toHaveBeenCalledTimes(1);
-        expect((PayoutDialog as jest.Mock).mock.calls[0][0]).toEqual(expect.objectContaining({ creator: account, balance: account.balance }));
-        for (const label of ["Change photo", "Change Wise email", "Withdraw"]) {
-            expect(buttonTag(html, label)).not.toContain("disabled");
-        }
+        expect(usePaginatedQuery).not.toHaveBeenCalled();
+        expect(html).not.toContain(liveSale.businessName);
+        expect(buttonTag(html, "Change photo")).not.toContain("disabled");
         expect(html.match(/<input\b[^>]*type="file"[^>]*>/)?.[0]).not.toContain("disabled");
     });
 
-    it("disables initial Wise setup in preview without mounting its dialog", () => {
-        const html = renderToStaticMarkup(createElement(AffiliatePayouts, { account: { ...account, wiseEmail: undefined }, preview: true }));
-
-        expect(html).toContain("Set up your Wise email to receive payouts.");
-        expect(buttonTag(html, "Set up Wise")).toContain('disabled=""');
-        expect(PayoutDialog).not.toHaveBeenCalled();
-    });
 });
 
 describe("affiliate preview form saves", () => {

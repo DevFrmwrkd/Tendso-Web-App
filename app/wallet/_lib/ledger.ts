@@ -16,6 +16,10 @@ import { needsFunding } from "@/lib/payouts/fundingState";
 import { isComped, ownerChargeFor } from "@/lib/pricing";
 
 export type Earning = FunctionReturnType<typeof api.earnings.getByCreator>[number];
+/** A private portal can provide ledger copy without exposing its submission. */
+export type LedgerEarning = Pick<Earning, "_id" | "amount" | "type" | "status" | "createdAt" | "businessName"> & {
+    submissionId?: Earning["submissionId"];
+};
 export type Withdrawal = Doc<"withdrawals">;
 export type Submission = Doc<"submissions">;
 
@@ -144,7 +148,7 @@ export type LedgerRow = {
     retry?: Retry;
 };
 
-function earningCopy(e: Earning, sub: Submission | undefined): { title: string; sub: string } {
+function earningCopy(e: LedgerEarning, sub: Submission | undefined): { title: string; sub: string } {
     if (e.type === "referral_bonus") {
         return { title: "Referral bonus", sub: "A creator you invited had their first site paid for" };
     }
@@ -173,7 +177,7 @@ function earningStatus(status: string): StatusWord {
  * Only the NEWEST withdrawal offers Try again: once a later one exists, the
  * failure has been dealt with and a button on it would invite a double send.
  */
-export function buildLedger(earnings: Earning[], withdrawals: Withdrawal[], submissions: Submission[] | undefined): LedgerRow[] {
+export function buildLedger(earnings: LedgerEarning[], withdrawals: Withdrawal[], submissions: Submission[] | undefined): LedgerRow[] {
     const byId = new Map((submissions ?? []).map((s) => [s._id as string, s]));
     const newest = withdrawals.reduce<Withdrawal | null>((best, w) => (!best || w.createdAt > best.createdAt ? w : best), null);
     const rows: LedgerRow[] = [];
@@ -184,7 +188,7 @@ export function buildLedger(earnings: Earning[], withdrawals: Withdrawal[], subm
             kind: "earning",
             at: e.createdAt,
             date: shortDate(e.createdAt),
-            ...earningCopy(e, byId.get(e.submissionId as string)),
+            ...earningCopy(e, e.submissionId ? byId.get(e.submissionId as string) : undefined),
             status: earningStatus(e.status),
             amount: formatMoney(e.amount, "credit"),
         });
