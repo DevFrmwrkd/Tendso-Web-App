@@ -15,12 +15,13 @@ type FieldErrors = { displayName?: string; message?: string; socialLink?: string
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
-export function PageSettings({ draft, defaultName, handle, dirty, disabled, onChange, onSaved }: {
+export function PageSettings({ draft, defaultName, handle, dirty, disabled, preview = false, onChange, onSaved }: {
     draft: AffiliatePageDraft;
     defaultName: string;
     handle?: string;
     dirty: boolean;
     disabled: boolean;
+    preview?: boolean;
     onChange: (patch: Partial<AffiliatePageDraft>) => void;
     onSaved: (page: AffiliatePageDraft) => void;
 }) {
@@ -48,7 +49,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, onCh
     async function uploadPhoto(event: ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0];
         event.target.value = "";
-        if (!file || disabled || uploading || saving) return;
+        if (!file || preview || disabled || uploading || saving) return;
         if (!PHOTO_TYPES.includes(file.type)) {
             setPhotoError("Choose a JPG, PNG, or WebP photo.");
             return;
@@ -97,6 +98,11 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, onCh
             (next.displayName ? nameRef : next.message ? messageRef : next.socialLink ? socialRef : photoButtonRef).current?.focus();
             return;
         }
+        if (preview) {
+            onSaved(page);
+            setSaved(true);
+            return;
+        }
         setSaving(true);
         try {
             await updatePage(page);
@@ -127,14 +133,14 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, onCh
                     )}
                     <div className="flex min-w-0 flex-1 flex-col gap-2">
                         <div className="flex flex-wrap gap-2">
-                            <Button ref={photoButtonRef} size="sm" onClick={() => fileRef.current?.click()} disabled={disabled || uploading || saving} aria-busy={uploading}>
+                            <Button ref={photoButtonRef} size="sm" onClick={() => fileRef.current?.click()} disabled={preview || disabled || uploading || saving} aria-busy={uploading}>
                                 <Icon icon={Camera} />
                                 {uploading ? "Uploading…" : draft.photo ? "Change photo" : "Add photo"}
                             </Button>
                             {draft.photo && <Button variant="ghost" size="sm" disabled={disabled || uploading || saving} onClick={() => { change({ photo: "" }); setPhotoError(undefined); }}><Icon icon={X} />Remove</Button>}
                         </div>
-                        <input ref={fileRef} type="file" accept={PHOTO_TYPES.join(",")} className="hidden" tabIndex={-1} aria-hidden="true" onChange={uploadPhoto} disabled={disabled || uploading || saving} />
-                        {photoError ? <p className="t-error" role="alert">{photoError}</p> : <p className="t-help">JPG, PNG, or WebP, up to 5 MB.</p>}
+                        <input ref={fileRef} type="file" accept={PHOTO_TYPES.join(",")} className="hidden" tabIndex={-1} aria-hidden="true" onChange={uploadPhoto} disabled={preview || disabled || uploading || saving} />
+                        {photoError ? <p className="t-error" role="alert">{photoError}</p> : <p className="t-help">{preview ? "Photo uploads are disabled in this preview." : "JPG, PNG, or WebP, up to 5 MB."}</p>}
                         {uploading && <p className="t-help" role="status">Uploading your photo. Wait to save your page.</p>}
                     </div>
                 </div>
@@ -150,7 +156,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, onCh
                 <p className="t-meta">Page handle: <strong className="break-all text-r1-ink">@{handle || "unavailable"}</strong>. Your handle stays the same.</p>
                 <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" variant="primary" disabled={disabled || saving || uploading || !dirty} aria-busy={saving}>{saving ? "Saving…" : "Save page"}</Button>
-                    <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? "Page saved." : dirty ? "Unsaved page changes" : ""}</p>
+                    <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? preview ? "Page saved in this preview." : "Page saved." : dirty ? "Unsaved page changes" : ""}</p>
                 </div>
             </form>
         </section>

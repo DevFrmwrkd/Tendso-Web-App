@@ -8,7 +8,7 @@ import { amountInput } from "@/app/wallet/_lib/ledger";
 import { Button, formatMoney } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
 
-export function AffiliatePayouts({ account }: { account: Doc<"creators"> }) {
+export function AffiliatePayouts({ account, preview = false }: { account: Doc<"creators">; preview?: boolean }) {
     const headingId = useId();
     const [step, setStep] = useState<PayoutStep | null>(null);
     const [amount, setAmount] = useState("");
@@ -16,6 +16,7 @@ export function AffiliatePayouts({ account }: { account: Doc<"creators"> }) {
     const payoutEmail = account.wiseEmail?.trim() || null;
 
     function startWithdraw() {
+        if (preview) return;
         setAmount(amountInput(balance));
         setStep(payoutEmail
             ? { mode: "withdraw" }
@@ -40,22 +41,24 @@ export function AffiliatePayouts({ account }: { account: Doc<"creators"> }) {
                     <Button
                         variant="ghost"
                         className="self-start"
-                        onClick={() => setStep({ mode: "setup", afterSave: null, afterCancel: null })}
+                        disabled={preview}
+                        onClick={() => { if (!preview) setStep({ mode: "setup", afterSave: null, afterCancel: null }); }}
                     >
                         {payoutEmail ? "Change Wise email" : "Set up Wise"}
                     </Button>
                 </div>
                 <div className="flex flex-col items-start gap-2">
-                    <Button variant="secondary" onClick={startWithdraw} disabled={balance <= 0}>
+                    <Button variant="secondary" onClick={startWithdraw} disabled={preview || balance <= 0}>
                         Withdraw
                     </Button>
                     {balance <= 0 && <p className="t-meta">Your commissions will be available here after shop owners pay.</p>}
+                    {preview && <p className="t-meta">Payout changes and withdrawals are disabled in this preview.</p>}
                     {account.status === "suspended" && (
                         <p className="t-meta">You can still withdraw money you already earned.</p>
                     )}
                 </div>
             </section>
-            <PayoutDialog
+            {!preview && <PayoutDialog
                 step={step}
                 onStep={setStep}
                 creator={account}
@@ -71,7 +74,7 @@ export function AffiliatePayouts({ account }: { account: Doc<"creators"> }) {
                 onEmailSaved={(email) => {
                     toast.success(`Saved. Payouts now go to ${email} on Wise.`);
                 }}
-            />
+            />}
         </>
     );
 }
