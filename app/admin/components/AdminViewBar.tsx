@@ -14,7 +14,7 @@ export default function AdminViewBar() {
     if (!isAdmin) return null;
 
     return (
-        <div className="r1 flex min-h-16 flex-wrap items-center justify-end gap-3 border-b border-r1-line bg-r1-paper px-4 py-2 sm:px-6 print:hidden">
+        <div className="r1 flex h-16 shrink-0 items-center justify-end gap-3 border-b border-r1-line bg-r1-paper px-4 py-2 sm:px-6 print:hidden">
             <label htmlFor={id} className="t-label">View as</label>
             <select
                 id={id}
