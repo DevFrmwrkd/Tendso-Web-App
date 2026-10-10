@@ -14,7 +14,7 @@ import { OfferPreview } from "./OfferPreview";
 import { PageSettings, type AffiliatePageDraft } from "./PageSettings";
 import { PriceSettings } from "./PriceSettings";
 import { ReferralCard } from "./ReferralCard";
-import { Sales } from "./Sales";
+import { Sales, type AffiliateSale } from "./Sales";
 import { ShareTools } from "./ShareTools";
 
 function pageValues(account: Doc<"creators">): AffiliatePageDraft {
@@ -26,7 +26,13 @@ function pageValues(account: Doc<"creators">): AffiliatePageDraft {
     };
 }
 
-export function DashboardContent({ account }: { account: Doc<"creators"> }) {
+const PREVIEW_SALES: readonly AffiliateSale[] = [
+    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", createdAt: Date.UTC(2026, 9, 8, 3) },
+    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", createdAt: Date.UTC(2026, 9, 7, 6) },
+    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", createdAt: Date.UTC(2026, 9, 6, 1) },
+];
+
+export function DashboardContent({ account, preview = false }: { account: Doc<"creators">; preview?: boolean }) {
     const savedPage = pageValues(account);
     const savedPrice = clampSellPrice(account.affiliatePrice ?? WEBSITE_PRICE);
     const defaultName = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
@@ -75,6 +81,7 @@ export function DashboardContent({ account }: { account: Doc<"creators"> }) {
                         handle={account.affiliateHandle}
                         dirty={pageDirty}
                         disabled={suspended}
+                        preview={preview}
                         onChange={(patch) => setPageDraft((current) => ({ ...current, ...patch }))}
                         onSaved={(page) => { setPageDraft(page); setPageBaseline(page); }}
                     />
@@ -83,6 +90,7 @@ export function DashboardContent({ account }: { account: Doc<"creators"> }) {
                         previewPrice={previewPrice}
                         dirty={priceDirty}
                         disabled={suspended}
+                        preview={preview}
                         onChange={setPriceValue}
                         onSaved={(price) => { setPriceValue(String(price)); setPriceBaseline(price); }}
                     />
@@ -96,7 +104,7 @@ export function DashboardContent({ account }: { account: Doc<"creators"> }) {
                         <OfferPreview photo={pageDraft.photo || undefined} displayName={previewName} message={pageDraft.message.trim() || undefined} socialLink={previewSocial} price={previewPrice} />
                     </section>
                     {account.affiliateHandle ? (
-                        <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} price={priceBaseline} disabled={suspended} />
+                        <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} price={priceBaseline} disabled={suspended || preview} />
                     ) : (
                         <div className="t-card t-card-pad"><p className="t-body">Your page handle is unavailable. Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help.</p></div>
                     )}
@@ -105,8 +113,8 @@ export function DashboardContent({ account }: { account: Doc<"creators"> }) {
                 </div>
             </div>
             <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-                <Sales />
-                <AffiliatePayouts account={account} />
+                <Sales sampleSales={preview ? PREVIEW_SALES : undefined} />
+                <AffiliatePayouts account={account} preview={preview} />
             </div>
         </>
     );

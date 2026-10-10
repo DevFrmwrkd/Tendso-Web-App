@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { ADMIN_PATH_HEADER, adminAccessFor, adminLoginPath } from "@/lib/admin-access";
 import { AdminAccessGate } from "./components/AdminLayout";
+import AdminViewBar from "./components/AdminViewBar";
 
 export default async function AdminRouteLayout({ children }: { children: React.ReactNode }) {
     const pathname = (await headers()).get(ADMIN_PATH_HEADER) ?? "/admin";
@@ -22,5 +23,5 @@ export default async function AdminRouteLayout({ children }: { children: React.R
 
     // Layouts persist across client navigation. The client boundary checks
     // each pathname again, as well as live role changes and auth hydration.
-    return <AdminAccessGate>{children}</AdminAccessGate>;
+    return <AdminAccessGate><AdminViewBar />{children}</AdminAccessGate>;
 }

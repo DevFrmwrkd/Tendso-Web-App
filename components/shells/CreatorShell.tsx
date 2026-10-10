@@ -59,9 +59,27 @@ export function CreatorShell({ children }: { children: ReactNode }) {
     const open = submissions?.filter((s) => OPEN_STATUSES.has(s.status)).length ?? 0;
     const name = [creator?.firstName, creator?.lastName].filter(Boolean).join(" ") || user?.fullName || "";
 
+    // Wait for account type before mounting capture pages nested in this shell.
+    if (!isAuthenticated || creator === undefined || affiliate) return <div className="r1 min-h-dvh" aria-busy="true" />;
+
+    return <CreatorShellView name={name} open={open} unread={unread ?? 0}>{children}</CreatorShellView>;
+}
+
+/** The same navigation frame without account subscriptions or redirects. */
+export function CreatorShellView({ children, name, open = 0, unread = 0, preview = false }: {
+    children?: ReactNode;
+    name: string;
+    open?: number;
+    unread?: number;
+    preview?: boolean;
+}) {
+    const href = (path: string) => preview ? `/admin/preview/creator#${path.slice(1).replaceAll("/", "-")}` : path;
+    const entry = (item: NavLinkEntry): NavLinkEntry => preview
+        ? { ...item, href: href(item.href), isCurrent: () => item.href === HOME.href }
+        : item;
     const sidebar: SidebarProps = {
-        homeHref: "/dashboard",
-        primary: { href: "/submit/info", label: "New submission", icon: Plus, currentPrefix: "/submit" },
+        homeHref: href("/dashboard"),
+        primary: { href: href("/submit/info"), label: "New submission", icon: Plus, currentPrefix: "/submit" },
         items: [
             HOME,
             { href: "/leads", label: "Leads", icon: MapPin },
@@ -69,20 +87,17 @@ export function CreatorShell({ children }: { children: ReactNode }) {
             WALLET,
             REFERRALS,
             { href: "/knowledge", label: "Learn", icon: BookOpen },
-        ],
-        footItems: [{ href: "/notifications", label: "Notifications", icon: Bell, badge: unread ? { tone: "attn", count: unread } : null }],
-        me: name ? { name, meta: "Creator", href: ACCOUNT.href } : null,
+        ].map(entry),
+        footItems: [entry({ href: "/notifications", label: "Notifications", icon: Bell, badge: unread ? { tone: "attn", count: unread } : null })],
+        me: name ? { name, meta: "Creator", href: href(ACCOUNT.href) } : null,
     };
-
-    // Wait for account type before mounting capture pages nested in this shell.
-    if (!isAuthenticated || creator === undefined || affiliate) return <div className="r1 min-h-dvh" aria-busy="true" />;
 
     return (
         <AppShell
             sidebar={sidebar}
             topbarActions={
                 <Link
-                    href="/notifications"
+                    href={href("/notifications")}
                     className="t-btn t-btn-ghost t-btn-icon relative"
                     aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}
                 >
@@ -90,7 +105,7 @@ export function CreatorShell({ children }: { children: ReactNode }) {
                     {unread ? <Dot tone="attn" className="absolute right-2 top-2" /> : null}
                 </Link>
             }
-            tabbar={<TabBar items={[HOME, REFERRALS, WALLET, ACCOUNT]} center={{ href: "/submit/info", label: "New submission", icon: Plus }} />}
+            tabbar={<TabBar items={[HOME, REFERRALS, WALLET, ACCOUNT].map(entry)} center={{ href: href("/submit/info"), label: "New submission", icon: Plus }} />}
         >
             {children}
         </AppShell>

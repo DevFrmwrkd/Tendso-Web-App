@@ -2,11 +2,11 @@
 
 import { useQuery } from "convex/react";
 import { ArrowRight, Plus } from "lucide-react";
-import Link from "next/link";
-import { useId, type ReactNode } from "react";
+import NextLink from "next/link";
+import { createContext, useContext, useId, type ComponentProps, type ReactNode } from "react";
 
 import {
-    ButtonLink,
+    ButtonLink as LiveButtonLink,
     Card,
     cx,
     Dot,
@@ -16,7 +16,7 @@ import {
     leadStatus,
     Loading,
     PageHeader,
-    RowLink,
+    RowLink as LiveRowLink,
     ShowAllList,
     Skeleton,
     SkeletonCard,
@@ -46,6 +46,23 @@ import {
 
 type Creator = Doc<"creators">;
 
+const PreviewContext = createContext(false);
+function previewHref(href: string, preview: boolean) {
+    return preview ? `/admin/preview/creator#${href.slice(1).replaceAll("/", "-")}` : href;
+}
+function ButtonLink(props: ComponentProps<typeof LiveButtonLink>) {
+    const preview = useContext(PreviewContext);
+    return <LiveButtonLink {...props} href={previewHref(props.href, preview)} />;
+}
+function RowLink(props: ComponentProps<typeof LiveRowLink>) {
+    const preview = useContext(PreviewContext);
+    return <LiveRowLink {...props} href={previewHref(props.href, preview)} />;
+}
+function Link(props: Omit<ComponentProps<typeof NextLink>, "href"> & { href: string }) {
+    const preview = useContext(PreviewContext);
+    return <NextLink {...props} href={previewHref(props.href, preview)} />;
+}
+
 /**
  * The creator's Home (board Main): "What should I do next?"
  *
@@ -63,11 +80,23 @@ export function CreatorHome({ creator }: { creator: Creator }) {
     const withdrawals = useQuery(api.withdrawals.getByCreator, { creatorId: creator._id });
     const referrals = useQuery(api.referrals.getStats, creator.referralCode ? { referrerId: creator._id } : "skip");
 
+    return <CreatorHomeView creator={creator} submissions={submissions} leads={leadsFeed?.leads} withdrawals={withdrawals} referrals={referrals} />;
+}
+
+/** Shared dashboard UI; the admin preview supplies local sample data. */
+export function CreatorHomeView({ creator, submissions, leads, withdrawals, referrals, preview = false }: {
+    creator: Creator;
+    submissions: Doc<"submissions">[] | undefined;
+    leads: FeedLead[] | undefined;
+    withdrawals: Doc<"withdrawals">[] | undefined;
+    referrals: { pending: number; qualified: number; paid: number } | undefined;
+    preview?: boolean;
+}) {
     const balance = creator.balance ?? 0;
     const earned = creator.totalEarnings ?? 0;
 
     return (
-        <>
+        <PreviewContext value={preview}>
             <PageHeader title={`Mabuhay, ${creator.firstName || "Creator"}.`} sub="What should I do next?" />
             {submissions === undefined ? (
                 <Loading label="Loading your home" className="flex flex-col gap-6 lg:gap-8">
@@ -80,7 +109,7 @@ export function CreatorHome({ creator }: { creator: Creator }) {
                     <section aria-label="Your next steps" className="flex flex-col gap-4">
                         <NextStepHighlight step={pickNextStep(submissions, balance)} />
                         <SideCards
-                            shop={leadsFeed === undefined ? undefined : pickShop(leadsFeed.leads, submissions)}
+                            shop={leads === undefined ? undefined : pickShop(leads, submissions)}
                             code={creator.referralCode ?? null}
                             referrals={referrals}
                         />
@@ -89,7 +118,7 @@ export function CreatorHome({ creator }: { creator: Creator }) {
                     <RecentActivity items={withdrawals === undefined ? undefined : activityItems(submissions, withdrawals)} />
                 </>
             )}
-        </>
+        </PreviewContext>
     );
 }
 

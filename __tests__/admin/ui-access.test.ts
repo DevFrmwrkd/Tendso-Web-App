@@ -44,10 +44,15 @@ vi.mock("@/components/r1", () => ({
     AppShell: ({ children, sidebar }: { children: ReactNode; sidebar: { roleLabel: string; items: ({ label: string } | string)[] } }) => createElement("main", { "data-admin-shell": sidebar.roleLabel },
         createElement("nav", {}, sidebar.items.filter((item) => typeof item !== "string").map((item, index) => createElement("span", { key: index }, typeof item === "string" ? item : item.label))), children),
 }));
+vi.mock("../../app/admin/components/AdminViewBar", () => ({
+    default: () => createElement("div", { "data-admin-view-bar": true }, "dashboard-view-switch"),
+}));
 
 import AdminLayout, { AdminAccessGate } from "../../app/admin/components/AdminLayout";
 import AdminRouteLayout from "../../app/admin/layout";
 import proxy from "../../proxy";
+
+const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator"] as const;
 
 let mounted = 0;
 function ProtectedPage() {
@@ -188,9 +193,95 @@ describe("server admin layout", () => {
 });
 
 describe("admin request pathname", () => {
-    it("overwrites a caller-supplied staff-safe pathname with the actual admin URL", async () => {
+    it.each(["/admin/creators", ...previewPaths])("overwrites a caller-supplied staff-safe pathname with the actual URL %s", async (pathname) => {
         const runProxy = proxy as unknown as (auth: () => Promise<{ userId: string }>, req: NextRequest) => Promise<Response>;
-        const response = await runProxy(async () => ({ userId: "current-user" }), new NextRequest("https://tendso.com/admin/creators", { headers: { [ADMIN_PATH_HEADER]: "/admin" } }));
-        expect(response.headers.get(`x-middleware-request-${ADMIN_PATH_HEADER}`)).toBe("/admin/creators");
+        const response = await runProxy(async () => ({ userId: "current-user" }), new NextRequest(`https://tendso.com${pathname}`, { headers: { [ADMIN_PATH_HEADER]: "/admin" } }));
+        expect(response.headers.get(`x-middleware-request-${ADMIN_PATH_HEADER}`)).toBe(pathname);
+    });
+});
+
+describe.each(previewPaths)("admin-only dashboard preview %s", (pathname) => {
+    it("allows an active admin through both server and client boundaries", async () => {
+        state.pathname = pathname;
+        const result = await AdminRouteLayout({ children: createElement(ProtectedPage) });
+        expect(result.type).toBe(AdminAccessGate);
+        expect(state.fetchQuery).toHaveBeenCalledWith(expect.anything(), {}, { token: "verified-convex-token" });
+        expect(renderToStaticMarkup(result)).toContain("private-admin-record");
+        expect(mounted).toBe(1);
+    });
+
+    it.each([
+        [{ role: "creator", certifiedAt: 1 }, "/dashboard"],
+        [{ role: "affiliate" }, "/affiliates/dashboard"],
+        [{ role: "staff" }, "/admin"],
+        [{ role: "admin", status: "suspended" }, "/profile"],
+        [{ role: "admin", status: "deleted" }, "/profile"],
+        [{ role: "admin", isDeleted: true }, "/profile"],
+    ] as const)("denies an ineligible account before server children or client content can render", async (account, destination) => {
+        state.pathname = pathname;
+        state.session!.creator = account;
+        await expect(AdminRouteLayout({ children: createElement(ProtectedPage) })).rejects.toThrow(`redirect:${destination}`);
+        expect(renderGate()).toBe("");
+        expect(mounted).toBe(0);
+        expect(state.queries.every((query) => query.name === "adminAccess:me")).toBe(true);
+    });
+
+    it("denies an owner without mounting preview content", async () => {
+        state.pathname = pathname;
+        state.session = { clerkId: "current-user", creator: null, isOwner: true };
+        await expect(AdminRouteLayout({ children: createElement(ProtectedPage) })).rejects.toThrow("redirect:/my-business");
+        expect(renderGate()).toBe("");
+        expect(mounted).toBe(0);
+    });
+
+    it.each(["signed out", "missing Convex token"])("preserves the preview login destination when %s", async (authState) => {
+        state.pathname = pathname;
+        if (authState === "signed out") {
+            state.serverAuth.mockResolvedValue({ userId: null, getToken: state.getToken });
+        } else {
+            state.getToken.mockResolvedValue(null);
+        }
+        await expect(AdminRouteLayout({ children: createElement(ProtectedPage) })).rejects.toThrow(`redirect:/login?redirect_url=${encodeURIComponent(pathname)}`);
+        expect(state.fetchQuery).not.toHaveBeenCalled();
+        expect(mounted).toBe(0);
+    });
+
+    it("blocks staff navigation from Calls and removes an already open preview after live permission changes", () => {
+        state.session!.creator = { role: "staff" };
+        state.pathname = "/admin/bookings";
+        expect(renderGate()).toContain("private-admin-record");
+        mounted = 0;
+        state.pathname = pathname;
+        expect(renderGate()).toBe("");
+        expect(mounted).toBe(0);
+
+        state.session!.creator = { role: "admin" };
+        expect(renderGate()).toContain("private-admin-record");
+        for (const account of [
+            { role: "creator", certifiedAt: 1 },
+            { role: "affiliate" },
+            { role: "staff" },
+            { role: "admin", status: "suspended" },
+            { role: "admin", status: "deleted" },
+            { role: "admin", isDeleted: true },
+        ]) {
+            mounted = 0;
+            state.session!.creator = account;
+            expect(renderGate()).toBe("");
+            expect(mounted).toBe(0);
+        }
+    });
+
+    it("does not mount a preview while Convex hydrates or a stale admin session is being replaced", () => {
+        state.pathname = pathname;
+        state.convex = { isLoading: true, isAuthenticated: false };
+        expect(renderGate()).toBe("");
+        expect(mounted).toBe(0);
+        expect(state.queries).toEqual([{ name: "adminAccess:me", args: "skip" }]);
+
+        state.convex = { isLoading: false, isAuthenticated: true };
+        state.session!.clerkId = "previous-user";
+        expect(renderGate()).toBe("");
+        expect(mounted).toBe(0);
     });
 });

@@ -10,11 +10,12 @@ import { api } from "@/convex/_generated/api";
 import { affiliatePriceError } from "@/lib/affiliates";
 import { BASE_PRICE, COMMISSION_RATE, PRICE_CEILING, WEBSITE_PRICE, clampSellPrice, commissionFor, creatorDiscount, formatPHP } from "@/lib/pricing";
 
-export function PriceSettings({ value, previewPrice, dirty, disabled, onChange, onSaved }: {
+export function PriceSettings({ value, previewPrice, dirty, disabled, preview = false, onChange, onSaved }: {
     value: string;
     previewPrice: number;
     dirty: boolean;
     disabled: boolean;
+    preview?: boolean;
     onChange: (value: string) => void;
     onSaved: (price: number) => void;
 }) {
@@ -44,6 +45,12 @@ export function PriceSettings({ value, previewPrice, dirty, disabled, onChange, 
         const problem = value.trim() ? affiliatePriceError(Number(value)) : "Enter your website price.";
         if (problem) { setInputError(problem); priceRef.current?.focus(); return; }
         const price = clampSellPrice(Number(value));
+        if (preview) {
+            setError(undefined);
+            onSaved(price);
+            setSaved(true);
+            return;
+        }
         setSaving(true);
         setError(undefined);
         try {
@@ -84,7 +91,7 @@ export function PriceSettings({ value, previewPrice, dirty, disabled, onChange, 
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={disabled || saving || !dirty} aria-busy={saving}>{saving ? "Saving…" : "Save price"}</Button>
-                    <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? "Price saved." : dirty ? "Unsaved price change" : ""}</p>
+                    <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? preview ? "Price saved in this preview." : "Price saved." : dirty ? "Unsaved price change" : ""}</p>
                 </div>
             </form>
         </section>

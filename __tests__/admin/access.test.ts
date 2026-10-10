@@ -17,8 +17,10 @@ const session = (role?: string, extra: Partial<NonNullable<AdminSession["creator
     isOwner: false,
 });
 
+const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator"] as const;
+
 describe("admin route policy", () => {
-    const adminPaths = ["/admin", "/admin/", "/admin/bookings", "/admin/call-stats", "/admin/creators", "/admin/affiliates", "/admin/submissions/123", "/admin/payouts", "/admin/knowledge", "/admin/audit"];
+    const adminPaths = ["/admin", "/admin/", "/admin/bookings", "/admin/call-stats", "/admin/creators", "/admin/affiliates", "/admin/submissions/123", "/admin/payouts", "/admin/knowledge", "/admin/audit", ...previewPaths];
 
     it.each(adminPaths)("allows an active admin to open %s", (pathname) => {
         expect(adminAccessFor(session("admin"), pathname)).toEqual({ allowed: true, redirectTo: null });
@@ -28,7 +30,7 @@ describe("admin route policy", () => {
         expect(adminAccessFor(session("staff"), pathname)).toEqual({ allowed: true, redirectTo: null });
     });
 
-    it.each(["/admin/creators", "/admin/affiliates", "/admin/submissions/123", "/admin/payouts", "/admin/bookings/export", "/admin/call-stats/export"])("rejects a staff direct visit or client navigation to %s", (pathname) => {
+    it.each(["/admin/creators", "/admin/affiliates", "/admin/submissions/123", "/admin/payouts", "/admin/bookings/export", "/admin/call-stats/export", ...previewPaths])("rejects a staff direct visit or client navigation to %s", (pathname) => {
         expect(adminAccessFor(session("staff"), pathname)).toEqual({ allowed: false, redirectTo: "/admin" });
     });
 
@@ -86,6 +88,39 @@ describe("client authentication and live navigation", () => {
         expect(adminClientAccess(staff).allowed).toBe(true);
         expect(adminClientAccess({ ...staff, pathname: "/admin/submissions" })).toEqual({ loading: false, allowed: false, redirectTo: "/admin" });
         expect(adminClientAccess({ ...ready, session: session("admin", { status: "suspended" }) })).toEqual({ loading: false, allowed: false, redirectTo: "/profile" });
+    });
+
+    it.each(previewPaths)("keeps %s admin-only when the live account role or status changes", (pathname) => {
+        expect(adminClientAccess({ ...ready, pathname })).toEqual({ loading: false, allowed: true, redirectTo: null });
+        for (const [account, destination] of [
+            [session("creator", { certifiedAt: 1 }), "/dashboard"],
+            [session("affiliate"), "/affiliates/dashboard"],
+            [session("staff"), "/admin"],
+            [session("admin", { status: "suspended" }), "/profile"],
+            [session("admin", { status: "deleted" }), "/profile"],
+            [session("admin", { isDeleted: true }), "/profile"],
+            [{ clerkId: "current-user", creator: null, isOwner: true }, "/my-business"],
+        ] as const) {
+            expect(adminClientAccess({ ...ready, pathname, session: account })).toEqual({
+                loading: false, allowed: false, redirectTo: destination,
+            });
+        }
+    });
+
+    it.each(previewPaths)("does not retain preview access at %s while authentication is unresolved or lost", (pathname) => {
+        for (const patch of [
+            { clerkLoaded: false },
+            { convexLoading: true },
+            { session: undefined },
+            { session: { ...session("admin"), clerkId: "previous-user" } },
+        ]) {
+            expect(adminClientAccess({ ...ready, pathname, ...patch })).toEqual({ loading: true, allowed: false, redirectTo: null });
+        }
+        for (const patch of [{ userId: null }, { convexAuthenticated: false }, { session: null }]) {
+            expect(adminClientAccess({ ...ready, pathname, ...patch })).toEqual({
+                loading: false, allowed: false, redirectTo: `/login?redirect_url=${encodeURIComponent(pathname)}`,
+            });
+        }
     });
 
     it("keeps the personal Account page reachable without expanding actual admin access", () => {
