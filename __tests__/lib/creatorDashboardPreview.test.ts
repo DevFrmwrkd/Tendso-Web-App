@@ -7,6 +7,7 @@ import { CreatorHome, CreatorHomeView } from "@/app/dashboard/_components/Creato
 import { sampleCreator, sampleLeads, sampleSubmissions, sampleWithdrawals } from "@/app/admin/preview/_lib/samples";
 import { CreatorShellView } from "@/components/shells/CreatorShell";
 import { AffiliateDashboardPreview, CreatorDashboardPreview } from "@/app/admin/preview/_components/DashboardPreviews";
+import { AFFILIATE_SECTIONS } from "@/app/affiliates/dashboard/_lib/navigation";
 
 jest.mock("convex/react", () => ({
     useQuery: jest.fn(), useConvexAuth: jest.fn(),
@@ -35,6 +36,15 @@ beforeEach(() => {
 });
 
 describe("creator dashboard presentation", () => {
+    it.each(AFFILIATE_SECTIONS)("renders affiliate %s preview without live queries or financial writes", (section) => {
+        const html = renderToStaticMarkup(createElement(AffiliateDashboardPreview, { section }));
+        expect(html).toContain("Affiliate preview · Sample data");
+        expect(html).toContain("Use View as above");
+        expect(html).not.toContain('href="/affiliates/dashboard');
+        expect(html).not.toContain('href="/wallet');
+        expect(useQuery).not.toHaveBeenCalled();
+    });
+
     it.each([
         ["Creator", CreatorDashboardPreview],
         ["Affiliate", AffiliateDashboardPreview],

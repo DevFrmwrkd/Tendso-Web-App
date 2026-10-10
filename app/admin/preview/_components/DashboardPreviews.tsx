@@ -3,37 +3,32 @@
 import type { MouseEvent } from "react";
 import { toast } from "sonner";
 
-import { DashboardContent } from "@/app/affiliates/dashboard/_components/Dashboard";
+import { AffiliateSectionView } from "@/app/affiliates/dashboard/_components/AffiliateSectionContent";
+import { AffiliateShellView } from "@/app/affiliates/dashboard/_components/AffiliateShell";
+import type { AffiliateSection } from "@/app/affiliates/dashboard/_lib/navigation";
 import { CreatorHomeView } from "@/app/dashboard/_components/CreatorHome";
-import { FunnelHeader, PublicFooter, PublicPage } from "@/components/r1";
 import { CreatorShellView } from "@/components/shells/CreatorShell";
 
-import { sampleAffiliate, sampleCreator, sampleLeads, sampleSubmissions, sampleWithdrawals } from "../_lib/samples";
+import { sampleAffiliate, sampleAffiliatePortal, sampleAffiliateSales, sampleCreator, sampleLeads, sampleSubmissions, sampleWithdrawals } from "../_lib/samples";
 
 function PreviewNotice({ view }: { view: "Affiliate" | "Creator" }) {
     return (
         <aside className="t-card t-card-pad flex flex-col gap-1 border-r1-gold-line bg-r1-gold-bg" aria-label={`${view} preview information`}>
             <p className="t-label">{view} preview · Sample data</p>
             <p className="t-body">{view === "Affiliate"
-                ? "Try the page editor and price slider. Preview changes are discarded when you leave; photo uploads, link sharing, and withdrawals are disabled."
+                ? "Explore Home, My page, Sales, Wallet, Referrals, and Account. Page editor changes are discarded when you leave; photo uploads, link sharing, account changes, and withdrawals are disabled."
                 : "See the creator's home, navigation, submissions, and earnings. Links stay in this preview."}</p>
             <p className="t-meta">Use View as above to return to your admin dashboard.</p>
         </aside>
     );
 }
 
-export function AffiliateDashboardPreview() {
+export function AffiliateDashboardPreview({ section = "home" }: { section?: AffiliateSection }) {
     return (
-        <PublicPage
-            header={<FunnelHeader exit={null} />}
-            footer={<PublicFooter />}
-            mainClassName="items-center px-4 py-8 sm:px-6 sm:py-12"
-        >
-            <div className="flex w-full max-w-[1120px] flex-col gap-8">
-                <PreviewNotice view="Affiliate" />
-                <DashboardContent account={sampleAffiliate} preview />
-            </div>
-        </PublicPage>
+        <AffiliateShellView account={sampleAffiliate} preview section={section}>
+            <PreviewNotice view="Affiliate" />
+            <AffiliateSectionView section={section} account={sampleAffiliate} portal={sampleAffiliatePortal} sampleSales={sampleAffiliateSales} preview />
+        </AffiliateShellView>
     );
 }
 

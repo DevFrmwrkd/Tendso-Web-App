@@ -21,12 +21,14 @@ export function Ledger({
     rows,
     canRetry,
     onRetry,
+    emptyBody = "When an owner pays for a site you made, your share shows up here. So does every withdrawal.",
 }: {
     /** undefined while either query is still loading. */
     rows: LedgerRow[] | undefined;
     /** False when there is nothing in the wallet to send again. */
     canRetry: boolean;
     onRetry: (row: LedgerRow) => void;
+    emptyBody?: string;
 }) {
     const [expanded, setExpanded] = useState(false);
     const titleId = useId();
@@ -63,7 +65,7 @@ export function Ledger({
                     <EmptyState
                         icon={<Icon icon={ArrowLeftRight} size={18} />}
                         title="Nothing here yet"
-                        body="When an owner pays for a site you made, your share shows up here. So does every withdrawal."
+                        body={emptyBody}
                     />
                 </div>
             ) : (
