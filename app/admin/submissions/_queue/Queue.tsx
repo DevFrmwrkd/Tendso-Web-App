@@ -1,6 +1,7 @@
 "use client"
 
 import { useMutation, useQuery } from "convex/react"
+import { ConvexError } from "convex/values"
 import { ChevronLeft, ChevronRight, Inbox, Trash2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -69,6 +70,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     // same query the hook reads costs nothing extra.
     const submissions = useQuery(api.submissions.getAllWithCreator, isAdmin ? {} : "skip")
     const giveaway = useQuery(api.giveaway.giveawayReviewStatus, isAdmin ? {} : "skip")
+    const setGiveawayEnabled = useMutation(api.giveaway.setEnabled)
     const updateStatus = useMutation(api.submissions.updateStatus)
     const now = useNow()
 
@@ -85,6 +87,9 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     const [ownerOnly, setOwnerOnly] = useState(false)
     const [giveawayOnly, setGiveawayOnly] = useState(false)
     const [page, setPage] = useState(1)
+    const [giveawaySaving, setGiveawaySaving] = useState(false)
+    const [giveawayError, setGiveawayError] = useState<string | null>(null)
+    const giveawaySavePending = useRef(false)
 
     // Delete: the API route cascades to Cloudflare Pages, Airtable, R2 and the
     // Convex records, so the confirmation names the business.
@@ -155,6 +160,24 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
         // Paging from the foot of a long phone list: bring the top of the table back into view.
         const table = tableRef.current
         if (table && table.getBoundingClientRect().top < 0) table.scrollIntoView({ block: "start" })
+    }
+
+    const handleGiveawayChange = async (enabled: boolean) => {
+        if (!isAdmin || !giveaway || giveawaySavePending.current) return
+        giveawaySavePending.current = true
+        setGiveawaySaving(true)
+        setGiveawayError(null)
+        try {
+            await setGiveawayEnabled({ enabled })
+            toast.success(enabled ? "Giveaway enabled" : "Giveaway disabled")
+        } catch (error) {
+            setGiveawayError(error instanceof ConvexError && typeof error.data === "string"
+                ? error.data
+                : "The giveaway setting was not saved. Please try again.")
+        } finally {
+            giveawaySavePending.current = false
+            setGiveawaySaving(false)
+        }
     }
 
     const markInReview = async (row: QueueRow) => {
@@ -240,7 +263,12 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
 
     return (
         <>
-            <GiveawaySummary status={giveaway} />
+            <GiveawaySummary
+                status={giveaway}
+                onEnabledChange={isAdmin ? handleGiveawayChange : undefined}
+                busy={giveawaySaving}
+                error={giveawayError}
+            />
             <Tabs
                 label="Status"
                 tabs={STATUS_TABS.map((t) => ({ value: t.key, label: t.label, count: counts[t.key] }))}
