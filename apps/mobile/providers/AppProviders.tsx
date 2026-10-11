@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NetworkProvider } from './NetworkProvider';
+import { MobileAccountProvider } from '../hooks/useMobileAccount';
 
 let NetInfoModule: any = null;
 try {
@@ -230,7 +231,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <ClerkLoadedWithFallback>
           <ConvexClerkProviderInner>
             <NetworkProvider>
-              {children}
+              <MobileAccountProvider>{children}</MobileAccountProvider>
             </NetworkProvider>
           </ConvexClerkProviderInner>
         </ClerkLoadedWithFallback>

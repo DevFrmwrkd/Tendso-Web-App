@@ -23,6 +23,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius } from '../theme/tokens';
+import { snapPrice } from '../services/priceSlider';
+import { creatorDiscount } from '../../../packages/shared/pricing';
 
 interface PriceSliderProps {
   floor: number;        // BASE_PRICE — ₱999
@@ -31,6 +33,7 @@ interface PriceSliderProps {
   commissionRate: number; // 0.5 — what fraction the creator keeps
   step?: number;        // ₱100 default
   initialValue?: number;
+  disabled?: boolean;
   onChange: (value: number) => void;
 }
 
@@ -41,46 +44,44 @@ export function PriceSlider({
   commissionRate,
   step = 100,
   initialValue,
+  disabled = false,
   onChange,
 }: PriceSliderProps) {
   // Default to ceiling so the creator consciously *chooses* to discount rather than
   // defaulting low (per §2.2a UX rationale).
-  const [value, setValue] = useState(initialValue ?? ceiling);
+  const [value, setValue] = useState(Math.max(floor, Math.min(ceiling, initialValue ?? ceiling)));
   const [trackWidth, setTrackWidth] = useState(0);
   const [showTypedInput, setShowTypedInput] = useState(false);
   const [typedInputValue, setTypedInputValue] = useState(String(value));
   const valueRef = useRef(value);
   valueRef.current = value;
+  const dragStart = useRef(value);
+  const bounds = useRef({ floor, ceiling, step, trackWidth, disabled });
+  bounds.current = { floor, ceiling, step, trackWidth, disabled };
+
+  useEffect(() => {
+    setValue(Math.max(floor, Math.min(ceiling, initialValue ?? ceiling)));
+  }, [initialValue, floor, ceiling]);
 
   useEffect(() => {
     onChange(value);
-  }, [value]);
+  }, [value, onChange]);
 
   const snapToStep = (raw: number) => {
-    const clamped = Math.max(floor, Math.min(ceiling, raw));
-    return Math.round(clamped / step) * step;
+    return snapPrice(raw, floor, ceiling, step);
   };
 
   // ───── PanResponder: drag thumb left/right ─────
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {},
+      onStartShouldSetPanResponder: () => !bounds.current.disabled,
+      onMoveShouldSetPanResponder: () => !bounds.current.disabled,
+      onPanResponderGrant: () => { dragStart.current = valueRef.current; },
       onPanResponderMove: (_, gesture) => {
-        if (trackWidth === 0) return;
-        // gesture.moveX is absolute screen X — we need it relative to track.
-        // Easier: use dx + current pos. Compute fraction from drag delta.
-        // For simplicity here, we drive value from gesture.moveX minus the track's
-        // x offset, which we approximate via locationX in onResponderMove.
-        // Using gesture.x0 + dx is more reliable than tracking layout positions.
-        const fraction = Math.max(0, Math.min(1, gesture.moveX / trackWidth));
-        // Wrong — moveX is screen-absolute, not track-relative. We need locationX.
-        // PanResponder doesn't give locationX cleanly across native impls. Use dx
-        // from current value instead — incremental delta.
-        const incrementalFraction = gesture.dx / trackWidth;
-        const range = ceiling - floor;
-        const newValue = snapToStep(valueRef.current + incrementalFraction * range);
+        const current = bounds.current;
+        if (!current.trackWidth || current.disabled) return;
+        const raw = dragStart.current + gesture.dx / current.trackWidth * (current.ceiling - current.floor);
+        const newValue = snapPrice(raw, current.floor, current.ceiling, current.step);
         if (newValue !== valueRef.current) {
           setValue(newValue);
           valueRef.current = newValue;
@@ -100,13 +101,14 @@ export function PriceSlider({
   };
 
   // Live derived values
-  const discountPct = Math.round(((anchor - value) / anchor) * 100);
+  const discount = creatorDiscount(value, anchor);
   const earnings = Math.round(commissionRate * value);
 
   // Slider is no-op if floor === ceiling (locked intro state)
   const isLocked = floor >= ceiling;
 
   const openTypedInput = () => {
+    if (disabled) return;
     setTypedInputValue(String(value));
     setShowTypedInput(true);
   };
@@ -137,7 +139,7 @@ export function PriceSlider({
       </Text>
 
       {/* Current value — large, tappable for direct input */}
-      <TouchableOpacity onPress={openTypedInput} accessibilityRole="button" accessibilityLabel={`Current price ₱${value}. Tap to type exact amount.`}>
+      <TouchableOpacity disabled={disabled} onPress={openTypedInput} accessibilityRole="button" accessibilityLabel={`Current price ₱${value}. Tap to type exact amount.`}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
           <Text style={{
             fontFamily: fonts.serif, fontSize: 40, color: colors.ink,
@@ -151,13 +153,13 @@ export function PriceSlider({
 
       {/* Anchor + discount badge */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, marginBottom: 18 }}>
-        <Text style={{
+        {discount && <Text style={{
           fontFamily: fonts.sans, fontSize: 13, color: colors.ink3,
           textDecorationLine: 'line-through',
         }}>
           ₱{anchor.toLocaleString()}
-        </Text>
-        {discountPct > 0 && (
+        </Text>}
+        {discount && (
           <View style={{
             backgroundColor: colors.accentBg,
             borderRadius: radius.pill,
@@ -167,7 +169,7 @@ export function PriceSlider({
               fontFamily: fonts.sansBold, fontSize: 11,
               color: colors.accentInk, letterSpacing: 0.4,
             }}>
-              {discountPct}% OFF
+              {discount.percentOff}% OFF
             </Text>
           </View>
         )}
@@ -177,6 +179,15 @@ export function PriceSlider({
       {!isLocked ? (
         <>
           <View
+            testID="price-slider-track"
+            accessibilityRole="adjustable"
+            accessibilityLabel="Website price"
+            accessibilityState={{ disabled }}
+            accessibilityValue={{ min: floor, max: ceiling, now: value }}
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            onAccessibilityAction={(event) => {
+              if (!disabled) setValue(snapToStep(value + (event.nativeEvent.actionName === 'increment' ? step : -step)));
+            }}
             onLayout={onTrackLayout}
             style={{
               height: 36, justifyContent: 'center',

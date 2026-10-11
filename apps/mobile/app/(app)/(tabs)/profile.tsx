@@ -28,6 +28,8 @@ import CertificateCard from '../../../components/CertificateCard';
 import { colors, fonts, radius, space } from '../../../theme/tokens';
 import { Display, Body, Label, Door, Card, Rule, Avatar } from '../../../components/ui/primitives';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { PreviewProfile } from '../../../components/AccountPreview';
 
 type MenuItem = {
   icon: any;
@@ -47,6 +49,11 @@ type MenuSection = {
 };
 
 export default function ProfileScreen() {
+  const { isPreview, account } = useMobileAccount();
+  return isPreview ? <PreviewProfile /> : <PersonalProfile isAffiliate={account?.role === 'affiliate'} />;
+}
+
+function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useGuardedRouter();
   const { user, isLoaded } = useUser();
@@ -73,7 +80,7 @@ export default function ProfileScreen() {
   // the Home dashboard, which counts this query's length.
   const submissions = useQuery(
     api.submissions.getByCreatorId,
-    creator?._id ? { creatorId: creator._id } : 'skip',
+    creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip',
   );
 
   const handleShareCert = useCallback(async () => {
@@ -160,7 +167,7 @@ export default function ProfileScreen() {
   const lastName = creator?.lastName || '';
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || user?.fullName || 'Creator';
   const email = creator?.email || user?.primaryEmailAddress?.emailAddress || '';
-  const isCertified = !!(creator as any)?.certifiedAt;
+  const isCertified = !isAffiliate && !!creator?.certifiedAt;
 
   const accountItems: MenuItem[] = [
     {
@@ -197,7 +204,7 @@ export default function ProfileScreen() {
     },
   ];
 
-  if (!(creator as any)?.referredByCode) {
+  if (!isAffiliate && !creator?.referredByCode) {
     accountItems.push({
       icon: 'gift-outline',
       label: 'Enter referral code',
@@ -234,7 +241,7 @@ export default function ProfileScreen() {
     {
       step: '02',
       title: 'Account',
-      items: accountItems,
+      items: isAffiliate && creator?.status === 'suspended' ? accountItems.filter(item => item.label !== 'Edit profile') : accountItems,
     },
     {
       step: '04',
@@ -346,7 +353,7 @@ export default function ProfileScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {[
-              { label: 'Submissions', value: String(submissionCount) },
+              ...(!isAffiliate ? [{ label: 'Submissions', value: String(submissionCount) }] : []),
               { label: 'Balance',      value: `₱${balance.toLocaleString('en-PH', { maximumFractionDigits: 0 })}` },
               { label: 'Earned',       value: `₱${totalEarnings.toLocaleString('en-PH', { maximumFractionDigits: 0 })}` },
             ].map((s) => (

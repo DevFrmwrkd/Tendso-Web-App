@@ -23,6 +23,8 @@ import { OfflineBanner } from '../../../components/OfflineBanner';
 import { colors, fonts, radius, space } from '../../../theme/tokens';
 import { Display, Body, Label, Door, Card, Rule } from '../../../components/ui/primitives';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { PreviewWallet } from '../../../components/AccountPreview';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -73,6 +75,11 @@ const EMPTY_FORM: WithdrawalForm = {
 // ---------------------------------------------------------------------------
 
 export default function WalletScreen() {
+  const { isPreview, account } = useMobileAccount();
+  return isPreview ? <PreviewWallet /> : <PersonalWallet isAffiliate={account?.role === 'affiliate'} />;
+}
+
+function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useGuardedRouter();
   const { user } = useUser();
@@ -83,14 +90,17 @@ export default function WalletScreen() {
     api.creators.getByClerkId,
     user ? { clerkId: user.id } : 'skip'
   );
-  const withdrawals = useQuery(
+  const creatorWithdrawals = useQuery(
     api.withdrawals.getByCreator,
-    creator?._id ? { creatorId: creator._id } : 'skip'
+    creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip'
   );
-  const earnings = useQuery(
+  const creatorEarnings = useQuery(
     api.earnings.getByCreator,
-    creator?._id ? { creatorId: creator._id } : 'skip'
+    creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip'
   );
+  const portal = useQuery(api.affiliates.portal, isAffiliate ? {} : 'skip');
+  const withdrawals = isAffiliate ? portal?.withdrawals : creatorWithdrawals;
+  const earnings = isAffiliate ? portal?.earnings : creatorEarnings;
 
   const createWithdrawal = useMutation(api.withdrawals.create);
   // Persist the Wise payout email through the canonical profile mutation.
@@ -105,7 +115,7 @@ export default function WalletScreen() {
   const [savingEmail, setSavingEmail]         = useState(false);
   const [setupError, setSetupError]           = useState('');
 
-  if (!isOffline && creator === undefined) {
+  if (!isOffline && (creator === undefined || (isAffiliate && portal === undefined))) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
         <ActivityIndicator testID="activity-indicator" size="large" color={colors.accent} />
@@ -119,6 +129,7 @@ export default function WalletScreen() {
   const savedWiseEmail = (creator as any)?.wiseEmail as string | undefined;
 
   function openWithdrawFlow() {
+    if (creator?.status === 'suspended') return;
     if (savedWiseEmail) {
       setForm({ amount: '', wiseEmail: savedWiseEmail });
       setFormError('');
@@ -144,7 +155,7 @@ export default function WalletScreen() {
     const email = wiseSetupEmail.trim();
     if (!email) { setSetupError('Please enter your Wise email address.'); return; }
     if (!isValidEmail(email)) { setSetupError('Please enter a valid email address.'); return; }
-    if (!creator?._id) return;
+    if (!creator?._id || creator.status === 'suspended') return;
 
     setSavingEmail(true);
     try {
@@ -168,7 +179,7 @@ export default function WalletScreen() {
     if (amount > balance) { setFormError('Amount exceeds your available balance.'); return; }
     if (!form.wiseEmail.trim()) { setFormError('Wise email is required.'); return; }
     if (!isValidEmail(form.wiseEmail.trim())) { setFormError('Please enter a valid email address.'); return; }
-    if (!creator?._id) return;
+    if (!creator?._id || creator.status === 'suspended') return;
 
     setSubmitting(true);
     try {
@@ -298,7 +309,7 @@ export default function WalletScreen() {
               label={balance > 0 ? 'Request withdrawal' : 'No balance available'}
               variant="accent"
               onPress={openWithdrawFlow}
-              disabled={balance <= 0 || isOffline}
+              disabled={balance <= 0 || isOffline || creator?.status === 'suspended'}
               accessibilityLabel="Withdraw funds"
               containerStyle={{ marginTop: 4 }}
             />
@@ -308,6 +319,7 @@ export default function WalletScreen() {
                 Offline — reconnect to withdraw
               </Text>
             )}
+            {creator?.status === 'suspended' && <Body size="sm" color={colors.ink2}>Your affiliate account is suspended. Earned amounts and payout history remain visible; withdrawals are paused.</Body>}
           </View>
 
           {/* Referrals — lives in Wallet because referral bonuses pay into this

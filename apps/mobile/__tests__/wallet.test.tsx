@@ -7,6 +7,9 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import WalletScreen from "../app/(app)/(tabs)/wallet";
+jest.mock('../hooks/useMobileAccount', () => ({
+  useMobileAccount: () => ({ isPreview: false, account: { role: 'creator' } }),
+}));
 
 // ---------------------------------------------------------------------------
 // Mocks

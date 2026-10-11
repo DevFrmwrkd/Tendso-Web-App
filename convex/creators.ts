@@ -555,13 +555,7 @@ export const markQuizPassed = mutation({
 export const approveCreator = mutation({
     args: { id: v.id('creators') },
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error('Not authenticated');
-        const me = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+        await requireAdmin(ctx);
 
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
@@ -589,13 +583,7 @@ export const approveCreator = mutation({
 export const listPendingApproval = query({
     args: {},
     handler: async (ctx) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error('Not authenticated');
-        const me = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+        await requireAdmin(ctx);
 
         const all = await ctx.db.query('creators').collect();
         return all
@@ -648,13 +636,7 @@ export const rejectCreator = mutation({
         reason: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error('Not authenticated');
-        const me = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+        const { identity } = await requireAdmin(ctx);
 
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');

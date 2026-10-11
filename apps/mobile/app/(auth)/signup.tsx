@@ -21,8 +21,10 @@ import Svg, { Path } from 'react-native-svg';
 import { TikTokLogo } from '@/components/TikTokLogo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { useMutation } from 'convex/react';
-import { api } from '@tendso/convex-client';
+import {
+  activateSignupSession, normalizeSignupProfile, savePendingSignupProfile, signupProfileErrors,
+} from '../../services/signupProfile';
+import type { SignupAccountType } from '../../services/signupProfile';
 import { Display, Body, Label, Door, Rule, EditorialField } from '@/components/ui/primitives';
 import { colors, fonts, radius } from '@/theme/tokens';
 import { openExternalUrl, TERMS_URL, PRIVACY_URL } from '../../services/links';
@@ -67,12 +69,6 @@ function GoogleLogo({ size = 20 }: { size?: number }) {
   );
 }
 
-function generateReferralCode(firstName: string, lastName: string): string {
-  const namePrefix = (firstName.substring(0, 2) + lastName.substring(0, 1)).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `${namePrefix}${random}`;
-}
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignupScreen() {
@@ -83,9 +79,10 @@ export default function SignupScreen() {
   // Google. Our own hook rather than Clerk's useSignInWithApple, which drops
   // the name Apple returns on a first authorization.
   const { startAppleAuth } = useAppleAuth();
-  const createCreator = useMutation(api.creators.create);
   const insets = useSafeAreaInsets();
 
+  const [accountType, setAccountType] = useState<SignupAccountType>('creator');
+  const [handle, setHandle] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -104,6 +101,7 @@ export default function SignupScreen() {
   const [error, setError] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const profile = normalizeSignupProfile({ accountType, firstName, lastName, phone, handle, referredByCode });
 
   // Per-field validation errors (shown inline under each input)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -130,7 +128,8 @@ export default function SignupScreen() {
     // Per-field inline validation
     const errors: Record<string, string> = {};
     if (!firstName.trim()) errors.firstName = 'First name is required';
-    if (!lastName.trim()) errors.lastName = 'Last name is required';
+    if (accountType === 'creator' && !lastName.trim()) errors.lastName = 'Last name is required';
+    Object.assign(errors, signupProfileErrors(profile));
     if (!email.trim()) errors.email = 'Email is required';
     else if (!EMAIL_REGEX.test(email.trim())) errors.email = 'Invalid email address';
     if (!password) errors.password = 'Password is required';
@@ -144,6 +143,7 @@ export default function SignupScreen() {
       setError('Please fix the highlighted fields above');
       return;
     }
+    if (!acceptedTerms) { setError('Please accept the terms to continue.'); return; }
 
     setLoading(true);
     setError('');
@@ -171,6 +171,7 @@ export default function SignupScreen() {
         password,
       });
 
+      await savePendingSignupProfile(profile, { email: email.trim() });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setPendingVerification(true);
     } catch (err: any) {
@@ -189,59 +190,17 @@ export default function SignupScreen() {
 
   const handleVerify = async () => {
     if (!isLoaded) return;
-
-    if (!code) {
-      setError('Please enter the verification code');
-      return;
-    }
-
+    if (!code) { setError('Please enter the verification code'); return; }
     setLoading(true);
     setError('');
-
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
-
-      if (result.status === 'complete') {
-        if (!result.createdSessionId || !result.createdUserId) {
-          setError('Verification succeeded but session creation failed. Please try logging in.');
-          setLoading(false);
-          return;
-        }
-
-        // Create the Convex creator row BEFORE setActive. If Convex creation
-        // throws, the user is at least in Clerk — they can sign in later and
-        // the home-screen auto-create will retry. We surface the error so QA
-        // sees it clearly (the previous generic "verification failed" message
-        // hid real Convex problems).
-        const referralCode = generateReferralCode(firstName, lastName);
-        try {
-          await createCreator({
-            clerkId: result.createdUserId,
-            email: email.trim(),
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            phone: phone.trim() || undefined,
-            referralCode,
-            referredByCode: referredByCode.trim() || undefined,
-          });
-          console.log('[SignUp] Convex creator created for', email);
-        } catch (createErr: any) {
-          // Don't block sign-in. Surface in console + Sentry for diagnosis.
-          console.error(
-            '[SignUp] createCreator failed AFTER Clerk verification — home-screen safety net will retry on first home visit:',
-            createErr?.message ?? createErr,
-          );
-        }
-
-        await setActive({ session: result.createdSessionId });
-      } else {
-        setError(`Verification incomplete (${result.status}). Please try again.`);
-        setLoading(false);
+      if (result.status !== 'complete' || !result.createdSessionId || !result.createdUserId) {
+        throw new Error('Verification is incomplete. Please try again or log in.');
       }
+      await activateSignupSession(profile, { clerkId: result.createdUserId, email: email.trim() }, result.createdSessionId, setActive);
     } catch (err: any) {
-      console.error('Verification error:', err);
-      const errorMessage = err.errors?.[0]?.message || err.message || 'Failed to verify email';
-      setError(errorMessage);
+      setError(err.errors?.[0]?.message || err.message || 'Failed to verify email');
       setLoading(false);
     }
   };
@@ -272,180 +231,54 @@ export default function SignupScreen() {
 
   const handleAppleSignUp = useCallback(async () => {
     if (appleLoading) return;
-    // Apple's button has no `disabled` prop, so enforce the terms gate here to
-    // match the email/Google paths.
-    if (!acceptedTerms) {
-      setError('Please accept the terms to continue.');
-      return;
-    }
-
+    if (!acceptedTerms) { setError('Please accept the terms to continue.'); return; }
     setAppleLoading(true);
     setError('');
-
     try {
       const result = await startAppleAuth();
-
       if (result.createdSessionId && result.setActive) {
-        // Best-effort Convex creator row, same as the Google path. NOTE: Apple
-        // only returns name/email on the FIRST authorization ever, and the
-        // email is often a private relay — so these are frequently missing on
-        // re-installs. The home-screen auto-create useEffect is the safety net.
-        const appleUserId =
-          (result as any).createdUserId ??
-          result.signUp?.createdUserId ??
-          (result.signIn as any)?.userData?.id;
-        // Prefer what Apple just handed us over what Clerk echoes back: on a
-        // first authorization the credential is the ONLY place the name and
-        // the real (non-relay) email exist.
-        const appleEmail =
-          result.email ??
-          (result.signUp as any)?.emailAddress ??
-          (result.signIn as any)?.userData?.emailAddresses?.[0]?.emailAddress ??
-          '';
-        const appleFirstName =
-          result.firstName ??
-          (result.signUp as any)?.firstName ??
-          (result.signIn as any)?.userData?.firstName ??
-          undefined;
-        const appleLastName =
-          result.lastName ??
-          (result.signUp as any)?.lastName ??
-          (result.signIn as any)?.userData?.lastName ??
-          undefined;
-
-        if (appleUserId && appleEmail) {
-          try {
-            const referralCode = generateReferralCode(appleFirstName || 'AP', appleLastName || 'PL');
-            await createCreator({
-              clerkId: appleUserId,
-              email: appleEmail,
-              firstName: appleFirstName,
-              lastName: appleLastName,
-              referralCode,
-              referredByCode: referredByCode.trim() || undefined,
-            });
-          } catch (createErr: any) {
-            console.error(
-              '[Apple SignUp] createCreator failed (home-screen safety net will retry):',
-              createErr?.message ?? createErr,
-            );
-          }
-        } else {
-          console.warn(
-            '[Apple SignUp] No userId/email from Apple (expected on repeat sign-ins) — home-screen safety net will create',
-          );
-        }
-
-        await result.setActive({ session: result.createdSessionId });
-      } else {
-        setAppleLoading(false);
-      }
+        const appleProfile = normalizeSignupProfile({ ...profile,
+          firstName: profile.firstName || result.firstName || result.signUp?.firstName || '',
+          lastName: profile.lastName || result.lastName || result.signUp?.lastName || '',
+        });
+        await activateSignupSession(appleProfile, {
+          clerkId: result.isNewUser ? result.signUp?.createdUserId || undefined : undefined,
+          email: result.email || (result.isNewUser ? result.signUp?.emailAddress || undefined : undefined),
+        }, result.createdSessionId, result.setActive);
+      } else { setAppleLoading(false); }
     } catch (err: any) {
-      // Tapping Cancel on the Apple sheet throws — not an error state.
-      const code = err?.code ?? '';
-      if (code === 'ERR_REQUEST_CANCELED' || code === 'ERR_CANCELED') {
-        setAppleLoading(false);
-        return;
-      }
-      console.error('Apple sign up error:', JSON.stringify(err, null, 2));
-      setError(
-        err?.errors?.[0]?.longMessage ||
-          err?.errors?.[0]?.message ||
-          err?.message ||
-          'Failed to sign up with Apple',
-      );
+      if (err?.code === 'ERR_REQUEST_CANCELED' || err?.code === 'ERR_CANCELED') { setAppleLoading(false); return; }
+      setError(err?.errors?.[0]?.message || err?.message || 'Failed to sign up with Apple');
       setAppleLoading(false);
     }
-  }, [appleLoading, acceptedTerms, startAppleAuth, createCreator, referredByCode]);
+  }, [appleLoading, acceptedTerms, startAppleAuth, profile]);
 
   const handleGoogleSignUp = useCallback(async () => {
     if (googleLoading) return;
-
+    if (!acceptedTerms) { setError('Please accept the terms to continue.'); return; }
     setGoogleLoading(true);
     setError('');
-
     try {
-      const redirectUrl = Linking.createURL('/', { scheme: 'negosyodigital' });
-      console.log('[Google SignUp] Starting SSO flow with redirect:', redirectUrl);
-
-      const result = await startGoogleSSOFlow({
-        strategy: 'oauth_google',
-        redirectUrl,
-      });
-
-      console.log('[Google SignUp] SSO result:', {
-        createdSessionId: result.createdSessionId,
-        signUpStatus: result.signUp?.status,
-        signInStatus: result.signIn?.status,
-        createdUserId: (result as any).createdUserId,
-      });
-
+      const result = await startGoogleSSOFlow({ strategy: 'oauth_google', redirectUrl: Linking.createURL('/', { scheme: 'negosyodigital' }) });
       if (result.createdSessionId && result.setActive) {
-        // Best-effort: create the Convex creator row from the Google profile.
-        // If this throws (Convex down, network blip, etc.), we still sign the
-        // user in — the home-screen auto-create useEffect is the safety net.
-        // BUT we surface the error in the console so QA / Sentry can find it.
-        const googleUserId =
-          (result as any).createdUserId ??
-          result.signUp?.createdUserId ??
-          (result.signIn as any)?.userData?.id;
-        const googleEmail =
-          (result.signUp as any)?.emailAddress ??
-          (result.signUp as any)?.unsafeMetadata?.email ??
-          (result.signIn as any)?.userData?.emailAddresses?.[0]?.emailAddress ??
-          '';
-        const googleFirstName =
-          (result.signUp as any)?.firstName ??
-          (result.signIn as any)?.userData?.firstName ??
-          undefined;
-        const googleLastName =
-          (result.signUp as any)?.lastName ??
-          (result.signIn as any)?.userData?.lastName ??
-          undefined;
-
-        if (googleUserId && googleEmail) {
-          try {
-            const referralCode = generateReferralCode(
-              googleFirstName || 'GO',
-              googleLastName || 'OG',
-            );
-            await createCreator({
-              clerkId: googleUserId,
-              email: googleEmail,
-              firstName: googleFirstName,
-              lastName: googleLastName,
-              referralCode,
-              referredByCode: referredByCode.trim() || undefined,
-            });
-            console.log('[Google SignUp] Convex creator created for', googleEmail);
-          } catch (createErr: any) {
-            // Don't block sign-in on this — home-screen safety net will retry.
-            // Log loudly so the failure is visible in Sentry/console.
-            console.error(
-              '[Google SignUp] createCreator failed (home-screen safety net will retry):',
-              createErr?.message ?? createErr,
-            );
-          }
-        } else {
-          console.warn(
-            '[Google SignUp] Missing userId or email from Google result — home-screen safety net will create',
-          );
-        }
-
-        await result.setActive({ session: result.createdSessionId });
-      } else {
-        setGoogleLoading(false);
-      }
+        const googleProfile = normalizeSignupProfile({ ...profile,
+          firstName: profile.firstName || result.signUp?.firstName || '',
+          lastName: profile.lastName || result.signUp?.lastName || '',
+        });
+        await activateSignupSession(googleProfile, {
+          clerkId: result.signUp?.createdUserId || undefined,
+          email: result.signUp?.emailAddress || undefined,
+        }, result.createdSessionId, result.setActive);
+      } else { setGoogleLoading(false); }
     } catch (err: any) {
-      console.error('Google sign up error:', JSON.stringify(err, null, 2));
-      const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || 'Failed to sign up with Google';
-      setError(msg);
+      setError(err.errors?.[0]?.message || err.message || 'Failed to sign up with Google');
       setGoogleLoading(false);
     }
-  }, [googleLoading, startGoogleSSOFlow, createCreator, referredByCode]);
+  }, [googleLoading, acceptedTerms, startGoogleSSOFlow, profile]);
 
   const handleTikTokSignUp = useCallback(async () => {
     if (tiktokLoading) return;
+    if (!acceptedTerms) { setError('Please accept the terms to continue.'); return; }
 
     setTiktokLoading(true);
     setError('');
@@ -458,7 +291,7 @@ export default function SignupScreen() {
 
       // Direct session — user already exists or all fields satisfied
       if (result.createdSessionId && result.setActive) {
-        await result.setActive({ session: result.createdSessionId });
+        await activateSignupSession(profile, { clerkId: result.signUp?.createdUserId || undefined, email: result.signUp?.emailAddress || undefined }, result.createdSessionId, result.setActive);
         return;
       }
 
@@ -467,10 +300,10 @@ export default function SignupScreen() {
       if (result.signUp?.status === 'missing_requirements') {
         ssoSignUpRef.current = result.signUp;
         ssoSetActiveRef.current = result.setActive;
-        setTtFirstName(result.signUp.firstName || '');
-        setTtLastName(result.signUp.lastName || '');
-        setTtEmail('');
-        setTtPhone('');
+        setTtFirstName(firstName.trim() || result.signUp.firstName || '');
+        setTtLastName(lastName.trim() || result.signUp.lastName || '');
+        setTtEmail(email.trim());
+        setTtPhone(phone.trim());
         setTtCode('');
         setTtError('');
         setTtStep('profile');
@@ -485,13 +318,13 @@ export default function SignupScreen() {
       setError(err.errors?.[0]?.message || 'Failed to sign up with TikTok');
       setTiktokLoading(false);
     }
-  }, [tiktokLoading, startTikTokSSOFlow]);
+  }, [tiktokLoading, acceptedTerms, startTikTokSSOFlow, profile]);
 
   const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
   const handleTikTokSubmitProfile = async () => {
     if (!ttFirstName.trim() || ttFirstName.trim().length < 2) { setTtError('First name is required (min 2 characters)'); return; }
-    if (!ttLastName.trim() || ttLastName.trim().length < 2) { setTtError('Last name is required (min 2 characters)'); return; }
+    if (accountType === 'creator' && ttLastName.trim().length < 2) { setTtError('Last name is required (min 2 characters)'); return; }
     if (!ttEmail.trim() || !EMAIL_REGEX.test(ttEmail.trim())) { setTtError('Please enter a valid email address'); return; }
     if (ttPhone.trim() && !PHONE_REGEX.test(ttPhone.replace(/\s/g, ''))) { setTtError('Please enter a valid PH phone number'); return; }
 
@@ -508,11 +341,11 @@ export default function SignupScreen() {
         emailAddress: ttEmail.trim(),
       });
 
-      console.log('After update - status:', su.status, 'missing:', su.missingFields, 'unverified:', su.unverifiedFields, 'sessionId:', su.createdSessionId);
+      await savePendingSignupProfile({ ...profile, firstName: ttFirstName, lastName: ttLastName, phone: ttPhone }, { email: ttEmail });
 
       if (su.createdSessionId) {
         const setActiveFn = ssoSetActiveRef.current || setActive;
-        await setActiveFn({ session: su.createdSessionId });
+        await activateSignupSession({ ...profile, firstName: ttFirstName, lastName: ttLastName, phone: ttPhone }, { clerkId: su.createdUserId || undefined, email: ttEmail }, su.createdSessionId, setActiveFn);
         setShowTikTokProfile(false);
         return;
       }
@@ -548,14 +381,14 @@ export default function SignupScreen() {
 
       if (result.status === 'complete' && result.createdSessionId) {
         const setActiveFn = ssoSetActiveRef.current || setActive;
-        await setActiveFn({ session: result.createdSessionId });
+        await activateSignupSession({ ...profile, firstName: ttFirstName, lastName: ttLastName, phone: ttPhone }, { clerkId: result.createdUserId || undefined, email: ttEmail }, result.createdSessionId, setActiveFn);
         setShowTikTokProfile(false);
         return;
       }
 
       if (su.createdSessionId) {
         const setActiveFn = ssoSetActiveRef.current || setActive;
-        await setActiveFn({ session: su.createdSessionId });
+        await activateSignupSession({ ...profile, firstName: ttFirstName, lastName: ttLastName, phone: ttPhone }, { clerkId: su.createdUserId || undefined, email: ttEmail }, su.createdSessionId, setActiveFn);
         setShowTikTokProfile(false);
         return;
       }
@@ -742,6 +575,26 @@ export default function SignupScreen() {
           Start your digital business journey. Two minutes, one form.
         </Body>
 
+        <View style={{ gap: 10, marginBottom: 24 }} accessibilityLabel="Choose an account type">
+          {(['creator', 'affiliate'] as const).map((type) => (
+            <TouchableOpacity
+              key={type}
+              accessibilityRole="radio"
+              accessibilityLabel={type === 'creator' ? 'Creator account' : 'Affiliate account'}
+              accessibilityState={{ checked: accountType === type }}
+              disabled={loading || googleLoading || appleLoading || tiktokLoading}
+              onPress={() => { setAccountType(type); setFieldErrors({}); setError(''); }}
+              style={{ borderWidth: 1, borderColor: accountType === type ? colors.accent : colors.rule, borderRadius: radius.sm, padding: 14 }}
+            >
+              <Body weight="bold">{type === 'creator' ? 'Creator' : 'Affiliate'}</Body>
+              <Body size="sm" color={colors.ink2}>
+                {type === 'creator' ? 'Photograph businesses and interview their owners.' : 'Share your page, set your price, and earn a commission.'}
+              </Body>
+            </TouchableOpacity>
+          ))}
+          <Body size="xs" color={colors.ink3}>One login has one account type. Use another email for a second account.</Body>
+        </View>
+
         {error ? (
           <View
             style={{
@@ -780,7 +633,7 @@ export default function SignupScreen() {
               autoCapitalize="words"
               editable={!loading}
               accessibilityLabel="Last Name"
-              label="LAST NAME"
+              label={accountType === 'affiliate' ? 'LAST NAME (OPTIONAL)' : 'LAST NAME'}
               error={fieldErrors.lastName}
             />
           </View>
@@ -849,9 +702,27 @@ export default function SignupScreen() {
           </View>
           <View style={{ marginTop: 6, paddingHorizontal: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
             <Label>MOBILE</Label>
-            <Label color={colors.ink3}>OPTIONAL</Label>
+            <Label color={colors.ink3}>{accountType === 'affiliate' ? 'REQUIRED' : 'OPTIONAL'}</Label>
           </View>
+          {fieldErrors.phone ? <Body size="xs" color={colors.danger}>{fieldErrors.phone}</Body> : null}
         </View>
+
+        {accountType === 'affiliate' ? (
+          <View style={{ marginBottom: 18 }}>
+            <EditorialField
+              label="PAGE HANDLE"
+              placeholder="your-page"
+              value={handle}
+              onChangeText={(value: string) => setHandle(value.toLowerCase())}
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+              accessibilityLabel="Page handle"
+              error={fieldErrors.handle}
+            />
+            <Body size="xs" color={colors.ink3}>Your page will be tendso.com/a/{handle || 'your-page'}.</Body>
+          </View>
+        ) : null}
 
         {/* Password */}
         <View style={{ marginBottom: 18 }}>
@@ -923,7 +794,7 @@ export default function SignupScreen() {
         </View>
 
         {/* Referral Code */}
-        <View style={{ marginBottom: 24 }}>
+        {accountType === 'creator' ? <View style={{ marginBottom: 24 }}>
           <View
             style={{
               flexDirection: 'row',
@@ -953,7 +824,7 @@ export default function SignupScreen() {
             <Label>REFERRAL CODE</Label>
             <Label color={colors.ink3}>OPTIONAL</Label>
           </View>
-        </View>
+        </View> : null}
 
         {/* Terms checkbox */}
         <TouchableOpacity
@@ -1153,7 +1024,7 @@ export default function SignupScreen() {
                         </View>
                       </View>
                       <View className="flex-1 ml-2">
-                        <Text className="text-zinc-700 font-medium mb-2">Last Name *</Text>
+                        <Text className="text-zinc-700 font-medium mb-2">{accountType === 'affiliate' ? 'Last Name (optional)' : 'Last Name *'}</Text>
                         <View className="flex-row items-center bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14">
                           <TextInput className="flex-1 text-base text-zinc-900" placeholder="Dela Cruz" placeholderTextColor="#a1a1aa"
                             value={ttLastName} onChangeText={setTtLastName} autoCapitalize="words" editable={!ttLoading} />

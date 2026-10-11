@@ -1,25 +1,37 @@
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
-import { Stack } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
+import { Platform, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Stack, useSegments } from 'expo-router';
+import { useAuth, useClerk } from '@clerk/clerk-expo';
 import { Redirect } from 'expo-router';
 import { useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { useNetwork } from '../../providers/NetworkProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMobileAccount } from '../../hooks/useMobileAccount';
+import { accountRouteRedirect } from '../../services/accountAccess';
+import { clearPendingSignupProfiles } from '../../services/signupProfile';
+import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
+import { colors, fonts } from '../../theme/tokens';
 
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
 
 export default function AppLayout() {
   const { isSignedIn, isLoaded, userId } = useAuth();
   const { isConnected } = useNetwork();
+  const { signOut } = useClerk();
+  const mobileAccount = useMobileAccount();
+  const segments = useSegments();
   const updateLastActive = useMutation(api.creators.updateLastActive);
   const [cachedAuth, setCachedAuth] = useState<boolean | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   // Auto-sync offline data when connectivity returns
-  useOfflineSync();
+  useOfflineSync({
+    enabled: mobileAccount.isAuthenticated && !mobileAccount.isOffline && !mobileAccount.isBlocked
+      && mobileAccount.role === 'creator' && !mobileAccount.isPreview,
+    creatorId: mobileAccount.account?._id,
+  });
 
   // Load cached auth state on mount
   useEffect(() => {
@@ -42,6 +54,7 @@ export default function AppLayout() {
   useEffect(() => {
     if (isLoaded && !isSignedIn && isConnected === true) {
       AsyncStorage.removeItem(AUTH_CACHE_KEY);
+      void clearPendingSignupProfiles().catch(() => {});
       setCachedAuth(false);
     }
   }, [isLoaded, isSignedIn, isConnected]);
@@ -52,10 +65,10 @@ export default function AppLayout() {
   const effectivelyLoaded = networkKnown && (isLoaded || (isConnected === false && cachedAuth === true));
 
   useEffect(() => {
-    if (isSignedIn && userId) {
-      updateLastActive({ clerkId: userId });
+    if (mobileAccount.isAuthenticated && mobileAccount.account && userId && !mobileAccount.isOffline) {
+      void updateLastActive({ clerkId: userId }).catch(() => {});
     }
-  }, [isSignedIn, userId]);
+  }, [mobileAccount.isAuthenticated, mobileAccount.account?._id, mobileAccount.isOffline, userId, updateLastActive]);
 
   if (!effectivelyLoaded || !authChecked) return null;
 
@@ -66,7 +79,39 @@ export default function AppLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
+  if (mobileAccount.isLoading) return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
+      <ActivityIndicator accessibilityLabel="Loading account" color={colors.accent} />
+    </View>
+  );
+  if (mobileAccount.isBlocked || mobileAccount.isOwner || (mobileAccount.isOffline && mobileAccount.role !== 'creator')
+    || (!mobileAccount.isOffline && mobileAccount.account && !mobileAccount.role)) {
+    return (
+      <View style={{ flex: 1, padding: 24, justifyContent: 'center', backgroundColor: colors.paper, gap: 16 }}>
+        <Text style={{ fontFamily: fonts.serif, fontSize: 28, color: colors.ink }}>
+          {mobileAccount.isBlocked ? 'Account unavailable' : mobileAccount.isOffline ? 'Reconnect to continue' : 'Continue on the web'}
+        </Text>
+        <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>
+          {mobileAccount.isBlocked ? 'This account is suspended or deleted. Contact support if you need help.'
+            : mobileAccount.isOffline ? 'Connect to load your account and tools safely.' : 'This account type uses the Tendso website.'}
+        </Text>
+        <TouchableOpacity accessibilityRole="button" onPress={() => { void signOut(); }}>
+          <Text style={{ fontFamily: fonts.sansBold, color: colors.ink }}>Sign out</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  const route = (segments as string[])[1];
+  if (!mobileAccount.isOffline && mobileAccount.account === null) {
+    if (route !== 'account-setup') return <Redirect href={'/(app)/account-setup' as never} />;
+  } else {
+    const destination = accountRouteRedirect(mobileAccount.view, route, mobileAccount.isPreview);
+    if (destination) return <Redirect href={destination as never} />;
+  }
+
   return (
+    <View style={{ flex: 1 }}>
+    <AccountViewSwitcher />
     <Stack
       screenOptions={{
         headerShown: false,
@@ -91,5 +136,6 @@ export default function AppLayout() {
       <Stack.Screen name="submit/review" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/success" options={{ gestureEnabled: false }} />
     </Stack>
+    </View>
   );
 }

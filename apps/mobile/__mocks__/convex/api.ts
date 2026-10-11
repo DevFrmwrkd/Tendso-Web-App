@@ -8,4 +8,6 @@ export const api = {
     getByCreator: "withdrawals:getByCreator",
   },
   earnings: { getByCreator: "earnings:getByCreator" },
+  affiliates: { portal: "affiliates:portal" },
+  adminAccess: { me: "adminAccess:me" },
 };

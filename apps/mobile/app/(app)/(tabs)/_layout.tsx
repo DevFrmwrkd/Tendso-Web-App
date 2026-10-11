@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { colors, fonts, radius } from '../../../theme/tokens';
 import { useGuardedPress } from '../../../hooks/useGuardedPress';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
 
 type TabItem = {
   routeName: string;
@@ -33,9 +34,11 @@ const RIGHT_TABS: TabItem[] = [
 function SubmitCenter({
   onPress,
   reduceMotion,
+  disabled = false,
 }: {
   onPress: () => void;
   reduceMotion: boolean;
+  disabled?: boolean;
 }) {
   const scale = useSharedValue(1);
 
@@ -66,6 +69,8 @@ function SubmitCenter({
     <View style={styles.centerSlot}>
       <Animated.View style={[styles.centerDoor, animStyle]}>
         <Pressable
+          disabled={disabled}
+          accessibilityState={{ disabled }}
           onPress={handlePress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
@@ -82,6 +87,7 @@ function SubmitCenter({
 }
 
 function CustomTabBar({ state, navigation }: any) {
+  const { isPreview } = useMobileAccount();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -137,6 +143,7 @@ function CustomTabBar({ state, navigation }: any) {
       <View style={styles.tabRow}>
         {LEFT_TABS.map(renderTab)}
         <SubmitCenter
+          disabled={isPreview}
           reduceMotion={reduceMotion}
           onPress={goSubmit}
         />

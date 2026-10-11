@@ -7,8 +7,8 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { useUser, useClerk } from '@clerk/clerk-expo';
-import { useQuery, useMutation } from 'convex/react';
+import { useUser } from '@clerk/clerk-expo';
+import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { Redirect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
@@ -23,12 +23,8 @@ import { UnlockPricingBar } from '../../../components/UnlockPricingBar';
 import { colors, fonts, radius, space } from '../../../theme/tokens';
 import { Display, Body, Label, Door, Rule, Card, Avatar } from '../../../components/ui/primitives';
 import { openExternalUrl } from '../../../services/links';
-
-function generateReferralCode(firstName: string, lastName: string): string {
-  const namePrefix = ((firstName || 'U').substring(0, 2) + (lastName || 'U').substring(0, 1)).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `${namePrefix}${random}`;
-}
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { CreatorDashboardPreview } from '../../../components/AccountPreview';
 
 function timeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -87,12 +83,15 @@ const WEBSITE_READY_STATUSES = [
 ];
 
 export default function HomeScreen() {
+  const { isPreview } = useMobileAccount();
+  return isPreview ? <CreatorDashboardPreview /> : <CreatorHomeScreen />;
+}
+
+function CreatorHomeScreen() {
   const router = useGuardedRouter();
   const insets = useSafeAreaInsets();
   const { user, isLoaded, isSignedIn } = useUser();
   const { isConnected } = useNetwork();
-  const createCreator = useMutation(api.creators.create);
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [justCertified, setJustCertified] = useState(false);
   const certCheckDone = useRef(false);
   const isOffline = isConnected === false;
@@ -131,29 +130,7 @@ export default function HomeScreen() {
 
   usePushNotifications(creator?._id);
 
-  useEffect(() => {
-    const autoCreate = async () => {
-      if (isLoaded && isSignedIn && user && creator === null && !isCreatingProfile) {
-        setIsCreatingProfile(true);
-        try {
-          await createCreator({
-            clerkId: user.id,
-            email: user.primaryEmailAddress?.emailAddress || '',
-            firstName: user.firstName || undefined,
-            lastName: user.lastName || undefined,
-            referralCode: generateReferralCode(user.firstName || '', user.lastName || ''),
-          });
-        } catch (err) {
-          console.error('Failed to auto-create profile:', err);
-        } finally {
-          setIsCreatingProfile(false);
-        }
-      }
-    };
-    autoCreate();
-  }, [isLoaded, isSignedIn, user, creator, isCreatingProfile, createCreator]);
-
-  if (!isOffline && (!isLoaded || !isSignedIn || creator === undefined || isCreatingProfile)) {
+  if (!isOffline && (!isLoaded || !isSignedIn || creator === undefined)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
         <ActivityIndicator size="large" color={colors.accent} />
