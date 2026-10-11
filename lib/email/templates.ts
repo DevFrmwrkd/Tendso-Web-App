@@ -3,8 +3,8 @@
  * These functions return raw HTML strings without sending any email.
  */
 
-import { getPaymentConfig } from '@/lib/payment/config'
-import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '@/lib/pricing'
+import { getPaymentConfig } from '../payment/config'
+import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '../pricing'
 
 const paymentConfig = getPaymentConfig()
 

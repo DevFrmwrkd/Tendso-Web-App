@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Expo has its own dependencies, routing and native components.
+    "apps/mobile/**",
   ]),
 ]);
 

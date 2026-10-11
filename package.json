@@ -2,6 +2,10 @@
   "name": "tendso",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--no-node-snapshot next dev",
     "build": "cd astro-site-template && npm install --omit=dev && cd .. && next build",
@@ -12,10 +16,18 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint",
+    "typecheck": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit --incremental false",
+    "mobile:start": "npm run start --workspace apps/mobile --",
+    "mobile:android": "npm run android --workspace apps/mobile --",
+    "mobile:ios": "npm run ios --workspace apps/mobile --",
+    "mobile:test": "npm run test --workspace apps/mobile --",
+    "mobile:typecheck": "npm run typecheck --workspace apps/mobile --",
+    "mobile:bundle": "npm run bundle:check --workspace apps/mobile --",
     "templates:sync": "node scripts/gen-template-fields.mjs && node scripts/gen-template-sections.mjs && node scripts/build-template-previews.mjs",
     "check:templates": "node scripts/gen-template-fields.mjs --check && node scripts/check-template-field-roots.mjs && node scripts/check-template-blocks.mjs && node scripts/check-template-parity.mjs && node scripts/check-type-ladders.mjs"
   },
   "dependencies": {
+    "@tendso/shared": "*",
     "@ai-sdk/google": "^3.0.94",
     "@ai-sdk/provider-utils": "^4.0.39",
     "@aws-sdk/client-s3": "^3.978.0",
