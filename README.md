@@ -2,6 +2,31 @@
 
 A platform that digitalizes Filipino micro, small, and medium enterprises (MSMEs) by generating AI-powered business websites from creator-submitted interviews, photos, and business information.
 
+This repository contains the Next.js website and admin, the Expo mobile app in
+`apps/mobile`, and the single Convex backend at `convex`. Web owns Convex
+deployment; mobile consumes its public API and has a separate EAS release process.
+
+## Development
+
+Install from the repository root with Node.js 22 LTS and npm:
+
+```sh
+npm ci
+npm run dev                # Website
+npm run mobile:start       # Expo
+npm run typecheck          # Web and backend types
+npm run mobile:typecheck   # Mobile against the same backend API/types
+npm test                  # Web unit and Convex tests
+npm run mobile:test -- --runInBand
+npm run mobile:bundle      # Android and iOS JS bundles; no store release
+```
+
+Use the root `package-lock.json` for all workspaces. Keep web environment variables
+at the root and mobile public configuration in `apps/mobile`; local environment
+files and signing credentials stay untracked. See [mobile setup](apps/mobile/README.md)
+and the [migration guide](docs/changes/MOBILE-MONOREPO-MIGRATION.md) for EAS commands,
+deployment boundaries and migration validation.
+
 ## How It Works
 
 1. **Creators** sign up, complete training modules, and pass a certification quiz
@@ -15,6 +40,7 @@ A platform that digitalizes Filipino micro, small, and medium enterprises (MSMEs
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, Framer Motion |
+| Mobile | Expo SDK 54, React Native, Expo Router, NativeWind |
 | Backend | Convex (serverless DB + functions) |
 | Auth | Clerk |
 | AI/ML | Groq (Whisper transcription, Llama 3.3 70B content extraction) |
@@ -29,6 +55,11 @@ A platform that digitalizes Filipino micro, small, and medium enterprises (MSMEs
 ## Project Structure
 
 ```
+apps/mobile/          # Expo application; independent EAS builds and releases
+packages/
+  convex-client/      # Public API and type-only exports from root Convex codegen
+  shared/             # Pure pricing helpers shared by clients and backend
+
 app/
   admin/              # Admin dashboard, submissions, creators, payouts, audit
   submit/             # Multi-step submission flow (info → interview → photos → review → success)

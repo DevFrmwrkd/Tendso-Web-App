@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, internalQuery, action, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
 
 // Get generated website by submission ID.
@@ -172,7 +172,16 @@ export const listPublished = query({
             .filter((q) => q.eq(q.field('status'), 'published'))
             .collect();
 
-        const results = [];
+        const results: Array<{
+            id: Id<'generatedWebsites'>;
+            businessName: Doc<'submissions'>['businessName'];
+            businessType: Doc<'submissions'>['businessType'];
+            city: Doc<'submissions'>['city'];
+            address: Doc<'submissions'>['address'];
+            coordinates: Doc<'submissions'>['coordinates'];
+            publishedUrl: string;
+            publishedAt: Doc<'generatedWebsites'>['publishedAt'];
+        }> = [];
         for (const site of sites) {
             if (!site.publishedUrl) continue;
             const submission = await ctx.db.get(site.submissionId);

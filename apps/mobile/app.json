@@ -1,0 +1,129 @@
+{
+  "expo": {
+    "name": "Tendso",
+    "slug": "tendso",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/tendso-icon-v2.png",
+    "scheme": "negosyodigital",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-mark.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8F5EE"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.negosyodigital.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "The app needs camera access to record video interviews.",
+        "NSMicrophoneUsageDescription": "The app needs microphone access to record audio.",
+        "NSPhotoLibraryUsageDescription": "The app needs photo library access to upload business images.",
+        "NSLocationWhenInUseUsageDescription": "The app uses your location to show the nearest businesses submitted by other creators."
+      }
+    },
+    "android": {
+      "versionCode": 5,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/tendso-icon-v2.png",
+        "backgroundColor": "#1B1C24"
+      },
+      "package": "com.negosyodigital.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAt-knwNJgQ-Nx5ZY5aZUC-T8sj8D3QZ7U"
+        }
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/tendso-icon-v2.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-apple-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-mark.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F8F5EE"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "The app needs camera access to record video interviews.",
+          "microphonePermission": "The app needs microphone access to record audio in video interviews.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you upload business images.",
+          "cameraPermission": "The app accesses your camera to let you take business photos."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "The app accesses your microphone to record business interviews."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "The app needs access to your photo library to save certificates.",
+          "savePhotosPermission": "The app needs permission to save certificates to your gallery.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/tendso-icon-v2.png",
+          "color": "#E4B05E"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "The app uses your location to show the nearest businesses submitted by other creators."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "1af0a81e-a4de-4099-8c98-5ae63d73e0c5"
+      }
+    },
+    "owner": "theo_va"
+  }
+}

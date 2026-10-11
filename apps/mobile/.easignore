@@ -1,0 +1,37 @@
+# Monorepo Git uploads use the repository-root .easignore, not this nested file.
+# Keep this fallback for tools that use the mobile directory as their root.
+# Keep app.json, eas.json, package.json, assets and source files in the upload.
+node_modules/
+.expo/
+dist/
+web-build/
+coverage/
+.kotlin/
+android/
+ios/
+expo-env.d.ts
+*.tsbuildinfo
+.metro-health-check*
+*.log
+*.tgz
+*.apk
+*.aab
+*.ipa
+.DS_Store
+._*
+.env*
+*.pem
+*.p8
+*.p12
+*.jks
+*.key
+*.keystore
+*.mobileprovision
+credentials.json
+*-service-account*.json
+*-credentials.json
+.mcp.json
+.claude/
+.codex/
+.idea/
+docs/

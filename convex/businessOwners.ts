@@ -89,7 +89,15 @@ export const getMyWebsites = query({
             .query('websiteOwnerships')
             .withIndex('by_owner', (q) => q.eq('businessOwnerId', owner._id))
             .collect();
-        const out = [];
+        const out: Array<{
+            submissionId: Id<'submissions'>;
+            businessName: Doc<'submissions'>['businessName'];
+            status: Doc<'submissions'>['status'];
+            publishedUrl: string | null;
+            websiteId: Id<'generatedWebsites'> | null;
+            leadCount: number;
+            claimedAt: number;
+        }> = [];
         for (const link of links) {
             const submission = await ctx.db.get(link.submissionId);
             if (!submission) continue;
