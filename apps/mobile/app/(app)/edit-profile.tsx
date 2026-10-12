@@ -11,10 +11,11 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { useUser, useClerk } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { useDeleteAccount } from '../../hooks/useDeleteAccount';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,9 +25,8 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useGuardedRouter();
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
   const updateCreator = useMutation(api.creators.update);
-  const deleteAccount = useMutation(api.creators.deleteAccount);
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
 
   const creator = useQuery(
@@ -39,7 +39,6 @@ export default function EditProfileScreen() {
   const [phone,     setPhone]               = useState('');
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [loading,   setLoading]             = useState(false);
-  const [deleting,  setDeleting]            = useState(false);
   const [error,     setError]               = useState('');
   const [success,   setSuccess]             = useState(false);
 
@@ -51,63 +50,6 @@ export default function EditProfileScreen() {
       setPhone(creator.phone        ?? '');
     }
   }, [creator]);
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Your account will be deleted and you will be signed out immediately. You will not be able to sign in again. Records are kept for 30 days to meet our legal obligations, then permanently erased. If you sign up again you will start fresh, with no prior data or certification.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete My Account',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'Final Confirmation',
-              'After 30 days your data will be permanently removed. If you re-register, you will start as a brand new creator.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Yes, Delete Everything',
-                  style: 'destructive',
-                  onPress: async () => {
-                    if (!creator?._id) return;
-                    const creatorId = creator._id;
-                    setDeleting(true);
-                    try {
-                      // ORDER IS LOad-BEARING. deleteAccount runs requireAuth()
-                      // on the Convex side, so it must go first — deleting the
-                      // Clerk user invalidates the token and it would fail.
-                      await deleteAccount({ id: creatorId });
-
-                      // Guideline 5.1.1(v) requires the account to actually be
-                      // gone, not deactivated. The Convex mutation is a SOFT
-                      // delete (flags isDeleted, keeps the row for 30-day
-                      // retention), so without this the login credentials keep
-                      // working and a reviewer testing "delete, then sign in
-                      // again" gets straight back into the app.
-                      //
-                      // Deliberately NOT wrapped in its own try/catch: a
-                      // soft-deleted row with a live Clerk user is the exact
-                      // state the guideline prohibits, so a failure here must
-                      // surface rather than be swallowed.
-                      await user?.delete();
-
-                      await signOut();
-                      router.replace('/(auth)/login');
-                    } catch (err: any) {
-                      Alert.alert('Error', err?.message || 'Failed to delete account. Please try again.');
-                      setDeleting(false);
-                    }
-                  },
-                },
-              ]
-            );
-          },
-        },
-      ]
-    );
-  };
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -448,8 +390,8 @@ export default function EditProfileScreen() {
           </View>
 
           <TouchableOpacity
-            onPress={handleDeleteAccount}
-            disabled={deleting || loading}
+            onPress={requestDelete}
+            disabled={deleting || loading || !canDelete}
             style={{
               height: 48, borderRadius: 14,
               backgroundColor: '#fff',

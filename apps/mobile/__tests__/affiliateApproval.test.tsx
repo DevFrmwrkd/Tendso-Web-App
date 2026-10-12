@@ -16,6 +16,7 @@ jest.mock('@clerk/clerk-expo', () => ({
   useClerk: () => ({ signOut: mockSignOut }),
 }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
+jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: true }) }));
 jest.mock('../hooks/useOfflineSync', () => ({ useOfflineSync: (...args: unknown[]) => mockOfflineSync(...args) }));
 jest.mock('../services/signupProfile', () => ({ clearPendingSignupProfiles: jest.fn(async () => {}) }));

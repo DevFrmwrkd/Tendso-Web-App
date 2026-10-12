@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useClerk } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useDeleteAccount } from '../../hooks/useDeleteAccount';
 import { Body, Display, Door, Label } from '../ui/primitives';
 import { colors } from '../../theme/tokens';
 
 /** Replaces navigation while the reactive account query waits for admin approval. */
 export function PendingAffiliateApproval() {
   const { signOut } = useClerk();
+  const deletion = useDeleteAccount();
   const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -27,6 +29,7 @@ export function PendingAffiliateApproval() {
     <Body>Your affiliate account has been created. A Tendso admin needs to approve it before you can share your page and earn.</Body>
     <Body size="sm" color={colors.ink2}>This screen updates automatically after approval. You can sign out and come back later.</Body>
     {error ? <Body accessibilityRole="alert" color={colors.danger}>{error}</Body> : null}
-    <Door label="Sign out" onPress={() => { void leave(); }} disabled={busy} loading={busy} />
+    <Door label="Sign out" onPress={() => { void leave(); }} disabled={busy || deletion.busy} loading={busy} />
+    <Door label="Delete account" onPress={deletion.requestDelete} disabled={busy || !deletion.canDelete} loading={deletion.busy} />
   </ScrollView>;
 }
