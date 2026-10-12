@@ -12,6 +12,9 @@ Existing active affiliates keep their access; there is no backfill or migration.
 - The web dashboard boundary and native account boundary show an awaiting
   approval screen before mounting sales, wallet, page editing or referral tools.
   The existing reactive account query releases this screen after approval.
+- Pending mobile users can still delete their account from the waiting screen.
+  The waiting screen and Edit Profile share the existing confirmed deletion
+  flow: mark the Convex account deleted, then delete Clerk credentials and sign out.
 - Web admin → Affiliates and native admin → Accounts → Affiliates show pending
   applications first. Approve uses the existing admin-only
   `creators.updateStatus({ id, status: 'active' })` mutation. Active affiliates
