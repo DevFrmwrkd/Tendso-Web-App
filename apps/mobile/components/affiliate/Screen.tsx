@@ -5,6 +5,8 @@ import { useMobileAccount } from '../../hooks/useMobileAccount';
 import { Body, Display, Door, Label } from '../ui/primitives';
 import { colors, fonts, radius } from '../../theme/tokens';
 import { sampleAffiliate } from './model';
+import { affiliateNeedsApproval } from '../../services/accountAccess';
+import { PendingAffiliateApproval } from './PendingApproval';
 
 export type AffiliateAccessProps = { account: Doc<'creators'>; isPreview: boolean; isOffline: boolean; isAuthenticated: boolean };
 
@@ -18,6 +20,7 @@ export function AffiliateAccess({ children }: { children: (props: AffiliateAcces
     return <AffiliateFrame title="Affiliate account"><Body>Sign in with your affiliate account to see this page.</Body></AffiliateFrame>;
   }
   if (!state.isAuthenticated && !state.isOffline) return <AffiliateLoading label="Connecting your account" />;
+  if (affiliateNeedsApproval(account)) return <PendingAffiliateApproval />;
   return <AffiliateBoundary key={`${account._id}-${preview}`}>
     {children({ account, isPreview: preview, isOffline: state.isOffline, isAuthenticated: state.isAuthenticated })}
   </AffiliateBoundary>;

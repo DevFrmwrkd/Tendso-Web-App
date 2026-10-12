@@ -122,7 +122,7 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
     }
 
     return (
-        <AuthFrame title="Your affiliate profile" sub="Choose the handle for your page. Your account is active when you save.">
+        <AuthFrame title="Your affiliate profile" sub="Choose the handle for your page. An admin will review your account before you can start sharing.">
             <form className={AUTH_BODY} onSubmit={handleSubmit} noValidate>
                 {error && <AuthAlert>{error}</AuthAlert>}
                 <Field label="Name" required error={errors.name}>

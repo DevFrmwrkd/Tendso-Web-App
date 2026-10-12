@@ -116,7 +116,7 @@ it('resumes the affiliate choice and sends no incoming referral field', async ()
     firstName: 'Alex Shop', lastName: 'Cruz', phone: '09171234567', handle: 'alex-shop', email: mockIdentity.email,
   }));
   expect(mockCreateCreator).not.toHaveBeenCalled();
-  await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(affiliate-tabs)/'));
+  await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(affiliate-tabs)'));
   expect(await loadPendingSignupProfile(mockIdentity)).toBeNull();
 });
 
@@ -135,7 +135,7 @@ it('keeps the entered affiliate details after a server uniqueness error', async 
 });
 
 it.each([
-  ['creator', '/(app)/(tabs)/'], ['affiliate', '/(app)/(affiliate-tabs)/'], ['admin', '/(app)/admin'],
+  ['creator', '/(app)/(tabs)'], ['affiliate', '/(app)/(affiliate-tabs)'], ['admin', '/(app)/admin'],
 ])('bypasses setup for an existing %s without conversion', async (role, home) => {
   mockAuthenticated = true;
   mockAccount = { _id: 'existing', role };
@@ -149,7 +149,7 @@ it('keeps an affiliate out of the creator profile and referral form', () => {
   mockAuthenticated = true;
   mockAccount = { _id: 'affiliate', role: 'affiliate' };
   const screen = render(<CompleteProfileScreen />);
-  expect(screen.toJSON()).toMatchObject({ type: 'MockRedirect', props: { href: '/(app)/(affiliate-tabs)/' } });
+  expect(screen.toJSON()).toMatchObject({ type: 'MockRedirect', props: { href: '/(app)/(affiliate-tabs)' } });
   expect(screen.queryByLabelText('Referral code')).toBeNull();
   expect(mockReferral).not.toHaveBeenCalled();
   expect(mockUpdate).not.toHaveBeenCalled();

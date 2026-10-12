@@ -18,7 +18,7 @@ describe('native admin access', () => {
     expect(canUseAdminTools({ ...ready, ...change })).toBe(false);
   });
   it('sends affiliates to their own navigation and creators to creator navigation', () => {
-    expect(accountHome({ ...account, role: 'affiliate' })).toBe('/(app)/(affiliate-tabs)/');
-    expect(accountHome({ ...account, role: 'creator' })).toBe('/(app)/(tabs)/');
+    expect(accountHome({ ...account, role: 'affiliate' })).toBe('/(app)/(affiliate-tabs)');
+    expect(accountHome({ ...account, role: 'creator' })).toBe('/(app)/(tabs)');
   });
 });

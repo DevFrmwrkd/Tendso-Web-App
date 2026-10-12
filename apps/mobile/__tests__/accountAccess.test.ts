@@ -1,4 +1,4 @@
-import { accountRole, accountBlocked, mobileHome, accountRouteRedirect } from '../services/accountAccess';
+import { accountRole, accountBlocked, affiliateNeedsApproval, mobileHome, accountRouteRedirect } from '../services/accountAccess';
 
 describe('native account navigation', () => {
   it('keeps legacy creators and rejects unknown account types', () => {
@@ -35,5 +35,13 @@ describe('native account navigation', () => {
     expect(accountBlocked({ role: 'admin', status: 'suspended' })).toBe(true);
     expect(accountBlocked({ role: 'affiliate', isDeleted: true })).toBe(true);
     expect(accountBlocked({ role: 'affiliate', status: 'deleted' })).toBe(true);
+  });
+  it('requires approval only for pending affiliates without changing existing account rules', () => {
+    expect(affiliateNeedsApproval({ role: 'affiliate', status: 'pending' })).toBe(true);
+    for (const account of [null, undefined, {}, { role: 'affiliate', status: 'active' },
+      { role: 'affiliate', status: 'suspended' }, { role: 'creator', status: 'pending' },
+      { role: 'admin', status: 'pending' }, { role: 'affiliate', status: 'pending', isDeleted: true }]) {
+      expect(affiliateNeedsApproval(account)).toBe(false);
+    }
   });
 });

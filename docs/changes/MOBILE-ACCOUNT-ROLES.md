@@ -23,7 +23,10 @@ Web and native releases remain separate.
 - Creators retain mobile numbers and optional referral codes. Affiliates provide
   name, mobile and a lowercase page handle; shared validation checks its format
   and reserved words, and the server enforces uniqueness. Affiliates have no
-  incoming referral field. Their own codes can refer creators.
+  incoming referral field. Their own codes can refer creators after admin
+  approval. New affiliate accounts wait for approval before their dashboard
+  opens; existing active affiliates retain access. See
+  [Affiliate signup approval](AFFILIATE-APPROVAL.md).
 
 ## Affiliate screens
 
@@ -55,8 +58,8 @@ login cannot sync another creator's saved draft.
 ## Native admin and preview
 
 Existing online admins get overview counts, submission and creator review,
-creator/affiliate suspension controls, and payout history with Wise status
-reconciliation. Mutations retain server authorization; native confirmations
+creator/affiliate suspension controls, pending affiliate approval, and payout
+history with Wise status reconciliation. Mutations retain server authorization; native confirmations
 recheck permission and actor scope, and submission review also scopes its target.
 Sign-out is available from the overview.
 

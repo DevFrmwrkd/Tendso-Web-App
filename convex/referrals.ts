@@ -20,6 +20,7 @@ export const createFromSignup = internalMutation({
         if (!isCreatorAccount(referred)) throw new Error('Only creator accounts can be referred. Affiliates cannot be referred.');
         const referrer = await ctx.db.get(args.referrerId);
         if (!referrer || referrer.isDeleted || referrer.status === 'suspended'
+            || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')
             || referrer.referralCode !== args.referralCode || args.referrerId === args.referredId) {
             throw new Error('Invalid referrer');
@@ -71,6 +72,9 @@ export const qualifyByCreator = internalMutation({
         if (!firstPaid) return;
         const referrer = await ctx.db.get(referral.referrerId);
         if (!referrer || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')) return;
+        // Unapproved affiliates cannot earn from a bad pre-approval referral.
+        // Previously accepted referrals still settle after suspension.
+        if (referrer.role === 'affiliate' && referrer.status === 'pending') return;
 
         // Mark referral as qualified
         await ctx.db.patch(referral._id, {

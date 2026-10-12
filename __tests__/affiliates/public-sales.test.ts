@@ -79,7 +79,7 @@ describe('public affiliate offer lookup', () => {
         for (const invalid of ['missing-handle', 'Alex-Shops', ' alex-shops ', '', 'admin', '../alex-shops', 'x'.repeat(31)]) {
             expect(await t.query(api.affiliates.publicPage, { handle: invalid })).toBeNull();
         }
-        for (const fields of [{ status: 'suspended' }, { status: 'deleted' }, { isDeleted: true }, { role: 'creator' }, { role: 'admin' }]) {
+        for (const fields of [{ status: 'pending' }, { status: 'suspended' }, { status: 'deleted' }, { isDeleted: true }, { role: 'creator' }, { role: 'admin' }]) {
             await t.run((ctx) => ctx.db.patch(affiliateId, { role: 'affiliate', status: 'active', isDeleted: undefined, ...fields }));
             expect(await t.query(api.affiliates.publicPage, { handle })).toBeNull();
         }
@@ -135,7 +135,7 @@ describe('affiliate-attributed owner intake', () => {
         const { t, affiliateId, houseId } = await setup();
         const variants = [
             { handle: 'unknown-affiliate', fields: {} }, { handle: '', fields: {} }, { handle: 'Alex-Shops', fields: {} },
-            { handle, fields: { status: 'suspended' } }, { handle, fields: { isDeleted: true } },
+            { handle, fields: { status: 'pending' } }, { handle, fields: { status: 'suspended' } }, { handle, fields: { isDeleted: true } },
             { handle, fields: { role: 'creator' } },
         ];
         for (const [index, variant] of variants.entries()) {

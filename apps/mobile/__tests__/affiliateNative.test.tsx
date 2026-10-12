@@ -16,6 +16,8 @@ const mockMutation = jest.fn();
 const mockSave = jest.fn();
 const mockAction = jest.fn();
 
+jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { portal: 'affiliates:portal', sales: 'affiliates:sales', updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' } } }));

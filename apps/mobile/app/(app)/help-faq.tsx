@@ -52,6 +52,15 @@ const FAQ_SECTIONS: FAQSection[] = [
         iconColor: '#E4B05E',
         iconBg: '#F5E4C0',
       },
+      {
+        id: 3,
+        question: 'How do I get started as an affiliate?',
+        answer:
+          'Choose Affiliate when signing up, then enter your name, mobile number, and page handle. A Tendso admin must approve your account before your page goes live. The app opens your affiliate dashboard automatically after approval. Affiliates share their page; they do not take business photos, interview owners, or complete creator training.',
+        icon: 'share-social-outline',
+        iconColor: '#E4B05E',
+        iconBg: '#F5E4C0',
+      },
       // {
       //   id: 3,
       //   question: 'Do I need internet to use the app?',

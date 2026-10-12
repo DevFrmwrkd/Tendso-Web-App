@@ -95,7 +95,7 @@ export const create = mutation({
             affiliateHandle: args.handle,
             referralCode,
             role: 'affiliate',
-            status: 'active',
+            status: 'pending',
             balance: 0,
             totalEarnings: 0,
             totalWithdrawn: 0,
@@ -133,8 +133,10 @@ export const updatePage = mutation({
         const identity = await requireAuth(ctx);
         const affiliate = await ctx.db.query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
-        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted) throw new ConvexError('An affiliate account is required.');
-        if (affiliate.status !== 'active') throw new ConvexError('Your affiliate account is suspended.');
+        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted || affiliate.status === 'deleted') throw new ConvexError('An affiliate account is required.');
+        if (affiliate.status === 'pending') throw new ConvexError('Your affiliate account is waiting for admin approval.');
+        if (affiliate.status === 'suspended') throw new ConvexError('Your affiliate account is suspended.');
+        if (affiliate.status !== 'active') throw new ConvexError('Your affiliate account is not active.');
         if (args.price !== undefined) {
             const priceError = affiliatePriceError(args.price);
             if (priceError) throw new ConvexError(priceError);
@@ -156,7 +158,11 @@ export const sales = query({
         const identity = await requireAuth(ctx);
         const affiliate = await ctx.db.query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
-        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted) {
+        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted || affiliate.status === 'deleted') {
+            throw new ConvexError('An affiliate account is required.');
+        }
+        if (affiliate.status === 'pending') throw new ConvexError('Your affiliate account is waiting for admin approval.');
+        if (affiliate.status !== 'active' && affiliate.status !== 'suspended') {
             throw new ConvexError('An affiliate account is required.');
         }
         // Suspension stops new page edits, while earned sales remain readable.
@@ -184,8 +190,11 @@ export const portal = query({
         const identity = await requireAuth(ctx);
         const affiliate = await ctx.db.query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
-        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted
-            || (affiliate.status !== 'active' && affiliate.status !== 'suspended')) {
+        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted || affiliate.status === 'deleted') {
+            throw new ConvexError('An affiliate account is required.');
+        }
+        if (affiliate.status === 'pending') throw new ConvexError('Your affiliate account is waiting for admin approval.');
+        if (affiliate.status !== 'active' && affiliate.status !== 'suspended') {
             throw new ConvexError('An affiliate account is required.');
         }
 

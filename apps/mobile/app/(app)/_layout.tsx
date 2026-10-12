@@ -9,9 +9,10 @@ import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { useNetwork } from '../../providers/NetworkProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
-import { accountRouteRedirect } from '../../services/accountAccess';
+import { accountRouteRedirect, affiliateNeedsApproval } from '../../services/accountAccess';
 import { clearPendingSignupProfiles } from '../../services/signupProfile';
 import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
+import { PendingAffiliateApproval } from '../../components/affiliate/PendingApproval';
 import { colors, fonts } from '../../theme/tokens';
 
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
@@ -101,6 +102,10 @@ export default function AppLayout() {
       </View>
     );
   }
+  // Keep every deep link, including shared referrals and payouts, outside the
+  // navigator until approval. The live account query releases this immediately.
+  if (affiliateNeedsApproval(mobileAccount.account)) return <PendingAffiliateApproval />;
+
   const route = (segments as string[])[1];
   if (!mobileAccount.isOffline && mobileAccount.account === null) {
     if (route !== 'account-setup') return <Redirect href={'/(app)/account-setup' as never} />;
