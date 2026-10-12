@@ -10,23 +10,27 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUser } from '@clerk/clerk-expo';
-import { useQuery, useMutation } from 'convex/react';
+import { useConvexAuth, useQuery, useMutation } from 'convex/react';
+import { Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { api } from '@tendso/convex-client';
 import { Display, Body, Label, Door } from '../../components/ui/primitives';
 import { colors, fonts, radius } from '../../theme/tokens';
+import { isCreatorAccount } from '../../../../lib/accounts';
+import { clearPendingSignupProfile, signupAccountHome } from '../../services/signupProfile';
 
 // Same shape the signup screen validates against: +63 / 0 prefix optional, then
 // a 10-digit mobile number starting 9.
 const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
 /**
- * Complete-profile gate for social sign-ups missing a name.
+ * Complete-profile gate for existing creators missing a name.
  *
  * Sign in with Apple returns the name only on a user's first-ever authorization,
  * so a re-installing (or "Hide My Email") user lands with a blank profile. Home
- * redirects such a creator here BEFORE onboarding. Apple already handled auth,
+ * redirects such a creator here BEFORE onboarding. New accounts finish through
+ * account-setup after Convex authenticates. Apple already handled auth,
  * so there is no password step — this collects the name (required) plus an
  * optional phone and referral code. The email is shown locked, straight from the
  * Apple identity.
@@ -38,11 +42,11 @@ export default function CompleteProfileScreen() {
   const router = useGuardedRouter();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
-  const creator = useQuery(
-    api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip',
-  );
+  const authenticatedSession = useQuery(api.adminAccess.me, isAuthenticated && user ? {} : 'skip');
+  const ownSession = authenticatedSession?.clerkId === user?.id ? authenticatedSession : undefined;
+  const creator = ownSession?.creator;
   const updateCreator = useMutation(api.creators.update);
   const applyReferral = useMutation(api.creators.applyReferralCode);
 
@@ -62,14 +66,15 @@ export default function CompleteProfileScreen() {
   // must NOT re-apply it, or the user is trapped on that error.
   const referralApplied = useRef(false);
 
-  // Still resolving the creator row (Home creates it before redirecting here).
-  if (creator === undefined) {
+  if (!isAuthenticated || isLoading || creator === undefined) {
     return (
       <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
         <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
   }
+  if (!creator) return <Redirect href="/(app)/account-setup" />;
+  if (!isCreatorAccount(creator)) return <Redirect href={signupAccountHome(creator.role)} />;
 
   const save = async () => {
     const first = firstName.trim();
@@ -85,7 +90,7 @@ export default function CompleteProfileScreen() {
       setError('Please enter a valid PH mobile number, or leave it blank.');
       return;
     }
-    if (!creator?._id) return;
+    if (!isAuthenticated || !creator?._id || !isCreatorAccount(creator)) return;
 
     setSaving(true);
     setError('');
@@ -113,6 +118,8 @@ export default function CompleteProfileScreen() {
         lastName: last || undefined,
         phone: rawPhone || undefined,
       });
+
+      await clearPendingSignupProfile({ clerkId: user?.id, email });
 
       // Back to Home — now that the creator has a name, its gate passes and the
       // normal onboarding redirect (training) takes over.

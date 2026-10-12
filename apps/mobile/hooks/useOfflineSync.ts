@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useMutation, useAction } from 'convex/react';
+import { useMutation, useAction, useConvex } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useNetwork } from '../providers/NetworkProvider';
 import type { Id } from '@tendso/convex-client';
@@ -71,10 +71,11 @@ async function uploadFileToR2(
   }
 }
 
-export function useOfflineSync() {
+export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolean; creatorId?: Id<'creators'> } = {}) {
   const { isConnected } = useNetwork();
   const wasOffline = useRef(false);
   const isSyncing = useRef(false);
+  const client = useConvex();
 
   const createSubmission = useMutation(api.submissions.create);
   const updateSubmission = useMutation(api.submissions.update);
@@ -82,7 +83,7 @@ export function useOfflineSync() {
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
 
   const attemptSync = useCallback(async () => {
-    if (isSyncing.current) return;
+    if (!enabled || !creatorId || isSyncing.current) return;
     isSyncing.current = true;
 
     const hasPendingSync = await AsyncStorage.getItem(PENDING_SYNC_KEY);
@@ -102,6 +103,7 @@ export function useOfflineSync() {
       // ── Step 1: Sync business info ──
       if (hasPendingSync) {
         const pending: PendingSyncData = JSON.parse(hasPendingSync);
+        if (pending.creatorId !== creatorId) return;
 
         if (Date.now() - pending.savedAt > 7 * 24 * 60 * 60 * 1000) {
           await AsyncStorage.removeItem(PENDING_SYNC_KEY);
@@ -139,6 +141,10 @@ export function useOfflineSync() {
         isSyncing.current = false;
         return;
       }
+
+      // A saved draft may belong to a different login on this device.
+      const submission = await client.query(api.submissions.getById, { id: realSubmissionId as Id<'submissions'> });
+      if (!submission || submission.creatorId !== creatorId) return;
 
       // ── Step 2: Sync pending photos ──
       if (hasPendingPhotos) {
@@ -274,7 +280,7 @@ export function useOfflineSync() {
     } finally {
       isSyncing.current = false;
     }
-  }, [createSubmission, updateSubmission, submitSubmission, generateR2UploadUrl]);
+  }, [enabled, creatorId, client, createSubmission, updateSubmission, submitSubmission, generateR2UploadUrl]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -283,7 +289,7 @@ export function useOfflineSync() {
     }
 
     // Just came back online
-    if (wasOffline.current && isConnected) {
+    if (wasOffline.current && isConnected && enabled) {
       wasOffline.current = false;
       // Small delay to let Convex WebSocket reconnect
       const timer = setTimeout(() => {
@@ -291,7 +297,7 @@ export function useOfflineSync() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [isConnected, attemptSync]);
+  }, [isConnected, enabled, attemptSync]);
 
   return { attemptSync };
 }

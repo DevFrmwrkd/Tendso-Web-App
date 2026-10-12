@@ -9,6 +9,7 @@ config.watchFolders = [
   ...new Set([
     ...(config.watchFolders ?? []),
     path.resolve(__dirname, '../../convex/_generated'),
+    path.resolve(__dirname, '../../lib'),
   ]),
 ];
 

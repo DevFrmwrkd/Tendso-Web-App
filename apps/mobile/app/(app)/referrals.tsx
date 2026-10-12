@@ -18,11 +18,13 @@ import { useNetwork } from '../../providers/NetworkProvider';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { colors, fonts, radius, space } from '../../theme/tokens';
 import { Display, Body, Label, Door, Card, Rule, Avatar } from '../../components/ui/primitives';
+import { useMobileAccount } from '../../hooks/useMobileAccount';
+import { REFERRAL_BONUS, formatPHP } from '../../../../packages/shared/pricing';
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Share your code', desc: 'Send your referral code to fellow business owners.', icon: 'share-social-outline' as const, tintBg: colors.paper2,    tintFg: colors.ink2 },
-  { step: '02', title: 'They sign up',    desc: 'They create an account and enter your referral code.', icon: 'person-add-outline' as const, tintBg: colors.businessBg, tintFg: colors.business },
-  { step: '03', title: 'You both earn',   desc: 'Earn a bonus when their first submission is approved.', icon: 'cash-outline' as const,       tintBg: colors.accentBg,   tintFg: colors.accent },
+  { step: '01', title: 'Share your code', desc: 'Invite someone to become a Tendso creator.', icon: 'share-social-outline' as const, tintBg: colors.paper2, tintFg: colors.ink2 },
+  { step: '02', title: 'They sign up', desc: 'They choose a creator account and enter your referral code.', icon: 'person-add-outline' as const, tintBg: colors.businessBg, tintFg: colors.business },
+  { step: '03', title: 'You earn', desc: `Earn ${formatPHP(REFERRAL_BONUS)} when their first website is paid.`, icon: 'cash-outline' as const, tintBg: colors.accentBg, tintFg: colors.accent },
 ];
 
 const STATUS_META: Record<string, { label: string; bg: string; ink: string; icon: any }> = {
@@ -44,6 +46,8 @@ export default function ReferralsScreen() {
   const { user } = useUser();
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
+  const { account, isAuthenticated } = useMobileAccount();
+  const isAffiliate = account?.role === 'affiliate';
   const [copied, setCopied] = useState(false);
 
   const creator = useQuery(
@@ -51,14 +55,17 @@ export default function ReferralsScreen() {
     user ? { clerkId: user.id } : 'skip'
   );
 
-  const referralList = useQuery(
+  const creatorReferrals = useQuery(
     api.referrals.getByReferrer,
-    creator?._id ? { referrerId: creator._id } : 'skip'
+    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
   );
-  const stats = useQuery(
+  const creatorStats = useQuery(
     api.referrals.getStats,
-    creator?._id ? { referrerId: creator._id } : 'skip'
+    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
   );
+  const portal = useQuery(api.affiliates.portal, isAffiliate && isAuthenticated && !isOffline ? {} : 'skip');
+  const referralList = isAffiliate ? portal?.referrals : creatorReferrals;
+  const stats = isAffiliate ? portal?.referralStats : creatorStats;
 
   const handleCopy = async () => {
     if (!creator?.referralCode) return;
@@ -71,7 +78,7 @@ export default function ReferralsScreen() {
     if (!creator?.referralCode) return;
     try {
       await Share.share({
-        message: `Join Tendso and digitalize your business!\n\nUse my referral code: ${creator.referralCode}\n\nDownload the app and enter this code when signing up.`,
+        message: `Become a Tendso creator!\n\nUse my referral code: ${creator.referralCode}\n\nDownload the app and enter this code when signing up as a creator.`,
         title: 'Join Tendso',
       });
     } catch (err) {
@@ -125,7 +132,7 @@ export default function ReferralsScreen() {
             <Display size="md" italic color={colors.accent}>friend.</Display>
           </View>
           <Body size="md" color={colors.ink2} style={{ marginTop: 10, maxWidth: 320 }}>
-            Invite businesses and earn rewards together.
+            Invite creators and earn {formatPHP(REFERRAL_BONUS)} on their first paid website.
           </Body>
         </View>
 
