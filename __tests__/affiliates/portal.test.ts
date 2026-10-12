@@ -97,7 +97,7 @@ describe('affiliate portal authorization', () => {
         const { t, id, affiliate } = await setup();
         for (const status of ['pending', 'unknown', undefined]) {
             await t.run((ctx) => ctx.db.patch(id, { status }));
-            await expect(affiliate.query(api.affiliates.portal, {})).rejects.toThrow('affiliate account');
+            await expect(affiliate.query(api.affiliates.portal, {})).rejects.toThrow(status === 'pending' ? 'admin approval' : 'affiliate account');
         }
     });
 

@@ -38,11 +38,11 @@ async function paidSubmission(t: ReturnType<typeof convexTest>, creatorId: Id<'c
 }
 
 describe('affiliate signup and page foundation', () => {
-    it('creates an active affiliate with its own unique code and no certification or incoming referral', async () => {
+    it('creates a pending affiliate with its own unique code and no certification or incoming referral', async () => {
         const { t, affiliate } = await setup();
         const id = await affiliate.mutation(api.affiliates.create, signup);
         const row = await t.run((ctx) => ctx.db.get(id));
-        expect(row).toMatchObject({ clerkId: 'affiliate', role: 'affiliate', status: 'active', affiliateHandle: signup.handle, phone: signup.phone });
+        expect(row).toMatchObject({ clerkId: 'affiliate', role: 'affiliate', status: 'pending', affiliateHandle: signup.handle, phone: signup.phone });
         expect(row?.referralCode).toMatch(/^AFF[A-Z0-9]+$/);
         expect(row?.certifiedAt).toBeUndefined();
         expect(row?.quizPassedAt).toBeUndefined();
@@ -59,7 +59,7 @@ describe('affiliate signup and page foundation', () => {
         const { t, affiliate } = await setup();
         await expect(t.mutation(api.affiliates.create, signup)).rejects.toThrow('Not authenticated');
         await expect(affiliate.mutation(api.affiliates.create, { ...signup, email: 'someone@example.com' })).rejects.toThrow('signed-in email');
-        for (const incoming of [{ referredByCode: 'SOMEONE' }, { referralCode: 'OWNCODE' }]) {
+        for (const incoming of [{ referredByCode: 'SOMEONE' }, { referralCode: 'OWNCODE' }, { status: 'active' }, { role: 'admin' }]) {
             await expect(affiliate.mutation(api.affiliates.create, { ...signup, ...incoming } as any)).rejects.toThrow();
         }
         expect(await t.query(api.affiliates.list, {}).catch(() => [])).toEqual([]);
@@ -118,6 +118,7 @@ describe('affiliate signup and page foundation', () => {
     it('saves optional page fields for the signed-in active affiliate and clamps whole-peso price boundaries', async () => {
         const { t, affiliate, admin } = await setup();
         const id = await affiliate.mutation(api.affiliates.create, signup);
+        await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
         await affiliate.mutation(api.affiliates.updatePage, { photo: 'https://example.com/photo.jpg', displayName: ' Alex ', message: ' Websites for your shop. ', socialLink: 'https://facebook.com/alex', price: 999 });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliateDisplayName: 'Alex', affiliateMessage: 'Websites for your shop.', affiliatePrice: 999 });
         await affiliate.mutation(api.affiliates.updatePage, { price: 4999 });
@@ -171,8 +172,9 @@ describe('affiliate signup and page foundation', () => {
 
 describe('affiliate referral direction and bonus ledger', () => {
     it('allows an affiliate code for creator signup and credits exactly one ₱1,000 bonus tied to a paid submission', async () => {
-        const { t, affiliate } = await setup();
+        const { t, affiliate, admin } = await setup();
         const referrerId = await affiliate.mutation(api.affiliates.create, signup);
+        await admin.mutation(api.creators.updateStatus, { id: referrerId, status: 'active' });
         const code = (await t.run((ctx) => ctx.db.get(referrerId)))!.referralCode!;
         const creator = t.withIdentity({ subject: 'referred' });
         const referredId = await creator.mutation(api.creators.create, { clerkId: 'referred', email: 'referred@example.com', referralCode: 'REFERRED', referredByCode: code });
@@ -180,6 +182,8 @@ describe('affiliate referral direction and bonus ledger', () => {
         await paidSubmission(t, referredId, { pricingMode: 'comped' });
         await t.mutation(internal.referrals.qualifyByCreator, { referredId, bonusAmount: 1000 });
         expect((await t.run((ctx) => ctx.db.get(referrerId)))?.balance).toBe(0);
+        // A valid referral's promised bonus still settles after suspension.
+        await admin.mutation(api.creators.updateStatus, { id: referrerId, status: 'suspended' });
         const submissionId = await paidSubmission(t, referredId);
         await t.mutation(internal.referrals.qualifyByCreator, { referredId, bonusAmount: 1000 });
         await t.mutation(internal.referrals.qualifyByCreator, { referredId, bonusAmount: 1000 });
@@ -192,8 +196,9 @@ describe('affiliate referral direction and bonus ledger', () => {
     });
 
     it('allows applying an affiliate code only to the caller’s creator account', async () => {
-        const { t, affiliate } = await setup();
+        const { t, affiliate, admin } = await setup();
         const affiliateId = await affiliate.mutation(api.affiliates.create, signup);
+        await admin.mutation(api.creators.updateStatus, { id: affiliateId, status: 'active' });
         const code = (await t.run((ctx) => ctx.db.get(affiliateId)))!.referralCode!;
         const referredId = await t.run((ctx) => ctx.db.insert('creators', { clerkId: 'referred', email: 'referred@example.com', role: 'creator' }));
         await expect(t.mutation(api.creators.applyReferralCode, { id: referredId, referredByCode: code })).rejects.toThrow('Not authenticated');
@@ -214,11 +219,13 @@ describe('affiliate referral direction and bonus ledger', () => {
     });
 
     it('settles an affiliate commission without qualifying a legacy incoming referral', async () => {
-        const { t, affiliate } = await setup();
+        const { t, affiliate, admin } = await setup();
         const id = await affiliate.mutation(api.affiliates.create, signup);
+        await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
         const referrerId = await t.run((ctx) => ctx.db.insert('creators', { clerkId: 'referrer', email: 'referrer@example.com', role: 'creator' }));
         await t.run((ctx) => ctx.db.insert('referrals', { referrerId, referredId: id, referralCode: 'BAD', status: 'pending', createdAt: Date.now() }));
         const submissionId = await paidSubmission(t, id, { status: 'paid', amount: 4999, creatorPayout: 2500 });
+        await admin.mutation(api.creators.updateStatus, { id, status: 'suspended' });
         await t.mutation(internal.payments.creditCreatorForPayment, { submissionId, triggeredBy: 'admin:admin' });
         await t.mutation(internal.payments.creditCreatorForPayment, { submissionId, triggeredBy: 'admin:admin' });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ balance: 2500, totalEarnings: 2500 });

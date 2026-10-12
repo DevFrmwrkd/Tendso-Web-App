@@ -720,7 +720,7 @@ export default function SignupScreen() {
               accessibilityLabel="Page handle"
               error={fieldErrors.handle}
             />
-            <Body size="xs" color={colors.ink3}>Your page will be tendso.com/a/{handle || 'your-page'}.</Body>
+            <Body size="xs" color={colors.ink3}>After admin approval, your page will be tendso.com/a/{handle || 'your-page'}.</Body>
           </View>
         ) : null}
 

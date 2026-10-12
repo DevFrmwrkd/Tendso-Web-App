@@ -200,6 +200,34 @@ describe("affiliate dashboard account boundary", () => {
         expect(mounted).toBe(1);
     });
 
+    it.each(destinations)("shows awaiting approval before mounting a pending affiliate's %s deep link", (_label, pathname) => {
+        state.pathname = pathname;
+        state.session!.creator!.status = "pending";
+        const html = renderBoundary();
+        expect(html).toContain("Waiting for admin approval");
+        expect(html).toContain("Your affiliate signup is complete.");
+        expect(html).toContain("This screen will update when your account is approved.");
+        expect(html).toContain("Sign out");
+        expect(html).not.toContain("Account unavailable");
+        expect(html).not.toContain("protected-affiliate-content");
+        expect(mounted).toBe(0);
+        expect((useQuery as jest.Mock).mock.calls.map(([reference]) => getFunctionName(reference))).toEqual(["adminAccess:me"]);
+    });
+
+    it("opens the requested section when the live pending account becomes active", () => {
+        state.pathname = "/affiliates/dashboard/wallet";
+        state.session!.creator!.status = "pending";
+        expect(renderBoundary()).toContain("Waiting for admin approval");
+        expect(mounted).toBe(0);
+
+        state.session!.creator!.status = "active";
+        const html = renderBoundary();
+        expect(html).toContain("protected-affiliate-content:current-user");
+        expect(html).not.toContain("Waiting for admin approval");
+        expect(currentSidebarLinks(sidebarHtml(html))[0]).toContain('href="/affiliates/dashboard/wallet"');
+        expect(mounted).toBe(1);
+    });
+
     it.each(["creator", "admin", "staff", "system", undefined])("does not mount affiliate content for a %s account", (role) => {
         state.session!.creator!.role = role;
         expect(renderBoundary()).not.toContain("protected-affiliate-content");

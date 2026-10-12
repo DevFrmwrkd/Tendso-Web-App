@@ -150,10 +150,10 @@ export async function createSignupAccount(
   await clearPendingSignupProfile(identity);
 }
 
-export function signupAccountHome(role?: string): '/(app)/(affiliate-tabs)/' | '/(app)/(tabs)/' | '/(app)/admin' {
-  if (role === 'affiliate') return '/(app)/(affiliate-tabs)/';
+export function signupAccountHome(role?: string): '/(app)/(affiliate-tabs)' | '/(app)/(tabs)' | '/(app)/admin' {
+  if (role === 'affiliate') return '/(app)/(affiliate-tabs)';
   if (role === 'admin') return '/(app)/admin';
-  return '/(app)/(tabs)/';
+  return '/(app)/(tabs)';
 }
 
 export function signupErrorMessage(error: unknown): string {

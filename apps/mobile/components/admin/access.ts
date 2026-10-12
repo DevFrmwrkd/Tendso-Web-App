@@ -17,5 +17,5 @@ export function canUseAdminTools(session: AdminSession): boolean {
 }
 
 export function accountHome(account: AdminSession['account']) {
-  return account?.role === 'affiliate' ? '/(app)/(affiliate-tabs)/' as const : '/(app)/(tabs)/' as const;
+  return account?.role === 'affiliate' ? '/(app)/(affiliate-tabs)' as const : '/(app)/(tabs)' as const;
 }

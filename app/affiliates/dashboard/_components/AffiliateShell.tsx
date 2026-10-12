@@ -43,6 +43,7 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
     if (account.clerkId !== user.id) return <AffiliateAccountLoading />;
     if (account.isDeleted || account.status === "deleted") return <UnavailableAffiliate />;
     if (account.role !== "affiliate") return <DifferentAccount role={account.role} />;
+    if (account.status === "pending") return <PendingAffiliate />;
     if (account.status !== "active" && account.status !== "suspended") return <UnavailableAffiliate />;
 
     return (
@@ -54,6 +55,19 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
                 {children}
             </AffiliateShellView>
         </AffiliateAccount.Provider>
+    );
+}
+
+function PendingAffiliate() {
+    return (
+        <AuthFrame title="Waiting for admin approval" sub="Your affiliate signup is complete.">
+            <div className={AUTH_BODY}>
+                <p className="t-body">An admin will review your account before you can set up and share your page or refer creators.</p>
+                <p className="t-body">This screen will update when your account is approved. You can also sign in again later.</p>
+                <p className="t-meta">Need help? Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
+                <SignOutButton redirectUrl="/affiliates"><Button block>Sign out</Button></SignOutButton>
+            </div>
+        </AuthFrame>
     );
 }
 

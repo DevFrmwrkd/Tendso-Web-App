@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { query, mutation, action, internalMutation, internalAction, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import { settlementBlockReason } from './lib/settlement';
@@ -76,6 +76,12 @@ export const create = mutation({
 
         const creator = await ctx.db.get(args.creatorId);
         if (!creator) throw new Error('Creator not found');
+        // Check the payout account itself, including requests made by an admin.
+        if (creator.role === 'affiliate' && (creator.isDeleted || creator.status !== 'active')) {
+            if (creator.status === 'pending') throw new ConvexError('Your affiliate account is waiting for admin approval.');
+            if (creator.status === 'suspended') throw new ConvexError('Withdrawals are paused while this affiliate account is suspended.');
+            throw new ConvexError('An active affiliate account is required for withdrawals.');
+        }
         if ((creator.balance || 0) < args.amount) {
             throw new Error('Insufficient balance');
         }

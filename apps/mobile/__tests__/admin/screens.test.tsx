@@ -84,7 +84,7 @@ describe('native admin deep-link boundary', () => {
   });
   it('redirects an affiliate deep link to affiliate home', () => {
     mockSession = { ...ready(), account: affiliate, isAdmin: false };
-    expect(render(<NativeAdminLayout />).getByTestId('redirect').props.children).toBe('/(app)/(affiliate-tabs)/');
+    expect(render(<NativeAdminLayout />).getByTestId('redirect').props.children).toBe('/(app)/(affiliate-tabs)');
   });
   it('immediately removes admin routes after live suspension', () => {
     const screen = render(<NativeAdminLayout />);
@@ -198,6 +198,76 @@ describe('native admin actions', () => {
     act(() => { acceptAlert(); });
     await waitFor(() => expect(mockMutation).toHaveBeenCalledWith('creators:updateStatus', { id: 'affiliate-1', status: 'suspended' }));
     expect(mockMutation).toHaveBeenCalledTimes(1);
+  });
+  it('lists pending affiliates first and confirms approval with only their id and active status', async () => {
+    mockData['affiliates:list'] = [affiliate, { ...affiliate, _id: 'pending-affiliate', firstName: 'Pending', status: 'pending' }];
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    expect(screen.getByText('Awaiting approval')).toBeTruthy();
+    const labels = screen.getAllByRole('button').map(button => button.props.accessibilityLabel);
+    expect(labels.indexOf('Approve Pending Reyes')).toBeLessThan(labels.indexOf('Suspend Bea Reyes'));
+    expect(screen.queryByLabelText('Suspend Pending Reyes')).toBeNull();
+    fireEvent.press(screen.getByLabelText('Approve Pending Reyes'));
+    expect(Alert.alert).toHaveBeenCalledWith('Approve affiliate?', expect.stringContaining('share their affiliate page'), expect.any(Array));
+    expect(mockMutation).not.toHaveBeenCalled();
+    act(() => { acceptAlert(); });
+    await waitFor(() => expect(mockMutation).toHaveBeenCalledWith('creators:updateStatus', { id: 'pending-affiliate', status: 'active' }));
+    expect(mockMutation).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText('Affiliate approved.')).toBeTruthy();
+  });
+  it.each([
+    { isAdmin: false }, { isAuthenticated: false }, { isOffline: true },
+    { account: { ...admin, status: 'suspended' } },
+    { account: { ...admin, role: 'affiliate' } },
+    { account: { ...admin, _id: 'admin-2', clerkId: 'another-admin' } },
+  ])('does not approve after live admin permission or identity changes %#', change => {
+    mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
+    mockSession = { ...ready(), ...change };
+    screen.rerender(<Accounts />);
+    act(() => { acceptAlert(); });
+    expect(mockMutation).not.toHaveBeenCalled();
+  });
+  it('does not approve a target whose status changed while confirmation was open', () => {
+    mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
+    mockData['affiliates:list'] = [{ ...affiliate, status: 'suspended' }];
+    screen.rerender(<Accounts />);
+    act(() => { acceptAlert(); });
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Reactivate Bea Reyes')).toBeTruthy();
+  });
+  it('invalidates approval when leaving the affiliate account list', () => {
+    mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
+    fireEvent.press(screen.getByLabelText('Creators'));
+    act(() => { acceptAlert(); });
+    expect(mockMutation).not.toHaveBeenCalled();
+  });
+  it('keeps pending approval available after an unsuccessful admin request', async () => {
+    mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
+    mockMutation.mockRejectedValueOnce(new Error('Approval failed'));
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
+    act(() => { acceptAlert(); });
+    expect(await screen.findByText('Approval failed')).toBeTruthy();
+    expect(screen.getByLabelText('Approve Bea Reyes').props.accessibilityState.disabled).toBe(false);
+  });
+  it.each([undefined, 'reviewing', 'rejected'])('shows unknown affiliate status %s without status actions', status => {
+    mockData['affiliates:list'] = [{ ...affiliate, status }];
+    const screen = render(<Accounts />);
+    fireEvent.press(screen.getByLabelText('Affiliates'));
+    expect(screen.getByText(affiliate.email)).toBeTruthy();
+    for (const verb of ['Approve', 'Suspend', 'Reactivate']) {
+      expect(screen.queryByLabelText(`${verb} Bea Reyes`)).toBeNull();
+    }
   });
   it('excludes team/deleted accounts from creator account controls', () => {
     mockData['creators:getAll'] = [creator, admin, { ...creator, _id: 'staff-1', role: 'staff' }, { ...creator, _id: 'deleted-1', isDeleted: true, firstName: 'Deleted' }];

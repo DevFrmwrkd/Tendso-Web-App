@@ -12,6 +12,10 @@ export function accountBlocked(account: MobileAccount | null | undefined): boole
     || (account.status === 'suspended' && account.role !== 'affiliate'));
 }
 
+export function affiliateNeedsApproval(account: MobileAccount | null | undefined): boolean {
+  return !!account && account.role === 'affiliate' && account.status === 'pending' && !account.isDeleted;
+}
+
 export function mobileHome(view: MobileView | null): string {
   if (view === 'affiliate') return '/(app)/(affiliate-tabs)/';
   if (view === 'admin') return '/(app)/admin';

@@ -144,7 +144,7 @@ export default function AccountSetupScreen() {
           <EditorialField label="PAGE HANDLE" accessibilityLabel="Page handle" placeholder="your-page" value={profile.handle}
             onChangeText={(value: string) => change('handle', value.toLowerCase())} autoCapitalize="none" autoCorrect={false}
             editable={!saving} error={fieldErrors.handle} />
-          <Body size="xs" color={colors.ink3}>tendso.com/a/{profile.handle || 'your-page'} - lowercase letters, numbers, and hyphens.</Body>
+          <Body size="xs" color={colors.ink3}>After admin approval: tendso.com/a/{profile.handle || 'your-page'}. Use lowercase letters, numbers, and hyphens.</Body>
         </> : <EditorialField label="REFERRAL CODE (OPTIONAL)" accessibilityLabel="Referral code" value={profile.referredByCode}
           onChangeText={(value: string) => change('referredByCode', value.toUpperCase())} autoCapitalize="characters"
           autoCorrect={false} editable={!saving} />}

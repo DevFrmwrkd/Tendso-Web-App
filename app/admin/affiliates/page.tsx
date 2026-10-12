@@ -20,14 +20,15 @@ export default function AdminAffiliatesPage() {
 
     return (
         <AdminLayout>
-            <PageHeader title="Affiliates" sub="Affiliate accounts are active after signup. Suspend access here when needed." />
+            <PageHeader title="Affiliates" sub="Review new affiliate accounts before they can share their page. Manage active accounts here." />
             {affiliates === undefined ? (
                 <Loading label="Loading affiliates"><SkeletonRows count={4} /></Loading>
             ) : affiliates.length === 0 ? (
                 <EmptyState title="No affiliates yet" body="New affiliate accounts will appear here." />
             ) : (
                 <ul className="t-card divide-y divide-r1-line">
-                    {affiliates.map((affiliate) => <AffiliateRow key={affiliate._id} affiliate={affiliate} />)}
+                    {[...affiliates].sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending"))
+                        .map((affiliate) => <AffiliateRow key={affiliate._id} affiliate={affiliate} />)}
                 </ul>
             )}
         </AdminLayout>
@@ -37,15 +38,18 @@ export default function AdminAffiliatesPage() {
 function AffiliateRow({ affiliate }: { affiliate: Doc<"creators"> }) {
     const updateStatus = useMutation(api.creators.updateStatus);
     const [saving, setSaving] = useState(false);
+    const pending = affiliate.status === "pending";
     const suspended = affiliate.status === "suspended";
+    const active = affiliate.status === "active";
+    const action = pending ? "Approve" : suspended ? "Reactivate" : active ? "Suspend" : null;
     const name = [affiliate.firstName, affiliate.lastName].filter(Boolean).join(" ") || affiliate.email;
 
-    async function toggleStatus() {
-        if (saving) return;
+    async function changeStatus() {
+        if (saving || !action) return;
         setSaving(true);
         try {
-            await updateStatus({ id: affiliate._id, status: suspended ? "active" : "suspended" });
-            toast.success(`${name} ${suspended ? "reactivated" : "suspended"}.`);
+            await updateStatus({ id: affiliate._id, status: active ? "suspended" : "active" });
+            toast.success(`${name} ${pending ? "approved" : suspended ? "reactivated" : "suspended"}.`);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Could not update this account.");
         } finally {
@@ -59,10 +63,11 @@ function AffiliateRow({ affiliate }: { affiliate: Doc<"creators"> }) {
                 <p className="t-row-title">{name}</p>
                 <p className="t-meta break-words">@{affiliate.affiliateHandle} · {affiliate.email} · {affiliate.phone}</p>
             </div>
-            <Status tone={suspended ? "bad" : "done"} word={suspended ? "Suspended" : "Active"} />
-            <Button variant="secondary" disabled={saving} aria-busy={saving} aria-label={`${suspended ? "Reactivate" : "Suspend"} ${name}`} onClick={toggleStatus}>
-                {saving ? "Saving…" : suspended ? "Reactivate" : "Suspend"}
-            </Button>
+            <Status tone={pending ? "attn" : suspended ? "bad" : active ? "done" : "off"}
+                word={pending ? "Pending approval" : suspended ? "Suspended" : active ? "Active" : "Unavailable"} />
+            {action && <Button variant={pending ? "primary" : "secondary"} disabled={saving} aria-busy={saving} aria-label={`${action} ${name}`} onClick={changeStatus}>
+                {saving ? "Saving…" : action}
+            </Button>}
         </li>
     );
 }

@@ -131,7 +131,7 @@ it('requires mobile for affiliates while keeping it optional for creators', () =
 });
 
 it('routes each existing role to its own native home', () => {
-  expect(signupAccountHome('affiliate')).toBe('/(app)/(affiliate-tabs)/');
+  expect(signupAccountHome('affiliate')).toBe('/(app)/(affiliate-tabs)');
   expect(signupAccountHome('admin')).toBe('/(app)/admin');
-  expect(signupAccountHome(undefined)).toBe('/(app)/(tabs)/');
+  expect(signupAccountHome(undefined)).toBe('/(app)/(tabs)');
 });

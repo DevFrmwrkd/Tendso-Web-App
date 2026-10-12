@@ -50,7 +50,7 @@ export default function AffiliatesPage() {
 
                 <div className="flex max-w-[680px] flex-col gap-3">
                     <p className="t-body">
-                        Affiliates share their link. Creators visit shops, take photos, and interview owners. Your affiliate account is active as soon as you finish signing up.
+                        Affiliates share their link. Creators visit shops, take photos, and interview owners. Sign up, then wait for admin approval before sharing your page.
                     </p>
                     <p className="t-meta">
                         Already a creator? Use a different email for your affiliate account. Each login has one account type.{" "}

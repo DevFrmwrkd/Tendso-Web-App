@@ -139,10 +139,12 @@ export const deleteAccount = mutation({
 export const getByReferralCode = query({
     args: { referralCode: v.string() },
     handler: async (ctx, args) => {
-        return await ctx.db
+        const account = await ctx.db
             .query('creators')
             .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referralCode))
             .unique();
+        if (account?.role === 'affiliate' && (account.isDeleted || account.status !== 'active')) return null;
+        return account;
     },
 });
 
@@ -238,11 +240,20 @@ export const create = mutation({
         const referrer = incomingCode ? await ctx.db.query('creators')
             .withIndex('by_referral_code', (q) => q.eq('referralCode', incomingCode)).first() : null;
         if (incomingCode && (!referrer || referrer.isDeleted || referrer.status === 'suspended'
+            || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate'))) {
             throw new Error('Invalid referral code');
         }
         if (args.referredBy && referrer && args.referredBy !== referrer._id) {
             throw new Error('Referral code does not match the referrer');
+        }
+        // Legacy clients can send a referrer id without a code. That path must
+        // not attribute new creators to an unapproved affiliate either.
+        if (args.referredBy && !incomingCode) {
+            const directReferrer = await ctx.db.get(args.referredBy);
+            if (directReferrer?.role === 'affiliate' && (directReferrer.isDeleted || directReferrer.status !== 'active')) {
+                throw new Error('Invalid referral code');
+            }
         }
 
         // A soft-deleted account exists for this clerkId (same Clerk user signed in
@@ -469,6 +480,7 @@ export const applyReferralCode = mutation({
             throw new Error('Invalid referral code');
         }
         if (referrer.isDeleted || referrer.status === 'suspended'
+            || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')) throw new Error('Invalid referral code');
 
         // Prevent self-referral
