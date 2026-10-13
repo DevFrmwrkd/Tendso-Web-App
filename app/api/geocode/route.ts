@@ -7,7 +7,7 @@ import { checkRateLimit, validateString, ValidationError } from '@/lib/security'
  * GET /api/geocode?q=<address>
  *
  * Turns the address the owner typed on /start step 1 into a starting centre for
- * the desktop map picker. NOT the answer — the pin the owner drops is the
+ * the location picker. NOT the answer — the pin the owner confirms is the
  * answer. This only decides where the map opens, so a miss is survivable: the
  * component falls back to a wide view and says so.
  *

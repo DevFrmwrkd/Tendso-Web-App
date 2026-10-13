@@ -17,6 +17,7 @@ import { Globe, LocateFixed } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Button, cx, Dot, ErrorState, Icon, type StatusWord } from "@/components/r1";
+import { GOOGLE_MAPS_API_KEY } from "@/lib/googleMaps";
 
 import { circlePath, PH_CENTER, type Bounds, type LatLng } from "./geo";
 import type { MapPin } from "./types";
@@ -31,11 +32,6 @@ import type { MapPin } from "./types";
  * stem, the dot inside is the status) and the popup is the kit's popover
  * (`t-pop`) anchored above the pin, instead of Google's InfoWindow chrome.
  */
-
-const MAPS_API_KEY =
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
-    // Spec: reuse the mobile-side key (in ndm/app.json) — do not provision new
-    "AIzaSyAt-knwNJgQ-Nx5ZY5aZUC-T8sj8D3QZ7U";
 
 /** A selection made on the map ("pin") moves focus into the popover; one made in the list ("list") leaves it there. */
 export type Selection = { key: string; from: "pin" | "list"; n: number };
@@ -64,7 +60,7 @@ export type MapCanvasProps = {
 
 export function MapCanvas(props: MapCanvasProps) {
     return (
-        <APIProvider apiKey={MAPS_API_KEY}>
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
             <AddressGeocoder pending={props.pendingGeocodes} onResolved={props.onGeocoded} />
             <MapBody {...props} />
         </APIProvider>

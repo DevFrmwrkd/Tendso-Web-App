@@ -1,33 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { LocateFixed } from "lucide-react";
 
-import { Button, Card, Field, Icon, Input, PhoneInput, Select, Status } from "@/components/r1";
+import { Card, Field, Input, PhoneInput, Select } from "@/components/r1";
 import { BUSINESS_TYPES } from "@/lib/prospectPrefill";
 
 import type { StartBasics } from "../draft";
 import { OptionalMark, StepHeader } from "./frame";
 
 export type BasicsErrors = Partial<Record<keyof StartBasics, string>>;
-export type GeoStatus = "idle" | "asking" | "denied";
 type Coordinates = { lat: number; lng: number };
 
-/**
- * The desktop map picker, loaded with `ssr: false`, because Leaflet reaches for
- * `window` the moment it is imported. The component ALSO defers
- * `import("leaflet")` into its own effect, which is belt and braces on purpose:
- * the one thing worse than two guards here is none.
- *
- * It is referenced only inside `isDesktop`, so a phone never pays for the
- * chunk: the import is what pulls it, and on a phone the import never runs.
- */
+/** Load the interactive picker only when step 1 is shown, on every screen size. */
 const MapPicker = dynamic(() => import("../MapPicker"), {
     ssr: false,
-    // Renders in place of <MapPicker/>, the same height as its map, so nothing
-    // jumps the moment it loads.
+    // Reserve room for the map while its client bundle loads.
     loading: () => (
-        <div className="flex h-[264px] w-full items-center justify-center rounded-r1 border border-r1-line-2 bg-r1-fill">
+        <div className="flex h-[340px] w-full items-center justify-center rounded-r1 border border-r1-line-2 bg-r1-fill sm:h-[380px]">
             <span className="t-meta">Loading map…</span>
         </div>
     ),
@@ -50,12 +39,9 @@ export function BasicsStep({
     onChange,
     onSubmit,
     giveaway = false,
-    isDesktop,
     coordinates,
     onCoordinatesChange,
     mapAddress,
-    geoStatus,
-    onRequestLocation,
 }: {
     basics: StartBasics;
     /** Only the errors to show right now: empty until the owner tries to go on. */
@@ -63,12 +49,9 @@ export function BasicsStep({
     onChange: (key: keyof StartBasics, value: string) => void;
     onSubmit: () => void;
     giveaway?: boolean;
-    isDesktop: boolean;
     coordinates: Coordinates | null;
     onCoordinatesChange: (next: Coordinates | null) => void;
     mapAddress: string;
-    geoStatus: GeoStatus;
-    onRequestLocation: () => void;
 }) {
     return (
         <>
@@ -246,43 +229,10 @@ export function BasicsStep({
                             Pin your shop on the map
                             <OptionalMark />
                         </h2>
-                        <p className="t-meta">
-                            {isDesktop
-                                ? "Worth the ten seconds — the pin you place here is the spot the map on your finished site points at."
-                                : "Tap this while you're standing at the shop and the map on your site lands on the right spot."}
-                        </p>
+                        <p className="t-meta">Find your shop using nearby businesses and landmarks. Move the map until the pin points at your entrance, then choose “Use this spot”.</p>
                     </div>
 
-                    {/* A PHONE ASKS; A DESK POINTS. The geolocation button below is
-                        honest on a phone — the owner is standing in the shop and the
-                        handset has GPS. On a desk getCurrentPosition resolves from
-                        wifi and IP, so it would report the ISP's idea of where they
-                        are and tick "Location saved" over it. That pin ships to the
-                        finished site and nobody checks it again, so the desk layout
-                        drops the button entirely and hands over a map instead. Both
-                        write the same draft.coordinates. */}
-                    {isDesktop ? (
-                        <MapPicker value={coordinates} onChange={onCoordinatesChange} address={mapAddress} />
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {coordinates ? (
-                                <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                                    <Status tone="done">Location saved</Status>
-                                    <Button variant="ghost" size="sm" onClick={() => onCoordinatesChange(null)}>
-                                        Remove
-                                    </Button>
-                                </div>
-                            ) : (
-                                <Button onClick={onRequestLocation} disabled={geoStatus === "asking"} className="self-start">
-                                    <Icon icon={LocateFixed} />
-                                    {geoStatus === "asking" ? "Waiting for your phone…" : "Use my current location"}
-                                </Button>
-                            )}
-                            {geoStatus === "denied" ? (
-                                <p className="t-meta">No problem — we&apos;ll find you from the address instead.</p>
-                            ) : null}
-                        </div>
-                    )}
+                    <MapPicker value={coordinates} onChange={onCoordinatesChange} address={mapAddress} />
                 </Card>
             </form>
         </>

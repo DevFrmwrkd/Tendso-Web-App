@@ -100,9 +100,17 @@ export function ReviewStep({
                             </SummaryRow>
                         ))}
                         <SummaryRow label="Map pin">
-                            <Status tone={coordinates ? "done" : "off"} className="whitespace-normal">
-                                {coordinates ? "Placed on the map" : "Not placed — we find you from the address"}
-                            </Status>
+                            <div className="flex flex-col items-start">
+                                <Status tone={coordinates ? "done" : "off"} className="whitespace-normal">
+                                    {coordinates ? "Shop location saved" : "Not placed — we find you from the address"}
+                                </Status>
+                                {coordinates ? <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${coordinates.lat},${coordinates.lng}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="t-link inline-flex min-h-11 items-center text-xs"
+                                >View shop location in Google Maps ↗</a> : null}
+                            </div>
                         </SummaryRow>
                     </SummaryCard>
 
