@@ -1108,7 +1108,7 @@ function SubmissionReview() {
             );
         }
         if (canGiveFree) items.push({ label: "Give free (comp)…", onSelect: () => {
-            if (s.giveawayApplication) setGiveFreeGiftedBy("Tendso");
+            if (s.giveawayApplication) setGiveFreeGiftedBy("Off the Record");
             setShowGiveFreeModal(true);
         } });
         if (canMarkPaid) items.push({ label: "Mark as paid…", onSelect: () => setShowMarkPaidModal(true) });

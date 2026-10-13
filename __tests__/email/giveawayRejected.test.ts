@@ -12,6 +12,8 @@ describe('giveaway rejection email', () => {
         const html = getGiveawayRejectedEmailHtml(params);
         const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
         expect(text).toContain(params.reason);
+        expect(text).toContain('Off the Record reviewed your application');
+        expect(text).toContain('A gift from Off the Record. Websites built by Tendso.');
         expect(text).toContain('Your held slot has been released.');
         expect(text).toContain('fix the issue above and apply again while slots remain.');
         expect(html).toContain(`href="${params.applyUrl}"`);

@@ -103,3 +103,50 @@ describe.each([
         expect(network).not.toHaveBeenCalled();
     });
 });
+
+describe('giveaway gift sender attribution', () => {
+    it.each([
+        { house: true, giftedBy: 'Tendso' },
+        { house: true, giftedBy: undefined },
+        { house: false, giftedBy: 'Forged sponsor' },
+    ])('records and emails Off the Record for giveaway %j', async ({ house, giftedBy }) => {
+        (fetchQuery as jest.Mock).mockImplementation(async (query: string) => {
+            if (query === 'currentAccount') return actor;
+            if (query === 'submission') return {
+                businessName: 'Corner Shop', ownerName: 'Sam', ownerEmail: 'shop@example.com', giveawayApplication: true,
+                creator: house ? { email: 'self-serve@tendso.com' } : { firstName: 'Another', lastName: 'Creator' },
+            };
+            if (query === 'website') return { publishedUrl: 'https://example.com/shop' };
+            return null;
+        });
+        const response = await markComped(new NextRequest('https://tendso.com/api/mark-comped', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submissionId: 'submission-1', giftedBy }),
+        }));
+        expect(response.status).toBe(200);
+        expect(fetchMutation).toHaveBeenCalledWith('markComped', expect.objectContaining({
+            reason: 'gifted as "Off the Record"',
+        }), { token: 'verified-convex-token' });
+        expect(sendPromoWebsiteLiveEmail).toHaveBeenCalledWith(expect.objectContaining({
+            creatorName: 'Off the Record', giveawayApplication: true,
+        }));
+    });
+
+    it('preserves the typed giver on ordinary self-serve gifts', async () => {
+        (fetchQuery as jest.Mock).mockImplementation(async (query: string) => {
+            if (query === 'currentAccount') return actor;
+            if (query === 'submission') return {
+                businessName: 'Corner Shop', ownerName: 'Sam', ownerEmail: 'shop@example.com',
+                creator: { email: 'self-serve@tendso.com' },
+            };
+            if (query === 'website') return { publishedUrl: 'https://example.com/shop' };
+            return null;
+        });
+        const response = await markComped(new NextRequest('https://tendso.com/api/mark-comped', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submissionId: 'submission-1', giftedBy: 'Local Sponsor' }),
+        }));
+        expect(response.status).toBe(200);
+        expect(sendPromoWebsiteLiveEmail).toHaveBeenCalledWith(expect.objectContaining({ creatorName: 'Local Sponsor', giveawayApplication: false }));
+    });
+});

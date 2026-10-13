@@ -19,6 +19,8 @@ import { v } from 'convex/values';
 import { internalAction, internalMutation, internalQuery, mutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { mergeEnhancedImages } from './lib/enhancedImages';
+import { requireAdmin } from './lib/auth';
+import { giveawayCanRender } from './lib/giveaway';
 
 // Tendso's fixed photo order → roles. Products only when hasProducts.
 const PHOTO_ROLES = ['headshot', 'interior_1', 'interior_2', 'exterior', 'product_1', 'product_2'];
@@ -52,8 +54,10 @@ export const setSyncStatus = internalMutation({
 export const triggerStudioRenderPublic = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
+        if (!giveawayCanRender(submission)) throw new Error('Approve the giveaway poster before enhancing its photos.');
         await ctx.db.patch(args.submissionId, { airtableSyncStatus: 'pending_push' });
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.submissionId,
@@ -73,6 +77,10 @@ export const triggerStudioRender = internalAction({
             submissionId: args.submissionId,
         });
         if (!submission) throw new Error('Submission not found');
+
+        // Ignore an old job if eligibility has not been approved or the owner
+        // was rejected before the job started. No webhook or paid work is sent.
+        if (!giveawayCanRender(submission)) return;
 
         const webhookUrl = process.env.HYPERAGENT_WEBHOOK_URL;
         const token = process.env.HYPERAGENT_WEBHOOK_TOKEN;

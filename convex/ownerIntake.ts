@@ -701,7 +701,7 @@ export const submitOwnerIntake = mutation({
             // convex/submissions.ts:234), so the ₱1,499 breakdown the owner sees
             // is identical either way. domains.setRegistrarMetadata writes the
             // real figure at the moment the domain is genuinely charged.
-            airtableSyncStatus: 'pending_push',
+            airtableSyncStatus: giveaway ? 'pending_review' : 'pending_push',
             contentSource: 'owner_intake',
         });
 
@@ -772,9 +772,13 @@ export const submitOwnerIntake = mutation({
         // for owner rows precisely because we synthesized a transcript above
         // (TopActionBar.tsx:108-109 gates canEnhance on hasTranscript). Flip it
         // the day spam appears.
-        await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
-            submissionId,
-        });
+        // Giveaway applicants must qualify by displaying the Off the Record
+        // poster before paid enhancement runs. Approval schedules it once.
+        if (!giveaway) {
+            await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
+                submissionId,
+            });
+        }
 
         // ---- 9. "We've got it." -------------------------------------------
         // Closes the silence between this moment and the payment email, which

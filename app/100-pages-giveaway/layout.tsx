@@ -2,13 +2,20 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-    title: "100 free websites for business owners | Tendso",
-    description: "Print our poster, hang it in your walk-in business, and apply. The first 100 eligible business owners get a free website with a Tendso web address.",
+    title: "Off the Record: 100 free Tendso websites",
+    description: "Off the Record is giving its community 100 free Tendso websites. Hang an Off the Record poster in your business, send a photo, and apply while slots remain.",
     alternates: { canonical: "/100-pages-giveaway" },
     openGraph: {
-        title: "We're giving away more than ₱300,000 in websites | Tendso",
-        description: "A free website for the first 100 eligible walk-in businesses. Download the poster and apply while slots last.",
+        type: "website",
+        siteName: "Off the Record",
+        title: "Off the Record is giving 100 businesses a free Tendso website",
+        description: "A one-time gift from Off the Record to its community. Hang the OTR poster, submit proof, and get a free Tendso website if eligible.",
         url: "/100-pages-giveaway",
+    },
+    twitter: {
+        card: "summary",
+        title: "Off the Record: 100 free Tendso websites",
+        description: "Hang an Off the Record poster in your business and apply for a free Tendso website. One-time giveaway for the first 100 eligible businesses.",
     },
 };
 

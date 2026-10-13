@@ -29,6 +29,7 @@ import Link from "next/link";
 
 import { ButtonLink, Card, FunnelHeader, Highlight, Icon, PublicPage } from "@/components/r1";
 import { formatPHP } from "@/lib/pricing";
+import { CampaignHeader } from "@/app/100-pages-giveaway/_components/CampaignHeader";
 
 import { HEADER_ALIGN } from "../_components/frame";
 import { readSubmitted, type SubmittedReceipt } from "../draft";
@@ -81,18 +82,20 @@ export default function StartThanksPage() {
     const howToPay = amount === null ? "how to pay" : `how to pay ${formatPHP(amount)}`;
 
     return (
-        <PublicPage header={<FunnelHeader exit={{ href: "/", label: "Back to site" }} className={HEADER_ALIGN} />}>
+        <PublicPage header={giveaway
+            ? <CampaignHeader exit={{ href: "/100-pages-giveaway", label: "Back to giveaway" }} className={HEADER_ALIGN} />
+            : <FunnelHeader exit={{ href: "/", label: "Back to site" }} className={HEADER_ALIGN} />}>
             <div className="mx-auto flex w-full max-w-[600px] flex-col gap-7 px-4 pb-16 pt-10 sm:px-6 lg:pb-20 lg:pt-14">
                 <span className="flex size-12 items-center justify-center rounded-full bg-r1-gold text-r1-ink" aria-hidden="true">
                     <Icon icon={Check} size={24} />
                 </span>
 
                 <div className="flex flex-col gap-3">
-                    <h1 className="t-h1">{giveaway ? "Salamat — your giveaway application is in." : "Salamat — we have everything we need."}</h1>
+                    <h1 className="t-h1">{giveaway ? "Salamat — Off the Record has your application." : "Salamat — we have everything we need."}</h1>
                     <p className="t-sub">
-                        {giveaway ? "Your slot is held while we review your application. We'll email you at " : "We'll build it and email you at "}
+                        {giveaway ? "Your slot is reserved while Off the Record checks your business and poster photo. Tendso will email your free website to " : "We'll build it and email you at "}
                         <strong className="font-semibold text-r1-ink [overflow-wrap:anywhere]">{email ?? "the address you gave us"}</strong>{" "}
-                        {giveaway ? "once your application is reviewed." : `within 48–72 hours with your site and ${howToPay}.`}
+                        {giveaway ? "when it is ready, if your application qualifies." : `within 48–72 hours with your site and ${howToPay}.`}
                     </p>
                 </div>
 
@@ -131,9 +134,9 @@ export default function StartThanksPage() {
                     </h2>
                     <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
                         {(giveaway ? [
-                            "Our team reviews your application and checks the poster photo.",
-                            "If your application qualifies, we build your free website from your answers and photos.",
-                            "We email you once your application is reviewed, and send your website link when it is ready.",
+                            "Off the Record checks that its poster is visibly hanging in your walk-in business.",
+                            "If your application qualifies, Tendso builds your free website from your answers and photos.",
+                            "Tendso emails your website link when it is ready. If your application cannot be accepted, you receive an email explaining why.",
                         ] : [
                             "Our team reads your answers and builds your site from them — your words, your photos.",
                             "We check it and put it live.",
@@ -169,8 +172,8 @@ export default function StartThanksPage() {
                 </p>
 
                 <div>
-                    <ButtonLink size="lg" href="/">
-                        Back to Tendso
+                    <ButtonLink size="lg" href={giveaway ? "/100-pages-giveaway" : "/"}>
+                        {giveaway ? "Back to Off the Record giveaway" : "Back to Tendso"}
                     </ButtonLink>
                 </div>
             </div>

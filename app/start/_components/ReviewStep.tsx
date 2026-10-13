@@ -159,7 +159,7 @@ export function ReviewStep({
                         <SummaryCard title="Your poster photo" editLabel="Edit your poster photo" onEdit={onEditPoster} disabled={submitting}>
                             {draft.giveawayPosterPhoto ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={draft.giveawayPosterPhoto} alt="Your poster hanging in your business" className="max-h-56 w-full rounded-r1 object-contain bg-r1-fill-2" />
+                                <img src={draft.giveawayPosterPhoto} alt="Your Off the Record poster hanging in your business" className="max-h-56 w-full rounded-r1 object-contain bg-r1-fill-2" />
                             ) : <p className="t-error">Add your poster photo before sending your application.</p>}
                         </SummaryCard>
                     ) : null}
@@ -190,7 +190,7 @@ export function ReviewStep({
                             </span>
                         </p>
                         {quote.giveaway ? (
-                            <p className="t-body">A free website with a Tendso web address, if your application qualifies.</p>
+                            <p className="t-body">A gift from Off the Record: a free Tendso website if your business and poster photo qualify.</p>
                         ) : quote.discounted ? (
                             <Status tone="done" className="whitespace-normal">
                                 {quote.code ? `${quote.code} applied — ${formatPHP(quote.listPrice - quote.sellPrice)} off your website` : `${quote.percentOff}% off your website`}
@@ -258,7 +258,7 @@ export function ReviewStep({
                                 />
                             </MoneyLines>
                         ) : null}
-                        <p className="t-meta">{quote.giveaway ? "We review your poster photo to check eligibility. There's nothing to pay for an eligible giveaway website." : "You pay once, only after your site is live. Nothing to pay now."}</p>
+                        <p className="t-meta">{quote.giveaway ? "Off the Record reviews the photo of its poster hanging in your business. There's nothing to pay for an eligible giveaway website." : "You pay once, only after your site is live. Nothing to pay now."}</p>
                     </Card>
 
                     {/* The tier. The ONE money decision on this form, and the only
@@ -335,9 +335,9 @@ export function ReviewStep({
                     <Highlight className="flex flex-col gap-2 p-5">
                         <h2 className="text-sm font-semibold leading-5">What happens next</h2>
                         {quote.giveaway ? <p className="t-body text-r1-ink">
-                            Our team reviews your application and emails{" "}
+                            Off the Record reviews your application and poster photo. If you qualify, Tendso builds your free website and emails the link to{" "}
                             <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong>{" "}
-                            once it has been reviewed. If you qualify, we build your free website with a Tendso web address.
+                            when it is ready. If your application cannot be accepted, you receive an email explaining why.
                         </p> : <p className="t-body text-r1-ink">
                             Our team builds your website and emails it to{" "}
                             <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong> within

@@ -223,6 +223,9 @@ describe('submitOwnerIntake giveaway reservation', () => {
         expect(stored?.campaign).toBeUndefined();
         expect(stored?.requestedDomain).toBeUndefined();
         expect(stored?.pricingMode).toBeUndefined();
+        expect(stored?.airtableSyncStatus).toBe('pending_review');
+        const scheduled = await t.run(async (ctx) => ctx.db.system.query('_scheduled_functions').collect());
+        expect(scheduled.some((job) => job.name === 'hyperagent:triggerStudioRender')).toBe(false);
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 99, given: 0 });
     });
 

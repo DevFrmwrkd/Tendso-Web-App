@@ -128,13 +128,11 @@ export async function GET(request: NextRequest) {
                 const withCreator = await fetchQuery(api.submissions.getByIdWithCreator, {
                     id: submissionId as Id<'submissions'>,
                 }, { token })
-                // A self-serve site's creator is the house account, not a person:
-                // the real email names whoever the admin types at "Give free", so
-                // the preview takes ?giftedBy= and otherwise shows the unnamed variant.
-                creatorName = isHouseCreator(withCreator?.creator)
-                    ? cleanGiftedBy(searchParams.get('giftedBy')) || (submission.giveawayApplication
-                        ? cleanGiftedBy(submission.compedReason?.match(/gifted as "([^"]+)"\s*$/)?.[1])
-                        : '')
+                // The OTR giveaway has a fixed giver, matching the real send.
+                // Ordinary self-serve gifts use the admin's optional preview name.
+                creatorName = submission.giveawayApplication ? 'Off the Record'
+                    : isHouseCreator(withCreator?.creator)
+                    ? cleanGiftedBy(searchParams.get('giftedBy'))
                     : [withCreator?.creator?.firstName, withCreator?.creator?.lastName]
                         .filter(Boolean)
                         .join(' ')
@@ -147,6 +145,7 @@ export async function GET(request: NextRequest) {
                 businessOwnerName: submission.ownerName,
                 websiteUrl: publishedUrl || '#',
                 creatorName: creatorName || undefined,
+                giveawayApplication: submission.giveawayApplication === true,
                 platformEmail: process.env.WISE_EMAIL,
             })
         } else if (type === 'domain_setup_progress') {

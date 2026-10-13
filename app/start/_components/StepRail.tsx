@@ -19,7 +19,7 @@ export const STEP_LABELS = [
 
 export const GIVEAWAY_STEP_LABELS = [
     ...STEP_LABELS.slice(0, 3),
-    { title: "Poster photo", note: "Show the poster in your business" },
+    { title: "Poster photo", note: "Show the OTR poster in your business" },
     STEP_LABELS[3],
 ];
 
@@ -36,7 +36,7 @@ export const GIVEAWAY_STEP_LABELS = [
 export function PriceNote({ quote, className }: { quote: Quote; className?: string }) {
     return (
         <div className={cx("flex flex-col gap-2 rounded-r1-card border border-r1-line bg-r1-fill-2 p-4", className)}>
-            <p className="t-label">{quote.giveaway ? "Your giveaway website" : "Nothing to pay now"}</p>
+            <p className="t-label">{quote.giveaway ? "A gift from Off the Record" : "Nothing to pay now"}</p>
             <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 {quote.struckTotal !== null ? (
                     <span className="text-sm tabular-nums text-r1-ink-3 line-through decoration-r1-ink-3">
@@ -51,7 +51,7 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
                 {quote.discounted ? <span className="t-meta">{quote.code ? `with ${quote.code}` : `${quote.percentOff}% off`}</span> : null}
             </p>
             <p className="t-meta">
-                {quote.giveaway ? "A free website with a Tendso web address, if your application qualifies. We review your poster photo before building it." : <>
+                {quote.giveaway ? "Off the Record reviews your poster photo and eligibility. If approved, Tendso builds your free website with a Tendso web address." : <>
                     We build the site first and email it to you. You only pay once it&apos;s live —{" "}
                     {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
                 </>}
@@ -61,7 +61,7 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
 }
 
 /** The refresh-safety promise (see draft.ts), and the one way out to the pitch. */
-export function SavedNote({ className }: { className?: string }) {
+export function SavedNote({ className, giveaway = false }: { className?: string; giveaway?: boolean }) {
     return (
         <p className={cx("t-meta", className)}>
             Everything you type is saved on this device as you go.{" "}
@@ -69,7 +69,7 @@ export function SavedNote({ className }: { className?: string }) {
                 an owner who stalls mid-form wants the answer, not the pitch
                 again. `#how` is the section id the Round 1 landing and the
                 shared site header use. */}
-            <Link href="/#how" className="t-link">
+            <Link href={giveaway ? "/100-pages-giveaway" : "/#how"} className="t-link">
                 How it works
             </Link>
         </p>
@@ -160,7 +160,7 @@ export function StepRail({
             </ol>
 
             <PriceNote quote={quote} />
-            <SavedNote className="px-3" />
+            <SavedNote className="px-3" giveaway={quote.giveaway} />
         </aside>
     );
 }

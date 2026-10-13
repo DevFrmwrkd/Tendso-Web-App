@@ -44,6 +44,7 @@ import { INTAKE_QUESTIONS, meetsAnswerMinimum, type IntakeQuestionKey } from "@/
 import { campaignListPrice, domainAddOnFor, formatPHP, normalizeCampaign, ownerChargeFor } from "@/lib/pricing";
 import { clearCampaign, intakeCampaignForPage, rememberCampaign } from "@/lib/campaign";
 import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
+import { CampaignHeader } from "@/app/100-pages-giveaway/_components/CampaignHeader";
 
 import { ActionBar } from "./_components/ActionBar";
 import { BasicsStep, type BasicsErrors, type GeoStatus } from "./_components/BasicsStep";
@@ -564,11 +565,9 @@ export default function StartPage() {
 
     const handleBack = () => {
         if (step === 1) {
-            // Step 1 has nothing behind it, so Back is the exit: send the owner
-            // to the pitch they came from (`/` — every entrance to this funnel
-            // is on it), never to /start again, which would loop them. (The bar
-            // draws this one as a link to `/`, so it works before script too.)
-            router.push("/");
+            // Return giveaway applicants to OTR's offer and other owners to
+            // Tendso. The action bar uses the same destinations as links.
+            router.push(giveaway ? "/100-pages-giveaway" : "/");
             return;
         }
         if (step === 2) {
@@ -720,7 +719,7 @@ export default function StartPage() {
     );
 
     return (
-        <PublicPage header={header}>
+        <PublicPage header={giveaway ? <CampaignHeader exit={{ href: "/100-pages-giveaway", label: "Save and exit" }} className={HEADER_ALIGN} /> : header}>
             <div className={cx(CONTAINER, "flex flex-1 items-start gap-16 pb-10 pt-6 sm:pt-8 lg:pb-16 lg:pt-10")}>
                 <StepRail step={step} quote={quote} onJump={jumpToStep} disabled={submitting} />
 
@@ -821,15 +820,15 @@ export default function StartPage() {
                         first screen (so a scanned discount is seen to land), and
                         the saved-as-you-go promise on every screen. */}
                     {step === 1 ? <PriceNote quote={quote} className="lg:hidden" /> : null}
-                    <SavedNote className="lg:hidden" />
+                    <SavedNote className="lg:hidden" giveaway={giveaway} />
                 </div>
             </div>
 
             <ActionBar info={barInfo} error={barError} extra={barExtra}>
                 {step === 1 && (
                     <>
-                        <ButtonLink variant="ghost" size="lg" href="/">
-                            Back to Tendso
+                        <ButtonLink variant="ghost" size="lg" href={giveaway ? "/100-pages-giveaway" : "/"}>
+                            {giveaway ? "Back to giveaway" : "Back to Tendso"}
                         </ButtonLink>
                         <Button variant="primary" size="lg" onClick={handleBasicsContinue} className="max-sm:flex-1">
                             Continue

@@ -8,6 +8,14 @@ export const GIVEAWAY_CLOSED_MESSAGE = 'The free website giveaway is closed. You
 
 export type GiveawayConfig = { enabled: boolean; cap: number; endsAt?: number };
 
+/** First enhancement and retries require an approved eligibility review. */
+export function giveawayCanRender(submission: Pick<Doc<'submissions'>, 'giveawayApplication' | 'reviewedAt' | 'reviewedBy' | 'status'>): boolean {
+    return !submission.giveawayApplication || (
+        submission.reviewedAt !== undefined && !!submission.reviewedBy &&
+        ['approved', 'website_generated', 'deployed', 'pending_payment', 'paid', 'completed', 'unpublished'].includes(submission.status)
+    );
+}
+
 /** Absent settings keep the giveaway off until an operator launches it. */
 export function giveawayConfig(value: unknown): GiveawayConfig {
     if (!value || typeof value !== 'object') return { enabled: false, cap: 100 };
