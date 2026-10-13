@@ -47,7 +47,7 @@ import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
 import { CampaignHeader } from "@/app/100-pages-giveaway/_components/CampaignHeader";
 
 import { ActionBar } from "./_components/ActionBar";
-import { BasicsStep, type BasicsErrors, type GeoStatus } from "./_components/BasicsStep";
+import { BasicsStep, type BasicsErrors } from "./_components/BasicsStep";
 import { CONTAINER, HEADER_ALIGN, STEP_TITLE_ID, Spinner, revealField } from "./_components/frame";
 import { InterviewStep, answerFieldId } from "./_components/InterviewStep";
 import { PhotosStep, PRODUCTS_QUESTION_ID, slotCardId, type PhotoError } from "./_components/PhotosStep";
@@ -203,7 +203,6 @@ export default function StartPage() {
      *  owner tries to send, so it isn't scolding them at the first letter. */
     const [showDomainError, setShowDomainError] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
     /** The answer whose recording holds the microphone. See VoiceAnswer. */
     const [voiceBusyKey, setVoiceBusyKey] = useState<IntakeQuestionKey | null>(null);
 
@@ -268,36 +267,12 @@ export default function StartPage() {
 
     const basicsErrors = useMemo(() => (draft ? validateBasics(draft.basics, draft.giveawayApplication) : {}), [draft]);
 
-    /** What the desktop map writes. The same field requestLocation writes, so
-     *  the two ways of answering "where is the shop" cannot diverge — and `null`
-     *  is a real answer here, because the map can take a pin back. */
+    /** Only an explicitly confirmed shop pin is saved into the intake draft. */
     const setCoordinates = useCallback(
         (next: { lat: number; lng: number } | null) =>
             patch((previous) => ({ ...previous, coordinates: next })),
         [patch],
     );
-
-    const requestLocation = useCallback(() => {
-        // Optional and unblocking. When it works, lib/astro-builder.ts:309 skips
-        // a Nominatim geocode inside the 60-second build budget; when it doesn't,
-        // nothing about the intake changes.
-        if (typeof navigator === "undefined" || !navigator.geolocation) {
-            setGeoStatus("denied");
-            return;
-        }
-        setGeoStatus("asking");
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                patch((previous) => ({
-                    ...previous,
-                    coordinates: { lat: position.coords.latitude, lng: position.coords.longitude },
-                }));
-                setGeoStatus("idle");
-            },
-            () => setGeoStatus("denied"),
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-        );
-    }, [patch]);
 
     const handlePhotoPick = useCallback(
         async (slot: PhotoSlot, file: File) => {
@@ -550,11 +525,7 @@ export default function StartPage() {
     const slots = hasProducts === null ? [] : visibleSlots(hasProducts);
     const requiredSlots = slots.filter((slot) => !slot.optional);
     const missingSlots = requiredSlots.filter((slot) => !photos[slot.index]);
-    /** Only ever used to decide where the desktop map OPENS — never to place the
-     *  pin. ", Philippines" is appended because Nominatim will otherwise happily
-     *  match a Rizal St. on the other side of the world. Not memoised, and it
-     *  does not need to be: it is a string, so an unchanged address produces an
-     *  equal value and MapPicker's geocode effect does not re-run. */
+    /** Suggest an area near the written address; only the owner confirms the pin. */
     const mapAddress = (() => {
         const parts = [basics.address, basics.barangay, basics.city, basics.province]
             .map((part) => part.trim())
@@ -747,12 +718,9 @@ export default function StartPage() {
                             onChange={setBasic}
                             onSubmit={handleBasicsContinue}
                             giveaway={giveaway}
-                            isDesktop={isDesktop}
                             coordinates={draft.coordinates}
                             onCoordinatesChange={setCoordinates}
                             mapAddress={mapAddress}
-                            geoStatus={geoStatus}
-                            onRequestLocation={requestLocation}
                         />
                     )}
 
