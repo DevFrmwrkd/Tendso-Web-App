@@ -1,6 +1,8 @@
 @import "tailwindcss";
 /* Round 1 design system: tokens and the shared t- classes. */
 @import "./round1.css";
+/* The OTR × Tendso giveaway's campaign look, scoped under .gw. */
+@import "./giveaway.css";
 
 /*
  * The whole app wears the Round 1 design (app/round1.css). The two older

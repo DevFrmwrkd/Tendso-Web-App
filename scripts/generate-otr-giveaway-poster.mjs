@@ -2,6 +2,10 @@
 // Rebuild the A4 poster with: node scripts/generate-otr-giveaway-poster.mjs
 // Chrome is used only to print the self-contained HTML; no network requests run.
 // Override its executable with CHROME_PATH on macOS/Linux or another installation.
+//
+// The poster wears the giveaway page's campaign look (app/giveaway.css): OTR
+// black across the top, Tendso gold across the bottom, Unbounded and
+// Bricolage Grotesque from public/fonts. Change the two together.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -16,7 +20,9 @@ const posterUrl = 'https://tendso.com/poster';
 const outputDirectory = path.join(root, 'output', 'otr-giveaway-poster');
 const htmlPath = path.join(outputDirectory, 'poster.html');
 const pdfPath = path.join(root, 'public', '100-pages-giveaway-poster.pdf');
-const logo = readFileSync(path.join(root, 'public', 'otr-mark.png')).toString('base64');
+const asBase64 = (...parts) => readFileSync(path.join(root, 'public', ...parts)).toString('base64');
+const otrMark = asBase64('otr-mark.png');
+const tendsoLogo = asBase64('tendso-logo.png');
 // The four-module white quiet zone remains inside the SVG and is never cropped.
 const qr = renderToStaticMarkup(React.createElement(QRCodeSVG, {
   value: posterUrl,
@@ -26,67 +32,177 @@ const qr = renderToStaticMarkup(React.createElement(QRCodeSVG, {
   title: 'Apply for the Off the Record free website giveaway',
 }));
 
+// Google's own subsets, as app/self-hosted-fonts.css declares them; latin-ext carries ₱.
+const LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+const LATIN_EXT = 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF';
+const fontFaces = [
+  ['Unbounded', 800, 'unbounded-latin-800-normal.woff2', LATIN],
+  ['Unbounded', 900, 'unbounded-latin-900-normal.woff2', LATIN],
+  ['Unbounded', 800, 'unbounded-latin-ext-800-normal.woff2', LATIN_EXT],
+  ['Unbounded', 900, 'unbounded-latin-ext-900-normal.woff2', LATIN_EXT],
+  ['Bricolage Grotesque', 600, 'bricolage-grotesque-latin-600-normal.woff2', LATIN],
+  ['Bricolage Grotesque', 800, 'bricolage-grotesque-latin-800-normal.woff2', LATIN],
+].map(([family, weight, file, range]) => `  @font-face { font-family: '${family}'; font-style: normal; font-weight: ${weight}; src: url(data:font/woff2;base64,${asBase64('fonts', file)}) format('woff2'); unicode-range: ${range}; }`).join('\n');
+
 const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Off the Record — Free Tendso website giveaway</title>
+<title>Off the Record × Tendso — Free website giveaway</title>
 <style>
+${fontFaces}
   @page { size: A4; margin: 0; }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #101010; background: #e8e8e8; }
-  .poster { width: 210mm; height: 297mm; padding: 15mm 17mm 13mm; margin: 0 auto; background: #fff; display: flex; flex-direction: column; }
-  .brand { display: flex; align-items: center; gap: 14px; padding-bottom: 9mm; border-bottom: 2px solid #101010; }
-  .mark { width: 18mm; height: auto; }
-  .wordmark { font-size: 27px; font-weight: 900; line-height: .98; letter-spacing: -.7px; }
-  .brand-note { margin-left: auto; font-size: 11px; font-weight: 700; line-height: 1.45; text-align: right; letter-spacing: 1.2px; text-transform: uppercase; }
-  .eyebrow { margin: 10mm 0 5mm; display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
-  .eyebrow::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #f2532d; }
-  h1 { margin: 0; font-size: 68px; line-height: .99; letter-spacing: -3.3px; font-weight: 900; }
-  h1 span { display: block; }
-  .intro { margin: 5mm 0 0; max-width: 157mm; font-size: 19px; line-height: 1.4; }
-  .steps { margin: 8mm 0 0; padding: 0; list-style: none; display: grid; gap: 4.5mm; }
-  .steps li { display: flex; align-items: flex-start; gap: 12px; }
-  .number { flex: 0 0 27px; height: 27px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #101010; border-radius: 50%; font-size: 13px; font-weight: 700; }
-  .step-text { padding-top: 2px; font-size: 16px; line-height: 1.35; }
-  .apply { margin-top: auto; padding-top: 6mm; border-top: 2px solid #101010; display: flex; align-items: center; gap: 5mm; }
+  body { background: #e8e8e8; }
+  .poster { position: relative; width: 210mm; height: 297mm; margin: 0 auto; overflow: hidden; background: #f3efe6; color: #0d0d0d; font-family: 'Bricolage Grotesque', Arial, sans-serif; line-height: 1.35; }
+  .layer { position: absolute; inset: 0; }
+  .rays { background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(13, 13, 13, .05) 0deg 5deg, transparent 5deg 10deg); }
+  .dots { position: absolute; width: 300px; height: 300px; background-image: radial-gradient(rgba(13, 13, 13, .22) 1.6px, transparent 2px); background-size: 13px 13px; -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 68%); mask-image: radial-gradient(circle, #000 0%, transparent 68%); }
+  .dots.left { left: -150px; top: 30%; }
+  .dots.right { right: -150px; top: 38%; }
+  .band-otr { background: #0d0d0d; clip-path: polygon(0 0, 100% 0, 100% 15%, 0 24%); }
+  .band-stripe { background: #e23a1f; clip-path: polygon(0 75.9%, 100% 66.9%, 100% 68%, 0 77%); }
+  .band-gold { background: #ffc531; clip-path: polygon(0 77%, 100% 68%, 100% 100%, 0 100%); }
+  .content { position: relative; height: 100%; padding: 40px 44px; display: flex; flex-direction: column; justify-content: space-between; }
+  .display { font-family: Unbounded, 'Arial Black', sans-serif; text-transform: uppercase; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #fff; }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .lockup .otr { height: 40px; width: auto; filter: invert(1); }
+  .lockup .name { font-size: 16px; font-weight: 800; letter-spacing: .04em; line-height: 1.05; }
+  .x { font-family: Unbounded, 'Arial Black', sans-serif; font-weight: 900; color: #ffc531; line-height: 1; }
+  .lockup .x { font-size: 26px; }
+  .lockup .tendso { height: 28px; width: auto; }
+  .community { font-size: 11px; font-weight: 800; letter-spacing: .08em; line-height: 1.45; text-align: right; }
+  .title { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .gift { position: relative; z-index: 2; width: 112px; height: auto; margin-bottom: -30px; }
+  h1 { position: relative; margin: 0; padding: .1em .42em .14em; background: #ffc531; border: 5px solid #0d0d0d; border-radius: 22px; box-shadow: 12px 12px 0 #e23a1f; transform: rotate(-3deg); font-size: 80px; font-weight: 900; line-height: 1; letter-spacing: -.03em; }
+  .ribbon { position: relative; z-index: 2; margin: -12px 0 0; padding: 11px 28px; background: #0d0d0d; color: #fff; border: 3px solid #fff; transform: rotate(-3deg) skewX(-10deg); font-size: 21px; font-weight: 800; letter-spacing: .03em; }
+  .ribbon > span { display: inline-block; transform: skewX(10deg); }
+  .ribbon b { font-weight: inherit; color: #ffc531; }
+  .sticker { position: absolute; z-index: 3; top: 0; right: -62px; width: 132px; height: 132px; margin: 0; border-radius: 50%; background: #e23a1f; color: #fff; border: 4px solid #0d0d0d; box-shadow: 5px 5px 0 #0d0d0d; outline: 2px dashed #fff; outline-offset: -11px; transform: rotate(12deg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; font-weight: 800; line-height: 1.1; letter-spacing: .04em; }
+  .sticker strong { font-size: 20px; font-weight: 900; letter-spacing: -.02em; }
+  .chip { margin: 20px 0 0; display: inline-flex; align-items: center; gap: 10px; padding: 9px 20px; border-radius: 999px; background: #fff; border: 3px solid #0d0d0d; font-size: 17px; font-weight: 800; }
+  .chip .label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #4a463f; }
+  .chip .otr { height: 22px; width: auto; }
+  .chip .tendso { height: 18px; width: auto; filter: invert(1); }
+  .chip .x { color: #e23a1f; }
+  .intro { margin: 18px 0 0; max-width: 600px; font-size: 22px; font-weight: 800; line-height: 1.3; }
+  .steps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+  .steps li { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .bubble { position: relative; width: 92px; height: 92px; border-radius: 24px; background: #fff; border: 4px solid #0d0d0d; box-shadow: 6px 6px 0 #0d0d0d; display: flex; align-items: center; justify-content: center; }
+  .bubble::after { content: ''; position: absolute; left: 16px; bottom: -14px; width: 20px; height: 20px; background: #fff; border-right: 4px solid #0d0d0d; border-bottom: 4px solid #0d0d0d; transform: rotate(45deg); }
+  .bubble svg { width: 44px; height: 44px; }
+  .badge { position: absolute; right: -16px; top: -16px; width: 42px; height: 42px; border-radius: 50%; background: #e23a1f; color: #fff; border: 3px solid #0d0d0d; font-size: 18px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+  .steps h2 { margin: 30px 0 0; padding: 8px 14px; background: #0d0d0d; color: #ffc531; transform: skewX(-12deg); font-size: 13.5px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+  .steps h2 span { display: inline-block; transform: skewX(12deg); }
+  .steps p { margin: 10px 0 0; font-size: 16px; font-weight: 600; color: #2b2721; }
+  .apply { position: relative; padding: 20px 28px 20px 20px; background: #fff; border: 4px solid #0d0d0d; border-radius: 26px; box-shadow: 8px 8px 0 #0d0d0d; display: flex; align-items: center; gap: 26px; }
+  .scan-me { position: absolute; left: 150px; top: -22px; padding: 6px 14px; border: 3px solid #0d0d0d; border-radius: 999px; background: #e23a1f; color: #fff; transform: rotate(-6deg); font-size: 14px; font-weight: 900; letter-spacing: .04em; }
   .qr { flex: 0 0 48mm; height: 48mm; }
   .qr svg { display: block; width: 100%; height: 100%; }
-  .apply h2 { margin: 0 0 9px; font-size: 25px; font-weight: 900; line-height: 1.03; letter-spacing: -.7px; }
-  .address { display: inline-block; color: #101010; font-size: 21px; line-height: 1.4; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-  .apply p { margin: 10px 0 0; font-size: 12px; line-height: 1.45; }
-  .fine-print { margin: 5mm 0 0; font-size: 10px; line-height: 1.5; }
-  .provider { margin: 3mm 0 0; font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
-  @media print { body { background: #fff; } .poster { margin: 0; } }
+  .apply-copy { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .apply h2 { margin: 0; font-size: 38px; font-weight: 900; line-height: 1; letter-spacing: -.02em; }
+  .address { color: #0d0d0d; font-size: 28px; font-weight: 800; text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; }
+  .apply p { margin: 0; font-size: 17px; font-weight: 600; color: #2b2721; }
+  .only { padding: 6px 14px; border-radius: 999px; background: #ffc531; border: 2.5px solid #0d0d0d; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+  .fine { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .fine p { margin: 0; max-width: 660px; font-size: 12px; font-weight: 600; line-height: 1.45; }
+  .fine .provider { font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+  @media print { body { background: none; } .poster { margin: 0; } }
 </style>
 </head>
 <body>
-<main class="poster" aria-label="Off the Record community giveaway poster">
-  <header class="brand">
-    <img class="mark" src="data:image/png;base64,${logo}" alt="">
-    <div class="wordmark">OFF THE<br>RECORD</div>
-    <div class="brand-note">For our<br>local community</div>
-  </header>
-  <p class="eyebrow">100 free websites · One-time giveaway</p>
-  <h1><span>A free website.</span><span>From Off</span><span>the Record.</span></h1>
-  <p class="intro">Off the Record is giving local businesses a free website built by <strong>Tendso.</strong></p>
-  <ol class="steps">
-    <li><span class="number">1</span><div class="step-text"><strong>Hang this OTR poster</strong> in your business.</div></li>
-    <li><span class="number">2</span><div class="step-text"><strong>Register your business</strong> and upload a photo of this poster on display.</div></li>
-    <li><span class="number">3</span><div class="step-text"><strong>OTR reviews your application.</strong><br>Tendso builds your free website once approved.</div></li>
-  </ol>
-  <section class="apply" aria-label="Apply for a free website">
-    <div class="qr">${qr}</div>
-    <div>
-      <h2>SCAN TO APPLY</h2>
-      <a class="address" href="https://tendso.com/libre">tendso.com/libre</a>
-      <p>Register now.<br>No payment required for this giveaway.</p>
+<main class="poster" aria-label="Off the Record × Tendso website giveaway poster">
+  <div class="layer rays"></div>
+  <div class="dots left"></div>
+  <div class="dots right"></div>
+  <div class="layer band-otr"></div>
+  <div class="layer band-stripe"></div>
+  <div class="layer band-gold"></div>
+  <div class="content">
+    <header>
+      <div class="lockup">
+        <img class="otr" src="data:image/png;base64,${otrMark}" alt="">
+        <span class="name display">Off the<br>Record</span>
+        <span class="x">×</span>
+        <img class="tendso" src="data:image/png;base64,${tendsoLogo}" alt="Tendso">
+      </div>
+      <div class="community display">For our<br>local community</div>
+    </header>
+
+    <section class="title">
+      <div class="wrap">
+        <svg class="gift" viewBox="0 0 132 112" aria-hidden="true">
+          <path d="M14 18 4 10M118 18l10-8M30 4l-4-6M102 4l4-6M66 0v-8" stroke="#FFC531" stroke-width="4" stroke-linecap="round"/>
+          <g transform="rotate(-8 66 40)">
+            <rect x="40" y="10" width="54" height="40" rx="5" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="3.5"/>
+            <path d="M40 21h54" stroke="#0D0D0D" stroke-width="3.5"/>
+            <circle cx="47" cy="15.5" r="2" fill="#E23A1F"/><circle cx="54" cy="15.5" r="2" fill="#FFC531"/>
+            <path d="M48 30h28M48 38h18" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+          </g>
+          <rect x="18" y="62" width="96" height="48" rx="5" fill="#E23A1F" stroke="#0D0D0D" stroke-width="3.5"/>
+          <rect x="10" y="46" width="112" height="20" rx="5" fill="#E23A1F" stroke="#0D0D0D" stroke-width="3.5" transform="rotate(-4 66 56)"/>
+          <rect x="58" y="62" width="16" height="48" fill="#FFC531" stroke="#0D0D0D" stroke-width="3.5"/>
+        </svg>
+        <h1 class="display">Giveaway</h1>
+        <p class="ribbon display"><span>100 free websites <b>✦</b> worth ₱4,999 each</span></p>
+        <p class="sticker display"><span>More than</span><strong>₱300K</strong><span>in websites</span></p>
+      </div>
+      <p class="chip">
+        <span class="label">Presented by</span>
+        <img class="otr" src="data:image/png;base64,${otrMark}" alt="">Off the Record
+        <span class="x">×</span>
+        <img class="tendso" src="data:image/png;base64,${tendsoLogo}" alt="Tendso">
+      </p>
+      <p class="intro">Off the Record is giving local businesses a free website, built by Tendso.</p>
+    </section>
+
+    <ol class="steps">
+      <li>
+        <div class="bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1" fill="#FFC531"/><path d="M8 8h8M8 12h5"/><path d="M12 1v3"/></svg>
+          <span class="badge display">1</span>
+        </div>
+        <h2 class="display"><span>Hang this poster</span></h2>
+        <p>Put it up where your customers will see it.</p>
+      </li>
+      <li>
+        <div class="bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" fill="#FFC531"/><circle cx="12" cy="13" r="3.5" fill="#FFFFFF"/></svg>
+          <span class="badge display">2</span>
+        </div>
+        <h2 class="display"><span>Snap &amp; register</span></h2>
+        <p>Scan the code and upload a photo of this poster on display.</p>
+      </li>
+      <li>
+        <div class="bubble">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" fill="#FFC531"/><path d="M2 9h20"/><path d="m9 14 2 2 4-4"/></svg>
+          <span class="badge display">3</span>
+        </div>
+        <h2 class="display"><span>Get your website</span></h2>
+        <p>OTR reviews it. Tendso builds your site once approved.</p>
+      </li>
+    </ol>
+
+    <section class="apply" aria-label="Apply for a free website">
+      <span class="scan-me display">Scan me!</span>
+      <div class="qr">${qr}</div>
+      <div class="apply-copy">
+        <h2 class="display">Scan to apply</h2>
+        <a class="address" href="https://tendso.com/libre">tendso.com/libre</a>
+        <p>Register now. No payment required for this giveaway.</p>
+        <span class="only display">Only 100 websites</span>
+      </div>
+    </section>
+
+    <div class="fine">
+      <p>A one-time Off the Record initiative for up to 100 approved businesses. Applications are subject to OTR review and available slots. Display the poster at your business so OTR can verify your photo.</p>
+      <p class="provider display">A gift from Off the Record. Websites by Tendso.</p>
     </div>
-  </section>
-  <p class="fine-print">A one-time Off the Record initiative for up to 100 approved businesses. Applications are subject to OTR review and available slots. Display the poster at your business so OTR can verify your photo.</p>
-  <p class="provider">A gift from Off the Record. Websites by Tendso.</p>
+  </div>
 </main>
 </body>
 </html>
@@ -116,6 +232,8 @@ try {
       '--disable-gpu',
       '--no-pdf-header-footer',
       '--allow-file-access-from-files',
+      // Let the embedded fonts finish decoding before the page is printed.
+      '--virtual-time-budget=5000',
       `--user-data-dir=${profileDirectory}`,
       `--print-to-pdf=${pdfPath}`,
       pathToFileURL(htmlPath).href,
