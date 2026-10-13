@@ -31,6 +31,8 @@ const FAMILIES = [
     { name: "Schibsted Grotesk", query: "wght@400;500;600;700", subsets: ["latin"], cssVar: "--font-kb-sans", stack: 'ui-sans-serif, system-ui, sans-serif' },
     { name: "Bricolage Grotesque", query: "wght@400;600;800", subsets: ["latin"], cssVar: "--font-bricolage", stack: 'ui-sans-serif, system-ui, sans-serif' },
     { name: "Outfit", query: "wght@300;400;600", subsets: ["latin"], cssVar: "--font-outfit", stack: 'ui-sans-serif, system-ui, sans-serif' },
+    // The OTR × Tendso giveaway's campaign display face. latin-ext carries ₱.
+    { name: "Unbounded", query: "wght@800;900", subsets: ["latin", "latin-ext"], cssVar: "--font-unbounded", stack: 'ui-sans-serif, system-ui, sans-serif' },
 ];
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -98,7 +100,7 @@ async function main() {
  * change, and nothing downstream can tell the difference.
  *
  * Regenerate with scripts/selfhost-fonts.js if a declaration changes.
- * All ten families are OFL-licensed, so redistributing the files is permitted.
+ * All eleven families are OFL-licensed, so redistributing the files is permitted.
  */
 
 `;

@@ -11,7 +11,9 @@ Off the Record is giving its community up to 100 free websites built by Tendso. 
 
 `/otr` remains the existing **paid 30% offer**. Use `/libre` for the giveaway commercial; an old commercial QR that points to `/otr` still opens the paid offer.
 
-The poster is generated from `scripts/generate-otr-giveaway-poster.mjs` with the supplied OTR mark and a real QR. Rebuild with `node scripts/generate-otr-giveaway-poster.mjs`; Chrome is required, with `CHROME_PATH` available as an override. No external image service or runtime dependency was added.
+The poster is generated from `scripts/generate-otr-giveaway-poster.mjs` with the supplied OTR mark, the Tendso logo, the self-hosted Unbounded and Bricolage Grotesque fonts, and a real QR. Rebuild with `node scripts/generate-otr-giveaway-poster.mjs`; Chrome is required, with `CHROME_PATH` available as an override. No external image service or runtime dependency was added.
+
+The landing page and the poster share one campaign look: OTR black across the top, Tendso gold across the bottom, a tilted GIVEAWAY banner, the "Off the Record × Tendso" co-brand, and a "more than ₱300,000 in websites" sticker (`GIVEAWAY_VALUE_FLOOR` in `lib/giveaway.ts`, a round floor below 100 × the website price). The page's styles live in `app/giveaway.css`, scoped under `.gw`; change the page and the poster together.
 
 ## OTR review
 

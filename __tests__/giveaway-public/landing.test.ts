@@ -14,15 +14,18 @@ describe("public giveaway landing", () => {
         mockStatus = { open: true, slotsLeft: 3, given: 95 };
         const html = renderToStaticMarkup(createElement(GiveawayPage));
 
-        expect(html).toContain("3 of 100 slots left");
+        expect(html).toContain('<span class="gw-count-n">3</span><span class="gw-count-of">of 100 websites left</span>');
         expect(html).toContain('href="/start?campaign=giveaway&amp;src=direct"');
         expect(html).toContain('href="/100-pages-giveaway-poster.pdf" download=""');
         expect(html).toContain("Off the Record is giving 100 local businesses a free Tendso website.");
-        expect(html).toContain("Any walk-in business where customers will see the Off the Record poster");
+        expect(html).toContain("Presented by");
+        expect(html).toContain("For walk-in businesses");
         expect(html).toContain("any print shop");
         expect(html).toContain("your storefront or sign in the shot");
-        expect(html).toContain("Off the Record checks eligibility; Tendso builds and delivers your free website.");
-        expect(html).not.toContain("300,000");
+        expect(html).toContain("Off the Record checks it; Tendso builds your site.");
+        expect(html).toContain("₱4,999 each");
+        expect(html).toContain("More than ₱300,000 in websites");
+        expect(html).toContain("₱300K");
     });
 
     it("describes sites as given only when all 100 were actually delivered", () => {
@@ -30,13 +33,14 @@ describe("public giveaway landing", () => {
         const html = renderToStaticMarkup(createElement(GiveawayPage));
 
         expect(html).toContain("Off the Record’s 100 free websites have been given away.");
+        expect(html).toContain("All 100 given");
         expect(html).toContain("Applications already under review stay in the queue.");
         expect(html).toContain("You can still get one for ₱4,999.");
         expect(html).toContain('href="/start"');
         expect(html).not.toContain("campaign=");
-        expect(html).not.toContain("Download poster");
-        expect(html).not.toContain("Who qualifies?");
-        expect(html).toContain("Off the Record website giveaway");
+        expect(html).not.toContain("Download the poster");
+        expect(html).not.toContain("For walk-in businesses");
+        expect(html).toContain("Off the Record × Tendso website giveaway");
     });
 
     it("distinguishes a fully reserved allocation from websites already given away", () => {
@@ -44,6 +48,7 @@ describe("public giveaway landing", () => {
         const html = renderToStaticMarkup(createElement(GiveawayPage));
 
         expect(html).toContain("All giveaway slots are currently reserved.");
+        expect(html).toContain("All 100 reserved");
         expect(html).toContain("applications still awaiting review");
         expect(html).not.toContain("100 free websites have been given away");
         expect(html).not.toContain('href="/start?campaign=giveaway');
@@ -54,6 +59,8 @@ describe("public giveaway landing", () => {
         const html = renderToStaticMarkup(createElement(GiveawayPage));
 
         expect(html).toContain("Off the Record’s giveaway is currently closed.");
+        expect(html).toContain('<p class="gw-stamp">Closed</p>');
+        expect(html).not.toContain("All 100");
         expect(html).not.toContain("all 100");
         expect(html).not.toContain("All giveaway slots");
         expect(html).not.toContain("given away");
@@ -64,7 +71,7 @@ describe("public giveaway landing", () => {
         const html = renderToStaticMarkup(createElement(GiveawayPage));
 
         expect(html).toContain("Checking available slots");
-        expect(html).not.toContain("100 of 100 slots left");
+        expect(html).not.toContain("gw-count-n");
         expect(html).not.toContain('href="/start?campaign=giveaway');
         expect(html).toContain("disabled");
     });
@@ -82,6 +89,6 @@ describe("public giveaway landing", () => {
         expect(metadata.title).toBe("Off the Record: 100 free Tendso websites");
         expect(metadata.openGraph?.title).toContain("Off the Record");
         expect(metadata.twitter?.title).toContain("Off the Record");
-        expect(JSON.stringify(metadata)).not.toContain("300,000");
+        expect(metadata.openGraph?.title).toContain("more than ₱300,000 in free websites");
     });
 });
