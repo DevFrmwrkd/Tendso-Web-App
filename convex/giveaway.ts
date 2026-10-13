@@ -50,7 +50,7 @@ export const approveApplication = mutation({
     args: { submissionId: v.id('submissions') },
     returns: v.id('submissions'),
     handler: async (ctx, { submissionId }) => {
-        const { identity } = await requireGiveawayReviewer(ctx);
+        const { identity, isAdmin } = await requireGiveawayReviewer(ctx);
         const submission = await ctx.db.get(submissionId);
         if (!submission?.giveawayApplication) throw new ConvexError('Giveaway application not found.');
         if (submission.status === 'approved') return submissionId;
@@ -58,7 +58,7 @@ export const approveApplication = mutation({
             throw new ConvexError('This application has already been reviewed.');
         }
         if (!submission.giveawayPosterPhoto?.trim()) throw new ConvexError('A poster photo is required before approval.');
-        return approveReviewedSubmission(ctx, { submissionId, adminId: identity.subject });
+        return approveReviewedSubmission(ctx, { submissionId, adminId: identity.subject, giveawayReviewSource: isAdmin ? 'admin' : 'otr' });
     },
 });
 
@@ -66,7 +66,7 @@ export const rejectApplication = mutation({
     args: { submissionId: v.id('submissions'), reason: v.string() },
     returns: v.id('submissions'),
     handler: async (ctx, { submissionId, reason: input }) => {
-        const { identity } = await requireGiveawayReviewer(ctx);
+        const { identity, isAdmin } = await requireGiveawayReviewer(ctx);
         const submission = await ctx.db.get(submissionId);
         if (!submission?.giveawayApplication) throw new ConvexError('Giveaway application not found.');
         const reason = input.trim();
@@ -76,7 +76,7 @@ export const rejectApplication = mutation({
         if (isComped(submission) || (submission.status !== 'submitted' && submission.status !== 'in_review')) {
             throw new ConvexError('This application has already been reviewed.');
         }
-        return rejectReviewedSubmission(ctx, { submissionId, adminId: identity.subject, reason });
+        return rejectReviewedSubmission(ctx, { submissionId, adminId: identity.subject, reason, giveawayReviewSource: isAdmin ? 'admin' : 'otr' });
     },
 });
 

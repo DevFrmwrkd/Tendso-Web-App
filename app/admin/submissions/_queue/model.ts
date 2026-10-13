@@ -12,6 +12,7 @@ import { domainStatus, submissionStatus, type StatusWord } from "@/components/r1
 import type { api } from "@/convex/_generated/api"
 import { isComped, normalizeCampaign, ownerChargeFor } from "@/lib/pricing"
 import { affiliateAttribution } from "@/lib/submissionAttribution"
+import { giveawayReview, giveawayWebsiteStatus } from "@/lib/giveawayReview"
 
 export type QueueRow = FunctionReturnType<typeof api.submissions.getAllWithCreator>[number]
 
@@ -131,7 +132,31 @@ export function matchesSearch(s: QueueRow, q: string): boolean {
         .some((field) => String(field).toLowerCase().includes(q))
 }
 
-export type ListFilter = { tab: TabKey; query: string; domainOnly: boolean; ownerOnly: boolean; giveawayOnly: boolean; sort: SortKey }
+export type GiveawayFilter = "all" | "pending" | "approved" | "rejected"
+
+export const GIVEAWAY_FILTERS: { key: GiveawayFilter; label: string }[] = [
+    { key: "all", label: "All giveaways" },
+    { key: "pending", label: "Awaiting OTR review" },
+    { key: "approved", label: "Approved giveaways" },
+    { key: "rejected", label: "Rejected giveaways" },
+]
+
+export function parseGiveawayFilter(value: string | null): GiveawayFilter | null {
+    return GIVEAWAY_FILTERS.some((f) => f.key === value) ? value as GiveawayFilter : null
+}
+
+export function giveawayCounts(rows: QueueRow[]): Record<GiveawayFilter, number> {
+    const counts = { all: 0, pending: 0, approved: 0, rejected: 0 }
+    for (const row of rows) {
+        const review = giveawayReview(row)
+        if (!review) continue
+        counts.all++
+        if (review.state !== "unknown") counts[review.state]++
+    }
+    return counts
+}
+
+export type ListFilter = { tab: TabKey; query: string; domainOnly: boolean; ownerOnly: boolean; giveawayOnly: boolean; giveawayReview?: GiveawayFilter | null; sort: SortKey }
 
 /** The rows the table lists, in order: tab, then filter chips, then search, then sort. */
 export function listRows(rows: QueueRow[], f: ListFilter): QueueRow[] {
@@ -139,7 +164,8 @@ export function listRows(rows: QueueRow[], f: ListFilter): QueueRow[] {
     let result = statuses ? rows.filter((s) => statuses.includes(s.status)) : rows
     if (f.domainOnly) result = result.filter((s) => s.submissionType === "with_custom_domain")
     if (f.ownerOnly) result = result.filter(isOwnerSubmitted)
-    if (f.giveawayOnly) result = result.filter((s) => s.giveawayApplication === true)
+    if (f.giveawayOnly || f.giveawayReview) result = result.filter((s) => s.giveawayApplication === true)
+    if (f.giveawayReview && f.giveawayReview !== "all") result = result.filter((s) => giveawayReview(s)?.state === f.giveawayReview)
     const q = f.query.trim().toLowerCase()
     if (q) result = result.filter((s) => matchesSearch(s, q))
     const sorted = [...result]
@@ -184,6 +210,8 @@ export function placeLine(s: QueueRow): string {
 // ── Status ───────────────────────────────────────────────────────────────
 
 export function statusOf(s: QueueRow): StatusWord {
+    const review = giveawayReview(s)
+    if (review) return { tone: review.tone, word: review.word }
     return submissionStatus(s.status, "admin")
 }
 
@@ -222,6 +250,8 @@ export function reviewNote(s: QueueRow): Note | null {
 
 /** Every line under the status, most urgent first. A row shows the first; the drawer shows them all. */
 export function statusNotes(s: QueueRow): Note[] {
+    const website = giveawayWebsiteStatus(s)
+    if (website) return [{ text: `Website · ${website.word}` }, domainNote(s)].filter((n): n is Note => n !== null)
     return [domainNote(s), promoNote(s), reviewNote(s)].filter((n): n is Note => n !== null)
 }
 

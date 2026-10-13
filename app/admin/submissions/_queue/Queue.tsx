@@ -16,13 +16,16 @@ import {
     DEFAULT_TAB,
     defaultSortFor,
     emptyCopy,
+    giveawayCounts,
     listRows,
     pageText,
     parseTab,
+    parseGiveawayFilter,
     SORT_OPTIONS,
     STATUS_TABS,
     tabCounts,
     type QueueRow,
+    type GiveawayFilter,
     type SortKey,
     type TabKey,
 } from "./model"
@@ -30,6 +33,7 @@ import { QueueDrawer } from "./QueueDrawer"
 import { QueueHead, QueueRowButton, QueueSkeleton } from "./Rows"
 import { QueueSearch, SortMenu } from "./Toolbar"
 import { GiveawaySummary } from "./GiveawaySummary"
+import { GiveawayFilters } from "./GiveawayFilters"
 
 /** A list page shows one table page of about ten rows (admin tables: 8–10 a page). */
 const PAGE_SIZE = 10
@@ -76,7 +80,8 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
 
     // ?status= makes the queue deep-linkable — the dashboard's "needs your
     // attention" banner links straight into the review tab.
-    const urlTab = parseTab(searchParams.get("status"))
+    const urlGiveaway = parseGiveawayFilter(searchParams.get("giveaway"))
+    const urlTab = parseTab(searchParams.get("status") ?? (urlGiveaway ? "all" : null))
     const urlOpen = searchParams.get("open") || null
 
     const [tab, setTab] = useState<TabKey>(urlTab)
@@ -85,7 +90,8 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     const [query, setQuery] = useState("")
     const [domainOnly, setDomainOnly] = useState(false)
     const [ownerOnly, setOwnerOnly] = useState(false)
-    const [giveawayOnly, setGiveawayOnly] = useState(false)
+    const [giveawayFilter, setGiveawayFilter] = useState<GiveawayFilter | null>(urlGiveaway)
+    const giveawayOnly = giveawayFilter !== null
     const [page, setPage] = useState(1)
     const [giveawaySaving, setGiveawaySaving] = useState(false)
     const [giveawayError, setGiveawayError] = useState<string | null>(null)
@@ -100,29 +106,37 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
 
     // Follow the URL when it moves on its own. Our own router.replace lands
     // here too once it commits, but by then the state already matches it.
-    const [seenUrl, setSeenUrl] = useState({ tab: urlTab, open: urlOpen })
-    if (seenUrl.tab !== urlTab || seenUrl.open !== urlOpen) {
-        setSeenUrl({ tab: urlTab, open: urlOpen })
+    const [seenUrl, setSeenUrl] = useState({ tab: urlTab, open: urlOpen, giveaway: urlGiveaway })
+    if (seenUrl.tab !== urlTab || seenUrl.open !== urlOpen || seenUrl.giveaway !== urlGiveaway) {
+        setSeenUrl({ tab: urlTab, open: urlOpen, giveaway: urlGiveaway })
         if (seenUrl.tab !== urlTab && urlTab !== tab) {
             setTab(urlTab)
             setSort(defaultSortFor(urlTab))
             setPage(1)
         }
         if (seenUrl.open !== urlOpen && urlOpen !== openId) setOpenId(urlOpen)
+        if (seenUrl.giveaway !== urlGiveaway && urlGiveaway !== giveawayFilter) {
+            setGiveawayFilter(urlGiveaway)
+            setPage(1)
+        }
     }
 
     const rows = useMemo(() => submissions ?? [], [submissions])
     const counts = useMemo(() => tabCounts(rows), [rows])
+    const giveawayStageCounts = useMemo(() => giveawayCounts(rows), [rows])
     const listed = useMemo(
-        () => listRows(rows, { tab, query, domainOnly, ownerOnly, giveawayOnly, sort }),
-        [rows, tab, query, domainOnly, ownerOnly, giveawayOnly, sort],
+        () => listRows(rows, { tab, query, domainOnly, ownerOnly, giveawayOnly, giveawayReview: giveawayFilter, sort }),
+        [rows, tab, query, domainOnly, ownerOnly, giveawayOnly, giveawayFilter, sort],
     )
 
     /** The URL for a tab and an open drawer; any other parameter on it is kept. */
-    const writeUrl = (next: { tab: TabKey; open: string | null }) => {
+    const writeUrl = (next: { tab: TabKey; open: string | null; giveaway?: GiveawayFilter | null }) => {
         const sp = new URLSearchParams(searchParams.toString())
-        if (next.tab === DEFAULT_TAB) sp.delete("status")
+        const nextGiveaway = next.giveaway === undefined ? giveawayFilter : next.giveaway
+        if (next.tab === DEFAULT_TAB && !nextGiveaway) sp.delete("status")
         else sp.set("status", next.tab)
+        if (nextGiveaway) sp.set("giveaway", nextGiveaway)
+        else sp.delete("giveaway")
         if (next.open) sp.set("open", next.open)
         else sp.delete("open")
         const q = sp.toString()
@@ -136,6 +150,15 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
         setSort(defaultSortFor(next))
         setPage(1)
         writeUrl({ tab: next, open: openId })
+    }
+    const changeGiveawayFilter = (next: GiveawayFilter | null) => {
+        setGiveawayFilter(next)
+        // A fresh queue opens on Needs review. Approval shortcuts must leave
+        // that tab, otherwise it would silently hide every approved result.
+        setTab("all")
+        setSort(next === "pending" ? "oldest" : defaultSortFor("all"))
+        setPage(1)
+        writeUrl({ tab: "all", open: openId, giveaway: next })
     }
     const changeQuery = (value: string) => {
         setQuery(value)
@@ -252,7 +275,8 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
         setQuery("")
         setDomainOnly(false)
         setOwnerOnly(false)
-        setGiveawayOnly(false)
+        setGiveawayFilter(null)
+        writeUrl({ tab, open: openId, giveaway: null })
         setPage(1)
     }
 
@@ -269,6 +293,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
                 busy={giveawaySaving}
                 error={giveawayError}
             />
+            <GiveawayFilters value={giveawayFilter} counts={giveawayStageCounts} onChange={changeGiveawayFilter} />
             <Tabs
                 label="Status"
                 tabs={STATUS_TABS.map((t) => ({ value: t.key, label: t.label, count: counts[t.key] }))}
@@ -309,10 +334,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
                             type="button"
                             className="t-chip"
                             aria-pressed={giveawayOnly}
-                            onClick={() => {
-                                setGiveawayOnly((v) => !v)
-                                setPage(1)
-                            }}
+                            onClick={() => changeGiveawayFilter(giveawayOnly ? null : "all")}
                         >
                             Giveaway
                         </button>

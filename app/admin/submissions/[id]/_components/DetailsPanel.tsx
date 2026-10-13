@@ -23,6 +23,7 @@ import { Dot, Icon, SkeletonText, Status, domainStatus, formatMoney, submissionS
 import { campaignDiscountRate, campaignListPrice, isComped, normalizeCampaign } from "@/lib/pricing";
 import { isHouseCreator } from "@/lib/houseCreator";
 import { affiliateAttribution } from "@/lib/submissionAttribution";
+import { giveawayWebsiteStatus } from "@/lib/giveawayReview";
 
 import { DomainFold } from "./DomainFold";
 import { DriveFact } from "./DriveFact";
@@ -374,9 +375,9 @@ export function DetailsContent({
     return (
         <div className="flex flex-col">
             <GiveawayEvidence s={s} posterUrl={posterUrl} compact />
-            <Fact label="Status">
-                <Status {...submissionStatus(s.status, "admin")} />
-                {s.status === "rejected" && s.rejectionReason && <span className="t-meta">Reason: {s.rejectionReason}</span>}
+            <Fact label={s.giveawayApplication ? "Website status" : "Status"}>
+                <Status {...(giveawayWebsiteStatus(s) ?? submissionStatus(s.status, "admin"))} className="whitespace-normal break-words" />
+                {!s.giveawayApplication && s.status === "rejected" && s.rejectionReason && <span className="t-meta">Reason: {s.rejectionReason}</span>}
             </Fact>
             <Fact label="Price">
                 <span className="t-num font-medium text-r1-ink">{price.text}</span>

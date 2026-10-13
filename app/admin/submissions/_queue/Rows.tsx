@@ -64,6 +64,7 @@ export function QueueRowButton({
     onOpen: () => void
 }) {
     const name = businessName(row)
+    const giveaway = row.giveawayApplication === true
     const status = statusOf(row)
     // A row has room for one line under the status: the most urgent (a failed domain first).
     const note = statusNotes(row)[0] ?? null
@@ -94,9 +95,9 @@ export function QueueRowButton({
                 <span className="t-meta hidden truncate lg:block">{placeLine(row)}</span>
                 {/* Phone: the creator column folds into the meta line. */}
                 <span className="t-meta truncate lg:hidden">{joinDot(row.city, affiliate ? `${affiliate.name} · ${affiliate.label}` : owner ? "Owner-submitted" : creator)}</span>
-                <span className="mt-1 flex min-w-0 items-center gap-1.5 lg:hidden">
-                    <Status {...status} />
-                    {note && <span className={cx("t-meta min-w-0 truncate", note.problem && "text-r1-red")}>· {note.text}</span>}
+                <span className={cx("mt-1 flex min-w-0 lg:hidden", giveaway ? "flex-col gap-0.5" : "items-center gap-1.5")}>
+                    <Status {...status} className={giveaway ? "whitespace-normal break-words" : undefined} />
+                    {note && <span className={cx("t-meta min-w-0", giveaway ? "break-words pl-3.5" : "truncate", note.problem && "text-r1-red")}>{giveaway ? "" : "· "}{note.text}</span>}
                 </span>
             </span>
             <span className={COL.creator}>
@@ -104,8 +105,8 @@ export function QueueRowButton({
                 {(affiliate || owner) && <span className="t-meta truncate">{affiliate?.label ?? "Owner-submitted"}</span>}
             </span>
             <span className={COL.status}>
-                <Status {...status} />
-                {note && <span className={cx("t-meta truncate pl-3.5", note.problem && "text-r1-red")}>{note.text}</span>}
+                <Status {...status} className={giveaway ? "whitespace-normal break-words" : undefined} />
+                {note && <span className={cx("t-meta pl-3.5", giveaway ? "break-words" : "truncate", note.problem && "text-r1-red")}>{note.text}</span>}
             </span>
             <span className={COL.pay}>
                 <span className="t-body t-num max-w-full truncate text-r1-ink">{ownerPrice(row)}</span>

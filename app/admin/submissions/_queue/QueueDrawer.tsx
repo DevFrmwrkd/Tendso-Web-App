@@ -5,6 +5,8 @@ import type { ReactNode } from "react"
 
 import { Avatar, Button, ButtonLink, cx, Drawer, Icon, MoreMenu, Status, type MenuItem } from "@/components/r1"
 import { affiliateAttribution } from "@/lib/submissionAttribution"
+import { giveawayReview, giveawayWebsiteStatus } from "@/lib/giveawayReview"
+import { GiveawayApproval } from "./GiveawayApproval"
 
 import {
     businessName,
@@ -63,7 +65,7 @@ export function QueueDrawer({
 function Foot({ row, onMarkInReview, onDelete }: { row: QueueRow; onMarkInReview: (row: QueueRow) => void; onDelete: (row: QueueRow) => void }) {
     const name = businessName(row)
     // The review page offers "Mark in review" for exactly this status, through the same mutation.
-    const canMark = row.status === "submitted"
+    const canMark = row.status === "submitted" && !giveawayReview(row)
     const items: MenuItem[] = [
         ...(canMark ? [{ label: "Mark in review", icon: <Icon icon={Eye} />, onSelect: () => onMarkInReview(row) }, "divider" as const] : []),
         { label: "Delete submission", icon: <Icon icon={Trash2} />, danger: true, onSelect: () => onDelete(row) },
@@ -103,7 +105,9 @@ function Fact({ term, children, className }: { term: ReactNode; children: ReactN
 
 function Details({ row, now }: { row: QueueRow; now: number }) {
     const status = statusOf(row)
-    const notes = statusNotes(row)
+    const websiteStatus = giveawayWebsiteStatus(row)
+    // The website word is already the primary fact here; retain other notes.
+    const notes = websiteStatus ? statusNotes(row).slice(1) : statusNotes(row)
     const wait = waitingDays(row, now)
     const owner = isOwnerSubmitted(row)
     const affiliate = affiliateAttribution(row)
@@ -113,9 +117,10 @@ function Details({ row, now }: { row: QueueRow; now: number }) {
     const done = checks.filter((c) => c.done).length
     return (
         <>
+            <GiveawayApproval submission={row} />
             <dl className="grid grid-cols-[120px_minmax(0,1fr)] items-start gap-x-4 gap-y-3.5">
-                <Fact term="Status">
-                    <Status {...status} className="text-[14px] leading-5 text-r1-ink" />
+                <Fact term={websiteStatus ? "Website status" : "Status"}>
+                    <Status {...(websiteStatus ?? status)} className="whitespace-normal break-words text-[14px] leading-5 text-r1-ink" />
                     {notes.map((n) => (
                         <span key={n.text} className={cx("t-meta pl-3.5", n.problem && "text-r1-red")}>
                             {n.text}

@@ -64,7 +64,7 @@ export function GiveawaySummary({ status, onEnabledChange, busy = false, error }
             </dl>
             <p className="t-meta mt-3">Held includes websites already given. Rejecting an application frees its slot.</p>
             <p className="t-help mt-2">Closing intake preserves held applications for review.</p>
-            <p className="t-help mt-3">Review the poster and business location. Generate and check the site, choose Approve &amp; publish, then More → Give free (comp) to send it to the owner.</p>
+            <p className="t-help mt-3">Review the poster and business location. Start website work after OTR or an admin approves the giveaway. Generate and check the site, choose Approve &amp; publish, then More → Give free (comp) to send it to the owner.</p>
         </Card>
     )
 }

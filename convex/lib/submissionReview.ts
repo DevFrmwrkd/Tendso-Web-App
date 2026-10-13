@@ -3,8 +3,25 @@ import type { MutationCtx } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { assertGiveawayCanActivate } from './giveaway';
 
+type GiveawayReviewSource = 'otr' | 'admin';
+
+/** Legacy records only identify OTR when their exact reviewer subject is invited. */
+export function resolveGiveawayReviewSource(
+    submission: Pick<Doc<'submissions'>, 'giveawayApplication' | 'giveawayReviewSource' | 'reviewedBy'>,
+    reviewer: Pick<Doc<'creators'>, 'role'> | null,
+): GiveawayReviewSource | undefined {
+    if (!submission.giveawayApplication) return undefined;
+    // A recorded decision keeps its provenance even if reviewer roles/invitations change.
+    if (submission.giveawayReviewSource) return submission.giveawayReviewSource;
+    if (!submission.reviewedBy) return undefined;
+    if (reviewer?.role === 'admin') return 'admin';
+    const invited = (process.env.OTR_GIVEAWAY_REVIEWER_IDS ?? '')
+        .split(',').map((subject) => subject.trim()).filter(Boolean);
+    return invited.includes(submission.reviewedBy) ? 'otr' : undefined;
+}
+
 /** Shared review effects. Call only after authenticating and scoping the caller. */
-export async function approveReviewedSubmission(ctx: MutationCtx, args: { submissionId: Id<'submissions'>; adminId: string }): Promise<Id<'submissions'>> {
+export async function approveReviewedSubmission(ctx: MutationCtx, args: { submissionId: Id<'submissions'>; adminId: string; giveawayReviewSource?: GiveawayReviewSource }): Promise<Id<'submissions'>> {
     const adminId = args.adminId;
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) throw new Error('Submission not found');
@@ -14,17 +31,23 @@ export async function approveReviewedSubmission(ctx: MutationCtx, args: { submis
     // the owner; re-approving a row already past review sends nothing.
     const notifyOwner = submission.giveawayApplication === true
         && (previousStatus === 'submitted' || previousStatus === 'in_review' || previousStatus === 'rejected');
+    // Later website workflow approvals are not a new eligibility decision.
+    // Keep the original reviewer, time and source, including an unknown legacy
+    // source. The audit below still records the actual caller of this action.
+    const preserveGiveawayReview = submission.giveawayApplication === true && !notifyOwner
+        && !!submission.reviewedBy && submission.reviewedAt !== undefined;
     // Distinct per review event, as on rejection, so a stale send is ignored.
-    const reviewedAt = submission.giveawayApplication
-        ? Math.max(Date.now(), (submission.reviewedAt ?? 0) + 1)
-        : Date.now();
+    const reviewedAt = preserveGiveawayReview ? submission.reviewedAt! : submission.giveawayApplication
+        ? Math.max(Date.now(), (submission.reviewedAt ?? 0) + 1) : Date.now();
 
     // Update submission status
     await assertGiveawayCanActivate(ctx, submission);
     await ctx.db.patch(args.submissionId, {
         status: 'approved',
-        reviewedBy: adminId,
+        reviewedBy: preserveGiveawayReview ? submission.reviewedBy : adminId,
         reviewedAt,
+        ...(submission.giveawayApplication && !preserveGiveawayReview
+            ? { giveawayReviewSource: args.giveawayReviewSource ?? 'admin' } : {}),
         ...(submission.giveawayApplication && submission.airtableSyncStatus === 'pending_review'
             ? { airtableSyncStatus: 'pending_push' } : {}),
         ...(notifyOwner ? { giveawayApprovedEmailSentAt: undefined } : {}),
@@ -92,7 +115,7 @@ export async function approveReviewedSubmission(ctx: MutationCtx, args: { submis
     return args.submissionId;
 }
 
-export async function rejectReviewedSubmission(ctx: MutationCtx, args: { submissionId: Id<'submissions'>; adminId: string; reason?: string }): Promise<Id<'submissions'>> {
+export async function rejectReviewedSubmission(ctx: MutationCtx, args: { submissionId: Id<'submissions'>; adminId: string; reason?: string; giveawayReviewSource?: GiveawayReviewSource }): Promise<Id<'submissions'>> {
     const adminId = args.adminId;
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) throw new Error('Submission not found');
@@ -117,6 +140,7 @@ export async function rejectReviewedSubmission(ctx: MutationCtx, args: { submiss
         status: 'rejected',
         reviewedBy: adminId,
         reviewedAt,
+        ...(submission.giveawayApplication ? { giveawayReviewSource: args.giveawayReviewSource ?? 'admin' } : {}),
     };
     if (reason) {
         updates.rejectionReason = reason;
