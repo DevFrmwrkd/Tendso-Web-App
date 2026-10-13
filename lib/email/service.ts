@@ -39,6 +39,7 @@ import {
     getWithdrawalRequestedEmailHtml,
     getAnnouncementEmailHtml,
     getIntakeReceivedEmailHtml,
+    getGiveawayApprovedEmailHtml,
     getGiveawayRejectedEmailHtml,
 } from './templates';
 
@@ -205,6 +206,21 @@ export async function sendGiveawayRejectedEmail(data: {
         to: data.businessOwnerEmail,
         subject: `Your Off the Record application for ${data.businessName}`,
         html: getGiveawayRejectedEmailHtml(data),
+        idempotencyKey: data.idempotencyKey,
+    });
+}
+
+export async function sendGiveawayApprovedEmail(data: {
+    businessName: string;
+    businessOwnerName: string;
+    businessOwnerEmail: string;
+    platformEmail?: string;
+    idempotencyKey: string;
+}) {
+    return sendEmail({
+        to: data.businessOwnerEmail,
+        subject: `Approved! Off the Record is giving ${data.businessName} a free website`,
+        html: getGiveawayApprovedEmailHtml(data),
         idempotencyKey: data.idempotencyKey,
     });
 }

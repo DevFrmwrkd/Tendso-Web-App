@@ -7,7 +7,7 @@ import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
 
 /**
  * Preview the email that was (or would be) sent to the client.
- * GET /api/preview-email?submissionId=xxx&type=approval|payment_confirmation|promo_free|giveaway_received|giveaway_rejected
+ * GET /api/preview-email?submissionId=xxx&type=approval|payment_confirmation|promo_free|giveaway_received|giveaway_approved|giveaway_rejected
  */
 export async function GET(request: NextRequest) {
     try {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
-        if (submission.giveawayApplication && !['giveaway_received', 'giveaway_rejected', 'promo_free'].includes(type)) {
+        if (submission.giveawayApplication && !['giveaway_received', 'giveaway_approved', 'giveaway_rejected', 'promo_free'].includes(type)) {
             return NextResponse.json({ error: 'Giveaway applications do not have payment emails' }, { status: 400 })
         }
 
@@ -63,12 +63,13 @@ export async function GET(request: NextRequest) {
             getDomainRenewalReminderEmailHtml,
             getPromoWebsiteLiveEmailHtml,
             getIntakeReceivedEmailHtml,
+            getGiveawayApprovedEmailHtml,
             getGiveawayRejectedEmailHtml,
         } = await import('@/lib/email/templates')
 
         let html: string
 
-        if (type === 'giveaway_received' || type === 'giveaway_rejected') {
+        if (type === 'giveaway_received' || type === 'giveaway_approved' || type === 'giveaway_rejected') {
             if (!submission.giveawayApplication) {
                 return NextResponse.json({ error: 'This submission is not a giveaway application' }, { status: 400 })
             }
@@ -79,6 +80,12 @@ export async function GET(request: NextRequest) {
                     businessOwnerName: submission.ownerName,
                     amount: 0,
                     giveawayApplication: true,
+                    platformEmail: process.env.WISE_EMAIL,
+                })
+                : type === 'giveaway_approved'
+                ? getGiveawayApprovedEmailHtml({
+                    businessName: submission.businessName,
+                    businessOwnerName: submission.ownerName,
                     platformEmail: process.env.WISE_EMAIL,
                 })
                 : getGiveawayRejectedEmailHtml({

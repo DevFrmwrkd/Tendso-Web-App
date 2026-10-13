@@ -7,6 +7,7 @@ import { Icon, cx } from "@/components/r1";
 import { formatPHP } from "@/lib/pricing";
 
 import type { Quote } from "../quote";
+import { GiveawayPrize } from "./GiveawayPrize";
 
 /** What each step is called. Index 0 is step 1. draft.ts still owns
  *  TOTAL_STEPS, and this array has to stay the same length as that bound. */
@@ -34,9 +35,11 @@ export const GIVEAWAY_STEP_LABELS = [
  * that figure (see Quote.struckTotal); with no campaign there is nothing struck.
  */
 export function PriceNote({ quote, className }: { quote: Quote; className?: string }) {
+    // A giveaway application has no price: it gets the campaign's prize card.
+    if (quote.giveaway) return <GiveawayPrize className={className} />;
     return (
         <div className={cx("flex flex-col gap-2 rounded-r1-card border border-r1-line bg-r1-fill-2 p-4", className)}>
-            <p className="t-label">{quote.giveaway ? "A gift from Off the Record" : "Nothing to pay now"}</p>
+            <p className="t-label">Nothing to pay now</p>
             <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 {quote.struckTotal !== null ? (
                     <span className="text-sm tabular-nums text-r1-ink-3 line-through decoration-r1-ink-3">
@@ -46,15 +49,13 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
                 ) : null}
                 <span className="text-xl font-semibold leading-6 tabular-nums">
                     {quote.struckTotal !== null ? <span className="sr-only">Now </span> : null}
-                    {quote.giveaway ? "Free" : formatPHP(quote.total)}
+                    {formatPHP(quote.total)}
                 </span>
                 {quote.discounted ? <span className="t-meta">{quote.code ? `with ${quote.code}` : `${quote.percentOff}% off`}</span> : null}
             </p>
             <p className="t-meta">
-                {quote.giveaway ? "Off the Record reviews your poster photo and eligibility. If approved, Tendso builds your free website with a Tendso web address." : <>
-                    We build the site first and email it to you. You only pay once it&apos;s live —{" "}
-                    {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
-                </>}
+                We build the site first and email it to you. You only pay once it&apos;s live —{" "}
+                {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
             </p>
         </div>
     );
