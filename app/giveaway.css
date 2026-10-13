@@ -594,3 +594,9 @@
 @media (min-width: 1024px) {
   .gw-sticker { right: -128px; }
 }
+
+/* Closed: the heading sits higher than the landing's steps, so the OTR band
+   stops sooner and never runs under the black text. */
+@media (min-width: 768px) {
+  .gw.is-closed { --gw-top-l: 30%; --gw-top-r: 18%; }
+}
