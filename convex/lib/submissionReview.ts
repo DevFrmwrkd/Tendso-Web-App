@@ -10,16 +10,32 @@ export async function approveReviewedSubmission(ctx: MutationCtx, args: { submis
     if (!submission) throw new Error('Submission not found');
 
     const previousStatus = submission.status;
+    // A decision on a waiting (or previously rejected) application is news to
+    // the owner; re-approving a row already past review sends nothing.
+    const notifyOwner = submission.giveawayApplication === true
+        && (previousStatus === 'submitted' || previousStatus === 'in_review' || previousStatus === 'rejected');
+    // Distinct per review event, as on rejection, so a stale send is ignored.
+    const reviewedAt = submission.giveawayApplication
+        ? Math.max(Date.now(), (submission.reviewedAt ?? 0) + 1)
+        : Date.now();
 
     // Update submission status
     await assertGiveawayCanActivate(ctx, submission);
     await ctx.db.patch(args.submissionId, {
         status: 'approved',
         reviewedBy: adminId,
-        reviewedAt: Date.now(),
+        reviewedAt,
         ...(submission.giveawayApplication && submission.airtableSyncStatus === 'pending_review'
             ? { airtableSyncStatus: 'pending_push' } : {}),
+        ...(notifyOwner ? { giveawayApprovedEmailSentAt: undefined } : {}),
     });
+    // Scheduled with the approval, delivered after it commits: a mail outage
+    // can never roll the decision back.
+    if (notifyOwner) {
+        await ctx.scheduler.runAfter(0, internal.giveawayEmails.sendApproved, {
+            submissionId: args.submissionId, reviewedAt,
+        });
+    }
 
     // Verify the poster before the first paid enhancement. Existing applications
     // that already rendered do not acquire another render during approval.

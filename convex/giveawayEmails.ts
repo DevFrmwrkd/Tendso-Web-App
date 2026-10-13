@@ -34,6 +34,48 @@ export const sendRejected = internalAction({
     },
 });
 
+/** OTR's approval, so the owner hears the good news before the site is built. */
+export const sendApproved = internalAction({
+    args: { submissionId: v.id('submissions'), reviewedAt: v.number() },
+    handler: async (ctx, args) => {
+        const secret = process.env.INTERNAL_API_SECRET;
+        if (!secret) {
+            console.error('[giveaway] INTERNAL_API_SECRET not set — skipping approval email.');
+            return;
+        }
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://tendso.vercel.app';
+        try {
+            const response = await fetch(`${baseUrl}/api/internal/send-giveaway-approved-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': secret },
+                body: JSON.stringify(args),
+            });
+            if (!response.ok) {
+                console.error(`[giveaway] Approval email failed for ${args.submissionId}: ${response.status} ${await response.text()}`);
+                return;
+            }
+            const result = await response.json();
+            if (result.sent === true) {
+                await ctx.runMutation(internal.giveawayEmails.markApprovedSent, {
+                    submissionId: args.submissionId, reviewedAt: args.reviewedAt,
+                });
+            }
+        } catch (error) {
+            console.error(`[giveaway] Error sending approval email for ${args.submissionId}:`, error);
+        }
+    },
+});
+
+export const markApprovedSent = internalMutation({
+    args: { submissionId: v.id('submissions'), reviewedAt: v.number() },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission?.giveawayApplication || submission.status === 'rejected'
+            || submission.reviewedAt !== args.reviewedAt || submission.giveawayApprovedEmailSentAt) return;
+        await ctx.db.patch(args.submissionId, { giveawayApprovedEmailSentAt: Date.now() });
+    },
+});
+
 export const markRejectedSent = internalMutation({
     args: { submissionId: v.id('submissions'), reviewedAt: v.number() },
     handler: async (ctx, args) => {

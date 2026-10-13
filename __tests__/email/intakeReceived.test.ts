@@ -2,7 +2,7 @@ jest.mock('@/lib/payment/config', () => ({
     getPaymentConfig: () => ({ wiseEmail: 'team@tendso.com' }),
 }));
 
-import { getIntakeReceivedEmailHtml, getPromoWebsiteLiveEmailHtml } from '@/lib/email/templates';
+import { getGiveawayApprovedEmailHtml, getIntakeReceivedEmailHtml, getPromoWebsiteLiveEmailHtml } from '@/lib/email/templates';
 
 const application = {
     businessName: 'Corner Studio',
@@ -16,10 +16,13 @@ function visibleText(html: string): string {
 
 describe('owner-intake acknowledgement email', () => {
     it('acknowledges a held giveaway slot pending eligibility review', () => {
-        const text = visibleText(getIntakeReceivedEmailHtml({ ...application, giveawayApplication: true }));
-        expect(text).toContain('Giveaway application received!');
+        const html = getIntakeReceivedEmailHtml({ ...application, giveawayApplication: true });
+        const text = visibleText(html);
+        expect(html).toContain('src="https://tendso.com/email/giveaway-received.png"');
+        expect(html).toContain('alt="Salamat! Off the Record received your application."');
+        expect(text).toContain('Awaiting review');
         expect(text).toContain('Your slot is held while Off the Record reviews your eligibility and poster photo.');
-        expect(text).toContain('If your application qualifies, Tendso builds your free website');
+        expect(text).toContain('If your application qualifies, Off the Record approves it and Tendso builds your free website. You get an email at each step.');
         expect(text).toContain('A gift from Off the Record. Websites built by Tendso.');
         expect(text).not.toContain('We will email you when your application has been reviewed.');
         expect(text).not.toContain('48&ndash;72 hours');
@@ -58,10 +61,34 @@ describe('owner-intake acknowledgement email', () => {
         expect(html).not.toContain('<script>');
     });
 
+    it('tells the owner OTR approved them and that the build has started, without a price or payment', () => {
+        const html = getGiveawayApprovedEmailHtml({ businessName: 'Corner Studio', businessOwnerName: 'Sam' });
+        const text = visibleText(html);
+        expect(html).toContain('src="https://tendso.com/email/giveaway-approved.png"');
+        expect(text).toContain('Good news, Sam ,');
+        expect(text).toContain('Off the Record checked your poster photo and approved Corner Studio for a free website.');
+        expect(text).toContain('Tendso is building it now');
+        expect(text).toContain('Approved by OTR');
+        expect(text).toContain('A gift from Off the Record. Websites built by Tendso.');
+        expect(text).toContain('Still free — nothing to pay.');
+        expect(text).not.toMatch(/payment instructions|payable|GCash|Maya|₱4,999/);
+    });
+
+    it('escapes applicant-supplied names in the approval email', () => {
+        const html = getGiveawayApprovedEmailHtml({ businessName: '<img src=x>', businessOwnerName: '<script>x</script>' });
+        expect(html).toContain('&lt;img src=x&gt;');
+        expect(html).toContain('&lt;script&gt;x&lt;/script&gt;');
+        expect(html).not.toContain('<img src=x>');
+        expect(html).not.toContain('<script>');
+    });
+
     it('identifies the campaign giver and product in the free website delivery email', () => {
-        const text = visibleText(getPromoWebsiteLiveEmailHtml({
+        const html = getPromoWebsiteLiveEmailHtml({
             ...application, websiteUrl: 'https://corner.sites.tendso.com', creatorName: 'Tendso', giveawayApplication: true,
-        }));
+        });
+        const text = visibleText(html);
+        expect(html).toContain('src="https://tendso.com/email/giveaway-live.png"');
+        expect(html).toContain('href="https://corner.sites.tendso.com"');
         expect(text).toContain('OFF THE RECORD');
         expect(text).toContain('A gift from Off the Record for Corner Studio. Built by Tendso.');
         expect(text).toContain('a free Tendso website');

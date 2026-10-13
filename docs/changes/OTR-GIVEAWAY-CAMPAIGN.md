@@ -32,7 +32,20 @@ The screen provides the business, address, owner contact details, and submitted 
 3. Rejection releases the reservation atomically and schedules the existing rejection email. Another applicant can use the released slot if the campaign remains open. Opposite or repeated decisions from simultaneous reviewers cannot overwrite an already reviewed application through the OTR API.
 4. Tendso’s existing admin workflow builds and publishes the website, then uses **Give Free** to settle it. The owner’s final email names **Off the Record** as the giver and Tendso as the website provider. The server enforces that name for giveaway applications even if a browser submits a different giver.
 
-A reserved slot is not a website given away. The public closed state distinguishes fully reserved slots from all 100 websites marked free, and uses neutral copy when applications are paused or expired. The reviewer screen labels the settled count “Sites given”; it does not claim that email delivery has been confirmed. Owners receive an application receipt, a rejection reason if needed, and their live website email after delivery. This change does not add a separate approval email.
+A reserved slot is not a website given away. The public closed state distinguishes fully reserved slots from all 100 websites marked free, and uses neutral copy when applications are paused or expired. The reviewer screen labels the settled count “Sites given”; it does not claim that email delivery has been confirmed.
+
+## Owner emails
+
+Owners receive four emails, all in the campaign look (`lib/email/giveawayTemplates.ts`):
+
+1. **Application received**, within a minute of finishing `/start`.
+2. **Approved by Off the Record**, the moment OTR (or a Tendso admin) approves an application waiting for review, or a previously rejected one. It is scheduled with the approval (`giveawayEmails.sendApproved`), delivered through `/api/internal/send-giveaway-approved-email`, and stamped on `giveawayApprovedEmailSentAt`. A stale send for an older review event, or after a rejection, is skipped. Re-approving a row already past review sends nothing. Rows approved before this email existed never get it, and the admin email list shows it only where the stamp exists.
+3. **Not accepted**, with the reviewer's reason and a checklist for a photo that gets approved.
+4. **Your website is live**, after Tendso settles it with Give Free.
+
+Email clients drop tilts, diagonal cuts and web fonts, so each festive header is one hosted image in `public/email/` (received, approved, live), with its words in the alt text. Rebuild them with `node scripts/generate-giveaway-email-headers.mjs` (Chrome required). The rejection email has a plain text header.
+
+The giveaway's `/start` uses the same identity: the OTR × Tendso header band, a prize card in place of the price note, a "photo that gets approved" example on the poster-photo step, and a thanks page on the poster ground. Form fields and buttons are unchanged.
 
 The existing Tendso admin availability toggle remains available for operating the campaign. OTR reviewers use their separate screen for eligibility decisions; Tendso admins retain fulfillment and campaign controls. No campaign counters, live records, or production availability settings are reset by this change.
 

@@ -12,7 +12,7 @@ export function GiveawayClosed({ status }: { status?: { slotsLeft: number; given
     const copy = giveawayClosedCopy(status);
     const full = !!status && (status.given >= 100 || status.slotsLeft <= 0);
     return (
-        <GiveawayStage closed>
+        <GiveawayStage short>
             <div className="gw-closed">
                 <div className="gw-stamped">
                     <p className="gw-banner" aria-hidden="true">Giveaway</p>

@@ -137,8 +137,16 @@ export function clientEmailsFor(s: SubmissionDoc): ClientEmail[] {
         list.push({
             type: "giveaway_received",
             label: "Giveaway application received",
-            description: "Acknowledges the held slot and eligibility review, with a 48–72 hour review window. No payment request.",
+            description: "Acknowledges the held slot and Off the Record's eligibility review. No payment request.",
             sentAt: s.intakeReceivedEmailSentAt,
+        });
+        // Only rows approved since this email existed carry the stamp, and the
+        // stamp is the one honest signal that the owner actually got it.
+        if (status !== "rejected" && s.giveawayApprovedEmailSentAt) list.push({
+            type: "giveaway_approved",
+            label: "Approved by Off the Record",
+            description: "Tells the owner Off the Record approved their poster photo and that Tendso is building the free website now.",
+            sentAt: s.giveawayApprovedEmailSentAt,
         });
         if (status === "rejected") list.push({
             type: "giveaway_rejected",
