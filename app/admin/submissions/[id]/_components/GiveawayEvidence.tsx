@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Card } from "@/components/r1";
+import { GiveawayApproval } from "../../_queue/GiveawayApproval";
 import type { SubmissionDoc } from "./review";
 
 /** Use the submitted pin when present, otherwise look up the shop's address. */
@@ -29,6 +30,7 @@ export function GiveawayEvidence({ s, posterUrl, compact = false }: {
     const map = giveawayMapUrls(s);
     return (
         <Card pad className="mb-4 flex min-w-0 flex-col gap-4">
+            <GiveawayApproval submission={s} />
             <div className="flex flex-col gap-1">
                 <h2 className="t-h2">Giveaway application</h2>
                 <p className="t-help">Check that customers can see the poster at this walk-in business.</p>

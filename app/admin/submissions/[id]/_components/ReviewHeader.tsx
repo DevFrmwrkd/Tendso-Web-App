@@ -4,6 +4,7 @@ import { ArrowLeft, Redo2, Undo2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button, ButtonLink, Icon, MoreMenu, Segmented, Status, submissionStatus, type MenuItem } from "@/components/r1";
+import type { StatusWord } from "@/components/r1/statusWords";
 import type { EditorTools } from "@/components/editor/editorProps";
 import { PREVIEW_DEVICE_OPTIONS } from "@/components/WebsitePreview";
 
@@ -25,6 +26,7 @@ import { PREVIEW_DEVICE_OPTIONS } from "@/components/WebsitePreview";
 export function ReviewHeader({
     businessName,
     status,
+    statusWord,
     saveState,
     tools,
     details,
@@ -33,6 +35,8 @@ export function ReviewHeader({
 }: {
     businessName: string;
     status: string;
+    /** Giveaway eligibility, kept distinct from the website's build status. */
+    statusWord?: StatusWord;
     /** "Saved", "Unsaved changes", "Changes not live yet"… */
     saveState?: ReactNode;
     /** The editor's own controls, while the site is being edited. */
@@ -43,7 +47,7 @@ export function ReviewHeader({
     /** Hidden when empty (the board hides More while a site is generating). */
     moreItems?: MenuItem[];
 }) {
-    const word = submissionStatus(status, "admin");
+    const word = statusWord ?? submissionStatus(status, "admin");
     return (
         <header className="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-r1-line bg-r1-paper px-3 py-2.5 lg:h-16 lg:flex-nowrap lg:py-0 lg:pl-3 lg:pr-4">
             <div className="flex min-w-0 basis-full items-center gap-3 lg:flex-1 lg:basis-0">
@@ -54,10 +58,10 @@ export function ReviewHeader({
                 <span className="hidden h-7 w-px flex-none bg-r1-line sm:block" aria-hidden="true" />
                 <div className="flex min-w-0 flex-col gap-0.5">
                     <h1 className="truncate font-r1-serif text-[22px] font-normal leading-7 tracking-[-0.01em] text-r1-ink sm:text-2xl">{businessName}</h1>
-                    <p className="hidden truncate text-[13px] leading-4 text-r1-ink-3 min-[1440px]:block">Is this site ready to go live?</p>
-                    <Status {...word} className="min-[1440px]:hidden" />
+                    <p className="hidden truncate text-[13px] leading-4 text-r1-ink-3 min-[1440px]:block">{statusWord ? "Giveaway eligibility and website progress" : "Is this site ready to go live?"}</p>
+                    <Status {...word} className="whitespace-normal break-words min-[1440px]:hidden" />
                 </div>
-                <Status {...word} className="hidden flex-none min-[1440px]:inline-flex" />
+                <Status {...word} className="hidden flex-none whitespace-normal min-[1440px]:inline-flex" />
             </div>
 
             <div className="flex min-w-0 basis-full flex-wrap items-center justify-end gap-2 lg:flex-none lg:basis-auto lg:flex-nowrap">

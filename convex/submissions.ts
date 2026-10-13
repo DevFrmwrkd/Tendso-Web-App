@@ -1,12 +1,13 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation, internalAction } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, clampSellPrice, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
 import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
 import { requireAccountOwner, requireAdmin, requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
+import { resolveGiveawayReviewSource } from './lib/submissionReview';
 
 /** Capture edits belong to their creator; admin publishing can edit any account's content. */
 async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>) {
@@ -63,16 +64,21 @@ export const getByIdWithCreator = query({
 
         // Resolve reviewedBy Clerk ID to a name
         let reviewedByName: string | null = null;
+        let reviewer: Doc<'creators'> | null = null;
         if (submission.reviewedBy) {
-            const reviewer = await ctx.db
+            reviewer = await ctx.db
                 .query('creators')
                 .withIndex('by_clerk_id', (q) => q.eq('clerkId', submission.reviewedBy!))
                 .unique();
-            reviewedByName = reviewer ? `${reviewer.firstName} ${reviewer.lastName}` : null;
+            reviewedByName = reviewer
+                ? [reviewer.firstName, reviewer.lastName].map((name) => name?.trim()).filter(Boolean).join(' ') || null
+                : null;
         }
+        const giveawayReviewSource = resolveGiveawayReviewSource(submission, reviewer);
 
         return {
             ...submission,
+            ...(giveawayReviewSource ? { giveawayReviewSource } : {}),
             reviewedByName,
             creator: creator
                 ? {
@@ -140,7 +146,7 @@ export const getAllWithCreator = query({
         const submissions = await ctx.db.query('submissions').order('desc').collect();
 
         // Cache reviewer lookups to avoid repeated queries
-        const reviewerCache = new Map<string, string | null>();
+        const reviewerCache = new Map<string, Doc<'creators'> | null>();
 
         const submissionsWithCreator = await Promise.all(
             submissions.map(async (submission) => {
@@ -148,22 +154,25 @@ export const getAllWithCreator = query({
 
                 // Resolve reviewedBy Clerk ID to a name
                 let reviewedByName: string | null = null;
+                let reviewer: Doc<'creators'> | null = null;
                 if (submission.reviewedBy) {
                     if (!reviewerCache.has(submission.reviewedBy)) {
-                        const reviewer = await ctx.db
+                        const account = await ctx.db
                             .query('creators')
                             .withIndex('by_clerk_id', (q) => q.eq('clerkId', submission.reviewedBy!))
                             .unique();
-                        reviewerCache.set(
-                            submission.reviewedBy,
-                            reviewer ? `${reviewer.firstName} ${reviewer.lastName}` : null
-                        );
+                        reviewerCache.set(submission.reviewedBy, account);
                     }
-                    reviewedByName = reviewerCache.get(submission.reviewedBy) ?? null;
+                    reviewer = reviewerCache.get(submission.reviewedBy) ?? null;
+                    reviewedByName = reviewer
+                        ? [reviewer.firstName, reviewer.lastName].map((name) => name?.trim()).filter(Boolean).join(' ') || null
+                        : null;
                 }
+                const giveawayReviewSource = resolveGiveawayReviewSource(submission, reviewer);
 
                 return {
                     ...submission,
+                    ...(giveawayReviewSource ? { giveawayReviewSource } : {}),
                     reviewedByName,
                     creator: creator
                         ? {

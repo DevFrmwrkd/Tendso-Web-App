@@ -10,6 +10,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { isComped, normalizeCampaign } from "@/lib/pricing";
 import { isHouseCreator } from "@/lib/houseCreator";
+import { giveawayReview } from "@/lib/giveawayReview";
 import { buildMediaFileList, downloadMediaZip } from "@/lib/mediaZip";
 import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
@@ -981,20 +982,22 @@ function SubmissionReview() {
 
     // ── What the header offers, by state ──────────────────────────────────
     const status = s.status;
+    const giveaway = giveawayReview(s);
     const comped = isComped(s);
     const customDomainTier = s.submissionType === "with_custom_domain" || !!s.requestedDomain;
     const hasTranscript = !!s.transcript;
     const selfServe = isHouseCreator(s.creator);
     const published = !!websitePublishedUrl;
 
-    // The eligibility rules the old action bar applied, unchanged.
+    // Giveaway website work begins only after the eligibility review.
     const canApprove = status === "website_generated" || (status === "in_review" && websiteGenerated);
-    const canGenerate = ["in_review", "website_generated", "approved", "deployed"].includes(status);
-    const canEnhanceBeforeSite = ["submitted", "in_review", "website_generated", "approved", "deployed"].includes(status) && hasTranscript;
+    const giveawayReady = !giveaway || giveaway.state === "approved";
+    const canGenerate = giveawayReady && ["in_review", "website_generated", "approved", "deployed"].includes(status);
+    const canEnhanceBeforeSite = giveawayReady && ["submitted", "in_review", "website_generated", "approved", "deployed"].includes(status) && hasTranscript;
     // Not once the site is out with the owner: rejecting then would strand a
     // live, billed site.
     const canReject = !["rejected", "deployed", "pending_payment", "paid", "unpublished"].includes(status);
-    const canMarkInReview = status === "submitted";
+    const canMarkInReview = status === "submitted" && !giveaway;
     // Also offered once a site has been pulled: an owner who pays after the
     // three-day deadline is the ordinary way this ends, and without it there is
     // no way to settle the submission and restore the site. markPaid itself has
@@ -1242,7 +1245,9 @@ function SubmissionReview() {
 
     // The one sentence the overview leads with, by state.
     const pregenNotice: { title: string; body: ReactNode } | null =
-        status === "rejected"
+        giveaway && giveaway.state !== "approved"
+            ? { title: giveaway.state === "unknown" ? "Check approval record" : giveaway.word, body: giveaway.nextStep }
+            : status === "rejected"
             ? { title: "This submission was rejected.", body: "Reopen review to work on it again." }
             : canMarkInReview
                 ? { title: "New submission.", body: "Check what was sent below, then mark it in review to generate the website." }
@@ -1254,7 +1259,9 @@ function SubmissionReview() {
                     : null;
 
     const pregenPrimary: ReactNode =
-        status === "rejected" ? reopen : canMarkInReview ? markInReview : canGenerate ? (
+        giveaway?.state === "unknown" ? null : giveaway && giveaway.state !== "approved" ? (
+            <ButtonLink href="/otr/review">Open giveaway review</ButtonLink>
+        ) : status === "rejected" ? reopen : canMarkInReview ? markInReview : canGenerate ? (
             <Button variant="primary" onClick={() => void handleGenerateWebsite()}>
                 <Icon icon={Sparkles} />
                 Generate site
@@ -1302,6 +1309,7 @@ function SubmissionReview() {
                             <ReviewHeader
                                 businessName={s.businessName}
                                 status={status}
+                                statusWord={giveaway ?? undefined}
                                 saveState={saveState(tools)}
                                 tools={tools}
                                 details={details}
@@ -1326,6 +1334,7 @@ function SubmissionReview() {
                         <ReviewHeader
                             businessName={s.businessName}
                             status={status}
+                            statusWord={giveaway ?? undefined}
                             primary={
                                 phase === "generating" ? (
                                     <Button variant="primary" disabled aria-busy>

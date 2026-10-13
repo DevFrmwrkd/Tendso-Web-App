@@ -133,8 +133,10 @@ export default defineSchema({
         aiGeneratedContent: v.optional(v.any()), // AI-extracted content from transcript
 
         // Admin review tracking
-        reviewedBy: v.optional(v.string()), // Admin Clerk ID
+        reviewedBy: v.optional(v.string()), // Reviewing admin or invited OTR Clerk ID
         reviewedAt: v.optional(v.number()), // Review timestamp
+        // Server-stamped campaign reviewer provenance; optional for existing/mobile rows.
+        giveawayReviewSource: v.optional(v.union(v.literal('otr'), v.literal('admin'))),
         rejectionReason: v.optional(v.string()),
         intakeReceivedEmailSentAt: v.optional(v.number()),
         giveawayRejectedEmailSentAt: v.optional(v.number()),
