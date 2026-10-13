@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json()
         const { submissionId, reason } = body
-        const giftedBy = cleanGiftedBy(body.giftedBy)
+        const requestedGiftedBy = cleanGiftedBy(body.giftedBy)
 
         if (!submissionId) {
             return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
@@ -49,6 +49,11 @@ export async function POST(request: NextRequest) {
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
+
+        // This campaign belongs to Off the Record. A browser-supplied name must
+        // never change the giver recorded or named in its delivery email.
+        const giveaway = submission.giveawayApplication === true
+        const giftedBy = giveaway ? 'Off the Record' : requestedGiftedBy
 
         // A self-serve site is attributed to the house creator, which is not a
         // person — the email would read "Tendso Self-Serve chose <business>…".
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
         // The typed giver is also kept in the internal reason, so the record says
         // which name the owner was told.
         const reasonText = typeof reason === 'string' ? reason.trim() : ''
-        const storedReason = selfServe
+        const storedReason = selfServe || giveaway
             ? `${reasonText ? `${reasonText} · ` : ''}gifted as "${giftedBy}"`
             : reasonText
 
@@ -99,7 +104,7 @@ export async function POST(request: NextRequest) {
             // wrong on an unsolicited "here is your free website" email, where a
             // broken link is the difference between a gift and a phishing smell.
             // Self-serve: the name the admin typed. Otherwise the real creator.
-            const creatorName = selfServe
+            const creatorName = selfServe || giveaway
                 ? giftedBy
                 : [submission.creator?.firstName, submission.creator?.lastName]
                     .filter(Boolean)
@@ -114,6 +119,7 @@ export async function POST(request: NextRequest) {
                         businessOwnerEmail: submission.ownerEmail,
                         websiteUrl: publishedUrl,
                         creatorName: creatorName || undefined,
+                        giveawayApplication: giveaway,
                     })
                     emailSent = true
                 } catch (emailError: any) {

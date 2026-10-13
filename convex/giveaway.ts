@@ -2,7 +2,83 @@ import { internalMutation, mutation, query } from './_generated/server';
 import { ConvexError, v } from 'convex/values';
 import { internal } from './_generated/api';
 import { readGiveaway, validateGiveawayConfig } from './lib/giveaway';
-import { requireAdmin } from './lib/auth';
+import { giveawayReviewerAccess, requireAdmin, requireGiveawayReviewer } from './lib/auth';
+import { approveReviewedSubmission, rejectReviewedSubmission } from './lib/submissionReview';
+import { isComped } from '../lib/pricing';
+
+/** Sign-in/access state for the standalone OTR review page; no applicant data. */
+export const reviewerSession = query({
+    args: {},
+    returns: v.object({ canReview: v.boolean(), isAdmin: v.boolean(), clerkId: v.union(v.string(), v.null()) }),
+    handler: async (ctx) => {
+        const { canReview, isAdmin, identity } = await giveawayReviewerAccess(ctx);
+        return { canReview, isAdmin, clerkId: identity?.subject ?? null };
+    },
+});
+
+/** Deliberately excludes other submissions, payment information and account rows. */
+export const reviewQueue = query({
+    args: {},
+    handler: async (ctx) => {
+        await requireGiveawayReviewer(ctx);
+        const { applications, held, given, slotsLeft, config, open } = await readGiveaway(ctx);
+        return {
+            held, given, slotsLeft, cap: config.cap, open, enabled: config.enabled,
+            applications: applications.map((submission) => ({
+                id: submission._id,
+                submittedAt: submission._creationTime,
+                businessName: submission.businessName,
+                businessType: submission.businessType,
+                ownerName: submission.ownerName,
+                ownerPhone: submission.ownerPhone,
+                ownerEmail: submission.ownerEmail ?? null,
+                address: submission.address,
+                city: submission.city,
+                coordinates: submission.coordinates ?? null,
+                status: submission.status,
+                posterPhotoUrl: submission.giveawayPosterPhoto ?? null,
+                reviewedAt: submission.reviewedAt ?? null,
+                rejectionReason: submission.rejectionReason ?? null,
+                givenFree: isComped(submission),
+                canReview: !isComped(submission) && (submission.status === 'submitted' || submission.status === 'in_review'),
+            })).sort((a, b) => Number(b.canReview) - Number(a.canReview) || a.submittedAt - b.submittedAt),
+        };
+    },
+});
+
+export const approveApplication = mutation({
+    args: { submissionId: v.id('submissions') },
+    returns: v.id('submissions'),
+    handler: async (ctx, { submissionId }) => {
+        const { identity } = await requireGiveawayReviewer(ctx);
+        const submission = await ctx.db.get(submissionId);
+        if (!submission?.giveawayApplication) throw new ConvexError('Giveaway application not found.');
+        if (submission.status === 'approved') return submissionId;
+        if (isComped(submission) || (submission.status !== 'submitted' && submission.status !== 'in_review')) {
+            throw new ConvexError('This application has already been reviewed.');
+        }
+        if (!submission.giveawayPosterPhoto?.trim()) throw new ConvexError('A poster photo is required before approval.');
+        return approveReviewedSubmission(ctx, { submissionId, adminId: identity.subject });
+    },
+});
+
+export const rejectApplication = mutation({
+    args: { submissionId: v.id('submissions'), reason: v.string() },
+    returns: v.id('submissions'),
+    handler: async (ctx, { submissionId, reason: input }) => {
+        const { identity } = await requireGiveawayReviewer(ctx);
+        const submission = await ctx.db.get(submissionId);
+        if (!submission?.giveawayApplication) throw new ConvexError('Giveaway application not found.');
+        const reason = input.trim();
+        if (!reason) throw new ConvexError('Give the owner a reason for rejecting their giveaway application.');
+        if (reason.length > 500) throw new ConvexError('Keep the rejection reason under 500 characters.');
+        if (submission.status === 'rejected') return submissionId;
+        if (isComped(submission) || (submission.status !== 'submitted' && submission.status !== 'in_review')) {
+            throw new ConvexError('This application has already been reviewed.');
+        }
+        return rejectReviewedSubmission(ctx, { submissionId, adminId: identity.subject, reason });
+    },
+});
 
 /** Public availability for /start. Contact details and configuration stay out of the response. */
 export const giveawayStatus = query({

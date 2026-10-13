@@ -152,7 +152,7 @@ export function BasicsStep({
                 <Field
                     label="Email address"
                     help={giveaway
-                        ? "We email your application update and, if you qualify, your website link here. Please double-check it."
+                        ? "We send your Off the Record application receipt and, if you qualify, your Tendso website link here. Please double-check it."
                         : "We send your finished website and the payment details here. Please double-check it."}
                     error={errors.ownerEmail}
                 >

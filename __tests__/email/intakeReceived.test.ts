@@ -2,7 +2,7 @@ jest.mock('@/lib/payment/config', () => ({
     getPaymentConfig: () => ({ wiseEmail: 'team@tendso.com' }),
 }));
 
-import { getIntakeReceivedEmailHtml } from '@/lib/email/templates';
+import { getIntakeReceivedEmailHtml, getPromoWebsiteLiveEmailHtml } from '@/lib/email/templates';
 
 const application = {
     businessName: 'Corner Studio',
@@ -18,8 +18,11 @@ describe('owner-intake acknowledgement email', () => {
     it('acknowledges a held giveaway slot pending eligibility review', () => {
         const text = visibleText(getIntakeReceivedEmailHtml({ ...application, giveawayApplication: true }));
         expect(text).toContain('Giveaway application received!');
-        expect(text).toContain('Your slot is held while we review your eligibility and poster photo.');
-        expect(text).toContain('If your application is eligible, we build your free website');
+        expect(text).toContain('Your slot is held while Off the Record reviews your eligibility and poster photo.');
+        expect(text).toContain('If your application qualifies, Tendso builds your free website');
+        expect(text).toContain('A gift from Off the Record. Websites built by Tendso.');
+        expect(text).not.toContain('We will email you when your application has been reviewed.');
+        expect(text).not.toContain('48&ndash;72 hours');
         expect(text).toContain('Tendso web address');
         expect(text).toContain('Custom domains are not included.');
         expect(text).toContain('If eligible, your website is free — nothing to pay.');
@@ -53,5 +56,25 @@ describe('owner-intake acknowledgement email', () => {
         expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
         expect(html).not.toContain('<img src=x');
         expect(html).not.toContain('<script>');
+    });
+
+    it('identifies the campaign giver and product in the free website delivery email', () => {
+        const text = visibleText(getPromoWebsiteLiveEmailHtml({
+            ...application, websiteUrl: 'https://corner.sites.tendso.com', creatorName: 'Tendso', giveawayApplication: true,
+        }));
+        expect(text).toContain('OFF THE RECORD');
+        expect(text).toContain('A gift from Off the Record for Corner Studio. Built by Tendso.');
+        expect(text).toContain('a free Tendso website');
+        expect(text).toContain('There is nothing for you to pay.');
+        expect(text).not.toContain('under our current promo');
+    });
+
+    it('keeps ordinary creator gift emails separate from the OTR campaign', () => {
+        const text = visibleText(getPromoWebsiteLiveEmailHtml({
+            ...application, websiteUrl: 'https://corner.sites.tendso.com', creatorName: 'Sam Creator',
+        }));
+        expect(text).toContain('Sam Creator');
+        expect(text).toContain('under our current promo');
+        expect(text).not.toContain('Off the Record');
     });
 });

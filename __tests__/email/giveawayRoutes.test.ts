@@ -120,13 +120,24 @@ describe('admin giveaway email previews', () => {
         expect(response.status).toBe(400);
         expect(await response.json()).toEqual({ error: 'Giveaway applications do not have payment emails' });
     });
-    it('previews a giveaway live email with its stored giver name and preserves an explicit preview override', async () => {
+    it('previews the OTR giveaway live email consistently regardless of legacy or caller-supplied giver', async () => {
         fetchMock.mockImplementation((query: string) => Promise.resolve(query === 'creator' ? { role: 'admin' }
             : query === 'submission' ? { ...submission, status: 'paid', pricingMode: 'comped', compedReason: 'giveaway · gifted as "Tendso"' }
             : query === 'submissionWithCreator' ? { creator: { email: 'self-serve@tendso.com' } }
             : { publishedUrl: 'https://shop.tendso.com' }));
         const base = 'https://tendso.com/api/preview-email?submissionId=submission-1&type=promo_free';
-        expect(await (await preview(new NextRequest(base))).text()).toContain('Tendso</strong> chose');
-        expect(await (await preview(new NextRequest(`${base}&giftedBy=Sponsor`))).text()).toContain('Sponsor</strong> chose');
+        expect(await (await preview(new NextRequest(base))).text()).toContain('Off the Record</strong> is giving');
+        const overridden = await (await preview(new NextRequest(`${base}&giftedBy=Sponsor`))).text();
+        expect(overridden).toContain('Off the Record</strong> is giving');
+        expect(overridden).not.toContain('Sponsor</strong> chose');
+    });
+    it('preserves an explicit giver override for ordinary self-serve gift previews', async () => {
+        fetchMock.mockImplementation((query: string) => Promise.resolve(query === 'creator' ? { role: 'admin' }
+            : query === 'submission' ? { ...submission, giveawayApplication: false, status: 'paid', pricingMode: 'comped' }
+            : query === 'submissionWithCreator' ? { creator: { email: 'self-serve@tendso.com' } }
+            : { publishedUrl: 'https://shop.tendso.com' }));
+        const html = await (await preview(new NextRequest('https://tendso.com/api/preview-email?submissionId=submission-1&type=promo_free&giftedBy=Sponsor'))).text();
+        expect(html).toContain('Sponsor</strong> chose');
+        expect(html).not.toContain('Off the Record');
     });
 });

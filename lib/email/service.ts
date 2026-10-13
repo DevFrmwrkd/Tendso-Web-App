@@ -181,7 +181,7 @@ export async function sendIntakeReceivedEmail(data: IntakeReceivedEmailData) {
         return await sendEmail({
             to: data.businessOwnerEmail,
             subject: data.giveawayApplication
-                ? `We received ${data.businessName}'s free website application`
+                ? `Off the Record received ${data.businessName}'s free website application`
                 : `We got your details — building ${data.businessName}'s website now`,
             html,
             idempotencyKey: data.idempotencyKey,
@@ -203,7 +203,7 @@ export async function sendGiveawayRejectedEmail(data: {
 }) {
     return sendEmail({
         to: data.businessOwnerEmail,
-        subject: `Your free website application for ${data.businessName}`,
+        subject: `Your Off the Record application for ${data.businessName}`,
         html: getGiveawayRejectedEmailHtml(data),
         idempotencyKey: data.idempotencyKey,
     });
@@ -385,6 +385,7 @@ interface PromoWebsiteLiveEmailData {
     businessOwnerEmail: string;
     websiteUrl: string;
     creatorName?: string;
+    giveawayApplication?: boolean;
 }
 
 /**
@@ -402,10 +403,13 @@ export async function sendPromoWebsiteLiveEmail(data: PromoWebsiteLiveEmailData)
             businessOwnerName: data.businessOwnerName,
             websiteUrl: data.websiteUrl,
             creatorName: data.creatorName,
+            giveawayApplication: data.giveawayApplication,
         });
         return await sendEmail({
             to: data.businessOwnerEmail,
-            subject: `${data.businessName} is Now Live — Free, Nothing to Pay`,
+            subject: data.giveawayApplication
+                ? `Your free Tendso website from Off the Record is live — ${data.businessName}`
+                : `${data.businessName} is Now Live — Free, Nothing to Pay`,
             html,
         });
     } catch (error: any) {

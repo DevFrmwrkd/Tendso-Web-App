@@ -2,6 +2,8 @@ import { v } from 'convex/values';
 import { internalAction, internalMutation, internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { Id } from './_generated/dataModel';
+import { requireAdmin } from './lib/auth';
+import { giveawayCanRender } from './lib/giveaway';
 
 // ==================== HELPERS ====================
 
@@ -162,6 +164,9 @@ export const pushToAirtable = internalAction({
             submissionId: args.submissionId,
         });
         if (!submission) throw new Error('Submission not found');
+
+        // Old queued retries cannot spend on an unapproved/rejected giveaway.
+        if (!giveawayCanRender(submission)) return;
 
         // Wait for transcription to complete before pushing
         const retryCount = args.transcriptRetry ?? 0;
@@ -569,6 +574,13 @@ export const triggerAirtablePush = mutation({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
+
+        // Preserve ordinary installed-client contracts, while protecting the
+        // campaign's pending-review marker and eligibility-before-spend rule.
+        if (submission.giveawayApplication) {
+            await requireAdmin(ctx);
+            if (!giveawayCanRender(submission)) throw new Error('Approve the giveaway poster before enhancing its photos.');
+        }
 
         // Reset sync status but keep airtableRecordId if it exists
         // pushToAirtable will update the existing record or create a new one

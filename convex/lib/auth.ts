@@ -90,6 +90,28 @@ export async function requireAdminActor(ctx: AnyCtx, adminId?: string): Promise<
     return actor;
 }
 
+/** A campaign reviewer is explicitly invited, without receiving an app role. */
+export async function giveawayReviewerAccess(ctx: QueryCtx | MutationCtx) {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { identity: null, canReview: false, isAdmin: false };
+    const me = await ctx.db.query("creators")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
+    const disabled = me?.isDeleted || me?.status === "deleted" || me?.status === "suspended";
+    const isAdmin = !disabled && me?.role === "admin";
+    // Server-only configuration: never a browser argument or a publicly writable
+    // setting. Exact subjects prevent email/substring-based impersonation.
+    const invited = (process.env.OTR_GIVEAWAY_REVIEWER_IDS ?? "")
+        .split(",").map((subject) => subject.trim()).filter(Boolean).includes(identity.subject);
+    return { identity, canReview: !disabled && (isAdmin || invited), isAdmin };
+}
+
+export async function requireGiveawayReviewer(ctx: QueryCtx | MutationCtx) {
+    const access = await giveawayReviewerAccess(ctx);
+    if (!access.identity) throw new Error("Not authenticated");
+    if (!access.canReview) throw new Error("Forbidden: giveaway reviewer access required");
+    return { identity: access.identity, isAdmin: access.isAdmin };
+}
+
 /** Private account data belongs to the signed-in account, with an admin override. */
 export async function requireAccountOwner(ctx: AnyCtx, creatorId: Id<"creators">): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
     const identity = await requireAuth(ctx);
