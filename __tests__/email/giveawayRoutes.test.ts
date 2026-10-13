@@ -4,19 +4,23 @@ jest.mock('@/convex/_generated/api', () => ({ api: {
     creators: { getByClerkId: 'creator' }, submissions: { getById: 'submission', getByIdWithCreator: 'submissionWithCreator' },
     generatedWebsites: { getBySubmissionId: 'website' },
 } }));
-jest.mock('@/lib/email/service', () => ({ sendGiveawayRejectedEmail: jest.fn(), sendIntakeReceivedEmail: jest.fn() }));
+jest.mock('@/lib/email/service', () => ({
+    sendGiveawayRejectedEmail: jest.fn(), sendGiveawayApprovedEmail: jest.fn(), sendIntakeReceivedEmail: jest.fn(),
+}));
 jest.mock('@/lib/payment/config', () => ({ getPaymentConfig: () => ({ wiseEmail: 'team@tendso.com' }) }));
 
 import { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { fetchQuery } from 'convex/nextjs';
-import { sendGiveawayRejectedEmail, sendIntakeReceivedEmail } from '@/lib/email/service';
+import { sendGiveawayApprovedEmail, sendGiveawayRejectedEmail, sendIntakeReceivedEmail } from '@/lib/email/service';
+import { POST as approved } from '@/app/api/internal/send-giveaway-approved-email/route';
 import { POST as rejected } from '@/app/api/internal/send-giveaway-rejected-email/route';
 import { POST as received } from '@/app/api/internal/send-intake-received-email/route';
 import { GET as preview } from '@/app/api/preview-email/route';
 
 const fetchMock = fetchQuery as jest.Mock;
 const sendRejected = sendGiveawayRejectedEmail as jest.Mock;
+const sendApproved = sendGiveawayApprovedEmail as jest.Mock;
 const sendReceived = sendIntakeReceivedEmail as jest.Mock;
 const authMock = auth as unknown as jest.Mock;
 const submission = {
@@ -36,6 +40,7 @@ beforeEach(() => {
     process.env.NEXT_PUBLIC_APP_URL = 'https://tendso.com';
     fetchMock.mockResolvedValue(submission);
     sendRejected.mockResolvedValue({ success: true });
+    sendApproved.mockResolvedValue({ success: true });
     sendReceived.mockResolvedValue({ success: true });
 });
 afterAll(() => {
@@ -83,6 +88,37 @@ describe('giveaway rejection internal bridge', () => {
     });
 });
 
+describe('giveaway approval internal bridge', () => {
+    const approval = { ...submission, status: 'approved', rejectionReason: undefined };
+    const approvedEvent = { submissionId: submission._id, reviewedAt: submission.reviewedAt };
+    beforeEach(() => { fetchMock.mockResolvedValue(approval); });
+    it('rejects missing/wrong secrets before reading or emailing', async () => {
+        expect((await approved(post(approvedEvent, 'wrong'))).status).toBe(401);
+        delete process.env.INTERNAL_API_SECRET;
+        expect((await approved(post(approvedEvent))).status).toBe(401);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(sendApproved).not.toHaveBeenCalled();
+    });
+    it('sends the approval with an event idempotency key', async () => {
+        expect(await (await approved(post(approvedEvent))).json()).toEqual({ success: true, sent: true });
+        expect(sendApproved).toHaveBeenCalledWith(expect.objectContaining({
+            businessName: submission.businessName, businessOwnerName: submission.ownerName, businessOwnerEmail: submission.ownerEmail,
+            idempotencyKey: 'giveaway-approved:submission-1:1234',
+        }));
+    });
+    it.each([
+        { giveawayApplication: false }, { status: 'rejected' }, { reviewedAt: 5678 }, { giveawayApprovedEmailSentAt: 2000 },
+    ])('skips stale or already delivered events (%j)', async (override) => {
+        fetchMock.mockResolvedValue({ ...approval, ...override });
+        expect(await (await approved(post(approvedEvent))).json()).toEqual({ success: true, sent: false });
+        expect(sendApproved).not.toHaveBeenCalled();
+    });
+    it('refuses incomplete event payloads', async () => {
+        expect((await approved(post({ submissionId: 'submission-1' }))).status).toBe(400);
+        expect(sendApproved).not.toHaveBeenCalled();
+    });
+});
+
 describe('acknowledgement bridge', () => {
     it('uses the giveaway variant and marks a real send for receipt tracking', async () => {
         fetchMock.mockResolvedValue({ ...submission, status: 'submitted' });
@@ -100,14 +136,16 @@ describe('admin giveaway email previews', () => {
         authMock.mockResolvedValue({ userId: 'admin', getToken: jest.fn().mockResolvedValue('convex-admin-token') });
         fetchMock.mockImplementation((query: string) => Promise.resolve(query === 'creator' ? { role: 'admin' } : query === 'submission' ? submission : null));
     });
-    it.each(['giveaway_received', 'giveaway_rejected'])('renders the same %s template without sending mail', async (type) => {
+    it.each(['giveaway_received', 'giveaway_approved', 'giveaway_rejected'])('renders the same %s template without sending mail', async (type) => {
         const response = await preview(new NextRequest(`https://tendso.com/api/preview-email?submissionId=submission-1&type=${type}`));
         expect(response.status).toBe(200);
         const html = await response.text();
         if (type === 'giveaway_received') expect(html).toContain('Your slot is held');
+        else if (type === 'giveaway_approved') expect(html).toContain('Tendso is building it now');
         else expect(html).toContain(submission.rejectionReason);
         expect(html).not.toContain('payment instructions');
         expect(sendReceived).not.toHaveBeenCalled();
+        expect(sendApproved).not.toHaveBeenCalled();
         expect(sendRejected).not.toHaveBeenCalled();
     });
     it('requires admin auth for previews', async () => {

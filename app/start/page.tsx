@@ -54,6 +54,7 @@ import { PhotosStep, PRODUCTS_QUESTION_ID, slotCardId, type PhotoError } from ".
 import { PosterStep, POSTER_PHOTO_ID } from "./_components/PosterStep";
 import { ReviewStep } from "./_components/ReviewStep";
 import { GIVEAWAY_STEP_LABELS, PriceNote, SavedNote, STEP_LABELS, StepRail } from "./_components/StepRail";
+import { GiveawayPrize } from "./_components/GiveawayPrize";
 import {
     clearDraft,
     loadDraft,
@@ -740,6 +741,10 @@ export default function StartPage() {
                         </Card>
                     ) : null}
 
+                    {/* A giveaway applicant sees the prize before the first
+                        question; the desk rail carries the full card. */}
+                    {giveaway && step === 1 ? <GiveawayPrize compact /> : null}
+
                     {step === 1 && (
                         <BasicsStep
                             basics={basics}
@@ -819,7 +824,7 @@ export default function StartPage() {
                     {/* What the desk rail says, for a phone: the price on the
                         first screen (so a scanned discount is seen to land), and
                         the saved-as-you-go promise on every screen. */}
-                    {step === 1 ? <PriceNote quote={quote} className="lg:hidden" /> : null}
+                    {step === 1 && !giveaway ? <PriceNote quote={quote} className="lg:hidden" /> : null}
                     <SavedNote className="lg:hidden" giveaway={giveaway} />
                 </div>
             </div>

@@ -29,11 +29,11 @@ import Link from "next/link";
 
 import { ButtonLink, Card, FunnelHeader, Highlight, Icon, PublicPage } from "@/components/r1";
 import { formatPHP } from "@/lib/pricing";
-import { CampaignHeader } from "@/app/100-pages-giveaway/_components/CampaignHeader";
 
 import { HEADER_ALIGN } from "../_components/frame";
 import { readSubmitted, type SubmittedReceipt } from "../draft";
 import { quoteForReceipt } from "../quote";
+import { GiveawayThanks } from "./GiveawayThanks";
 
 /** sessionStorage is written once, on the page before this one, and never
  *  changes underneath us — so there is nothing to subscribe to. */
@@ -52,7 +52,6 @@ const noServerValue = () => null;
  * figure beside it is worse than none.
  */
 function priceDetail(receipt: SubmittedReceipt, amount: number): { was: number | null; note: string | null } {
-    if (receipt.giveawayApplication) return { was: null, note: "With a Tendso web address, if your application qualifies" };
     if (receipt.customDomain === null) return { was: null, note: null };
     const quote = quoteForReceipt(receipt);
     if (!quote || quote.total !== amount) return { was: null, note: null };
@@ -70,32 +69,35 @@ function priceDetail(receipt: SubmittedReceipt, amount: number): { was: number |
 
 export default function StartThanksPage() {
     const receipt = useSyncExternalStore(noSubscription, readSubmitted, noServerValue);
+    // A giveaway application ends on the campaign's own poster ground.
+    if (receipt?.giveawayApplication === true) return <GiveawayThanks receipt={receipt} />;
+    return <PaidThanks receipt={receipt} />;
+}
+
+function PaidThanks({ receipt }: { receipt: SubmittedReceipt | null }) {
     const email = receipt?.email ?? null;
     // What the form actually quoted, campaign and domain included. Null only for
     // a receipt written before amounts were kept — and saying the wrong number to
     // somebody who was just promised a discount is worse than saying none, so the
     // sentence drops the figure rather than guessing it.
     const amount = receipt?.amount ?? null;
-    const giveaway = receipt?.giveawayApplication === true;
     const detail = receipt && amount !== null ? priceDetail(receipt, amount) : { was: null, note: null };
     const forLine = [receipt?.businessName, receipt?.city].filter(Boolean).join(" · ");
     const howToPay = amount === null ? "how to pay" : `how to pay ${formatPHP(amount)}`;
 
     return (
-        <PublicPage header={giveaway
-            ? <CampaignHeader exit={{ href: "/100-pages-giveaway", label: "Back to giveaway" }} className={HEADER_ALIGN} />
-            : <FunnelHeader exit={{ href: "/", label: "Back to site" }} className={HEADER_ALIGN} />}>
+        <PublicPage header={<FunnelHeader exit={{ href: "/", label: "Back to site" }} className={HEADER_ALIGN} />}>
             <div className="mx-auto flex w-full max-w-[600px] flex-col gap-7 px-4 pb-16 pt-10 sm:px-6 lg:pb-20 lg:pt-14">
                 <span className="flex size-12 items-center justify-center rounded-full bg-r1-gold text-r1-ink" aria-hidden="true">
                     <Icon icon={Check} size={24} />
                 </span>
 
                 <div className="flex flex-col gap-3">
-                    <h1 className="t-h1">{giveaway ? "Salamat — Off the Record has your application." : "Salamat — we have everything we need."}</h1>
+                    <h1 className="t-h1">Salamat — we have everything we need.</h1>
                     <p className="t-sub">
-                        {giveaway ? "Your slot is reserved while Off the Record checks your business and poster photo. Tendso will email your free website to " : "We'll build it and email you at "}
+                        We&apos;ll build it and email you at{" "}
                         <strong className="font-semibold text-r1-ink [overflow-wrap:anywhere]">{email ?? "the address you gave us"}</strong>{" "}
-                        {giveaway ? "when it is ready, if your application qualifies." : `within 48–72 hours with your site and ${howToPay}.`}
+                        {`within 48–72 hours with your site and ${howToPay}.`}
                     </p>
                 </div>
 
@@ -117,31 +119,27 @@ export default function StartThanksPage() {
                                     ) : null}
                                     <span className="text-xl font-semibold leading-6 tabular-nums">
                                         {detail.was !== null ? <span className="sr-only">Now </span> : null}
-                                        {giveaway ? "Free" : formatPHP(amount)}
+                                        {formatPHP(amount)}
                                     </span>
                                     {detail.note ? <span className="t-meta">{detail.note}</span> : null}
                                 </span>
                             </Fact>
                         ) : null}
-                        <Fact term={giveaway ? "Your web address" : "When you pay"}>{giveaway ? "A Tendso web address" : "Once, only after your site is live"}</Fact>
+                        <Fact term="When you pay">Once, only after your site is live</Fact>
                         {forLine ? <Fact term="For">{forLine}</Fact> : null}
                     </dl>
                 </Highlight>
 
                 <section className="flex flex-col gap-4" aria-labelledby="start-next-hours">
                     <h2 id="start-next-hours" className="t-h2">
-                        {giveaway ? "What happens next" : "The next 48–72 hours"}
+                        The next 48–72 hours
                     </h2>
                     <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
-                        {(giveaway ? [
-                            "Off the Record checks that its poster is visibly hanging in your walk-in business.",
-                            "If your application qualifies, Tendso builds your free website from your answers and photos.",
-                            "Tendso emails your website link when it is ready. If your application cannot be accepted, you receive an email explaining why.",
-                        ] : [
+                        {[
                             "Our team reads your answers and builds your site from them — your words, your photos.",
                             "We check it and put it live.",
                             `We email you the link and ${howToPay}. That email is the first time you see it.`,
-                        ]).map((line, index) => (
+                        ].map((line, index) => (
                             <li key={index} className="flex items-start gap-3">
                                 <span className="inline-flex size-6 flex-none items-center justify-center rounded-full text-xs font-semibold tabular-nums text-r1-ink-3 ring-[1.5px] ring-inset ring-r1-line-2">
                                     {index + 1}
@@ -155,7 +153,7 @@ export default function StartThanksPage() {
                 <Card className="flex flex-col gap-2.5 px-5 py-5 sm:px-6">
                     <h2 className="text-sm font-semibold leading-5">Nothing to do now</h2>
                     <ul className="t-body m-0 flex list-disc flex-col gap-1.5 pl-[18px]">
-                        <li>{giveaway ? "There's nothing to pay for an eligible giveaway website." : "You don't pay anything until your site is live."}</li>
+                        <li>You don&apos;t pay anything until your site is live.</li>
                         <li>There&apos;s no account to make and nothing to install.</li>
                         <li>Keep an eye on that inbox — check spam too, in case our email lands there.</li>
                     </ul>
@@ -172,8 +170,8 @@ export default function StartThanksPage() {
                 </p>
 
                 <div>
-                    <ButtonLink size="lg" href={giveaway ? "/100-pages-giveaway" : "/"}>
-                        {giveaway ? "Back to Off the Record giveaway" : "Back to Tendso"}
+                    <ButtonLink size="lg" href="/">
+                        Back to Tendso
                     </ButtonLink>
                 </div>
             </div>

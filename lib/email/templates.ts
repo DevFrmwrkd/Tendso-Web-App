@@ -5,6 +5,12 @@
 
 import { getPaymentConfig } from '../payment/config'
 import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '../pricing'
+// Every runtime string is escaped before interpolation; see ./escape for why.
+import { escapeHtml } from './escape'
+import { getGiveawayLiveEmailHtml, getGiveawayReceivedEmailHtml } from './giveawayTemplates'
+
+// The OTR giveaway's emails live in ./giveawayTemplates, in the campaign look.
+export { getGiveawayApprovedEmailHtml, getGiveawayRejectedEmailHtml } from './giveawayTemplates'
 
 const paymentConfig = getPaymentConfig()
 
@@ -50,26 +56,6 @@ function websiteDiscountLineHtml(discount: CreatorDiscount | null): string {
     return `<p style="margin:8px 0 0;font-size:14px;color:#374151;">Website ${struckPriceHtml(discount.listPrice, 'margin-right:6px;')}${formatPHP(discount.price)} · ${percentOffHtml(discount, '')}</p>`
 }
 
-/**
- * Entity-encode a value before it is interpolated into the markup below.
- *
- * WHY: since /start exists, `businessName` / `businessOwnerName` / the owner's
- * email reach these templates from `submitOwnerIntake` — a PUBLIC, unauthenticated
- * Convex mutation — and the intake-received email is scheduled to a caller-supplied
- * address with no admin in the loop. Raw interpolation would let anyone put their
- * own HTML (a phishing link, say) inside a DKIM-signed email from our verified
- * from-address. Every runtime string below is therefore treated as untrusted text,
- * never as markup. Covers both text nodes and quoted attribute values (href, title).
- */
-function escapeHtml(value: string | undefined | null): string {
-    if (!value) return ''
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-}
 
 export function getPaymentConfirmationEmailHtml(params: {
     businessName: string
@@ -261,12 +247,13 @@ export function getPromoWebsiteLiveEmailHtml(params: {
     platformEmail?: string
     giveawayApplication?: boolean
 }): string {
+    // OTR's giveaway has a fixed giver and its own campaign look.
+    if (params.giveawayApplication === true) return getGiveawayLiveEmailHtml(params)
     // Escaped at the top so no interpolation site below can be missed.
     const businessName = escapeHtml(params.businessName)
     const businessOwnerName = escapeHtml(params.businessOwnerName)
     const websiteUrl = escapeHtml(params.websiteUrl)
     const creatorName = escapeHtml(params.creatorName)
-    const giveaway = params.giveawayApplication === true
     const wiseEmail = escapeHtml(params.platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
 
     return `
@@ -289,13 +276,13 @@ export function getPromoWebsiteLiveEmailHtml(params: {
                     <tr>
                         <td style="background:linear-gradient(135deg,#E4B05E 0%,#C89548 50%,#A67836 100%);padding:48px 40px 40px;text-align:center;">
                             <div style="display:inline-block;background:rgba(255,255,255,0.15);border-radius:12px;padding:10px 18px;margin-bottom:24px;">
-                                <span style="color:#ffffff;font-size:14px;font-weight:700;letter-spacing:1px;">${giveaway ? 'OFF THE RECORD' : 'TENDSO'}</span>
+                                <span style="color:#ffffff;font-size:14px;font-weight:700;letter-spacing:1px;">TENDSO</span>
                             </div>
                             <h1 style="margin:0 0 12px;color:#ffffff;font-size:32px;font-weight:800;line-height:1.2;letter-spacing:-0.5px;">
                                 Your Website is Live!
                             </h1>
                             <p style="margin:0;color:rgba(255,255,255,0.75);font-size:16px;line-height:1.6;">
-                                ${giveaway ? `A gift from Off the Record for ${businessName}. Built by Tendso.` : `A gift for ${businessName} &mdash; nothing to pay`}
+                                A gift for ${businessName} &mdash; nothing to pay
                             </p>
                         </td>
                     </tr>
@@ -307,9 +294,7 @@ export function getPromoWebsiteLiveEmailHtml(params: {
                                 Hi <strong style="color:#ffffff;">${businessOwnerName}</strong>,
                             </p>
                             <p style="margin:0;font-size:16px;color:#a1a1aa;line-height:1.7;">
-                                ${giveaway
-        ? `<strong style="color:#ffffff;">Off the Record</strong> is giving <strong style="color:#ffffff;">${businessName}</strong> a free Tendso website &mdash; and it is built, published, and live on the web right now.`
-        : creatorName
+                                ${creatorName
         ? `<strong style="color:#ffffff;">${creatorName}</strong> chose <strong style="color:#ffffff;">${businessName}</strong> for a free website under our current promo &mdash; and it is built, published, and live on the web right now.`
         : `<strong style="color:#ffffff;">${businessName}</strong> was chosen for a free website under our current promo &mdash; and it is built, published, and live on the web right now.`}
                                 <strong style="color:#E4B05E;">There is nothing for you to pay.</strong>
@@ -1483,35 +1468,6 @@ export function getPaymentFollowUpEmailHtml(params: {
 // saying so is the truth. Style mirrors getPaymentLinkEmailHtml (white card,
 // gold header) so the email that follows it looks like the same sender.
 
-export function getGiveawayRejectedEmailHtml(params: {
-    businessName: string
-    businessOwnerName: string
-    reason: string
-    applyUrl: string
-    platformEmail?: string
-}): string {
-    const businessName = escapeHtml(params.businessName)
-    const ownerName = escapeHtml(params.businessOwnerName)
-    const reason = escapeHtml(params.reason)
-    const applyUrl = escapeHtml(params.applyUrl)
-    const replyEmail = escapeHtml(params.platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
-    return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your Off the Record application — ${businessName}</title></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background:#fff;border-radius:16px;overflow:hidden;">
-<tr><td style="padding:28px 24px;background:#E4B05E;text-align:center;"><p style="margin:0 0 8px;color:#111827;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Off the Record</p><h1 style="margin:0;color:#111827;font-size:26px;line-height:1.25;">An update on your free website application</h1><p style="margin:8px 0 0;color:#374151;font-size:14px;">A gift from Off the Record. Websites built by Tendso.</p></td></tr>
-<tr><td style="padding:28px 24px;color:#374151;font-size:16px;line-height:1.7;">
-<p style="margin:0 0 16px;">Hi <strong>${ownerName}</strong>,</p>
-<p style="margin:0 0 20px;">Thank you for applying for a free Tendso website for <strong>${businessName}</strong> through Off the Record’s giveaway. Off the Record reviewed your application and couldn't accept it for this reason:</p>
-<div style="padding:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;">${reason}</div>
-<p style="margin:20px 0 16px;">Your held slot has been released. You can fix the issue above and apply again while slots remain. A new application holds a new slot; your earlier application no longer holds one.</p>
-<p style="margin:0 0 24px;"><a href="${applyUrl}" style="display:inline-block;background:#111827;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">Check slots and apply again</a></p>
-<p style="margin:0;">If anything is unclear, reply to this email and we'll help.</p>
-</td></tr><tr><td style="padding:20px 24px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">Questions? Reply or email <a href="mailto:${replyEmail}" style="color:#C89548;">${replyEmail}</a><br>&copy; ${new Date().getFullYear()} Tendso</td></tr>
-</table></td></tr></table></body></html>`
-}
-
 export function getIntakeReceivedEmailHtml(params: {
     businessName: string
     businessOwnerName: string
@@ -1519,7 +1475,9 @@ export function getIntakeReceivedEmailHtml(params: {
     platformEmail?: string
     giveawayApplication?: boolean
 }): string {
-    const { amount, platformEmail, giveawayApplication = false } = params
+    // The application flag decides, even if an earlier amount remains on the row.
+    if (params.giveawayApplication) return getGiveawayReceivedEmailHtml(params)
+    const { amount, platformEmail } = params
     // The one template whose inputs reach us with NO admin in between (see
     // escapeHtml) — escaped at the top so no interpolation site below can be missed.
     const businessName = escapeHtml(params.businessName)
@@ -1533,7 +1491,7 @@ export function getIntakeReceivedEmailHtml(params: {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${giveawayApplication ? 'Off the Record received your application' : 'We got your details'} — ${businessName}</title>
+    <title>We got your details — ${businessName}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 
@@ -1546,9 +1504,8 @@ export function getIntakeReceivedEmailHtml(params: {
                     <!-- Header (matches payment-link email) -->
                     <tr>
                         <td style="background-color:#E4B05E;padding:32px 40px;text-align:center;">
-                            <p style="margin:0 0 4px;font-size:13px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:1px;text-transform:uppercase;">${giveawayApplication ? 'Off the Record' : 'Tendso'}</p>
-                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;line-height:1.25;">${giveawayApplication ? 'Giveaway application received!' : 'We got your details!'}</h1>
-                            ${giveawayApplication ? '<p style="margin:10px 0 0;color:#111827;font-size:14px;">A gift from Off the Record. Websites built by Tendso.</p>' : ''}
+                            <p style="margin:0 0 4px;font-size:13px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Tendso</p>
+                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;line-height:1.25;">We got your details!</h1>
                         </td>
                     </tr>
 
@@ -1559,9 +1516,7 @@ export function getIntakeReceivedEmailHtml(params: {
                                 Hi <strong>${businessOwnerName}</strong>,
                             </p>
                             <p style="margin:0;font-size:16px;color:#374151;line-height:1.7;">
-                                ${giveawayApplication
-                                    ? `Thank you — Off the Record received your application for a free Tendso website for <strong style="color:#E4B05E;">${businessName}</strong>. Your slot is held while Off the Record reviews your eligibility and poster photo.`
-                                    : `Thank you — everything you sent for <strong style="color:#E4B05E;">${businessName}</strong> arrived safely, and we have started building your website.`}
+                                Thank you — everything you sent for <strong style="color:#E4B05E;">${businessName}</strong> arrived safely, and we have started building your website.
                             </p>
                         </td>
                     </tr>
@@ -1572,9 +1527,9 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;">
                                 <tr>
                                     <td style="padding:24px;text-align:center;">
-                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${giveawayApplication ? 'Off the Record Giveaway' : 'Your Website Will Be Ready In'}</p>
-                                        <p style="margin:0;font-size:${giveawayApplication ? '26' : '40'}px;color:#C89548;font-weight:800;">${giveawayApplication ? 'Awaiting eligibility review' : '48&ndash;72 hours'}</p>
-                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">${giveawayApplication ? 'Tendso emails your website link when it is ready, if your application qualifies.' : 'We will email you the moment it is done.'}</p>
+                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your Website Will Be Ready In</p>
+                                        <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">48&ndash;72 hours</p>
+                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">We will email you the moment it is done.</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1590,21 +1545,21 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">1</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'Off the Record checks your business details and the photo of its poster hanging where your customers can see it.' : 'Our team builds your website from the answers and photos you sent.'} <strong>Nothing else is needed from you right now.</strong></p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Our team builds your website from the answers and photos you sent. <strong>Nothing else is needed from you right now.</strong></p></td>
                                 </tr>
                             </table>
                             <!-- Step 2 -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">2</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'If your application qualifies, Tendso builds your free website and emails the link when it is ready. If it cannot be accepted, you receive an email explaining why.' : 'Within <strong>48&ndash;72 hours</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.'}</p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Within <strong>48&ndash;72 hours</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.</p></td>
                                 </tr>
                             </table>
                             <!-- Step 3 -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">3</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'Your free website includes a <strong>Tendso web address</strong>. Custom domains are not included.' : `That same email carries the payment instructions — <strong>₱${amount.toLocaleString('en-PH')}</strong>, payable from GCash, Maya, or any bank app.`}</p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">That same email carries the payment instructions — <strong>₱${amount.toLocaleString('en-PH')}</strong>, payable from GCash, Maya, or any bank app.</p></td>
                                 </tr>
                             </table>
                         </td>
@@ -1615,7 +1570,7 @@ export function getIntakeReceivedEmailHtml(params: {
                         <td style="padding:0 40px 24px;">
                             <div style="padding:16px 20px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
                                 <p style="margin:0;font-size:15px;color:#1e40af;line-height:1.6;">
-                                    ${giveawayApplication ? '<strong>If eligible, your website is free — nothing to pay.</strong> Your application is awaiting eligibility review.' : `💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong>, one time — no monthly fees, no contract — and you only pay after you have seen your finished website.`}
+                                    💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong>, one time — no monthly fees, no contract — and you only pay after you have seen your finished website.
                                 </p>
                             </div>
                         </td>

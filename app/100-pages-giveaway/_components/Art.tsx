@@ -1,9 +1,9 @@
 /** Drawn pieces of the giveaway poster. All decorative: the words around them carry the meaning. */
 
 /** A gift box with a website popping out of it. */
-export function GiftArt() {
+export function GiftArt({ className = "gw-gift" }: { className?: string }) {
     return (
-        <svg className="gw-gift" viewBox="0 0 132 112" aria-hidden="true">
+        <svg className={className} viewBox="0 0 132 112" aria-hidden="true">
             <path d="M14 18 4 10M118 18l10-8M30 4l-4-6M102 4l4-6M66 0v-8" stroke="#FFC531" strokeWidth="4" strokeLinecap="round" />
             <g transform="rotate(-8 66 40)">
                 <rect x="40" y="10" width="54" height="40" rx="5" fill="#FFFFFF" stroke="#0D0D0D" strokeWidth="3.5" />
