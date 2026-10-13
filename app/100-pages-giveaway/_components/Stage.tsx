@@ -7,9 +7,9 @@ import type { ReactNode } from "react";
  * Tendso gold across the bottom, one screen tall. The header names both
  * brands, since OTR gives the website and Tendso builds it.
  */
-export function GiveawayStage({ live = false, children }: { live?: boolean; children: ReactNode }) {
+export function GiveawayStage({ live = false, closed = false, children }: { live?: boolean; closed?: boolean; children: ReactNode }) {
     return (
-        <div className="gw">
+        <div className={closed ? "gw is-closed" : "gw"}>
             <div className="gw-layer gw-rays" aria-hidden="true" />
             <div className="gw-dots is-left" aria-hidden="true" />
             <div className="gw-dots is-right" aria-hidden="true" />
