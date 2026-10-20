@@ -631,6 +631,66 @@ Return ONLY the JSON object, no markdown fence, no commentary.`
             return null  // graceful fall-through
         }
     },
+
+    /**
+     * AI art director — pick the best design from the design library for
+     * this business, plus 2 ranked alternates the owner can swap to in
+     * the mobile app.
+     *
+     * Reads the skill-style catalog in lib/design-library.ts. Never
+     * throws: on any failure returns the business-type preset (or
+     * platform default) via resolveDesignSelection(null, type).
+     */
+    async selectDesign(
+        businessInfo: BusinessInfo,
+        transcript?: string,
+        extras?: { tagline?: string; about?: string; tone?: string },
+    ): Promise<import('../design-library').DesignSelection> {
+        const { renderDesignLibraryPrompt, resolveDesignSelection } = await import('../design-library')
+
+        const transcriptExcerpt = (transcript || '').slice(0, 2500)
+        const prompt = `You are the art director for a website platform serving local Philippine businesses. Pick the best design from the catalog below for this business, plus exactly 2 ranked alternates that feel meaningfully different (not the same design recolored).
+
+BUSINESS
+- Name: ${businessInfo.name}
+- Type: ${businessInfo.type}
+- Location: ${businessInfo.location}
+${extras?.tagline ? `- Tagline: ${extras.tagline}` : ''}
+${extras?.tone ? `- Tone: ${extras.tone}` : ''}
+${extras?.about ? `- About: ${extras.about.slice(0, 500)}` : ''}
+${transcriptExcerpt ? `- Owner interview excerpt: ${transcriptExcerpt}` : ''}
+
+${renderDesignLibraryPrompt()}
+
+RULES
+- PREFER picking a curated recipe: set "recipeId" to one of the recipe ids. Only fall back to freeform designId + colorScheme + fontPairing when no recipe fits.
+- designId must be one of the catalog ids exactly.
+- For designs marked [palette locked], use colorScheme "auto" and fontPairing "auto" unless a listed recommended value clearly fits better.
+- Judge from the business's actual character (interview, tone), not just its category.
+- Alternates must feel meaningfully different (different archetype or clearly different mood), not the same design recolored.
+- reason: one short sentence in plain language a business owner understands.
+
+Respond with JSON only:
+{"primary":{"recipeId":"...","reason":"..."},"alternates":[{"recipeId":"...","reason":"..."},{"recipeId":"...","reason":"..."}]}
+(or replace recipeId with "designId"+"colorScheme"+"fontPairing" for a freeform pick)`
+
+        try {
+            const groq = getGroqClient()
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'llama-3.3-70b-versatile',
+                temperature: 0.4,
+                max_tokens: 600,
+                response_format: { type: 'json_object' },
+            })
+            const content = completion.choices[0]?.message?.content || '{}'
+            const parsed = JSON.parse(content)
+            return resolveDesignSelection(parsed, businessInfo.type)
+        } catch (error) {
+            console.error('Groq design selection error:', error)
+            return resolveDesignSelection(null, businessInfo.type)
+        }
+    },
 }
 
 // Types

@@ -150,6 +150,55 @@ const SCHEMES: Record<string, Palette> = {
         primary: '#B89060', primaryDeep: '#8C6940', accent: '#D6B97A',
         paperRgb: '255,255,255', inkRgb: '26,26,26', accentRgb: '184,144,96',
     },
+    // ── v2 design-library additions ─────────────────────────────────────
+    teal: {
+        paper: '#F2FAFA', paper2: '#FFFFFF', card: '#DEF0F0',
+        ink: '#0F3B3B', inkSoft: '#33625F', line: '#C5E0DF',
+        primary: '#0D9488', primaryDeep: '#115E59', accent: '#2DD4BF',
+        paperRgb: '242,250,250', inkRgb: '15,59,59', accentRgb: '45,212,191',
+    },
+    navy: {
+        paper: '#F5F7FA', paper2: '#FFFFFF', card: '#E2E8F2',
+        ink: '#0B1F3B', inkSoft: '#3B4E6E', line: '#CBD6E6',
+        primary: '#1E3A8A', primaryDeep: '#12275F', accent: '#3B82F6',
+        paperRgb: '245,247,250', inkRgb: '11,31,59', accentRgb: '59,130,246',
+    },
+    sage: {
+        paper: '#F5F7F2', paper2: '#FFFFFF', card: '#E4EADC',
+        ink: '#2E3A2A', inkSoft: '#5A6B52', line: '#D0DAC5',
+        primary: '#7C9070', primaryDeep: '#55654B', accent: '#A3B892',
+        paperRgb: '245,247,242', inkRgb: '46,58,42', accentRgb: '163,184,146',
+    },
+    terracotta: {
+        paper: '#FDF6F0', paper2: '#FFFFFF', card: '#F6E3D4',
+        ink: '#4A2515', inkSoft: '#7A4A32', line: '#EBD0BC',
+        primary: '#C2603E', primaryDeep: '#8F3F24', accent: '#E08A63',
+        paperRgb: '253,246,240', inkRgb: '74,37,21', accentRgb: '224,138,99',
+    },
+    slate: {
+        paper: '#F4F5F7', paper2: '#FFFFFF', card: '#E3E6EA',
+        ink: '#1F2733', inkSoft: '#4B5563', line: '#CDD3DB',
+        primary: '#475569', primaryDeep: '#1E293B', accent: '#94A3B8',
+        paperRgb: '244,245,247', inkRgb: '31,39,51', accentRgb: '148,163,184',
+    },
+    cream: {
+        paper: '#FAF6EE', paper2: '#FFFFFF', card: '#F0E8D8',
+        ink: '#3B3325', inkSoft: '#6B5F49', line: '#E2D6BE',
+        primary: '#A08650', primaryDeep: '#79643A', accent: '#C6A96E',
+        paperRgb: '250,246,238', inkRgb: '59,51,37', accentRgb: '198,169,110',
+    },
+    wine: {
+        paper: '#FBF6F6', paper2: '#FFFFFF', card: '#F0DEDF',
+        ink: '#3B0A16', inkSoft: '#6E2E3C', line: '#E4C8CB',
+        primary: '#7B2436', primaryDeep: '#571523', accent: '#B0495F',
+        paperRgb: '251,246,246', inkRgb: '59,10,22', accentRgb: '176,73,95',
+    },
+    mint: {
+        paper: '#F2FBF6', paper2: '#FFFFFF', card: '#DDF2E6',
+        ink: '#12382A', inkSoft: '#3B6653', line: '#C4E4D3',
+        primary: '#10B981', primaryDeep: '#0B7A56', accent: '#5EEAB4',
+        paperRgb: '242,251,246', inkRgb: '18,56,42', accentRgb: '94,234,180',
+    },
 };
 
 const FONT_PAIRINGS: Record<string, { heading: string; body: string; mono?: string; gfontFamily?: string[] }> = {
@@ -164,6 +213,12 @@ const FONT_PAIRINGS: Record<string, { heading: string; body: string; mono?: stri
     friendly:     { heading: 'Quicksand', body: 'Quicksand',              gfontFamily: ['Quicksand:wght@400;500;600;700'] },
     luxury:       { heading: 'Cinzel', body: 'Lato',                       gfontFamily: ['Cinzel:wght@400;500;600;700', 'Lato:wght@300;400;700'] },
     gourmet:      { heading: 'Cormorant Garamond', body: 'Montserrat',     gfontFamily: ['Cormorant+Garamond:wght@400;500;600;700', 'Montserrat:wght@300;400;500;600'] },
+    // ── v2 design-library additions ─────────────────────────────────────
+    editorial:    { heading: 'Libre Caslon Text', body: 'Inter',            gfontFamily: ['Libre+Caslon+Text:wght@400;700', 'Inter:wght@300;400;500;600;700'] },
+    humanist:     { heading: 'Fraunces', body: 'Work Sans',                 gfontFamily: ['Fraunces:wght@400;500;600;700', 'Work+Sans:wght@300;400;500;600'] },
+    industrial:   { heading: 'Oswald', body: 'Source Sans 3',               gfontFamily: ['Oswald:wght@400;500;600;700', 'Source+Sans+3:wght@300;400;500;600'] },
+    retro:        { heading: 'Abril Fatface', body: 'Poppins',              gfontFamily: ['Abril+Fatface', 'Poppins:wght@300;400;500;600'] },
+    warm:         { heading: 'Lora', body: 'Nunito Sans',                   gfontFamily: ['Lora:wght@400;500;600;700', 'Nunito+Sans:wght@300;400;600;700'] },
 };
 
 /**
@@ -250,14 +305,72 @@ export function buildFontHref(pairing: string): string | null {
     return `https://fonts.googleapis.com/css2?${families}&display=swap`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Design axes — orthogonal look modifiers layered on top of any template ×
+// scheme × pairing combination. Each axis emits a small global CSS block.
+// 'auto' / undefined = no rule, the template's native styling wins.
+// Driven by customizations.designAxes (see lib/design-library.ts recipes).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DesignAxes = {
+    /** Corner language: sharp (0), soft (10px), pill (999px on buttons). */
+    shape?: 'sharp' | 'soft' | 'pill';
+    /** Vertical rhythm of sections: airy stretches, dense compresses. */
+    density?: 'airy' | 'dense';
+    /** Full-page overlay texture, very low opacity. */
+    texture?: 'grain' | 'lines' | 'dots';
+    /** Display treatment for headings. */
+    typecase?: 'uppercase' | 'normal';
+};
+
+export function buildAxisCss(axes?: DesignAxes | null): string {
+    if (!axes) return '';
+    const lines: string[] = [];
+    // Shape — retarget the interactive + container vocabulary shared by
+    // all families. !important in keeping with the scheme override block.
+    if (axes.shape === 'sharp') {
+        lines.push('.btn, button, a[class*="btn"], .nav-cta, .card, .panel, input, textarea, select, img, .tag, .badge, .pill { border-radius: 0 !important; }');
+    } else if (axes.shape === 'soft') {
+        lines.push('.btn, button, a[class*="btn"], .nav-cta, input, textarea, select, .tag, .badge, .pill { border-radius: 10px !important; }');
+        lines.push('.card, .panel, img { border-radius: 14px !important; }');
+    } else if (axes.shape === 'pill') {
+        lines.push('.btn, button, a[class*="btn"], .nav-cta, .tag, .badge, .pill { border-radius: 999px !important; }');
+        lines.push('.card, .panel, img, input, textarea, select { border-radius: 18px !important; }');
+    }
+    // Density — section rhythm. Sections across families use section tags
+    // or .section wrappers; hero keeps its own sizing (excluded).
+    if (axes.density === 'airy') {
+        lines.push('main section:not(.hero):not([class*="hero"]), body > section:not(.hero):not([class*="hero"]), .section { padding-top: clamp(88px, 11vw, 150px) !important; padding-bottom: clamp(88px, 11vw, 150px) !important; }');
+    } else if (axes.density === 'dense') {
+        lines.push('main section:not(.hero):not([class*="hero"]), body > section:not(.hero):not([class*="hero"]), .section { padding-top: clamp(44px, 6vw, 72px) !important; padding-bottom: clamp(44px, 6vw, 72px) !important; }');
+    }
+    // Texture — fixed overlay, pointer-events none, sits under content
+    // stacking contexts thanks to very low opacity + z-index 1.
+    if (axes.texture === 'grain') {
+        lines.push(`body::after { content: ''; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; opacity: .05; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"); }`);
+    } else if (axes.texture === 'lines') {
+        lines.push("body::after { content: ''; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; opacity: .04; background: repeating-linear-gradient(0deg, rgba(var(--ink-rgb, 0,0,0), 1) 0 1px, transparent 1px 5px); }");
+    } else if (axes.texture === 'dots') {
+        lines.push("body::after { content: ''; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; opacity: .05; background-image: radial-gradient(rgba(var(--ink-rgb, 0,0,0), 1) 1px, transparent 1.5px); background-size: 14px 14px; }");
+    }
+    // Typecase — headline treatment.
+    if (axes.typecase === 'uppercase') {
+        lines.push('h1, h2, .htitle, .giant { text-transform: uppercase !important; letter-spacing: 0.03em !important; }');
+    } else if (axes.typecase === 'normal') {
+        lines.push('h1, h2, h3, .htitle, .giant { text-transform: none !important; letter-spacing: normal !important; }');
+    }
+    return lines.join('\n');
+}
+
 /**
  * Build the override CSS block. Returns '' when scheme is unset / 'auto'
- * AND pairing is unset / 'modern' (template default).
+ * AND pairing is unset / 'modern' (template default) AND no axes given.
  */
-export function buildOverrideCss(scheme: string, pairing: string): string {
+export function buildOverrideCss(scheme: string, pairing: string, axes?: DesignAxes | null): string {
     const palette = SCHEMES[scheme];
     const font = FONT_PAIRINGS[pairing];
-    if (!palette && !font) return '';
+    const axisCss = buildAxisCss(axes);
+    if (!palette && !font) return axisCss;
 
     const lines: string[] = [];
     // `html:root` selector + !important wins over component-scoped
@@ -396,5 +509,6 @@ export function buildOverrideCss(scheme: string, pairing: string): string {
         lines.push('html, body { font-family: var(--sans) !important; }');
         lines.push('h1, h2, h3, h4, h5, h6, .htitle, .giant, .brand { font-family: var(--disp) !important; }');
     }
+    if (axisCss) lines.push(axisCss);
     return lines.join('\n');
 }

@@ -32,7 +32,7 @@ const title = layout.businessName
   ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
   : 'Welcome';
 const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
-const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing, (layout as any).designAxes);
 const __fontHref = buildFontHref(__themePairing);
 ---
 

@@ -34,7 +34,7 @@ const title = layout.businessName
   : 'Welcome';
 // skipAuto: per-variant palette wins when admin leaves Color Scheme on auto.
 const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
-const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing, (layout as any).designAxes);
 const __fontHref = buildFontHref(__themePairing);
 ---
 

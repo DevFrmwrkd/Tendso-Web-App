@@ -667,9 +667,49 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             fontPairing: 'modern',
             fontPairingId: 'modern'
         }
+
+        // ── AI design selection ─────────────────────────────────────────
+        // When neither the request nor a previously saved website pinned a
+        // design (heroStyle), let the agent pick one from the design
+        // library (lib/design-library.ts) based on business type, tone and
+        // the owner interview. Alternates are persisted on
+        // customizations.designSelection so the mobile app can offer swaps.
+        // Explicit admin/app picks always win — the agent only fills gaps.
+        let designSelection: import('@/lib/design-library').DesignSelection | null = null
+        const explicitHeroStyle =
+            (customizations as any)?.heroStyle ||
+            (existingWebsite?.customizations as any)?.heroStyle
+        if (!explicitHeroStyle) {
+            const { pickToCustomizations } = await import('@/lib/design-library')
+            designSelection = await groqService.selectDesign(
+                {
+                    name: submission.business_name,
+                    type: submission.business_type || '',
+                    owner: submission.owner_name || '',
+                    location: submission.city || '',
+                },
+                submission.transcript || '',
+                {
+                    tagline: (extractedContent as any)?.tagline,
+                    about: (extractedContent as any)?.about,
+                    tone: (extractedContent as any)?.tone,
+                },
+            )
+            Object.assign(defaultCustomizations, pickToCustomizations(designSelection.primary))
+            console.log(
+                `[DESIGN] ${designSelection.pickedBy} pick: ${designSelection.primary.designId}` +
+                ` scheme=${designSelection.primary.colorScheme} font=${designSelection.primary.fontPairing}` +
+                ` — ${designSelection.primary.reason}`
+            )
+        }
+
         const finalCustomizations = customizations && Object.keys(customizations).length > 0
             ? { ...defaultCustomizations, ...customizations }
             : defaultCustomizations
+        // Attach the full selection (primary + alternates) so the editor /
+        // mobile app can render swap options. Harmless extra key for the
+        // astro builder, persisted via the generatedWebsites upsert below.
+        if (designSelection) (finalCustomizations as any).designSelection = designSelection
 
         // Ensure all required fields are present with fallbacks from submission data
         const contentWithContact = {

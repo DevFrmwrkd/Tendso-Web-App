@@ -101,6 +101,13 @@ interface Customizations {
     colorSchemeId?: string
     fontPairing?: string
     fontPairingId?: string
+    /** Orthogonal look modifiers — see DesignAxes in genericThemeOverrides.ts */
+    designAxes?: {
+        shape?: 'sharp' | 'soft' | 'pill'
+        density?: 'airy' | 'dense'
+        texture?: 'grain' | 'lines' | 'dots'
+        typecase?: 'uppercase' | 'normal'
+    }
 }
 
 /**
@@ -343,6 +350,9 @@ async function transformToAstroData(
             socialLinks: content.footer?.social_links || [],
             colorScheme: customizations.colorSchemeId || customizations.colorScheme || 'auto',
             fontPairing: customizations.fontPairingId || customizations.fontPairing || 'modern',
+            // Design axes (shape/density/texture/typecase) — recipe-driven
+            // look modifiers consumed by buildOverrideCss in every PageX.
+            designAxes: (customizations as any).designAxes || undefined,
             contact: formattedContact || {},
             navbarStyle: heroStyle,
             // Favicon — admin uploads via the Images tab "Website tab image"

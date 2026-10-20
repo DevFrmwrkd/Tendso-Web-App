@@ -1605,6 +1605,14 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                     <option value="black">Black Monochrome</option>
                                     <option value="gold">Gold Premium (cream)</option>
                                     <option value="whitegold">White & Gold Luxe</option>
+                                    <option value="teal">Teal Modern Care</option>
+                                    <option value="navy">Navy Established</option>
+                                    <option value="sage">Sage Organic</option>
+                                    <option value="terracotta">Terracotta Mediterranean</option>
+                                    <option value="slate">Slate Industrial</option>
+                                    <option value="cream">Cream Heritage</option>
+                                    <option value="wine">Wine Intimate</option>
+                                    <option value="mint">Mint Fresh</option>
                                 </select>
                             </div>
 
@@ -1630,6 +1638,11 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                     <option value="friendly">Friendly Rounded</option>
                                     <option value="luxury">Luxury Serif</option>
                                     <option value="gourmet">Gourmet Elegant</option>
+                                    <option value="editorial">Editorial Caslon</option>
+                                    <option value="humanist">Humanist Fraunces</option>
+                                    <option value="industrial">Industrial Oswald</option>
+                                    <option value="retro">Retro Poster</option>
+                                    <option value="warm">Warm Literary</option>
                                 </select>
                             </div>
                         </div>

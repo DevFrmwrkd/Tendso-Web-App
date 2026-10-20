@@ -135,6 +135,14 @@ const COLOR_SCHEMES = [
     { id: "black",     label: "Black · Monochrome" },
     { id: "gold",      label: "Gold · Premium (cream)" },
     { id: "whitegold", label: "White & Gold · Luxe" },
+    { id: "teal",       label: "Teal · Modern Care" },
+    { id: "navy",       label: "Navy · Established" },
+    { id: "sage",       label: "Sage · Organic" },
+    { id: "terracotta", label: "Terracotta · Mediterranean" },
+    { id: "slate",      label: "Slate · Industrial" },
+    { id: "cream",      label: "Cream · Heritage" },
+    { id: "wine",       label: "Wine · Intimate" },
+    { id: "mint",       label: "Mint · Fresh" },
 ];
 const FONT_PAIRINGS = [
     { id: "modern",       label: "Modern (Default)" },
@@ -148,6 +156,11 @@ const FONT_PAIRINGS = [
     { id: "friendly",     label: "Friendly Rounded" },
     { id: "luxury",       label: "Luxury Serif" },
     { id: "gourmet",      label: "Gourmet Elegant" },
+    { id: "editorial",    label: "Editorial Caslon" },
+    { id: "humanist",     label: "Humanist Fraunces" },
+    { id: "industrial",   label: "Industrial Oswald" },
+    { id: "retro",        label: "Retro Poster" },
+    { id: "warm",         label: "Warm Literary" },
 ];
 
 // ── Bridge field mapping ──────────────────────────────────────────────
