@@ -1,9 +1,9 @@
 /* Ask Tendso (components/v2/chat/AskTendso.tsx). Tokens come from the v2 scope.
-   One accent, fills only. Nothing under 14px. */
+   One accent, fills only. Nothing under 16px. */
 
 .at-kicker {
   display: inline-flex; align-items: center; gap: 10px;
-  font: 500 14px/1 var(--v2-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--v2-ink-2);
+  font: 500 16px/1 var(--v2-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--v2-ink-2);
 }
 .at-kicker i { width: 10px; height: 10px; border-radius: 50%; background: var(--v2-accent); box-shadow: 0 0 0 1px var(--v2-ink); }
 
@@ -46,7 +46,7 @@
 .at-more { border: 0; background: none; padding: 0; cursor: pointer; font: 500 16px/1 var(--v2-font); text-decoration: underline; text-underline-offset: 3px; }
 .at-cite {
   display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin: 0 2px; padding: 0 5px; vertical-align: 2px;
-  border-radius: 11px; background: var(--v2-tile-quiet); font: 500 14px/1 var(--v2-font); color: var(--v2-ink-2);
+  border-radius: 11px; background: var(--v2-tile-quiet); font: 500 16px/1 var(--v2-font); color: var(--v2-ink-2);
 }
 .at-cite:hover { background: var(--v2-ink); color: #fff; }
 .at-looking { display: inline-flex; align-items: center; gap: 12px; font-size: 17px; color: var(--v2-ink-2); }
@@ -57,17 +57,17 @@
 @keyframes at-dot { 0%, 100% { opacity: .2; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
 
 .at-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.at-sources-k { font-size: 15px; color: var(--v2-muted); margin-right: 2px; }
+.at-sources-k { font-size: 16px; color: var(--v2-muted); margin-right: 2px; }
 .at-source {
   display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px 6px 8px; border-radius: var(--v2-r-pill);
-  background: var(--v2-canvas); box-shadow: inset 0 0 0 1px var(--v2-line); font-size: 15px; line-height: 1.2; max-width: 100%;
+  background: var(--v2-canvas); box-shadow: inset 0 0 0 1px var(--v2-line); font-size: 16px; line-height: 1.2; max-width: 100%;
   transition: box-shadow var(--v2-d-ui) var(--v2-ease-out);
 }
 .at-source:hover { box-shadow: inset 0 0 0 1px var(--v2-ink); }
 .at-source:not(:has(b)) { padding-left: 14px; }
 .at-source b {
   flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
-  background: var(--v2-tile-quiet); font: 500 14px/1 var(--v2-font); color: var(--v2-ink-2);
+  background: var(--v2-tile-quiet); font: 500 16px/1 var(--v2-font); color: var(--v2-ink-2);
 }
 .at-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .at-btn {

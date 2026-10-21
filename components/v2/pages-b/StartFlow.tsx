@@ -60,8 +60,8 @@ const KIND: Record<string, { label: string; site: string; design: string }> = {
     "Auto Shop": { label: "Auto shop", site: "vulca", design: "Auto repair" },
     "Spa/Massage": { label: "Spa or massage", site: "hela", design: "Hair and spa studio" },
     Restaurant: { label: "Restaurant", site: "domingo", design: "Hardware store" },
-    Clinic: { label: "Clinic", site: "kalasag", design: "Gym" },
-    "Law Office": { label: "Law office", site: "kalasag", design: "Gym" },
+    Clinic: { label: "Clinic", site: "hela", design: "Hair and spa studio" },
+    "Law Office": { label: "Law office", site: "hela", design: "Hair and spa studio" },
     "Craft/Producer": { label: "Craft or producer", site: "domingo", design: "Hardware store" },
     Other: { label: "Something else", site: "labana", design: "Laundry" },
 };
@@ -297,7 +297,7 @@ export function StartFlow() {
         window.scrollTo({ top: 0, behavior: "auto" });
     }, [screen]);
 
-    const quote = quoteFor(campaign, false, giveaway, affiliatePrice);
+    const quote = quoteFor(campaign, draft?.wantsCustomDomain ?? false, giveaway, affiliatePrice);
     const basics = draft?.basics ?? emptyDraft().basics;
     const kind = KIND[basics.businessType] ?? DEFAULT_SITE;
     const address = `${slugify(basics.businessName || "Forge Barbers")}.${SITE_HOST}`;
@@ -441,7 +441,10 @@ export function StartFlow() {
                 qa: INTAKE_QUESTIONS.map((question) => ({ q: question.q, a: (draft.answers[question.key] ?? "").trim() })).filter((pair) => pair.a.length > 0),
                 photos: buildPhotoArray(draft.photos, !!draft.hasProducts),
                 hasProducts: !!draft.hasProducts,
-                submissionType: "standard",
+                submissionType: !draft.giveawayApplication && draft.wantsCustomDomain ? "with_custom_domain" : "standard",
+                requestedDomain: !draft.giveawayApplication && draft.wantsCustomDomain
+                    ? draft.requestedDomain.trim().toLowerCase()
+                    : undefined,
                 campaign: draft.giveawayApplication ? undefined : (campaign ?? undefined),
                 affiliateHandle: draft.giveawayApplication ? undefined : (affiliateHandle ?? undefined),
                 source: draft.giveawayApplication ? (draft.giveawaySource ?? undefined) : (source ?? undefined),
@@ -449,7 +452,7 @@ export function StartFlow() {
                 giveawayPosterPhoto: draft.giveawayApplication ? (draft.giveawayPosterPhoto ?? undefined) : undefined,
             });
             const submitted = await convex.query(api.submissions.getById, { id: submissionId }).catch(() => null);
-            const quoted = quoteFor(campaign, false, draft.giveawayApplication, affiliatePrice);
+            const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication, affiliatePrice);
             const amount = submitted ? ownerChargeFor(submitted) : affiliateHandle !== null ? null : quoted.total;
             rememberSubmitted({
                 email: b.ownerEmail.trim(),
@@ -457,7 +460,7 @@ export function StartFlow() {
                 businessName: b.businessName.trim(),
                 city: b.city.trim(),
                 campaign: submitted ? (submitted.campaign ?? null) : draft.giveawayApplication ? null : normalizeCampaign(campaign),
-                customDomain: submitted ? submitted.submissionType === "with_custom_domain" : false,
+                customDomain: submitted ? submitted.submissionType === "with_custom_domain" : !draft.giveawayApplication && draft.wantsCustomDomain,
                 giveawayApplication: draft.giveawayApplication,
                 ...(amount !== null
                     ? {
@@ -637,7 +640,7 @@ export function StartFlow() {
                             <div className="pb-st-stage">
                                 <span className="pb-sample-tag pb-st-tag">Sample design · {kind.design}</span>
                                 <div className="pb-st-phone">
-                                    <SitePhone key={kind.site} src={`/v2/pages-b/${kind.site}-m-long.jpg`} url={address} alt="A sample Tendso site on a phone" />
+                                    <SitePhone key={kind.site} src={`/v2/sites/${kind.site}-m.jpg`} url={address} alt="A sample Tendso site on a phone" />
                                 </div>
                             </div>
                             <div className="pb-st-price">
@@ -1009,6 +1012,18 @@ export function StartFlow() {
                                 <p className="pb-st-pay-v">
                                     <b>{formatPHP(quote.total)}</b> once{quote.discounted && quote.percentOff ? ` (${quote.percentOff}% off ${formatPHP(quote.listPrice)})` : ""}. See it first. Pay once to publish.
                                 </p>
+                                {quote.tier === "with_custom_domain" && (
+                                    <dl>
+                                        <div>
+                                            <dt>Website</dt>
+                                            <dd>{quote.discounted && <s>{formatPHP(quote.listPrice)}</s>} {formatPHP(quote.sellPrice)}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>Custom domain</dt>
+                                            <dd>{draft!.requestedDomain.trim().toLowerCase()} · {formatPHP(quote.addOn)}</dd>
+                                        </div>
+                                    </dl>
+                                )}
                                 {affiliateHandle === null && (
                                     <details className="pb-st-code">
                                         <summary>Have a discount code?</summary>
