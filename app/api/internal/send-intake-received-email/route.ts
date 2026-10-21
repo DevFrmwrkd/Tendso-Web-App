@@ -10,7 +10,7 @@ import { BASE_PRICE } from '@/lib/pricing'
  *
  * Internal endpoint called by Convex action `ownerIntake.sendIntakeReceivedEmailAction`
  * immediately after a business owner submits the /start intake. Acknowledges the
- * submission and sets the 48-72h expectation — the same window /start, the thanks
+ * submission and sets the same-day expectation — the same window /start, the thanks
  * page and the landing copy promise — so the owner's first contact from us is not
  * the payment email.
  *

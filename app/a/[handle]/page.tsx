@@ -8,7 +8,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const { handle } = await params;
     return {
         title: "A website for your shop — Tendso",
-        description: "Get a website built from your photos and your words. Pay once, after your website is live.",
+        description: "Get a website built from your photos and your words. See it first, pay once to publish.",
         alternates: { canonical: `/a/${encodeURIComponent(handle)}` },
     };
 }

@@ -401,7 +401,7 @@ export default function ReviewSubmissionPage() {
                     </span>
                 </p>
                 {discount && struckTotal !== null ? <Status tone="done" word={`${discount.percentOff}% off`} /> : null}
-                <p className="t-meta">Once, only after the site is live, by bank transfer.</p>
+                <p className="t-meta">Once, after they have seen the site, by bank transfer.</p>
             </div>
             <div className="flex flex-col gap-2">
                 <MoneyLines>
@@ -516,7 +516,7 @@ export default function ReviewSubmissionPage() {
                         aria-describedby={confirmError ? confirmErrorId : undefined}
                         label={
                             <span>
-                                This is a real business, and {who} agreed to pay {formatMoney(totalAmount)} once the site is live.
+                                This is a real business, and {who} agreed to pay {formatMoney(totalAmount)} to keep the site live.
                             </span>
                         }
                     />

@@ -678,7 +678,7 @@ export default function StartPage() {
         barInfo = `${stepOf} · ${draft.giveawayPosterPhoto ? "Your poster photo is saved." : "Add a photo of your poster in the shop."}`;
         if (showPosterProblem && !draft.giveawayPosterPhoto) barError = "Add your poster photo to continue.";
     } else {
-        barInfo = giveaway ? `${stepOf} · Free, if your application qualifies.` : `${stepOf} · Nothing to pay now. You pay ${formatPHP(quote.total)} after it is live.`;
+        barInfo = giveaway ? `${stepOf} · Free, if your application qualifies.` : `${stepOf} · Nothing to pay now. See it first, then pay ${formatPHP(quote.total)} once to publish.`;
         // A bad web address is the current blocker; a server rejection is from
         // the last attempt and is said until the next one clears it.
         barError = showDomainError && domainError ? "Fix the web address, then send it in." : submitError;

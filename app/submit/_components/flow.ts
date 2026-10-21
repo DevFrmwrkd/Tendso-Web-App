@@ -302,7 +302,7 @@ export function needRows({
         },
         {
             label: first ? `${first}’s OK on the price` : "The owner’s OK on the price",
-            meta: `Agree your price with ${who} on the last step. It is paid after the site is live.`,
+            meta: `Agree your price with ${who} on the last step. The owner sees the site first, then pays once to keep it live.`,
             // Ticked on the review step only, where this rail gives way to the price card.
             state: "todo",
         },

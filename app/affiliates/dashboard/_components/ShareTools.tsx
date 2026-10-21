@@ -63,7 +63,7 @@ export function ShareTools({ handle, displayName, price, disabled = false }: {
                     <p className={styles.byline}>{displayName || "Your Tendso affiliate"}</p>
                     <h1 className={styles.headline}>Your shop.<br />Online.</h1>
                     <p className={styles.intro}>Get a website for your business.</p>
-                    <div className={styles.price}><OfferPrice price={price} /><p>One-time payment</p></div>
+                    <div className={styles.price}><OfferPrice price={price} /><p>Pay once to publish</p></div>
                     <QRCodeSVG value={url} size={320} marginSize={4} level="M" bgColor="#FFFFFF" fgColor="#111111" className={styles.qr} />
                     <p className={styles.scan}>Scan to order your website</p>
                     <p className={styles.url}>{url.replace("https://", "")}</p>
