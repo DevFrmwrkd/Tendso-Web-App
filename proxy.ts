@@ -81,6 +81,10 @@ const isPublicRoute = createRouteMatcher([
     '/100-pages-giveaway(.*)',
     '/poster(.*)',
     '/libre(.*)',
+    // Design v2 component kit: a noindex review page for the new design system.
+    '/v2-kit(.*)',
+    // The redesigned public site, in review before it replaces the live pages.
+    '/v2(.*)',
     // Serves the /start desktop map picker, which decides where the map opens
     // from the address the owner typed. Public for the same reason /start is:
     // there is no account, so there is no session to authenticate. The handler
