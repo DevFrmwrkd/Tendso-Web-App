@@ -73,6 +73,7 @@ import type * as outreach from "../outreach.js";
 import type * as outreachAuth from "../outreachAuth.js";
 import type * as outscraper from "../outscraper.js";
 import type * as ownerIntake from "../ownerIntake.js";
+import type * as ownerSiteEdits from "../ownerSiteEdits.js";
 import type * as paymentTokens from "../paymentTokens.js";
 import type * as payments from "../payments.js";
 import type * as payoutMethods from "../payoutMethods.js";
@@ -162,6 +163,7 @@ declare const fullApi: ApiFromModules<{
   outreachAuth: typeof outreachAuth;
   outscraper: typeof outscraper;
   ownerIntake: typeof ownerIntake;
+  ownerSiteEdits: typeof ownerSiteEdits;
   paymentTokens: typeof paymentTokens;
   payments: typeof payments;
   payoutMethods: typeof payoutMethods;

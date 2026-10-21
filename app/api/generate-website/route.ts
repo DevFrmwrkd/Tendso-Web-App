@@ -4,6 +4,9 @@ import { fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { buildAstroSite } from '@/lib/astro-builder'
 import { buildRoleColorCss } from '@/lib/roleColors'
+import { applySectionOrder } from '@/lib/sectionOrder'
+import { signOwnerBuild } from '@/lib/ownerBuildProof'
+import { cleanOwnerCustomizations } from '@/lib/ownerSiteEdits'
 import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
@@ -41,10 +44,35 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
         }
 
-        // Check if user is admin using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
-        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
-            return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+        const body = await request.json()
+
+        // ── OWNER MODE (v2 owner editing) ─────────────────────────────
+        // `asOwner` is how /api/owner-site asks for the owner's own site to be
+        // built. It is NOT a bypass: the caller must be a business owner linked
+        // to this submission (checked in Convex by getDraftForBuild, which
+        // throws for anyone else), what is built is the owner's SAVED draft read
+        // from Convex — never content or customizations from the request — and
+        // the only write is ownerSiteEdits.commitBuild, which re-checks
+        // ownership and demands our signature on the HTML. An admin calling
+        // without `asOwner` takes the unchanged admin path below.
+        let ownerBuild: { content: any; customizations: any; hasDraft: boolean; updatedAt: number } | null = null
+        if (body?.asOwner === true) {
+            if (!body.submissionId) {
+                return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
+            }
+            try {
+                ownerBuild = await fetchQuery(api.ownerSiteEdits.getDraftForBuild, {
+                    submissionId: body.submissionId,
+                }, { token })
+            } catch {
+                return NextResponse.json({ error: 'Owner access required' }, { status: 403 })
+            }
+        } else {
+            // Check if user is admin using Convex
+            const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+            if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
+                return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+            }
         }
 
         // Rate limit: expensive operation (5/min)
@@ -54,12 +82,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Too many generation requests. Please wait a moment.' }, { status: 429 })
         }
 
-        const body = await request.json()
         // `preview` + `content` power the editor's "Preview my site" — build the
         // admin's UNSAVED draft into HTML and return it WITHOUT persisting (see the
         // early return after buildAstroSite below). Everything else is identical to
         // a real generate, so the preview matches exactly what Save would produce.
-        const { submissionId, templateName, customizations, content: draftContent, preview } = body
+        const { submissionId, templateName, preview } = body
+        // Owner mode builds the owner's saved draft; the admin path takes the
+        // request's (unchanged).
+        // An owner can ask to SEE their saved draft in another design (preview
+        // only, nothing stored): the same closed-list cleaning as a real pick.
+        const customizations = ownerBuild
+            ? (preview && typeof body.previewTemplate === 'string'
+                ? cleanOwnerCustomizations({ ...ownerBuild.customizations, heroStyle: body.previewTemplate }, ownerBuild.customizations)
+                : ownerBuild.customizations)
+            : body.customizations
+        const draftContent = ownerBuild ? ownerBuild.content : body.content
 
         if (!submissionId) {
             return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
@@ -142,7 +179,7 @@ export async function POST(request: NextRequest) {
         // 1. Edited content from generated_websites (if exists)
         // 2. Previously extracted content from submissions
         // 3. Fresh extraction via Groq
-        let extractedContent = (preview && draftContent)
+        let extractedContent = ((preview || ownerBuild) && draftContent)
             ? draftContent
             : (existingWebsite?.extractedContent || submission.website_content)
 
@@ -189,7 +226,9 @@ export async function POST(request: NextRequest) {
         // (already merged above) by saving it as override before re-extraction.
         const preservedContact = (extractedContent as any)?.contact
 
-        if (!extractedContent || !hasRequiredFields || (servicesAreSparse && submission.transcript)) {
+        // Owner builds never call a model: the owner's own words are the content,
+        // and a sparse-looking list must not be "improved" over what they typed.
+        if (!ownerBuild && (!extractedContent || !hasRequiredFields || (servicesAreSparse && submission.transcript))) {
 
             // Build context from submission data
             const context = `
@@ -313,7 +352,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             ec?.trust || ec?.why || ec?.how ||
             ec?.testimonials || ec?.faq || ec?.credentials || ec?.ctaBand
         )
-        if (!hasAnyConversionBlock && submission.transcript) {
+        if (!ownerBuild && !hasAnyConversionBlock && submission.transcript) {
             try {
                 const blocks = await groqService.generateConversionBlocks(
                     submission.transcript,
@@ -355,7 +394,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             ec2?.about?.paragraphs || ec2?.gallery?.items ||
             ec2?.area?.places || ec2?.marquee?.text
         )
-        if (isGenericRender && !hasGenericSections && submission.transcript) {
+        if (!ownerBuild && isGenericRender && !hasGenericSections && submission.transcript) {
             try {
                 let sections = await groqService.generateGenericSections(
                     submission.transcript,
@@ -1040,6 +1079,11 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                     : generatedHtml + __styleTag)
         }
 
+        // Owner-chosen section order (customizations.sectionOrder). Absent on every
+        // site an owner has not reordered, in which case this returns the HTML
+        // untouched. Same function the owner editor's preview uses.
+        generatedHtml = applySectionOrder(generatedHtml, (finalCustomizations as any)?.sectionOrder)
+
         // ── What the admin is told about the guard ────────────────────
         // The count is the whole point of this block. A creator-funnel
         // recording can be full of genuine customer quotes and every one of
@@ -1077,6 +1121,27 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
 
         // Save to Convex using mutations
         const { fetchMutation, fetchAction } = await import('convex/nextjs')
+
+        // OWNER MODE: commit through the owner-gated action, with our signature on
+        // the HTML. It stores the file, copies the saved draft onto the site row
+        // and (for a site that is already live) makes it the live page. The admin
+        // upserts below are not used: an owner token cannot call them, by design.
+        if (ownerBuild) {
+            const proof = await signOwnerBuild(process.env.INTERNAL_API_SECRET ?? '', String(submissionData._id), generatedHtml)
+            const owner = await fetchAction(api.ownerSiteEdits.commitBuild, {
+                submissionId: submissionData._id,
+                html: generatedHtml,
+                proof,
+                draftUpdatedAt: ownerBuild.updatedAt,
+            }, { token })
+            return NextResponse.json({
+                success: true,
+                htmlContent: generatedHtml,
+                owner,
+                testimonialGuard,
+                message: 'Website updated',
+            })
+        }
 
         // Store the built HTML in Convex file storage (it can exceed the 1 MiB
         // per-document limit, which was throwing "Value is too large" on upsert)

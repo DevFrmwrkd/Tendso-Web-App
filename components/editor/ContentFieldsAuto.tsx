@@ -116,7 +116,7 @@ function narrowList(
     return itemFields.length === (l.itemFields ?? []).length ? l : { ...l, itemFields };
 }
 
-function groupsForTemplate(
+export function groupsForTemplate(
     templateCode: string | undefined,
     hasValue: (path: string) => boolean,
     rowHasValue: (listPath: string, key: string) => boolean,
