@@ -3,6 +3,9 @@
 @import "./round1.css";
 /* The OTR × Tendso giveaway's campaign look, scoped under .gw. */
 @import "./giveaway.css";
+/* Design v2: tokens + components, scoped under .v2 (components/v2). Inert on every other route. */
+@import "../components/v2/tokens.css";
+@import "../components/v2/components.css";
 
 /*
  * The whole app wears the Round 1 design (app/round1.css). The two older
@@ -81,8 +84,9 @@ section[id] { scroll-margin-top: 5rem; }
 /* The gold focus ring for anything outside a Round 1 root (Clerk's widgets,
    a customer site's chrome). Round 1 screens (.r1) draw their own ring in
    app/round1.css; this rule is unlayered, so without the :not() it would beat
-   that one and round every Round 1 control to 6px. */
-:focus-visible:not(.r1, .r1 *) {
+   that one and round every Round 1 control to 6px. The same goes for v2 roots,
+   which draw their own ink ring (components/v2/tokens.css). */
+:focus-visible:not(.r1, .r1 *, .v2, .v2 *) {
   outline: 2px solid var(--r1-gold);
   outline-offset: 2px;
   border-radius: 6px;
