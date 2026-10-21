@@ -1,0 +1,136 @@
+/* Ask Tendso (components/v2/chat/AskTendso.tsx). Tokens come from the v2 scope.
+   One accent, fills only. Nothing under 16px. */
+
+.at-kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  font: 500 16px/1 var(--v2-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--v2-ink-2);
+}
+.at-kicker i { width: 10px; height: 10px; border-radius: 50%; background: var(--v2-accent); box-shadow: 0 0 0 1px var(--v2-ink); }
+
+/* ---- shared bits ---------------------------------------------------------- */
+.at-form {
+  display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 8px 0 24px;
+  border-radius: var(--v2-r-pill); background: var(--v2-canvas);
+  box-shadow: 0 0 0 1px var(--v2-line), 0 12px 32px -18px rgba(12,10,8,.28);
+  transition: box-shadow var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-form:focus-within { box-shadow: 0 0 0 2px var(--v2-ink), 0 12px 32px -18px rgba(12,10,8,.28); }
+.at-input {
+  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none;
+  font: 400 18px/1 var(--v2-font); letter-spacing: -0.015em; color: var(--v2-ink);
+}
+.at-input::placeholder { color: var(--v2-muted); }
+.at-send {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: var(--v2-accent); color: var(--v2-on-accent);
+  transition: background var(--v2-d-ui) var(--v2-ease-out), transform var(--v2-d-ui) var(--v2-ease-out), opacity var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-send:hover { background: var(--v2-accent-hover); }
+.at-send:active { transform: scale(.94); }
+.at-send:disabled { opacity: .4; cursor: default; }
+
+.at-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.at-chips--col { flex-direction: column; align-items: flex-start; }
+.at-chip {
+  height: 44px; padding: 0 18px; border-radius: var(--v2-r-pill); border: 1px solid var(--v2-line); background: var(--v2-canvas);
+  font: 400 16px/1 var(--v2-font); color: var(--v2-ink); cursor: pointer;
+  transition: border-color var(--v2-d-ui) var(--v2-ease-out), transform var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-chip:hover { border-color: var(--v2-ink); }
+.at-chip:active { transform: scale(.97); }
+.at-chip:disabled { opacity: .5; cursor: default; }
+
+.at-answer { display: grid; gap: 16px; animation: at-in 620ms var(--v2-ease-expo) both; }
+@keyframes at-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } }
+.at-text { font-size: 18px; line-height: 1.45; color: var(--v2-ink); white-space: pre-line; overflow-wrap: anywhere; }
+.at-more { border: 0; background: none; padding: 0; cursor: pointer; font: 500 16px/1 var(--v2-font); text-decoration: underline; text-underline-offset: 3px; }
+.at-cite {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin: 0 2px; padding: 0 5px; vertical-align: 2px;
+  border-radius: 11px; background: var(--v2-tile-quiet); font: 500 16px/1 var(--v2-font); color: var(--v2-ink-2);
+}
+.at-cite:hover { background: var(--v2-ink); color: #fff; }
+.at-looking { display: inline-flex; align-items: center; gap: 12px; font-size: 17px; color: var(--v2-ink-2); }
+.at-dots { display: inline-flex; gap: 4px; }
+.at-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--v2-ink); opacity: .25; animation: at-dot 1.1s var(--v2-ease-out) infinite; }
+.at-dots i:nth-child(2) { animation-delay: .15s; }
+.at-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes at-dot { 0%, 100% { opacity: .2; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+.at-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.at-sources-k { font-size: 16px; color: var(--v2-muted); margin-right: 2px; }
+.at-source {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px 6px 8px; border-radius: var(--v2-r-pill);
+  background: var(--v2-canvas); box-shadow: inset 0 0 0 1px var(--v2-line); font-size: 16px; line-height: 1.2; max-width: 100%;
+  transition: box-shadow var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-source:hover { box-shadow: inset 0 0 0 1px var(--v2-ink); }
+.at-source:not(:has(b)) { padding-left: 14px; }
+.at-source b {
+  flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--v2-tile-quiet); font: 500 16px/1 var(--v2-font); color: var(--v2-ink-2);
+}
+.at-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.at-btn {
+  display: inline-flex; align-items: center; justify-content: center; height: 46px; padding: 0 22px; border-radius: var(--v2-r-pill);
+  border: 1px solid transparent; cursor: pointer; font: 500 16px/1 var(--v2-font); letter-spacing: -0.01em;
+  transition: background var(--v2-d-ui) var(--v2-ease-out), border-color var(--v2-d-ui) var(--v2-ease-out), transform var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-btn:active { transform: scale(.97); }
+.at-btn--ink { background: var(--v2-ink); color: #fff; }
+.at-btn--ink:hover { background: color-mix(in oklab, var(--v2-ink) 82%, white); }
+.at-btn--ghost { background: var(--v2-canvas); border-color: var(--v2-line); color: var(--v2-ink); }
+.at-btn--ghost:hover { border-color: var(--v2-ink); }
+
+/* ---- inline (Help page) ------------------------------------------------------ */
+.at-inline {
+  position: relative; min-width: 0; display: flex; flex-direction: column; gap: 20px;
+  border-radius: var(--v2-r-tile); background: var(--v2-stage); padding: clamp(28px, 3.4vw, 52px);
+}
+.at-title { font-size: clamp(40px, 4.6vw, 72px); letter-spacing: -0.055em; line-height: .94; }
+.at-intro { font-size: 18px; line-height: 1.4; color: var(--v2-ink-2); max-width: 32ch; }
+.at-exchange { display: grid; gap: 18px; }
+.at-q { font-size: clamp(20px, 1.8vw, 26px); letter-spacing: -0.025em; line-height: 1.2; color: var(--v2-ink-2); }
+.at-clear { align-self: flex-start; border: 0; background: none; padding: 6px 0; cursor: pointer; font: 500 16px/1 var(--v2-font); text-decoration: underline; text-underline-offset: 4px; }
+.at-inline .at-form { margin-top: auto; }
+
+/* ---- floating (landing) ------------------------------------------------------- */
+.at-launcher { position: fixed; z-index: 60; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.at-fab {
+  display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 24px 0 20px; border-radius: var(--v2-r-pill); border: 0; cursor: pointer;
+  background: var(--v2-accent); color: var(--v2-on-accent); font: 500 17px/1 var(--v2-font); letter-spacing: -0.01em;
+  box-shadow: 0 1px 0 rgba(12,10,8,.06), 0 12px 30px -8px rgba(12,10,8,.28);
+  transition: background var(--v2-d-ui) var(--v2-ease-out), transform var(--v2-d-ui) var(--v2-ease-out);
+}
+.at-fab:hover { background: var(--v2-accent-hover); }
+.at-fab:active { transform: scale(.97); }
+.at-panel {
+  width: min(400px, calc(100vw - 32px)); max-height: min(620px, calc(100dvh - 120px)); display: flex; flex-direction: column;
+  border-radius: 28px; background: var(--v2-canvas); overflow: hidden;
+  box-shadow: 0 0 0 1px var(--v2-line), var(--v2-shadow-object);
+  animation: at-in 620ms var(--v2-ease-expo) both;
+}
+.at-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 22px 14px; }
+.at-panel-title { margin-top: 12px; font-size: 28px; letter-spacing: -0.045em; line-height: 1; }
+.at-x { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--v2-line); background: var(--v2-canvas); display: grid; place-items: center; cursor: pointer; }
+.at-x:hover { border-color: var(--v2-ink); }
+.at-panel-body { flex: 1; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 20px; padding: 6px 22px 18px; }
+.at-hello { font-size: 17px; line-height: 1.4; color: var(--v2-ink-2); }
+.at-me { justify-self: end; max-width: 85%; padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: var(--v2-ink); color: #fff; font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }
+.at-panel .at-text { font-size: 17px; }
+.at-panel-foot { padding: 12px 16px 16px; border-top: 1px solid var(--v2-line); }
+.at-panel .at-form { height: 56px; box-shadow: 0 0 0 1px var(--v2-line); }
+.at-panel .at-form:focus-within { box-shadow: 0 0 0 2px var(--v2-ink); }
+.at-panel .at-input { font-size: 17px; }
+.at-panel .at-send { width: 42px; height: 42px; }
+
+@media (max-width: 760px) {
+  .at-inline { padding: 28px 22px; }
+  .at-title { font-size: clamp(38px, 11vw, 52px); }
+  .at-form { height: 60px; padding-left: 20px; }
+  .at-input { font-size: 17px; }
+  .at-panel { width: calc(100vw - 32px); max-height: calc(100dvh - 100px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .at-answer, .at-panel { animation: none; }
+  .at-dots i { animation: none; opacity: .5; }
+}
