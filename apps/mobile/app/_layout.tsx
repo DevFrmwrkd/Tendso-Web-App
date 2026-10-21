@@ -30,6 +30,8 @@ import {
 import { colors } from '../theme/tokens';
 import { useOtaUpdate } from '../hooks/useOtaUpdate';
 import { initSentry, navigationIntegration, sentryEnabled, withSentry } from '../lib/sentry';
+import { hasOwnerIntent } from '../lib/v2/ownerIntake';
+import { OWNER_SAMPLE_DATA } from '../lib/v2/ownerFlags';
 import '../global.css';
 
 // Ignore the navigation warning from OAuth callbacks with legacy payload format
@@ -171,17 +173,30 @@ function InitialLayout() {
     if (segments[0] === 'v2-kit') return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    // The welcome (index) is public: it offers "I have a business" / "I want to earn".
+    // Sample mode (dev only) lets the owner screens run without signing in.
+    const isPublic = inAuthGroup
+      || (segments as string[]).length === 0
+      || (OWNER_SAMPLE_DATA && segments[0] === '(owner)');
 
     // When offline with cached auth, treat user as "signed in" for routing purposes
     const effectivelySignedIn = isSignedIn || (isConnected === false && cachedAuth === true);
 
     if (effectivelySignedIn && inAuthGroup) {
-      // User is signed in (or offline with cached auth), redirect to tabs home
-      router.replace('/(app)/(tabs)/' as any);
-      setTimeout(() => setIsAuthTransitioning(false), 500);
-    } else if (!effectivelySignedIn && !inAuthGroup) {
-      // Truly not signed in — redirect to login
-      router.replace('/(auth)/login');
+      // User is signed in (or offline with cached auth). Owners (they tapped "I have a
+      // business") go to the owner app; everyone else to tabs home as before — the
+      // (app) layout still sends existing owner accounts on to /(owner).
+      void hasOwnerIntent().then((owner) => {
+        router.replace((owner ? '/(owner)' : '/(app)/(tabs)/') as any);
+        setTimeout(() => setIsAuthTransitioning(false), 500);
+      });
+    } else if (!effectivelySignedIn && !isPublic) {
+      // Truly not signed in — redirect to login (owners: the email-code sign-in)
+      if (segments[0] === '(owner)') {
+        router.replace('/(auth)/owner' as any);
+      } else {
+        router.replace('/(auth)/login');
+      }
       setTimeout(() => setIsAuthTransitioning(false), 500);
     } else {
       // Already in correct group, clear transitioning state
@@ -197,6 +212,7 @@ function InitialLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="(owner)" />
         <Stack.Screen name="v2-kit" />
       </Stack>
       {showOverlay && (
