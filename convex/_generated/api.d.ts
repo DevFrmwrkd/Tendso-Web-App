@@ -44,6 +44,7 @@ import type * as knowledge from "../knowledge.js";
 import type * as knowledgeAI from "../knowledgeAI.js";
 import type * as knowledgeSeed from "../knowledgeSeed.js";
 import type * as knowledgeTraining from "../knowledgeTraining.js";
+import type * as landingLeads from "../landingLeads.js";
 import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
 import type * as lib_affiliateOffer from "../lib/affiliateOffer.js";
@@ -133,6 +134,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeAI: typeof knowledgeAI;
   knowledgeSeed: typeof knowledgeSeed;
   knowledgeTraining: typeof knowledgeTraining;
+  landingLeads: typeof landingLeads;
   leadNotes: typeof leadNotes;
   leads: typeof leads;
   "lib/affiliateOffer": typeof lib_affiliateOffer;
