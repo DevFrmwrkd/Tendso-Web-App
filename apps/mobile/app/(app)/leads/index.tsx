@@ -1,10 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
-  ActivityIndicator,
   BackHandler,
   TextInput,
   Image,
@@ -13,39 +11,58 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Animated,
-  Easing,
+  Linking,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useAction, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { colors, fonts, radius } from '../../../theme/tokens';
-import { Display, Body, Label, Pill, Card, Rule, Avatar, Door } from '../../../components/ui/primitives';
+import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
+import {
+  Avatar,
+  Button,
+  Card,
+  CheckRow,
+  Chip,
+  ChoiceChip,
+  EmptyState,
+  Field,
+  Loading,
+  Pill,
+  ScreenShell,
+  Text,
+  TextLink,
+  leadStatus,
+} from '../../../components/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
 
 type StatusFilter = 'all' | 'reserved' | 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
 
-const STATUS_META: Record<string, { label: string; bg: string; ink: string }> = {
-  new:       { label: 'New',       bg: colors.businessBg, ink: colors.business },
-  contacted: { label: 'Contacted', bg: colors.warnBg,     ink: colors.warn },
-  qualified: { label: 'Qualified', bg: '#EDE9FE',         ink: '#6D28D9' },
-  converted: { label: 'Converted', bg: colors.accentBg,   ink: colors.accentInk },
-  lost:      { label: 'Lost',      bg: colors.dangerBg,   ink: colors.danger },
-};
+const FILTER_KEYS: StatusFilter[] = ['all', 'reserved', 'new', 'contacted', 'qualified', 'converted', 'lost'];
 
-const FILTER_CHIPS: { key: StatusFilter; label: string }[] = [
-  { key: 'all',       label: 'All' },
-  { key: 'reserved',  label: 'Reserved' },
-  { key: 'new',       label: 'New' },
-  { key: 'contacted', label: 'Contacted' },
-  { key: 'qualified', label: 'Qualified' },
-  { key: 'converted', label: 'Converted' },
-  { key: 'lost',      label: 'Lost' },
+/** Filter pill words: the same short words the status chips use. */
+function filterLabel(key: StatusFilter): string {
+  if (key === 'all') return 'All';
+  if (key === 'reserved') return 'Reserved';
+  return leadStatus(key).label;
+}
+
+/** Kinds of shop a field agent can look for. `query` is what Outscraper receives. */
+const CATEGORY_CHOICES: { label: string; query: string }[] = [
+  { label: 'Barbershop', query: 'barbershops' },
+  { label: 'Mechanic', query: 'auto repair shops' },
+  { label: 'Salon', query: 'hair salons' },
+  { label: 'Tailor', query: 'tailors' },
+  { label: 'Carpenter', query: 'carpenters' },
+  { label: 'Florist', query: 'florists' },
+  { label: 'Sari-sari', query: 'sari-sari stores' },
 ];
+
+const RADIUS_CHOICES = [0.5, 1, 3, 5, 10];
 
 function timeAgo(ts: number): string {
   const seconds = Math.floor((Date.now() - ts) / 1000);
@@ -58,14 +75,16 @@ function timeAgo(ts: number): string {
 
 export default function LeadsScreen() {
   const router = useGuardedRouter();
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [onlyMine, setOnlyMine] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Outscraper scrape-nearby modal state
+  // Outscraper scrape-nearby sheet state
   const [showScrape, setShowScrape] = useState(false);
   const [scrapeCategory, setScrapeCategory] = useState('');
+  const [otherCategory, setOtherCategory] = useState(false);
   // Default to 1km — the user explicitly asked for hyper-local. Wider radii
   // are an option but rarely useful: Outscraper's relevance ranking surfaces
   // popular far-away businesses ahead of nearby informal ones at high radii.
@@ -112,6 +131,7 @@ export default function LeadsScreen() {
       const catParam = scrapeCategory.trim() || 'businesses';
       const radiusParam = String(scrapeRadiusKm);
       setScrapeCategory('');
+      setOtherCategory(false);
 
       // 2026-05-29 — pass the raw businesses directly to the discover map so
       // it doesn't have to query listScrapedLeads (which has returned empty in
@@ -149,7 +169,7 @@ export default function LeadsScreen() {
       setScraping(false);
       setScrapePhase('idle');
     }
-  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction]);
+  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction, router]);
 
   // When the user picks the Reserved chip we switch to a different data source —
   // reservations live in prospects (state="reserved"), not leads.
@@ -198,51 +218,47 @@ export default function LeadsScreen() {
   const leadsLoading = !isReservedView && data === undefined;
 
   if (reservedLoading || leadsLoading) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </SafeAreaView>
-    );
+    return <Loading />;
   }
 
+  const hasFilters = !!search || statusFilter !== 'all' || onlyMine;
+  const closeScrape = () => {
+    if (!scraping) setShowScrape(false);
+  };
+  const summary = isReservedView
+    ? `${(reservedProspects ?? []).length} reserved`
+    : `${stats?.total ?? 0} shops · ${stats?.mine ?? 0} yours · ${hotLeadCount} hot`;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      {/* Editorial header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <TouchableOpacity
-              onPress={() => router.replace('/(app)/(tabs)')}
-              style={{
-                width: 36, height: 36, borderRadius: 18,
-                backgroundColor: colors.paper3,
-                borderWidth: 1, borderColor: colors.rule,
-                alignItems: 'center', justifyContent: 'center',
-              }}
-              accessibilityLabel="Back to home"
-              accessibilityRole="button"
-            >
-              <Ionicons name="arrow-back" size={18} color={colors.ink} />
-            </TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Label tracking={1.8}>TEAM LEADS</Label>
-            </View>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-          <Display size="md">All leads, </Display>
-          <Display size="md" italic color={colors.accent}>every interview.</Display>
-        </View>
-        <Body size="sm" color={colors.ink2} style={{ marginTop: 8, maxWidth: 320 }}>
-          The whole team's hunt — including yours. {stats?.total ?? 0} leads · {hotLeadCount} hot.
-        </Body>
-      </View>
-
-      <Rule strong />
-
+    <ScreenShell
+      scroll={false}
+      insetBottom={false}
+      onBack={() => router.replace('/(app)/(tabs)')}
+      headerRight={
+        <Pressable
+          onPress={() => router.push('/(app)/leads/nearby' as any)}
+          accessibilityRole="button"
+          accessibilityLabel="See businesses on the map that have already been interviewed and have a live website"
+          style={[styles.roundBtn, shadow.soft]}
+        >
+          <Ionicons name="map-outline" size={22} color={colors.ink} />
+        </Pressable>
+      }
+      contentStyle={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 }}
+      footer={
+        <Button
+          title="Find shops near me"
+          icon="search"
+          onPress={() => setShowScrape(true)}
+          accessibilityLabel="Find local businesses near you to interview"
+        />
+      }
+    >
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        style={styles.flex}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -250,89 +266,68 @@ export default function LeadsScreen() {
               setRefreshing(true);
               setTimeout(() => setRefreshing(false), 600);
             }}
-            tintColor={colors.accent}
+            tintColor={colors.ink}
           />
         }
       >
-        {/* Stats strip */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 14, gap: 10 }}
-        >
-          <StatTile label="Total"     value={stats?.total ?? 0}     tintBg={colors.businessBg} tintFg={colors.business} />
-          <StatTile label="Yours"     value={stats?.mine ?? 0}      tintBg={colors.paper2}     tintFg={colors.ink2} />
-          <StatTile label="Hot leads" value={hotLeadCount}          tintBg={colors.dangerBg}   tintFg={colors.danger}  hint="3+ interviews" />
-          <StatTile label="Converted" value={stats?.converted ?? 0} tintBg={colors.accentBg}   tintFg={colors.accent} />
-        </ScrollView>
+        <View style={styles.gutter}>
+          <Text variant="display" accessibilityRole="header">
+            Finds
+          </Text>
+          <Text variant="label" tone="muted" style={styles.summary}>
+            {summary}
+          </Text>
+        </View>
 
-        {/* Search bar */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center',
-            backgroundColor: colors.paper3,
-            borderColor: colors.rule, borderWidth: 1,
-            borderRadius: radius.sm,
-            paddingHorizontal: 14, height: 48,
-          }}>
-            <Ionicons name="search" size={18} color={colors.ink3} />
+        {/* Search */}
+        <View style={[styles.gutter, styles.block]}>
+          <View style={[styles.search, shadow.soft]}>
+            <Ionicons name="search" size={22} color={colors.ink3} />
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Search lead, business, or creator…"
+              placeholder="Search a shop or an agent"
               placeholderTextColor={colors.ink3}
-              style={{ flex: 1, marginLeft: 10, fontFamily: fonts.sans, fontSize: 14, color: colors.ink }}
+              selectionColor={colors.ink}
+              style={styles.searchInput}
               autoCorrect={false}
               autoCapitalize="none"
+              accessibilityLabel="Search leads"
             />
             {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch('')} accessibilityLabel="Clear search" hitSlop={8}>
-                <Ionicons name="close-circle" size={18} color={colors.ink3} />
-              </TouchableOpacity>
+              <Pressable
+                onPress={() => setSearch('')}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+                hitSlop={8}
+                style={styles.clear}
+              >
+                <Ionicons name="close-circle" size={22} color={colors.ink3} />
+              </Pressable>
             )}
           </View>
-        </View>
-
-        {/* Business near me — opens the geocoded map view */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 8, gap: 8 }}>
-          <Door
-            caption="ON THE MAP"
-            label="See Live Business"
-            variant="accent"
-            onPress={() => router.push('/(app)/leads/nearby' as any)}
-            accessibilityLabel="See businesses on the map that have already been interviewed and have a live website"
-            rightIcon={<Ionicons name="map" size={18} color="#fff" style={{ marginLeft: 12 }} />}
-          />
-          <Door
-            caption="DISCOVER"
-            label="Find Local Business"
-            variant="ghost"
-            onPress={() => setShowScrape(true)}
-            accessibilityLabel="Find local businesses near you to interview"
-            rightIcon={<Ionicons name="search-outline" size={18} color={colors.ink} style={{ marginLeft: 12 }} />}
-          />
         </View>
 
         {/* Filters */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-          style={{ marginBottom: 14 }}
+          contentContainerStyle={styles.pillRow}
+          style={styles.block}
         >
           <Pill
-            label={onlyMine ? '✓ Only mine' : 'Only mine'}
-            active={onlyMine}
+            label="Only mine"
+            selected={onlyMine}
             onPress={() => setOnlyMine(!onlyMine)}
             accessibilityLabel="Toggle: only my leads"
           />
-          {FILTER_CHIPS.map((chip) => (
+          {FILTER_KEYS.map((key) => (
             <Pill
-              key={chip.key}
-              label={chip.label}
-              active={statusFilter === chip.key}
-              onPress={() => setStatusFilter(chip.key)}
-              accessibilityLabel={`Filter by ${chip.label}`}
+              key={key}
+              label={filterLabel(key)}
+              selected={statusFilter === key}
+              onPress={() => setStatusFilter(key)}
+              accessibilityLabel={`Filter by ${filterLabel(key)}`}
             />
           ))}
         </ScrollView>
@@ -340,24 +335,13 @@ export default function LeadsScreen() {
         {/* Reserved-prospects view (separate data source from leads) */}
         {isReservedView ? (
           (reservedProspects ?? []).length === 0 ? (
-            <View style={{ paddingHorizontal: 28, paddingVertical: 48, alignItems: 'center' }}>
-              <View style={{
-                width: 60, height: 60, borderRadius: 30,
-                backgroundColor: colors.paper2,
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Ionicons name="bookmark-outline" size={28} color={colors.ink3} />
-              </View>
-              <View style={{ marginTop: 12, alignItems: 'center' }}>
-                <Display size="sm">No active </Display>
-                <Display size="sm" italic color={colors.accent}>reservations.</Display>
-              </View>
-              <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 280 }}>
-                Tap "Find Local Business" then "I'll interview this" to reserve a business for 24 hours.
-              </Body>
-            </View>
+            <EmptyState
+              icon="bookmark-outline"
+              title="No reserved shops"
+              body="Reserve a shop in Find shops. It is yours for 24 hours."
+            />
           ) : (
-            <View style={{ paddingHorizontal: 20, gap: 12 }}>
+            <View style={[styles.gutter, styles.list]}>
               {(reservedProspects ?? []).map((p: any) => (
                 <ReservedCard
                   key={String(p._id)}
@@ -377,447 +361,190 @@ export default function LeadsScreen() {
             </View>
           )
         ) : leads.length === 0 ? (
-          <View style={{ paddingHorizontal: 28, paddingVertical: 48, alignItems: 'center' }}>
-            <View style={{
-              width: 60, height: 60, borderRadius: 30,
-              backgroundColor: colors.paper2,
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Ionicons name="briefcase-outline" size={28} color={colors.ink3} />
-            </View>
-            <View style={{ marginTop: 12, alignItems: 'center' }}>
-              <Display size="sm">
-                {search || statusFilter !== 'all' || onlyMine ? 'No matches' : 'No leads'}
-              </Display>
-              <Display size="sm" italic color={colors.accent}>yet.</Display>
-            </View>
-            <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 280 }}>
-              {search || statusFilter !== 'all' || onlyMine
-                ? 'Try clearing the search or filter.'
-                : 'Customer inquiries on team business websites will appear here.'}
-            </Body>
-            {(search || statusFilter !== 'all' || onlyMine) && (
-              <TouchableOpacity
-                style={{ marginTop: 16 }}
-                onPress={() => { setSearch(''); setStatusFilter('all'); setOnlyMine(false); }}
-                accessibilityLabel="Clear filters"
-                accessibilityRole="button"
-              >
-                <Body size="sm" weight="medium" color={colors.accent}>Clear filters →</Body>
-              </TouchableOpacity>
-            )}
-          </View>
+          <EmptyState
+            icon="storefront-outline"
+            title={hasFilters ? 'No matches' : 'No finds yet'}
+            body={hasFilters ? 'Try clearing the search or filter.' : 'Shops your team spots will show up here.'}
+            actionLabel={hasFilters ? 'Clear filters' : undefined}
+            onAction={
+              hasFilters
+                ? () => {
+                    setSearch('');
+                    setStatusFilter('all');
+                    setOnlyMine(false);
+                  }
+                : undefined
+            }
+          />
         ) : (
-          <View style={{ paddingHorizontal: 20, gap: 12 }}>
-            {leads.map((lead) =>
-              lead.hasEnrichedContent ? (
-                <SocialCard
-                  key={String(lead._id)}
-                  lead={lead}
-                  onPress={() => router.push(`/(app)/leads/${lead._id}` as any)}
-                  onLinkPress={() => {
-                    if (lead.externalPreviewUrl) void openExternalUrl(lead.externalPreviewUrl);
-                  }}
-                />
-              ) : (
-                <CompactCard
-                  key={String(lead._id)}
-                  lead={lead}
-                  onPress={() => router.push(`/(app)/leads/${lead._id}` as any)}
-                />
-              ),
-            )}
+          <View style={[styles.gutter, styles.list]}>
+            {leads.map((lead) => (
+              <LeadCard
+                key={String(lead._id)}
+                lead={lead}
+                onPress={() => router.push(`/(app)/leads/${lead._id}` as any)}
+              />
+            ))}
           </View>
         )}
       </ScrollView>
 
-      {/* === Scrape-nearby modal (admin-only Outscraper trigger) === */}
-      <Modal
-        visible={showScrape}
-        transparent
-        animationType="slide"
-        onRequestClose={() => !scraping && setShowScrape(false)}
-      >
+      {/* === Find-shops sheet (Outscraper trigger) === */}
+      <Modal visible={showScrape} transparent animationType="slide" onRequestClose={closeScrape}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
+          style={styles.modalWrap}
         >
-          <TouchableOpacity
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
-            activeOpacity={1}
-            onPress={() => !scraping && setShowScrape(false)}
+          <Pressable
+            style={styles.scrim}
+            onPress={closeScrape}
             accessibilityLabel="Close scrape modal"
             accessibilityRole="button"
           />
-          <View style={{
-            backgroundColor: colors.paper,
-            borderTopLeftRadius: radius.xl,
-            borderTopRightRadius: radius.xl,
-            padding: 24,
-            paddingBottom: 32,
-          }}>
-            <View style={{
-              width: 40, height: 4, borderRadius: 2,
-              backgroundColor: colors.rule, alignSelf: 'center', marginBottom: 18,
-            }} />
+          <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, space.lg) + space.sm }]}>
+            <View style={styles.grab} />
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.sheetBody}
+              bounces={false}
+            >
+              {scraping ? (
+                <ScrapeProgressPanel
+                  phase={scrapePhase}
+                  category={scrapeCategory.trim() || 'shops'}
+                  radiusKm={scrapeRadiusKm}
+                />
+              ) : (
+                <>
+                  <Text variant="title" accessibilityRole="header">
+                    Find shops near me
+                  </Text>
+                  <Text variant="bodyLg" tone="ink2">
+                    Pick a kind of shop. We look around you.
+                  </Text>
 
-            {scraping ? (
-              <ScrapeProgressPanel
-                phase={scrapePhase}
-                category={scrapeCategory.trim() || 'businesses'}
-                radiusKm={scrapeRadiusKm}
-              />
-            ) : (
-              <>
-                <Label tracking={1.8}>DISCOVER</Label>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', marginTop: 4, marginBottom: 12 }}>
-                  <Display size="md">Find your next </Display>
-                  <Display size="md" italic color={colors.accent}>interview.</Display>
-                </View>
-                <Body size="sm" color={colors.ink2} style={{ marginBottom: 18 }}>
-                  Pick the kind of business you want to talk to. We'll use your GPS and pull up to 20 nearby spots that nobody on the team has interviewed yet — go knock on a door.
-                </Body>
-
-                {/* Category */}
-                <View style={{ marginBottom: 12 }}>
-                  <View style={{
-                    flexDirection: 'row', alignItems: 'center',
-                    backgroundColor: colors.paper3,
-                    borderColor: colors.rule, borderWidth: 1,
-                    borderRadius: radius.sm,
-                    paddingHorizontal: 14, height: 52,
-                  }}>
-                    <Ionicons name="storefront-outline" size={18} color={colors.ink3} />
-                    <TextInput
-                      value={scrapeCategory}
-                      onChangeText={setScrapeCategory}
-                      placeholder="restaurants, barbershops, sari-sari…"
-                      placeholderTextColor={colors.ink3}
-                      style={{ flex: 1, marginLeft: 10, fontFamily: fonts.sans, fontSize: 14, color: colors.ink }}
-                      editable={!scraping}
-                      autoCapitalize="none"
-                      autoCorrect={false}
+                  <View style={styles.chips}>
+                    {CATEGORY_CHOICES.map((c) => (
+                      <ChoiceChip
+                        key={c.label}
+                        label={c.label}
+                        selected={!otherCategory && scrapeCategory === c.query}
+                        onPress={() => {
+                          setOtherCategory(false);
+                          setScrapeCategory(scrapeCategory === c.query ? '' : c.query);
+                        }}
+                      />
+                    ))}
+                    <ChoiceChip
+                      label="Other"
+                      selected={otherCategory}
+                      onPress={() => {
+                        if (!otherCategory) setScrapeCategory('');
+                        setOtherCategory(!otherCategory);
+                      }}
                     />
                   </View>
-                  <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-                    <Label>WHAT KIND OF BUSINESS?</Label>
-                  </View>
-                </View>
 
-                {/* Radius pills */}
-                <View style={{ marginBottom: 18 }}>
-                  <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                    {[0.5, 1, 3, 5, 10].map((km) => (
-                      <Pill
+                  {otherCategory ? (
+                    <Field
+                      label="What kind of shop?"
+                      icon="storefront-outline"
+                      value={scrapeCategory}
+                      onChangeText={setScrapeCategory}
+                      placeholder="vulcanizing, bakery, sari-sari…"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      accessibilityLabel="What kind of business?"
+                    />
+                  ) : null}
+
+                  <Text variant="label" weight="bold" tone="muted" style={styles.sectionGap}>
+                    How far?
+                  </Text>
+                  <View style={styles.chips}>
+                    {RADIUS_CHOICES.map((km) => (
+                      <ChoiceChip
                         key={km}
                         label={km < 1 ? `${km * 1000} m` : `${km} km`}
-                        active={scrapeRadiusKm === km}
+                        selected={scrapeRadiusKm === km}
                         onPress={() => setScrapeRadiusKm(km)}
-                        accessibilityLabel={`Set radius to ${km < 1 ? `${km * 1000} meters` : `${km} kilometers`}`}
                       />
                     ))}
                   </View>
-                  <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-                    <Label>RADIUS</Label>
-                  </View>
-                </View>
-              </>
-            )}
+                </>
+              )}
+            </ScrollView>
 
-            <Door
-              caption={scraping ? scrapePhaseCaption(scrapePhase) : 'FIND BUSINESSES'}
-              label={scraping ? scrapePhaseLabel(scrapePhase) : 'Show me businesses to interview'}
-              variant="solid"
-              loading={scraping}
-              disabled={scraping}
-              onPress={handleScrape}
-              accessibilityLabel="Find businesses to interview"
-            />
-            <TouchableOpacity
-              onPress={() => !scraping && setShowScrape(false)}
-              style={{ alignItems: 'center', marginTop: 14 }}
-              accessibilityLabel="Cancel"
-              accessibilityRole="button"
-              disabled={scraping}
-            >
-              <Body size="sm" color={scraping ? colors.ink3 : colors.ink3}>
-                {scraping ? 'Please don\'t close the app — this takes a few seconds.' : 'Cancel'}
-              </Body>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-    </SafeAreaView>
-  );
-}
-
-function StatTile({
-  label,
-  value,
-  tintBg,
-  tintFg,
-  hint,
-}: {
-  label: string;
-  value: number;
-  tintBg: string;
-  tintFg: string;
-  hint?: string;
-}) {
-  return (
-    <View style={{
-      backgroundColor: colors.paper3,
-      borderColor: colors.rule, borderWidth: 1,
-      borderRadius: radius.md,
-      paddingVertical: 12, paddingHorizontal: 14,
-      minWidth: 124,
-    }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tintFg }} />
-        <Text style={{
-          fontFamily: fonts.monoMed,
-          fontSize: 10, letterSpacing: 1.2,
-          textTransform: 'uppercase',
-          color: colors.ink3,
-        }}>
-          {label}
-        </Text>
-      </View>
-      <Text style={{
-        fontFamily: fonts.serif,
-        fontSize: 26,
-        lineHeight: 28,
-        color: colors.ink,
-        letterSpacing: -0.4,
-      }}>
-        {value}
-      </Text>
-      {hint && (
-        <Text style={{
-          fontFamily: fonts.mono,
-          fontSize: 9, color: colors.ink3, marginTop: 2, letterSpacing: 0.6,
-        }}>
-          {hint}
-        </Text>
-      )}
-    </View>
-  );
-}
-
-function SubmittedByRow({
-  submittedBy,
-  isMine,
-  timestamp,
-}: {
-  submittedBy: any;
-  isMine: boolean;
-  timestamp: number;
-}) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-      {submittedBy?.profileImage ? (
-        <Image
-          source={{ uri: submittedBy.profileImage }}
-          style={{ width: 32, height: 32, borderRadius: 16 }}
-        />
-      ) : (
-        <Avatar name={submittedBy?.displayName ?? '?'} size={32} bg={colors.accentBg} fg={colors.accentInk} />
-      )}
-      <View style={{ marginLeft: 10, flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Body size="sm" weight="bold" color={colors.ink}>
-            {submittedBy?.displayName ?? 'Unknown'}
-          </Body>
-          {isMine && (
-            <View style={{
-              backgroundColor: colors.ink,
-              borderRadius: radius.pill,
-              paddingHorizontal: 6, paddingVertical: 1,
-            }}>
-              <Text style={{
-                fontFamily: fonts.monoMed,
-                fontSize: 9, letterSpacing: 1.0,
-                color: colors.paper3,
-              }}>
-                YOU
-              </Text>
-            </View>
-          )}
-        </View>
-        <Text style={{
-          fontFamily: fonts.mono,
-          fontSize: 10, letterSpacing: 0.6,
-          color: colors.ink3,
-          marginTop: 1,
-        }}>
-          submitted this · {timeAgo(timestamp)}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function HotBadge() {
-  return (
-    <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 3,
-      backgroundColor: colors.dangerBg,
-      borderRadius: radius.pill,
-      paddingHorizontal: 8, paddingVertical: 2,
-    }}>
-      <Ionicons name="flame" size={10} color={colors.danger} />
-      <Text style={{
-        fontFamily: fonts.monoMed,
-        fontSize: 9, letterSpacing: 1.0,
-        color: colors.danger,
-      }}>
-        HOT
-      </Text>
-    </View>
-  );
-}
-
-function StatusPill({ status }: { status: any }) {
-  return (
-    <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 5,
-      backgroundColor: status.bg,
-      borderRadius: radius.pill,
-      paddingHorizontal: 9, paddingVertical: 3,
-    }}>
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: status.ink }} />
-      <Text style={{
-        fontFamily: fonts.monoMed,
-        fontSize: 10, letterSpacing: 1.0,
-        color: status.ink,
-        textTransform: 'uppercase',
-      }}>
-        {status.label}
-      </Text>
-    </View>
-  );
-}
-
-function SocialCard({
-  lead,
-  onPress,
-  onLinkPress,
-}: {
-  lead: any;
-  onPress: () => void;
-  onLinkPress: () => void;
-}) {
-  const status = STATUS_META[lead.status] ?? STATUS_META.new;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.92}
-      accessibilityRole="button"
-      accessibilityLabel={`Lead post about ${lead.businessName}, ${status.label}`}
-    >
-      <Card padded={false} large style={{ overflow: 'hidden' }}>
-        {/* Header — submitting creator */}
-        <View style={{
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-          paddingHorizontal: 14, paddingTop: 12, paddingBottom: 10,
-        }}>
-          <SubmittedByRow
-            submittedBy={lead.submittedBy}
-            isMine={lead.isMine}
-            timestamp={lead.createdAt}
-          />
-          {lead.isHot && <HotBadge />}
-        </View>
-
-        {/* Admin description */}
-        {lead.adminDescription && (
-          <View style={{ paddingHorizontal: 14, paddingBottom: 10 }}>
-            <Body size="sm" color={colors.ink}>{lead.adminDescription}</Body>
-          </View>
-        )}
-
-        {/* Hero image */}
-        {lead.previewImageUrl && (
-          <View style={{ width: '100%', backgroundColor: colors.paper2, aspectRatio: 16 / 9 }}>
-            <Image
-              source={{ uri: lead.previewImageUrl }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
-            />
-          </View>
-        )}
-
-        {/* External link */}
-        {lead.externalPreviewUrl && (
-          <TouchableOpacity
-            onPress={onLinkPress}
-            activeOpacity={0.7}
-            style={{
-              marginHorizontal: 14, marginTop: 10,
-              flexDirection: 'row', alignItems: 'center',
-              backgroundColor: colors.paper2,
-              borderRadius: radius.sm,
-              borderWidth: 1, borderColor: colors.rule,
-              paddingHorizontal: 12, paddingVertical: 10,
-            }}
-          >
-            <Ionicons name="link" size={14} color={colors.accent} />
-            <Text style={{
-              flex: 1, marginLeft: 8,
-              fontFamily: fonts.sansMed,
-              fontSize: 12, color: colors.accent,
-            }} numberOfLines={1}>
-              {lead.externalPreviewUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-            </Text>
-            <Ionicons name="open-outline" size={14} color={colors.accent} />
-          </TouchableOpacity>
-        )}
-
-        {/* Footer */}
-        <View style={{
-          marginTop: 10,
-          paddingHorizontal: 14, paddingVertical: 12,
-          borderTopWidth: 1, borderTopColor: colors.rule,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-            <Ionicons name="business-outline" size={12} color={colors.ink3} />
-            <Body size="sm" weight="medium" color={colors.ink2} style={{ marginLeft: 6, flex: 1 }} numberOfLines={1}>
-              {lead.businessName}{lead.businessCity ? ` · ${lead.businessCity}` : ''}
-            </Body>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <StatusPill status={status} />
-              {lead.interviewerCount > 1 && (
-                <View style={{
-                  flexDirection: 'row', alignItems: 'center', gap: 4,
-                  backgroundColor: colors.paper2,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 8, paddingVertical: 2,
-                }}>
-                  <Ionicons name="people" size={10} color={colors.ink2} />
-                  <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, color: colors.ink2, letterSpacing: 0.6 }}>
-                    {lead.interviewerCount} creators
-                  </Text>
-                </View>
+            <View style={styles.sheetFoot}>
+              <Button
+                title="Find shops"
+                loading={scraping}
+                disabled={scraping}
+                onPress={handleScrape}
+                accessibilityLabel="Find businesses to interview"
+              />
+              {scraping ? (
+                <Text variant="label" tone="muted" align="center">
+                  Please keep the app open.
+                </Text>
+              ) : (
+                <TextLink label="Cancel" onPress={closeScrape} />
               )}
             </View>
           </View>
-        </View>
-      </Card>
-    </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
+    </ScreenShell>
   );
 }
 
-function CompactCard({ lead, onPress }: { lead: any; onPress: () => void }) {
-  const status = STATUS_META[lead.status] ?? STATUS_META.new;
+function PhotoTile({ uri, name, size = 76 }: { uri?: string | null; name: string; size?: number }) {
+  const initial = (name ?? '').trim().charAt(0).toUpperCase() || '?';
+  return (
+    <View
+      style={[styles.tile, { width: size, height: size }]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      {uri ? (
+        <Image source={{ uri }} style={{ width: size, height: size }} resizeMode="cover" />
+      ) : (
+        <Text variant="heading">{initial}</Text>
+      )}
+    </View>
+  );
+}
+
+function RoundAction({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={4}
+      style={({ pressed }) => [styles.action, pressed ? { opacity: 0.7 } : null]}
+    >
+      <Ionicons name={icon} size={22} color={colors.ink} />
+    </Pressable>
+  );
+}
+
+function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
+  const status = leadStatus(lead.status);
 
   // Phone/email may be missing on scraper-origin leads. Offer directions as a
-  // fallback CTA so the creator can still locate the business in the world.
+  // fallback so the field agent can still locate the business in the world.
   // Coords win when we have them; otherwise the address, then business name +
   // city. Place ID is passed along as the most precise identifier.
-  const hasContact = !!(lead.phone || lead.email);
   const hasNamedBusiness = !!lead.businessName && lead.businessName !== '(business unavailable)';
   const mapsTarget = {
     latitude: lead.businessLatitude,
@@ -831,120 +558,96 @@ function CompactCard({ lead, onPress }: { lead: any; onPress: () => void }) {
     placeId: lead.businessGooglePlaceId,
   };
   const hasDirections = canOpenDirections(mapsTarget);
+  const title = lead.name || lead.businessName || 'Shop';
   // Show the separate business line only when it adds info beyond the title —
   // i.e. a real inquiry where `name` is a person distinct from the business. For
   // scraped prospects the title already IS the business name, so it's redundant.
   const showBusinessLine = !!lead.name && lead.name !== lead.businessName;
+  const where = showBusinessLine
+    ? `${lead.businessName ?? ''}${lead.businessCity ? ` · ${lead.businessCity}` : ''}`
+    : lead.businessCity ?? '';
+  const hasActions = !!(lead.phone || lead.email || hasDirections || lead.externalPreviewUrl);
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.85}
-      accessibilityRole="button"
-      accessibilityLabel={`Lead from ${lead.name || lead.businessName}, ${status.label}`}
-    >
-      <Card padded={false} large style={{ padding: 14 }}>
-        {/* Submitter row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <SubmittedByRow
-            submittedBy={lead.submittedBy}
-            isMine={lead.isMine}
-            timestamp={lead.createdAt}
-          />
-          {lead.isHot && <HotBadge />}
-        </View>
-
-        {/* Identity — name + color-coded status pill (replaces the old text tag) */}
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          <Avatar name={lead.name || lead.businessName || '?'} size={40} bg={colors.paper2} fg={colors.ink2} />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Body size="sm" weight="bold" color={colors.ink} numberOfLines={1}>
-              {lead.name || lead.businessName}
-            </Body>
-
-            {hasContact && (
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 11, color: colors.ink3,
-                marginTop: 3, letterSpacing: 0.4,
-              }} numberOfLines={1}>
-                {lead.phone}{lead.email ? ` · ${lead.email}` : ''}
-              </Text>
-            )}
-
-            {/* Directions — always visible when we have a location, even with a phone */}
-            {hasDirections && (
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  void openDirections(mapsTarget);
-                }}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={`Show directions to ${lead.businessName}`}
-                style={{
-                  flexDirection: 'row', alignItems: 'center', gap: 4,
-                  marginTop: 6, alignSelf: 'flex-start',
-                  backgroundColor: colors.accentBg,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 10, paddingVertical: 4,
-                }}
-              >
-                <Ionicons name="navigate" size={11} color={colors.accentInk} />
-                <Text style={{
-                  fontFamily: fonts.sans, fontSize: 11,
-                  color: colors.accentInk, fontWeight: '600',
-                }}>
-                  Show directions
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {!hasContact && !hasDirections && (
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 11, color: colors.ink3,
-                marginTop: 3, letterSpacing: 0.4, fontStyle: 'italic',
-              }} numberOfLines={1}>
-                no contact on file
-              </Text>
-            )}
+    <Card style={styles.leadCard}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={
+          lead.hasEnrichedContent
+            ? `Lead post about ${lead.businessName}, ${status.label}`
+            : `Lead from ${title}, ${status.label}`
+        }
+        style={({ pressed }) => [styles.leadMain, pressed ? { opacity: 0.85 } : null]}
+      >
+        <PhotoTile uri={lead.previewImageUrl} name={title} />
+        <View style={styles.leadText}>
+          <Text variant="bodyLg" weight="bold" numberOfLines={2}>
+            {title}
+          </Text>
+          {where ? (
+            <Text variant="label" weight="medium" tone="muted" numberOfLines={1}>
+              {where}
+            </Text>
+          ) : null}
+          <View style={styles.chipRow}>
+            <Chip label={status.label} tone={status.tone} />
+            {lead.isHot ? <Chip label="Hot" tone="danger" /> : null}
+            {lead.interviewerCount > 1 ? <Chip label={`${lead.interviewerCount} field agents`} tone="muted" /> : null}
           </View>
         </View>
+      </Pressable>
 
-        {/* Status + meta — kept below the title so it doesn't clutter the name */}
-        <View style={{
-          marginTop: 10, paddingTop: 10,
-          borderTopWidth: 1, borderTopColor: colors.rule,
-          gap: 8,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <StatusPill status={status} />
-            {lead.interviewerCount > 1 && (
-              <View style={{
-                flexDirection: 'row', alignItems: 'center', gap: 4,
-                backgroundColor: colors.paper2,
-                borderRadius: radius.pill,
-                paddingHorizontal: 8, paddingVertical: 2,
-              }}>
-                <Ionicons name="people" size={10} color={colors.ink2} />
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, color: colors.ink2, letterSpacing: 0.6 }}>
-                  {lead.interviewerCount} creators
-                </Text>
-              </View>
-            )}
-          </View>
-          {showBusinessLine && (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="business-outline" size={12} color={colors.ink3} />
-              <Body size="sm" color={colors.ink2} style={{ marginLeft: 6, flex: 1 }} numberOfLines={1}>
-                {lead.businessName}{lead.businessCity ? ` · ${lead.businessCity}` : ''}
-              </Body>
-            </View>
-          )}
+      {lead.adminDescription ? (
+        <Text variant="body" tone="ink2" numberOfLines={2} style={styles.desc}>
+          {lead.adminDescription}
+        </Text>
+      ) : null}
+
+      <View style={styles.byRow}>
+        <Avatar uri={lead.submittedBy?.profileImage} name={lead.submittedBy?.displayName ?? '?'} size={32} />
+        <Text variant="label" weight="medium" tone="muted" numberOfLines={1} style={styles.flex}>
+          {lead.isMine ? 'You' : lead.submittedBy?.displayName ?? 'Unknown'} · {timeAgo(lead.createdAt)}
+        </Text>
+      </View>
+
+      {hasActions ? (
+        <View style={styles.actions}>
+          {lead.phone ? (
+            <RoundAction
+              icon="call-outline"
+              label={`Call ${title}`}
+              onPress={() => void Linking.openURL(`tel:${lead.phone}`).catch(() => {})}
+            />
+          ) : null}
+          {lead.email ? (
+            <RoundAction
+              icon="mail-outline"
+              label={`Email ${title}`}
+              onPress={() => void Linking.openURL(`mailto:${lead.email}`).catch(() => {})}
+            />
+          ) : null}
+          {hasDirections ? (
+            <RoundAction
+              icon="navigate-outline"
+              label={`Show directions to ${lead.businessName}`}
+              onPress={() => void openDirections(mapsTarget)}
+            />
+          ) : null}
+          {lead.externalPreviewUrl ? (
+            <RoundAction
+              icon="globe-outline"
+              label={`Open website preview for ${lead.businessName}`}
+              onPress={() => void openExternalUrl(lead.externalPreviewUrl)}
+            />
+          ) : null}
         </View>
-      </Card>
-    </TouchableOpacity>
+      ) : (
+        <Text variant="label" tone="muted" style={styles.desc}>
+          No contact yet
+        </Text>
+      )}
+    </Card>
   );
 }
 
@@ -955,107 +658,49 @@ function ReservedCard({ prospect, onPress }: { prospect: any; onPress: () => voi
   const minutesLeft = Math.floor((msLeft % (60 * 60 * 1000)) / (60 * 1000));
   const timeLeftLabel = hoursLeft >= 1 ? `${hoursLeft}h ${minutesLeft}m left` : `${minutesLeft}m left`;
   const urgent = hoursLeft < 2;
+  const reserved = leadStatus('reserved');
 
   return (
-    <TouchableOpacity
+    <Card
       onPress={onPress}
-      activeOpacity={0.85}
-      accessibilityRole="button"
       accessibilityLabel={`Reserved: ${prospect.businessName}. ${timeLeftLabel}. Tap for directions.`}
+      style={styles.leadCard}
     >
-      <Card padded={false} large style={{ padding: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="bookmark" size={12} color={colors.accent} />
-            <Label tracking={1.8} color={colors.accent}>RESERVED · YOURS</Label>
-          </View>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center', gap: 4,
-            backgroundColor: urgent ? colors.dangerBg : colors.paper2,
-            borderRadius: radius.pill,
-            paddingHorizontal: 8, paddingVertical: 2,
-          }}>
-            <Ionicons name="time-outline" size={11} color={urgent ? colors.danger : colors.ink2} />
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: urgent ? colors.danger : colors.ink2, letterSpacing: 0.4 }}>
-              {timeLeftLabel}
-            </Text>
+      <View style={styles.leadMain}>
+        <PhotoTile name={prospect.businessName ?? 'Shop'} />
+        <View style={styles.leadText}>
+          <Text variant="bodyLg" weight="bold" numberOfLines={2}>
+            {prospect.businessName}
+          </Text>
+          <Text variant="label" weight="medium" tone="muted" numberOfLines={1}>
+            {prospect.category ?? 'Shop'}
+            {prospect.city ? ` · ${prospect.city}` : ''}
+          </Text>
+          <View style={styles.chipRow}>
+            <Chip label={reserved.label} tone={reserved.tone} />
+            <Chip label={timeLeftLabel} tone={urgent ? 'danger' : 'muted'} />
           </View>
         </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          <View style={{
-            width: 40, height: 40, borderRadius: 8,
-            backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Ionicons name="business" size={20} color={colors.paper} />
-          </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>
-              {prospect.businessName}
-            </Body>
-            <Body size="sm" color={colors.ink2} numberOfLines={1} style={{ marginTop: 2 }}>
-              {prospect.category ?? 'Business'}{prospect.city ? ` · ${prospect.city}` : ''}
-            </Body>
-            {prospect.phone && (
-              <Text style={{
-                fontFamily: fonts.mono, fontSize: 11, color: colors.ink3,
-                marginTop: 4, letterSpacing: 0.4,
-              }} numberOfLines={1}>
-                {prospect.phone}
-              </Text>
-            )}
-          </View>
+        <View style={styles.go}>
+          <Ionicons name="navigate" size={22} color={colors.onAccent} />
         </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center', gap: 4,
-            backgroundColor: colors.accent,
-            borderRadius: radius.pill,
-            paddingHorizontal: 10, paddingVertical: 4,
-          }}>
-            <Ionicons name="navigate" size={11} color="#fff" />
-            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: '#fff', fontWeight: '600' }}>
-              Tap to open in Maps
-            </Text>
-          </View>
-        </View>
-      </Card>
-    </TouchableOpacity>
+      </View>
+    </Card>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Scrape progress UI — replaces the input fields once the search is in flight.
-// Three stages are visible so the user can see the app is doing real work,
-// not just spinning. Each stage has a hint of what's happening + a soft pulse.
+// Scrape progress — replaces the options once the search is in flight.
+// Three stages are visible so the user can see the app is doing real work.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ScrapePhase = 'idle' | 'locating' | 'searching' | 'saving';
 
-const PHASES: { key: Exclude<ScrapePhase, 'idle'>; title: string; hint: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'locating',  title: 'Pinning your spot',     hint: 'Reading GPS so we search the right neighborhood.', icon: 'locate' },
-  { key: 'searching', title: 'Scanning the map',      hint: 'Checking Google Maps for businesses around you.',  icon: 'search' },
-  { key: 'saving',    title: 'Adding to your list',   hint: 'Saving the ones nobody on the team has met yet.',  icon: 'list' },
+const PHASES: { key: Exclude<ScrapePhase, 'idle'>; title: string }[] = [
+  { key: 'locating', title: 'Finding where you are' },
+  { key: 'searching', title: 'Scanning the map' },
+  { key: 'saving', title: 'Saving the shops' },
 ];
-
-function scrapePhaseCaption(phase: ScrapePhase): string {
-  switch (phase) {
-    case 'locating':  return '1 OF 3';
-    case 'searching': return '2 OF 3';
-    case 'saving':    return '3 OF 3';
-    default:          return 'SEARCHING…';
-  }
-}
-
-function scrapePhaseLabel(phase: ScrapePhase): string {
-  switch (phase) {
-    case 'locating':  return 'Finding where you are…';
-    case 'searching': return 'Looking for nearby businesses…';
-    case 'saving':    return 'Almost ready — saving results…';
-    default:          return 'Hang tight…';
-  }
-}
 
 function ScrapeProgressPanel({
   phase,
@@ -1066,125 +711,117 @@ function ScrapeProgressPanel({
   category: string;
   radiusKm: number;
 }) {
-  const pulse = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-        Animated.timing(pulse, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  const pulseOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] });
-  const pulseScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.05] });
-
+  const phaseIdx = PHASES.findIndex((x) => x.key === phase);
   return (
-    <View>
-      <Label tracking={1.8}>HANG TIGHT</Label>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', marginTop: 4, marginBottom: 10 }}>
-        <Display size="md">Looking for </Display>
-        <Display size="md" italic color={colors.accent}>{category}</Display>
-        <Display size="md"> near you.</Display>
-      </View>
-      <Body size="sm" color={colors.ink2} style={{ marginBottom: 20 }}>
-        Hold on — we're searching within {radiusKm} km. This usually takes 5–15 seconds depending on your area. Please don't close the app.
-      </Body>
-
-      {/* Animated halo with current-phase icon */}
-      <View style={{ alignItems: 'center', marginBottom: 22 }}>
-        <View style={{ width: 92, height: 92, alignItems: 'center', justifyContent: 'center' }}>
-          <Animated.View
-            style={{
-              position: 'absolute',
-              width: 92, height: 92, borderRadius: 46,
-              backgroundColor: colors.accentBg,
-              opacity: pulseOpacity,
-              transform: [{ scale: pulseScale }],
-            }}
+    <View style={styles.progress}>
+      <Text variant="title" accessibilityRole="header">
+        Looking for {category} within {radiusKm < 1 ? `${radiusKm * 1000} m` : `${radiusKm} km`}.
+      </Text>
+      <View style={styles.steps}>
+        {PHASES.map((p, i) => (
+          <CheckRow
+            key={p.key}
+            title={p.title}
+            state={phaseIdx < 0 ? 'todo' : i < phaseIdx ? 'done' : i === phaseIdx ? 'now' : 'todo'}
           />
-          <View style={{
-            width: 64, height: 64, borderRadius: 32,
-            backgroundColor: colors.accent,
-            alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Ionicons
-              name={(PHASES.find((p) => p.key === phase) ?? PHASES[0]).icon}
-              size={28}
-              color="#fff"
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* Step list */}
-      <View style={{ gap: 10, marginBottom: 18 }}>
-        {PHASES.map((p) => {
-          const phaseIdx = PHASES.findIndex((x) => x.key === phase);
-          const myIdx = PHASES.findIndex((x) => x.key === p.key);
-          const state: 'done' | 'active' | 'pending' =
-            phaseIdx < 0 ? 'pending' : myIdx < phaseIdx ? 'done' : myIdx === phaseIdx ? 'active' : 'pending';
-
-          const bg =
-            state === 'done' ? colors.accentBg
-            : state === 'active' ? colors.paper3
-            : colors.paper2;
-          const fg =
-            state === 'done' ? colors.accent
-            : state === 'active' ? colors.ink
-            : colors.ink3;
-          const borderColor =
-            state === 'active' ? colors.accent
-            : colors.rule;
-
-          return (
-            <View
-              key={p.key}
-              style={{
-                flexDirection: 'row', alignItems: 'center',
-                paddingHorizontal: 14, paddingVertical: 12,
-                backgroundColor: bg,
-                borderColor, borderWidth: state === 'active' ? 1.5 : 1,
-                borderRadius: radius.sm,
-              }}
-            >
-              <View style={{
-                width: 24, height: 24, borderRadius: 12,
-                alignItems: 'center', justifyContent: 'center',
-                backgroundColor: state === 'done' ? colors.accent : 'transparent',
-                borderColor: state === 'done' ? colors.accent : colors.rule,
-                borderWidth: 1,
-                marginRight: 10,
-              }}>
-                {state === 'done' ? (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                ) : state === 'active' ? (
-                  <ActivityIndicator size="small" color={colors.accent} />
-                ) : (
-                  <Text style={{
-                    fontFamily: fonts.mono, fontSize: 10,
-                    color: colors.ink3, letterSpacing: 0.4,
-                  }}>
-                    {myIdx + 1}
-                  </Text>
-                )}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Body size="sm" weight="medium" color={fg}>{p.title}</Body>
-                <Text style={{
-                  fontFamily: fonts.mono, fontSize: 10,
-                  color: colors.ink3, letterSpacing: 0.4, marginTop: 2,
-                }}>
-                  {p.hint}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
+        ))}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  gutter: { paddingHorizontal: space.gutter },
+  block: { marginTop: space.lg },
+  listContent: { paddingTop: space.sm, paddingBottom: space.xl },
+  summary: { marginTop: space.xs },
+  roundBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    minHeight: 56,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+  },
+  searchInput: {
+    flex: 1,
+    minHeight: 48,
+    padding: 0,
+    fontFamily: fonts.semibold,
+    fontSize: 18,
+    color: colors.ink,
+  },
+  clear: { width: 32, height: 48, alignItems: 'center', justifyContent: 'center' },
+  pillRow: { paddingHorizontal: space.gutter, gap: space.sm, alignItems: 'center' },
+  list: { gap: space.md, marginTop: space.lg },
+
+  leadCard: { gap: space.md },
+  leadMain: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  leadText: { flex: 1, gap: space.xs, minWidth: 0 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.xs },
+  tile: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: colors.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  desc: { marginTop: 0 },
+  byRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  actions: { flexDirection: 'row', gap: space.sm },
+  action: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.bg2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  go: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // sheet
+  modalWrap: { flex: 1, justifyContent: 'flex-end' },
+  scrim: { flex: 1, backgroundColor: colors.scrim },
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: '88%',
+    shadowColor: '#0C0A08',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  grab: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.ruleStrong,
+    alignSelf: 'center',
+    marginTop: 9,
+  },
+  sheetBody: { paddingHorizontal: space.gutter, paddingTop: space.lg, paddingBottom: space.md, gap: space.md },
+  sheetFoot: { paddingHorizontal: space.gutter, paddingTop: space.sm, gap: space.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  sectionGap: { marginTop: space.sm },
+  progress: { gap: space.lg },
+  steps: { gap: space.sm },
+});

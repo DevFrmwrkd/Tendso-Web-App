@@ -1,17 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   ActivityIndicator,
   BackHandler,
   Linking,
   Alert,
-  TextInput,
   Image,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
@@ -19,17 +17,27 @@ import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import type { Id } from '@tendso/convex-client';
-import { colors, fonts, radius } from '../../../theme/tokens';
+import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
-import { Display, Body, Label, Card, Rule, Avatar, Door } from '../../../components/ui/primitives';
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Field,
+  Loading,
+  Pill,
+  ScreenShell,
+  SectionLabel,
+  Text,
+  leadStatus,
+  submissionStatus,
+} from '../../../components/v2';
 
-const STATUS_OPTIONS = [
-  { key: 'new',       label: 'New',       bg: colors.businessBg, ink: colors.business },
-  { key: 'contacted', label: 'Contacted', bg: colors.warnBg,     ink: colors.warn },
-  { key: 'qualified', label: 'Qualified', bg: '#EDE9FE',         ink: '#6D28D9' },
-  { key: 'converted', label: 'Converted', bg: colors.accentBg,   ink: colors.accentInk },
-  { key: 'lost',      label: 'Lost',      bg: colors.dangerBg,   ink: colors.danger },
-] as const;
+// Real backend statuses, in pipeline order. The words come from leadStatus():
+// New, Contacted, Visiting (qualified), Live (converted), Lost.
+const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'converted', 'lost'] as const;
 
 function timeAgo(ts: number): string {
   const seconds = Math.floor((Date.now() - ts) / 1000);
@@ -88,42 +96,23 @@ export default function LeadDetailScreen() {
     }, [router]),
   );
 
+  const goBack = () => router.replace('/(app)/leads');
+
   if (data === undefined) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </SafeAreaView>
-    );
+    return <Loading />;
   }
 
   if (data === null) {
     return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper, paddingHorizontal: 24 }}>
-        <Ionicons name="alert-circle-outline" size={44} color={colors.ink3} />
-        <View style={{ marginTop: 12, alignItems: 'center' }}>
-          <Display size="sm">Lead not</Display>
-          <Display size="sm" italic color={colors.accent}>found.</Display>
-        </View>
-        <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 280 }}>
-          This lead may have been deleted, or you don't have access to it.
-        </Body>
-        <TouchableOpacity
-          onPress={() => router.replace('/(app)/leads')}
-          style={{
-            marginTop: 18,
-            paddingHorizontal: 18,
-            paddingVertical: 10,
-            backgroundColor: colors.ink,
-            borderRadius: radius.pill,
-          }}
-          accessibilityLabel="Back to leads"
-          accessibilityRole="button"
-        >
-          <Text style={{ fontFamily: fonts.sansMed, color: colors.paper3, fontSize: 14 }}>
-            Back to leads
-          </Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <ScreenShell onBack={goBack}>
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Lead not found"
+          body="It may have been removed, or you don't have access."
+          actionLabel="Back to leads"
+          onAction={goBack}
+        />
+      </ScreenShell>
     );
   }
 
@@ -131,13 +120,17 @@ export default function LeadDetailScreen() {
   const crmLead: any =
     crm?.leads?.find((l: any) => String(l._id) === String(lead._id)) ?? null;
 
+  // The number / email to reach: the lead's own, else the owner on the submission.
+  const phone: string | null = lead.phone || business?.ownerPhone || null;
+  const email: string | null = lead.email || business?.ownerEmail || null;
+
   const handleCall = () => {
-    if (!lead.phone) return;
-    Linking.openURL(`tel:${lead.phone.replace(/\s/g, '')}`);
+    if (!phone) return;
+    Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
   };
   const handleEmail = () => {
-    if (!lead.email) return;
-    Linking.openURL(`mailto:${lead.email}`);
+    if (!email) return;
+    Linking.openURL(`mailto:${email}`);
   };
   const isProspect = lead.source === 'outscraper';
 
@@ -187,7 +180,7 @@ export default function LeadDetailScreen() {
     void openDirections(mapsTarget);
   };
 
-  const handleStatusChange = async (newStatus: typeof STATUS_OPTIONS[number]['key']) => {
+  const handleStatusChange = async (newStatus: typeof STATUS_OPTIONS[number]) => {
     if (newStatus === lead.status) return;
     setUpdatingStatus(true);
     try {
@@ -213,533 +206,368 @@ export default function LeadDetailScreen() {
     }
   };
 
+  const shopName: string = lead.name || crmLead?.businessName || 'Shop';
+  const address: string | null = business?.address
+    ? `${business.address}${business.city ? `, ${business.city}` : ''}`
+    : crmLead?.businessAddress
+      ? `${crmLead.businessAddress}${crmLead.businessCity ? `, ${crmLead.businessCity}` : ''}`
+      : null;
+  const heroUri: string | null = adminContent?.previewImageUrl || business?.photos?.[0] || null;
+  const status = leadStatus(lead.status);
+  const ownerName: string = business?.ownerName || lead.name || crmLead?.businessName || '?';
+  const roleLabel = business ? 'Owner' : isProspect ? 'Business' : 'Customer';
+  const canSave = noteContent.trim().length > 0 && !postingNote;
+  const hasContact = !!(phone || email || hasDirections);
+  const needsInterview = isProspect && !business;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      {/* Header */}
-      <View style={{
-        flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 20, paddingVertical: 12,
-        gap: 12,
-      }}>
-        <TouchableOpacity
-          onPress={() => router.replace('/(app)/leads')}
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            backgroundColor: colors.paper3,
-            borderWidth: 1, borderColor: colors.rule,
-            alignItems: 'center', justifyContent: 'center',
-          }}
-          accessibilityLabel="Back to leads"
-          accessibilityRole="button"
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.ink} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Label tracking={1.6}>LEAD DETAIL</Label>
-          <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>{lead.name || crmLead?.businessName}</Body>
-          <Text style={{
-            fontFamily: fonts.mono,
-            fontSize: 10, color: colors.ink3, letterSpacing: 0.5,
-            textTransform: 'uppercase',
-          }} numberOfLines={1}>
-            {lead.source === 'outscraper'
-              ? lead.status === 'new'
-                ? 'Found nearby · not yet contacted'
-                : 'Found nearby'
-              : `Inquired via ${lead.source}`} · {timeAgo(lead.createdAt)}
-          </Text>
-        </View>
+    <ScreenShell
+      onBack={goBack}
+      footer={
+        needsInterview ? (
+          // Only for a scraped prospect nobody has interviewed yet: once `business`
+          // exists there is a submission, and re-interviewing would file a second,
+          // unlinked entry. lead._id is a `leads` id, which is exactly what
+          // prospectLeadId wants, so the interview attaches to THIS record and the
+          // scraped details ride along as params.
+          <Button title="I'll interview this" onPress={startInterview} />
+        ) : undefined
+      }
+      contentStyle={styles.body}
+    >
+      {/* Hero: photo, or a tinted tile, with the status chip */}
+      <View style={styles.hero}>
+        {heroUri ? (
+          <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" accessibilityLabel={`${shopName} photo`} />
+        ) : (
+          <View style={styles.heroTile}>
+            <Ionicons name="storefront-outline" size={64} color={colors.ink} />
+          </View>
+        )}
+        <Chip label={status.label} tone={status.tone} style={styles.heroChip} />
       </View>
 
-      <Rule />
+      {/* Name + address */}
+      <View style={styles.nameBlock}>
+        <Text variant="title" accessibilityRole="header">
+          {shopName}
+        </Text>
+        {address ? (
+          <Text variant="body" tone="ink2">
+            {address}
+          </Text>
+        ) : null}
+        <Text variant="label" tone="muted" weight="medium">
+          {`${isProspect ? 'Found nearby' : `Inquired via ${lead.source}`} · ${timeAgo(lead.createdAt)}`}
+        </Text>
+      </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32, paddingTop: 14 }}>
-        {/* Submitted-by banner */}
-        {submittedBy && (
-          <Card padded={false} style={{
-            marginHorizontal: 20,
-            padding: 12,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-            {submittedBy.profileImage ? (
-              <Image
-                source={{ uri: submittedBy.profileImage }}
-                style={{ width: 38, height: 38, borderRadius: 19 }}
-              />
-            ) : (
-              <Avatar name={submittedBy.displayName ?? '?'} size={38} bg={colors.accentBg} fg={colors.accentInk} />
-            )}
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Body size="sm" weight="bold" color={colors.ink}>{submittedBy.displayName}</Body>
-                {isMine && (
-                  <View style={{
-                    backgroundColor: colors.ink,
-                    borderRadius: radius.pill,
-                    paddingHorizontal: 6, paddingVertical: 1,
-                  }}>
-                    <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, letterSpacing: 1.0, color: colors.paper3 }}>
-                      YOU
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 10, color: colors.ink3,
-                marginTop: 2, letterSpacing: 0.5,
-              }}>
-                submitted this lead
-              </Text>
-            </View>
-          </Card>
-        )}
-
-        {/* Admin-curated content hero */}
-        {adminContent?.hasEnrichedContent && (
-          <Card padded={false} large style={{
-            marginHorizontal: 20,
-            marginTop: 12,
-            overflow: 'hidden',
-          }}>
-            {adminContent.previewImageUrl && (
-              <View style={{ width: '100%', backgroundColor: colors.paper2, aspectRatio: 16 / 9 }}>
-                <Image
-                  source={{ uri: adminContent.previewImageUrl }}
-                  style={{ width: '100%', height: '100%' }}
-                  resizeMode="cover"
-                />
-              </View>
-            )}
-            {adminContent.description && (
-              <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
-                <Body size="sm" color={colors.ink}>{adminContent.description}</Body>
-              </View>
-            )}
-            {adminContent.externalPreviewUrl && (
-              <TouchableOpacity
-                onPress={() => void openExternalUrl(adminContent.externalPreviewUrl!)}
-                activeOpacity={0.7}
-                style={{
-                  marginHorizontal: 16, marginTop: 12, marginBottom: 14,
-                  flexDirection: 'row', alignItems: 'center',
-                  backgroundColor: colors.paper2,
-                  borderRadius: radius.sm,
-                  borderWidth: 1, borderColor: colors.rule,
-                  paddingHorizontal: 12, paddingVertical: 10,
-                }}
-              >
-                <Ionicons name="link" size={14} color={colors.accent} />
-                <Text style={{
-                  flex: 1, marginLeft: 8,
-                  fontFamily: fonts.sansMed,
-                  fontSize: 12, color: colors.accent,
-                }} numberOfLines={1}>
-                  {adminContent.externalPreviewUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                </Text>
-                <Ionicons name="open-outline" size={14} color={colors.accent} />
-              </TouchableOpacity>
-            )}
-            {!adminContent.externalPreviewUrl && <View style={{ height: 14 }} />}
-          </Card>
-        )}
-
-        {/* Contact — the customer for real inquiries, the business itself for scraped prospects */}
-        <Card large style={{ marginHorizontal: 20, marginTop: 12, padding: 16 }}>
-          <Label tracking={1.6} style={{ marginBottom: 10 }}>{isProspect ? 'BUSINESS' : 'CUSTOMER'}</Label>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <Avatar name={lead.name || crmLead?.businessName || '?'} size={48} bg={colors.accentBg} fg={colors.accentInk} />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Display size="sm">{lead.name || crmLead?.businessName}</Display>
-              {lead.phone ? (
-                <Body size="sm" color={colors.ink2}>{lead.phone}</Body>
-              ) : (
-                <Body size="sm" color={colors.ink3} style={{ fontStyle: 'italic' }}>
-                  {isProspect ? 'No phone number scraped' : 'No phone on file'}
-                </Body>
-              )}
-              {lead.email && <Body size="sm" color={colors.ink2}>{lead.email}</Body>}
-              {isProspect && crmLead?.businessAddress && (
-                <Body size="sm" color={colors.ink2} style={{ marginTop: 2 }} numberOfLines={2}>
-                  {crmLead.businessAddress}{crmLead.businessCity ? `, ${crmLead.businessCity}` : ''}
-                </Body>
-              )}
-            </View>
-          </View>
-
-          {lead.phone || lead.email || (isProspect && hasDirections) ? (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {lead.phone && (
-                <TouchableOpacity
-                  onPress={handleCall}
-                  style={{
-                    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: colors.accentSolid,
-                    borderRadius: radius.sm,
-                    paddingVertical: 11,
-                  }}
-                  accessibilityLabel="Call"
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="call" size={16} color="#fff" />
-                  <Text style={{ marginLeft: 8, fontFamily: fonts.sansMed, fontSize: 14, color: '#fff' }}>Call</Text>
-                </TouchableOpacity>
-              )}
-              {lead.email && (
-                <TouchableOpacity
-                  onPress={handleEmail}
-                  style={{
-                    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: colors.business,
-                    borderRadius: radius.sm,
-                    paddingVertical: 11,
-                  }}
-                  accessibilityLabel="Email"
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="mail" size={16} color="#fff" />
-                  <Text style={{ marginLeft: 8, fontFamily: fonts.sansMed, fontSize: 14, color: '#fff' }}>Email</Text>
-                </TouchableOpacity>
-              )}
-              {isProspect && hasDirections && (
-                <TouchableOpacity
-                  onPress={handleDirections}
-                  style={{
-                    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: colors.paper2,
-                    borderWidth: 1, borderColor: colors.rule,
-                    borderRadius: radius.sm,
-                    paddingVertical: 11,
-                  }}
-                  accessibilityLabel="Show directions"
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="navigate" size={16} color={colors.ink} />
-                  <Text style={{ marginLeft: 8, fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }}>Directions</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ) : (
-            <Body size="sm" color={colors.ink3} style={{ fontStyle: 'italic' }}>
-              No contact info available for this business.
-            </Body>
-          )}
-        </Card>
-
-        {/* Interview this business. Shown only for a scraped prospect nobody has
-            interviewed yet — once `business` exists there is a submission, and
-            re-interviewing would file a second, unlinked entry.
-
-            lead._id is a `leads` id, which is exactly what prospectLeadId wants,
-            so an interview started here attaches to THIS record instead of
-            creating a duplicate. The scraped details ride along as params so the
-            creator isn't retyping them in front of the owner. */}
-        {isProspect && !business && (
-          <View style={{ marginHorizontal: 20, marginTop: 12 }}>
-            <Door
-              caption="INTERVIEW"
-              label="I'll interview this"
-              variant="accent"
-              onPress={startInterview}
-              rightIcon={<Ionicons name="arrow-forward" size={16} color="#fff" style={{ marginLeft: 8 }} />}
-            />
-          </View>
-        )}
-
-        {/* Status pipeline */}
-        <Card large style={{ marginHorizontal: 20, marginTop: 12, padding: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <Label tracking={1.6}>STATUS</Label>
-            {!isMine && (
-              <Text style={{ fontFamily: fonts.serifIt, fontSize: 12, color: colors.ink3 }}>
-                read-only
-              </Text>
-            )}
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {STATUS_OPTIONS.map((opt) => {
-              const isActive = opt.key === lead.status;
-              const disabled = updatingStatus || !isMine;
-              return (
-                <TouchableOpacity
-                  key={opt.key}
-                  disabled={disabled}
-                  onPress={() => handleStatusChange(opt.key)}
-                  style={{
-                    paddingHorizontal: 12, paddingVertical: 6,
-                    borderRadius: radius.pill,
-                    backgroundColor: isActive ? opt.bg : colors.paper3,
-                    borderWidth: 1,
-                    borderColor: isActive ? opt.ink : colors.ruleStrong,
-                    opacity: disabled && !isActive ? 0.5 : 1,
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Set status to ${opt.label}`}
-                >
-                  <Text style={{
-                    fontFamily: fonts.monoMed,
-                    fontSize: 11,
-                    letterSpacing: 1.2,
-                    textTransform: 'uppercase',
-                    color: isActive ? opt.ink : colors.ink2,
-                  }}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Card>
-
-        {/* Business */}
-        {business && (
-          <Card large style={{ marginHorizontal: 20, marginTop: 12, padding: 16 }}>
-            <Label tracking={1.6} style={{ marginBottom: 10 }}>BUSINESS</Label>
-            <Display size="sm">{business.businessName}</Display>
-            <Body size="xs" color={colors.ink3} style={{ marginTop: 2 }}>{business.businessType}</Body>
-
-            <View style={{ marginTop: 12, gap: 6 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="person-outline" size={14} color={colors.ink3} />
-                <Body size="sm" color={colors.ink2} style={{ marginLeft: 8 }}>{business.ownerName}</Body>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="call-outline" size={14} color={colors.ink3} />
-                <Body size="sm" color={colors.ink2} style={{ marginLeft: 8 }}>{business.ownerPhone}</Body>
-              </View>
-              {business.ownerEmail && (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="mail-outline" size={14} color={colors.ink3} />
-                  <Body size="sm" color={colors.ink2} style={{ marginLeft: 8 }}>{business.ownerEmail}</Body>
-                </View>
-              )}
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                <Ionicons name="location-outline" size={14} color={colors.ink3} style={{ marginTop: 3 }} />
-                <Body size="sm" color={colors.ink2} style={{ marginLeft: 8, flex: 1 }}>
-                  {business.address}
-                  {business.city ? `, ${business.city}` : ''}
-                  {business.province ? `, ${business.province}` : ''}
-                </Body>
-              </View>
-            </View>
-
-            {business.photos && business.photos.length > 0 && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, marginTop: 14 }}
-              >
-                {business.photos.map((photo: string, idx: number) => (
-                  <Image
-                    key={idx}
-                    source={{ uri: photo }}
-                    style={{ width: 104, height: 104, borderRadius: radius.sm }}
-                  />
-                ))}
-              </ScrollView>
-            )}
-
-            <TouchableOpacity
-              onPress={handleDirections}
-              style={{
-                marginTop: 12,
-                flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                backgroundColor: colors.paper2,
-                borderWidth: 1, borderColor: colors.rule,
-                borderRadius: radius.sm,
-                paddingVertical: 11,
-              }}
-              accessibilityLabel="Open in Maps"
-              accessibilityRole="button"
-            >
-              <Ionicons name="map-outline" size={16} color={colors.ink} />
-              <Text style={{ marginLeft: 8, fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }}>
-                Directions
-              </Text>
-            </TouchableOpacity>
-
-            {business.websiteUrl && (
-              <TouchableOpacity
-                onPress={() => void openExternalUrl(business.websiteUrl!)}
-                style={{
-                  marginTop: 8,
-                  flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: 'transparent',
-                  borderWidth: 1, borderColor: colors.accent,
-                  borderRadius: radius.sm,
-                  paddingVertical: 11,
-                }}
-                accessibilityLabel="Open business website"
-                accessibilityRole="button"
-              >
-                <Ionicons name="globe-outline" size={16} color={colors.accent} />
-                <Text style={{ marginLeft: 8, fontFamily: fonts.sansMed, fontSize: 14, color: colors.accent }}>
-                  View website
-                </Text>
-              </TouchableOpacity>
-            )}
-          </Card>
-        )}
-
-        {/* Interviewers */}
-        <Card large style={{ marginHorizontal: 20, marginTop: 12, padding: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <Label tracking={1.6}>INTERVIEWED BY</Label>
-            <View style={{
-              backgroundColor: colors.paper2,
-              borderRadius: radius.pill,
-              paddingHorizontal: 8, paddingVertical: 2,
-            }}>
-              <Text style={{
-                fontFamily: fonts.monoMed,
-                fontSize: 10, letterSpacing: 1.0,
-                color: colors.ink2,
-                textTransform: 'uppercase',
-              }}>
-                {interviewers.length} {interviewers.length === 1 ? 'creator' : 'creators'}
-              </Text>
-            </View>
-          </View>
-
-          {interviewers.length === 0 ? (
-            <Text style={{ fontFamily: fonts.serifIt, fontSize: 14, color: colors.ink3 }}>
-              No interview history found for this business.
+      {/* Who spotted it */}
+      {submittedBy ? (
+        <Card style={styles.row}>
+          <Avatar uri={submittedBy.profileImage} name={submittedBy.displayName ?? '?'} size={44} />
+          <View style={styles.flex1}>
+            <Text variant="body" weight="bold" numberOfLines={1}>
+              {submittedBy.displayName}
             </Text>
-          ) : (
-            <View style={{ gap: 10 }}>
-              {interviewers.map((interviewer: any) => {
-                const isRejected = interviewer.submissionStatus === 'rejected';
-                return (
-                  <View
-                    key={interviewer.submissionId}
-                    style={{
-                      flexDirection: 'row', alignItems: 'center',
-                      backgroundColor: interviewer.isMine ? colors.accentBg : colors.paper2,
-                      borderRadius: radius.sm,
-                      padding: 10,
-                      borderLeftWidth: interviewer.isMine ? 3 : 0,
-                      borderLeftColor: colors.accent,
-                      opacity: isRejected && !interviewer.isMine ? 0.6 : 1,
-                    }}
-                  >
-                    {interviewer.creatorProfileImage ? (
-                      <Image
-                        source={{ uri: interviewer.creatorProfileImage }}
-                        style={{ width: 36, height: 36, borderRadius: 18 }}
-                      />
-                    ) : (
-                      <Avatar
-                        name={interviewer.creatorName ?? '?'}
-                        size={36}
-                        bg={interviewer.isMine ? colors.accent : colors.ink3}
-                        fg={colors.paper3}
-                      />
-                    )}
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Body size="sm" weight="bold" color={colors.ink}>{interviewer.creatorName}</Body>
-                        {interviewer.isMine && (
-                          <View style={{
-                            backgroundColor: colors.ink,
-                            borderRadius: radius.pill,
-                            paddingHorizontal: 6, paddingVertical: 1,
-                          }}>
-                            <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, letterSpacing: 1.0, color: colors.paper3 }}>
-                              YOU
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={{
-                        fontFamily: fonts.mono,
-                        fontSize: 10, color: colors.ink3,
-                        marginTop: 2, letterSpacing: 0.4,
-                      }}>
-                        {timeAgo(interviewer.interviewedAt)} ·{' '}
-                        <Text style={{ color: isRejected ? colors.danger : colors.ink2 }}>
-                          {interviewer.submissionStatus}
-                        </Text>
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          )}
+            <Text variant="label" tone="muted" weight="medium">
+              Spotted this shop
+            </Text>
+          </View>
+          {isMine ? <Chip label="You" tone="ok" /> : null}
         </Card>
+      ) : null}
 
-        {/* Notes */}
-        <Card large style={{ marginHorizontal: 20, marginTop: 12, padding: 16 }}>
-          <Label tracking={1.6} style={{ marginBottom: 12 }}>NOTES ({notes.length})</Label>
-
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 14 }}>
-            <View style={{
-              flex: 1,
-              backgroundColor: colors.paper3,
-              borderColor: colors.rule, borderWidth: 1,
-              borderRadius: radius.sm,
-              paddingHorizontal: 12,
-            }}>
-              <TextInput
-                value={noteContent}
-                onChangeText={setNoteContent}
-                placeholder="Add a note about this lead…"
-                placeholderTextColor={colors.ink3}
-                multiline
-                style={{
-                  paddingVertical: 10,
-                  fontFamily: fonts.sans,
-                  fontSize: 14, color: colors.ink,
-                  minHeight: 42, maxHeight: 100,
-                }}
-              />
-            </View>
-            <TouchableOpacity
-              onPress={handleAddNote}
-              disabled={!noteContent.trim() || postingNote}
-              style={{
-                width: 42, height: 42, borderRadius: radius.sm,
-                backgroundColor: noteContent.trim() ? colors.ink : colors.paper2,
-                alignItems: 'center', justifyContent: 'center',
-              }}
-              accessibilityLabel="Save note"
+      {/* Contact: owner, phone, round message + call */}
+      <Card style={styles.contactCard}>
+        <View style={styles.row}>
+          <Avatar name={ownerName} size={48} />
+          <View style={styles.flex1}>
+            <Text variant="body" weight="bold" numberOfLines={1}>
+              {ownerName}
+            </Text>
+            <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+              {phone ? `${roleLabel} · ${phone}` : `${roleLabel} · no phone yet`}
+            </Text>
+            {email ? (
+              <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+                {email}
+              </Text>
+            ) : null}
+          </View>
+          {email ? (
+            <Pressable
+              onPress={handleEmail}
               accessibilityRole="button"
+              accessibilityLabel="Email"
+              style={styles.roundSoft}
+            >
+              <Ionicons name="mail-outline" size={22} color={colors.ink} />
+            </Pressable>
+          ) : null}
+          {phone ? (
+            <Pressable
+              onPress={handleCall}
+              accessibilityRole="button"
+              accessibilityLabel="Call"
+              style={styles.roundInk}
+            >
+              <Ionicons name="call" size={22} color={colors.onDark} />
+            </Pressable>
+          ) : null}
+        </View>
+        {hasDirections ? (
+          <Button
+            title="Directions"
+            variant="ghost"
+            size="md"
+            icon="navigate"
+            onPress={handleDirections}
+            accessibilityLabel="Show directions"
+          />
+        ) : null}
+        {!hasContact ? (
+          <Text variant="label" tone="muted" weight="medium">
+            No contact info yet.
+          </Text>
+        ) : null}
+      </Card>
+
+      {/* The shop on the submission, if it has been interviewed */}
+      {business ? (
+        <Card style={styles.stack}>
+          <SectionLabel>The shop</SectionLabel>
+          <View style={styles.row}>
+            <View style={styles.flex1}>
+              <Text variant="heading">{business.businessName}</Text>
+              <Text variant="label" tone="muted" weight="medium">
+                {business.businessType}
+              </Text>
+            </View>
+          </View>
+          {business.photos && business.photos.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
+              {business.photos.map((photo: string, idx: number) => (
+                <Image key={idx} source={{ uri: photo }} style={styles.photo} accessibilityLabel={`Shop photo ${idx + 1}`} />
+              ))}
+            </ScrollView>
+          ) : null}
+          {business.websiteUrl ? (
+            <Button
+              title="View website"
+              variant="ghost"
+              size="md"
+              icon="globe-outline"
+              onPress={() => void openExternalUrl(business.websiteUrl!)}
+              accessibilityLabel="Open business website"
+            />
+          ) : null}
+        </Card>
+      ) : null}
+
+      {/* Live preview the team prepared for this shop */}
+      {adminContent?.hasEnrichedContent && (adminContent.description || adminContent.externalPreviewUrl) ? (
+        <Card style={styles.stack}>
+          <SectionLabel>Preview</SectionLabel>
+          {adminContent.description ? (
+            <Text variant="body" tone="ink2">
+              {adminContent.description}
+            </Text>
+          ) : null}
+          {adminContent.externalPreviewUrl ? (
+            <Button
+              title="See the live preview"
+              variant="ghost"
+              size="md"
+              icon="open-outline"
+              onPress={() => void openExternalUrl(adminContent.externalPreviewUrl!)}
+              accessibilityLabel="Open live preview"
+            />
+          ) : null}
+        </Card>
+      ) : null}
+
+      {/* Status */}
+      <View style={styles.section}>
+        <SectionLabel>Status</SectionLabel>
+        <View style={styles.pills}>
+          {STATUS_OPTIONS.map((key) => {
+            const label = leadStatus(key).label;
+            const isActive = key === lead.status;
+            const disabled = updatingStatus || !isMine;
+            return (
+              <Pill
+                key={key}
+                label={label}
+                selected={isActive}
+                onPress={disabled ? undefined : () => handleStatusChange(key)}
+                accessibilityLabel={`Set status to ${label}`}
+                style={[
+                  !isActive ? styles.pillOff : null,
+                  disabled && !isActive ? styles.dim : null,
+                ]}
+              />
+            );
+          })}
+        </View>
+        {!isMine ? (
+          <Text variant="label" tone="muted" weight="medium">
+            Only the agent who spotted it can change this.
+          </Text>
+        ) : null}
+      </View>
+
+      {/* Notes: add one, then the timeline */}
+      <View style={styles.section}>
+        <SectionLabel>{`Notes (${notes.length})`}</SectionLabel>
+        <Field
+          label="Add a note"
+          icon="create-outline"
+          value={noteContent}
+          onChangeText={setNoteContent}
+          placeholder="Best time to visit, who to ask for"
+          multiline
+          accessibilityLabel="Add a note about this lead"
+          right={
+            <Pressable
+              onPress={handleAddNote}
+              disabled={!canSave}
+              accessibilityRole="button"
+              accessibilityLabel="Save note"
+              accessibilityState={{ disabled: !canSave, busy: postingNote }}
+              style={[styles.send, canSave ? styles.sendOn : null]}
             >
               {postingNote ? (
-                <ActivityIndicator size="small" color={colors.paper3} />
+                <ActivityIndicator size="small" color={colors.onDark} />
               ) : (
-                <Ionicons name="arrow-up" size={18} color={noteContent.trim() ? colors.paper3 : colors.ink3} />
+                <Ionicons name="arrow-up" size={22} color={canSave ? colors.onDark : colors.ink3} />
               )}
-            </TouchableOpacity>
-          </View>
-
-          {notes.length === 0 ? (
-            <Text style={{ fontFamily: fonts.serifIt, fontSize: 14, color: colors.ink3 }}>
-              No notes yet.
-            </Text>
-          ) : (
-            <View style={{ gap: 8 }}>
-              {notes.map((note: any) => (
-                <View key={note._id} style={{
-                  backgroundColor: colors.paper2,
-                  borderRadius: radius.sm,
-                  padding: 12,
-                }}>
-                  <Body size="sm" color={colors.ink}>{note.content}</Body>
-                  <Text style={{
-                    fontFamily: fonts.mono,
-                    fontSize: 10, color: colors.ink3,
-                    marginTop: 6, letterSpacing: 0.4,
-                  }}>
+            </Pressable>
+          }
+        />
+        {notes.length === 0 ? (
+          <Text variant="label" tone="muted" weight="medium">
+            No notes yet.
+          </Text>
+        ) : (
+          <Card style={styles.timeline}>
+            {notes.map((note: any, i: number) => (
+              <View key={note._id} style={styles.tlRow}>
+                <View style={styles.tlRail}>
+                  <View style={styles.tlDot} />
+                  {i < notes.length - 1 ? <View style={styles.tlLine} /> : null}
+                </View>
+                <View style={[styles.tlBody, i < notes.length - 1 ? styles.tlGap : null]}>
+                  <Text variant="body" tone="ink2">
+                    {note.content}
+                  </Text>
+                  <Text variant="label" tone="muted" weight="medium">
                     {timeAgo(note.createdAt)}
                   </Text>
                 </View>
-              ))}
-            </View>
-          )}
-        </Card>
-      </ScrollView>
-    </SafeAreaView>
+              </View>
+            ))}
+          </Card>
+        )}
+      </View>
+
+      {/* Everyone who interviewed this shop */}
+      <Card style={styles.stack}>
+        <View style={styles.between}>
+          <SectionLabel>Interviewed by</SectionLabel>
+          <Chip label={`${interviewers.length} field agent${interviewers.length === 1 ? '' : 's'}`} tone="muted" />
+        </View>
+        {interviewers.length === 0 ? (
+          <Text variant="label" tone="muted" weight="medium">
+            No one has interviewed this shop yet.
+          </Text>
+        ) : (
+          <View style={styles.stack}>
+            {interviewers.map((interviewer: any) => {
+              const isRejected = interviewer.submissionStatus === 'rejected';
+              const st = submissionStatus(interviewer.submissionStatus);
+              return (
+                <View
+                  key={interviewer.submissionId}
+                  style={[styles.row, styles.interviewer, interviewer.isMine ? styles.interviewerMine : null, isRejected && !interviewer.isMine ? styles.dim : null]}
+                >
+                  <Avatar uri={interviewer.creatorProfileImage} name={interviewer.creatorName ?? '?'} size={40} />
+                  <View style={styles.flex1}>
+                    <Text variant="body" weight="bold" numberOfLines={1}>
+                      {interviewer.isMine ? `${interviewer.creatorName} (you)` : interviewer.creatorName}
+                    </Text>
+                    <Text variant="label" tone="muted" weight="medium">
+                      {timeAgo(interviewer.interviewedAt)}
+                    </Text>
+                  </View>
+                  <Chip label={st.label} tone={st.tone} />
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </Card>
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: { flex: 1, minWidth: 0 },
+  body: { gap: space.lg, paddingTop: space.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
+  stack: { gap: space.md },
+  section: { gap: space.sm },
+
+  hero: { height: 196, borderRadius: radius.cardLg, overflow: 'hidden', backgroundColor: colors.accentSoft },
+  heroImg: { width: '100%', height: '100%' },
+  heroTile: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentSoft },
+  heroChip: { position: 'absolute', top: space.md, left: space.md },
+  nameBlock: { gap: space.xs },
+
+  contactCard: { gap: space.md },
+  roundSoft: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roundInk: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  photoRow: { gap: space.sm },
+  photo: { width: 104, height: 104, borderRadius: radius.field },
+
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  pillOff: { backgroundColor: colors.card, ...shadow.soft },
+  dim: { opacity: 0.5 },
+
+  send: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendOn: { backgroundColor: colors.ink },
+
+  timeline: { gap: 0 },
+  tlRow: { flexDirection: 'row', gap: space.md },
+  tlRail: { width: 14, alignItems: 'center' },
+  tlDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.ink, marginTop: 6 },
+  tlLine: { flex: 1, width: 2, backgroundColor: colors.rule, marginTop: 4 },
+  tlBody: { flex: 1, gap: space.xs },
+  tlGap: { paddingBottom: space.lg },
+
+  interviewer: { padding: space.sm, borderRadius: radius.field },
+  interviewerMine: { backgroundColor: colors.accentSoft },
+});
