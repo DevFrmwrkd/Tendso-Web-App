@@ -74,7 +74,7 @@ it('waits for Convex authentication, then restores details without automatically
   expect(screen.getByLabelText('Mobile number').props.value).toBe('09171234567');
   expect(screen.getByLabelText('Referral code').props.value).toBe('AFF123');
   expect(mockCreateCreator).not.toHaveBeenCalled();
-  fireEvent.press(screen.getByLabelText('Create creator account'));
+  fireEvent.press(screen.getByLabelText('Create field agent account'));
   await waitFor(() => expect(mockCreateCreator).toHaveBeenCalledWith(expect.objectContaining({
     clerkId: mockIdentity.clerkId, phone: '09171234567', referredByCode: 'AFF123',
   })));
@@ -85,12 +85,12 @@ it('waits when the Convex JWT still belongs to a previous Clerk user', async () 
   mockAuthenticated = true;
   mockJwtSubject = 'previous_user';
   const screen = render(<AccountSetupScreen />);
-  expect(screen.queryByLabelText('Create creator account')).toBeNull();
+  expect(screen.queryByLabelText('Create field agent account')).toBeNull();
   expect(mockCreateCreator).not.toHaveBeenCalled();
   expect(mockCreateAffiliate).not.toHaveBeenCalled();
   mockJwtSubject = mockIdentity.clerkId;
   screen.rerender(<AccountSetupScreen />);
-  await waitFor(() => expect(screen.getByLabelText('Create creator account')).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText('Create field agent account')).toBeTruthy());
   expect(mockCreateCreator).not.toHaveBeenCalled();
 });
 
@@ -99,8 +99,8 @@ it('does not offer a new account type to an existing business owner', () => {
   mockIsOwner = true;
   const screen = render(<AccountSetupScreen />);
   expect(screen.getByText('Business owner account')).toBeTruthy();
-  expect(screen.queryByLabelText('Creator account')).toBeNull();
-  expect(screen.queryByLabelText('Affiliate account')).toBeNull();
+  expect(screen.queryByLabelText(/^Field agent,/)).toBeNull();
+  expect(screen.queryByLabelText(/^Creator,/)).toBeNull();
   expect(mockCreateCreator).not.toHaveBeenCalled();
   expect(mockCreateAffiliate).not.toHaveBeenCalled();
 });
@@ -109,9 +109,9 @@ it('resumes the affiliate choice and sends no incoming referral field', async ()
   mockAuthenticated = true;
   await savePendingSignupProfile(normalizeSignupProfile({ accountType: 'affiliate', firstName: 'Alex Shop', phone: '09171234567', handle: 'alex-shop', referredByCode: 'never-forward' }), mockIdentity);
   const screen = render(<AccountSetupScreen />);
-  await waitFor(() => expect(screen.getByLabelText('Create affiliate account')).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText('Create creator account')).toBeTruthy());
   expect(screen.queryByLabelText('Referral code')).toBeNull();
-  fireEvent.press(screen.getByLabelText('Create affiliate account'));
+  fireEvent.press(screen.getByLabelText('Create creator account'));
   await waitFor(() => expect(mockCreateAffiliate).toHaveBeenCalledWith({
     firstName: 'Alex Shop', lastName: 'Cruz', phone: '09171234567', handle: 'alex-shop', email: mockIdentity.email,
   }));
@@ -124,11 +124,11 @@ it('keeps the entered affiliate details after a server uniqueness error', async 
   mockAuthenticated = true;
   mockCreateAffiliate.mockRejectedValueOnce({ data: 'That page handle is already taken.' });
   const screen = render(<AccountSetupScreen />);
-  await waitFor(() => expect(screen.getByLabelText('Create creator account')).toBeTruthy());
-  fireEvent.press(screen.getByLabelText('Affiliate account'));
+  await waitFor(() => expect(screen.getByLabelText('Create field agent account')).toBeTruthy());
+  fireEvent.press(screen.getByLabelText(/^Creator,/));
   fireEvent.changeText(screen.getByLabelText('Mobile number'), '09171234567');
   fireEvent.changeText(screen.getByLabelText('Page handle'), 'Taken-Shop');
-  fireEvent.press(screen.getByLabelText('Create affiliate account'));
+  fireEvent.press(screen.getByLabelText('Create creator account'));
   await waitFor(() => expect(screen.getByText('That page handle is already taken.')).toBeTruthy());
   expect(await loadPendingSignupProfile(mockIdentity)).toMatchObject({ accountType: 'affiliate', handle: 'taken-shop', phone: '09171234567' });
   expect(mockRouter.replace).not.toHaveBeenCalled();
