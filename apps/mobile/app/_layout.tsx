@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState, useNavigationContainerRef } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { View, Image, Text, ActivityIndicator, LogBox } from 'react-native';
 import { AppProviders } from '../providers/AppProviders';
@@ -15,7 +15,9 @@ import {
 import {
   Onest_400Regular,
   Onest_500Medium,
+  Onest_600SemiBold,
   Onest_700Bold,
+  Onest_800ExtraBold,
 } from '@expo-google-fonts/onest';
 import {
   JetBrainsMono_400Regular,
@@ -26,6 +28,8 @@ import {
   GoogleSansFlex_700Bold,
 } from '@expo-google-fonts/google-sans-flex';
 import { colors } from '../theme/tokens';
+import { useOtaUpdate } from '../hooks/useOtaUpdate';
+import { initSentry, navigationIntegration, sentryEnabled, withSentry } from '../lib/sentry';
 import '../global.css';
 
 // Ignore the navigation warning from OAuth callbacks with legacy payload format
@@ -48,6 +52,9 @@ if (__DEV__) {
   };
 }
 
+// Crash reporting: no-op without EXPO_PUBLIC_SENTRY_DSN and in development.
+initSentry();
+
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
@@ -60,6 +67,16 @@ function InitialLayout() {
   const router = useRouter();
   const navigationState = useRootNavigationState();
 
+  // Sentry navigation tracing (expo-router's container ref). Only registers when Sentry is enabled.
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    if (sentryEnabled && navigationRef) navigationIntegration.registerNavigationContainer(navigationRef);
+  }, [navigationRef]);
+
+  // Over-the-air updates: checks when the app returns to the foreground, downloads quietly,
+  // applies on the NEXT launch (never reloads mid-task). No-op in dev / Expo Go.
+  useOtaUpdate();
+
   // Editorial Paper fonts (Instrument Serif + Onest + JetBrains Mono) for the
   // redesigned UI. If they fail to load we still render — system fallbacks
   // are declared in theme/tokens.ts.
@@ -68,7 +85,10 @@ function InitialLayout() {
     InstrumentSerif_400Regular_Italic,
     Onest_400Regular,
     Onest_500Medium,
+    // Design v2 weights (theme/v2.ts `fonts`): the mock uses 400/500/600/700/800.
+    Onest_600SemiBold,
     Onest_700Bold,
+    Onest_800ExtraBold,
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
     // Tendso wordmark — Google Sans Flex on the literal brand surfaces only
@@ -147,6 +167,9 @@ function InitialLayout() {
   useEffect(() => {
     if (!readyToRender || !navigationState?.key) return;
 
+    // Design v2 kit preview (deep link negosyodigital://v2-kit): no auth, no redirects.
+    if (segments[0] === 'v2-kit') return;
+
     const inAuthGroup = segments[0] === '(auth)';
 
     // When offline with cached auth, treat user as "signed in" for routing purposes
@@ -174,6 +197,7 @@ function InitialLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="v2-kit" />
       </Stack>
       {showOverlay && (
         <View style={{
@@ -220,7 +244,7 @@ function InitialLayout() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <AppProviders>
       <SheetDimHost>
@@ -229,3 +253,5 @@ export default function RootLayout() {
     </AppProviders>
   );
 }
+
+export default withSentry(RootLayout);

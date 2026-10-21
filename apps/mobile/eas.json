@@ -15,8 +15,10 @@
       },
       "env": {
         "EXPO_PUBLIC_CONVEX_URL": "https://diligent-ibex-454.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXByaWdodC1jYXJkaW5hbC0xNS5jbGVyay5hY2NvdW50cy5kZXYk"
-      }
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXByaWdodC1jYXJkaW5hbC0xNS5jbGVyay5hY2NvdW50cy5kZXYk",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -28,8 +30,10 @@
       },
       "env": {
         "EXPO_PUBLIC_CONVEX_URL": "https://diligent-ibex-454.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXByaWdodC1jYXJkaW5hbC0xNS5jbGVyay5hY2NvdW50cy5kZXYk"
-      }
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dXByaWdodC1jYXJkaW5hbC0xNS5jbGVyay5hY2NvdW50cy5kZXYk",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "channel": "preview"
     },
     "preview-device": {
       "extends": "preview",
@@ -47,8 +51,10 @@
       },
       "env": {
         "EXPO_PUBLIC_CONVEX_URL": "https://energetic-panther-693.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsudGVuZHNvLmNvbSQ"
-      }
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsudGVuZHNvLmNvbSQ",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      },
+      "channel": "production"
     }
   },
   "submit": {
