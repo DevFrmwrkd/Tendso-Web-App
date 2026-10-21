@@ -883,6 +883,8 @@ export const markPaid = mutation({
             paymentReference: args.paymentReference,
             paidAt: Date.now(),
         });
+        // Paid in full: the recruiting creator's 5% override (idempotent).
+        await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, { submissionId: args.id });
     },
 });
 

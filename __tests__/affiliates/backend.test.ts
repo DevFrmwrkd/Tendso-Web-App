@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
+import { CREATOR_OVERRIDE_CUTOVER } from '../../lib/pricing';
 import { affiliateHandleError, affiliatePriceError } from '../../lib/affiliates';
 import type { Id } from '../../convex/_generated/dataModel';
 
@@ -172,6 +173,8 @@ describe('affiliate signup and page foundation', () => {
 
 describe('affiliate referral direction and bonus ledger', () => {
     it('allows an affiliate code for creator signup and credits exactly one ₱1,000 bonus tied to a paid submission', async () => {
+        // Legacy ₱1,000 track: creator recruits before the override cut-over.
+        vi.setSystemTime(CREATOR_OVERRIDE_CUTOVER - 1);
         const { t, affiliate, admin } = await setup();
         const referrerId = await affiliate.mutation(api.affiliates.create, signup);
         await admin.mutation(api.creators.updateStatus, { id: referrerId, status: 'active' });

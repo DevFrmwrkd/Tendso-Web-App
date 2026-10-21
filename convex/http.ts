@@ -2,6 +2,7 @@ import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { verifyWiseWebhook, WISE_SIGNATURE_HEADER } from './lib/wiseWebhookVerify';
+import { clientIpFromHeaders, hashIp } from './lib/attribution';
 import nacl from 'tweetnacl';
 
 const http = httpRouter();
@@ -428,6 +429,81 @@ http.route({
             },
             200,
         );
+    }),
+});
+
+// ---- Creator-link attribution (docs/v2-api-creators.md) ----
+// Called straight from the browser and the app, so they allow any origin and
+// carry no cookies. The caller's IP is read here, salted and hashed with
+// ATTRIBUTION_IP_SALT, and only the hash goes further. Without the salt the
+// network match is simply off; nothing raw is ever stored.
+const attributionCors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+};
+const attributionJson = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...attributionCors } });
+const attributionPreflight = httpAction(async () => new Response(null, { status: 204, headers: attributionCors }));
+
+async function readAttributionBody(request: Request): Promise<Record<string, unknown> | null> {
+    try {
+        const raw = await request.text();
+        if (raw.length > 4096) return null;
+        const body = raw ? JSON.parse(raw) : {};
+        return body && typeof body === 'object' && !Array.isArray(body) ? body : null;
+    } catch {
+        return null;
+    }
+}
+
+const optionalString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+
+// POST /attribution/click  { handle, kind: "shop" | "earn", cookieId? }
+http.route({ path: '/attribution/click', method: 'OPTIONS', handler: attributionPreflight });
+http.route({
+    path: '/attribution/click',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const body = await readAttributionBody(request);
+        const handle = optionalString(body?.handle);
+        const kind = body?.kind;
+        if (!handle || (kind !== 'shop' && kind !== 'earn')) return attributionJson({ error: 'handle and kind are required' }, 400);
+        const ipHash = await hashIp(clientIpFromHeaders(request.headers), process.env.ATTRIBUTION_IP_SALT);
+        const result = await ctx.runMutation(internal.attribution.recordClickInternal, {
+            handle,
+            kind,
+            cookieId: optionalString(body?.cookieId),
+            ipHash: ipHash ?? undefined,
+            userAgent: request.headers.get('user-agent') ?? undefined,
+        });
+        return attributionJson(result);
+    }),
+});
+
+// POST /attribution/suggest  { cookieId? }  (optional Authorization: Bearer <Clerk JWT>)
+// Read-only: returns who to ASK about, never attributes.
+http.route({ path: '/attribution/suggest', method: 'OPTIONS', handler: attributionPreflight });
+http.route({
+    path: '/attribution/suggest',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const body = await readAttributionBody(request);
+        if (!body) return attributionJson({ error: 'invalid body' }, 400);
+        const ipHash = await hashIp(clientIpFromHeaders(request.headers), process.env.ATTRIBUTION_IP_SALT);
+        let clerkId: string | undefined;
+        try {
+            clerkId = (await ctx.auth.getUserIdentity())?.subject;
+        } catch {
+            clerkId = undefined;
+        }
+        const suggestion = await ctx.runQuery(internal.attribution.suggestInternal, {
+            cookieId: optionalString(body.cookieId),
+            ipHash: ipHash ?? undefined,
+            clerkId,
+        });
+        return attributionJson({ suggestion });
     }),
 });
 
