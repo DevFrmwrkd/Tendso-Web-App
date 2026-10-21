@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Become a Tendso creator</title>
+<meta name="description" content="Apply as a Tendso creator. Name and email, where you post, your link and code. No password: we email you a code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="creators.css">
+<link rel="stylesheet" href="creator-program.css">
+</head>
+<body class="ag cp cp-solo">
+
+<header class="cp-bar">
+  <div class="wrap cp-bar-in">
+    <a class="brand" href="creator-program.html" aria-label="Tendso for creators"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <div class="cp-bar-r">Already a creator? <a class="u" href="creator-portal.html">Log in</a></div>
+  </div>
+</header>
+
+<main class="wrap su-wrap">
+  <aside class="su-aside" aria-label="What you get">
+    <figure class="su-photo"><img src="../assets/people/17-mika.jpg" alt="Mika Santos, a Tendso creator"></figure>
+    <div class="su-ways">
+      <div class="su-way su-way--now"><span>Money now</span><b>₱1,750</b><small>per shop that uses your code</small></div>
+      <div class="su-way su-way--monthly"><span>Monthly money</span><b>₱150</b><small>per sale by your agents, 12 months</small></div>
+    </div>
+  </aside>
+
+  <section class="su-card" aria-live="polite">
+    <div class="su-top">
+      <button type="button" class="su-back" id="su-back" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      </button>
+      <span class="su-prog" id="su-prog" role="progressbar" aria-label="Sign-up progress"><i></i></span>
+    </div>
+
+    <!-- 1. name + email -->
+    <form class="su-step" data-step="1">
+      <h1 class="su-h">Become a Tendso creator.</h1>
+      <p class="su-p">Free to join. No password: we email you a code.</p>
+      <div class="su-fields">
+        <label class="su-f"><span>Your name</span><span class="su-in"><input type="text" value="Mika Santos" autocomplete="name"></span></label>
+        <label class="su-f"><span>Email</span><span class="su-in"><input type="email" value="mika.santos@gmail.com" autocomplete="email"></span></label>
+      </div>
+      <div class="su-go"><button class="btn btn--accent" data-next>Email me a code</button></div>
+    </form>
+
+    <!-- 2. email code -->
+    <form class="su-step" data-step="2">
+      <h1 class="su-h">Check your email.</h1>
+      <p class="su-p">We sent a 6-digit code to <b>mika.santos@gmail.com</b>.</p>
+      <div class="su-code6" aria-label="Code: 4 8 2 9 1, one digit left"><span>4</span><span>8</span><span>2</span><span>9</span><span>1</span><span class="is-cur"></span></div>
+      <div class="su-go">
+        <button class="btn btn--accent" data-next>Continue</button>
+        <p class="su-note">No email? <a href="#resend">Send a new code</a></p>
+      </div>
+    </form>
+
+    <!-- 3. where you post + audience -->
+    <form class="su-step" data-step="3">
+      <h1 class="su-h">Where do you post?</h1>
+      <div class="su-plat" role="group" aria-label="Where you post">
+        <button type="button" class="is-on" aria-pressed="true">TikTok</button>
+        <button type="button" class="is-on" aria-pressed="true">Instagram</button>
+        <button type="button" aria-pressed="false">Facebook</button>
+        <button type="button" aria-pressed="false">YouTube</button>
+      </div>
+      <div class="su-fields">
+        <label class="su-f"><span>TikTok</span><span class="su-in"><input type="text" value="@mikasantos.ph"></span></label>
+        <label class="su-f"><span>Instagram</span><span class="su-in"><input type="text" value="@mika.santos"></span></label>
+      </div>
+      <p class="su-sub" id="su-size-l">How many people follow you?</p>
+      <div class="su-sizes" role="radiogroup" aria-labelledby="su-size-l">
+        <button type="button" role="radio" aria-checked="false">Under 1k</button>
+        <button type="button" role="radio" aria-checked="true" class="is-on">1k to 10k</button>
+        <button type="button" role="radio" aria-checked="false">10k to 100k</button>
+        <button type="button" role="radio" aria-checked="false">Over 100k</button>
+      </div>
+      <div class="su-go"><button class="btn btn--accent" data-next>Continue</button></div>
+    </form>
+
+    <!-- 4. handle → link + code -->
+    <form class="su-step" data-step="4">
+      <h1 class="su-h">Pick your name.</h1>
+      <p class="su-p">It becomes your two links and your code.</p>
+      <label class="su-f"><span>Your name on Tendso</span>
+        <span class="su-in"><span class="pre">tendso.com/a/</span><input type="text" id="su-handle" value="mika" maxlength="16" autocapitalize="off" spellcheck="false"><span class="ok"><i aria-hidden="true"></i>Free</span></span>
+      </label>
+      <div class="su-preview">
+        <div><span>For shops</span><b id="su-pv-shop">tendso.com/a/mika</b></div>
+        <div><span>For field agents</span><b id="su-pv-earn">tendso.com/a/mika/earn</b></div>
+        <div><span>Your code · 30% off</span><b class="code" id="su-pv-code">MIKA</b></div>
+      </div>
+      <div class="su-go">
+        <button class="btn btn--accent" data-next>Send for review</button>
+        <p class="su-note">By sending, you agree to the <a href="legal.html#terms">creator rules</a>.</p>
+      </div>
+    </form>
+
+    <!-- 5. pending -->
+    <div class="su-step" data-step="5">
+      <span class="su-pend-ic">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </span>
+      <h1 class="su-h">We'll review it.</h1>
+      <p class="su-p">We look at your page, then email <b>mika.santos@gmail.com</b>. Your link and code go live when you're approved.</p>
+      <ol class="su-time">
+        <li class="done"><i></i><div><b>Applied</b><span>Today</span></div></li>
+        <li class="now"><i></i><div><b>We check your page</b><span>A real person looks at it</span></div></li>
+        <li><i></i><div><b>Your link goes live</b><span>Then start sharing</span></div></li>
+      </ol>
+      <div class="su-go"><a class="btn btn--line" href="creator-program.html">Back to Tendso for creators</a></div>
+    </div>
+  </section>
+</main>
+
+<div class="wrap"><div class="su-mock" id="su-mock"></div></div>
+
+<script src="../js/core.js"></script>
+<script src="../app/creator-links-screens.js"></script>
+<script src="creator-program.js"></script>
+<script>
+  try { CP.signup(); } catch (e) { console.error('Sign-up', e); }
+</script>
+</body>
+</html>

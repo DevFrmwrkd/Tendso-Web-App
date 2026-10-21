@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Owner 1 · Welcome</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1A1733}a:hover{color:#000}
+.ph{position:absolute;border-radius:24px;object-fit:cover;box-shadow:0 10px 30px rgba(40,30,90,.14)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1A1733; display: flex; flex-direction: column; overflow: hidden">
+  <div style="position: relative; height: 470px; flex: 0 0 470px; overflow: hidden">
+    <img class="ph" src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt="Bakery counter with fresh pandesal" style="left: -24px; top: 18px; width: 172px; height: 222px">
+    <img class="ph" src="/_blob/0b504ede948bf4fe6f12bdfdd93548bb" alt="Salon with stylist" style="left: 162px; top: -36px; width: 140px; height: 186px">
+    <img class="ph" src="/_blob/4f34d87cf80c5ef89e87ec3c3f61941e" alt="Filipino dishes" style="left: 316px; top: 30px; width: 128px; height: 176px">
+    <img class="ph" src="/_blob/40152bea96ecc716693518bd5f943a03" alt="Barbershop" style="left: 12px; top: 258px; width: 128px; height: 172px">
+    <img class="ph" src="/_blob/fa0ad8c5fbfe5d59852f2983f0446122" alt="Flower shop" style="left: 154px; top: 166px; width: 168px; height: 234px; z-index: 2">
+    <img class="ph" src="/_blob/451e51ca713fd7a81424f0cdf2145e55" alt="Milk tea kiosk" style="left: 304px; top: 224px; width: 118px; height: 160px">
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #FFFFFF 85%); z-index: 3"></div>
+  </div>
+
+  <div style="flex: 1; padding: 0 24px 32px; display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center; position: relative; z-index: 4; margin-top: -30px">
+    <img src="/_blob/ca907d977dfd287aa908e7bc2b35fe6e" alt="Tendso mascot" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; box-shadow: 0 6px 18px rgba(80,60,200,.2)">
+    <h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.6px">Your shop online.<br>Pay once, own it.</h1>
+    <p style="margin: 0; font-size: 15px; color: #6B6880; font-weight: 500">Designed for you in 10 minutes, from your phone.</p>
+    <div style="flex: 1"></div>
+    <a href="R2-O2-Question.dc.html" style="align-self: stretch; text-decoration: none; background: {{btnGrad}}; color: #FFFFFF; font-size: 17px; font-weight: 700; border-radius: 999px; padding: 16px">I have a business</a>
+    <a href="R2-F1-Map.dc.html" style="align-self: stretch; text-decoration: none; background: #F1EFF7; font-size: 17px; font-weight: 700; border-radius: 999px; padding: 16px">I want to earn as a field agent</a>
+    <div style="font-size: 13px; color: #6B6880; font-weight: 500">Already have an account? <a href="#" style="font-weight: 700; color: {{ac}}">Log in</a></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["Lilac","Mint","Sky"],"default":"Lilac"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = {
+      Lilac: { ac: '#6E4BFF', ac2: '#4F8BFF', soft: '#EFEAFF', grad: 'linear-gradient(170deg,#EAE3FF 0%,#F7F5FF 45%,#E6EFFF 100%)' },
+      Mint:  { ac: '#1E9E5C', ac2: '#2BB5A0', soft: '#E4F6EC', grad: 'linear-gradient(170deg,#DDF5E8 0%,#F6FBF8 45%,#E2F4F2 100%)' },
+      Sky:   { ac: '#2F6BFF', ac2: '#7A5CFF', soft: '#E8F0FF', grad: 'linear-gradient(170deg,#E1ECFF 0%,#F6F9FF 45%,#ECE6FF 100%)' }
+    };
+    const p = P[this.props.palette] || P.Lilac;
+    return Object.assign({}, p, { btnGrad: p.ac });
+  }
+}
+</script>
+</body>
+</html>

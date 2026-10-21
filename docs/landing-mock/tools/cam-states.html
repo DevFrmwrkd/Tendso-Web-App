@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Tendso Camera States</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../css/tokens.css"><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css"><link rel="stylesheet" href="../css/screens.css">
+<style>body{margin:0;padding:16px;background:#EEF0EC;display:flex;gap:16px}.s{width:390px;height:844px;position:relative;border-radius:40px;overflow:hidden;flex:none}</style>
+</head><body>
+<div class="s" id="a"></div><div class="s" id="b"></div><div class="s" id="c"></div><div class="s" id="d"></div><div class="s" id="e"></div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script><script src="../js/data.js"></script><script src="../js/screens.js"></script>
+<script>
+const M=(id,n,o)=>TendsoScreens.mount(document.getElementById(id),n,o);
+M('a','interview-cam',{video:'assets/video/interview-2.mp4'}).play();            // framing check at ~1s, question later
+M('b','interview-cam',{video:'assets/video/interview-2.mp4',question:4}).reset(); // a normal question
+M('c','interview-cam',{video:'assets/video/interview-3.mp4',question:11,lang:'tl'}).reset(); // last one, Tagalog
+M('d','shot-guide',{type:'barber'}).play();
+M('e','shot-guide',{type:'barber',start:2}).play();
+</script></body></html>
