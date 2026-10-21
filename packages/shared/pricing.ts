@@ -57,6 +57,14 @@ export const COMMISSION_RATE = 0.5;
 /** Flat add-on charged to the owner for a custom domain (year 1 + setup). */
 export const CUSTOM_DOMAIN_ADDON = 500;
 
+/**
+ * Smallest down payment an owner may make (PHP). A payment is either the whole
+ * owner total or a down payment between this and the total; the balance is due
+ * later. The selling field agent is credited their whole cut when the down
+ * payment lands. See convex/ownerPayments.ts and docs/v2-api-owners.md.
+ */
+export const MIN_DOWN_PAYMENT = 500;
+
 /** One-time bonus when a referred creator lands their first paid submission. */
 export const REFERRAL_BONUS = 1000;
 

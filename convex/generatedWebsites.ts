@@ -3,6 +3,7 @@ import { mutation, query, internalQuery, action, internalAction } from './_gener
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
+import { hasPaidToPublish, publishPolicyFor } from './lib/ownerApp';
 
 // Get generated website by submission ID.
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
@@ -350,6 +351,13 @@ export const publish = mutation({
 
         if (!website) {
             throw new Error('Generated website not found');
+        }
+
+        // Owner app v2: an owner's own site stays a private preview until they
+        // pay; ownerApp.publishIfReady publishes it then. See docs/v2-api-owners.md.
+        const submission = await ctx.db.get(args.submissionId);
+        if (submission && publishPolicyFor(submission) === 'pay_then_publish' && !hasPaidToPublish(submission)) {
+            throw new Error('This owner made the site in the app: it is published automatically after they pay.');
         }
 
         await ctx.db.patch(website._id, {

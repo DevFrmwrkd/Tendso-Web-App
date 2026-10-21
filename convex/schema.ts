@@ -145,7 +145,9 @@ export default defineSchema({
 
         // Status — v.string() for cross-deploy safety (mobile uses v.string(), admin used v.union())
         // Valid values: draft, pending, submitted, in_review, approved, rejected, deployed,
-        // pending_payment, paid, completed, website_generated, unpublished
+        // pending_payment, paid, completed, website_generated, unpublished,
+        // deposit_paid (v2: down payment received, balance due — NOT paid in
+        // full; see docs/v2-api-owners.md)
         status: v.string(),
 
         // Payment
@@ -292,6 +294,92 @@ export default defineSchema({
         // sets the reverse pointer leads.submissionId and marks the prospect
         // converted. Dies with the prospects-pool consolidation.
         prospectLeadId: v.optional(v.id('leads')),
+
+        // ==================== OWNER APP v2 (2026-10-21, additive) ====================
+        // Written only by convex/ownerApp.ts (contentSource 'owner_app'), the
+        // build-progress contract (convex/buildProgress.ts) and the payment
+        // path (convex/ownerPayments.ts + payments.creditCreatorForPayment).
+        // Contract for app + pipeline: docs/v2-api-owners.md.
+        //
+        // Interview answers, one per question index (0-9 = the ten questions,
+        // 10 = "Anything else?"). Text and/or a recording (R2 public URL).
+        ownerInterview: v.optional(v.array(v.object({
+            index: v.number(),
+            questionEn: v.string(),
+            questionTl: v.string(),
+            lang: v.string(), // 'en' | 'tl'
+            answerText: v.optional(v.string()),
+            mediaUrl: v.optional(v.string()),
+            mediaType: v.optional(v.string()), // 'video' | 'audio'
+            durationSec: v.optional(v.number()),
+            updatedAt: v.number(),
+        }))),
+        // Guided photos (index 0-9, in shot-list order) plus extras (extra: true).
+        ownerShots: v.optional(v.array(v.object({
+            index: v.number(),
+            url: v.string(),
+            label: v.optional(v.string()),
+            extra: v.boolean(),
+            updatedAt: v.number(),
+        }))),
+        // Which shot list the app used (e.g. 'barber', 'repair', 'salon').
+        shotListKey: v.optional(v.string()),
+        // Design choices. templateId = the design the owner picked (a template
+        // code such as 'barbershop:BP'); templateIds = all picks (1-3) when the
+        // picker allows several. Font and colour come later.
+        templateId: v.optional(v.string()),
+        templateIds: v.optional(v.array(v.string())),
+        fontChoice: v.optional(v.string()),
+        colorChoice: v.optional(v.string()),
+        styleUpdatedAt: v.optional(v.number()),
+        // Four build steps the owner watches. Set ONLY through
+        // internal.buildProgress.setStep.
+        buildSteps: v.optional(v.object({
+            reading_interview: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            writing_pages: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            polishing_photos: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            building_site: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+        })),
+        buildStartedAt: v.optional(v.number()),
+        previewReadyAt: v.optional(v.number()),
+        // Owner said "Looks good" on the private preview.
+        ownerApprovedAt: v.optional(v.number()),
+        // Money received so far, for down payments. `status` 'deposit_paid'
+        // mirrors depositPaidAt-without-paidInFullAt, but these fields are the
+        // source of truth (some app/api routes rewrite `status`).
+        amountPaid: v.optional(v.number()),
+        balanceDue: v.optional(v.number()),
+        depositAmount: v.optional(v.number()),
+        depositPaidAt: v.optional(v.number()),
+        paidInFullAt: v.optional(v.number()),
+        // Owner app invite ("Sign in with this email to see your website").
+        ownerInviteSentAt: v.optional(v.number()),
+        // "Your site is live" email for owner-app sites.
+        ownerLiveEmailSentAt: v.optional(v.number()),
     })
         // Use mobile's index name (by_creator_id, not by_creatorId)
         .index('by_creator_id', ['creatorId'])
@@ -1150,12 +1238,52 @@ export default defineSchema({
         
         wiseTransactionId: v.optional(v.string()),      // Wise transaction ID when paid
         adminNotes: v.optional(v.string()),
+
+        // ---- v2 (additive). Absent kind = a legacy whole-order token ('full').
+        kind: v.optional(v.string()),                   // 'full' | 'deposit' | 'balance'
+        provider: v.optional(v.string()),               // who settled it: 'wise' | 'xendit' | 'manual'
+        paidAmount: v.optional(v.number()),             // amount the provider reported
+        externalPaymentId: v.optional(v.string()),      // provider's payment/invoice id
+        xenditInvoiceId: v.optional(v.string()),
+        xenditInvoiceUrl: v.optional(v.string()),
+        xenditExpiresAt: v.optional(v.number()),
+        createdBy: v.optional(v.string()),              // 'owner:<id>' | 'admin:<clerk>' | 'creator:<id>'
     })
         .index('by_token', ['token'])
         .index('by_reference', ['referenceCode'])
         .index('by_submissionId', ['submissionId'])
         .index('by_status', ['status'])
         .index('by_expiresAt', ['expiresAt']),
+
+    // ==================== OWNER APP v2: CHANGE REQUESTS ====================
+    // "Ask for a change" on the private preview (owner app) — shown on the
+    // admin submission page. status: 'open' | 'done' | 'dismissed'.
+    changeRequests: defineTable({
+        submissionId: v.id('submissions'),
+        text: v.string(),
+        status: v.string(),
+        requestedBy: v.string(),           // 'owner:<businessOwnerId>'
+        createdAt: v.number(),
+        resolvedAt: v.optional(v.number()),
+        resolvedBy: v.optional(v.string()),
+        adminNote: v.optional(v.string()),
+    })
+        .index('by_submission', ['submissionId'])
+        .index('by_status', ['status']),
+
+    // ==================== OWNER APP v2: INVITES ====================
+    // A field agent's sale with an owner email: the owner is invited to sign
+    // in with that email; owners.ensure links the site on first sign-in.
+    ownerInvites: defineTable({
+        email: v.string(),                 // normalized (trim + lowercase)
+        submissionId: v.id('submissions'),
+        createdAt: v.number(),
+        emailSentAt: v.optional(v.number()),
+        linkedAt: v.optional(v.number()),
+        businessOwnerId: v.optional(v.id('businessOwners')),
+    })
+        .index('by_email', ['email'])
+        .index('by_submission', ['submissionId']),
 
     // ==================== RATE LIMITS (from mobile) ====================
     rateLimits: defineTable({

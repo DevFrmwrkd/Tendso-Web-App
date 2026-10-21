@@ -19,8 +19,10 @@ import type * as announcements from "../announcements.js";
 import type * as approvals from "../approvals.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as booking from "../booking.js";
+import type * as buildProgress from "../buildProgress.js";
 import type * as businessOwners from "../businessOwners.js";
 import type * as callReminders from "../callReminders.js";
+import type * as changeRequests from "../changeRequests.js";
 import type * as creatorReminders from "../creatorReminders.js";
 import type * as creators from "../creators.js";
 import type * as crons from "../crons.js";
@@ -58,6 +60,8 @@ import type * as lib_giveaway from "../lib/giveaway.js";
 import type * as lib_h3 from "../lib/h3.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
 import type * as lib_mediaChunker from "../lib/mediaChunker.js";
+import type * as lib_ownerApp from "../lib/ownerApp.js";
+import type * as lib_ownerAuth from "../lib/ownerAuth.js";
 import type * as lib_paymentPricing from "../lib/paymentPricing.js";
 import type * as lib_phone from "../lib/phone.js";
 import type * as lib_quality from "../lib/quality.js";
@@ -72,7 +76,11 @@ import type * as notifications from "../notifications.js";
 import type * as outreach from "../outreach.js";
 import type * as outreachAuth from "../outreachAuth.js";
 import type * as outscraper from "../outscraper.js";
+import type * as ownerApp from "../ownerApp.js";
+import type * as ownerEmails from "../ownerEmails.js";
 import type * as ownerIntake from "../ownerIntake.js";
+import type * as ownerPayments from "../ownerPayments.js";
+import type * as owners from "../owners.js";
 import type * as paymentTokens from "../paymentTokens.js";
 import type * as payments from "../payments.js";
 import type * as payoutMethods from "../payoutMethods.js";
@@ -89,6 +97,7 @@ import type * as transcription from "../transcription.js";
 import type * as unpublish from "../unpublish.js";
 import type * as websiteContent from "../websiteContent.js";
 import type * as withdrawals from "../withdrawals.js";
+import type * as xendit from "../xendit.js";
 
 import type {
   ApiFromModules,
@@ -108,8 +117,10 @@ declare const fullApi: ApiFromModules<{
   approvals: typeof approvals;
   auditLogs: typeof auditLogs;
   booking: typeof booking;
+  buildProgress: typeof buildProgress;
   businessOwners: typeof businessOwners;
   callReminders: typeof callReminders;
+  changeRequests: typeof changeRequests;
   creatorReminders: typeof creatorReminders;
   creators: typeof creators;
   crons: typeof crons;
@@ -147,6 +158,8 @@ declare const fullApi: ApiFromModules<{
   "lib/h3": typeof lib_h3;
   "lib/hostinger": typeof lib_hostinger;
   "lib/mediaChunker": typeof lib_mediaChunker;
+  "lib/ownerApp": typeof lib_ownerApp;
+  "lib/ownerAuth": typeof lib_ownerAuth;
   "lib/paymentPricing": typeof lib_paymentPricing;
   "lib/phone": typeof lib_phone;
   "lib/quality": typeof lib_quality;
@@ -161,7 +174,11 @@ declare const fullApi: ApiFromModules<{
   outreach: typeof outreach;
   outreachAuth: typeof outreachAuth;
   outscraper: typeof outscraper;
+  ownerApp: typeof ownerApp;
+  ownerEmails: typeof ownerEmails;
   ownerIntake: typeof ownerIntake;
+  ownerPayments: typeof ownerPayments;
+  owners: typeof owners;
   paymentTokens: typeof paymentTokens;
   payments: typeof payments;
   payoutMethods: typeof payoutMethods;
@@ -178,6 +195,7 @@ declare const fullApi: ApiFromModules<{
   unpublish: typeof unpublish;
   websiteContent: typeof websiteContent;
   withdrawals: typeof withdrawals;
+  xendit: typeof xendit;
 }>;
 
 /**
