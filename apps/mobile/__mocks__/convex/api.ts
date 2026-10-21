@@ -10,4 +10,8 @@ export const api = {
   earnings: { getByCreator: "earnings:getByCreator" },
   affiliates: { portal: "affiliates:portal" },
   adminAccess: { me: "adminAccess:me" },
+  leads: { create: "leads:create" },
+  r2: { generateUploadUrl: "r2:generateUploadUrl" },
+  submissions: { getById: "submissions:getById", update: "submissions:update" },
+  files: { getMultipleUrls: "files:getMultipleUrls" },
 };
