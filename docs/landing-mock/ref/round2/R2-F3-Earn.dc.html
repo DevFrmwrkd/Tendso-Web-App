@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent 3 · Earnings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1A1733}a:hover{color:#000}
+.chip{border:0;font-family:inherit;font-size:13px;font-weight:800;border-radius:999px;padding:9px 0;cursor:pointer;min-height:40px}
+.sale{display:flex;align-items:center;gap:12px}
+.sale img{width:44px;height:44px;border-radius:14px;object-fit:cover}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#8A8699;text-decoration:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1A1733; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div style="background: {{grad}}; padding: 22px 20px 18px; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 14px; font-weight: 700; color: #6B6880">You earned in November</div>
+    <div style="font-size: 44px; font-weight: 800; letter-spacing: -1.5px">₱12,400</div>
+    <div style="font-size: 13px; font-weight: 700; color: {{ac}}">6 sites · ₱3,000 more than October</div>
+    <div style="display: flex; align-items: flex-end; gap: 8px; height: 56px; padding-top: 10px">
+      <div style="flex: 1; height: 35%; border-radius: 8px; background: rgba(255,255,255,.9)"></div>
+      <div style="flex: 1; height: 55%; border-radius: 8px; background: rgba(255,255,255,.9)"></div>
+      <div style="flex: 1; height: 45%; border-radius: 8px; background: rgba(255,255,255,.9)"></div>
+      <div style="flex: 1; height: 100%; border-radius: 8px; background: {{ac}}"></div>
+    </div>
+  </div>
+
+  <div style="padding: 16px 20px 0; display: flex; flex-direction: column; gap: 14px">
+    <div style="border: 1.5px solid #ECEAF3; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 16px; font-weight: 800">Your price</span><span style="font-size: 12px; font-weight: 600; color: #6B6880">Lower price = easier yes</span></div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{prices}}" as="p" hint-placeholder-count="5">
+          <button class="chip" onClick="{{p.pick}}" style="background: {{p.bg}}; color: {{p.fg}}">{{p.label}}</button>
+        </sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <div style="background: {{soft}}; border-radius: 16px; padding: 10px 12px"><div style="font-size: 24px; font-weight: 800; color: {{ac}}">{{keep}}</div><div style="font-size: 12px; font-weight: 700; color: #6B6880">you keep per site</div></div>
+        <div style="background: #F6F5FA; border-radius: 16px; padding: 10px 12px"><div style="font-size: 24px; font-weight: 800">{{save}}</div><div style="font-size: 12px; font-weight: 700; color: #6B6880">the shop saves</div></div>
+      </div>
+    </div>
+
+    <div style="font-size: 16px; font-weight: 800">Latest</div>
+    <div class="sale"><img src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt=""><div style="flex: 1"><div style="font-size: 14px; font-weight: 800">Rosa's Bakery</div><div style="font-size: 12px; font-weight: 600; color: #6B6880">Paid ₱2,999 · Nov 18</div></div><div style="font-size: 15px; font-weight: 800; color: {{ac}}">+₱1,500</div></div>
+    <div class="sale"><img src="/_blob/0b504ede948bf4fe6f12bdfdd93548bb" alt=""><div style="flex: 1"><div style="font-size: 14px; font-weight: 800">Glow Salon</div><div style="font-size: 12px; font-weight: 600; color: #6B6880">Paid ₱4,999 · Nov 12</div></div><div style="font-size: 15px; font-weight: 800; color: {{ac}}">+₱2,500</div></div>
+    <div class="sale"><img src="/_blob/451e51ca713fd7a81424f0cdf2145e55" alt=""><div style="flex: 1"><div style="font-size: 14px; font-weight: 800">Tea Corner</div><div style="font-size: 12px; font-weight: 600; color: #6B6880">Paying monthly · 2 of 5</div></div><div style="font-size: 15px; font-weight: 800; color: #6B6880">+₱500/mo</div></div>
+  </div>
+
+  <a href="R2-F4-Link.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 96px; text-decoration: none; background: {{btnGrad}}; color: #FFFFFF; font-size: 16px; font-weight: 800; border-radius: 999px; padding: 15px; text-align: center; box-shadow: 0 10px 24px rgba(80,60,200,.3)">Share my link · tendso.com/a/maria</a>
+
+  <nav style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #ECEAF3; padding: 10px 0 22px">
+    <a href="R2-F1-Map.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A8699" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"></path><path d="M9 4v14M15 6v14"></path></svg>Map</a>
+    <a href="R2-F2-Feed.dc.html" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A8699" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="10" rx="2"></rect><rect x="13" y="3" width="8" height="6" rx="2"></rect><rect x="3" y="15" width="8" height="6" rx="2"></rect><rect x="13" y="11" width="8" height="10" rx="2"></rect></svg>Finds</a>
+    <a href="#" class="tab" style="color: {{ac}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{ac}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M3 10h18"></path><circle cx="16" cy="14.5" r="1.3"></circle></svg>Earn</a>
+    <a href="#" class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A8699" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path></svg>Me</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["Lilac","Mint","Sky"],"default":"Lilac"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { price: 2999 };
+  }
+  renderVals() {
+    const P = {
+      Lilac: { ac: '#6E4BFF', ac2: '#4F8BFF', soft: '#EFEAFF', grad: 'linear-gradient(170deg,#EAE3FF 0%,#F7F5FF 45%,#E6EFFF 100%)' },
+      Mint:  { ac: '#1E9E5C', ac2: '#2BB5A0', soft: '#E4F6EC', grad: 'linear-gradient(170deg,#DDF5E8 0%,#F6FBF8 45%,#E2F4F2 100%)' },
+      Sky:   { ac: '#2F6BFF', ac2: '#7A5CFF', soft: '#E8F0FF', grad: 'linear-gradient(170deg,#E1ECFF 0%,#F6F9FF 45%,#ECE6FF 100%)' }
+    };
+    const p = P[this.props.palette] || P.Lilac;
+    const fmt = (n) => '₱' + Math.round(n).toLocaleString('en-US');
+    const price = this.state.price;
+    const prices = [999, 1999, 2999, 3999, 4999].map((v) => ({
+      label: v.toLocaleString('en-US'),
+      bg: price === v ? p.ac : '#F1EFF7',
+      fg: price === v ? '#FFFFFF' : '#1A1733',
+      pick: () => this.setState({ price: v })
+    }));
+    return Object.assign({}, p, {
+      btnGrad: p.ac,
+      prices: prices,
+      keep: fmt(Math.round(price * 0.5)),
+      save: fmt(4999 - price)
+    });
+  }
+}
+</script>
+</body>
+</html>

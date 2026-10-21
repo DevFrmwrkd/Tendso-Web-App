@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Owner 4 · Mixing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1A1733}a:hover{color:#000}
+.serif{font-family:Fraunces,serif}
+.step{display:flex;align-items:center;gap:12px;font-size:15px;font-weight:600}
+.dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 26px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{grad}}; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1A1733; display: flex; flex-direction: column; align-items: center; padding: 56px 24px 32px; gap: 28px; overflow: hidden">
+  <h1 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 800; text-align: center; letter-spacing: -0.4px">Mixing your picks…<br>just for Rosa's Bakery</h1>
+
+  <div style="position: relative; width: 300px; height: 330px">
+    <div style="position: absolute; left: 0; top: 34px; width: 170px; height: 270px; border-radius: 22px; background: #F6EEE2; padding: 10px; box-sizing: border-box; transform: rotate(-9deg); box-shadow: 0 10px 24px rgba(40,30,90,.12)">
+      <img src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt="" style="width: 100%; height: 130px; object-fit: cover; border-radius: 12px">
+      <div class="serif" style="font-size: 18px; font-weight: 700; color: #3B2412; padding-top: 8px">Baked fresh</div>
+    </div>
+    <div style="position: absolute; right: 0; top: 34px; width: 170px; height: 270px; border-radius: 22px; overflow: hidden; transform: rotate(9deg); box-shadow: 0 10px 24px rgba(40,30,90,.12)">
+      <img src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt="" style="width: 100%; height: 100%; object-fit: cover">
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,.45)"></div>
+      <div style="position: absolute; left: 12px; bottom: 14px; color: #FFF; font-size: 26px; font-weight: 800; line-height: .95">FRESH.<br>DAILY.</div>
+    </div>
+    <div style="position: absolute; left: 60px; top: 0; width: 180px; height: 320px; border-radius: 24px; background: #F6EEE2; overflow: hidden; box-shadow: 0 18px 40px rgba(60,40,160,.25); z-index: 2; display: flex; flex-direction: column">
+      <div style="position: relative; height: 180px">
+        <img src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt="Preview of the mixed design" style="width: 100%; height: 100%; object-fit: cover">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.55) 100%)"></div>
+        <div style="position: absolute; left: 12px; bottom: 10px; color: #FFF; font-size: 24px; font-weight: 800; line-height: .95">FRESH.<br>DAILY.</div>
+      </div>
+      <div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+        <div class="serif" style="font-size: 18px; font-weight: 700; color: #3B2412">Rosa's Bakery</div>
+        <div style="font-size: 10px; font-weight: 600; color: #6B4B2E">Pandesal · Ensaymada · Cakes</div>
+        <div style="align-self: flex-start; background: #5B3A1E; color: #F6EEE2; font-size: 10px; font-weight: 700; border-radius: 999px; padding: 6px 10px">Order on Messenger</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="align-self: stretch; background: rgba(255,255,255,.85); border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+    <div class="step"><span class="dot" style="background: {{ac}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>Big photo + headline from <b style="font-weight: 800">Bold</b></div>
+    <div class="step"><span class="dot" style="background: {{ac}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>Warm colors + fonts from <b style="font-weight: 800">Cozy</b></div>
+    <div class="step" style="color: #6B6880"><span class="dot" style="border: 3px solid {{ac}}; border-right-color: transparent; box-sizing: border-box"></span>Writing your menu and hours…</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["Lilac","Mint","Sky"],"default":"Lilac"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = {
+      Lilac: { ac: '#6E4BFF', ac2: '#4F8BFF', soft: '#EFEAFF', grad: 'linear-gradient(170deg,#EAE3FF 0%,#F7F5FF 45%,#E6EFFF 100%)' },
+      Mint:  { ac: '#1E9E5C', ac2: '#2BB5A0', soft: '#E4F6EC', grad: 'linear-gradient(170deg,#DDF5E8 0%,#F6FBF8 45%,#E2F4F2 100%)' },
+      Sky:   { ac: '#2F6BFF', ac2: '#7A5CFF', soft: '#E8F0FF', grad: 'linear-gradient(170deg,#E1ECFF 0%,#F6F9FF 45%,#ECE6FF 100%)' }
+    };
+    const p = P[this.props.palette] || P.Lilac;
+    return Object.assign({}, p, { btnGrad: p.ac });
+  }
+}
+</script>
+</body>
+</html>

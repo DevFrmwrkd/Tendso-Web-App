@@ -1,0 +1,88 @@
+/* Legal (pages/legal.html): privacy + terms. Calm reading layout: big title, a sticky "On this page" rail,
+   numbered sections. Builds on tokens/base/pages.css (.seg). Nothing under 14px. */
+.sp .label { font-size: 14px; letter-spacing: .06em; }
+.sp .foot-bottom { font-size: 14px; }
+
+.lg-switch { display: flex; }
+.lg-switch .seg button { height: 42px; padding: 0 20px; font-size: 16px; }
+.lg-title {
+  margin-top: clamp(36px, 5vw, 72px); display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  gap: 24px 48px; align-items: end;
+  transition: opacity 240ms var(--ease-out), filter 240ms var(--ease-out);
+}
+.lg-title.is-swap, .lg-body.is-swap { opacity: 0; filter: blur(10px); }
+.lg-h { font-size: var(--t-hero); }
+.lg-side { padding-bottom: 12px; }
+.lg-intro { font-size: 19px; line-height: 1.4; color: var(--ink-2); max-width: 32ch; }
+.lg-meta { margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink); }
+.lg-meta::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--ink); }
+
+.lg-doc {
+  margin-top: clamp(48px, 7vw, 112px); padding-bottom: clamp(80px, 10vw, 160px);
+  display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px clamp(40px, 7vw, 120px); align-items: start;
+}
+.lg-rail { position: sticky; top: 100px; display: grid; gap: 28px; }
+.lg-toc summary {
+  list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font: 500 14px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  padding: 0 0 14px; cursor: default; pointer-events: none;
+}
+.lg-toc summary::-webkit-details-marker { display: none; }
+.lg-toc summary svg { display: none; }
+.lg-toc ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.lg-toc a {
+  position: relative; display: flex; gap: 14px; align-items: baseline; padding: 10px 0 10px 18px;
+  font-size: 15px; line-height: 1.3; color: var(--ink-2);
+  transition: color var(--d-ui) var(--ease-out);
+}
+.lg-toc a span { flex: none; font: 500 14px/1 var(--mono); color: var(--muted); }
+.lg-toc a::before {
+  content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 1px var(--ink); opacity: 0; transform: scale(.4);
+  transition: opacity var(--d-ui) var(--ease-out), transform var(--d-reveal) var(--ease-expo);
+}
+.lg-toc a:hover { color: var(--ink); }
+.lg-toc a.is-on { color: var(--ink); font-weight: 500; }
+.lg-toc a.is-on::before { opacity: 1; transform: none; }
+.lg-ask { padding: 22px; border-radius: var(--r-card); background: var(--tile-quiet); display: grid; gap: 6px; }
+.lg-ask p { font-size: 17px; font-weight: 500; letter-spacing: -0.02em; }
+.lg-ask a { font-size: 15px; color: var(--ink-2); overflow-wrap: anywhere; }
+.lg-ask a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.lg-ask .lg-help { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 500; }
+
+.lg-body { min-width: 0; transition: opacity 240ms var(--ease-out), filter 240ms var(--ease-out); }
+.lg-sec {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px;
+  padding: clamp(28px, 3vw, 40px) 0; border-top: 1px solid var(--line); scroll-margin-top: 90px;
+}
+.lg-sec:first-child { padding-top: 0; border-top: 0; }
+.lg-n { font: 500 15px/1 var(--mono); color: var(--muted); padding-top: 10px; }
+.lg-sec-h { font-size: clamp(26px, 2.4vw, 34px); letter-spacing: -0.04em; line-height: 1.05; }
+.lg-prose { margin-top: 18px; max-width: 64ch; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.lg-prose p + p, .lg-prose p + ul, .lg-prose ul + p { margin-top: 14px; }
+.lg-prose b { font-weight: 600; color: var(--ink); }
+.lg-prose ul { list-style: none; margin: 14px 0 0; padding: 0; }
+.lg-prose li { position: relative; padding: 9px 0 9px 22px; border-top: 1px solid var(--line); }
+.lg-prose li:last-child { border-bottom: 1px solid var(--line); }
+.lg-prose li::before { content: ""; position: absolute; left: 2px; top: 1.15em; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+.lg-mail { display: inline-flex; align-items: center; height: 46px; padding: 0 20px; border-radius: var(--r-pill); background: var(--ink); color: #fff; font-weight: 500; }
+
+@media (max-width: 900px) {
+  .lg-title { grid-template-columns: minmax(0, 1fr); }
+  .lg-doc { grid-template-columns: minmax(0, 1fr); margin-top: 36px; }
+  .lg-rail { position: static; }
+  .lg-toc { border: 1px solid var(--line); border-radius: var(--r-card); padding: 0 18px; }
+  .lg-toc summary { pointer-events: auto; cursor: pointer; padding: 18px 0; color: var(--ink); }
+  .lg-toc summary svg { display: block; transition: transform var(--d-reveal) var(--ease-out); }
+  .lg-toc[open] summary svg { transform: rotate(45deg); }
+  .lg-toc ol { margin-bottom: 8px; }
+  .lg-ask { display: none; }
+}
+@media (max-width: 760px) {
+  .lg-h { font-size: clamp(46px, 13vw, 64px); }
+  .lg-switch .seg { width: 100%; }
+  .lg-switch .seg button { flex: 1; justify-content: center; padding: 0 10px; font-size: 15px; }
+  .lg-sec { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .lg-n { padding-top: 0; }
+  .lg-prose { font-size: 16px; }
+}

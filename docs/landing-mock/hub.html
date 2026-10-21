@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendso Design v2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<style>
+  /* Hub: one column of deliverables, each a thumbnail + what it is + what to check. */
+  .hub { padding-block: clamp(40px, 8vh, 96px) 120px; display: flex; flex-direction: column; gap: clamp(56px, 9vh, 104px); }
+  .hub-head { display: flex; flex-direction: column; gap: 20px; max-width: 900px; }
+  .hub-head h1 { font-size: clamp(48px, 7vw, 108px); line-height: .9; letter-spacing: -0.06em; }
+  .hub-head p { font-size: 19px; color: var(--ink-2); max-width: 40em; }
+  .hub-meta { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  .hub-sec { display: flex; flex-direction: column; gap: 22px; }
+  .hub-sec > header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .hub-sec h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.045em; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--gap); }
+  .card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .card-img { border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--tile-quiet); aspect-ratio: 16 / 10; transition: border-color var(--d-ui) var(--ease-out), transform var(--d-settle) var(--ease-expo); }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .card:hover .card-img { border-color: var(--ink); transform: translateY(-3px); }
+  .card h3 { font-size: 21px; letter-spacing: -0.03em; line-height: 1.15; display: flex; align-items: center; gap: 10px; }
+  .card p { font-size: 15px; color: var(--ink-2); }
+  .tag { font: 500 10px/1 var(--mono); letter-spacing: .07em; text-transform: uppercase; padding: 4px 7px; border-radius: 6px; background: var(--tile-quiet); color: var(--ink-2); }
+  .tag--new { background: var(--accent); color: var(--on-accent); }
+  .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px 32px; margin: 0; padding: 0; list-style: none; }
+  .list li { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .list li b { font-weight: 500; min-width: 0; }
+  .list li span { color: var(--muted); margin-left: auto; text-align: right; font-size: 13px; }
+  .swatch { display: flex; gap: 14px; flex-wrap: wrap; }
+  .sw { display: flex; flex-direction: column; gap: 8px; }
+  .sw i { width: 120px; height: 72px; border-radius: 14px; border: 1px solid var(--line); }
+  .sw code { font: 500 12px/1 var(--mono); }
+  .qs { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: q; }
+  .qs li { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 8px; font-size: 16px; }
+  .qs li::before { counter-increment: q; content: counter(q, decimal-leading-zero); font: 500 12px/1.8 var(--mono); color: var(--muted); }
+  .qs li span { color: var(--ink-2); }
+</style>
+</head>
+<body>
+<main class="wrap hub">
+  <header class="hub-head">
+    <span class="label">Tendso · design v2 · for approval</span>
+    <h1>Landing, pages and app.</h1>
+    <p>Rule number one: never overwhelm. Every phone screen has one thing, one big button, at most 20 words and no text under 16px. A checker measures every screen; all pass.</p>
+    <div class="hub-meta"><span class="label">Accent #E4F222</span><span class="label">Desktop 1440 · Phone 390</span><span class="label">Prepared 20–21 Oct 2026</span></div>
+  </header>
+
+  <section class="hub-sec">
+    <header><h2>Web</h2><span class="label">5 pages</span></header>
+    <div class="cards">
+      <a class="card" href="index.html"><div class="card-img"><img src="review/thumb-landing.jpg" alt=""></div><h3>Landing page <span class="tag tag--new">Motion</span></h3><p>Homepages orbit the phone that made them, shrink into a grid of living tiles, then five steps on one phone, three ways in, and the people.</p></a>
+      <a class="card" href="pages/business.html"><div class="card-img"><img src="review/thumb-business.jpg" alt=""></div><h3>For businesses</h3><p>Two ways, same result. What you get, one price paid once when it's live, examples, questions.</p></a>
+      <a class="card" href="pages/examples.html"><div class="card-img"><img src="review/thumb-examples.jpg" alt=""></div><h3>Examples</h3><p>Browse Tendso designs by kind of business without signing up.</p></a>
+      <a class="card" href="pages/creators.html"><div class="card-img"><img src="review/thumb-creators.jpg" alt=""></div><h3>For field agents</h3><p>Put local shops online. Follows production's money policy: price, discount floor, your half. No promised amounts.</p></a>
+      <a class="card" href="pages/about.html"><div class="card-img"><img src="review/thumb-about.jpg" alt=""></div><h3>About</h3><p>What Tendso is, the team, where we work.</p></a>
+    </div>
+  </section>
+
+  <section class="hub-sec">
+    <header><h2>Creators</h2><span class="label">5 pages · 1 app board · new</span></header>
+    <div class="cards">
+      <a class="card" href="pages/creator-program.html"><div class="card-img"><img src="review/thumb-creator-program.jpg" alt=""></div><h3>For creators <span class="tag tag--new">New</span></h3><p>/creators. Two ways to earn side by side, a two-slider calculator in pesos, steps, rules, questions.</p></a>
+      <a class="card" href="pages/creator-signup.html"><div class="card-img"><img src="review/thumb-creator-signup.jpg" alt=""></div><h3>Creator sign-up</h3><p>One step per screen: name and email, email code, where you post, pick your handle, under review.</p></a>
+      <a class="card" href="pages/creator-portal.html"><div class="card-img"><img src="review/thumb-creator-portal.jpg" alt=""></div><h3>Creator portal</h3><p>Money now and monthly money, links and code, click-to-sale funnel, recruited agents, shops, Wise payouts.</p></a>
+      <a class="card" href="pages/a-shop.html"><div class="card-img"><img src="review/thumb-a-shop.jpg" alt=""></div><h3>/a/mika · for shops</h3><p>What a shop owner sees from Mika's link: save ₱1,500, six simple steps, real sites, get the app.</p></a>
+      <a class="card" href="pages/a-earn.html"><div class="card-img"><img src="review/thumb-a-earn.jpg" alt=""></div><h3>/a/mika/earn · for agents</h3><p>Join Mika's team: what a field agent does, the example, why join through Mika, get the app.</p></a>
+      <a class="card" href="app/creator-links.html"><div class="card-img"><img src="review/thumb-creator-links.jpg" alt=""></div><h3>App · creator links</h3><p>5 screens: "Did Mika send you?", who sent you, code at checkout, creator home, my agents.</p></a>
+    </div>
+  </section>
+
+  <section class="hub-sec">
+    <header><h2>App</h2><span class="label">Round 2 design</span></header>
+    <div class="cards">
+      <a class="card" href="app/owner.html"><div class="card-img"><img src="review/thumb-owner.jpg" alt=""></div><h3>Owner app</h3><p>15 screens, one thing each: choose, talk, take photos, pick a look, publish.</p></a>
+      <a class="card" href="app/creator-core.html"><div class="card-img"><img src="review/thumb-creator-core.jpg" alt=""></div><h3>Creator app</h3><p>8 screens: find a shop, take 10 photos, ask 10 questions, send.</p></a>
+      <a class="card" href="app/creator-more.html"><div class="card-img"><img src="review/thumb-creator-more.jpg" alt=""></div><h3>Creator app · money and me</h3><p>9 screens: join, learn, earn, cash out, your sites, your link.</p></a>
+    </div>
+  </section>
+
+  <section class="hub-sec">
+    <header><h2>Brand</h2><span class="label">One accent</span></header>
+    <div class="swatch">
+      <div class="sw"><i style="background:#E4F222"></i><code>--accent #E4F222</code></div>
+      <div class="sw"><i style="background:#0C0A08"></i><code>ink #0C0A08</code></div>
+      <div class="sw"><i style="background:#FFFFFF"></i><code>canvas #FFFFFF</code></div>
+      <div class="sw"><i style="background:#F5F5F2"></i><code>app bg #F5F5F2</code></div>
+      <div class="sw"><i style="background:#F2F3F1"></i><code>stage #F2F3F1</code></div>
+    </div>
+    <ul class="list">
+      <li><b>Type</b><span>Onest everywhere · JetBrains Mono for tiny labels</span></li>
+      <li><b>Easing</b><span>(.22,1,.36,1) · (.16,1,.3,1) · (.77,0,.175,1)</span></li>
+      <li><b>Radius</b><span>Tiles 40 · cards 20 · app cards 18</span></li>
+      <li><b>Rule</b><span>Yellow is a fill. Never yellow text on white.</span></li>
+    </ul>
+  </section>
+
+  <section class="hub-sec">
+    <header><h2>For the build agent</h2><span class="label">Handoff</span></header>
+    <ul class="list">
+      <li><b><a href="HANDOFF.md">HANDOFF.md</a></b><span>Storyboard, motion spec, components, assets, tokens, production notes</span></li>
+      <li><b><a href="BRIEF.md">BRIEF.md</a></b><span>House rules and file map</span></li>
+      <li><b><a href="APP-SYSTEM.md">APP-SYSTEM.md</a></b><span>App colours old → new</span></li>
+      <li><b><a href="APP-SCREENS-SPEC.md">APP-SCREENS-SPEC.md</a></b><span>The real screens, exact copy</span></li>
+      <li><b><a href="https://claude.ai/artifact/CVgk9ZHx7iGxZbJcvZPw59">Stage 1 study</a></b><span>ramp.design, Klarna, Agentcard recorded</span></li>
+    </ul>
+  </section>
+
+  <section class="hub-sec">
+    <header><h2>Decisions for Theo</h2><span class="label">Placeholders until answered</span></header>
+    <ol class="qs">
+      <li><div><b>Payment rule.</b> <span>Turnaround is now "same day, about 30 minutes". "Pay only when it's live" was wrong; copy says "See it first. Pay once to publish." Confirm that's right.</span></div></li>
+      <li><div><b>Prices in the "Pay once" comparison.</b> <span>Placeholders: web agency ₱10,000 a month, Wix or Webflow ₱1,500 a month, shown over one year against Tendso ₱4,999 once.</span></div></li>
+      <li><div><b>App Store and Google Play links.</b> <span>QR codes are drawn patterns until then.</span></div></li>
+      <li><div><b>"Field agent" or "Tendso creator"?</b> <span>Production says creator; the brief says field agent. Pages use both once, then "agent".</span></div></li>
+      <li><div><b>Real photos of the team and agents.</b> <span>People photos are generated placeholders, Filipino first.</span></div></li>
+      <li><div><b>Owner app tab bar.</b> <span>Five tabs (Home, Site, Help, Inbox, Account) or four.</span></div></li>
+      <li><div><b>Old pricing copy inside the app.</b> <span>help-faq, terms of service and the price slider still mention the removed unlock rule.</span></div></li>
+    </ol>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendso Examples</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="../css/paths.css">
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="../index.html" aria-label="Tendso home"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="../index.html#how">How it works</a>
+      <a href="business.html">For businesses</a>
+      <a href="examples.html" class="is-active" aria-current="page">Examples</a>
+      <a href="creators.html">For field agents</a>
+      <a href="help.html">Help</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--line btn--sm" href="../index.html#hire">Hire an agent</a>
+      <a class="btn btn--accent btn--sm" href="#download">Download the app</a>
+      <button class="nav-menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="pg" id="top">
+  <section class="wrap" aria-labelledby="ex-h">
+    <div class="ex-top">
+      <div>
+        <p class="label" data-reveal>Examples</p>
+        <h1 class="ex-h" id="ex-h" data-reveal style="--i:1">Pick a look.</h1>
+        <p class="ex-sub" data-reveal style="--i:2">Browse designs. No sign-up.</p>
+      </div>
+      <span class="sample-tag" data-reveal style="--i:3">Sample designs · businesses are examples</span>
+    </div>
+  </section>
+
+  <div class="filters" id="filters">
+    <div class="wrap"><div class="filters-in" id="chips" role="toolbar" aria-label="Filter by kind of business"></div></div>
+  </div>
+
+  <section class="wrap">
+    <div class="masonry" id="grid" aria-live="polite"></div>
+  </section>
+
+  <section class="wrap band" id="download" aria-labelledby="band-h">
+    <div class="tile tile--quiet band-in" data-reveal>
+      <h2 class="band-h" id="band-h">Like one? Start in the app.</h2>
+      <div class="band-cta">
+        <div class="stores-row" id="stores"></div>
+        <a class="btn btn--line" href="../index.html#hire">Or hire an agent</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot" id="foot" data-mount></footer>
+
+<!-- large preview -->
+<div class="pv" id="pv" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pv-name" hidden>
+  <div class="pv-bar">
+    <div class="pv-name"><b id="pv-name"></b><span id="pv-meta"></span></div>
+    <div class="seg" role="group" aria-label="View">
+      <span class="seg-thumb" id="seg-thumb"></span>
+      <button type="button" data-view="d" aria-pressed="true"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 20h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Desktop</button>
+      <button type="button" data-view="m" aria-pressed="false"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Mobile</button>
+    </div>
+    <div class="pv-act">
+      <a class="btn btn--accent btn--sm" href="#download" id="pv-use">Use this design</a>
+      <button class="pv-x" type="button" id="pv-x" aria-label="Close preview"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m2 2 10 10M12 2 2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <div class="pv-body">
+    <button class="pv-nav pv-nav--prev" type="button" id="pv-prev" aria-label="Previous design"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="pv-nav pv-nav--next" type="button" id="pv-next" aria-label="Next design"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pv-view pv-view--d" id="pv-d">
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="browser-dots"><i></i><i></i><i></i></div>
+          <div class="browser-url" id="pv-url"></div>
+          <div class="browser-dots" style="visibility:hidden"><i></i><i></i><i></i></div>
+        </div>
+        <div class="browser-view" data-lenis-prevent tabindex="0"><img id="pv-dimg" alt=""></div>
+      </div>
+    </div>
+    <div class="pv-view pv-view--m" id="pv-m" hidden></div>
+    <div class="pv-hint"><span class="sample-tag">Sample design · scroll inside to see more</span></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/foot.js"></script>
+<script src="business.js"></script>
+<script src="examples.js"></script>
+</body>
+</html>

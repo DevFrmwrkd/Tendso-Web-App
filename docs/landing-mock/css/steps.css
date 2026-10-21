@@ -1,0 +1,48 @@
+/* Five steps with a pinned phone. ~60vh of scroll per step. */
+.steps { position: relative; z-index: 3; padding-top: clamp(40px, 8vh, 120px); }
+.st-head { display: flex; flex-direction: column; gap: 18px; margin-bottom: clamp(24px, 4vh, 48px); }
+.st-h2 { font-size: var(--t-h2); line-height: .94; letter-spacing: -0.055em; }
+.st-track { position: relative; height: calc(var(--n) * 62vh + 100vh); }
+.st-pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center; }
+.st-grid { display: grid; grid-template-columns: 40px minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(24px, 4vw, 72px); }
+
+.st-rail { display: flex; flex-direction: column; gap: 9px; align-items: center; }
+.st-rail i { width: 5px; height: 5px; border-radius: 3px; background: #C9C8C1; transition: height var(--d-reveal) var(--ease-out), background var(--d-ui) var(--ease-out); }
+.st-rail i.is-on { height: 26px; background: var(--ink); }
+
+.st-phone { display: flex; justify-content: center; }
+.st-device { --pw: min(330px, 38vh); }
+.st-layer {
+  position: absolute; inset: 0; overflow: hidden; border-radius: inherit;
+  transform-origin: 50% 0%;
+  will-change: transform;
+}
+.st-layer::after { content: ""; position: absolute; inset: 0; background: #0C0A08; opacity: var(--dim, 0); pointer-events: none; }
+.st-device .phone-screen { background: #0C0A08; }
+
+.st-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: clamp(4px, 1vh, 10px); }
+.st-btn {
+  display: flex; align-items: baseline; gap: 18px; width: 100%; padding: 6px 0; border: 0; background: none; cursor: pointer; text-align: left;
+  color: #BDBCB5; transition: color var(--d-reveal) var(--ease-out);
+}
+.st-btn:hover { color: var(--ink-2); }
+.st-n { font: 500 12px/1 var(--mono); letter-spacing: .06em; min-width: 22px; transform: translateY(-0.5em); }
+.st-t { font-size: clamp(30px, 3.4vw, 54px); font-weight: 500; line-height: 1.02; letter-spacing: -0.05em; }
+.st-item.is-on .st-btn { color: var(--ink); }
+.st-d { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--d-settle) var(--ease-expo); }
+.st-d p { overflow: hidden; margin: 0; padding-left: 40px; font-size: 18px; color: var(--ink-2); max-width: 26em; opacity: 0; filter: blur(6px); transition: opacity var(--d-reveal) var(--ease-out), filter var(--d-reveal) var(--ease-out); }
+.st-item.is-on .st-d { grid-template-rows: 1fr; }
+.st-item.is-on .st-d p { opacity: 1; filter: blur(0); padding-bottom: 10px; }
+
+@media (max-width: 860px) {
+  .st-track { height: calc(var(--n) * 70vh + 100vh); }
+  .st-pin { align-items: flex-start; padding-top: calc(76px + env(safe-area-inset-top, 0px)); }
+  .st-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .st-rail { display: none; }
+  .st-device { --pw: min(190px, 26svh); }
+  .st-list { gap: 0; }
+  .st-btn { gap: 10px; padding: 3px 0; }
+  .st-t { font-size: clamp(22px, 6.4vw, 30px); }
+  .st-n { transform: translateY(-0.3em); }
+  .st-d p { padding-left: 32px; font-size: 15px; }
+}

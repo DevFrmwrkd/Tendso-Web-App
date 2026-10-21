@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendso for Field Agents</title>
+<meta name="description" content="Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css">
+<link rel="stylesheet" href="../css/screens.css">
+<link rel="stylesheet" href="../css/paths.css">
+<link rel="stylesheet" href="creators.css">
+<link rel="stylesheet" href="agents-app.css">
+</head>
+<body class="ag">
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="../index.html#top" aria-label="Tendso home"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="../index.html#how">How it works</a>
+      <a href="business.html">For businesses</a>
+      <a href="examples.html">Examples</a>
+      <a href="creators.html" class="is-active" aria-current="page">For field agents</a>
+      <a href="about.html">About</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--line btn--sm" href="https://discord.gg/Dxjt9HV5B" target="_blank" rel="noopener">Join the Discord</a>
+      <a class="btn btn--accent btn--sm" href="#start">Become a field agent</a>
+      <button class="nav-menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- 1. Hero: the job in one line, the app on a phone, what one visit can bring -->
+  <section class="ag-hero" aria-labelledby="ag-hero-h">
+    <div class="wrap ag-hero-in">
+      <div class="ag-hero-copy">
+        <p class="ag-eyebrow" data-reveal>For field agents</p>
+        <h1 class="ag-hero-h" id="ag-hero-h" data-reveal style="--i:1">Build websites for shops near you. Keep half.</h1>
+        <p class="ag-hero-sub" data-reveal style="--i:2">One visit with the Tendso app, about 30 minutes. Set your price, keep 50%.</p>
+        <div class="ag-earn-pill" data-reveal style="--i:2"><b>Earn ₱30,000+ a month</b><span>e.g. 5 shops a week at ₱2,999, you keep ₱1,500 each</span></div>
+        <div class="ag-hero-cta" data-reveal style="--i:3">
+          <a class="btn btn--accent ag-btn-lg" href="#start">Become a field agent</a>
+          <a class="btn btn--line ag-btn-lg ag-btn-2" href="#earn">See how you earn<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15m-6-6 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+        <ul class="ag-facts" data-reveal style="--i:4">
+          <li>Free to join</li>
+          <li>No experience needed</li>
+          <li>No quota</li>
+        </ul>
+      </div>
+
+      <div class="ag-hero-stage" data-reveal style="--i:2">
+        <figure class="ag-hero-photo">
+          <img src="../assets/people/03-barber.jpg" alt="A field agent films a barber talking about his shop" fetchpriority="high">
+        </figure>
+        <div class="ag-hero-phone" id="hero-phone"></div>
+        <div class="ag-paid" id="hero-paid" aria-label="Example: Forge Barbers paid 2,999 pesos, you keep 1,500 pesos">
+          <div class="ag-paid-top">
+            <img src="../assets/photos/forge/phone-outside.jpg" alt="">
+            <span><b>Forge Barbers</b><small>Paid ₱2,999</small></span>
+            <em class="ag-tag">Example</em>
+          </div>
+          <div class="ag-paid-keep"><span>You keep</span><strong data-count="1500">₱1,500</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. How a visit works: one phone, four steps -->
+  <section class="ag-sec" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="ag-head">
+        <p class="ag-eyebrow" data-reveal>How a visit works</p>
+        <h2 class="ag-h2" id="how-h" data-reveal style="--i:1">One visit.<br>About 30 minutes.</h2>
+        <p class="ag-head-sub" data-reveal style="--i:2">The app tells you what to do, one step at a time.</p>
+      </div>
+
+      <div class="ag-visit" id="visit" data-reveal>
+        <ol class="ag-steps" id="visit-steps">
+          <li class="ag-step is-on">
+            <button type="button" class="ag-step-btn" aria-expanded="true" aria-controls="visit-stage">
+              <span class="ag-step-n">1</span>
+              <span class="ag-step-t">Find a shop</span>
+            </button>
+            <div class="ag-step-body"><div><p>Pick a shop near you that has no website yet.</p></div></div>
+            <span class="ag-step-bar" aria-hidden="true"><i></i></span>
+          </li>
+          <li class="ag-step">
+            <button type="button" class="ag-step-btn" aria-expanded="false" aria-controls="visit-stage">
+              <span class="ag-step-n">2</span>
+              <span class="ag-step-t">Ask 10 questions</span>
+            </button>
+            <div class="ag-step-body"><div><p>The owner talks on camera. The app shows one question at a time.</p></div></div>
+            <span class="ag-step-bar" aria-hidden="true"><i></i></span>
+          </li>
+          <li class="ag-step">
+            <button type="button" class="ag-step-btn" aria-expanded="false" aria-controls="visit-stage">
+              <span class="ag-step-n">3</span>
+              <span class="ag-step-t">Take 10 photos</span>
+            </button>
+            <div class="ag-step-body"><div><p>The app shows you each shot. Hold still, tap.</p></div></div>
+            <span class="ag-step-bar" aria-hidden="true"><i></i></span>
+          </li>
+          <li class="ag-step">
+            <button type="button" class="ag-step-btn" aria-expanded="false" aria-controls="visit-stage">
+              <span class="ag-step-n">4</span>
+              <span class="ag-step-t">Send it</span>
+            </button>
+            <div class="ag-step-body"><div><p>The site is ready the same day, about 30 minutes later. The owner sees the finished site first, then pays once to publish.</p></div></div>
+            <span class="ag-step-bar" aria-hidden="true"><i></i></span>
+          </li>
+        </ol>
+
+        <div class="ag-visit-stage" id="visit-stage" aria-live="polite">
+          <div class="ag-visit-phone" id="visit-phone"></div>
+          <p class="ag-visit-cap" id="visit-cap">Your map</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. How you earn: one interactive block (Theo 2026-10-21: knobs and buttons, fewer words, fewer boxes) -->
+  <section class="ag-sec" id="earn" aria-labelledby="earn-h">
+    <div class="wrap">
+      <div class="ag-head">
+        <p class="ag-eyebrow" data-reveal>How you earn</p>
+        <h2 class="ag-h2" id="earn-h" data-reveal style="--i:1">You set the price. You keep half.</h2>
+      </div>
+
+      <div class="ag-calc" data-reveal>
+        <div class="ag-calc-in">
+          <div class="ag-field">
+            <label class="ag-field-l" for="calc-price">Price you give the shop</label>
+            <output class="ag-price-out" id="calc-price-out" for="calc-price">₱2,999</output>
+            <div class="ag-range">
+              <input type="range" id="calc-price" min="999" max="4999" step="500" value="2999" aria-valuetext="₱2,999">
+            </div>
+            <div class="ag-range-ends"><span>₱999</span><span>₱4,999</span></div>
+            <p class="ag-keep-inline" aria-hidden="true">You keep <b id="calc-keep-inline">₱1,500</b></p>
+          </div>
+
+          <div class="ag-field ag-field--row">
+            <span class="ag-field-l" id="calc-shops-l">Shops per week</span>
+            <div class="ag-stepper" role="group" aria-labelledby="calc-shops-l">
+              <button type="button" class="ag-stepper-b" id="calc-less" aria-label="One shop less">
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>
+              <output class="ag-stepper-v" id="calc-shops" aria-live="polite">2</output>
+              <button type="button" class="ag-stepper-b" id="calc-more" aria-label="One shop more">
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M9 4v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ag-calc-out" aria-live="polite">
+          <p class="ag-out-l">You keep</p>
+          <p class="ag-out-big" id="calc-keep">₱1,500</p>
+          <p class="ag-out-per">per site</p>
+          <p class="ag-out-month"><span>Example:</span> <b id="calc-month">₱12,000</b> a month</p>
+        </div>
+      </div>
+
+      <p class="ag-payline" data-reveal>
+        <span>The shop pays Tendso</span><i aria-hidden="true">→</i><span>Your half lands in your wallet</span><i aria-hidden="true">→</i><span>Cash out to your Wise email</span>
+      </p>
+      <p class="ag-note" data-reveal>Examples, not a promise. What you earn depends on the shops you sign up.</p>
+    </div>
+  </section>
+
+  <!-- 4. What you get -->
+  <section class="ag-sec" id="get" aria-labelledby="get-h">
+    <div class="wrap">
+      <div class="ag-head">
+        <p class="ag-eyebrow" data-reveal>What you get</p>
+        <h2 class="ag-h2" id="get-h" data-reveal style="--i:1">You are never on your own.</h2>
+      </div>
+      <div class="ag-get">
+        <article class="ag-g ag-g--train" data-reveal>
+          <figure class="ag-g-photo"><img src="../assets/people/11-workshop.jpg" alt="New field agents in a training session" loading="lazy"></figure>
+          <div class="ag-g-copy">
+            <h3 class="ag-h3">Short training first.</h3>
+            <p>5 short lessons, about 20 minutes. Then a quiz: get 4 of 5 right. Retake it any time.</p>
+          </div>
+          <div class="ag-lesson" aria-hidden="true">
+            <span class="ag-lesson-t">Lesson 3 of 5</span>
+            <span class="ag-lesson-bar"><i></i></span>
+          </div>
+        </article>
+
+        <article class="ag-g ag-g--coach" data-reveal style="--i:1">
+          <div class="ag-g-copy">
+            <h3 class="ag-h3">A team, and a coach.</h3>
+            <p>Ask real people on Discord. Or ask Kuya Tendo, our AI coach, any time of day.</p>
+          </div>
+          <div class="ag-chat" aria-hidden="true">
+            <div class="ag-chat-me">How do I get the owner talking?</div>
+            <div class="ag-chat-bot">
+              <span class="ag-chat-av"><img src="../assets/brand/mark-ink-256.png" alt=""></span>
+              <div><b>Kuya Tendo</b><p>Start easy: “How did you start the shop?” Then let them talk.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="ag-g ag-g--link" data-reveal>
+          <div class="ag-g-copy">
+            <h3 class="ag-h3">Your own page.</h3>
+            <p>One link to share. Shops see the sites you built and your price.</p>
+          </div>
+          <div class="ag-link" aria-hidden="true">
+            <span class="ag-link-url"><svg width="14" height="14" viewBox="0 0 12 12"><rect x="2" y="5.2" width="8" height="5.8" rx="1.4" fill="currentColor"/><path d="M4 5.2V3.8a2 2 0 0 1 4 0v1.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>tendso.com/a/mika</span>
+            <div class="ag-link-card">
+              <img src="../assets/people/17-mika.jpg" alt="">
+              <div><b>Mika Santos</b><span>Field agent in Marikina</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="ag-g ag-g--ref" data-reveal style="--i:1">
+          <div class="ag-g-copy">
+            <h3 class="ag-h3">Bring a friend.</h3>
+            <p>Get ₱1,000 when their first site is paid.</p>
+          </div>
+          <div class="ag-code" aria-hidden="true">
+            <span class="ag-code-l">Your code</span>
+            <span class="ag-code-v">MIKA8K2Q</span>
+            <span class="ag-code-b">Share my code</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Trust -->
+  <section class="ag-sec" id="trust" aria-labelledby="trust-h">
+    <div class="wrap">
+      <div class="ag-trust" data-reveal>
+        <div class="ag-trust-copy">
+          <p class="ag-eyebrow">Trust</p>
+          <h2 class="ag-h2" id="trust-h">Is this a scam? No.</h2>
+          <ul class="ag-checks">
+            <li><i aria-hidden="true"></i>Tendso never asks you for money. Not to join, not to send, not on Discord.</li>
+            <li><i aria-hidden="true"></i>You never hold the shop's money. The shop pays Tendso.</li>
+            <li><i aria-hidden="true"></i>The owner sees the finished site first, then pays once to publish.</li>
+            <li><i aria-hidden="true"></i>Real people answer you on Discord.</li>
+          </ul>
+        </div>
+        <figure class="ag-trust-photo">
+          <img src="../assets/people/12-salon.jpg" alt="A field agent shows a salon owner her new website" loading="lazy">
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FAQ -->
+  <section class="ag-sec" id="faq" aria-labelledby="faq-h">
+    <div class="wrap ag-faq-in">
+      <div class="ag-head ag-head--side">
+        <p class="ag-eyebrow" data-reveal>Questions</p>
+        <h2 class="ag-h2" id="faq-h" data-reveal style="--i:1">Short answers.</h2>
+      </div>
+      <div class="ag-faq" id="faq-list" data-reveal style="--i:2"></div>
+    </div>
+  </section>
+
+  <!-- 7. Start -->
+  <section class="ag-sec ag-sec--end" id="start" aria-labelledby="start-h">
+    <div class="wrap">
+      <div class="ag-end" data-reveal>
+        <div class="ag-end-copy">
+          <h2 class="ag-end-h cr-end-h" id="start-h">Start with one shop near you.</h2>
+          <ol class="ag-end-steps">
+            <li><span>1</span>Get the app</li>
+            <li><span>2</span>Train, about 20 minutes</li>
+            <li><span>3</span>Visit your first shop</li>
+          </ol>
+          <div class="ag-end-cta">
+            <a class="btn btn--ink ag-btn-lg" href="#app-store" id="end-download">Download the app</a>
+            <a class="btn ag-btn-lg ag-btn-onaccent" href="https://discord.gg/Dxjt9HV5B" target="_blank" rel="noopener">Join the Discord</a>
+          </div>
+        </div>
+        <figure class="ag-end-photo">
+          <img src="../assets/people/10-scooter.jpg" alt="A field agent rides his scooter to a visit" loading="lazy">
+        </figure>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot" id="foot" data-mount></footer>
+
+<button class="review-switch" id="review-switch" type="button" aria-pressed="false"><i></i>Review mode</button>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/screens.js"></script>
+<script src="../js/foot.js"></script>
+<script src="agents-screens.js"></script>
+<script src="creators.js"></script>
+<script>
+  try { window.TendsoCreators?.init(); } catch (e) { console.error('Creators', e); }
+  try { window.TendsoFoot?.init(); } catch (e) { console.error('Foot', e); }
+  T.init();
+  try { window.TendsoCreators?.ready?.(); } catch (e) { console.error('Creators', e); }
+  try { window.TendsoFoot?.ready?.(); } catch (e) { console.error('Foot', e); }
+</script>
+</body>
+</html>
