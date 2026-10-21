@@ -8,6 +8,8 @@ import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
 import { isArchiveKey, orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
+import { websiteContentFields } from '@/lib/websiteContentFields'
+import { isAiPipelineBuildRequest } from '@/lib/aiPipeline/internalAuth'
 import {
     groqService,
     delimitTranscript,
@@ -31,27 +33,37 @@ function isWrappedObject(v: any): boolean {
 
 export async function POST(request: NextRequest) {
     try {
-        // Check Clerk authentication
-        const { userId, getToken } = await auth()
-        if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-        const token = await getToken({ template: 'convex' })
-        if (!token) {
-            return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
-        }
+        // AI pipeline (convex/aiPipeline) builds through this same route via
+        // /api/internal/ai-pipeline-build, authenticated by INTERNAL_API_SECRET
+        // instead of an admin session. It gets the build back and saves it
+        // itself (see the early return after the preview one below).
+        const pipelineCall = isAiPipelineBuildRequest(request)
+        let token: string | undefined
 
-        // Check if user is admin using Convex
-        const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
-        if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
-            return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-        }
+        if (!pipelineCall) {
+            // Check Clerk authentication
+            const { userId, getToken } = await auth()
+            if (!userId) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
+            const adminToken = await getToken({ template: 'convex' })
+            if (!adminToken) {
+                return NextResponse.json({ error: 'Unable to authenticate admin session' }, { status: 401 })
+            }
+            token = adminToken
 
-        // Rate limit: expensive operation (5/min)
-        const { checkRateLimit, RATE_LIMITS } = await import('@/lib/security')
-        const { allowed } = checkRateLimit(`generate:${userId}`, RATE_LIMITS.expensive.maxRequests, RATE_LIMITS.expensive.windowMs)
-        if (!allowed) {
-            return NextResponse.json({ error: 'Too many generation requests. Please wait a moment.' }, { status: 429 })
+            // Check if user is admin using Convex
+            const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+            if (!creator || creator.role !== 'admin' || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
+                return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+            }
+
+            // Rate limit: expensive operation (5/min)
+            const { checkRateLimit, RATE_LIMITS } = await import('@/lib/security')
+            const { allowed } = checkRateLimit(`generate:${userId}`, RATE_LIMITS.expensive.maxRequests, RATE_LIMITS.expensive.windowMs)
+            if (!allowed) {
+                return NextResponse.json({ error: 'Too many generation requests. Please wait a moment.' }, { status: 429 })
+            }
         }
 
         const body = await request.json()
@@ -189,7 +201,13 @@ export async function POST(request: NextRequest) {
         // (already merged above) by saving it as override before re-extraction.
         const preservedContact = (extractedContent as any)?.contact
 
-        if (!extractedContent || !hasRequiredFields || (servicesAreSparse && submission.transcript)) {
+        // The AI pipeline writes its own content from the interview and never
+        // asks a generator to fill gaps: a gap stays a gap (no invented facts).
+        if (pipelineCall && !extractedContent) {
+            return NextResponse.json({ error: 'AI pipeline content missing for this submission' }, { status: 409 })
+        }
+
+        if (!pipelineCall && (!extractedContent || !hasRequiredFields || (servicesAreSparse && submission.transcript))) {
 
             // Build context from submission data
             const context = `
@@ -313,7 +331,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             ec?.trust || ec?.why || ec?.how ||
             ec?.testimonials || ec?.faq || ec?.credentials || ec?.ctaBand
         )
-        if (!hasAnyConversionBlock && submission.transcript) {
+        if (!pipelineCall && !hasAnyConversionBlock && submission.transcript) {
             try {
                 const blocks = await groqService.generateConversionBlocks(
                     submission.transcript,
@@ -355,7 +373,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             ec2?.about?.paragraphs || ec2?.gallery?.items ||
             ec2?.area?.places || ec2?.marquee?.text
         )
-        if (isGenericRender && !hasGenericSections && submission.transcript) {
+        if (!pipelineCall && isGenericRender && !hasGenericSections && submission.transcript) {
             try {
                 let sections = await groqService.generateGenericSections(
                     submission.transcript,
@@ -1075,6 +1093,21 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             return NextResponse.json({ success: true, html: generatedHtml, testimonialGuard })
         }
 
+        // AI pipeline: no admin session, so nothing below (all admin-gated) can
+        // run. Hand back the same build and the same rows; the pipeline saves
+        // them with internal mutations (convex/aiPipeline/persist.ts).
+        if (pipelineCall) {
+            return NextResponse.json({
+                success: true,
+                html: generatedHtml,
+                templateName: selectedTemplate,
+                extractedContent: contentWithContact,
+                customizations: finalCustomizations,
+                websiteContent: websiteContentFields(contentWithContact, finalCustomizations),
+                testimonialGuard,
+            })
+        }
+
         // Save to Convex using mutations
         const { fetchMutation, fetchAction } = await import('convex/nextjs')
 
@@ -1097,158 +1130,15 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
         }, { token })
 
         // Also save to the new websiteContent table (normalized content storage)
+        // The field mapping lives in lib/websiteContentFields.ts so the AI pipeline
+        // saves the identical row. `{ token }` was missing here: the admin-gated
+        // mutation threw "Not authenticated" after the HTML was already stored.
         await fetchMutation(api.websiteContent.upsert, {
             websiteId: websiteId,
-            // Business info
-            businessName: contentWithContact.business_name,
-            tagline: contentWithContact.tagline,
-            // `content.about` can arrive as a wrapped object on branded/bespoke
-            // families (e.g. after an admin edits the About image, which writes
-            // `about.image` and turns `about` into `{ image, ... }`). The
-            // websiteContent.aboutText column is `v.string()`, so coerce — mirror
-            // transformToAstroData's description coercion (lead > description >
-            // body > joined paragraphs > ''). Without this the mutation throws
-            // ArgumentValidationError on any About-image edit.
-            aboutText: (() => {
-                const a = contentWithContact.about as any;
-                if (typeof a === 'string') return a;
-                return a?.lead ?? a?.description ?? a?.body
-                    ?? (Array.isArray(a?.paragraphs) ? a.paragraphs.join('\n\n') : '');
-            })(),
-            tone: contentWithContact.tone,
-            // Hero section
-            heroBadgeText: contentWithContact.hero_badge_text,
-            heroTestimonial: contentWithContact.hero_testimonial,
-            heroCtaLabel: (contentWithContact.hero_cta as any)?.label,
-            heroCtaLink: (contentWithContact.hero_cta as any)?.link,
-            // About section
-            aboutHeadline: contentWithContact.about_headline,
-            aboutDescription: contentWithContact.about_description,
-            aboutTagline: contentWithContact.about_tagline,
-            aboutTags: contentWithContact.about_tags,
-            uniqueSellingPoints: contentWithContact.unique_selling_points,
-            // Services section
-            servicesHeadline: contentWithContact.services_headline,
-            servicesSubheadline: contentWithContact.services_subheadline,
-            services: asServiceArray(contentWithContact.services).map((s: any) => ({
-                name: s.name || s.title || '',
-                description: s.description || '',
-                icon: s.icon,
-            })),
-            // Featured section
-            featuredHeadline: contentWithContact.featured_headline,
-            featuredSubheadline: contentWithContact.featured_subheadline,
-            featuredProducts: contentWithContact.featured_products?.map((p: any) => ({
-                title: p.title || '',
-                description: p.description || '',
-                image: p.image,
-                tags: p.tags,
-                testimonial: p.testimonial ? {
-                    quote: p.testimonial.quote || '',
-                    author: p.testimonial.author || '',
-                    avatar: p.testimonial.avatar,
-                } : undefined,
-            })),
-            featuredImages: contentWithContact.featured_images,
-            // Contact info
-            contact: contentWithContact.contact ? {
-                email: contentWithContact.contact.email || '',
-                phone: contentWithContact.contact.phone || '',
-                address: contentWithContact.contact.address,
-                whatsapp: contentWithContact.contact.whatsapp,
-                messenger: contentWithContact.contact.messenger,
-            } : undefined,
-            // Footer
-            footerDescription: contentWithContact.footer?.brand_blurb,
-            socialLinks: contentWithContact.footer?.social_links?.map((l: any) => ({
-                platform: l.platform || '',
-                url: l.url || '',
-            })),
-            // Navigation
-            navbarLinks: contentWithContact.navbar_links?.map((l: any) => ({
-                label: l.label || '',
-                href: l.href || '',
-            })),
-            navbarCtaText: contentWithContact.navbar_cta_text,
-            navbarCtaLink: contentWithContact.navbar_cta_link,
-            navbarHeadline: contentWithContact.navbar_headline,
-            // Images
-            images: {
-                hero: Array.isArray(contentWithContact.images) ? contentWithContact.images : undefined,
-                about: contentWithContact.about_images,
-                services: contentWithContact.services_image ? [contentWithContact.services_image] : undefined,
-            },
-            // Visibility settings — both legacy snake_case keys (kept for the
-            // A–O templates) AND the new generic-template block keys are
-            // forwarded so a toggle in the Blocks tab actually takes effect.
-            visibility: contentWithContact.visibility ? {
-                navbar: contentWithContact.visibility.navbar,
-                navbarHeadline: contentWithContact.visibility.navbar_headline,
-                heroSection: contentWithContact.visibility.hero_section,
-                heroHeadline: contentWithContact.visibility.hero_headline,
-                heroTagline: contentWithContact.visibility.hero_tagline,
-                heroDescription: contentWithContact.visibility.hero_description,
-                heroTestimonial: contentWithContact.visibility.hero_testimonial,
-                heroButton: contentWithContact.visibility.hero_button,
-                heroImage: contentWithContact.visibility.hero_image,
-                aboutSection: contentWithContact.visibility.about_section,
-                aboutBadge: contentWithContact.visibility.about_badge,
-                aboutHeadline: contentWithContact.visibility.about_headline,
-                aboutDescription: contentWithContact.visibility.about_description,
-                aboutImages: contentWithContact.visibility.about_images,
-                aboutTagline: contentWithContact.visibility.about_tagline,
-                aboutTags: contentWithContact.visibility.about_tags,
-                servicesSection: contentWithContact.visibility.services_section,
-                servicesBadge: contentWithContact.visibility.services_badge,
-                servicesHeadline: contentWithContact.visibility.services_headline,
-                servicesSubheadline: contentWithContact.visibility.services_subheadline,
-                servicesImage: contentWithContact.visibility.services_image,
-                servicesList: contentWithContact.visibility.services_list,
-                featuredSection: contentWithContact.visibility.featured_section,
-                featuredHeadline: contentWithContact.visibility.featured_headline,
-                featuredSubheadline: contentWithContact.visibility.featured_subheadline,
-                featuredProducts: contentWithContact.visibility.featured_products,
-                featuredImages: contentWithContact.visibility.featured_images,
-                gallerySection: contentWithContact.visibility.gallery_section ?? contentWithContact.visibility.featured_section,
-                footerSection: contentWithContact.visibility.footer_section,
-                footerBadge: contentWithContact.visibility.footer_badge,
-                footerHeadline: contentWithContact.visibility.footer_headline,
-                footerDescription: contentWithContact.visibility.footer_description,
-                footerContact: contentWithContact.visibility.footer_contact,
-                footerSocial: contentWithContact.visibility.footer_social,
-                contactSection: contentWithContact.visibility.contact_section ?? contentWithContact.visibility.footer_section,
-                // New generic-template block keys. These are the ones the
-                // Blocks tab actually toggles; the Astro PageA…PageE wrappers
-                // read camelCase block keys (visibility.trustBlock etc.).
-                trustBlock: contentWithContact.visibility.trust_block,
-                whyUsBlock: contentWithContact.visibility.why_us_block,
-                howItWorksBlock: contentWithContact.visibility.how_it_works_block,
-                testimonialsBlock: contentWithContact.visibility.testimonials_block,
-                faqBlock: contentWithContact.visibility.faq_block,
-                serviceAreaBlock: contentWithContact.visibility.service_area_block,
-                credentialsBlock: contentWithContact.visibility.credentials_block,
-                locationBlock: contentWithContact.visibility.location_block,
-                ctaBandBlock: contentWithContact.visibility.cta_band_block,
-                clickToMessage: contentWithContact.visibility.click_to_message,
-                scrollTopButton: contentWithContact.visibility.scroll_top_button,
-            } : undefined,
-            // Customizations
-            customizations: {
-                heroStyle: finalCustomizations.heroStyle,
-                aboutStyle: finalCustomizations.aboutStyle,
-                servicesStyle: finalCustomizations.servicesStyle,
-                galleryStyle: finalCustomizations.galleryStyle || finalCustomizations.featuredStyle,
-                contactStyle: finalCustomizations.contactStyle || finalCustomizations.footerStyle,
-                // Legacy fields
-                navbarStyle: finalCustomizations.navbarStyle,
-                featuredStyle: finalCustomizations.featuredStyle,
-                footerStyle: finalCustomizations.footerStyle,
-                colorScheme: finalCustomizations.colorScheme || finalCustomizations.colorSchemeId,
-                fontPairing: finalCustomizations.fontPairing || finalCustomizations.fontPairingId,
-            },
-        })
+            ...websiteContentFields(contentWithContact, finalCustomizations),
+        }, { token })
 
-        // Update submission status to website_generated (but don't regress if already deployed+, { token })
+        // Update submission status to website_generated (but don't regress if already deployed+)
         const keepStatuses = ['deployed', 'pending_payment', 'paid']
         if (!keepStatuses.includes(submissionData.status)) {
             await fetchMutation(api.submissions.updateStatus, {

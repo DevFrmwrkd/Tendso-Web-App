@@ -1457,4 +1457,37 @@ export default defineSchema({
         lastSyncDeactivated: v.optional(v.number()),
         lastSyncError: v.optional(v.string()),
     }).index('by_key', ['key']),
+
+    // ==================== AI SITE PIPELINE (v2, additive) ====================
+    // One row per automatic build of a submission's site (brief §4C,
+    // docs/v2-ai-pipeline.md). Holds each step's output so a retried step skips
+    // finished work, plus the reports an admin needs when it fails. Only the
+    // pipeline (convex/aiPipeline/*) writes it. New table; nothing else reads it.
+    aiPipelineRuns: defineTable({
+        submissionId: v.id('submissions'),
+        status: v.union(v.literal('running'), v.literal('done'), v.literal('failed'), v.literal('canceled')),
+        step: v.string(), // current StepKey
+        attempt: v.number(), // attempt of the current step, 1-based
+        reason: v.optional(v.string()), // what started it: submitted | owner_app | admin | rebuild
+        force: v.optional(v.boolean()),
+        startedAt: v.number(),
+        deadlineAt: v.number(),
+        updatedAt: v.number(),
+        finishedAt: v.optional(v.number()),
+        steps: v.optional(v.any()), // { [step]: { status, startedAt?, finishedAt?, attempts, error? } }
+        input: v.optional(v.any()), // PipelineInput after transcription
+        facts: v.optional(v.any()),
+        copy: v.optional(v.any()),
+        content: v.optional(v.any()),
+        templateCode: v.optional(v.string()),
+        clipTranscripts: v.optional(v.any()),
+        photos: v.optional(v.any()), // { [shotIndex]: PhotoResult }
+        enhancedImages: v.optional(v.any()),
+        reports: v.optional(v.any()), // { [step]: report }
+        usage: v.optional(v.any()), // UsageTotals
+        error: v.optional(v.string()),
+        fallback: v.optional(v.string()), // 'studio' when handed to Tendso Studio
+    })
+        .index('by_submission', ['submissionId', 'startedAt'])
+        .index('by_status', ['status']),
 });
