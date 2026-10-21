@@ -1,6 +1,7 @@
 import React from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { accountHome, canUseAdminTools } from '../../../components/admin/access';
 import { AdminLoading, AdminNotice, AdminScreen, WebAdminLink } from '../../../components/admin/AdminUI';
 
@@ -14,6 +15,8 @@ class AdminQueryBoundary extends React.Component<{ children: React.ReactNode }, 
 
 export default function NativeAdminLayout() {
   const session = useMobileAccount();
+  // Admins get push notifications for new reviews and payouts.
+  usePushNotifications(session.account?._id);
   if (session.isLoading) return <AdminLoading message="Checking admin access…" />;
   if (session.isOffline) return <AdminLoading message="Connect to the internet to use admin tools." />;
   if (!session.isAuthenticated) return <Redirect href="/(auth)/login" />;

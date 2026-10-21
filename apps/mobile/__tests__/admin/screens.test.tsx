@@ -17,6 +17,7 @@ const mockOpen = jest.fn();
 const mockSignOut = jest.fn();
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: mockSignOut }) }));
 jest.mock('../../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockSession }));
+jest.mock('../../hooks/usePushNotifications', () => ({ usePushNotifications: jest.fn() }));
 jest.mock('../../services/links', () => ({ SITE_URL: 'https://www.tendso.com', openExternalUrl: (...args: unknown[]) => mockOpen(...args) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('expo-router', () => {
