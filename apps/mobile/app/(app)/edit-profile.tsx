@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
-  Image,
   Alert,
+  StyleSheet,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
@@ -17,12 +13,12 @@ import { api } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useDeleteAccount } from '../../hooks/useDeleteAccount';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { colors, radius, shadow, space } from '../../theme/v2';
+import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text, TextLink } from '../../components/v2';
 
 export default function EditProfileScreen() {
-  const insets = useSafeAreaInsets();
   const router = useGuardedRouter();
   const { user, isLoaded } = useUser();
   const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
@@ -162,256 +158,131 @@ export default function EditProfileScreen() {
   };
 
   if (!isLoaded || creator === undefined) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#E4B05E" />
-      </View>
-    );
+    return <Loading />;
   }
 
   // After soft-delete, getByClerkId returns null — redirect to login
   if (creator === null) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#E4B05E" />
-      </View>
-    );
+    return <Loading />;
   }
 
   // Avatar: local picked URI > existing profile image > initial letter
   const avatarUri     = profileImageUri ?? creator.profileImage ?? null;
-  const displayInitial = (firstName || 'U').charAt(0).toUpperCase();
+  const email         = creator.email || user?.primaryEmailAddress?.emailAddress || '';
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
+      style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 32,
-          paddingHorizontal: 24,
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <ScreenShell
+        title="Edit profile"
+        onBack={() => router.back()}
+        contentStyle={styles.content}
+        footer={
+          <Button
+            title={success ? 'Saved' : 'Save changes'}
+            onPress={handleSave}
+            loading={loading}
+            disabled={loading || success}
+            accessibilityLabel="Save changes"
+          />
+        }
       >
-        {/* Back */}
-        <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}
-          onPress={() => router.back()}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-        >
-          <Ionicons name="arrow-back" size={20} color="#71717a" />
-          <Text style={{ color: '#71717a', marginLeft: 8, fontSize: 15 }}>Back</Text>
-        </TouchableOpacity>
-
-        {/* Title */}
-        <View style={{ marginBottom: 28 }}>
-          <Text style={{ fontSize: 28, fontWeight: '800', color: '#18181b' }}>Edit Profile</Text>
-          <Text style={{ fontSize: 14, color: '#71717a', marginTop: 4 }}>
-            Update your name, contact details and photo.
-          </Text>
-        </View>
-
-        {/* Success banner */}
-        {success && (
-          <View style={{
-            backgroundColor: '#F5E4C0', borderWidth: 1, borderColor: '#F2D8A0',
-            borderRadius: 14, padding: 14, marginBottom: 16,
-            flexDirection: 'row', alignItems: 'center', gap: 8,
-          }}>
-            <Ionicons name="checkmark-circle" size={18} color="#E4B05E" />
-            <Text style={{ color: '#6B4A12', fontWeight: '600', fontSize: 13 }}>
-              Profile updated successfully!
-            </Text>
-          </View>
-        )}
-
-        {/* Error banner */}
-        {!!error && (
-          <View style={{
-            backgroundColor: '#fee2e2', borderWidth: 1, borderColor: '#fca5a5',
-            borderRadius: 14, padding: 14, marginBottom: 16,
-          }}>
-            <Text style={{ color: '#dc2626', fontWeight: '600', fontSize: 13 }}>{error}</Text>
-          </View>
-        )}
+        {success ? <Banner tone="ok" title="Profile updated" /> : null}
+        {error ? <Banner tone="danger" body={error} /> : null}
 
         {/* Avatar picker */}
-        <View style={{ alignItems: 'center', marginBottom: 28 }}>
-          <TouchableOpacity onPress={handlePickImage} disabled={loading} activeOpacity={0.8} accessibilityLabel="Change profile photo" accessibilityRole="button">
-            <View style={{
-              width: 88, height: 88, borderRadius: 44,
-              backgroundColor: '#18181b',
-              alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {avatarUri ? (
-                <Image
-                  source={{ uri: avatarUri }}
-                  style={{ width: 88, height: 88, borderRadius: 44 }}
-                  accessibilityLabel="Profile photo"
-                  accessibilityRole="image"
-                />
-              ) : (
-                <Text style={{ color: '#fff', fontSize: 32, fontWeight: '800' }}>
-                  {displayInitial}
-                </Text>
-              )}
-            </View>
-
-            {/* Camera badge */}
-            <View style={{
-              position: 'absolute', bottom: 0, right: 0,
-              width: 28, height: 28, borderRadius: 14,
-              backgroundColor: '#E4B05E',
-              alignItems: 'center', justifyContent: 'center',
-              borderWidth: 2, borderColor: '#fff',
-            }}>
-              <Ionicons name="camera" size={13} color="#fff" />
-            </View>
-          </TouchableOpacity>
-
-          <Text style={{ color: '#a1a1aa', fontSize: 12, marginTop: 10 }}>
-            {user?.primaryEmailAddress?.emailAddress}
-          </Text>
-          <Text style={{ color: '#71717a', fontSize: 11, marginTop: 2 }}>
-            Tap photo to change
-          </Text>
-        </View>
-
-        {/* First Name */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#3f3f46', marginBottom: 8 }}>
-            First Name
-          </Text>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center',
-            backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e4e4e7',
-            borderRadius: 14, paddingHorizontal: 14, height: 52,
-          }}>
-            <Ionicons name="person-outline" size={18} color="#a1a1aa" />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#18181b' }}
-              placeholder="First name"
-              placeholderTextColor="#a1a1aa"
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-              editable={!loading}
-              accessibilityLabel="First name"
-            />
-          </View>
-        </View>
-
-        {/* Last Name */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#3f3f46', marginBottom: 8 }}>
-            Last Name
-          </Text>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center',
-            backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e4e4e7',
-            borderRadius: 14, paddingHorizontal: 14, height: 52,
-          }}>
-            <Ionicons name="person-outline" size={18} color="#a1a1aa" />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#18181b' }}
-              placeholder="Last name"
-              placeholderTextColor="#a1a1aa"
-              value={lastName}
-              onChangeText={setLastName}
-              autoCapitalize="words"
-              editable={!loading}
-              accessibilityLabel="Last name"
-            />
-          </View>
-        </View>
-
-        {/* Phone */}
-        <View style={{ marginBottom: 32 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#3f3f46', marginBottom: 8 }}>
-            Phone Number
-          </Text>
-          <View style={{
-            flexDirection: 'row', alignItems: 'center',
-            backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e4e4e7',
-            borderRadius: 14, paddingHorizontal: 14, height: 52,
-          }}>
-            <Ionicons name="call-outline" size={18} color="#a1a1aa" />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: '#18181b' }}
-              placeholder="e.g. 09171234567"
-              placeholderTextColor="#a1a1aa"
-              value={phone}
-              onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
-              keyboardType="number-pad"
-              maxLength={15}
-              editable={!loading}
-              accessibilityLabel="Phone number"
-            />
-          </View>
-        </View>
-
-        {/* Save Button */}
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={loading || success}
-          style={{
-            height: 52, borderRadius: 14,
-            backgroundColor: loading || success ? '#a1a1aa' : '#18181b',
-            alignItems: 'center', justifyContent: 'center',
-          }}
-          accessibilityLabel="Save changes"
-          accessibilityRole="button"
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Save Changes</Text>
-          }
-        </TouchableOpacity>
-
-        {/* Delete Account — intentionally buried at the bottom with extra spacing */}
-        <View style={{ marginTop: 60, paddingTop: 24, borderTopWidth: 1, borderTopColor: '#fee2e2' }}>
-          <View style={{
-            backgroundColor: '#fef2f2', borderRadius: 14, padding: 16, marginBottom: 16,
-            flexDirection: 'row', alignItems: 'flex-start', gap: 10,
-          }}>
-            <Ionicons name="warning-outline" size={18} color="#dc2626" style={{ marginTop: 1 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#dc2626' }}>Danger Zone</Text>
-              <Text style={{ fontSize: 12, color: '#991b1b', marginTop: 4, lineHeight: 17 }}>
-                Your account will be deleted immediately and you will not be able to sign in again. Records are kept for 30 days to meet our legal obligations, then permanently erased. If you sign up again with the same email or Google account, you will start completely fresh with no prior submissions, earnings, or certification.
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onPress={requestDelete}
-            disabled={deleting || loading || !canDelete}
-            style={{
-              height: 48, borderRadius: 14,
-              backgroundColor: '#fff',
-              borderWidth: 1.5, borderColor: '#fca5a5',
-              alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'row', gap: 8,
-            }}
-            accessibilityLabel="Delete account"
+        <View style={styles.avatarBlock}>
+          <Pressable
+            onPress={handlePickImage}
+            disabled={loading}
+            accessibilityLabel="Change profile photo"
             accessibilityRole="button"
+            style={styles.avatarPress}
           >
-            {deleting
-              ? <ActivityIndicator size="small" color="#ef4444" />
-              : <Ionicons name="trash-outline" size={16} color="#ef4444" />
-            }
-            <Text style={{ color: '#ef4444', fontWeight: '600', fontSize: 14 }}>
-              {deleting ? 'Deleting account...' : 'Delete My Account'}
-            </Text>
-          </TouchableOpacity>
+            <Avatar uri={avatarUri} name={firstName || undefined} size={96} />
+            <View style={[styles.camera, shadow.soft]}>
+              <Ionicons name="camera" size={18} color={colors.onAccent} />
+            </View>
+          </Pressable>
+          <Text variant="label" tone="muted" weight="medium">
+            Tap the photo to change it
+          </Text>
         </View>
-      </ScrollView>
+
+        <Field
+          label="First name"
+          placeholder="First name"
+          value={firstName}
+          onChangeText={setFirstName}
+          autoCapitalize="words"
+          editable={!loading}
+          accessibilityLabel="First name"
+        />
+        <Field
+          label="Last name"
+          placeholder="Last name"
+          value={lastName}
+          onChangeText={setLastName}
+          autoCapitalize="words"
+          editable={!loading}
+          accessibilityLabel="Last name"
+        />
+        <Field
+          label="Mobile"
+          icon="call-outline"
+          placeholder="e.g. 09171234567"
+          value={phone}
+          onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
+          keyboardType="number-pad"
+          maxLength={15}
+          editable={!loading}
+          accessibilityLabel="Phone number"
+        />
+        <Field
+          label="Email"
+          icon="mail-outline"
+          value={email}
+          editable={false}
+          helper="Can't change"
+          right={<Ionicons name="lock-closed" size={20} color={colors.ink3} />}
+          accessibilityLabel="Email"
+        />
+
+        {/* Delete account: intentionally buried at the bottom. The confirmation alerts explain what happens. */}
+        <View style={styles.danger}>
+          <TextLink
+            label={deleting ? 'Deleting account…' : 'Delete my account'}
+            tone="danger"
+            onPress={() => {
+              if (deleting || loading || !canDelete) return;
+              requestDelete();
+            }}
+          />
+        </View>
+      </ScreenShell>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  content: { gap: space.md, paddingTop: space.lg, paddingBottom: space.xxl },
+  avatarBlock: { alignItems: 'center', gap: space.sm, marginBottom: space.sm },
+  avatarPress: { width: 96, height: 96 },
+  camera: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+    borderWidth: 3,
+    borderColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  danger: { marginTop: space.huge, alignItems: 'center' },
+});

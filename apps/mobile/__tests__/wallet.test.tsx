@@ -129,15 +129,18 @@ describe("WalletScreen", () => {
     setupQueries();
   });
 
-  it("renders the available balance formatted in PHP", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/₱1,500\.00/)).toBeTruthy();
+  it("renders the available balance and the cash out button in PHP", () => {
+    const { getByText, getByTestId } = render(<WalletScreen />);
+    expect(getByText("₱1,500")).toBeTruthy();
+    expect(getByText("Available to cash out")).toBeTruthy();
+    expect(getByText("Cash out ₱1,500 to Wise")).toBeTruthy();
+    expect(getByTestId("withdraw-button")).toBeTruthy();
   });
 
   it("renders total earned and withdrawn stats", () => {
     const { getByText } = render(<WalletScreen />);
-    expect(getByText(/₱3,000\.00/)).toBeTruthy();  // totalEarnings
-    expect(getByText(/₱750\.00/)).toBeTruthy();    // totalWithdrawn
+    expect(getByText("₱3,000")).toBeTruthy();  // totalEarnings
+    expect(getByText("₱750")).toBeTruthy();    // totalWithdrawn
   });
 
   it("shows withdraw button when balance > 0", () => {
@@ -163,13 +166,27 @@ describe("WalletScreen", () => {
   it("shows empty state when no earnings", () => {
     setupQueries(mockCreator, []);
     const { getByText } = render(<WalletScreen />);
-    expect(getByText("No earnings")).toBeTruthy();
+    expect(getByText("No earnings yet")).toBeTruthy();
   });
 
   it("shows empty state when no withdrawals", () => {
     setupQueries(mockCreator, mockEarnings, []);
     const { getByText } = render(<WalletScreen />);
     expect(getByText(/Your withdrawal history will show up here once you cash out/)).toBeTruthy();
+  });
+
+  it("renders recent earnings as +₱ rows and the history status chip", () => {
+    const { getByText } = render(<WalletScreen />);
+    expect(getByText("+₱1,000")).toBeTruthy();
+    expect(getByText("+₱500")).toBeTruthy();
+    expect(getByText("−₱500")).toBeTruthy();
+    expect(getByText("Completed")).toBeTruthy();
+  });
+
+  it("links to the Invite field agents screen", () => {
+    const { getByLabelText, getByText } = render(<WalletScreen />);
+    expect(getByText("Invite field agents")).toBeTruthy();
+    expect(getByLabelText("View your referrals")).toBeTruthy();
   });
 
   it("renders withdrawal history with Wise email and transfer ID", () => {
@@ -290,9 +307,19 @@ describe("WithdrawalModal", () => {
     });
   });
 
+  it("pre-picks the whole balance and lets the quick-pick pills change it", () => {
+    const { getByTestId, getByText, getByLabelText } = openModal();
+    expect(getByTestId("amount-input").props.value).toBe("1500");
+    expect(getByText("Send ₱1,500 to Wise")).toBeTruthy();
+    fireEvent.press(getByLabelText("Cash out ₱1,000"));
+    expect(getByTestId("amount-input").props.value).toBe("1000");
+    expect(getByText("Send ₱1,000 to Wise")).toBeTruthy();
+  });
+
   it("prevents typing amount exceeding balance (input is capped)", () => {
     const { getByTestId } = openModal();
     const amountInput = getByTestId("amount-input");
+    fireEvent.changeText(amountInput, "");
     fireEvent.changeText(amountInput, "9999");
     // The onChangeText handler rejects values > balance, so the input stays empty
     expect(amountInput.props.value).toBe("");
