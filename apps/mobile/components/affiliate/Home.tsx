@@ -1,12 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
-import { COMMISSION_RATE, REFERRAL_BONUS, formatPHP } from '../../../../packages/shared/pricing';
-import { Body, Card, Display, Door, Label } from '../ui/primitives';
+import { BASE_PRICE, COMMISSION_RATE, REFERRAL_BONUS, formatPHP } from '../../../../packages/shared/pricing';
+import { Avatar, BigNumber, Card, Chip, ListRow, SectionLabel, Text, type ChipTone } from '../v2';
+import { colors, space } from '../../theme/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
-import { AffiliateAccess, AffiliateFrame, AffiliateLoading, type AffiliateAccessProps, styles } from './Screen';
-import { type AffiliatePortal, samplePortal } from './model';
+import { AffiliateAccess, AffiliateFrame, AffiliateLoading, type AffiliateAccessProps } from './Screen';
+import { DEFAULT_CODE_DISCOUNT, DEFAULT_CODE_KEEP, DEFAULT_CODE_PRICE, RECRUIT_SHARE_PERCENT, type AffiliatePortal, samplePortal } from './model';
 import { CopyButton } from './ShareTools';
 
 export function AffiliateHomeScreen() {
@@ -18,27 +19,86 @@ function LiveHome(props: AffiliateAccessProps) {
   return <HomeContent {...props} portal={portal} />;
 }
 
-function Figure({ label, amount, note }: { label: string; amount: number | undefined; note: string }) {
-  return <Card style={{ gap: 7 }}><Label>{label}</Label>{amount === undefined ? <Body>Loading…</Body> : <Display size="sm">{formatPHP(amount)}</Display>}<Body size="sm">{note}</Body></Card>;
+/** The big figure: stays "Loading…" until the portal answers (a real zero shows ₱0). */
+function Figure({ label, amount }: { label: string; amount: number | undefined }) {
+  return <Card variant="lg" style={styles.figure}>
+    {amount === undefined
+      ? <View accessible accessibilityLabel={`${label}, loading`}><Text variant="number" tone="muted">Loading…</Text><Text variant="body" tone="muted">{label}</Text></View>
+      : <BigNumber value={formatPHP(amount)} label={label} size="lg" />}
+  </Card>;
+}
+
+function FigureRow({ label, amount, divider }: { label: string; amount: number | undefined; divider?: boolean }) {
+  return <View accessible accessibilityLabel={amount === undefined ? `${label}, loading` : `${label}, ${formatPHP(amount)}`} style={[styles.figureRow, divider ? styles.divider : null]}>
+    <Text variant="bodyLg" tone="ink2" style={styles.figureLabel}>{label}</Text>
+    <Text variant="title" tabular numberOfLines={1} tone={amount === undefined ? 'muted' : 'ink'}>{amount === undefined ? 'Loading…' : formatPHP(amount)}</Text>
+  </View>;
+}
+
+function referralLine(row: AffiliatePortal['referrals'][number]): { chip: string; tone: ChipTone; line: string } {
+  if (row.status === 'paid') return { chip: 'Paid', tone: 'ok', line: `Bonus paid · ${formatPHP(row.bonusAmount)}` };
+  if (row.status === 'qualified') return { chip: 'Qualified', tone: 'info', line: 'First paid website done' };
+  return { chip: 'Joined', tone: 'muted', line: 'Waiting for their first paid website' };
 }
 
 export function HomeContent({ account, isPreview, isOffline, portal }: AffiliateAccessProps & { portal: AffiliatePortal | undefined }) {
   const router = useGuardedRouter();
   const suspended = account.status !== 'active';
-  return <AffiliateFrame title={`Hi, ${account.firstName || 'affiliate'}`} sub="Your affiliate business at a glance." preview={isPreview} suspended={suspended} offline={isOffline}>
-    <Figure label="Available in your wallet" amount={portal?.summary.balance} note="Money earned and available for a payout." />
-    <Figure label="Pending commission" amount={portal?.summary.pendingCommission} note="Arrives after the shop owner pays." />
-    <Figure label="Total earned" amount={portal?.summary.totalEarned} note="Your commissions and creator referral bonuses." />
-    <Card style={{ gap: 14 }}><Display size="sm">Your page does the introduction.</Display><Body>Set your price, share your link, and earn {Math.round(COMMISSION_RATE * 100)}% of each website sale. Creators take photos and interview shop owners; you share your offer.</Body>
-      <Door label="My page" onPress={() => router.push('/(app)/(affiliate-tabs)/page')} /><Door label="Sales" variant="ghost" onPress={() => router.push('/(app)/(affiliate-tabs)/sales')} /><Door label="Wallet" variant="ghost" onPress={() => router.push('/(app)/(affiliate-tabs)/wallet')} />
+  return <AffiliateFrame title={`Hi, ${account.firstName || 'creator'}`} preview={isPreview} suspended={suspended} offline={isOffline}>
+    <Figure label="Available" amount={portal?.summary.balance} />
+    <Card style={styles.rows}>
+      <FigureRow label="Pending" amount={portal?.summary.pendingCommission} divider />
+      <FigureRow label="Total earned" amount={portal?.summary.totalEarned} />
     </Card>
-    <Card style={{ gap: 14 }}><Display size="sm">Invite creators</Display><Body>Earn {formatPHP(REFERRAL_BONUS)} when a creator you refer completes their first website paid for by its owner.</Body>
-      {account.referralCode ? <><Label>Your creator referral code</Label><Display size="sm">{account.referralCode}</Display><CopyButton value={account.referralCode} label="Copy creator referral code" disabled={isPreview || suspended} /></> : <Body>Your referral code is not available yet.</Body>}
-      <Body size="sm">Download the Tendso app and enter this code when signing up as a creator. Affiliate accounts cannot be referred.</Body>
-      {portal === undefined ? <AffiliateLoading label="Loading invited creators" /> : <>
-        <View style={styles.row}><Body>Creators invited</Body><Body weight="bold">{portal.referralStats.total}</Body></View>
-        {portal.referrals.length === 0 ? <Body size="sm">Your invited creators appear here after they sign up with your code.</Body> : portal.referrals.map((row) => <View key={row._id} style={{ gap: 3 }}><Body weight="medium">{row.referredName}</Body><Body size="sm">{row.status === 'paid' ? `Bonus paid · ${formatPHP(row.bonusAmount)}` : row.status === 'qualified' ? 'Qualified for bonus' : 'Waiting for their first paid website'}</Body></View>)}
-      </>}
+    <Text variant="label" tone="muted" style={styles.note}>Pending commission arrives after the shop owner pays.</Text>
+
+    <Card style={styles.rows}>
+      <ListRow icon="globe-outline" title="My page" subtitle="Your link and price" onPress={() => router.push('/(app)/(affiliate-tabs)/page')} divider />
+      <ListRow icon="receipt-outline" title="Sales" subtitle="Orders from your page" onPress={() => router.push('/(app)/(affiliate-tabs)/sales')} divider />
+      <ListRow icon="wallet-outline" title="Earn" subtitle="Your money and payouts" onPress={() => router.push('/(app)/(affiliate-tabs)/wallet')} />
     </Card>
+
+    <Card variant="tint" style={styles.invite}>
+      <Text variant="heading">How you earn</Text>
+      <Text variant="body" tone="ink2">{`You keep ${Math.round(COMMISSION_RATE * 100)}% of each sale. At the default ${Math.round(DEFAULT_CODE_DISCOUNT * 100)}% off (${formatPHP(DEFAULT_CODE_PRICE)}) that is ${formatPHP(DEFAULT_CODE_KEEP)}. You can lower it to ${formatPHP(BASE_PRICE)}.`}</Text>
+    </Card>
+
+    <Card variant="lg" style={styles.invite}>
+      <Text variant="heading">Invite field agents</Text>
+      <Text variant="body" tone="ink2">{`Earn ${RECRUIT_SHARE_PERCENT}% of each sale by field agents who join with your code. For 12 months, paid when the shop has paid in full.`}</Text>
+      {account.referralCode
+        ? <>
+          <View style={styles.code}>
+            <Text variant="label" tone="muted">Your code</Text>
+            <Text variant="title" style={styles.codeText} selectable>{account.referralCode}</Text>
+          </View>
+          <CopyButton value={account.referralCode} label="Copy code" disabled={isPreview || suspended} />
+        </>
+        : <Text variant="body" tone="muted">Your code is not available yet.</Text>}
+      <Text variant="label" tone="muted">{`They enter it when they sign up in the app. Creators cannot be referred. Invites already pending keep the ${formatPHP(REFERRAL_BONUS)} bonus.`}</Text>
+    </Card>
+
+    {portal === undefined ? <AffiliateLoading inline label="Loading invited field agents" /> : <View style={styles.list}>
+      <SectionLabel>{`Field agents invited · ${portal.referralStats.total}`}</SectionLabel>
+      {portal.referrals.length === 0
+        ? <Text variant="body" tone="muted">Field agents appear here after they sign up with your code.</Text>
+        : <Card style={styles.rows}>{portal.referrals.map((row, index) => {
+          const info = referralLine(row);
+          return <ListRow key={row._id} leading={<Avatar name={row.referredName} size={48} />} title={row.referredName} subtitle={info.line} trailing={<Chip label={info.chip} tone={info.tone} />} divider={index < portal.referrals.length - 1} />;
+        })}</Card>}
+    </View>}
   </AffiliateFrame>;
 }
+
+const styles = StyleSheet.create({
+  figure: { gap: space.xs },
+  figureRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, paddingHorizontal: space.xs },
+  figureLabel: { flex: 1 },
+  divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
+  note: { paddingHorizontal: space.xs },
+  rows: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  invite: { gap: space.md },
+  code: { alignItems: 'center', gap: space.xs, paddingVertical: space.md, borderRadius: 16, backgroundColor: colors.bg },
+  codeText: { letterSpacing: 2 },
+  list: { gap: space.md },
+});

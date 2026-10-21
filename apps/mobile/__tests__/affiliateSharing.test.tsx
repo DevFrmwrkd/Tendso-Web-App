@@ -50,7 +50,7 @@ it('shares a printable PNG using the A4 aspect and the native share sheet', asyn
   const view = render(<ShareTools handle="my-page" displayName="My saved offer" price={3999} disabled={false} />);
   fireEvent.press(view.getByLabelText('Share printable poster PNG'));
   await waitFor(() => expect(mockCapture).toHaveBeenCalledWith(expect.anything(), { format: 'png', quality: 1, width: 1240, height: 1754 }));
-  expect(mockShareImage).toHaveBeenCalledWith('file:///affiliate-poster.png', { mimeType: 'image/png', dialogTitle: 'Share printable affiliate poster' });
+  expect(mockShareImage).toHaveBeenCalledWith('file:///affiliate-poster.png', { mimeType: 'image/png', dialogTitle: 'Share printable creator poster' });
 });
 
 it('does not invoke native sharing or image capture for a disabled offer', () => {

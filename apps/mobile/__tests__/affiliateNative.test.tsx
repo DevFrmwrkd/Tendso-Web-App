@@ -59,7 +59,7 @@ describe('native affiliate access and live data', () => {
     expect(home.getByText('₱2,500')).toBeTruthy();
     home.unmount();
     const sales = render(<AffiliateSalesScreen />);
-    expect(sales.getByText('Sample coffee shop')).toBeTruthy();
+    expect(sales.getByText('Sample barbershop')).toBeTruthy();
     sales.unmount();
     const page = render(<AffiliatePageScreen />);
     expect(page.getByLabelText('Display name').props.editable).toBe(false);
@@ -95,7 +95,7 @@ describe('native affiliate access and live data', () => {
     const view = render(<AffiliateSalesScreen />);
     expect(mockPaginated).toHaveBeenCalledWith('affiliates:sales', {}, { initialNumItems: 10 });
     expect(view.getByText('₱999')).toBeTruthy();
-    expect(view.getByText('₱500')).toBeTruthy();
+    expect(view.getByText('+₱500')).toBeTruthy();
     fireEvent.press(view.getByLabelText('Show more sales'));
     expect(loadMore).toHaveBeenCalledWith(10);
   });
