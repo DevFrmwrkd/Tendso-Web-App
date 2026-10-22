@@ -1,41 +1,51 @@
 import { ConvexError, v } from 'convex/values';
-import { mutation } from './_generated/server';
+import { action, internalMutation } from './_generated/server';
+import { internal } from './_generated/api';
 import { normalizePhone } from './lib/phone';
 
-/**
- * "Hire an agent" requests from the public v2 landing page (/v2, Paths section).
- *
- * A shop owner leaves three things: the shop's name, the area and a mobile
- * number. That becomes a customer lead (source "website", status "new") so it
- * shows up in the admin Leads list next to the other website leads; the shop
- * name doubles as the lead's name and the area fills businessCity, which the
- * list already shows as the lead's city.
- *
- * Public and unauthenticated, so it is throttled without a new table:
- *   - the same mobile number within REPEAT_WINDOW_MS is treated as the same
- *     request (no second row, the caller still gets "sent");
- *   - at most GLOBAL_LIMIT landing requests are accepted per GLOBAL_WINDOW_MS
- *     across everyone, after which callers are asked to try again later.
- * Both checks walk the newest leads only (the table is read newest-first and
- * the walk stops at the window edge), so the cost stays flat as leads grow.
- */
-
+// Public submissions go through the Next.js route: it supplies a trusted,
+// hashed caller IP and a server secret. Turnstile is verified before any writes.
 export const LANDING_SOURCE = 'website';
 export const LANDING_MESSAGE = 'Asked for a field agent visit from the website.';
 
 const REPEAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GLOBAL_WINDOW_MS = 10 * 60 * 1000;
 const GLOBAL_LIMIT = 20;
-/** Upper bound on rows read per request, whatever the windows say. */
-const SCAN_CAP = 400;
+const CALLER_LIMIT = 3;
 
 const clean = (s: string, max: number) => s.replace(/\s+/g, ' ').trim().slice(0, max);
 
-export const requestVisit = mutation({
+const visitArgs = { shopName: v.string(), area: v.string(), mobile: v.string() };
+
+export const requestVisit = action({
+    args: { ...visitArgs, caller: v.string(), secret: v.string(), token: v.string() },
+    handler: async (ctx, args): Promise<{ ok: true; duplicate: boolean }> => {
+        if (!process.env.LANDING_LEADS_SECRET || args.secret !== process.env.LANDING_LEADS_SECRET) {
+            throw new ConvexError('Unauthorized');
+        }
+        const key = process.env.TURNSTILE_SECRET_KEY;
+        const hostname = process.env.TURNSTILE_HOSTNAME;
+        if (!key || !hostname || !args.token || args.token.length > 2048) {
+            throw new ConvexError('Visit requests are temporarily unavailable.');
+        }
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: new URLSearchParams({ secret: key, response: args.token }),
+        });
+        const result = await response.json();
+        if (!response.ok || result.success !== true || result.hostname !== hostname || result.action !== 'landing-visit') {
+            throw new ConvexError('Please complete the bot check and try again.');
+        }
+        return await ctx.runMutation(internal.landingLeads.saveVisit, {
+            shopName: args.shopName, area: args.area, mobile: args.mobile, caller: args.caller,
+        });
+    },
+});
+
+export const saveVisit = internalMutation({
     args: {
-        shopName: v.string(),
-        area: v.string(),
-        mobile: v.string(),
+        ...visitArgs,
+        caller: v.string(),
     },
     handler: async (ctx, args) => {
         const shopName = clean(args.shopName, 120);
@@ -50,19 +60,24 @@ export const requestVisit = mutation({
         }
 
         const now = Date.now();
-        let recentLanding = 0;
-        let scanned = 0;
-        for await (const lead of ctx.db.query('leads').order('desc')) {
-            if (++scanned > SCAN_CAP) break;
-            const age = now - lead.createdAt;
-            if (age > REPEAT_WINDOW_MS) break;
-            if (lead.source !== LANDING_SOURCE || lead.message !== LANDING_MESSAGE) continue;
-            if (normalizePhone(lead.phone) === digits) return { ok: true as const, duplicate: true };
-            if (age <= GLOBAL_WINDOW_MS) recentLanding += 1;
+        // Append-only receipts are independent of editable/deletable admin leads.
+        const callerRequests = await ctx.db.query('landingVisitRequests')
+            .withIndex('by_caller_time', (q) => q.eq('caller', args.caller).gte('createdAt', now - GLOBAL_WINDOW_MS))
+            .take(CALLER_LIMIT);
+        if (callerRequests.length >= CALLER_LIMIT) {
+            throw new ConvexError({ field: null, message: 'Please wait a few minutes before requesting another visit.' });
         }
-        if (recentLanding >= GLOBAL_LIMIT) {
+        const duplicate = await ctx.db.query('landingVisitRequests')
+            .withIndex('by_phone_time', (q) => q.eq('phone', digits).gte('createdAt', now - REPEAT_WINDOW_MS))
+            .first();
+        if (duplicate) return { ok: true as const, duplicate: true };
+        const recentLanding = await ctx.db.query('landingVisitRequests')
+            .withIndex('by_time', (q) => q.gte('createdAt', now - GLOBAL_WINDOW_MS))
+            .take(GLOBAL_LIMIT);
+        if (recentLanding.length >= GLOBAL_LIMIT) {
             throw new ConvexError({ field: null, message: 'We are getting a lot of requests. Please try again in a few minutes.' });
         }
+        await ctx.db.insert('landingVisitRequests', { phone: digits, caller: args.caller, createdAt: now });
 
         await ctx.db.insert('leads', {
             source: LANDING_SOURCE,

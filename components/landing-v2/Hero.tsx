@@ -5,8 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button, PhoneFrame } from "@/components/v2";
 
-import { A, HERO_SITES, STORE_LINKS, siteShot } from "./content";
-import { AppleIcon, PlayIcon } from "./icons";
+import { A, HERO_SITES, STORE_AVAILABILITY, siteShot } from "./content";
 import { clamp, ease, lerp, onFrame, prog, useReducedMotion } from "./motion";
 import { InterviewCamScreen } from "./screens";
 
@@ -270,17 +269,10 @@ export function Hero() {
                     The thinking ends here.
                 </h1>
                 <div className="hero-ctas">
-                    <Button href="#download" size="lg">
-                        Download the app
+                    <Button href="#hire" size="lg">
+                        Request a field agent
                     </Button>
-                    <span className="hero-stores">
-                        <a href={STORE_LINKS.appStore} aria-label="Download on the App Store">
-                            <AppleIcon />
-                        </a>
-                        <a href={STORE_LINKS.googlePlay} aria-label="Get it on Google Play">
-                            <PlayIcon />
-                        </a>
-                    </span>
+                    <span className="hero-stores">{STORE_AVAILABILITY}</span>
                 </div>
             </div>
         </section>

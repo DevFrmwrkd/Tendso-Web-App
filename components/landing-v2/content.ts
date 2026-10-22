@@ -12,12 +12,7 @@
 export const A = "/v2/landing";
 
 // ---- links ---------------------------------------------------------------------
-// TODO(Theo): real App Store / Google Play listings. No store link exists in the
-// repo yet (searched app/, components/, lib/, apps/mobile config on 2026-10-21).
-export const STORE_LINKS = {
-    appStore: "#download",
-    googlePlay: "#download",
-} as const;
+export const STORE_AVAILABILITY = "Coming soon on the App Store and Google Play";
 
 export const LANDING_LINKS = {
     fieldAgents: "/for-field-agents",
