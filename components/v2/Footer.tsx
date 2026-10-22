@@ -6,7 +6,7 @@ import { V2_FOOTER_LINKS, type V2Link } from "./links";
 
 /**
  * Footer shell: one line and two actions, a wordmark that bleeds to the page edges,
- * and a quiet bottom row (Help · Contact · Field agents · Privacy · Terms).
+ * and a quiet bottom row (the /v2 site map, components/v2/links.ts).
  * Pass `actions` to show the closing line + buttons; omit it on pages that already
  * close with their own call to action.
  */

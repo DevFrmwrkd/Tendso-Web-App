@@ -9,4 +9,4 @@ export { SiteCard } from "./SiteCard";
 export { Tile, TileHead, type TileTone } from "./Tile";
 export { Heading, Label, type HeadingSize } from "./Type";
 export { V2Root } from "./V2Root";
-export { V2_FOOTER_LINKS, V2_NAV_LINKS, type V2Link } from "./links";
+export { V2_FOOTER_LINKS, V2_NAV_LINKS, V2_ROUTES, type V2Link } from "./links";

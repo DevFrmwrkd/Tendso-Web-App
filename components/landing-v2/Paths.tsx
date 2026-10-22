@@ -7,7 +7,8 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 
 import { Button } from "@/components/v2";
 
-import { LANDING_LINKS, STORE_AVAILABILITY, person } from "./content";
+import { LANDING_LINKS, person } from "./content";
+import { StoreStatus } from "./StoreStatus";
 import { Arrow } from "./icons";
 
 /*
@@ -185,7 +186,7 @@ export function Paths() {
                         <article className="v2-tile path path--download" id="download">
                             <h3 className="path-line">Talk, snap, done. On your phone.</h3>
                             <div className="path-foot dl">
-                                <p role="status">{STORE_AVAILABILITY}</p>
+                                <StoreStatus as="p" role="status" />
                             </div>
                         </article>
                     </div>

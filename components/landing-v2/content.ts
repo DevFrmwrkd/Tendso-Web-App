@@ -8,19 +8,22 @@
  * Showcase captures, photos and people are sample material from the design mock.
  */
 
+import { V2_ROUTES } from "@/components/v2/links";
+
 /** Asset root (public/v2/landing). */
 export const A = "/v2/landing";
 
 // ---- links ---------------------------------------------------------------------
 export const STORE_AVAILABILITY = "Coming soon on the App Store and Google Play";
 
+/** The /v2 site map (components/v2/links.ts). */
 export const LANDING_LINKS = {
-    fieldAgents: "/for-field-agents",
-    creators: "/for-creators",
-    help: "/help-faq",
-    contact: "/contact",
-    privacy: "/privacy-policy",
-    terms: "/terms-of-service",
+    fieldAgents: V2_ROUTES.fieldAgents,
+    creators: V2_ROUTES.creators,
+    help: V2_ROUTES.help,
+    contact: V2_ROUTES.contact,
+    privacy: V2_ROUTES.privacy,
+    terms: V2_ROUTES.terms,
 } as const;
 
 /**

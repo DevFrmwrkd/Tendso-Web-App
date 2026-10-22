@@ -521,7 +521,7 @@ function NotFound() {
                 <Button href="/v2/help#contact" variant="dark">
                     Contact Tendso
                 </Button>
-                <Button href="/" variant="ghost">
+                <Button href="/v2" variant="ghost">
                     Go to tendso.com
                 </Button>
             </div>

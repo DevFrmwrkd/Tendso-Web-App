@@ -38,6 +38,7 @@ import { buildPhotoArray, validatePhotoFile, visibleSlots, type PhotoSlot } from
 import { quoteFor } from "@/app/start/quote";
 import { Button } from "@/components/v2";
 import { api } from "@/convex/_generated/api";
+import { useStoreLinks } from "@/lib/v2/useStoreLinks";
 import { creatorPlatform, creatorStoreButtons, type CreatorPlatform } from "@/lib/affiliateLanding";
 import { clearCampaign, intakeCampaignForPage, rememberCampaign } from "@/lib/campaign";
 import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
@@ -166,8 +167,7 @@ export function StartFlow() {
     const submitOwnerIntake = useMutation(api.ownerIntake.submitOwnerIntake);
     const generateUploadUrl = useAction(api.r2.generateUploadUrl);
     const giveawayStatus = useQuery(api.giveaway.giveawayStatus);
-    const playUrl = useQuery(api.settings.get, { key: "play_store_url" }) as string | null | undefined;
-    const iosUrl = useQuery(api.settings.get, { key: "app_store_url" }) as string | null | undefined;
+    const { googlePlay: playUrl, appStore: iosUrl } = useStoreLinks();
     const platform = useSyncExternalStore(subscribe, browserPlatform, serverPlatform);
     const { node: toast, show } = usePbToast();
 
@@ -572,7 +572,7 @@ export function StartFlow() {
                             <span key={savedTick} className={`pb-st-saved ${savedTick > 0 ? "is-on" : ""}`} aria-live="polite">
                                 {savedTick > 0 ? "Saved" : ""}
                             </span>
-                            <Button href={giveaway ? "/v2/giveaway" : "/"} variant="ghost" size="sm" className="pb-st-exit">
+                            <Button href={giveaway ? "/v2/giveaway" : "/v2"} variant="ghost" size="sm" className="pb-st-exit">
                                 Save and exit
                             </Button>
                         </div>
@@ -1092,7 +1092,7 @@ export function StartFlow() {
                     </div>
                 )}
                 <div className="pb-st-done-cta">
-                    <Button href="/" variant="dark">
+                    <Button href="/v2" variant="dark">
                         Back to Tendso
                     </Button>
                     <Button href="/v2/help" variant="ghost">

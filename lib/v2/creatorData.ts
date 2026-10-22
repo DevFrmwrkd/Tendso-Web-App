@@ -22,7 +22,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "@/convex/_generated/api";
 
-import { APP_STORE_SETTING, DEFAULT_STORE_LINKS, PLAY_STORE_SETTING, safeStoreUrl, type StoreLinks } from "./appLinks";
+import type { StoreLinks } from "./appLinks";
+import { useStoreLinks as useSharedStoreLinks } from "./useStoreLinks";
 import { SAMPLE_CREATOR_CARD, SAMPLE_PICTURES, SAMPLE_PORTAL } from "./creatorSample";
 import type { ApplyArgs, Availability, CreatorCard, MyApplication, PortalPictures, PortalSummary } from "./creatorTypes";
 
@@ -137,14 +138,9 @@ export function useRecordClick(handle: string, kind: "shop" | "earn") {
 }
 
 // ---- app store links -----------------------------------------------------------------------
-/** The two store buttons: admin settings first, then lib/v2/appLinks.ts. */
+/** The two store buttons (lib/v2/useStoreLinks.ts; no Convex call in sample mode). */
 export function useStoreLinks(): StoreLinks {
-    const play = useQuery(api.settings.get, CREATORS_SAMPLE ? "skip" : { key: PLAY_STORE_SETTING }) as string | null | undefined;
-    const ios = useQuery(api.settings.get, CREATORS_SAMPLE ? "skip" : { key: APP_STORE_SETTING }) as string | null | undefined;
-    return {
-        appStore: safeStoreUrl(ios, DEFAULT_STORE_LINKS.appStore),
-        googlePlay: safeStoreUrl(play, DEFAULT_STORE_LINKS.googlePlay),
-    };
+    return useSharedStoreLinks({ skip: CREATORS_SAMPLE });
 }
 
 // ---- sign-up -------------------------------------------------------------------------------

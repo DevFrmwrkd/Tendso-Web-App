@@ -197,7 +197,7 @@ export function GiveawayPage() {
                     </div>
                 </div>
                 <p className="pb-gw-fine">
-                    For walk-in businesses · One entry per business · Custom domain not included · <Link href="/privacy-policy">Privacy</Link> · <Link href="/terms-of-service">Terms</Link>
+                    For walk-in businesses · One entry per business · Custom domain not included · <Link href="/v2/privacy">Privacy</Link> · <Link href="/v2/terms">Terms</Link>
                 </p>
             </Container>
         </PbPage>

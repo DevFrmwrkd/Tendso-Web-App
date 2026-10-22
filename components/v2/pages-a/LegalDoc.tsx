@@ -146,7 +146,7 @@ export function LegalDoc({ docs, initial, mode }: { docs: Record<DocKey, LegalDo
                         <div className="lg-ask">
                             <p>{D.ask}</p>
                             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-                            <Link className="lg-help" href="/knowledge">
+                            <Link className="lg-help" href="/v2/help">
                                 Short answers in Help
                             </Link>
                         </div>

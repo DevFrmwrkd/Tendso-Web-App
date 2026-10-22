@@ -1,33 +1,3 @@
-import type { V2Link } from "../links";
-
-/** Nav for the pages in this stream. */
-export const PA_NAV_LINKS: readonly V2Link[] = [
-    { label: "How it works", href: "/v2/business#how" },
-    { label: "For businesses", href: "/v2/business" },
-    { label: "Examples", href: "/v2/examples" },
-    { label: "For field agents", href: "/v2/field-agents" },
-    { label: "About", href: "/v2/about" },
-];
-
-/** Footer destinations for the pages in this stream. */
-export const PA_FOOTER_LINKS: readonly V2Link[] = [
-    { label: "Help", href: "/knowledge" },
-    { label: "Contact", href: "/contact" },
-    { label: "Field agents", href: "/v2/field-agents" },
-    { label: "About", href: "/v2/about" },
-    { label: "Privacy", href: "/v2/privacy" },
-    { label: "Terms", href: "/v2/terms" },
-];
-
-/**
- * Store listings come from env when the apps are listed. Missing URLs render
- * a coming-soon state (add the real URLs in the deploy environment).
- */
-export const APP_LINKS = {
-    appStore: process.env.NEXT_PUBLIC_APP_STORE_URL,
-    googlePlay: process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL,
-};
-
 export interface ShowcaseSite {
     id: string;
     name: string;

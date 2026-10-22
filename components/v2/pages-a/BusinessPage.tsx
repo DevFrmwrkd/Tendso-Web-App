@@ -78,7 +78,7 @@ export function BusinessPage() {
                             <p>Talk about your shop, add photos, pick a design. You see it live, then you decide.</p>
                             <div className="bh-cta">
                                 <Button href="/v2/business#download">Download the app</Button>
-                                <Button variant="ghost" href="/contact">
+                                <Button variant="ghost" href="/v2#hire">
                                     Hire an agent
                                 </Button>
                             </div>
@@ -390,7 +390,7 @@ export function BusinessPage() {
                         </h2>
                         <div className="band-cta">
                             <Stores />
-                            <Button variant="ghost" href="/contact">
+                            <Button variant="ghost" href="/v2#hire">
                                 Or hire an agent
                             </Button>
                         </div>

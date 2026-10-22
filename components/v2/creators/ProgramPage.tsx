@@ -476,14 +476,7 @@ export function ProgramPage() {
                 </section>
             </main>
 
-            <Footer
-                links={[
-                    { label: "Help", href: "/v2/help" },
-                    { label: "Field agents", href: "/v2/field-agents" },
-                    { label: "Privacy", href: "/v2/privacy" },
-                    { label: "Terms", href: "/v2/terms" },
-                ]}
-            />
+            <Footer />
         </CreatorsRoot>
     );
 }

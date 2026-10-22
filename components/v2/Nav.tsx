@@ -18,7 +18,7 @@ export function Nav({
     links = V2_NAV_LINKS,
     secondaryAction,
     primaryAction,
-    homeHref = "/",
+    homeHref = "/v2",
 }: {
     links?: readonly V2Link[];
     /** Outline button, hidden under 900px. */

@@ -3,20 +3,10 @@ import type { ReactNode } from "react";
 
 import { Nav } from "../Nav";
 
-/** The site links the mock's top nav carries. "For creators" is this section. */
-export const CREATOR_NAV_LINKS = [
-    { label: "How it works", href: "/v2#how" },
-    { label: "For businesses", href: "/v2/business" },
-    { label: "For field agents", href: "/v2/field-agents" },
-    { label: "For creators", href: "/v2/creators" },
-    { label: "About", href: "/v2/about" },
-] as const;
-
 /** Top nav of /v2/creators: the shared v2 nav with "Creator log in" and "Apply now". */
 export function ProgramNav() {
     return (
         <Nav
-            links={CREATOR_NAV_LINKS}
             secondaryAction={
                 <Link className="btn btn--line btn--sm" href="/v2/creators/portal">
                     Creator log in

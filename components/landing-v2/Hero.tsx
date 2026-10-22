@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button, PhoneFrame } from "@/components/v2";
 
-import { A, HERO_SITES, STORE_AVAILABILITY, siteShot } from "./content";
+import { A, HERO_SITES, siteShot } from "./content";
+import { StoreStatus } from "./StoreStatus";
 import { clamp, ease, lerp, onFrame, prog, useReducedMotion } from "./motion";
 import { InterviewCamScreen } from "./screens";
 
@@ -272,7 +273,7 @@ export function Hero() {
                     <Button href="#hire" size="lg">
                         Request a field agent
                     </Button>
-                    <span className="hero-stores">{STORE_AVAILABILITY}</span>
+                    <StoreStatus className="hero-stores" />
                 </div>
             </div>
         </section>

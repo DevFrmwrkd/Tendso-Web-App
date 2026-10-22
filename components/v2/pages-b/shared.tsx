@@ -4,28 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { Footer, Nav, PhoneFrame, PhoneStatusBar, type PhoneSize, type V2Link } from "@/components/v2";
+import { Footer, Nav, PhoneFrame, PhoneStatusBar, type PhoneSize } from "@/components/v2";
 
 /*
  * Pieces shared by the /v2 help, start, pay, giveaway and otr pages.
  * Everything here lives in components/v2/pages-b so nothing in components/v2
  * itself is touched.
  */
-
-/** Nav and footer links for the v2 pages: Help and Contact point at the v2 Help page. */
-export const PB_NAV_LINKS: readonly V2Link[] = [
-    { label: "Field agents", href: "/for-field-agents" },
-    { label: "Help", href: "/v2/help" },
-    { label: "Contact", href: "/v2/help#contact" },
-];
-
-export const PB_FOOTER_LINKS: readonly V2Link[] = [
-    { label: "Help", href: "/v2/help" },
-    { label: "Contact", href: "/v2/help#contact" },
-    { label: "Field agents", href: "/for-field-agents" },
-    { label: "Privacy", href: "/privacy-policy" },
-    { label: "Terms", href: "/terms-of-service" },
-];
 
 /** Standard page frame: nav, main, footer. */
 export function PbPage({
@@ -39,11 +24,11 @@ export function PbPage({
 }) {
     return (
         <>
-            <Nav links={PB_NAV_LINKS} homeHref="/" secondaryAction={nav?.secondary} primaryAction={nav?.primary} />
+            <Nav secondaryAction={nav?.secondary} primaryAction={nav?.primary} />
             <main className="pb-pg" id="top">
                 {children}
             </main>
-            {footer && <Footer links={PB_FOOTER_LINKS} />}
+            {footer && <Footer />}
         </>
     );
 }
@@ -51,7 +36,7 @@ export function PbPage({
 /** The wordmark link used by the funnel bars of /v2/start and /v2/pay. */
 export function PbBrand() {
     return (
-        <Link className="v2-brand" href="/" aria-label="Tendso home">
+        <Link className="v2-brand" href="/v2" aria-label="Tendso home">
             <Image src="/v2/brand/mark-ink-256.png" alt="" width={26} height={26} priority />
             tendso
         </Link>

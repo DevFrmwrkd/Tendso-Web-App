@@ -44,7 +44,7 @@ function MySite() {
         return (
             <Centered>
                 <p className="mb-4 max-w-[340px] text-center">We could not find a website for this email.</p>
-                <Button href="/contact">Ask for help</Button>
+                <Button href="/v2/help#contact">Ask for help</Button>
             </Centered>
         );
     }
