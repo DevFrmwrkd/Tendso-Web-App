@@ -168,7 +168,7 @@ function Found({ card }: { card: CreatorCard }) {
                                     {saves ? <s>{peso(card.listPrice)}</s> : null}
                                     <b>{peso(card.price)}</b>
                                 </span>
-                                <span className="k">{name}&apos;s code is already in</span>
+                                <span className="k">Enter {name}&apos;s code</span>
                             </div>
                         </figure>
                         <div className="as-step-t">
@@ -196,7 +196,7 @@ function Found({ card }: { card: CreatorCard }) {
 
             <section className="as-sec" id="get" aria-labelledby="as-end-h">
                 <div className="as-end">
-                    <h2 id="as-end-h">Get the app. {name}&apos;s code is waiting.</h2>
+                    <h2 id="as-end-h">Get the app. Enter {name}&apos;s code.</h2>
                     <div className="as-end-r">
                         <GetTheApp card={card} />
                     </div>

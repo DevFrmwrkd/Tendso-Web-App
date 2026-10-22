@@ -7,6 +7,8 @@ import {
     cleanHandle,
     codeFromHandle,
     exampleMonth,
+    earnLinkFor,
+    shopLinkFor,
     firstName,
     fmtDate,
     fmtDay,
@@ -68,6 +70,13 @@ describe("names and handles", () => {
     });
 });
 
+describe("creator share links", () => {
+    it("uses the v2 public routes for shops and agents", () => {
+        expect(shopLinkFor("mika")).toBe("tendso.com/v2/a/mika");
+        expect(earnLinkFor("mika")).toBe("tendso.com/v2/a/mika/earn");
+    });
+});
+
 describe("sample portal", () => {
     const p = SAMPLE_PORTAL;
     it("adds up to the numbers on the program page", () => {
@@ -104,8 +113,7 @@ describe("store links", () => {
         expect(safeStoreUrl(null, "x")).toBe("x");
         expect(safeStoreUrl("javascript:alert(1)", "x")).toBe("x");
     });
-    it("has defaults for both stores", () => {
-        expect(DEFAULT_STORE_LINKS.googlePlay).toMatch(/^https:\/\/play\.google\.com\//);
-        expect(DEFAULT_STORE_LINKS.appStore).toMatch(/^https:\/\/apps\.apple\.com\//);
+    it("leaves unconfirmed listings empty", () => {
+        expect(DEFAULT_STORE_LINKS).toEqual({ appStore: "", googlePlay: "" });
     });
 });

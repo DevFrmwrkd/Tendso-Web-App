@@ -361,7 +361,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                                     <tr>
                                         <th>Shop</th>
                                         <th>Date</th>
-                                        <th className="num">Paid</th>
+                                        <th className="num">Price</th>
                                         <th className="num">You keep</th>
                                         <th>Status</th>
                                     </tr>
@@ -381,7 +381,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                                     </div>
                                     <div className="r">
                                         {peso(s.kept)}
-                                        <small>Paid {peso(s.paid)}</small>
+                                        <small>Price {peso(s.paid)}</small>
                                     </div>
                                 </div>
                             ))}

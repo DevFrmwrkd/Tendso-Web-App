@@ -202,7 +202,7 @@ function Found({ card }: { card: CreatorCard }) {
                             </li>
                             <li>
                                 <span>2</span>
-                                {name}&apos;s code is already in
+                                Copy and enter {name}&apos;s code
                             </li>
                             <li>
                                 <span>3</span>Train, about 20 minutes

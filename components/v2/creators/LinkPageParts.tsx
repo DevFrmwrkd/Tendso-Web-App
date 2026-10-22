@@ -11,10 +11,13 @@ export function GetTheApp({ card, label = "Your code" }: { card: CreatorCard; la
         <div className="as-cta">
             <StoreRow />
             {card.code ? (
-                <div className="cp-yourcode">
-                    {label} <b>{card.code}</b>
-                    <CopyButton text={card.code}>Copy</CopyButton>
-                </div>
+                <>
+                    <div className="cp-yourcode">
+                        {label} <b>{card.code}</b>
+                        <CopyButton text={card.code}>Copy</CopyButton>
+                    </div>
+                    <p>Copy this code and enter it in the app when asked.</p>
+                </>
             ) : null}
         </div>
     );

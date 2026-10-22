@@ -7,16 +7,14 @@
  * settings first and falls back to the constants below, so the day a real link is
  * saved the buttons use it without a deploy.
  *
- * INTEGRATE: when the iOS listing exists, put its URL in APP_STORE_URL (or save it
- * in the admin panel). Until then the App Store button points at the store's own
- * search for "Tendso", which lands on the right app once it is listed.
+ * Until real listings are configured, the buttons show a coming-soon message.
  */
 
 /** The Android package id from apps/mobile/app.json. */
 export const ANDROID_PACKAGE = "com.negosyodigital.app";
 
-export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
-export const APP_STORE_URL = "https://apps.apple.com/ph/search?term=Tendso";
+export const PLAY_STORE_URL = "";
+export const APP_STORE_URL = "";
 
 /** The Convex settings keys the admin panel writes. */
 export const PLAY_STORE_SETTING = "play_store_url";

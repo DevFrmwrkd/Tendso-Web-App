@@ -9,20 +9,24 @@ export function StoreRow() {
     const links = useStoreLinks();
     return (
         <div className="cp-store-row">
-            <a className="store" href={links.appStore} target="_blank" rel="noopener noreferrer">
-                <AppleIcon />
-                <span>
-                    <small>Download on the</small>
-                    <b>App Store</b>
-                </span>
-            </a>
-            <a className="store" href={links.googlePlay} target="_blank" rel="noopener noreferrer">
-                <PlayIcon />
-                <span>
-                    <small>Get it on</small>
-                    <b>Google Play</b>
-                </span>
-            </a>
+            {links.appStore ? (
+                <a className="store" href={links.appStore} target="_blank" rel="noopener noreferrer">
+                    <AppleIcon />
+                    <span>
+                        <small>Download on the</small>
+                        <b>App Store</b>
+                    </span>
+                </a>
+            ) : <p>Coming soon on the App Store</p>}
+            {links.googlePlay ? (
+                <a className="store" href={links.googlePlay} target="_blank" rel="noopener noreferrer">
+                    <PlayIcon />
+                    <span>
+                        <small>Get it on</small>
+                        <b>Google Play</b>
+                    </span>
+                </a>
+            ) : <p>Coming soon on Google Play</p>}
         </div>
     );
 }

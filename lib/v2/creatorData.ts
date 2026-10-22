@@ -13,7 +13,7 @@
  * that branch merges and `npx convex dev` regenerates the api, each `INTEGRATE:` line
  * below can become `api.<module>.<fn>`; nothing else changes.
  *
- * SAMPLE MODE. With NEXT_PUBLIC_V2_CREATORS_SAMPLE=1 no Convex or Clerk call is made
+ * SAMPLE MODE. In development, with NEXT_PUBLIC_V2_CREATORS_SAMPLE=1 no Convex or Clerk call is made
  * for creator data: the portal is Mika Santos's sample portal, /a/mika resolves, every
  * other handle is "not found". That is for developing and screenshotting these pages
  * before the backend is deployed. It is off by default and never on in production.
@@ -34,7 +34,7 @@ import type { ApplyArgs, Availability, CreatorCard, MyApplication, PortalPicture
 export type { ApplyArgs, Availability, CreatorCard, MyApplication, PortalPictures, PortalSummary } from "./creatorTypes";
 
 /** True while developing without the backend. See the header comment. */
-export const CREATORS_SAMPLE = process.env.NEXT_PUBLIC_V2_CREATORS_SAMPLE === "1";
+export const CREATORS_SAMPLE = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_V2_CREATORS_SAMPLE === "1";
 
 // ---- function references (the contract's names) -------------------------------------------
 const fn = {
