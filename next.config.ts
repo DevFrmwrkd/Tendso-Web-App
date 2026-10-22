@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+// Files the Astro build needs at runtime, for every route that runs it.
+const ASTRO_BUILD_FILES = [
+  // Astro template: source, config, and its own self-contained node_modules
+  // (installed by "cd astro-site-template && npm install" during build step)
+  './astro-site-template/src/**/*',
+  './astro-site-template/tsconfig.json',
+  './astro-site-template/package.json',
+  './astro-site-template/node_modules/**/*',
+  // Worker script (executed via execSync, invisible to nft)
+  './astro-site-template/build-worker.mjs',
+];
+
 const nextConfig: NextConfig = {
   staticPageGenerationTimeout: 120,
   /**
@@ -32,16 +44,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
   },
   outputFileTracingIncludes: {
-    '/api/generate-website': [
-      // Astro template: source, config, and its own self-contained node_modules
-      // (installed by "cd astro-site-template && npm install" during build step)
-      './astro-site-template/src/**/*',
-      './astro-site-template/tsconfig.json',
-      './astro-site-template/package.json',
-      './astro-site-template/node_modules/**/*',
-      // Worker script (executed via execSync, invisible to nft)
-      './astro-site-template/build-worker.mjs',
-    ],
+    '/api/generate-website': ASTRO_BUILD_FILES,
+    // The AI pipeline runs the same Astro build through the generate-website handler.
+    '/api/internal/ai-pipeline-build': ASTRO_BUILD_FILES,
   },
   images: {
     remotePatterns: [

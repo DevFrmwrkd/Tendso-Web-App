@@ -107,8 +107,8 @@ function mediaUrlOf(raw: string | null | undefined, r2Prefix: string | undefined
     return null;
 }
 
-/** Download one recording, split it if Groq needs that, and return its transcript. */
-async function transcribeFrom(mediaUrl: string, groqKey: string): Promise<string> {
+/** Download one recording, split it if Groq needs that, and return its transcript. Also used by convex/aiPipeline/steps.ts for owner-app answer clips. */
+export async function transcribeFrom(mediaUrl: string, groqKey: string): Promise<string> {
     console.log(`[transcribeMedia] Fetching ${mediaUrl}`);
     const mediaRes = await fetch(mediaUrl);
     if (!mediaRes.ok) {
