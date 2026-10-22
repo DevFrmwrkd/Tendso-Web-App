@@ -39,8 +39,8 @@ export default function Me() {
           title="Help"
           icon="help-circle-outline"
           divider
-          // INTEGRATE: switch to the in-app Tendso AI help once it is shared with owners (today: the web knowledge base).
-          onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/knowledge`, { controlsColor: colors.ink }).catch(() => {})}
+          // The v2 Help page: answers plus Ask Tendso.
+          onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/v2/help`, { controlsColor: colors.ink }).catch(() => {})}
         />
         <ListRow title="Inbox" icon="mail-outline" divider onPress={() => router.push('/(owner)/me/inbox' as never)} />
         <ListRow title="Sign out" icon="log-out-outline" onPress={out} />

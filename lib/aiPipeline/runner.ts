@@ -13,7 +13,7 @@ import { buildCopyPrompt, COPY_SYSTEM, validateCopy } from './copy';
 import { buildTemplateContent, templateCoverage } from './fieldMapping';
 import { assembleInterviewText, clipsToTranscribe, formText } from './input';
 import { placementKeys, planPolish, type PolishPlanItem } from './photos';
-import { basicImageChecks, decideQc, parseVisionVerdict, VISION_QC_PROMPT } from './qc';
+import { basicImageChecks, decideQc, parseVisionVerdict, VISION_QC_PROMPT, type VisionVerdict } from './qc';
 import { maxPolishedPhotos, polishingOffReason } from './config';
 import { PipelineError, STEPS, nextStep, planAfterFailure, planWait } from './stateMachine';
 
@@ -136,7 +136,7 @@ async function polishOne(item: PolishPlanItem, deps: PipelineDeps, usage: Partia
         const job = await deps.generateImage({ prompt: item.prompt, imageUrls: item.referenceUrls });
         const [result, original] = await Promise.all([deps.fetchBytes(job.url), deps.fetchBytes(item.shot.url)]);
         const basic = basicImageChecks(result.bytes, original.bytes);
-        let verdict = null;
+        let verdict: VisionVerdict | null = null;
         if (basic.ok) {
             const vision = await deps.visionCheck({ prompt: VISION_QC_PROMPT, images: [original, result] });
             if (vision) {

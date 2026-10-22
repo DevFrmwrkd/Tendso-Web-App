@@ -2,10 +2,9 @@
  * ALL owner data access for the app, as typed hooks. Screens never call Convex
  * directly — swap the backend here and nothing else changes.
  *
- * Backend: feat/v2-backend-owners (contract docs/v2-api-owners.md). Those functions
- * are not in this branch's generated `api` yet, so they are referenced by name
- * with `makeFunctionReference` and the hand-written types in ./ownerTypes.
- * // INTEGRATE: once that branch is merged, replace each `ref.*` with `api.*`.
+ * Backend: contract docs/v2-api-owners.md, called through the generated `api`.
+ * Screens use the plain types in ./ownerTypes (the backend's return shapes are
+ * checked against them here).
  *
  * Sample mode: EXPO_PUBLIC_OWNER_SAMPLE_DATA=1 runs the whole owner path on
  * typed sample data (./ownerSample) — for demos, screenshots and before the
@@ -13,7 +12,6 @@
  */
 import { useCallback, useSyncExternalStore } from 'react';
 import { useAction, useMutation, useQuery } from 'convex/react';
-import { makeFunctionReference } from 'convex/server';
 import { api } from '@tendso/convex-client';
 import { SITE_URL } from '../../services/links';
 import { sample } from './ownerSample';
@@ -46,26 +44,26 @@ export const WEB_ORIGIN = (process.env.EXPO_PUBLIC_WEB_ORIGIN || SITE_URL).repla
 type Sid = { submissionId: SubmissionId };
 
 // ------------------------------------------------------------------ references
-// INTEGRATE: owners.ensure / owners.me (convex/owners.ts)
-// INTEGRATE: ownerApp.* (convex/ownerApp.ts), ownerPayments.* (convex/ownerPayments.ts), xendit.createCheckout (convex/xendit.ts)
+// docs/v2-api-owners.md: owners.* (convex/owners.ts), ownerApp.* (convex/ownerApp.ts),
+// ownerPayments.* (convex/ownerPayments.ts), xendit.createCheckout (convex/xendit.ts).
 const ref = {
-  ensure: makeFunctionReference<'mutation', { name?: string; phone?: string }, EnsureResult>('owners:ensure'),
-  me: makeFunctionReference<'query', Record<string, never>, OwnerMe | null>('owners:me'),
-  createDraft: makeFunctionReference<'mutation', CreateDraftArgs, SubmissionId>('ownerApp:createDraft'),
-  updateDraft: makeFunctionReference<'mutation', UpdateDraftArgs, { ok: true }>('ownerApp:updateDraft'),
-  saveAnswer: makeFunctionReference<'mutation', SaveAnswerArgs, { answered: number }>('ownerApp:saveAnswer'),
-  saveShot: makeFunctionReference<'mutation', SaveShotArgs, { photos: number }>('ownerApp:saveShot'),
-  removeShot: makeFunctionReference<'mutation', Sid & { index: number; extra?: boolean }, { photos: number }>('ownerApp:removeShot'),
-  chooseDesign: makeFunctionReference<'mutation', Sid & { templateId: string; templateIds?: string[] }, { ok: true }>('ownerApp:chooseDesign'),
-  submit: makeFunctionReference<'mutation', Sid, { submissionId: SubmissionId; status: string }>('ownerApp:submit'),
-  approvePreview: makeFunctionReference<'mutation', Sid, { next: 'pay' | 'publish' }>('ownerApp:approvePreview'),
-  requestChange: makeFunctionReference<'mutation', Sid & { text: string }, string>('ownerApp:requestChange'),
-  getSubmission: makeFunctionReference<'query', Sid, OwnerSubmission>('ownerApp:getSubmission'),
-  getBuild: makeFunctionReference<'query', Sid, BuildState>('ownerApp:getBuild'),
-  getPreview: makeFunctionReference<'query', Sid, PreviewState>('ownerApp:getPreview'),
-  paymentState: makeFunctionReference<'query', Sid, PaymentState>('ownerPayments:getPaymentState'),
-  createPayToken: makeFunctionReference<'mutation', Sid & { kind: PayKind; amount?: number }, PayToken>('ownerPayments:createPayToken'),
-  createCheckout: makeFunctionReference<'action', { token: string; successRedirectUrl?: string; failureRedirectUrl?: string }, CheckoutResult>('xendit:createCheckout'),
+  ensure: api.owners.ensure,
+  me: api.owners.me,
+  createDraft: api.ownerApp.createDraft,
+  updateDraft: api.ownerApp.updateDraft,
+  saveAnswer: api.ownerApp.saveAnswer,
+  saveShot: api.ownerApp.saveShot,
+  removeShot: api.ownerApp.removeShot,
+  chooseDesign: api.ownerApp.chooseDesign,
+  submit: api.ownerApp.submit,
+  approvePreview: api.ownerApp.approvePreview,
+  requestChange: api.ownerApp.requestChange,
+  getSubmission: api.ownerApp.getSubmission,
+  getBuild: api.ownerApp.getBuild,
+  getPreview: api.ownerApp.getPreview,
+  paymentState: api.ownerPayments.getPaymentState,
+  createPayToken: api.ownerPayments.createPayToken,
+  createCheckout: api.xendit.createCheckout,
 };
 
 /** Re-render on sample store changes (sample mode only). */
@@ -186,12 +184,12 @@ export function wisePayUrl(token: string): string {
 // ------------------------------------------------------------------ agents
 
 /**
- * Field agents near the owner.
- * INTEGRATE: no backend query lists agents for owners yet (needs e.g. owners.agentsNear
- * returning approved creators by distance). Until then: the labelled sample below.
+ * Field agents near the owner. No backend lists agents to owners yet (it would need
+ * agent locations and consented photos), so a real owner sees none and books a visit,
+ * which the team assigns. Sample mode shows the labelled sample agents.
  */
 export function useAgentsNear(): NearbyAgent[] {
-  return sample.agents();
+  return OWNER_SAMPLE_DATA ? sample.agents() : [];
 }
 
 /**
@@ -216,9 +214,8 @@ export function useRequestVisit(): (req: VisitRequest) => Promise<unknown> {
 }
 
 /**
- * "Want forgebarbers.com?" — optional custom domain, set up by the team.
- * INTEGRATE: no owner-facing domain request exists yet (submissions.domainStatus is admin-side);
- * until then it lands in admin Leads like a visit request.
+ * "Want forgebarbers.com?" — optional custom domain, set up by the team. It lands in
+ * admin Leads like a visit request (domain setup itself stays admin-side).
  */
 export function useRequestDomain(): (args: { name: string; email?: string; phone?: string; shopName: string; domain: string }) => Promise<unknown> {
   const create = useMutation(api.leads.create);

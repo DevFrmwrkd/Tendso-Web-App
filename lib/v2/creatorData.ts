@@ -6,12 +6,8 @@
  * hooks from here and nothing else talks to Convex, so swapping a function name is
  * a one-file change.
  *
- * The backend is docs/v2-api-creators.md on branch feat/v2-backend-creators
- * (creatorProgram.*, attribution.*, creatorPortal.summary). Those functions are not in
- * convex/_generated/api on main yet, so they are called through typed function
- * references (makeFunctionReference) that match the contract's names and shapes. After
- * that branch merges and `npx convex dev` regenerates the api, each `INTEGRATE:` line
- * below can become `api.<module>.<fn>`; nothing else changes.
+ * The backend is docs/v2-api-creators.md (creatorProgram.*, attribution.*,
+ * creatorPortal.summary), called through the generated `api`.
  *
  * SAMPLE MODE. In development, with NEXT_PUBLIC_V2_CREATORS_SAMPLE=1 no Convex or Clerk call is made
  * for creator data: the portal is Mika Santos's sample portal, /a/mika resolves, every
@@ -21,7 +17,6 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useConvex, useConvexAuth, useMutation, useQuery } from "convex/react";
-import { makeFunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -36,24 +31,14 @@ export type { ApplyArgs, Availability, CreatorCard, MyApplication, PortalPicture
 /** True while developing without the backend. See the header comment. */
 export const CREATORS_SAMPLE = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_V2_CREATORS_SAMPLE === "1";
 
-// ---- function references (the contract's names) -------------------------------------------
+// ---- function references (docs/v2-api-creators.md) ---------------------------------------
 const fn = {
-    // INTEGRATE: api.creatorProgram.getCreatorByCode
-    getCreatorByCode: makeFunctionReference<"query", { code: string }, CreatorCard | null>("creatorProgram:getCreatorByCode"),
-    // INTEGRATE: api.creatorProgram.myApplication
-    myApplication: makeFunctionReference<"query", Record<string, never>, MyApplication>("creatorProgram:myApplication"),
-    // INTEGRATE: api.creatorProgram.checkAvailability
-    checkAvailability: makeFunctionReference<"query", { handle?: string; code?: string }, Availability>("creatorProgram:checkAvailability"),
-    // INTEGRATE: api.creatorProgram.apply
-    apply: makeFunctionReference<"mutation", ApplyArgs, string>("creatorProgram:apply"),
-    // INTEGRATE: api.attribution.recordClick
-    recordClick: makeFunctionReference<
-        "mutation",
-        { handle: string; kind: "shop" | "earn"; cookieId: string; userAgent?: string },
-        { recorded: boolean; creator: CreatorCard | null }
-    >("attribution:recordClick"),
-    // INTEGRATE: api.creatorPortal.summary
-    portalSummary: makeFunctionReference<"query", Record<string, never>, PortalSummary>("creatorPortal:summary"),
+    getCreatorByCode: api.creatorProgram.getCreatorByCode,
+    myApplication: api.creatorProgram.myApplication,
+    checkAvailability: api.creatorProgram.checkAvailability,
+    apply: api.creatorProgram.apply,
+    recordClick: api.attribution.recordClick,
+    portalSummary: api.creatorPortal.summary,
 };
 
 /** A sentence to show the person, from a Convex error or any other failure. */

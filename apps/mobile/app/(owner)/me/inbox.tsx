@@ -1,7 +1,7 @@
 /**
  * Inbox: what is happening with your sites, newest first.
- * INTEGRATE: built from owners.me today; a real owner message feed (build ready, change done,
- * payment received) needs a backend list (e.g. owners.inbox) and owner push tokens.
+ * Built from owners.me (each site's phase and open changes). Later: a message feed
+ * (build ready, change done, payment received) needs owners.inbox and owner push tokens.
  */
 import React from 'react';
 import { View } from 'react-native';

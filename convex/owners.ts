@@ -104,7 +104,7 @@ export const me = query({
         if (!owner) return null;
         const links = await ctx.db.query('websiteOwnerships')
             .withIndex('by_owner', (q) => q.eq('businessOwnerId', owner._id)).collect();
-        const sites = [];
+        const sites: NonNullable<Awaited<ReturnType<typeof siteSummary>>>[] = [];
         for (const link of links) {
             const summary = await siteSummary(ctx, link.submissionId);
             if (summary) sites.push(summary);

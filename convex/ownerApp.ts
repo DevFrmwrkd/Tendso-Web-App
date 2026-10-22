@@ -369,7 +369,7 @@ async function consumeSubmitThrottle(ctx: MutationCtx, ownerId: Id<'businessOwne
         { key: `owner_app:${ownerId}`, limit: PER_OWNER_DAILY_SUBMITS },
     ];
     const now = Date.now();
-    const rows = [];
+    const rows: { row: Doc<'ownerIntakeThrottle'> | null; expired: boolean; key: string }[] = [];
     for (const scope of scopes) {
         const row = await ctx.db.query('ownerIntakeThrottle').withIndex('by_key', (q) => q.eq('key', scope.key)).first();
         const expired = !row || now - row.windowStart >= THROTTLE_WINDOW_MS;
@@ -468,7 +468,8 @@ export const approvePreview = mutation({
         if (isPaidInFull(submission)) {
             await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId: args.submissionId });
         }
-        return { next: isPaidInFull(submission) ? 'publish' : 'pay' };
+        const next: 'publish' | 'pay' = isPaidInFull(submission) ? 'publish' : 'pay';
+        return { next };
     },
 });
 
@@ -517,7 +518,12 @@ export const getSubmission = query({
             barangay: s.barangay ?? null,
             coordinates: s.coordinates ?? null,
             shotListKey: s.shotListKey ?? null,
-            interview: s.ownerInterview ?? [],
+            // lang / mediaType are stored as strings; saveAnswer only accepts these values.
+            interview: (s.ownerInterview ?? []).map((a) => ({
+                ...a,
+                lang: (a.lang === 'tl' ? 'tl' : 'en') as 'en' | 'tl',
+                mediaType: (a.mediaType === 'audio' || a.mediaType === 'video' ? a.mediaType : undefined) as 'audio' | 'video' | undefined,
+            })),
             shots: s.ownerShots ?? [],
             templateId: s.templateId ?? null,
             templateIds: s.templateIds ?? [],
@@ -542,7 +548,7 @@ export const getBuild = query({
             return {
                 key,
                 label: BUILD_STEP_LABELS[key],
-                status: st?.status ?? 'pending',
+                status: (st?.status ?? 'pending') as 'pending' | 'running' | 'done' | 'failed',
                 startedAt: st?.startedAt ?? null,
                 finishedAt: st?.finishedAt ?? null,
                 error: st?.error ?? null,

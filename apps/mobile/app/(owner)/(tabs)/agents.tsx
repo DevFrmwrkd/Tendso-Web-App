@@ -1,11 +1,12 @@
 /**
  * Agents near you + "Book a visit". A visit is a request the team assigns (a lead), not a
- * calendar booking (FEATURES-QUESTIONS Q19). The list is SAMPLE until the backend lists agents.
+ * calendar booking (FEATURES-QUESTIONS Q19). Agents are listed only in sample mode for now;
+ * a real owner books a visit and the team picks the agent.
  */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Chip, ScreenShell, Text } from '../../../components/v2';
+import { Button, Chip, EmptyState, ScreenShell, Text } from '../../../components/v2';
 import { Face, Tick } from '../../../components/v2/owner/OwnerUI';
 import { useAgentsNear } from '../../../lib/v2/ownerData';
 import { colors, shadow, space } from '../../../theme/v2';
@@ -26,7 +27,11 @@ export default function Agents() {
         />
       }
     >
-      <Chip label="Sample" tone="muted" style={{ marginBottom: space.md }} />
+      {agents.length === 0 ? (
+        <EmptyState icon="people-outline" title="We pick an agent near you" body="Book a visit. An agent comes to your shop." />
+      ) : (
+        <Chip label="Sample" tone="muted" style={{ marginBottom: space.md }} />
+      )}
       <View style={{ gap: space.md }} accessibilityRole="radiogroup">
         {agents.map((a) => {
           const on = a.id === pick;

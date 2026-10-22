@@ -1,8 +1,11 @@
 /**
  * Types of the owner API (contract: docs/v2-api-owners.md on feat/v2-backend-owners,
  * convex/owners.ts, convex/ownerApp.ts, convex/ownerPayments.ts, convex/xendit.ts).
- * Hand-written so the app compiles before that branch is merged; keep in step with it.
+ * Plain types for the screens; lib/v2/ownerData.ts checks the backend's real
+ * return shapes against them, so a drift fails the typecheck.
  */
+
+import type { Id } from '@tendso/convex-client';
 
 export type OwnerPhase =
   | 'draft'
@@ -16,8 +19,8 @@ export type OwnerPhase =
   | 'in_review'
   | 'rejected';
 
-/** Convex ids arrive as strings on the client. */
-export type SubmissionId = string & { __table?: 'submissions' };
+/** A submission id (a string on the wire). */
+export type SubmissionId = Id<'submissions'>;
 
 export interface SiteSummary {
   submissionId: SubmissionId;

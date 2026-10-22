@@ -3,7 +3,7 @@
  * swipe, tap → the full real site scrolls, "Use this design". No colour or font knobs here.
  *
  * Cards are the live template previews on the web origin (public/template-previews/*.html).
- * INTEGRATE: when the backend can render a template with this shop's own words and photos
+ * Later: when the backend can render a template with this shop's own words and photos
  * (e.g. ownerApp.designPreview), point `previewUri` at that instead.
  */
 import React, { useMemo, useRef, useState } from 'react';
