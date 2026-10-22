@@ -58,7 +58,7 @@ export function isOwnerApp(s: Pick<Doc<'submissions'>, 'contentSource'> | null |
  *                       published by the admin before payment, stays live once
  *                       paid, and is taken down by the existing unpaid cron.
  *  - 'pay_then_publish' owner self-serve in the app: private preview, owner
- *                       says "Looks good", pays (down payment or full), then
+ *                       says "Looks good", pays in full, then
  *                       the site is published automatically.
  */
 export type PublishPolicy = 'publish_first' | 'pay_then_publish';
@@ -69,15 +69,6 @@ export function publishPolicyFor(s: Pick<Doc<'submissions'>, 'contentSource'>): 
 /** A down payment is in, the balance is not. Fields are the truth, not `status`. */
 export function hasOutstandingBalance(s: Pick<Doc<'submissions'>, 'depositPaidAt' | 'paidInFullAt'>): boolean {
     return !!s.depositPaidAt && !s.paidInFullAt;
-}
-
-/**
- * Has the owner paid anything that unlocks publishing an owner-app site?
- * A down payment counts (same rule as a field-agent sale, where the agent's
- * cut is paid on the down payment and Tendso collects the rest).
- */
-export function hasPaidToPublish(s: Pick<Doc<'submissions'>, 'depositPaidAt' | 'paidInFullAt' | 'status'>): boolean {
-    return !!s.depositPaidAt || !!s.paidInFullAt || s.status === 'paid' || s.status === 'completed';
 }
 
 /** Paid in full: the whole owner total is in. Legacy rows only carry the status. */
@@ -114,7 +105,7 @@ export function computeOwnerPhase(
     if (!isOwnerApp(s)) return 'in_review';
     if (openChangeRequests > 0) return 'changes_requested';
     if (!s.previewReadyAt) return 'building';
-    if (hasPaidToPublish(s)) return 'publishing';
+    if (s.ownerApprovedAt && isPaidInFull(s)) return 'publishing';
     if (!s.ownerApprovedAt) return 'ready_to_check';
     return 'awaiting_payment';
 }

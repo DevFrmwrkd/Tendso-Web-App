@@ -1,6 +1,7 @@
 import { ConvexError } from 'convex/values';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import type { Doc, Id } from '../_generated/dataModel';
+import { isOwnerApp, isPaidInFull } from './ownerApp';
 
 /**
  * Owner-app identity helpers. An owner is a `businessOwners` row keyed by the
@@ -88,4 +89,27 @@ export async function requirePayerAccess(ctx: DbCtx, submission: Doc<'submission
     if (active && account.role === 'admin') return `admin:${identity.subject}`;
     if (active && account._id === submission.creatorId) return `creator:${account._id}`;
     throw new ConvexError('We could not find that website.');
+}
+
+/** Every publication path must recheck payment and the owner's current review. */
+export async function ownerAppPublishBlockReason(ctx: DbCtx, submission: Doc<'submissions'>): Promise<string | null> {
+    if (!isOwnerApp(submission)) return null;
+    if (!isPaidInFull(submission)) return 'unpaid';
+    if (!submission.ownerApprovedAt) return 'not approved';
+    const open = await ctx.db.query('changeRequests')
+        .withIndex('by_submission', (q) => q.eq('submissionId', submission._id))
+        .filter((q) => q.eq(q.field('status'), 'open')).first();
+    return open ? 'open change requests' : null;
+}
+
+/** A new review invalidates approval and all checkouts for the previous preview. */
+export async function resetOwnerApproval(ctx: MutationCtx, submissionId: Id<'submissions'>) {
+    await ctx.db.patch(submissionId, { ownerApprovedAt: undefined });
+    const tokens = await ctx.db.query('paymentTokens')
+        .withIndex('by_submissionId', (q) => q.eq('submissionId', submissionId)).collect();
+    for (const token of tokens) {
+        if (token.status === 'pending') {
+            await ctx.db.patch(token._id, { status: 'cancelled', adminNotes: 'Owner requested changes; approval required again.' });
+        }
+    }
 }

@@ -30,14 +30,14 @@ export function ChangeRequests({ submissionId }: { submissionId: Id<"submissions
         <Card pad className="mb-4 flex min-w-0 flex-col gap-3">
             <div className="flex flex-col gap-1">
                 <h2 className="t-h2">Change requests</h2>
-                <p className="t-help">{open > 0 ? `${open} open. The owner asked for these on the preview.` : "All handled."}</p>
+                <p className="text-base leading-6">{open > 0 ? `${open} open. The owner asked for these on the preview.` : "All handled."}</p>
             </div>
             {rows.map((r) => (
                 <div key={r._id} className="flex min-w-0 flex-col gap-2 border-t border-r1-line pt-3">
-                    <p className="t-body whitespace-pre-wrap break-words">{r.text}</p>
+                    <p className="text-base leading-6 whitespace-pre-wrap break-words">{r.text}</p>
                     <div className="flex flex-wrap items-center gap-3">
                         <Status tone={r.status === "open" ? "attn" : "done"} word={r.status === "open" ? "Open" : r.status === "done" ? "Done" : "Dismissed"} />
-                        <span className="t-meta">{formatDateTime(r.createdAt)}</span>
+                        <span className="text-base leading-6">{formatDateTime(r.createdAt)}</span>
                         {r.status === "open" ? (
                             <>
                                 <Button size="sm" onClick={() => mark(r._id, "done")}>Mark done</Button>

@@ -48,9 +48,8 @@ export const ensure = mutation({
         if (!identity) throw new ConvexError('Please sign in again.');
         const email = normalizeOwnerEmail(identity.email as string | undefined);
         if (!email || !EMAIL_PATTERN.test(email)) throw new ConvexError('Your account needs an email address.');
-        // Email-code sign-in verifies the address. Refuse an explicitly
-        // unverified one: it is the key to every site sold to that email.
-        if (identity.emailVerified === false) throw new ConvexError('Please confirm your email first.');
+        // Require positive verification: email links every site sold to it.
+        if (identity.emailVerified !== true) throw new ConvexError('Please confirm your email first.');
         const account = await ctx.db.query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
         if (account?.role === 'affiliate' && !account.isDeleted) {

@@ -3,7 +3,15 @@ import { mutation, query, internalQuery, action, internalAction } from './_gener
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
-import { hasPaidToPublish, publishPolicyFor } from './lib/ownerApp';
+import { isOwnerApp } from './lib/ownerApp';
+import { getOwner, ownsSubmission, ownerAppPublishBlockReason } from './lib/ownerAuth';
+import type { MutationCtx } from './_generated/server';
+
+async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissions'>) {
+    const submission = await ctx.db.get(submissionId);
+    const blocked = submission && await ownerAppPublishBlockReason(ctx, submission);
+    if (blocked) throw new Error(`This owner made the site in the app: publish after they pay in full and approve with no open changes (${blocked}).`);
+}
 
 // Get generated website by submission ID.
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
@@ -17,6 +25,11 @@ export const getBySubmissionId = query({
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
             .first();
         if (!doc) return null;
+        const submission = await ctx.db.get(args.submissionId);
+        if (isOwnerApp(submission) && (doc.status !== 'published' || doc.offlineAt)) {
+            const owner = await getOwner(ctx);
+            if (!owner || !(await ownsSubmission(ctx, owner._id, args.submissionId))) await requireAdmin(ctx);
+        }
         const htmlUrl = doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null;
         return { ...doc, htmlUrl };
     },
@@ -74,6 +87,7 @@ export const upsert = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        if (args.status === 'published') await requirePublishReady(ctx, args.submissionId);
         // Check if website already exists for this submission
         const existing = await ctx.db
             .query('generatedWebsites')
@@ -125,6 +139,7 @@ export const updatePublishingInfo = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        if (args.status === 'published') await requirePublishReady(ctx, args.submissionId);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -353,12 +368,7 @@ export const publish = mutation({
             throw new Error('Generated website not found');
         }
 
-        // Owner app v2: an owner's own site stays a private preview until they
-        // pay; ownerApp.publishIfReady publishes it then. See docs/v2-api-owners.md.
-        const submission = await ctx.db.get(args.submissionId);
-        if (submission && publishPolicyFor(submission) === 'pay_then_publish' && !hasPaidToPublish(submission)) {
-            throw new Error('This owner made the site in the app: it is published automatically after they pay.');
-        }
+        await requirePublishReady(ctx, args.submissionId);
 
         await ctx.db.patch(website._id, {
             status: 'published',

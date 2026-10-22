@@ -136,7 +136,7 @@ describe('owner accounts', () => {
         await expect(t.withIdentity({ subject: 'x', email: 'x@example.com', emailVerified: false })
             .mutation(api.owners.ensure, {})).rejects.toThrow('confirm your email');
         await t.run((ctx) => ctx.db.insert('creators', { clerkId: 'aff', email: 'aff@example.com', role: 'affiliate', status: 'active' }));
-        await expect(t.withIdentity({ subject: 'aff', email: 'aff@example.com' }).mutation(api.owners.ensure, {}))
+        await expect(t.withIdentity({ subject: 'aff', email: 'aff@example.com', emailVerified: true }).mutation(api.owners.ensure, {}))
             .rejects.toThrow('creator account');
         await expect(t.mutation(api.owners.ensure, {})).rejects.toThrow('sign in');
     });
@@ -185,7 +185,7 @@ describe('owner self-serve submission', () => {
         await expect(owner.mutation(api.ownerApp.createDraft, { businessType: 'Rocket Science', businessName: 'X' }))
             .rejects.toThrow('from the list');
 
-        const stranger = t.withIdentity({ subject: 'owner-2', email: 'other@example.com' });
+        const stranger = t.withIdentity({ subject: 'owner-2', email: 'other@example.com', emailVerified: true });
         await stranger.mutation(api.owners.ensure, {});
         await expect(stranger.query(api.ownerApp.getSubmission, { submissionId: id })).rejects.toThrow('could not find');
         await expect(stranger.mutation(api.ownerApp.saveAnswer, { submissionId: id, index: 0, lang: 'en', answerText: 'x' }))
@@ -399,11 +399,21 @@ describe('publish rules per source', () => {
         const dep = await owner.mutation(api.ownerPayments.createPayToken, { submissionId: id, kind: 'deposit', amount: 500 });
         await t.mutation(internal.ownerPayments.applyTokenPayment, { token: dep.token, provider: 'manual', triggeredBy: 'admin:admin' });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ status: 'deposit_paid', balanceDue: 4499 });
-        // A down payment publishes an owner-app site.
+        // A deposit leaves the preview private, including through admin paths.
+        expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: false, reason: 'unpaid' });
+        expect((await owner.query(api.ownerApp.getBuild, { submissionId: id })).phase).toBe('awaiting_payment');
+        await expect(admin.mutation(api.generatedWebsites.publish, { submissionId: id, publishedUrl: 'https://forge.sites.tendso.com' }))
+            .rejects.toThrow('pay in full');
+        await expect(admin.mutation(api.generatedWebsites.updatePublishingInfo, { submissionId: id, status: 'published' }))
+            .rejects.toThrow('pay in full');
+        await expect(admin.mutation(api.generatedWebsites.upsert, { submissionId: id, templateName: 'test', extractedContent: {}, status: 'published' }))
+            .rejects.toThrow('pay in full');
+        const balance = await owner.mutation(api.ownerPayments.createPayToken, { submissionId: id, kind: 'balance' });
+        await t.mutation(internal.ownerPayments.applyTokenPayment, { token: balance.token, provider: 'manual', triggeredBy: 'admin:admin' });
         expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: true });
         const site = await t.run((ctx) => ctx.db.query('generatedWebsites').first());
         expect(site).toMatchObject({ status: 'published', slug: 'forge-barbers' });
-        expect((await t.run((ctx) => ctx.db.get(id)))?.status).toBe('deposit_paid');
+        expect((await t.run((ctx) => ctx.db.get(id)))?.status).toBe('completed');
     });
 
     it('field-agent sale: payment never publishes or unpublishes, and the owner can still ask for changes', async () => {
@@ -439,5 +449,83 @@ describe('publish rules per source', () => {
         await owner.mutation(api.ownerApp.requestChange, { submissionId: id, text: 'Use the blue photo' });
         expect((await owner.query(api.ownerApp.getBuild, { submissionId: id })).phase).toBe('changes_requested');
         expect((await t.run((ctx) => ctx.db.get(id)))?.ownerApprovedAt).toBeUndefined();
+    });
+});
+
+
+describe('owner security regressions', () => {
+    it.each([undefined, false])('refuses email linking with emailVerified=%s without changing ownership', async (emailVerified) => {
+        const { t, owner, agentId } = await setup();
+        const { ownerId } = await owner.mutation(api.owners.ensure, {});
+        const id = await agentSale(t, agentId);
+        await t.mutation(internal.owners.inviteForSubmission, { submissionId: id });
+        const attacker = t.withIdentity({ subject: 'attacker', email: 'ben@example.com', ...(emailVerified === undefined ? {} : { emailVerified }) });
+        await expect(attacker.mutation(api.owners.ensure, {})).rejects.toThrow('confirm your email');
+        expect((await t.run((ctx) => ctx.db.get(ownerId)))?.clerkId).toBe('owner-1');
+        await expect(attacker.query(api.ownerApp.getSubmission, { submissionId: id })).rejects.toThrow();
+        expect((await owner.query(api.owners.me, {}))?.sites).toHaveLength(1);
+    });
+
+    it.each([false, true])('protects unpublished owner-app HTML (stored=%s) from anonymous and unrelated accounts', async (stored) => {
+        const { t, owner, admin, agent } = await setup();
+        const id = await ownerSubmission(t, owner);
+        await buildSite(t, id);
+        const website = (await t.run((ctx) => ctx.db.query('generatedWebsites').first()))!;
+        if (stored) {
+            const htmlStorageId = await t.run((ctx) => ctx.storage.store(new Blob(['<html>private</html>'], { type: 'text/html' })));
+            await t.run((ctx) => ctx.db.patch(website._id, { htmlContent: undefined, htmlStorageId }));
+        }
+        await t.run((ctx) => ctx.db.patch(website._id, { slug: 'private' }));
+        const stranger = t.withIdentity({ subject: 'stranger', email: 'stranger@example.com', emailVerified: true });
+        await stranger.mutation(api.owners.ensure, {});
+        for (const caller of [t, stranger, agent]) {
+            await expect(caller.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).rejects.toThrow();
+            await expect(caller.query(api.ownerApp.getPreview, { submissionId: id })).rejects.toThrow();
+        }
+        for (const caller of [owner, admin]) {
+            const result = await caller.query(api.generatedWebsites.getBySubmissionId, { submissionId: id });
+            expect(stored ? result?.htmlUrl : result?.htmlContent).toBeTruthy();
+        }
+        expect(await t.query(api.generatedWebsites.getPublishedBySlug, { slug: 'private' })).toBeNull();
+        await t.run((ctx) => ctx.db.patch(website._id, { status: 'published' }));
+        expect(await t.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).not.toBeNull();
+    });
+
+    it('cancels checkouts when changes reset approval, and requires a fresh review after resolution', async () => {
+        const { t, owner, admin } = await setup();
+        const id = await ownerSubmission(t, owner);
+        await buildSite(t, id);
+        await owner.mutation(api.ownerApp.approvePreview, { submissionId: id });
+        const pay = await owner.mutation(api.ownerPayments.createPayToken, { submissionId: id, kind: 'full' });
+        const changeId = await owner.mutation(api.ownerApp.requestChange, { submissionId: id, text: 'Use the blue photo' });
+        expect((await t.run((ctx) => ctx.db.query('paymentTokens').first()))?.status).toBe('cancelled');
+        process.env.XENDIT_SECRET_KEY = 'xnd_test_secret';
+        process.env.XENDIT_CALLBACK_TOKEN = 'cb-token';
+        await expect(owner.action(api.xendit.createCheckout, { token: pay.token })).rejects.toThrow('no longer open');
+        expect(await t.mutation(internal.ownerPayments.applyTokenPayment, { token: pay.token, provider: 'xendit', triggeredBy: 'xendit' }))
+            .toMatchObject({ result: 'rejected' });
+        await expect(owner.mutation(api.ownerApp.approvePreview, { submissionId: id })).rejects.toThrow('working on your changes');
+        // Payment via another route still cannot publish while approval is absent.
+        await t.run((ctx) => ctx.db.patch(id, { paidInFullAt: Date.now(), status: 'completed' }));
+        expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: false, reason: 'not approved' });
+        await expect(admin.mutation(api.generatedWebsites.publish, { submissionId: id, publishedUrl: 'https://forge.sites.tendso.com' }))
+            .rejects.toThrow('not approved');
+        // Even a stale approval field cannot override an open change request.
+        await t.run((ctx) => ctx.db.patch(id, { ownerApprovedAt: Date.now() }));
+        expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: false, reason: 'open change requests' });
+        await expect(admin.mutation(api.generatedWebsites.updatePublishingInfo, { submissionId: id, status: 'published' }))
+            .rejects.toThrow('open change requests');
+        await expect(admin.mutation(api.generatedWebsites.upsert, { submissionId: id, templateName: 'test', extractedContent: {}, status: 'published' }))
+            .rejects.toThrow('open change requests');
+        await t.run((ctx) => ctx.db.patch(id, { ownerApprovedAt: undefined }));
+        await admin.mutation(api.changeRequests.setStatus, { id: changeId, status: 'done' });
+        expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: false, reason: 'not approved' });
+        await owner.mutation(api.ownerApp.approvePreview, { submissionId: id });
+        // Reopening a resolved request invalidates approval again.
+        await admin.mutation(api.changeRequests.setStatus, { id: changeId, status: 'open' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.ownerApprovedAt).toBeUndefined();
+        await admin.mutation(api.changeRequests.setStatus, { id: changeId, status: 'done' });
+        await owner.mutation(api.ownerApp.approvePreview, { submissionId: id });
+        expect(await t.mutation(internal.ownerApp.publishIfReady, { submissionId: id })).toMatchObject({ published: true });
     });
 });

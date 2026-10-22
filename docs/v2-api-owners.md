@@ -56,7 +56,7 @@ values: `rejected`.
 | source | policy | what happens |
 |---|---|---|
 | field-agent sale, `/start`, legacy (anything not `owner_app`) | `publish_first` | Unchanged. The admin publishes, the owner pays, the site stays live. If they don't pay, the existing cron takes it down (3 days after the payment email, `pending_payment` only). A `deposit_paid` site is not taken down. |
-| `contentSource: 'owner_app'` | `pay_then_publish` | Private preview. The owner taps "Looks good", pays (a down payment counts), and then `ownerApp.publishIfReady` publishes automatically at `<slug>.sites.tendso.com`. `generatedWebsites.publish` (the admin button) refuses this source until it is paid. |
+| `contentSource: 'owner_app'` | `pay_then_publish` | Private preview. The owner taps "Looks good", pays in full, and then `ownerApp.publishIfReady` publishes automatically at `<slug>.sites.tendso.com`. `generatedWebsites.publish` (the admin button) refuses this source until it is paid in full, currently approved, and has no open change requests. |
 
 ---
 

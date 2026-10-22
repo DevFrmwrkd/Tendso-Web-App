@@ -7,7 +7,7 @@ import { WEBSITE_PRICE } from '../lib/pricing';
 import { BUSINESS_TYPES } from '../lib/prospectPrefill';
 import { resolveSiteSlug } from '../lib/siteSlug';
 import { needsCloudflareWorker, publishAddressFor } from '../lib/publish-target';
-import { requireOwner, requireOwnerOfSubmission, linkOwnerToSubmission } from './lib/ownerAuth';
+import { requireOwner, requireOwnerOfSubmission, linkOwnerToSubmission, ownerAppPublishBlockReason, resetOwnerApproval } from './lib/ownerAuth';
 import {
     BUILD_ESTIMATE_MINUTES,
     BUILD_STEPS,
@@ -19,7 +19,6 @@ import {
     OWNER_APP_QUESTIONS,
     OWNER_APP_SOURCE,
     computeOwnerPhase,
-    hasPaidToPublish,
     isOwnerApp,
     isPaidInFull,
     publishPolicyFor,
@@ -463,12 +462,13 @@ export const approvePreview = mutation({
         const { submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
         if (!isOwnerApp(submission)) reject('This website was made by a field agent.');
         if (!submission.previewReadyAt) reject('Your site is still being built.');
+        if (await openChangeCount(ctx, args.submissionId)) reject('We are still working on your changes.');
         if (!submission.ownerApprovedAt) await ctx.db.patch(args.submissionId, { ownerApprovedAt: Date.now() });
         // Paid already (e.g. approve after a change): publish now.
-        if (hasPaidToPublish(submission)) {
+        if (isPaidInFull(submission)) {
             await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId: args.submissionId });
         }
-        return { next: hasPaidToPublish(submission) ? 'publish' : 'pay' };
+        return { next: isPaidInFull(submission) ? 'publish' : 'pay' };
     },
 });
 
@@ -489,10 +489,8 @@ export const requestChange = mutation({
             requestedBy: `owner:${owner._id}`,
             createdAt: Date.now(),
         });
-        // Before paying, a change means the owner checks again afterwards.
-        if (isOwnerApp(submission) && submission.ownerApprovedAt && !hasPaidToPublish(submission)) {
-            await ctx.db.patch(args.submissionId, { ownerApprovedAt: undefined });
-        }
+        // A change means the owner checks again before publication.
+        if (isOwnerApp(submission)) await resetOwnerApproval(ctx, args.submissionId);
         return id;
     },
 });
@@ -615,7 +613,8 @@ export const publishIfReady = internalMutation({
         const s = await ctx.db.get(args.submissionId);
         if (!s) return { published: false, reason: 'not found' };
         if (publishPolicyFor(s) !== 'pay_then_publish') return { published: false, reason: 'publish_first source' };
-        if (!hasPaidToPublish(s)) return { published: false, reason: 'unpaid' };
+        const blocked = await ownerAppPublishBlockReason(ctx, s);
+        if (blocked) return { published: false, reason: blocked };
         const website = await ctx.db.query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId)).first();
         if (!website || (!website.htmlStorageId && !website.htmlContent)) return { published: false, reason: 'not built' };
