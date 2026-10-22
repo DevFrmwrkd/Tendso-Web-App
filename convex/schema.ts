@@ -1643,8 +1643,7 @@ export default defineSchema({
         lastSyncError: v.optional(v.string()),
     }).index('by_key', ['key']),
 
-    // ==================== AI SITE PIPELINE (v2, additive) =============
-
+    // ==================== AI SITE PIPELINE (v2, additive) ====================
     // One row per automatic build of a submission's site (brief §4C,
     // docs/v2-ai-pipeline.md). Holds each step's output so a retried step skips
     // finished work, plus the reports an admin needs when it fails. Only the
@@ -1676,7 +1675,7 @@ export default defineSchema({
     })
         .index('by_submission', ['submissionId', 'startedAt'])
         .index('by_status', ['status']),
-=======
+
     // ── v2 owner editing (convex/ownerSiteEdits.ts) ─────────────────────────
     // An owner's PRIVATE working copy of their site: the content + design they
     // are editing in /v2/my-site. It never touches the live site until the owner

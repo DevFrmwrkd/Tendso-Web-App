@@ -6,7 +6,6 @@ import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
 import { isOwnerApp } from './lib/ownerApp';
 import { getOwner, ownsSubmission, ownerAppPublishBlockReason } from './lib/ownerAuth';
-import type { MutationCtx } from './_generated/server';
 
 async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissions'>) {
     const submission = await ctx.db.get(submissionId);
