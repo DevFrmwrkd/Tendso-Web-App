@@ -6,7 +6,7 @@ import { DISCORD_INVITE_URL } from "@/lib/contact";
 import { Button, PhoneFrame } from "@/components/v2";
 
 import { EarnCalc, PaidCard, VisitStepper } from "./agents-client";
-import { APP_LINKS } from "./data";
+import { Stores } from "./Stores";
 import { FaqList, type FaqItem } from "./Faq";
 import { PageShell } from "./PageShell";
 
@@ -189,7 +189,7 @@ export function AgentsPage() {
                                 <div className="ag-link" aria-hidden="true">
                                     <span className="ag-link-url">
                                         <Lock size={14} aria-hidden="true" />
-                                        tendso.com/a/mika
+                                        tendso.com/v2/a/mika
                                     </span>
                                     <div className="ag-link-card">
                                         <Image src={`${A}/people/17-mika.jpg`} alt="" width={56} height={56} />
@@ -285,9 +285,7 @@ export function AgentsPage() {
                                     </li>
                                 </ol>
                                 <div className="ag-end-cta">
-                                    <Button variant="dark" size="lg" className="ag-btn-lg" href={APP_LINKS.appStore}>
-                                        Download the app
-                                    </Button>
+                                    <Stores />
                                     <Button variant="ghost" size="lg" className="ag-btn-lg ag-btn-onaccent" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
                                         Join the Discord
                                     </Button>

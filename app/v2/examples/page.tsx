@@ -6,6 +6,8 @@ import { ExamplesPage } from "@/components/v2/pages-a/ExamplesPage";
 export const metadata: Metadata = {
     title: "Tendso examples",
     description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up.",
+    openGraph: { title: "Tendso examples", description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up." },
+    twitter: { card: "summary_large_image", title: "Tendso examples", description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up." },
     robots: { index: false, follow: false },
 };
 

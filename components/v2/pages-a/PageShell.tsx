@@ -25,18 +25,18 @@ export function PageShell({
     children: ReactNode;
 }) {
     const secondary = nav?.secondary ?? (
-        <Button variant="ghost" size="sm" href="/v2#hire">
+        <Button variant="ghost" size="sm" href="/contact">
             Hire an agent
         </Button>
     );
     const primary = nav?.primary ?? (
-        <Button size="sm" href="#download">
+        <Button size="sm" href="/v2/business#download">
             Download the app
         </Button>
     );
     return (
         <V2Root className={`pa pa-${page}${className ? ` ${className}` : ""}`}>
-            <Nav homeHref="/v2" links={PA_NAV_LINKS} secondaryAction={secondary} primaryAction={primary} />
+            <Nav homeHref="/v2/business" links={PA_NAV_LINKS} secondaryAction={secondary} primaryAction={primary} />
             <main id="top">{children}</main>
             <Footer links={PA_FOOTER_LINKS} />
             <Reveals />

@@ -53,7 +53,7 @@ export function ExamplesPage({ featuredSites }: { featuredSites?: FeaturedSite[]
                         </h2>
                         <div className="band-cta">
                             <Stores />
-                            <Button variant="ghost" href="/v2#hire">
+                            <Button variant="ghost" href="/contact">
                                 Or hire an agent
                             </Button>
                         </div>

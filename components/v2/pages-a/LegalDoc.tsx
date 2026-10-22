@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
@@ -145,9 +146,9 @@ export function LegalDoc({ docs, initial, mode }: { docs: Record<DocKey, LegalDo
                         <div className="lg-ask">
                             <p>{D.ask}</p>
                             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-                            <a className="lg-help" href="/v2/help">
+                            <Link className="lg-help" href="/knowledge">
                                 Short answers in Help
-                            </a>
+                            </Link>
                         </div>
                     </aside>
                     <div className={`lg-body${swap ? " is-swap" : ""}`}>

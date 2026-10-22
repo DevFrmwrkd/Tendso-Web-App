@@ -77,8 +77,8 @@ export function BusinessPage() {
                         <div className="bh-side" data-reveal="hero" style={rev(2)}>
                             <p>Talk about your shop, add photos, pick a design. You see it live, then you decide.</p>
                             <div className="bh-cta">
-                                <Button href="#download">Download the app</Button>
-                                <Button variant="ghost" href="/v2#hire">
+                                <Button href="/v2/business#download">Download the app</Button>
+                                <Button variant="ghost" href="/contact">
                                     Hire an agent
                                 </Button>
                             </div>
@@ -114,7 +114,7 @@ export function BusinessPage() {
                 </section>
 
                 {/* 2. Two ways in */}
-                <section className="v2-wrap sec" aria-labelledby="ways-h">
+                <section className="v2-wrap sec" id="how" aria-labelledby="ways-h">
                     <SectionHead label="Two ways in" id="ways-h" title="Do it yourself, or have someone come by." />
                     <div className="ways">
                         <PaTile tone="quiet" className="way" data-reveal="">
@@ -390,7 +390,7 @@ export function BusinessPage() {
                         </h2>
                         <div className="band-cta">
                             <Stores />
-                            <Button variant="ghost" href="/v2#hire">
+                            <Button variant="ghost" href="/contact">
                                 Or hire an agent
                             </Button>
                         </div>

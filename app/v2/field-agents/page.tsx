@@ -5,6 +5,8 @@ import { AgentsPage } from "@/components/v2/pages-a/AgentsPage";
 export const metadata: Metadata = {
     title: "Tendso for field agents",
     description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half.",
+    openGraph: { title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
+    twitter: { card: "summary_large_image", title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
     robots: { index: false, follow: false },
 };
 
