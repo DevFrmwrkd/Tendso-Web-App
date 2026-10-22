@@ -8,20 +8,22 @@
  * same `payView` (pending, paid, expired, not found), live through Convex.
  *
  * The facts it states follow the brief:
- *  - the full price is the token's own amount;
- *  - "Start with ₱500. The rest later." is a display line only: no backend path takes a
- *    down payment yet, so nothing here pretends to;
- *  - Wise is how it is paid today (same email, account name and reference code);
- *  - GCash, Maya and Card sit behind NEXT_PUBLIC_XENDIT_ENABLED and read "Coming soon" until
- *    the Xendit checkout is connected;
+ *  - the amount is the token's own amount; its `kind` says what it is: the whole order
+ *    ('full' / legacy), a down payment ('deposit') or what is left after one ('balance');
+ *  - a down payment (from ₱500, docs/v2-api-owners.md §5) is offered for real to a signed-in
+ *    payer (the owner, their field agent or an admin) whose order allows it: it makes a
+ *    deposit pay link and opens it. Anyone else sees the line with "Ask us how";
+ *  - Wise works for every kind (same email, account name and the token's reference code);
+ *  - GCash, Maya and Card open Xendit (api.xendit.createCheckout, ./xendit.ts) behind
+ *    NEXT_PUBLIC_XENDIT_ENABLED, and read "Coming soon" until it is "true";
  *  - "Your site is live. Pay to keep it live." is said only for a field-agent sale (payRules.ts).
  *    For every other sale the page does not claim the site is up.
  */
 
-import { useQuery } from "convex/react";
+import { useConvex, useConvexAuth, useMutation, useQuery } from "convex/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 
 import {
     hostOf,
@@ -49,18 +51,18 @@ import { formatPHP } from "@/lib/pricing";
 
 import { isFieldAgentSale, pendingCopy } from "./payRules";
 import { CheckIcon, PbBrand, PlusIcon, copyWithToast, usePbToast } from "./shared";
-import { startXenditCheckout, type XenditMethod } from "./xendit";
+import { XENDIT_ENABLED, useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
 
 type Token = Doc<"paymentTokens">;
 type Submission = Doc<"submissions"> | null;
 
 const paymentConfig = getPaymentConfig();
 
-/** Down payment shown as an offer line only. Minimum ₱500; the agent keeps their whole cut upfront. */
+/** The smallest down payment (packages/shared/pricing.ts MIN_DOWN_PAYMENT). The agent keeps their whole cut upfront. */
 const DOWN_PAYMENT = 500;
 
-/** Xendit methods are on only when the flag says so. Until then the buttons read "Coming soon". */
-const XENDIT_ENABLED = process.env.NEXT_PUBLIC_XENDIT_ENABLED === "true";
+type TokenKind = "full" | "deposit" | "balance";
+const kindOf = (token: Token): TokenKind => (token.kind === "deposit" || token.kind === "balance" ? token.kind : "full");
 
 export function PayPage() {
     const params = useParams();
@@ -196,6 +198,10 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
     const { domain, addOn, websiteLine, discount } = priceSplit(token.amount, submission);
     const struckTotal = discount && !domain ? discount.listPrice : null;
     const copy = (value: string, done: string) => void copyWithToast(value, done, show);
+    const kind = kindOf(token);
+    const balanceAfter = kind === "deposit" && submission?.amount ? Math.max(0, submission.amount - token.amount) : null;
+    const priceLabel = kind === "deposit" ? "Down payment" : kind === "balance" ? "The rest of your payment" : text.priceLabel;
+    const payCta = kind === "full" ? `Pay ${money} once` : `Pay ${money} now`;
 
     return (
         <>
@@ -214,7 +220,7 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
                             </Button>
                         )}
                         <Button href="#pay" variant="primary" size="lg">
-                            Pay {money} once
+                            {payCta}
                         </Button>
                     </>
                 }
@@ -222,7 +228,7 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
 
             <section className="v2-wrap pb-py-pay" id="pay" aria-labelledby="pay-h">
                 <div className="pb-py-price">
-                    <p className="pb-label">{text.priceLabel}</p>
+                    <p className="pb-label">{priceLabel}</p>
                     <h2 className="pb-py-amt" id="pay-h">
                         {struckTotal !== null && (
                             <span className="pb-py-was">
@@ -231,7 +237,7 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
                             </span>
                         )}
                         <span className="sr-only">{struckTotal !== null ? "Now " : ""}</span>
-                        {money}.<small>Once. No monthly fee.</small>
+                        {money}.<small>{kind === "full" ? "Once. No monthly fee." : kind === "deposit" ? "Now. No monthly fee." : "Then it's paid. No monthly fee."}</small>
                     </h2>
                     {domain && websiteLine > 0 && (
                         <dl className="pb-py-split">
@@ -245,13 +251,17 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
                             </div>
                         </dl>
                     )}
-                    <p className="pb-py-down">
-                        <i />
-                        <span>
-                            Start with <b>{formatPHP(DOWN_PAYMENT)}</b>. The rest later. <Link href="/v2/help#contact">Ask us how</Link>
-                        </span>
-                    </p>
-                    <MethodArea />
+                    {kind === "full" ? (
+                        <DownPaymentOffer submissionId={token.submissionId} />
+                    ) : kind === "deposit" ? (
+                        <p className="pb-py-down">
+                            <i />
+                            <span>
+                                Down payment. {balanceAfter ? <>The rest, <b>{formatPHP(balanceAfter)}</b>, later.</> : "The rest later."}
+                            </span>
+                        </p>
+                    ) : null}
+                    <MethodArea token={token.token} />
                 </div>
 
                 <ol className="pb-py-steps">
@@ -349,8 +359,76 @@ function CopyRow({ label, value, copyValue, done, onCopy }: { label: string; val
     );
 }
 
-/** GCash, Maya and Card. Disabled with "Coming soon" until NEXT_PUBLIC_XENDIT_ENABLED is "true" (the Xendit checkout is built elsewhere). */
-function MethodArea() {
+/**
+ * "Start with ₱500. The rest later." For a signed-in payer whose order allows a down payment
+ * (ownerPayments.getPaymentState), a real button: it makes a deposit pay link and opens it.
+ * Everyone else (not signed in, or an order that cannot take one) keeps "Ask us how".
+ */
+function DownPaymentOffer({ submissionId }: { submissionId: Token["submissionId"] }) {
+    const convex = useConvex();
+    const router = useRouter();
+    const { isAuthenticated } = useConvexAuth();
+    const createPayToken = useMutation(api.ownerPayments.createPayToken);
+    const [fetched, setFetched] = useState<number | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+    const minimum = isAuthenticated ? fetched : null;
+
+    useEffect(() => {
+        let alive = true;
+        if (!isAuthenticated) return;
+        // A one-off read, not a subscription: it throws for a signed-in person who is not
+        // this order's payer, and that must not break the page.
+        convex
+            .query(api.ownerPayments.getPaymentState, { submissionId })
+            .then((state) => {
+                if (alive) setFetched(state.billable && state.canPayDeposit && !state.needsApproval ? state.minDownPayment : null);
+            })
+            .catch(() => alive && setFetched(null));
+        return () => {
+            alive = false;
+        };
+    }, [convex, isAuthenticated, submissionId]);
+
+    const start = async () => {
+        if (minimum === null) return;
+        setBusy(true);
+        setMessage(null);
+        try {
+            const deposit = await createPayToken({ submissionId, kind: "deposit", amount: minimum });
+            router.push(`/v2/pay/${encodeURIComponent(deposit.token)}`);
+        } catch (e) {
+            setMessage(xenditErrorMessage(e));
+            setBusy(false);
+        }
+    };
+
+    return (
+        <>
+            <p className="pb-py-down">
+                <i />
+                <span>
+                    Start with <b>{formatPHP(minimum ?? DOWN_PAYMENT)}</b>. The rest later.{" "}
+                    {minimum === null && <Link href="/v2/help#contact">Ask us how</Link>}
+                </span>
+            </p>
+            {minimum !== null && (
+                <Button variant="ghost" onClick={() => void start()} disabled={busy}>
+                    {busy ? "One moment…" : `Pay ${formatPHP(minimum)} now`}
+                </Button>
+            )}
+            {message && (
+                <p className="pb-py-methods-msg" role="status">
+                    {message}
+                </p>
+            )}
+        </>
+    );
+}
+
+/** GCash, Maya and Card through Xendit. Disabled with "Coming soon" until NEXT_PUBLIC_XENDIT_ENABLED is "true". */
+function MethodArea({ token }: { token: string }) {
+    const startXenditCheckout = useXenditCheckout();
     const [message, setMessage] = useState<string | null>(null);
     const [busy, setBusy] = useState<XenditMethod | null>(null);
     const methods: { id: XenditMethod; label: string }[] = [
@@ -362,10 +440,9 @@ function MethodArea() {
         setMessage(null);
         setBusy(m);
         try {
-            await startXenditCheckout(m);
+            await startXenditCheckout(token, m);
         } catch (e) {
-            setMessage(e instanceof Error ? e.message : "That isn't available yet. Pay with Wise for now.");
-        } finally {
+            setMessage(xenditErrorMessage(e));
             setBusy(null);
         }
     };
