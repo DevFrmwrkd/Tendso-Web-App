@@ -63,6 +63,32 @@ module.exports = {
           800: '#6B4A12',
           900: '#5C3A0F',
         },
+        // ── Tendso design v2 (see theme/v2.ts — keep in sync; __tests__/v2-tokens.test.ts checks parity).
+        // Namespaced under `v2` so the legacy Editorial Paper keys above keep working.
+        // Accent = FILL only (`bg-v2-accent text-v2-on-accent`); never `text-v2-accent` on a light surface.
+        v2: {
+          accent: '#E4F222',
+          'on-accent': '#0C0A08',
+          'accent-soft': '#F6F9C4',
+          bg: '#F6F6F3',
+          bg2: '#EFEFEA',
+          card: '#FFFFFF',
+          dark: '#121210',
+          camera: '#0C0A08',
+          ink: '#0C0A08',
+          ink2: '#45443F',
+          ink3: '#8A8982',
+          'ink3-text': '#6B6A63',
+          rule: '#ECECE6',
+          'rule-strong': '#C4C3BB',
+          info: '#1F3654',
+          'info-bg': '#E7ECF3',
+          warn: '#A8650E',
+          'warn-bg': '#FBEED5',
+          danger: '#C2341B',
+          'danger-bg': '#F6DCD5',
+          rec: '#FF3B30',
+        },
         zinc: {
           50: '#fafafa',
           100: '#f4f4f5',
@@ -84,8 +110,53 @@ module.exports = {
         sansBold:   ['Onest_700Bold'],
         mono:       ['JetBrainsMono_400Regular'],
         monoMed:    ['JetBrainsMono_500Medium'],
+        // Tendso v2: Onest, one family per weight (RN can't synthesise weights — never use font-bold with these).
+        'onest-regular':   ['Onest_400Regular'],
+        'onest-medium':    ['Onest_500Medium'],
+        'onest-semibold':  ['Onest_600SemiBold'],
+        'onest-bold':      ['Onest_700Bold'],
+        'onest-extrabold': ['Onest_800ExtraBold'],
+      },
+      // Tendso v2 type scale — nothing under 16px (Rule #1). Mirrors theme/v2.ts `type`.
+      fontSize: {
+        'v2-hero':     ['40px', { lineHeight: '42px', letterSpacing: '-1.4px' }],
+        'v2-display':  ['32px', { lineHeight: '36px', letterSpacing: '-0.9px' }],
+        'v2-title':    ['28px', { lineHeight: '32px', letterSpacing: '-0.7px' }],
+        'v2-heading':  ['22px', { lineHeight: '28px', letterSpacing: '-0.4px' }],
+        'v2-body-lg':  ['18px', { lineHeight: '26px', letterSpacing: '-0.1px' }],
+        'v2-body':     ['17px', { lineHeight: '24px', letterSpacing: '-0.1px' }],
+        'v2-button':   ['18px', { lineHeight: '22px', letterSpacing: '-0.1px' }],
+        'v2-label':    ['16px', { lineHeight: '20px' }],
+        'v2-number':   ['56px', { lineHeight: '58px', letterSpacing: '-2.2px' }],
+        'v2-number-lg': ['72px', { lineHeight: '72px', letterSpacing: '-3px' }],
+      },
+      spacing: {
+        'v2-gutter': '24px',
+        'v2-hit': '56px',
+      },
+      minHeight: {
+        'v2-hit': '56px',
+      },
+      boxShadow: {
+        'v2-soft': '0 8px 24px rgba(12,10,8,0.06)',
+        'v2-object': '0 12px 30px -8px rgba(12,10,8,0.18)',
+      },
+      transitionDuration: {
+        'v2-ui': '220ms',
+        'v2-reveal': '620ms',
+        'v2-settle': '900ms',
+      },
+      transitionTimingFunction: {
+        'v2-out': 'cubic-bezier(0.22, 1, 0.36, 1)',
+        'v2-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'v2-in-out': 'cubic-bezier(0.77, 0, 0.175, 1)',
       },
       borderRadius: {
+        // Tendso v2 radii (theme/v2.ts `radius`)
+        'v2-field':   '16px',
+        'v2-card':    '20px',
+        'v2-card-lg': '24px',
+        'v2-tile':    '28px',
         xs:   '8px',
         sm:   '12px',
         md:   '18px',
