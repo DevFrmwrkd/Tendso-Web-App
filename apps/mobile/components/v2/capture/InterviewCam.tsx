@@ -120,6 +120,8 @@ export function InterviewCam({
   const langRef = useRef(lang);
   langRef.current = lang;
   const canToggle = useRef(false);
+  const transitioning = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   // ---------------------------------------------------------------- permissions
   useEffect(() => {
@@ -245,68 +247,93 @@ export function InterviewCam({
     begun.current = true;
     clipIndex.current = state.q;
     marks.current.push({ index: state.q, atSec: 0 });
+    transitioning.current = true;
+    setBusy(true);
     (async () => {
-      if (audioOnly) {
-        clipStartedAt.current = Date.now();
-        await startMeter();
-        return;
-      }
-      if (recording === 'continuous') await startMeter(); // parallel audio first, like before
-      startVideoClip();
       try {
-        canToggle.current = !!cameraRef.current?.getSupportedFeatures?.()?.toggleRecordingAsyncAvailable;
-      } catch { canToggle.current = false; }
+        if (audioOnly) {
+          clipStartedAt.current = Date.now();
+          await startMeter();
+          return;
+        }
+        if (recording === 'continuous') await startMeter(); // parallel audio first, like before
+        startVideoClip();
+        try {
+          canToggle.current = !!cameraRef.current?.getSupportedFeatures?.()?.toggleRecordingAsyncAvailable;
+        } catch { canToggle.current = false; }
+      } finally {
+        transitioning.current = false;
+        setBusy(false);
+      }
     })();
   }, [state.phase, state.q, audioOnly, recording, startMeter, startVideoClip]);
 
   // ---------------------------------------------------------------- actions
   const goNext = useCallback(async () => {
-    if (state.phase !== 'asking') return;
-    const last = isLastQuestion(state);
-    const index = state.q;
-    dispatch({ type: 'NEXT' });
-    if (recording === 'continuous') {
-      answered.current.add(index);
-      if (!last) marks.current.push({ index: index + 1, atSec: elapsedRef.current });
-      return;
-    }
-    // perQuestion: close this clip, open the next. The last clip is closed by the DONE step.
-    if (last) return;
-    if (audioOnly) {
-      const uri = await stopMeter();
-      emitClip(index, uri, 'audio');
-      clipIndex.current = index + 1;
-      clipStartedAt.current = Date.now();
-      await startMeter();
-    } else {
-      await stopVideoClip();
-      clipIndex.current = index + 1;
-      startVideoClip();
+    if (state.phase !== 'asking' || transitioning.current) return;
+    transitioning.current = true;
+    setBusy(true);
+    try {
+      const last = isLastQuestion(state);
+      const index = state.q;
+      if (recording === 'continuous') {
+        answered.current.add(index);
+        if (!last) marks.current.push({ index: index + 1, atSec: elapsedRef.current });
+      } else if (!last) {
+        // Keep the current question visible until its clip is saved and the next starts.
+        if (audioOnly) {
+          const uri = await stopMeter();
+          emitClip(index, uri, 'audio');
+          clipIndex.current = index + 1;
+          clipStartedAt.current = Date.now();
+          await startMeter();
+        } else {
+          await stopVideoClip();
+          await lastClip.current;
+          clipIndex.current = index + 1;
+          startVideoClip();
+        }
+      }
+      // The done effect closes the final clip.
+      dispatch({ type: 'NEXT' });
+    } finally {
+      await Promise.resolve();
+      transitioning.current = false;
+      setBusy(false);
     }
   }, [state, recording, audioOnly, stopMeter, startMeter, emitClip, stopVideoClip, startVideoClip]);
 
   const pause = useCallback(async () => {
-    if (state.phase === 'asking') {
-      dispatch({ type: 'PAUSE' });
-      if (audioOnly) {
-        try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
-      } else if (recording === 'continuous') {
-        if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
-        try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
-      } else {
-        clipFlag.current.discard = true; // this answer starts again on resume
-        await stopVideoClip();
+    if (transitioning.current || (state.phase !== 'asking' && state.phase !== 'paused')) return;
+    transitioning.current = true;
+    setBusy(true);
+    try {
+      if (state.phase === 'asking') {
+        if (audioOnly) {
+          try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
+        } else if (recording === 'continuous') {
+          if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
+          try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
+        } else {
+          clipFlag.current.discard = true; // this answer starts again on resume
+          await stopVideoClip();
+        }
+        dispatch({ type: 'PAUSE' });
+      } else if (state.phase === 'paused') {
+        if (audioOnly) {
+          try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
+        } else if (recording === 'continuous') {
+          if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
+          try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
+        } else {
+          startVideoClip();
+        }
+        dispatch({ type: 'RESUME' });
       }
-    } else if (state.phase === 'paused') {
-      dispatch({ type: 'RESUME' });
-      if (audioOnly) {
-        try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
-      } else if (recording === 'continuous') {
-        if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
-        try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
-      } else {
-        startVideoClip();
-      }
+    } finally {
+      await Promise.resolve();
+      transitioning.current = false;
+      setBusy(false);
     }
   }, [state.phase, audioOnly, recording, stopVideoClip, startVideoClip]);
 
@@ -353,6 +380,7 @@ export function InterviewCam({
   }, []);
 
   const close = () => {
+    if (transitioning.current || finished.current) return;
     if (state.phase === 'framing') { onClose(); return; }
     Alert.alert('Stop the interview?', recording === 'perQuestion' ? 'Your answers so far are kept.' : 'This recording will be lost.', [
       { text: 'Keep going', style: 'cancel' },
@@ -360,6 +388,9 @@ export function InterviewCam({
         text: 'Stop',
         style: 'destructive',
         onPress: async () => {
+          if (transitioning.current || finished.current) return;
+          transitioning.current = true;
+          setBusy(true);
           finished.current = true;
           clipFlag.current.discard = recording !== 'perQuestion';
           await stopVideoClip();
@@ -451,7 +482,7 @@ export function InterviewCam({
         {pauseAllowed ? (
           <Pressable
             onPress={pause}
-            disabled={framingPhase}
+            disabled={framingPhase || busy || state.phase === 'done'}
             accessibilityRole="button"
             accessibilityLabel={paused ? L.resume : 'Pause'}
             style={({ pressed }) => [styles.pauseRing, { opacity: framingPhase ? 0.5 : pressed ? 0.8 : 1 }]}
@@ -463,7 +494,7 @@ export function InterviewCam({
         ) : null}
         <Pressable
           onPress={paused ? pause : goNext}
-          disabled={framingPhase}
+          disabled={framingPhase || busy || state.phase === 'done'}
           accessibilityRole="button"
           accessibilityLabel={paused ? L.resume : last ? L.finish : L.next}
           style={({ pressed }) => [styles.next, { opacity: framingPhase ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}

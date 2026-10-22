@@ -66,6 +66,9 @@ export default function DesignPicker() {
         uploadQueue.retry();
         await uploadQueue.drain();
       }
+      if (uploadQueue.snapshot().failed > 0) {
+        throw new Error('Some answers or photos could not upload. Please try again.');
+      }
       await submit({ submissionId: id });
       setOpen(null);
       ownerIntake.set({ shots: undefined });

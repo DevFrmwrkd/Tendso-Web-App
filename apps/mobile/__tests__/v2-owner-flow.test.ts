@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { hasSiteHome, nextStep, phaseLine, resumeStep, startProgress, STEP_ROUTE, todayAction, type OwnerStep } from '../lib/v2/ownerFlow';
+import { firstMissingAnswer, hasSiteHome, nextStep, phaseLine, resumeStep, startProgress, STEP_ROUTE, todayAction, type OwnerStep } from '../lib/v2/ownerFlow';
 import { DESIGNS, SELL_KINDS, designsFor, freeAddress, hostOf, peso, sellKindFromServer, slugGuess } from '../lib/v2/ownerContent';
 import { canPayPart, clampDownPayment, maxDownPayment, parsePayChoice, stepDownPayment, suggestedDownPayment } from '../lib/v2/payMath';
 import { BUSINESS_TYPES } from '../services/prospectPrefill';
@@ -54,11 +54,22 @@ describe('resume', () => {
 
   it('resumes a draft at the first missing piece', () => {
     expect(resumeStep('draft', null)).toBe('sell');
-    const base = { businessName: 'Forge', businessType: 'Barber/Salon', answered: 0, photos: 0 };
+    const base = { businessName: 'Forge', businessType: 'Barber/Salon', answered: [] as number[], photos: 0 };
     expect(resumeStep('draft', base)).toBe('talk-intro');
-    expect(resumeStep('draft', { ...base, answered: 11 })).toBe('photos-intro');
-    expect(resumeStep('draft', { ...base, answered: 11, photos: 2 })).toBe('photos-intro');
-    expect(resumeStep('draft', { ...base, answered: 11, photos: 3 })).toBe('design');
+    expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i) })).toBe('photos-intro');
+    expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i), photos: 2 })).toBe('photos-intro');
+    expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i), photos: 3 })).toBe('design');
+  });
+
+  it('resumes partial interviews at the first missing required index', () => {
+    const base = { businessName: 'Forge', businessType: 'Barber/Salon', photos: 3 };
+    expect(resumeStep('draft', { ...base, answered: [0] })).toBe('talk');
+    expect(firstMissingAnswer([0])).toBe(1);
+    const withGap = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 10];
+    expect(resumeStep('draft', { ...base, answered: withGap })).toBe('talk');
+    expect(firstMissingAnswer(withGap)).toBe(3);
+    expect(firstMissingAnswer([])).toBe(0);
+    expect(firstMissingAnswer(Array.from({ length: 10 }, (_, i) => i))).toBe(10);
   });
 
   it('sends every server phase to the right screen', () => {

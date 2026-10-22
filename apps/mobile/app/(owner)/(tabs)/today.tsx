@@ -23,7 +23,7 @@ export default function Today() {
       ? resumeStep('draft', draft ? {
           businessName: draft.businessName,
           businessType: draft.businessType,
-          answered: draft.interview.length,
+          answered: draft.interview.filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index),
           photos: draft.shots.length,
           templateId: draft.templateId,
         } : null)

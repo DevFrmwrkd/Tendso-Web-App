@@ -73,8 +73,10 @@ function expectNoSmallText(r: ReturnType<typeof render>) {
 
 beforeEach(() => {
   jest.useFakeTimers();
-  mockTakePicture.mockClear();
-  mockRecord.mockClear();
+  mockTakePicture.mockReset();
+  mockTakePicture.mockResolvedValue({ uri: 'file://shot.jpg' });
+  mockRecord.mockReset();
+  mockRecord.mockImplementation(() => new Promise<{ uri: string }>(() => {}));
 });
 afterEach(() => jest.useRealTimers());
 
@@ -99,6 +101,29 @@ describe('ShotGuide', () => {
     await act(async () => { fireEvent.press(r.getByLabelText('Take photo')); });
     expect(onDone).toHaveBeenCalledWith(['file://shot.jpg', null, 'file://shot.jpg']);
     expectNoSmallText(r);
+  });
+
+  it('locks task navigation and close until a pending photo is saved in its original slot', async () => {
+    let resolve!: (photo: { uri: string }) => void;
+    mockTakePicture.mockImplementationOnce(() => new Promise((done) => { resolve = done; }));
+    const onShot = jest.fn();
+    const onDone = jest.fn();
+    const onClose = jest.fn();
+    const r = wrap(<ShotGuide tasks={SHOT_LISTS.barber.slice(0, 2)} onShot={onShot} onDone={onDone} onClose={onClose} />);
+    await act(flush);
+    fireEvent.press(r.getByLabelText('Take photo'));
+    fireEvent.press(r.getByLabelText('Skip this photo'));
+    fireEvent.press(r.getByLabelText('Profile picture'));
+    fireEvent.press(r.getByLabelText('Close'));
+    fireEvent.press(r.getByLabelText('Take photo'));
+    expect(r.getByText('Shot 1 of 2')).toBeTruthy();
+    expect(mockTakePicture).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onDone).not.toHaveBeenCalled();
+    await act(async () => { resolve({ uri: 'file://pending.jpg' }); await flush(); });
+    expect(onShot).toHaveBeenCalledWith(0, 'file://pending.jpg');
+    fireEvent.press(r.getByLabelText('Skip this photo'));
+    expect(onDone).toHaveBeenCalledWith(['file://pending.jpg', null]);
   });
 
   it('draws no outline or grid over the camera', () => {
@@ -134,6 +159,26 @@ describe('InterviewCam', () => {
     expect(r.getByText('Anything else?')).toBeTruthy();
     expect(r.getByLabelText('Finish')).toBeTruthy();
     expectNoSmallText(r);
+  });
+
+  it('waits for clip teardown before advancing and ignores overlapping Next and pause taps', async () => {
+    let resolve!: (clip: { uri: string }) => void;
+    mockRecord.mockImplementationOnce(() => new Promise((done) => { resolve = done; }));
+    const onClip = jest.fn();
+    const r = wrap(<InterviewCam recording="perQuestion" onClip={onClip} onFinish={jest.fn()} onClose={jest.fn()} />);
+    await act(flush);
+    await act(async () => { jest.advanceTimersByTime(5000); await flush(); });
+    await act(async () => { jest.advanceTimersByTime(1300); await flush(); });
+    expect(mockRecord).toHaveBeenCalledTimes(1);
+    fireEvent.press(r.getByLabelText('Next question'));
+    fireEvent.press(r.getByLabelText('Next question'));
+    fireEvent.press(r.getByLabelText('Pause'));
+    expect(r.getByText('1 / 10')).toBeTruthy();
+    expect(mockRecord).toHaveBeenCalledTimes(1);
+    await act(async () => { resolve({ uri: 'file://answer-0.mp4' }); await flush(); });
+    expect(r.getByText('2 / 10')).toBeTruthy();
+    expect(mockRecord).toHaveBeenCalledTimes(2);
+    expect(onClip).toHaveBeenCalledWith(expect.objectContaining({ index: 0, uri: 'file://answer-0.mp4' }));
   });
 
   it('runs voice only without a camera', async () => {

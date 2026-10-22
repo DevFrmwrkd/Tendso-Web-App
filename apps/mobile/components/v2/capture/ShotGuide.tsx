@@ -38,6 +38,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
   const [flash, setFlash] = useState<'off' | 'on'>('off');
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const capturing = useRef(false);
   const cameraRef = useRef<CameraView>(null);
   const shutterFlash = useFlash();
   const level = useLevel(!shotsDone(state));
@@ -72,7 +73,8 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
   });
 
   const shoot = async () => {
-    if (busy || done || !cameraRef.current) return;
+    if (capturing.current || done || !cameraRef.current) return;
+    capturing.current = true;
     setBusy(true);
     try {
       const pic = await cameraRef.current.takePictureAsync({ quality: 0.8 });
@@ -85,6 +87,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
     } catch (e) {
       console.warn('[ShotGuide] takePictureAsync failed', e);
     } finally {
+      capturing.current = false;
       setBusy(false);
     }
   };
@@ -93,7 +96,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
     return (
       <View style={[styles.root, styles.center]}>
         <Text style={[subtitle.big, { marginHorizontal: 32 }]}>Please allow the camera</Text>
-        <Pressable onPress={() => onClose(state.taken)} accessibilityRole="button" style={styles.textBtn}>
+        <Pressable onPress={() => { if (!capturing.current) onClose(state.taken); }} accessibilityRole="button" style={styles.textBtn}>
           <Text style={styles.textBtnLabel}>Close</Text>
         </Pressable>
       </View>
@@ -117,7 +120,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
       <BottomShade height={380} />
 
       <View style={[styles.top, { top: insets.top + 8 }]}>
-        <GlassButton icon="close" label="Close" onPress={() => onClose(state.taken)} />
+        <GlassButton icon="close" label="Close" onPress={() => { if (!capturing.current) onClose(state.taken); }} />
         <GlassPill>
           <PillText>{`Shot ${shown} of ${tasks.length}`}</PillText>
         </GlassPill>
@@ -143,7 +146,8 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
             return (
               <Pressable
                 key={i}
-                onPress={() => dispatch({ type: 'GOTO', index: i })}
+                disabled={busy}
+                onPress={() => { if (!capturing.current) dispatch({ type: 'GOTO', index: i }); }}
                 accessibilityRole="button"
                 accessibilityLabel={`${t.t}${uri ? ', taken' : ''}`}
                 style={[styles.slot, cur && styles.slotCur]}
@@ -171,7 +175,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
           >
             <View style={styles.shutterIn}>{busy ? <ActivityIndicator color={colors.ink} /> : null}</View>
           </Pressable>
-          <Pressable onPress={() => dispatch({ type: 'SKIP' })} accessibilityRole="button" accessibilityLabel="Skip this photo" hitSlop={12} style={styles.skip}>
+          <Pressable disabled={busy} onPress={() => { if (!capturing.current) dispatch({ type: 'SKIP' }); }} accessibilityRole="button" accessibilityLabel="Skip this photo" hitSlop={12} style={styles.skip}>
             <Text style={styles.skipText}>Skip</Text>
           </Pressable>
         </View>

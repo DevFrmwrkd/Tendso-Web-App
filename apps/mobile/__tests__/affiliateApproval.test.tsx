@@ -11,6 +11,7 @@ const mockSignOut = jest.fn();
 const mockQuery = jest.fn();
 const mockLastActive = jest.fn();
 const mockOfflineSync = jest.fn();
+jest.mock('../lib/v2/ownerIntake', () => ({ hasOwnerIntent: jest.fn(async () => true) }));
 jest.mock('@clerk/clerk-expo', () => ({
   useAuth: () => ({ isSignedIn: true, isLoaded: true, userId: 'affiliate-user' }),
   useClerk: () => ({ signOut: mockSignOut }),
@@ -155,5 +156,31 @@ describe('affiliate component defense', () => {
     expect(screen.getByText('Private affiliate content')).toBeTruthy();
     expect(screen.queryByText('Awaiting approval')).toBeNull();
     expect(mockQuery).toHaveBeenCalledWith('affiliate-private-query', {});
+  });
+});
+
+
+describe('owner intent cannot override authenticated roles', () => {
+  it.each(['creator', 'affiliate', 'admin'])('preserves %s routing with owner intent saved', async role => {
+    mockSegments = ['(app)', '(tabs)'];
+    mockAccount = { ...ready(), role, view: role,
+      account: { ...affiliate, role, status: 'active' }, isAdmin: role === 'admin' };
+    const screen = await mountApp();
+    expect(screen.queryByText('/(owner)')).toBeNull();
+    if (role === 'creator') expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+    else expect(screen.getByTestId('redirect')).toHaveTextContent(role === 'admin' ? '/(app)/admin' : '/(app)/(affiliate-tabs)/');
+  });
+
+  it('uses owner intent for a new account after role resolution', async () => {
+    mockAccount = { ...ready(), account: null, role: null };
+    const screen = await mountApp();
+    expect(screen.getByTestId('redirect')).toHaveTextContent('/(owner)');
+  });
+
+  it('waits for account resolution before using owner intent', async () => {
+    mockAccount = { ...ready(), account: undefined, role: null, isLoading: true };
+    const screen = await mountApp();
+    expect(screen.queryByTestId('redirect')).toBeNull();
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
   });
 });

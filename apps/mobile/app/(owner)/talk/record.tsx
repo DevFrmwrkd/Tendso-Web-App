@@ -5,9 +5,9 @@
 import React, { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { InterviewCam, type InterviewClip } from '../../../components/v2/capture';
-import { useSaveAnswer, useUploadFile } from '../../../lib/v2/ownerData';
+import { useOwnerSubmission, useSaveAnswer, useUploadFile } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
-import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
+import { firstMissingAnswer, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { uploadQueue } from '../../../lib/v2/uploadQueue';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 
@@ -15,6 +15,7 @@ export default function TalkRecord() {
   const router = useRouter();
   const intake = useOwnerIntake();
   const { id } = useOwnerSite();
+  const sub = useOwnerSubmission(id);
   const upload = useUploadFile();
   const saveAnswer = useSaveAnswer();
 
@@ -31,9 +32,13 @@ export default function TalkRecord() {
     });
   }, [id, upload, saveAnswer]);
 
+  if (sub === undefined) return null;
+  const startAt = firstMissingAnswer((sub?.interview ?? []).filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index));
+
   return (
     <InterviewCam
       recording="perQuestion"
+      startAt={startAt}
       facing={intake.how === 'friend' ? 'back' : 'front'}
       audioOnly={!!intake.audioOnly}
       lang={intake.lang ?? 'en'}

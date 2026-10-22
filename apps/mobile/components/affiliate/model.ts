@@ -16,7 +16,7 @@ export function affiliateDraft(account: Doc<'creators'>): AffiliateDraft {
 }
 
 export function affiliateUrl(handle: string): string {
-  return `https://tendso.com/a/${encodeURIComponent(handle)}`;
+  return `https://tendso.com/v2/a/${encodeURIComponent(handle)}`;
 }
 
 export function affiliateName(account: Doc<'creators'>): string {

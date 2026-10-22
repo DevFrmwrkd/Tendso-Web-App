@@ -30,7 +30,6 @@ import {
 import { colors } from '../theme/tokens';
 import { useOtaUpdate } from '../hooks/useOtaUpdate';
 import { initSentry, navigationIntegration, sentryEnabled, withSentry } from '../lib/sentry';
-import { hasOwnerIntent } from '../lib/v2/ownerIntake';
 import { OWNER_SAMPLE_DATA } from '../lib/v2/ownerFlags';
 import '../global.css';
 
@@ -183,13 +182,10 @@ function InitialLayout() {
     const effectivelySignedIn = isSignedIn || (isConnected === false && cachedAuth === true);
 
     if (effectivelySignedIn && inAuthGroup) {
-      // User is signed in (or offline with cached auth). Owners (they tapped "I have a
-      // business") go to the owner app; everyone else to tabs home as before — the
-      // (app) layout still sends existing owner accounts on to /(owner).
-      void hasOwnerIntent().then((owner) => {
-        router.replace((owner ? '/(owner)' : '/(app)/(tabs)/') as any);
-        setTimeout(() => setIsAuthTransitioning(false), 500);
-      });
+      // Resolve the authenticated account in (app) before considering device intent.
+      // Its layout gives existing roles precedence and applies owner intent only to new accounts.
+      router.replace('/(app)/(tabs)/');
+      setTimeout(() => setIsAuthTransitioning(false), 500);
     } else if (!effectivelySignedIn && !isPublic) {
       // Truly not signed in — redirect to login (owners: the email-code sign-in)
       if (segments[0] === '(owner)') {

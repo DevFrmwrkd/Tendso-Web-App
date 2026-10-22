@@ -22,7 +22,7 @@ export default function OwnerIndex() {
   const step = resumeStep(site?.phase ?? null, draft ? {
     businessName: draft.businessName,
     businessType: draft.businessType,
-    answered: draft.interview.filter((a) => a.mediaUrl || a.answerText).length,
+    answered: draft.interview.filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index),
     photos: draft.shots.length,
     templateId: draft.templateId,
   } : null);

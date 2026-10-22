@@ -5,6 +5,7 @@
  * Board order (docs/landing-mock/app/owner.html, FEATURES-QUESTIONS Q15):
  *   sell → place → how → talk → photos → design → building → check → pay → live → home
  */
+import { INTERVIEW_QUESTIONS } from './captureContent';
 import type { OwnerPhase } from './ownerTypes';
 
 export type OwnerStep =
@@ -72,13 +73,20 @@ export interface DraftSnapshot {
   businessName?: string | null;
   businessType?: string | null;
   /** Answers with a recording or text. */
-  answered: number;
+  answered: number[];
   /** Photos saved (guided + extras). */
   photos: number;
   templateId?: string | null;
 }
 
 export const MIN_PHOTOS_TO_SEND = 3;
+
+/** The extra question is optional; all regular questions need an answer. */
+export function firstMissingAnswer(answered: readonly number[]): number {
+  const indices = new Set(answered);
+  const missing = INTERVIEW_QUESTIONS.findIndex((_, index) => !indices.has(index));
+  return missing === -1 ? INTERVIEW_QUESTIONS.length : missing;
+}
 
 /**
  * Where to send an owner who opens the app. `phase` is the server's word for
@@ -90,7 +98,9 @@ export function resumeStep(phase: OwnerPhase | null, draft?: DraftSnapshot | nul
       return 'sell';
     case 'draft': {
       if (!draft || !draft.businessName || !draft.businessType) return 'sell';
-      if (draft.answered === 0) return 'talk-intro';
+      if (firstMissingAnswer(draft.answered) < INTERVIEW_QUESTIONS.length) {
+        return draft.answered.length === 0 ? 'talk-intro' : 'talk';
+      }
       if (draft.photos < MIN_PHOTOS_TO_SEND) return 'photos-intro';
       return 'design';
     }
