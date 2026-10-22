@@ -5,6 +5,7 @@ import type { Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
 import { internal } from './_generated/api';
 import { BUILD_STEPS, isOwnerApp, type BuildStepKey } from './lib/ownerApp';
+import { aiPipelineEnabled } from '../lib/aiPipeline/config';
 
 /**
  * Build progress — the contract between the AI pipeline and the owner app.
@@ -14,9 +15,8 @@ import { BUILD_STEPS, isOwnerApp, type BuildStepKey } from './lib/ownerApp';
  *   reading_interview · writing_pages · polishing_photos · building_site
  * each 'pending' → 'running' → 'done' (or 'failed').
  *
- * THE PIPELINE AGENT OWNS THE AI WORK. Its only obligations here:
- *   1. Replace the body of `startPipeline` below (scheduled by ownerApp.submit)
- *      with the real pipeline kick-off.
+ * THE AI PIPELINE (convex/aiPipeline) OWNS THE AI WORK. Its obligations here:
+ *   1. `startPipeline` below (scheduled by ownerApp.submit) starts it.
  *   2. Report each step with
  *        ctx.runMutation(internal.buildProgress.setStep, { submissionId, step, status })
  *      ('failed' may carry `error`, a short message for logs and admin).
@@ -105,15 +105,48 @@ export const restart = internalMutation({
 });
 
 /**
- * Scheduled by ownerApp.submit. PLACEHOLDER for the pipeline agent: today it
- * only logs, so an owner-app submission waits at "building" (all steps
- * 'pending') until the pipeline is wired or an admin builds the site and
- * reports building_site 'done'.
+ * Scheduled by ownerApp.submit (and safe to call again: the orchestrator joins
+ * a run in flight and never repeats a finished one).
+ *
+ *  - AI_PIPELINE_ENABLED on: start the pipeline (reason 'owner_app'). It
+ *    reports the four steps through setStep (convex/aiPipeline/progress.ts)
+ *    and, if it fails, hands the submission to Tendso Studio itself.
+ *  - Off: today's path. The photos go to Tendso Studio as for any /start
+ *    submission, and the four steps stay 'pending' until an admin builds the
+ *    site and reports them (adminSetStep below).
  */
 export const startPipeline = internalAction({
     args: { submissionId: v.id('submissions') },
-    handler: async (_ctx, args) => {
-        console.log(`[build-progress] Owner-app submission ${args.submissionId} is waiting for the AI pipeline (not wired yet).`);
+    handler: async (ctx, args): Promise<void> => {
+        if (aiPipelineEnabled(process.env)) {
+            const result: { started: boolean; reason: string } = await ctx.runMutation(internal.aiPipeline.orchestrator.start, {
+                submissionId: args.submissionId,
+                reason: 'owner_app',
+            });
+            console.log(`[build-progress] AI pipeline for owner-app submission ${args.submissionId}: ${result.started ? 'started' : result.reason}`);
+            return;
+        }
+        console.log(`[build-progress] AI pipeline off: owner-app submission ${args.submissionId} goes to Tendso Studio; steps wait for an admin.`);
+        await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, { submissionId: args.submissionId });
+    },
+});
+
+/**
+ * Build an owner-app site again after a change request or a new style pick:
+ * reset the four steps, then a forced pipeline run (polished photos are
+ * reused). With the pipeline off the steps reset and wait for an admin.
+ */
+export const rebuild = internalAction({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args): Promise<{ started: boolean; reason: string }> => {
+        await ctx.runMutation(internal.buildProgress.restart, { submissionId: args.submissionId });
+        if (!aiPipelineEnabled(process.env)) return { started: false, reason: 'AI_PIPELINE_ENABLED is off' };
+        const result: { started: boolean; reason: string } = await ctx.runMutation(internal.aiPipeline.orchestrator.start, {
+            submissionId: args.submissionId,
+            reason: 'rebuild',
+            force: true,
+        });
+        return { started: result.started, reason: result.reason };
     },
 });
 

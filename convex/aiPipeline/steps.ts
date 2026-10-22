@@ -25,6 +25,11 @@ import { isPermanent, PipelineError } from '../../lib/aiPipeline/stateMachine';
 import type { PipelineInput, StepKey } from '../../lib/aiPipeline/types';
 import { resolveHeroStyle } from '../../lib/templatePicker';
 import { TEMPLATE_FIELD_PATHS } from '../../components/editor/templateFieldPaths.generated';
+import { COLOR_SCHEMES, FONT_PAIRINGS } from '../../components/editor/editorConstants';
+
+// The builder's own id vocabularies (the same lists the editors offer).
+const SCHEME_IDS = new Set<string>(COLOR_SCHEMES.map((c) => c.id));
+const FONT_IDS = new Set<string>(FONT_PAIRINGS.map((f) => f.id));
 
 /** Convex values have no `undefined`; drop it (and nulls inside objects) before a mutation call. */
 function plain<T>(value: T): T {
@@ -36,12 +41,11 @@ function customizationsFor(stored: Record<string, unknown> | null, templateCode:
     return {
         ...(stored ?? {}),
         ...(templateCode ? { heroStyle: templateCode } : {}),
-        // INTEGRATE: feat/v2-backend-owners stores the owner's picks as
-        // submissions.fontChoice / colorChoice (ownerApp.setStyle). They are
-        // passed through as the builder's font pairing / colour scheme ids;
-        // confirm the id vocabularies match once that branch is merged.
-        ...(input.fontChoice ? { fontPairing: input.fontChoice, fontPairingId: input.fontChoice } : {}),
-        ...(input.colorChoice ? { colorScheme: input.colorChoice, colorSchemeId: input.colorChoice } : {}),
+        // The owner's picks (submissions.fontChoice / colorChoice, set by
+        // ownerApp.setStyle, free strings) reach the builder only when they are
+        // one of its ids; anything else leaves the builder's automatic choice.
+        ...(input.fontChoice && FONT_IDS.has(input.fontChoice) ? { fontPairing: input.fontChoice, fontPairingId: input.fontChoice } : {}),
+        ...(input.colorChoice && SCHEME_IDS.has(input.colorChoice) ? { colorScheme: input.colorChoice, colorSchemeId: input.colorChoice } : {}),
     };
 }
 

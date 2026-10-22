@@ -94,11 +94,9 @@ async function startImpl(
 
 /**
  * Start (or join) a build. Called by hyperagent.triggerStudioRender when the
- * switch is on, and — INTEGRATE: once feat/v2-backend-owners is merged — by
- * buildProgress.startPipeline for owner-app submissions:
- *   await ctx.runMutation(internal.aiPipeline.orchestrator.start, { submissionId, reason: 'owner_app' });
- * For a rebuild after a change request: { reason: 'rebuild', force: true }
- * (after internal.buildProgress.restart).
+ * switch is on, and by buildProgress.startPipeline for owner-app submissions
+ * (reason 'owner_app'). A rebuild after a change request goes through
+ * buildProgress.rebuild ({ reason: 'rebuild', force: true } after restart).
  */
 export const start = internalMutation({ args: startArgs, handler: startImpl });
 

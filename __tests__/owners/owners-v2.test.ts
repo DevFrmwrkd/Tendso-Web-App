@@ -21,6 +21,9 @@ const modules = {
     './submissions.ts': () => import('../../convex/submissions'),
     './earnings.ts': () => import('../../convex/earnings'),
     './businessOwners.ts': () => import('../../convex/businessOwners'),
+    './hyperagent.ts': () => import('../../convex/hyperagent'),
+    './aiPipeline/orchestrator.ts': () => import('../../convex/aiPipeline/orchestrator'),
+    './aiPipeline/steps.ts': () => import('../../convex/aiPipeline/steps'),
 };
 
 const R2 = 'https://r2.example.com';
@@ -150,6 +153,27 @@ describe('owner accounts', () => {
 });
 
 describe('owner self-serve submission', () => {
+    it('enters the AI pipeline on submit when it is on, and goes to Studio when it is off', async () => {
+        const { t, owner } = await setup();
+        const id = await ownerSubmission(t, owner);
+        const saved = process.env.AI_PIPELINE_ENABLED;
+        try {
+            delete process.env.AI_PIPELINE_ENABLED;
+            await t.action(internal.buildProgress.startPipeline, { submissionId: id });
+            expect(await t.run((ctx) => ctx.db.query('aiPipelineRuns').collect())).toEqual([]);
+            expect(await scheduledNames(t)).toEqual(expect.arrayContaining(['hyperagent:triggerStudioRender']));
+
+            process.env.AI_PIPELINE_ENABLED = 'true';
+            await t.action(internal.buildProgress.startPipeline, { submissionId: id });
+            await t.action(internal.buildProgress.startPipeline, { submissionId: id }); // joins the run in flight
+            const runs = await t.run((ctx) => ctx.db.query('aiPipelineRuns').collect());
+            expect(runs).toEqual([expect.objectContaining({ submissionId: id, reason: 'owner_app', status: 'running' })]);
+        } finally {
+            if (saved === undefined) delete process.env.AI_PIPELINE_ENABLED;
+            else process.env.AI_PIPELINE_ENABLED = saved;
+        }
+    });
+
     it('creates a draft, saves answers, photos and design, and submits like /start', async () => {
         const { t, houseId, owner } = await setup();
         const id = await ownerSubmission(t, owner);
