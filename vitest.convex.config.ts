@@ -5,6 +5,6 @@ export default defineConfig({
     resolve: { alias: { '@': fileURLToPath(new URL('.', import.meta.url)) } },
     test: {
         environment: 'node',
-        include: ['__tests__/aiPipeline/**/*.convex.test.ts', '__tests__/giveaway/**/*.test.ts', '__tests__/affiliates/**/*.test.ts', '__tests__/knowledge/**/*.test.ts', '__tests__/leads/**/*.test.ts', '__tests__/admin/**/*.test.ts', '__tests__/owners/**/*.test.ts'],
+        include: ['__tests__/aiPipeline/**/*.convex.test.ts', '__tests__/giveaway/**/*.test.ts', '__tests__/affiliates/**/*.test.ts', '__tests__/knowledge/**/*.test.ts', '__tests__/leads/**/*.test.ts', '__tests__/admin/**/*.test.ts', '__tests__/owners/**/*.test.ts', '__tests__/owner-editing-convex/**/*.test.ts'],
     },
 });

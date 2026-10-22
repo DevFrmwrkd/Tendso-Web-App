@@ -1643,7 +1643,8 @@ export default defineSchema({
         lastSyncError: v.optional(v.string()),
     }).index('by_key', ['key']),
 
-    // ==================== AI SITE PIPELINE (v2, additive) ====================
+    // ==================== AI SITE PIPELINE (v2, additive) =============
+
     // One row per automatic build of a submission's site (brief §4C,
     // docs/v2-ai-pipeline.md). Holds each step's output so a retried step skips
     // finished work, plus the reports an admin needs when it fails. Only the
@@ -1675,4 +1676,41 @@ export default defineSchema({
     })
         .index('by_submission', ['submissionId', 'startedAt'])
         .index('by_status', ['status']),
+=======
+    // ── v2 owner editing (convex/ownerSiteEdits.ts) ─────────────────────────
+    // An owner's PRIVATE working copy of their site: the content + design they
+    // are editing in /v2/my-site. It never touches the live site until the owner
+    // presses "Publish changes" (the build then runs on this copy and the result
+    // is committed to generatedWebsites). One row per submission. Additive table;
+    // nothing else reads it.
+    // Upload capabilities are consumed before storing; only the server records IDs.
+    ownerSiteUploads: defineTable({
+        submissionId: v.id('submissions'),
+        businessOwnerId: v.id('businessOwners'),
+        token: v.optional(v.string()),
+        expiresAt: v.optional(v.number()),
+        storageId: v.optional(v.id('_storage')),
+    })
+        .index('by_token', ['token'])
+        .index('by_storage', ['storageId']),
+
+    ownerSiteDrafts: defineTable({
+        submissionId: v.id('submissions'),
+        businessOwnerId: v.id('businessOwners'),
+        // Full extractedContent copy (sanitised) and customizations (template,
+        // colour scheme, font pairing, section order) — same shapes the admin
+        // editor saves, so the build path is unchanged.
+        content: v.any(),
+        customizations: v.any(),
+        // generatedWebsites row this draft was started from (detects a stale base).
+        websiteId: v.id('generatedWebsites'),
+        updatedAt: v.number(),
+        // Set when a build of this draft was committed to the site.
+        lastPublishedAt: v.optional(v.number()),
+        // Set while the live site could not be refreshed (custom-domain Worker):
+        // the new HTML is stored, an admin Republish puts it live.
+        pendingWorkerRepublish: v.optional(v.boolean()),
+    })
+        .index('by_submission', ['submissionId'])
+        .index('by_owner', ['businessOwnerId']),
 });
