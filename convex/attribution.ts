@@ -24,7 +24,7 @@ const claimSource = v.union(v.literal('install_referrer'), v.literal('confirmed'
 type ClickInput = { handle: string; kind: 'shop' | 'earn'; cookieId?: string; ipHash?: string; userAgent?: string };
 
 async function insertClick(ctx: MutationCtx, input: ClickInput, channel: 'web' | 'http') {
-    const found = await findActiveCreator(ctx, input.handle);
+    const found = await findActiveCreator(ctx, input.handle, 'handle');
     if (!found) return { recorded: false, creator: null };
     const creator = found.affiliate;
     const cookieId = cleanCookieId(input.cookieId);
@@ -96,7 +96,7 @@ async function suggestFor(ctx: Pick<QueryCtx, 'db'>, input: { cookieId?: string;
         ...byNetwork.map((click) => ({ click, matchedBy: 'network' as const })).sort((a, b) => b.click.createdAt - a.click.createdAt),
     ];
     for (const { click, matchedBy } of ranked) {
-        const found = await findActiveCreator(ctx, click.handle);
+        const found = await findActiveCreator(ctx, click.handle, 'handle');
         if (!found || found.affiliate._id !== click.creatorId) continue;
         if (input.clerkId && found.affiliate.clerkId === input.clerkId) continue;
         return { creator: creatorCard(found.affiliate, found.price), kind: click.kind, clickedAt: click.createdAt, matchedBy };
@@ -141,7 +141,7 @@ export const claimAttribution = mutation({
     args: { handle: v.string(), source: claimSource, as: v.optional(v.union(v.literal('agent'), v.literal('owner'))) },
     handler: async (ctx, args) => {
         const identity = await requireAuth(ctx);
-        const found = await findActiveCreator(ctx, args.handle);
+        const found = await findActiveCreator(ctx, args.handle, args.source === 'code' ? 'code' : 'handle');
         if (!found) throw new ConvexError('We could not find that creator. Check the code and try again.');
         const creator = found.affiliate;
         const email = identity.email?.trim().toLowerCase();
@@ -157,7 +157,7 @@ export const claimAttribution = mutation({
 
         const existing = await ctx.db.query('creatorAttributions').withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
         if (existing) {
-            const first = await findActiveCreator(ctx, existing.handle);
+            const first = await findActiveCreator(ctx, existing.handle, 'handle');
             return {
                 status: existing.creatorId === creator._id ? 'unchanged' as const : 'already_attributed' as const,
                 kind: existing.kind,
@@ -201,7 +201,7 @@ export const myAttribution = query({
         if (!identity) return null;
         const row = await ctx.db.query('creatorAttributions').withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
         if (!row) return null;
-        const found = await findActiveCreator(ctx, row.handle);
+        const found = await findActiveCreator(ctx, row.handle, 'handle');
         return {
             kind: row.kind,
             source: row.source,

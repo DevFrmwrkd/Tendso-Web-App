@@ -7,7 +7,7 @@ import {
     CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, clampSellPrice, creatorOverrideEndsAt,
     domainAddOnFor, earnsCreatorOverride, isComped, overrideFor, ownerChargeFor,
 } from '../lib/pricing';
-import { CREATOR_OVERRIDE_EARNING, creatorCard, isPaidSale } from './lib/creatorRecruits';
+import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidSale } from './lib/creatorRecruits';
 
 /**
  * The creator portal: both income streams side by side. All money is plain ₱
@@ -121,7 +121,7 @@ export const summary = query({
                 const inWindow = now < endsAt;
                 if (inWindow) {
                     for (const sale of sales) {
-                        if (STILL_PAYING.has(sale.status) && !isComped(sale) && !sale.giveawayApplication) {
+                        if (STILL_PAYING.has(sale.status) && !isComped(sale) && !sale.giveawayApplication && !isCreatorOwnSite(sale, me)) {
                             waitingOverride += overrideFor(websitePriceOf(sale));
                         }
                     }
@@ -158,8 +158,8 @@ export const summary = query({
             creator: {
                 ...creatorCard(me, price),
                 status: me.status as 'active' | 'suspended',
-                shopLink: `/a/${me.affiliateHandle}`,
-                earnLink: `/a/${me.affiliateHandle}/earn`,
+                shopLink: `/v2/a/${me.affiliateHandle}`,
+                earnLink: `/v2/a/${me.affiliateHandle}/earn`,
             },
             month,
             rates: { overrideRate: CREATOR_OVERRIDE_RATE, overrideMonths: CREATOR_OVERRIDE_MONTHS },

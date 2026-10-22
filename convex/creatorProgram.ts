@@ -126,14 +126,14 @@ export const myApplication = query({
 });
 
 /**
- * The public card behind a creator's code or handle, for "Mika's code: you
+ * The public card behind a creator's code, for "Mika's code: you
  * save ₱1,500" at owner checkout and "Join Mika's team" at agent sign-up.
  * Null unless the creator is approved and active.
  */
 export const getCreatorByCode = query({
     args: { code: v.string() },
     handler: async (ctx, args) => {
-        const found = await findActiveCreator(ctx, args.code);
+        const found = await findActiveCreator(ctx, args.code, 'code');
         if (!found) return null;
         return creatorCard(found.affiliate, found.price);
     },

@@ -3,16 +3,8 @@ import { internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { isCreatorAccount } from '../lib/accounts';
 import { creatorOverrideEndsAt, earnsCreatorOverride, overrideFor } from '../lib/pricing';
-import { CREATOR_OVERRIDE_EARNING, isPaidInFull, isPaidSale } from './lib/creatorRecruits';
+import { CREATOR_OVERRIDE_EARNING, isCreatorOwnSite, isPaidInFull, isPaidSale, samePerson } from './lib/creatorRecruits';
 import { validatePaymentPricing } from './lib/paymentPricing';
-
-function samePerson(value?: string | null, other?: string | null, normalize = (s: string) => s.trim().toLowerCase()) {
-    if (!value || !other) return false;
-    const left = normalize(value);
-    return !!left && left === normalize(other);
-}
-
-const digits = (s: string) => s.replace(/\D/g, '').slice(-10);
 
 /**
  * Credit a creator 5% of a sale made by a field agent they recruited.
@@ -52,8 +44,7 @@ export const creditForSubmission = internalMutation({
             return { credited: false, reason: 'self_referral' } as const;
         }
         // An owner never earns on their own site.
-        if (samePerson(submission.ownerEmail, recruiter.email)
-            || samePerson(submission.ownerPhone, recruiter.phone, digits)) {
+        if (isCreatorOwnSite(submission, recruiter)) {
             return { credited: false, reason: 'own_site' } as const;
         }
 

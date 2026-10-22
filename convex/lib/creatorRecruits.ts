@@ -24,6 +24,20 @@ export function isPaidSale(submission: Doc<'submissions'>): boolean {
     return isPaidInFull(submission) && !isComped(submission) && !submission.giveawayApplication;
 }
 
+export function samePerson(value?: string | null, other?: string | null, normalize = (s: string) => s.trim().toLowerCase()) {
+    if (!value || !other) return false;
+    const left = normalize(value);
+    return !!left && left === normalize(other);
+}
+
+const digits = (s: string) => s.replace(/\D/g, '').slice(-10);
+
+/** An owner never earns an override on their own site. */
+export function isCreatorOwnSite(submission: Doc<'submissions'>, creator: Doc<'creators'>): boolean {
+    return samePerson(submission.ownerEmail, creator.email)
+        || samePerson(submission.ownerPhone, creator.phone, digits);
+}
+
 export type RecruitVia = 'code' | 'install_referrer' | 'confirmed';
 
 export type AttachResult =
@@ -89,17 +103,16 @@ export function normalizeCreatorCode(value: string): string {
 }
 
 /**
- * An ACTIVE creator by page handle (`mika`) or code (`MIKA30`). Pending,
+ * An ACTIVE creator by an explicit page handle (`mika`) or code (`MIKA30`). Pending,
  * suspended and deleted creators resolve to nothing, so a link can never
  * attribute to an account the admin has not approved.
  */
-export async function findActiveCreator(ctx: Pick<QueryCtx, 'db'>, handleOrCode: string) {
+export async function findActiveCreator(ctx: Pick<QueryCtx, 'db'>, handleOrCode: string, kind: 'handle' | 'code') {
     const raw = handleOrCode.trim();
     if (!raw || raw.length > 64) return null;
-    const handle = raw.replace(/^@/, '').toLowerCase();
-    if (!affiliateHandleError(handle)) {
-        const offer = await resolveAffiliateOffer(ctx, handle);
-        if (offer) return offer;
+    if (kind === 'handle') {
+        const handle = raw.replace(/^@/, '').toLowerCase();
+        return affiliateHandleError(handle) ? null : resolveAffiliateOffer(ctx, handle);
     }
     const code = normalizeCreatorCode(raw);
     const byCode = await ctx.db.query('creators').withIndex('by_referral_code', (q) => q.eq('referralCode', code)).first();

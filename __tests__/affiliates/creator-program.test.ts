@@ -123,7 +123,7 @@ describe('recruit link', () => {
 
     it('refuses self-referral, a second creator, and an agent who has already sold', async () => {
         const { t, creatorId, mika } = await setup();
-        await expect(mika.mutation(api.attribution.claimAttribution, { handle: 'mika', source: 'code' })).rejects.toThrow('your own');
+        await expect(mika.mutation(api.attribution.claimAttribution, { handle: 'MIKA30', source: 'code' })).rejects.toThrow('your own');
         const sameEmail = t.withIdentity({ subject: 'twin', email: 'MIKA@example.com' });
         await expect(sameEmail.mutation(api.attribution.claimAttribution, { handle: 'MIKA30', source: 'code' })).rejects.toThrow('your own');
 
@@ -139,7 +139,7 @@ describe('recruit link', () => {
         const sellerId = await addAgent(t, 'seller');
         await addSale(t, sellerId, { status: 'completed' });
         const seller = t.withIdentity({ subject: 'seller', email: 'seller@example.com' });
-        expect(await seller.mutation(api.attribution.claimAttribution, { handle: 'mika', source: 'code' })).toMatchObject({ linked: false, reason: 'already_selling' });
+        expect(await seller.mutation(api.attribution.claimAttribution, { handle: 'MIKA30', source: 'code' })).toMatchObject({ linked: false, reason: 'already_selling' });
         expect((await t.run((ctx) => ctx.db.get(sellerId)))?.recruitedByCreatorId).toBeUndefined();
     });
 });
@@ -229,6 +229,37 @@ describe('override payout', () => {
 });
 
 describe('attribution', () => {
+    it('keeps a colliding handle and code separate for clicks, owner claims and recruits', async () => {
+        const { t, creatorId } = await setup();
+        const codeOwnerId = await t.run((ctx) => ctx.db.insert('creators', {
+            clerkId: 'leo', email: 'leo@example.com', role: 'affiliate', status: 'active',
+            affiliateHandle: 'leo', referralCode: 'MIKA', balance: 0,
+        }));
+        for (const code of ['MIKA', 'mika', ' MiKa ']) {
+            expect(await t.query(api.creatorProgram.getCreatorByCode, { code })).toMatchObject({ handle: 'leo', code: 'MIKA' });
+        }
+        expect(await t.mutation(api.attribution.recordClick, { handle: 'mika', kind: 'earn', cookieId: 'collision' }))
+            .toMatchObject({ creator: { handle: 'mika', code: 'MIKA30' } });
+        const linkedId = await addAgent(t, 'linked');
+        await t.withIdentity({ subject: 'linked' }).mutation(api.attribution.claimAttribution, { handle: 'mika', source: 'confirmed' });
+        expect(await t.run((ctx) => ctx.db.get(linkedId))).toMatchObject({ recruitedByCreatorId: creatorId });
+        expect(await t.withIdentity({ subject: 'linked' }).query(api.attribution.myAttribution, {}))
+            .toMatchObject({ creator: { handle: 'mika' } });
+
+        const agentId = await addAgent(t, 'typed');
+        await t.withIdentity({ subject: 'typed' }).mutation(api.attribution.claimAttribution, { handle: 'mika', source: 'code' });
+        expect(await t.run((ctx) => ctx.db.get(agentId))).toMatchObject({ recruitedByCreatorId: codeOwnerId });
+        await t.withIdentity({ subject: 'owner' }).mutation(api.attribution.claimAttribution, { handle: 'MIKA', source: 'code', as: 'owner' });
+        expect(await t.run((ctx) => ctx.db.query('creatorAttributions').withIndex('by_clerk_id', (q) => q.eq('clerkId', 'owner')).first()))
+            .toMatchObject({ creatorId: codeOwnerId, kind: 'owner' });
+
+        // An inactive code must never fall back to another creator's active handle.
+        await t.run((ctx) => ctx.db.patch(codeOwnerId, { status: 'suspended' }));
+        expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'MIKA' })).toBeNull();
+        await expect(t.withIdentity({ subject: 'late' }).mutation(api.attribution.claimAttribution, { handle: 'MIKA', source: 'code' }))
+            .rejects.toThrow('could not find');
+    });
+
     it('suggests the creator behind a recent click but never attributes on its own', async () => {
         const { t, creatorId } = await setup();
         expect(await t.mutation(api.attribution.recordClick, { handle: 'mika', kind: 'earn', cookieId: 'cookie-1', userAgent: 'Mozilla/5.0' }))
@@ -273,7 +304,7 @@ describe('attribution', () => {
         await t.run((ctx) => ctx.db.insert('businessOwners', { clerkId: 'owner', email: 'owner@example.com', createdAt: NOW }));
         const owner = t.withIdentity({ subject: 'owner', email: 'owner@example.com' });
         expect(await owner.mutation(api.attribution.claimAttribution, { handle: 'MIKA30', source: 'code' })).toMatchObject({ kind: 'owner', linked: true, creator: { code: 'MIKA30', price: 3499 } });
-        expect(await owner.mutation(api.attribution.claimAttribution, { handle: 'mika', source: 'code' })).toMatchObject({ status: 'unchanged' });
+        expect(await owner.mutation(api.attribution.claimAttribution, { handle: 'MIKA30', source: 'code' })).toMatchObject({ status: 'unchanged' });
     });
 
     it('hashes the caller IP with a salt and never returns the raw IP', async () => {
@@ -322,12 +353,27 @@ describe('creator sign-up and code', () => {
         expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'lia25' })).toEqual({
             handle: 'lia-makes', name: 'Lia Cruz', photo: null, code: 'LIA25', listPrice: 4999, price: 3499, saving: 1500, percentOff: 30,
         });
-        expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'lia-makes' })).toMatchObject({ code: 'LIA25' });
+        expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'lia-makes' })).toBeNull();
         expect(await t.query(api.creatorProgram.myApplication, {})).toEqual({ status: 'signed_out' });
     });
 });
 
 describe('creator portal', () => {
+    it.each(['deposit_paid', 'pending_payment', 'deployed'])('excludes own-shop email and phone matches from pending team earnings (%s)', async (status) => {
+        const { t, mika } = await setup();
+        const agentId = await recruitByCode(t, 'ana');
+        const ownEmail = await addSale(t, agentId, { status, amount: 4999, ownerEmail: '  MIKA@Example.com  ' });
+        const ownPhone = await addSale(t, agentId, { status, amount: 4999, ownerEmail: undefined, ownerPhone: '+63 917 000 0001' });
+        await addSale(t, agentId, { status, amount: 4999 });
+        expect((await mika.query(api.creatorPortal.summary, {})).payouts)
+            .toMatchObject({ waitingFromTeam: 250, waitingForShops: 250 });
+        for (const submissionId of [ownEmail, ownPhone]) {
+            await t.run((ctx) => ctx.db.patch(submissionId, { status: 'paid', paidAt: NOW }));
+            expect(await credit(t, submissionId)).toMatchObject({ credited: false, reason: 'own_site' });
+        }
+        expect(await overrides(t)).toEqual([]);
+    });
+
     it('summarises now money, monthly money, funnel, recruits, shops and payouts in ₱', async () => {
         const { t, creatorId, mika } = await setup();
         const month = manilaMonth(NOW);
@@ -348,7 +394,7 @@ describe('creator portal', () => {
         await t.run((ctx) => ctx.db.insert('withdrawals', { creatorId, amount: 1000, payoutMethod: 'wise_email', accountDetails: 'x', status: 'completed', createdAt: NOW - 2 * DAY, processedAt: NOW - DAY }));
 
         const summary = await mika.query(api.creatorPortal.summary, {});
-        expect(summary.creator).toMatchObject({ handle: 'mika', code: 'MIKA30', price: 3499, saving: 1500, shopLink: '/a/mika', earnLink: '/a/mika/earn' });
+        expect(summary.creator).toMatchObject({ handle: 'mika', code: 'MIKA30', price: 3499, saving: 1500, shopLink: '/v2/a/mika', earnLink: '/v2/a/mika/earn' });
         expect(summary.now).toMatchObject({ thisMonth: 1750, shopsThisMonth: 1 });
         expect(summary.monthly).toEqual({ thisMonth: 150, activeAgents: 1, agentsInWindow: 2, nextEndDate: creatorOverrideEndsAt(NOW) });
         expect(summary.funnel).toEqual({ shop: { clicks: 1, signUps: 0, sales: 2 }, earn: { clicks: 1, signUps: 2, sales: 1 } });
