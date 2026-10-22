@@ -273,7 +273,7 @@ export function Hero() {
                     <Button href="#hire" size="lg">
                         Request a field agent
                     </Button>
-                    <StoreStatus className="hero-stores" />
+                    <StoreStatus variant="icons" />
                 </div>
             </div>
         </section>

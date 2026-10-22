@@ -134,3 +134,8 @@
   .at-answer, .at-panel { animation: none; }
   .at-dots i { animation: none; opacity: .5; }
 }
+
+/* Keep the page's last line (the footer links) clear of the floating launcher on phones. */
+@media (max-width: 900px) {
+  body:has(.at-launcher) .v2-foot-bottom { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}

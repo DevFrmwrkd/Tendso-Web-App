@@ -51,7 +51,7 @@ export function Landing() {
                     }
                 />
                 {/* Ask Tendso: the floating help chat (same engine as the Help page). */}
-                <AskTendsoLauncher />
+                <AskTendsoLauncher revealAfter={0.6} />
                 <Reveals />
             </div>
         </V2Root>

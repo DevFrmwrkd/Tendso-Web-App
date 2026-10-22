@@ -186,7 +186,7 @@ export function Paths() {
                         <article className="v2-tile path path--download" id="download">
                             <h3 className="path-line">Talk, snap, done. On your phone.</h3>
                             <div className="path-foot dl">
-                                <StoreStatus as="p" role="status" />
+                                <StoreStatus variant="badges" />
                             </div>
                         </article>
                     </div>

@@ -316,13 +316,17 @@ export function AskTendsoLauncher({
     suggestions = DEFAULT_STARTERS,
     label = "Ask Tendso",
     className,
+    revealAfter = 0,
 }: {
     suggestions?: string[];
     label?: string;
     className?: string;
+    /** Stay hidden until the page has scrolled this many viewport heights (keeps a hero's own buttons clear). */
+    revealAfter?: number;
 }) {
     const { thread, busy, ask, retry } = useAsk("chatbot");
     const [open, setOpen] = useState(false);
+    const [scrolledPast, setScrolledPast] = useState(false);
     const [value, setValue] = useState("");
     const bodyRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -339,6 +343,16 @@ export function AskTendsoLauncher({
     useEffect(() => {
         if (open) inputRef.current?.focus();
     }, [open]);
+
+    useEffect(() => {
+        if (revealAfter <= 0) return;
+        const onScroll = () => setScrolledPast(window.scrollY > window.innerHeight * revealAfter);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [revealAfter]);
+
+    if (revealAfter > 0 && !scrolledPast && !open) return null;
 
     const close = () => {
         setOpen(false);

@@ -19,7 +19,9 @@ export function generateStaticParams() {
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     if (!SHOWCASE_SITES.some((s) => s.id === id)) return new Response("Not found", { status: 404 });
-    const html = await readFile(path.join(process.cwd(), "public", "v2", "showcase", id, "index.html"), "utf8");
+    const file = await readFile(path.join(process.cwd(), "public", "v2", "showcase", id, "index.html"), "utf8");
+    // The static pages carry no icon link; without one the browser asks for /favicon.ico (a 404).
+    const html = /rel=["']?icon/i.test(file) ? file : file.replace(/<\/head>/i, '<link rel="icon" href="/tendso-icon.png"></head>');
     return new Response(html, {
         headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400", "x-robots-tag": "noindex" },
     });
