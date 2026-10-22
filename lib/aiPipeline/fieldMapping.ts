@@ -176,9 +176,8 @@ export function buildTemplateContent(facts: Facts, copy: Copy, input: PipelineIn
         // The route's testimonial guard still decides whether these may show.
         testimonials: facts.customerQuotes.map((quote) => ({ quote })),
         ctaBand: {
-            heading: copy.ctaHeading || (tel ? 'Call or drop by' : 'Drop by'),
-            primaryLabel: cta1.text,
-            primaryLink: cta1.href,
+            headline: copy.ctaHeading || (tel ? 'Call or drop by' : 'Drop by'),
+            cta: cta1,
         },
     };
     return content;

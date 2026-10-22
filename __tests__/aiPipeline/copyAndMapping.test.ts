@@ -2,6 +2,7 @@ import { buildCopyPrompt, cleanLine, validateCopy, EMPTY_COPY } from '@/lib/aiPi
 import { buildTemplateContent, factFaq, headlineLines, readPath, telHref, templateCoverage } from '@/lib/aiPipeline/fieldMapping';
 import { GENERIC_CONTENT_SCHEMA } from '@/components/editor/genericContentSchema';
 import { TEMPLATE_FIELD_PATHS } from '@/components/editor/templateFieldPaths.generated';
+import { EMPTY_FACTS } from '@/lib/aiPipeline/facts';
 import { makeFacts, makeInput } from './fixtures';
 
 describe('validateCopy', () => {
@@ -109,5 +110,23 @@ describe('buildTemplateContent', () => {
         expect(coverage.filled.length).toBeGreaterThan(0);
         expect([...coverage.filled, ...coverage.empty].some((p) => /(^|\.)(image\d*|images|href)(\.|$)/.test(p))).toBe(false);
         expect(templateCoverage({ a: { b: '' }, c: ['x'] }, ['a.b', 'c.N', 'hero.image'])).toEqual({ filled: ['c.N'], empty: ['a.b'] });
+    });
+});
+
+
+describe('spoken numeric copy claims', () => {
+    it.each(['Ten', 'Twenty-one', 'One hundred and twenty', 'Isang daan at dalawampu', "Dalawampu't isa", 'Limang daan', 'Dalawang libo', 'Sampung', 'Labindalawa', 'Labing-anim'])('rejects %s with empty facts', (number) => {
+        expect(validateCopy({ heroSub: `${number} years serving our neighbours` }, EMPTY_FACTS).copy.heroSub).toBe('');
+    });
+
+    it.each(['Twenty-one', "Dalawampu't isa"])('matches the whole compound %s rather than its parts', (number) => {
+        const raw = { heroSub: `${number} years serving our neighbours` };
+        expect(validateCopy(raw, makeFacts({ story: '21 years' })).copy.heroSub).toBe(raw.heroSub);
+        expect(validateCopy(raw, makeFacts({ story: '20 years and 1 shop' })).copy.heroSub).toBe('');
+    });
+
+    it('maps closing copy and its telephone action to renderer fields', () => {
+        const content = buildTemplateContent(makeFacts(), { ...EMPTY_COPY, ctaHeading: 'Come for a haircut' }, makeInput());
+        expect(content.ctaBand).toEqual({ headline: 'Come for a haircut', cta: { text: 'Call us', href: 'tel:+639171234567' } });
     });
 });

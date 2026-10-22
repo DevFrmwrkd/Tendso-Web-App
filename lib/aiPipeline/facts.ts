@@ -4,8 +4,8 @@
  * The LLM reads the interview (EN / TL / Taglish) and fills a fixed JSON shape.
  * Two deterministic layers then stand between the model and the page:
  *   validateFacts — coerces to the exact shape; anything missing becomes '' / [].
- *   groundFacts   — drops any price, year, time or phone whose digits do not
- *                   appear in what the owner actually said or typed. A model may
+ *   groundFacts   — drops numeric claims in every field unless supported by
+ *                   what the owner actually said or typed. A model may
  *                   misread; it may not invent a number.
  * Pure: no network. See docs/v2-ai-pipeline.md.
  */
@@ -172,7 +172,7 @@ export function validateFacts(raw: unknown): Facts {
 
 /** Every number in `value` also appears in the source. */
 function numbersGrounded(value: string, sourceNumbers: Set<string>): boolean {
-    return numbersIn(value).every((n) => sourceNumbers.has(n));
+    return [...numbersIn(value), ...spokenNumbersIn(value)].every((n) => sourceNumbers.has(n));
 }
 
 /** Map 9-digit/10-digit PH numbers to a comparable tail. */
@@ -197,13 +197,20 @@ export function groundFacts(
     const sourceNumbers = new Set([...numbersIn(sourceText), ...spokenNumbersIn(sourceText)]);
     const report: GroundingReport = { droppedPrices: [], droppedHours: 0, droppedYear: false, droppedPhone: false };
 
-    const services = facts.services.map((s) => {
+    // Check all model prose before it can become a trusted copy source.
+    const prose = (value: string) => numbersGrounded(value, sourceNumbers) ? value : '';
+    const grounded = Object.fromEntries(Object.entries(facts).map(([key, value]) => [
+        key, typeof value === 'string' ? prose(value) : Array.isArray(value) && key !== 'services' && key !== 'hours'
+            ? value.map(prose).filter(Boolean) : value,
+    ])) as unknown as Facts;
+    const services = facts.services.map((service) => {
+        const s = { ...service, name: prose(service.name), note: prose(service.note) };
         if (s.price && !numbersGrounded(s.price, sourceNumbers)) {
             report.droppedPrices.push(`${s.name}: ${s.price}`);
             return { ...s, price: '' };
         }
         return s;
-    });
+    }).filter((s) => s.name);
     const hours = facts.hours.filter((h) => {
         const ok = numbersGrounded(`${h.days} ${h.time}`, sourceNumbers);
         if (!ok) report.droppedHours++;
@@ -226,14 +233,14 @@ export function groundFacts(
     return {
         report,
         facts: {
-            ...facts,
+            ...grounded,
             // Typed values win over anything heard.
-            businessName: form.businessName?.trim() || facts.businessName,
-            ownerName: form.ownerName?.trim() || facts.ownerName,
-            businessType: form.businessType?.trim() || facts.businessType,
-            address: form.address?.trim() || facts.address,
-            city: form.city?.trim() || facts.city,
-            email: form.ownerEmail?.trim() || facts.email,
+            businessName: form.businessName?.trim() || grounded.businessName,
+            ownerName: form.ownerName?.trim() || grounded.ownerName,
+            businessType: form.businessType?.trim() || grounded.businessType,
+            address: form.address?.trim() || grounded.address,
+            city: form.city?.trim() || grounded.city,
+            email: form.ownerEmail?.trim() || grounded.email,
             phone,
             services,
             hours,

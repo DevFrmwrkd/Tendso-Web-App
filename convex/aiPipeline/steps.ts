@@ -45,7 +45,7 @@ function customizationsFor(stored: Record<string, unknown> | null, templateCode:
     };
 }
 
-function makeDeps(ctx: ActionCtx, run: Doc<'aiPipelineRuns'>): PipelineDeps {
+export function makeDeps(ctx: ActionCtx, run: Doc<'aiPipelineRuns'>): PipelineDeps {
     const hf = higgsfieldConfig(process.env);
     return {
         env: process.env,
@@ -72,7 +72,11 @@ function makeDeps(ctx: ActionCtx, run: Doc<'aiPipelineRuns'>): PipelineDeps {
                 mediaType: input.mainMediaType,
             });
             const fresh = await ctx.runQuery(internal.submissions.getByIdInternal, { id: run.submissionId });
-            return { kind: 'ready', transcript: (fresh?.transcript ?? '').trim() };
+            const transcript = (fresh?.transcript ?? '').trim();
+            if (fresh?.transcriptionStatus === 'failed' || !transcript) {
+                throw new Error('Interview transcription failed or returned no usable text; retrying');
+            }
+            return { kind: 'ready', transcript };
         },
 
         templateInfo(input) {

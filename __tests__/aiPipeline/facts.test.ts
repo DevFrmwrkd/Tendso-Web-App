@@ -147,3 +147,27 @@ describe('buildPipelineInput', () => {
         expect(input.isPublished).toBe(true);
     });
 });
+
+
+describe('numeric prose grounding', () => {
+    it.each(['500 customers weekly', 'Five hundred customers weekly', "Limang daan customers weekly"])(
+        'removes unsupported claims from every prose field: %s', (claim) => {
+            const raw = validateFacts({
+                story: claim, landmark: claim, hoursNote: claim,
+                services: [{ name: 'Haircuts', note: claim }],
+                customersLove: [claim], customerQuotes: [claim], ownerQuotes: [claim],
+                paymentMethods: [claim], areasServed: [claim],
+            });
+            const { facts } = groundFacts(raw, 'We offer haircuts.', makeInput());
+            expect(facts).toMatchObject({ story: '', landmark: '', hoursNote: '',
+                services: [{ name: 'Haircuts', price: '', note: '' }],
+                customersLove: [], customerQuotes: [], ownerQuotes: [], paymentMethods: [], areasServed: [] });
+        },
+    );
+
+    it('retains prose numbers supported by the original interview', () => {
+        const { facts } = groundFacts(validateFacts({ story: 'We serve five hundred customers weekly.' }),
+            'We serve 500 customers weekly.', makeInput());
+        expect(facts.story).toBe('We serve five hundred customers weekly.');
+    });
+});

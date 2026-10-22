@@ -125,6 +125,8 @@ export interface PhotoResult {
     /** Why the original was kept, or 'passed'. */
     reason: string;
     originalUrl: string;
+    /** Ordered source references used for this result; absent legacy results cannot be reused. */
+    referenceUrls?: string[];
     /** Convex storage id of the polished image (when polished). */
     storageId?: string;
     url?: string;

@@ -130,7 +130,7 @@ async function writingPages(state: RunState, deps: PipelineDeps): Promise<StepOu
 
 // ─── 3. polishing_photos ─────────────────────────────────────────────────────
 async function polishOne(item: PolishPlanItem, deps: PipelineDeps, usage: Partial<UsageTotals>): Promise<PhotoResult> {
-    const base = { index: item.shot.index, shotType: item.shotType, originalUrl: item.shot.url };
+    const base = { index: item.shot.index, shotType: item.shotType, originalUrl: item.shot.url, referenceUrls: item.referenceUrls };
     try {
         usage.imageJobs = (usage.imageJobs ?? 0) + 1;
         const job = await deps.generateImage({ prompt: item.prompt, imageUrls: item.referenceUrls });
@@ -156,9 +156,8 @@ async function polishOne(item: PolishPlanItem, deps: PipelineDeps, usage: Partia
     }
 }
 
-/** Placement map for the builder, or null when nothing was polished (originals as today). */
-export function enhancedImagesFrom(results: PhotoResult[]): Record<string, { url: string; storageId?: string }> | null {
-    if (!results.some((r) => r.outcome === 'polished')) return null;
+/** Complete current placement map, including originals when polishing is skipped. */
+export function enhancedImagesFrom(results: PhotoResult[]): Record<string, { url: string; storageId?: string }> {
     const keys = placementKeys(results);
     const out: Record<string, { url: string; storageId?: string }> = {};
     for (const r of results) {
@@ -179,16 +178,21 @@ async function polishingPhotos(state: RunState, deps: PipelineDeps): Promise<Ste
         offReason: polishingOffReason(deps.env),
         businessType: state.input.businessType,
     });
-    const done: Record<string, PhotoResult> = { ...(state.photos ?? {}) };
+    const done: Record<string, PhotoResult> = {};
     const results: PhotoResult[] = [];
 
     for (const s of plan.skipped) {
         results.push({ index: s.shot.index, shotType: s.shotType, outcome: 'kept', reason: s.reason, originalUrl: s.shot.url });
     }
     const todo = plan.items.filter((item) => {
-        const prior = done[String(item.shot.index)];
-        if (prior) results.push(prior);
-        return !prior;
+        const prior = state.photos?.[String(item.shot.index)];
+        const matches = prior && prior.originalUrl === item.shot.url && prior.shotType === item.shotType
+            && JSON.stringify(prior.referenceUrls) === JSON.stringify(item.referenceUrls);
+        if (matches) {
+            results.push(prior);
+            done[String(prior.index)] = prior;
+        }
+        return !matches;
     });
 
     // Three at a time: fast enough for the 20-minute target, gentle on the provider.

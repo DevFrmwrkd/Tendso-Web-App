@@ -109,7 +109,7 @@ export function validateCopy(raw: unknown, facts: Facts): { copy: Copy; report: 
     const field = (name: string, value: unknown, limit: number): string => {
         let s = cleanLine(str(value, 600));
         if (!s) return '';
-        if (numbersIn(s).some((n) => !factNumbers.has(n)) || CLICHES.test(s)) {
+        if ([...numbersIn(s), ...spokenNumbersIn(s)].some((n) => !factNumbers.has(n)) || CLICHES.test(s)) {
             report.blanked.push(name);
             return '';
         }

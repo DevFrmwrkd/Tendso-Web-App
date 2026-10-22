@@ -37,11 +37,30 @@ class HttpError extends Error {
     }
 }
 
+/** Keep the abort signal alive through response body reads as well as headers. */
+async function withinBudget<T>(timeoutMs: number, work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const expired = new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => {
+            const error = new Error('Image request timed out');
+            controller.abort(error);
+            reject(error);
+        }, Math.max(0, timeoutMs));
+    });
+    try {
+        return await Promise.race([work(controller.signal), expired]);
+    } finally {
+        clearTimeout(timer!);
+    }
+}
+
 type Part = { text: string } | { inline_data: { mime_type: string; data: string } };
 
-async function geminiCall(model: string, key: string, system: string, parts: Part[]): Promise<{ text: string; usage: LlmUsage }> {
+async function geminiCall(model: string, key: string, system: string, parts: Part[], signal?: AbortSignal): Promise<{ text: string; usage: LlmUsage }> {
     const res = await fetch(`${GEMINI_BASE}/models/${model}:generateContent?key=${key}`, {
         method: 'POST',
+        signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             systemInstruction: { parts: [{ text: system }] },
@@ -77,11 +96,12 @@ async function pickGeminiKey(ctx: ActionCtx): Promise<{ id?: Id<'aiKeys'>; key: 
 }
 
 /** Gemini through the key pool: rotate keys on 429/401/403, walk the model chain on 404/400. */
-export async function geminiJson(ctx: ActionCtx, system: string, parts: Part[]): Promise<{ text: string; usage: LlmUsage } | null> {
+export async function geminiJson(ctx: ActionCtx, system: string, parts: Part[], signal?: AbortSignal): Promise<{ text: string; usage: LlmUsage } | null> {
     let lastErr: unknown = null;
     let anyKey = false;
     for (const model of geminiChain()) {
         for (let attempt = 0; attempt < 4; attempt++) {
+            signal?.throwIfAborted();
             const picked = await pickGeminiKey(ctx);
             if (!picked) {
                 // No usable key left. None at all → let the caller fall back.
@@ -90,7 +110,7 @@ export async function geminiJson(ctx: ActionCtx, system: string, parts: Part[]):
             }
             anyKey = true;
             try {
-                const out = await geminiCall(model, picked.key, system, parts);
+                const out = await geminiCall(model, picked.key, system, parts, signal);
                 if (picked.id) await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'ok' });
                 return out;
             } catch (e) {
@@ -156,13 +176,15 @@ export async function visionJson(
     ctx: ActionCtx,
     prompt: string,
     images: Array<{ bytes: Uint8Array; contentType: string }>,
+    opts: { timeoutMs?: number } = {},
 ): Promise<{ json: unknown; usage?: LlmUsage } | null> {
     try {
         const parts: Part[] = [
             ...images.map((img) => ({ inline_data: { mime_type: img.contentType.split(';')[0] || 'image/jpeg', data: Buffer.from(img.bytes).toString('base64') } })),
             { text: prompt },
         ];
-        const out = await geminiJson(ctx, 'You grade photos strictly and answer in JSON only.', parts);
+        const out = await withinBudget(opts.timeoutMs ?? 30_000, (signal) =>
+            geminiJson(ctx, 'You grade photos strictly and answer in JSON only.', parts, signal));
         return out ? { json: parseJsonLoose(out.text), usage: out.usage } : null;
     } catch (e) {
         console.warn(`[ai-pipeline] vision check unavailable: ${e instanceof Error ? e.message : String(e)}`);
@@ -178,50 +200,57 @@ export async function higgsfieldGenerate(
     req: { prompt: string; imageUrls: string[] },
     opts: { timeoutMs?: number; pollMs?: number } = {},
 ): Promise<{ url: string; requestId?: string }> {
-    const headers = { Authorization: cfg.authorization, 'Content-Type': 'application/json', Accept: 'application/json' };
-    const body = JSON.stringify({ ...cfg.extraParams, prompt: req.prompt, image_urls: req.imageUrls });
+    const timeoutMs = opts.timeoutMs ?? 150_000;
+    const deadline = Date.now() + timeoutMs;
+    return withinBudget(timeoutMs, async (signal) => {
+        const headers = { Authorization: cfg.authorization, 'Content-Type': 'application/json', Accept: 'application/json' };
+        const body = JSON.stringify({ ...cfg.extraParams, prompt: req.prompt, image_urls: req.imageUrls });
 
-    let submitted: { request_id?: string; status_url?: string } | null = null;
-    for (let attempt = 0; attempt < 4 && !submitted; attempt++) {
-        const res = await fetch(`${cfg.baseUrl}/${cfg.endpoint}`, { method: 'POST', headers, body });
-        const text = await res.text();
-        if (res.ok) {
-            submitted = JSON.parse(text);
-            break;
+        let submitted: { request_id?: string; status_url?: string } | null = null;
+        for (let attempt = 0; attempt < 4 && !submitted; attempt++) {
+            signal.throwIfAborted();
+            const res = await fetch(`${cfg.baseUrl}/${cfg.endpoint}`, { method: 'POST', headers, body, signal });
+            const text = await res.text();
+            if (res.ok) {
+                submitted = JSON.parse(text);
+                break;
+            }
+            // Past the per-account concurrency cap Higgsfield answers 400 (not 429).
+            if ((res.status === 400 && /concurrent/i.test(text)) || res.status === 429 || res.status >= 500) {
+                await sleep(8_000 * (attempt + 1));
+                continue;
+            }
+            throw new HttpError(res.status, `Higgsfield submit ${res.status}: ${text.slice(0, 300)}`);
         }
-        // Past the per-account concurrency cap Higgsfield answers 400 (not 429).
-        if ((res.status === 400 && /concurrent/i.test(text)) || res.status === 429 || res.status >= 500) {
-            await sleep(8_000 * (attempt + 1));
-            continue;
-        }
-        throw new HttpError(res.status, `Higgsfield submit ${res.status}: ${text.slice(0, 300)}`);
-    }
-    if (!submitted?.request_id) throw new Error('Higgsfield did not accept the job');
+        if (!submitted?.request_id) throw new Error('Higgsfield did not accept the job');
 
-    const statusUrl = submitted.status_url || `${cfg.baseUrl}/requests/${submitted.request_id}/status`;
-    const deadline = Date.now() + (opts.timeoutMs ?? 150_000);
-    while (Date.now() < deadline) {
-        await sleep(opts.pollMs ?? 4_000);
-        const res = await fetch(statusUrl, { headers });
-        if (!res.ok) continue;
-        const json = await res.json();
-        const status = String(json?.status ?? '');
-        if (status === 'completed') {
-            const url = json?.images?.[0]?.url;
-            if (typeof url !== 'string' || !url) throw new Error('Higgsfield completed without an image');
-            return { url, requestId: submitted.request_id };
+        const statusUrl = submitted.status_url || `${cfg.baseUrl}/requests/${submitted.request_id}/status`;
+        while (Date.now() < deadline) {
+            await sleep(opts.pollMs ?? 4_000);
+            signal.throwIfAborted();
+            const res = await fetch(statusUrl, { headers, signal });
+            if (!res.ok) continue;
+            const json = await res.json();
+            const status = String(json?.status ?? '');
+            if (status === 'completed') {
+                const url = json?.images?.[0]?.url;
+                if (typeof url !== 'string' || !url) throw new Error('Higgsfield completed without an image');
+                return { url, requestId: submitted.request_id };
+            }
+            if (status === 'failed' || status === 'nsfw' || status === 'canceled') {
+                throw new Error(`Higgsfield job ${status}${json?.error ? `: ${String(json.error).slice(0, 200)}` : ''}`);
+            }
         }
-        if (status === 'failed' || status === 'nsfw' || status === 'canceled') {
-            throw new Error(`Higgsfield job ${status}${json?.error ? `: ${String(json.error).slice(0, 200)}` : ''}`);
-        }
-    }
-    // Free a queued slot; an in-progress job cannot be canceled and is simply abandoned.
-    fetch(`${cfg.baseUrl}/requests/${submitted.request_id}/cancel`, { method: 'POST', headers }).catch(() => undefined);
-    throw new Error('Higgsfield job timed out');
+        // Free a queued slot; an in-progress job cannot be canceled and is simply abandoned.
+        fetch(`${cfg.baseUrl}/requests/${submitted.request_id}/cancel`, { method: 'POST', headers, signal: AbortSignal.timeout(5_000) }).catch(() => undefined);
+        throw new Error('Higgsfield job timed out');
+    });
 }
 
-export async function fetchBytes(url: string): Promise<{ bytes: Uint8Array; contentType: string }> {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`download ${res.status}`);
-    return { bytes: new Uint8Array(await res.arrayBuffer()), contentType: res.headers.get('content-type') || 'image/jpeg' };
+export async function fetchBytes(url: string, opts: { timeoutMs?: number } = {}): Promise<{ bytes: Uint8Array; contentType: string }> {
+    return withinBudget(opts.timeoutMs ?? 30_000, async (signal) => {
+        const res = await fetch(url, { signal });
+        if (!res.ok) throw new Error(`download ${res.status}`);
+        return { bytes: new Uint8Array(await res.arrayBuffer()), contentType: res.headers.get('content-type') || 'image/jpeg' };
+    });
 }

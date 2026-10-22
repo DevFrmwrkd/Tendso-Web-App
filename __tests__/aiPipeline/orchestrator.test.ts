@@ -105,8 +105,8 @@ describe('runPipelineLocally (orchestrator with mocked providers)', () => {
         expect(photos.every((p) => p.outcome === 'kept')).toBe(true);
         expect(photos.some((p) => /not bright and natural/.test(p.reason))).toBe(true);
         expect(photos.some((p) => /nsfw/.test(p.reason))).toBe(true);
-        // Nothing polished → the builder uses the submission photos exactly as today.
-        expect(h.calls.builds[0].enhancedImages).toBeNull();
+        // Nothing polished → every active placement explicitly uses the current original.
+        expect(Object.values(h.calls.builds[0].enhancedImages!).map((image) => image.url).sort()).toEqual(makeInput().shots.map((shot) => shot.url).sort());
     });
 
     it('is cleanly off without a Higgsfield key: no image jobs, originals used', async () => {
@@ -116,7 +116,7 @@ describe('runPipelineLocally (orchestrator with mocked providers)', () => {
         expect(h.calls.images).toEqual([]);
         expect(h.calls.vision).toBe(0);
         expect(Object.values(res.state.photos ?? {})).toEqual([]);
-        expect(h.calls.builds[0].enhancedImages).toBeNull();
+        expect(Object.values(h.calls.builds[0].enhancedImages!).every((image) => !image.storageId)).toBe(true);
     });
 
     it('honours "keep originals"', async () => {
@@ -248,5 +248,40 @@ describe('config and costs', () => {
         const est = estimateCost({ transcribedMainRecording: 1, llmInputTokens: 30_000, llmOutputTokens: 6_000, imageJobs: 6 }, costRates({}));
         expect(est.imagesUsd).toBeCloseTo(0.6);
         expect(est.totalUsd).toBeLessThan(1);
+    });
+});
+
+
+describe('photo rebuild identity', () => {
+    it.each(['replacement', 'reorder', 'type', 'references', 'legacy'])(
+        'regenerates results after a %s change', async (change) => {
+            const first = harness();
+            const res = await runPipelineLocally(makeInput(), first.deps, { timeoutMs: 30 * MIN, sleep: first.sleep });
+            const input = makeInput();
+            if (change === 'replacement') input.shots[3].url = 'https://r2.example/new-front.jpg';
+            if (change === 'reorder') [input.shots[1].url, input.shots[3].url] = [input.shots[3].url, input.shots[1].url];
+            if (change === 'type') input.shots[3].role = 'interior_3';
+            if (change === 'references') input.shots[1].url = 'https://r2.example/new-room.jpg';
+            if (change === 'legacy') for (const photo of Object.values(res.state.photos!)) delete photo.referenceUrls;
+            const again = harness();
+            const { executeStep } = await import('@/lib/aiPipeline/runner');
+            await executeStep('polishing_photos', { input, photos: res.state.photos }, again.deps);
+            expect(again.calls.images.length).toBeGreaterThan(0);
+            if (change === 'references') expect(again.calls.images).toContainEqual([input.shots[0].url, input.shots[1].url]);
+            else expect(again.calls.images.some((refs) => refs[0] === input.shots[3].url)).toBe(true);
+        },
+    );
+
+    it('replaces inherited polished results with originals when requested', async () => {
+        const first = harness();
+        const res = await runPipelineLocally(makeInput(), first.deps, { timeoutMs: 30 * MIN, sleep: first.sleep });
+        const again = harness();
+        const { executeStep } = await import('@/lib/aiPipeline/runner');
+        const out = await executeStep('polishing_photos', { input: makeInput({ keepOriginals: true }), photos: res.state.photos }, again.deps);
+        expect(out.kind).toBe('done');
+        if (out.kind !== 'done') throw new Error('not done');
+        expect(again.calls.images).toEqual([]);
+        expect(Object.values(out.patch.enhancedImages!).map((image) => image.url).sort()).toEqual(makeInput().shots.map((shot) => shot.url).sort());
+        expect(out.patch.photos).toEqual({});
     });
 });

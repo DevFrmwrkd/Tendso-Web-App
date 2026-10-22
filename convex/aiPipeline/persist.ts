@@ -57,7 +57,7 @@ export const prepareBuild = internalMutation({
         if (existing) {
             await ctx.db.patch(existing._id, {
                 extractedContent: args.content,
-                ...(images ? { enhancedImages: mergeEnhancedImages((existing as { enhancedImages?: unknown }).enhancedImages, images) } : {}),
+                enhancedImages: images ? mergeEnhancedImages(existing.enhancedImages, images) : undefined,
                 updatedAt: Date.now(),
             });
         } else {

@@ -46,19 +46,58 @@ export function capWords(s: string, max: number): string {
 }
 
 /**
- * Clock and small numbers people SAY instead of writing ("alas otso", "eight",
- * "dose"), as digits. Only used to widen the SOURCE side of a grounding check,
- * so "8am" in the facts is accepted when the owner said "alas otso".
+ * Numbers people SAY instead of writing ("alas otso", "eight",
+ * "dose"), as digits. Compound numbers are kept whole on both sides of
+ * grounding checks ("twenty-one" is 21, never separate 20 and 1 claims).
  */
 const SPOKEN_NUMBERS: Record<string, string> = {
+    zero: '0', thirteen: '13', fourteen: '14', fifteen: '15', sixteen: '16', seventeen: '17', eighteen: '18', nineteen: '19',
+    twenty: '20', thirty: '30', forty: '40', fifty: '50', sixty: '60', seventy: '70', eighty: '80', ninety: '90',
+    dalawampung: '20', tatlumpung: '30', limampung: '50', pitumpung: '70', walumpung: '80',
+    dalawampu: '20', tatlumpu: '30', apatnapu: '40', limampu: '50', animnapu: '60', pitumpu: '70', walumpu: '80', siyamnapu: '90',
+    sampung: '10', labindalawa: '12',
+    labintatlo: '13', labinlima: '15', labimpito: '17', labingwalo: '18', labinsiyam: '19',
+    labing: '10', isang: '1', dalawang: '2', tatlong: '3', apatnapung: '40',
     one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10', eleven: '11', twelve: '12',
     uno: '1', dos: '2', tres: '3', kwatro: '4', kuwatro: '4', singko: '5', sais: '6', siyete: '7', syete: '7', otso: '8', nuwebe: '9', nueve: '9', diyes: '10', dyes: '10', onse: '11', dose: '12',
     isa: '1', dalawa: '2', tatlo: '3', apat: '4', lima: '5', anim: '6', pito: '7', walo: '8', siyam: '9', sampu: '10',
+    limang: '5', animnapung: '60', pitong: '7', walong: '8', siyamnapung: '90',
     noon: '12', tanghali: '12',
 };
 
+const NUMBER_SCALES: Record<string, number> = {
+    hundred: 100, hundreds: 100, daan: 100, daang: 100,
+    thousand: 1000, thousands: 1000, libo: 1000, libong: 1000,
+    million: 1_000_000, millions: 1_000_000, milyon: 1_000_000,
+};
+
 export function spokenNumbersIn(text: string): string[] {
-    return (text.toLowerCase().match(/[a-zñ]+/g) ?? []).map((w) => SPOKEN_NUMBERS[w]).filter((n): n is string => !!n);
+    const tokens = text.toLowerCase().replace(/([a-zñ])['’]t\b/g, '$1 at').match(/[a-zñ]+|[^a-zñ\s-]+/g) ?? [];
+    const out: string[] = [];
+    let total = 0, group = 0, active = false;
+    const flush = () => {
+        if (active) out.push(String(total + group));
+        total = group = 0;
+        active = false;
+    };
+    for (let i = 0; i < tokens.length; i++) {
+        const word = tokens[i];
+        const value = SPOKEN_NUMBERS[word];
+        const scale = NUMBER_SCALES[word];
+        if (typeof value === 'string') {
+            group += Number(value);
+            active = true;
+        } else if (typeof scale === 'number') {
+            if (scale === 100) group = (group || 1) * scale;
+            else { total += (group || 1) * scale; group = 0; }
+            active = true;
+        } else if (active && /^(and|at|na)$/.test(word)
+            && (typeof SPOKEN_NUMBERS[tokens[i + 1]] === 'string' || typeof NUMBER_SCALES[tokens[i + 1]] === 'number')) {
+            continue;
+        } else flush();
+    }
+    flush();
+    return out;
 }
 
 /** Digits-only runs in a text ("₱1,500" → "1500"), used for grounding checks. */
