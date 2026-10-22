@@ -23,7 +23,7 @@ export function ShareTools({ handle, displayName, price, disabled = false }: {
 }) {
     const qr = useRef<HTMLCanvasElement>(null);
     const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
-    const url = `https://tendso.com/a/${encodeURIComponent(handle)}`;
+    const url = `https://tendso.com/v2/a/${encodeURIComponent(handle)}`;
 
     function download() {
         if (!qr.current) return;

@@ -91,6 +91,8 @@ const isPublicRoute = createRouteMatcher([
     // rate-limits by IP instead — it is the only open route that reaches a
     // third party (Nominatim), so the limit is its actual protection.
     '/api/geocode',
+    // Anonymous visit requests verify Turnstile and limit callers server-side.
+    '/api/landing-visit',
     // Called server-to-server from Convex (internal.submissions.transcribeMedia)
     // using the X-Internal-Secret header for auth — no Clerk cookie present.
     // The route handler enforces either a valid Clerk session OR a matching

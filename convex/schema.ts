@@ -37,6 +37,13 @@ export const outreachChannel = v.union(
 );
 
 export default defineSchema({
+    // Immutable landing receipts: never patched/deleted when admin leads change.
+    landingVisitRequests: defineTable({
+        phone: v.string(), caller: v.string(), createdAt: v.number(),
+    }).index('by_phone_time', ['phone', 'createdAt'])
+        .index('by_caller_time', ['caller', 'createdAt'])
+        .index('by_time', ['createdAt']),
+
     // Accounts share a creators id for submissions, referrals and payouts.
     creators: defineTable({
         clerkId: v.string(),
