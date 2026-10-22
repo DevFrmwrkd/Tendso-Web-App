@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../../../hooks/useGuardedRouter';
@@ -8,7 +7,8 @@ import { useKnowledge } from '../../../../../services/knowledge/KnowledgeProvide
 import { useRecordFeedback } from '../../../../../services/knowledge/api';
 import { ArticleBody } from '../../../../../components/knowledge/Blocks';
 import { categoryIcon, hue } from '../../../../../components/knowledge/kbTheme';
-import { colors, fonts, radius } from '../../../../../theme/tokens';
+import { Card, EmptyState, ListRow, Loading, ScreenShell, SectionLabel, Text } from '../../../../../components/v2';
+import { colors, hit, radius, shadow, space } from '../../../../../theme/v2';
 
 const KB = '/(app)/(tabs)/knowledge';
 
@@ -32,169 +32,131 @@ export default function ArticleScreen() {
   };
 
   if (loading && !article) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </SafeAreaView>
-    );
+    return <Loading />;
   }
 
   if (!article) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-        <Header onBack={() => router.back()} />
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-          <Ionicons name="document-outline" size={40} color={colors.ink3} />
-          <Text style={{ fontFamily: fonts.serif, fontSize: 22, color: colors.ink, marginTop: 12 }}>Article not found</Text>
-        </View>
-      </SafeAreaView>
+      <ScreenShell onBack={() => router.back()} insetBottom={false} scroll={false} contentStyle={styles.centered}>
+        <EmptyState icon="document-outline" title="Article not found" />
+      </ScreenShell>
     );
   }
 
   const h = hue(category?.hue);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      <Header onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Category chip */}
-        {category && (
-          <TouchableOpacity
-            onPress={() => router.push(`${KB}/category/${category.slug}` as any)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: 4 }}
-          >
-            <View style={{ width: 22, height: 22, borderRadius: 6, backgroundColor: h.bg, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={categoryIcon(category.icon)} size={12} color={h.ink} />
-            </View>
-            <Text style={{ fontFamily: fonts.monoMed, fontSize: 10, letterSpacing: 1.2, color: colors.ink3 }}>
-              {category.title.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Title + meta */}
-        <Text style={{ fontFamily: fonts.serif, fontSize: 30, lineHeight: 36, color: colors.ink, marginTop: 12 }}>
-          {article.title}
-        </Text>
-        <Text style={{ fontFamily: fonts.mono, fontSize: 11, letterSpacing: 0.6, color: colors.ink3, marginTop: 8 }}>
-          {article.author.toUpperCase()} · {article.readMin} MIN READ
-        </Text>
-
-        {/* No separate summary dek — the article body already opens with the
-            intro, and the web article page renders body-only. Rendering summary
-            here made every article look like it repeated its opening. */}
-        <View style={{ height: 1, backgroundColor: colors.rule, marginTop: 18, marginBottom: 18 }} />
-
-        {/* Body */}
-        <ArticleBody body={article.body} />
-
-        {/* Helpful */}
-        <View
-          style={{
-            marginTop: 28,
-            backgroundColor: colors.paper3,
-            borderColor: colors.rule,
-            borderWidth: 1,
-            borderRadius: radius.md,
-            padding: 16,
-            alignItems: 'center',
-          }}
+    <ScreenShell onBack={() => router.back()} insetBottom={false} contentStyle={styles.content}>
+      {/* Topic tag */}
+      {category && (
+        <Pressable
+          onPress={() => router.push(`${KB}/category/${category.slug}` as any)}
+          accessibilityRole="button"
+          accessibilityLabel={`Topic: ${category.title}`}
+          hitSlop={4}
+          style={[styles.tag, { backgroundColor: h.bg }]}
         >
-          {voted === null ? (
-            <>
-              <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }}>Was this helpful?</Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-                <TouchableOpacity onPress={() => vote(true)} style={voteBtn}>
-                  <Ionicons name="thumbs-up-outline" size={16} color={colors.ink} />
-                  <Text style={voteTxt}>Yes</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => vote(false)} style={voteBtn}>
-                  <Ionicons name="thumbs-down-outline" size={16} color={colors.ink} />
-                  <Text style={voteTxt}>No</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.ink2 }}>
-              Thanks for the feedback{voted ? ' 🎉' : ''}.
-            </Text>
-          )}
-        </View>
+          <Ionicons name={categoryIcon(category.icon)} size={18} color={h.ink} />
+          <Text variant="chip">{category.title}</Text>
+        </Pressable>
+      )}
 
-        {/* Related */}
-        {related.length > 0 && (
-          <View style={{ marginTop: 28 }}>
-            <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1.6, color: colors.ink3, marginBottom: 12 }}>
-              RELATED
+      {/* Title + meta */}
+      <Text variant="display" accessibilityRole="header">
+        {article.title}
+      </Text>
+      <Text variant="label" weight="medium" tone="muted" style={styles.meta}>
+        {article.author} · {article.readMin} min read
+      </Text>
+
+      {/* No separate summary dek — the article body already opens with the
+          intro, and the web article page renders body-only. Rendering summary
+          here made every article look like it repeated its opening. */}
+
+      {/* Body */}
+      <ArticleBody body={article.body} />
+
+      {/* Helpful */}
+      <Card style={styles.helpful}>
+        {voted === null ? (
+          <>
+            <Text variant="heading" align="center">
+              Was this helpful?
             </Text>
-            <View style={{ gap: 8 }}>
-              {related.map((a) => (
-                <TouchableOpacity
-                  key={a._id}
-                  activeOpacity={0.8}
-                  onPress={() => router.push(`${KB}/article/${a.slug}` as any)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                    backgroundColor: colors.paper3,
-                    borderColor: colors.rule,
-                    borderWidth: 1,
-                    borderRadius: radius.sm,
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                  }}
-                >
-                  <Ionicons name="document-text-outline" size={16} color={colors.ink3} />
-                  <Text style={{ flex: 1, fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }} numberOfLines={1}>
-                    {a.title}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={15} color={colors.ink3} />
-                </TouchableOpacity>
-              ))}
+            <View style={styles.voteRow}>
+              <Pressable
+                onPress={() => vote(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Yes, this was helpful"
+                style={({ pressed }) => [styles.vote, pressed ? { opacity: 0.8 } : null]}
+              >
+                <Ionicons name="thumbs-up-outline" size={22} color={colors.ink} />
+                <Text variant="chip">Yes</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => vote(false)}
+                accessibilityRole="button"
+                accessibilityLabel="No, this was not helpful"
+                style={({ pressed }) => [styles.vote, pressed ? { opacity: 0.8 } : null]}
+              >
+                <Ionicons name="thumbs-down-outline" size={22} color={colors.ink} />
+                <Text variant="chip">No</Text>
+              </Pressable>
             </View>
-          </View>
+          </>
+        ) : (
+          <Text variant="bodyLg" tone="ink2" align="center">
+            Thanks for the feedback.
+          </Text>
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </Card>
+
+      {/* Related */}
+      {related.length > 0 && (
+        <View style={styles.related}>
+          <SectionLabel>Related</SectionLabel>
+          <Card style={styles.listCard}>
+            {related.map((a, i) => (
+              <ListRow
+                key={a._id}
+                icon="document-text-outline"
+                title={a.title}
+                onPress={() => router.push(`${KB}/article/${a.slug}` as any)}
+                divider={i < related.length - 1}
+              />
+            ))}
+          </Card>
+        </View>
+      )}
+    </ScreenShell>
   );
 }
 
-function Header({ onBack }: { onBack: () => void }) {
-  return (
-    <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
-      <TouchableOpacity
-        onPress={onBack}
-        hitSlop={8}
-        accessibilityLabel="Back"
-        accessibilityRole="button"
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: radius.pill,
-          backgroundColor: colors.paper3,
-          borderWidth: 1,
-          borderColor: colors.rule,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name="arrow-back" size={18} color={colors.ink} />
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-const voteBtn = {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 6,
-  backgroundColor: colors.paper2,
-  borderColor: colors.rule,
-  borderWidth: 1,
-  borderRadius: radius.pill,
-  paddingHorizontal: 20,
-  paddingVertical: 8,
-} as const;
-
-const voteTxt = { fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink } as const;
+const styles = StyleSheet.create({
+  content: { gap: space.md, paddingTop: space.md, paddingBottom: space.xxl },
+  centered: { justifyContent: 'center' },
+  tag: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm - 2,
+    minHeight: 40,
+    paddingHorizontal: space.md + 2,
+    borderRadius: radius.pill,
+  },
+  meta: { marginTop: -space.xs },
+  helpful: { marginTop: space.lg, alignItems: 'center', gap: space.md, padding: space.xl - 4 },
+  voteRow: { flexDirection: 'row', gap: space.md },
+  vote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    minHeight: hit.primary,
+    paddingHorizontal: space.xl,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg2,
+  },
+  related: { gap: space.md, marginTop: space.lg },
+  listCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
+});

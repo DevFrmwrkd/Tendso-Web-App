@@ -1,31 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../../hooks/useGuardedRouter';
 import { useKnowledge } from '../../../../services/knowledge/KnowledgeProvider';
 import { useAsk, type ChatTurn } from '../../../../services/knowledge/api';
-import { colors, fonts, radius } from '../../../../theme/tokens';
+import { ScreenShell, TendsoMark, Text } from '../../../../components/v2';
+import { colors, fonts, hit, radius, shadow, space, type as typeScale } from '../../../../theme/v2';
 
 const KB = '/(app)/(tabs)/knowledge';
 
 type Msg = { role: 'bot' | 'user'; text: string; sources?: { slug: string; title: string }[] };
 
 const GREETINGS: Msg[] = [
-  { role: 'bot', text: "Hi — I'm trained on the Tendso knowledge base. Ask me anything." },
-  { role: 'bot', text: 'Try: “How much do I earn?” or “How fast can I get a site?”' },
+  { role: 'bot', text: "Hi, I'm Tendso. Ask me anything about the field, money or the app." },
+  { role: 'bot', text: 'Try: “How much do I keep per site?”' },
 ];
 
-const SUGGESTIONS = ['How much does a site cost?', 'How fast can I get one?', 'Where do payouts go?', 'Do I need experience?'];
+const SUGGESTIONS = ['How much do I keep per site?', 'How fast is a site built?', 'Where do payouts go?', 'Do I need experience?'];
 
 export default function AskTendso() {
   const router = useGuardedRouter();
@@ -69,181 +69,184 @@ export default function AskTendso() {
     router.push(`${KB}/article/${a ? a.slug : slug}` as any);
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={8}
-          accessibilityLabel="Back"
-          accessibilityRole="button"
-          style={headerBtn}
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.ink} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.serifIt, fontSize: 22, color: colors.ink }}>Ask Tendso</Text>
-          <Text style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: 0.6, color: colors.ink3 }}>
-            POWERED BY THE KNOWLEDGE BASE
-          </Text>
-        </View>
-        <Ionicons name="sparkles" size={18} color={colors.accent} />
-      </View>
+  const canSend = !!input.trim() && !busy;
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={8}
+  return (
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScreenShell
+        title="Ask Tendso"
+        onBack={() => router.back()}
+        insetBottom={false}
+        scroll={false}
+        contentStyle={styles.shellBody}
+        footer={
+          <View style={[styles.inputBar, shadow.soft]}>
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              onSubmitEditing={() => send()}
+              returnKeyType="send"
+              placeholder="Ask about the field, money, the app…"
+              placeholderTextColor={colors.ink3}
+              accessibilityLabel="Type a question"
+              style={styles.input}
+            />
+            <Pressable
+              onPress={() => send()}
+              disabled={!canSend}
+              accessibilityLabel="Send"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canSend }}
+              style={[styles.send, { opacity: canSend ? 1 : 0.4 }]}
+            >
+              <Ionicons name="arrow-up" size={22} color={colors.onAccent} />
+            </Pressable>
+          </View>
+        }
       >
         <ScrollView
           ref={scrollRef}
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, gap: 10 }}
+          style={styles.scroll}
+          contentContainerStyle={styles.chat}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {messages.map((m, i) => {
-            const isUser = m.role === 'user';
-            return (
-              <View
-                key={i}
-                style={{
-                  alignSelf: isUser ? 'flex-end' : 'flex-start',
-                  maxWidth: '86%',
-                  backgroundColor: isUser ? colors.ink : colors.paper3,
-                  borderColor: isUser ? colors.ink : colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.md,
-                  borderBottomRightRadius: isUser ? 4 : radius.md,
-                  borderBottomLeftRadius: isUser ? radius.md : 4,
-                  paddingHorizontal: 14,
-                  paddingVertical: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: fonts.sans,
-                    fontSize: 14,
-                    lineHeight: 21,
-                    color: isUser ? colors.paper3 : colors.ink2,
-                  }}
-                >
+          {messages.map((m, i) =>
+            m.role === 'user' ? (
+              <View key={i} style={styles.me}>
+                <Text variant="body" tone="onDark" weight="semibold" style={styles.meText}>
                   {m.text}
                 </Text>
-                {!isUser && m.sources && m.sources.length > 0 && (
-                  <View style={{ marginTop: 8, gap: 4 }}>
-                    {m.sources.map((s) => (
-                      <TouchableOpacity
-                        key={s.slug}
-                        onPress={() => openSource(s.slug)}
-                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                      >
-                        <Ionicons name="arrow-forward" size={12} color={colors.accent} />
-                        <Text style={{ fontFamily: fonts.sansMed, fontSize: 12, color: colors.accent }} numberOfLines={1}>
-                          {s.title}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
               </View>
-            );
-          })}
+            ) : (
+              <View key={i} style={styles.botRow}>
+                <TendsoMark size={36} />
+                <View style={[styles.bot, shadow.soft]}>
+                  <Text variant="body" style={styles.botText}>
+                    {m.text}
+                  </Text>
+                  {m.sources && m.sources.length > 0 && (
+                    <View style={styles.sources}>
+                      <Text variant="label" weight="bold" tone="muted">
+                        Sources
+                      </Text>
+                      {m.sources.map((s) => (
+                        <Pressable
+                          key={s.slug}
+                          onPress={() => openSource(s.slug)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Source: ${s.title}`}
+                          style={styles.source}
+                        >
+                          <Ionicons name="document-text-outline" size={20} color={colors.ink3} />
+                          <Text variant="label" weight="bold" numberOfLines={2} style={styles.flex}>
+                            {s.title}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+            ),
+          )}
           {busy && (
-            <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 6 }}>
-              <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.ink3 }}>typing…</Text>
+            <View style={styles.typing}>
+              <ActivityIndicator size="small" color={colors.ink} />
+              <Text variant="label" weight="medium" tone="muted">
+                Typing…
+              </Text>
+            </View>
+          )}
+
+          {/* Suggestions */}
+          {messages.length <= GREETINGS.length && (
+            <View style={styles.sugg}>
+              {SUGGESTIONS.map((s) => (
+                <Pressable
+                  key={s}
+                  onPress={() => send(s)}
+                  accessibilityRole="button"
+                  accessibilityLabel={s}
+                  style={styles.suggPill}
+                >
+                  <Text variant="chip">{s}</Text>
+                </Pressable>
+              ))}
             </View>
           )}
         </ScrollView>
-
-        {/* Suggestions */}
-        {messages.length <= GREETINGS.length && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 12, paddingBottom: 6 }}>
-            {SUGGESTIONS.map((s) => (
-              <TouchableOpacity
-                key={s}
-                onPress={() => send(s)}
-                style={{
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.ruleStrong,
-                  borderWidth: 1,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                }}
-              >
-                <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.ink2 }}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* Input */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 12,
-            paddingTop: 8,
-            paddingBottom: 12,
-            borderTopWidth: 1,
-            borderTopColor: colors.rule,
-            backgroundColor: colors.paper,
-          }}
-        >
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            onSubmitEditing={() => send()}
-            returnKeyType="send"
-            placeholder="Type a question…"
-            placeholderTextColor={colors.ink3}
-            style={{
-              flex: 1,
-              backgroundColor: colors.paper3,
-              borderColor: colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.pill,
-              paddingHorizontal: 16,
-              height: 44,
-              fontFamily: fonts.sans,
-              fontSize: 15,
-              color: colors.ink,
-            }}
-          />
-          <TouchableOpacity
-            onPress={() => send()}
-            disabled={!input.trim() || busy}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: colors.ink,
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: !input.trim() || busy ? 0.4 : 1,
-            }}
-            accessibilityLabel="Send"
-            accessibilityRole="button"
-          >
-            <Ionicons name="arrow-up" size={18} color={colors.paper3} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </ScreenShell>
+    </KeyboardAvoidingView>
   );
 }
 
-const headerBtn = {
-  width: 40,
-  height: 40,
-  borderRadius: radius.pill,
-  backgroundColor: colors.paper3,
-  borderWidth: 1,
-  borderColor: colors.rule,
-  alignItems: 'center',
-  justifyContent: 'center',
-} as const;
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  shellBody: { paddingTop: space.md, paddingBottom: 0 },
+  // Bleed the chat to the screen edges while the title above keeps the 24pt gutter.
+  scroll: { flex: 1, marginHorizontal: -space.gutter },
+  chat: { paddingHorizontal: space.gutter, paddingBottom: space.lg, gap: space.md },
+  me: {
+    alignSelf: 'flex-end',
+    maxWidth: '82%',
+    backgroundColor: colors.ink,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 6,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+  },
+  meText: { lineHeight: 24 },
+  botRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md - 2, paddingRight: space.xl },
+  bot: {
+    flexShrink: 1,
+    gap: space.md,
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md + 2,
+  },
+  botText: { lineHeight: 26 },
+  sources: { gap: space.sm, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule },
+  source: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: hit.min },
+  typing: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingLeft: 48 },
+  sugg: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, paddingLeft: 48 },
+  suggPill: {
+    minHeight: hit.min,
+    justifyContent: 'center',
+    paddingHorizontal: space.lg,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    ...shadow.soft,
+  },
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 60,
+    paddingLeft: space.lg + 2,
+    paddingRight: space.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+  },
+  input: {
+    flex: 1,
+    minHeight: hit.primary,
+    fontFamily: fonts.medium,
+    fontSize: typeScale.body.fontSize,
+    color: colors.ink,
+  },
+  send: {
+    width: hit.min,
+    height: hit.min,
+    borderRadius: hit.min / 2,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

@@ -1,22 +1,34 @@
 import { Tabs, Redirect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { mobileHome } from '../../../services/accountAccess';
-import { colors } from '../../../theme/tokens';
+import { V2TabBar, type TabBarItem } from '../../../components/v2';
+
+/** Creator tabs (code role `affiliate`), design v2: Home · My page · Sales · Earn · Me. */
+const ITEMS: TabBarItem[] = [
+  { routeName: 'index', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
+  { routeName: 'page', label: 'My page', icon: 'globe-outline', activeIcon: 'globe' },
+  { routeName: 'sales', label: 'Sales', icon: 'receipt-outline', activeIcon: 'receipt' },
+  { routeName: 'wallet', label: 'Earn', icon: 'wallet-outline', activeIcon: 'wallet' },
+  { routeName: 'profile', label: 'Me', icon: 'person-outline', activeIcon: 'person' },
+];
 
 export default function AffiliateTabsLayout() {
-  const { view, isLoading } = useMobileAccount();
+  const { view, isLoading, account } = useMobileAccount();
+  // Creators get push notifications too (sale paid, field agent joined, payout sent).
+  usePushNotifications(account?._id);
   if (isLoading) return null;
   if (view !== 'affiliate') return <Redirect href={mobileHome(view) as never} />;
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.ink, tabBarInactiveTintColor: colors.ink3,
-      tabBarStyle: { backgroundColor: colors.paper3, borderTopColor: colors.rule },
-      tabBarIcon: ({ focused, color, size }) => <Ionicons name={focused ? 'ellipse' : 'ellipse-outline'} color={color} size={size} /> }}>
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({color,size}) => <Ionicons name="home-outline" color={color} size={size} /> }} />
-      <Tabs.Screen name="page" options={{ title: 'My page', tabBarIcon: ({color,size}) => <Ionicons name="globe-outline" color={color} size={size} /> }} />
-      <Tabs.Screen name="sales" options={{ title: 'Sales', tabBarIcon: ({color,size}) => <Ionicons name="receipt-outline" color={color} size={size} /> }} />
-      <Tabs.Screen name="wallet" options={{ title: 'Wallet', tabBarIcon: ({color,size}) => <Ionicons name="wallet-outline" color={color} size={size} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({color,size}) => <Ionicons name="person-outline" color={color} size={size} /> }} />
+    <Tabs
+      screenOptions={{ headerShown: false }}
+      tabBar={({ state, navigation }) => <V2TabBar state={state} navigation={navigation} items={ITEMS} centerAfter={ITEMS.length} />}
+    >
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="page" />
+      <Tabs.Screen name="sales" />
+      <Tabs.Screen name="wallet" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }

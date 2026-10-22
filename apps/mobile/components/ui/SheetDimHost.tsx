@@ -51,7 +51,7 @@ export function SheetDimHost({ children }: { children: React.ReactNode }) {
       {children}
       <Animated.View
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.38)' }, dimStyle]}
+        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(12,10,8,0.42)' }, dimStyle]}
       />
     </SheetDimContext.Provider>
   );

@@ -1,25 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
+  Pressable,
   Linking,
   Platform,
   BackHandler,
   ScrollView,
   Image,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, type MapViewProps, type Region } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { colors, fonts, radius } from '../../../theme/tokens';
-import { Display, Body, Label, Door, Card, Rule, Avatar } from '../../../components/ui/primitives';
+import { colors, radius, shadow, space } from '../../../theme/v2';
+import { Avatar, Banner, Button, Chip, Loading, Text, TextLink, leadStatus } from '../../../components/v2';
 import { openDirections } from '../../../services/links';
 
 type GeocodedLead = {
@@ -30,6 +30,8 @@ type GeocodedLead = {
   ownerPhone: string | null;
   status: string;
   isHot: boolean;
+  isMine: boolean;
+  photoUrl: string | null;
   submitterName: string | null;
   submitterImage: string | null;
   latitude: number;
@@ -44,6 +46,23 @@ const FALLBACK_REGION: Region = {
   latitudeDelta: 0.5,
   longitudeDelta: 0.5,
 };
+
+// Quiet map (mock `.cc-map`): land #E9E9E3, roads white, water #D3DCE3, no POI clutter.
+// Applies to the Google provider (Android). iOS keeps Apple Maps with `mutedStandard`.
+const QUIET_MAP_STYLE: NonNullable<MapViewProps['customMapStyle']> = [
+  { elementType: 'geometry', stylers: [{ color: '#E9E9E3' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#6B6A63' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#E9E9E3' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#D3DCE3' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6B6A63' }] },
+];
 
 function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: number; longitude: number }): number {
   const R = 6371;
@@ -69,8 +88,149 @@ function fullAddress(lead: { businessAddress: string | null; businessCity: strin
   return parts.length > 0 ? parts.join(', ') : null;
 }
 
+/** Live (a built site) or yours = accent ring; everything else still needs a site = dashed ring. */
+function isLiveOrYours(lead: { status: string; isMine: boolean }): boolean {
+  return lead.status === 'converted' || lead.isMine;
+}
+
+/**
+ * Custom map markers are snapshotted to a bitmap. Track view changes briefly (and again
+ * when the photo arrives or the pin is selected), then stop so the map stays smooth.
+ */
+function useBriefTracking(key: string): boolean {
+  const [track, setTrack] = useState(true);
+  useEffect(() => {
+    setTrack(true);
+    const t = setTimeout(() => setTrack(false), 700);
+    return () => clearTimeout(t);
+  }, [key]);
+  return track;
+}
+
+const PIN = 50;
+const PIN_SELECTED = 64;
+const LABEL_W = 220;
+const LABEL_H = 36;
+const HALO = 88;
+const SEL_TOP = (HALO - PIN_SELECTED) / 2; // room for the halo above the pin
+const SEL_H = SEL_TOP + PIN_SELECTED + SEL_TOP + 6 + LABEL_H;
+
+function ShopPin({
+  lead,
+  selected,
+  onPress,
+}: {
+  lead: GeocodedLead;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const track = useBriefTracking(`${selected}-${loaded}`);
+  const live = isLiveOrYours(lead);
+  const size = selected ? PIN_SELECTED : PIN;
+  const initial = (lead.businessName ?? '').trim().charAt(0).toUpperCase() || '?';
+
+  const photo = (box: number) => (
+    <View style={[styles.photo, { width: box, height: box, borderRadius: box / 2 }]}>
+      {lead.photoUrl ? (
+        <Image source={{ uri: lead.photoUrl }} style={{ width: box, height: box }} onLoad={() => setLoaded(true)} />
+      ) : (
+        <Text variant="button" style={{ fontSize: Math.round(box * 0.42), lineHeight: Math.round(box * 0.5) }}>
+          {initial}
+        </Text>
+      )}
+    </View>
+  );
+
+  let circle: React.ReactNode;
+  if (selected) {
+    circle = (
+      <View style={[styles.ringBase, { width: size, height: size, borderRadius: size / 2, borderWidth: 4, borderColor: colors.ink }]}>
+        {photo(size - 8)}
+      </View>
+    );
+  } else if (live) {
+    // accent ring with an ink hairline outside
+    circle = (
+      <View style={[styles.ringBase, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.ink }]}>
+        <View style={[styles.ringBase, { width: size - 3, height: size - 3, borderRadius: (size - 3) / 2, backgroundColor: colors.accent }]}>
+          {photo(size - 11)}
+        </View>
+      </View>
+    );
+  } else {
+    // dashed ink ring = needs a site
+    circle = (
+      <View
+        style={[
+          styles.ringBase,
+          { width: size, height: size, borderRadius: size / 2, borderWidth: 3, borderStyle: 'dashed', borderColor: colors.ink, backgroundColor: colors.card },
+        ]}
+      >
+        {photo(size - 10)}
+      </View>
+    );
+  }
+
+  const label = `${lead.businessName}${lead.distanceKm != null ? ` · ${formatDistance(lead.distanceKm)}` : ''}`;
+
+  return (
+    <Marker
+      coordinate={{ latitude: lead.latitude, longitude: lead.longitude }}
+      onPress={onPress}
+      anchor={selected ? { x: 0.5, y: (SEL_TOP + PIN_SELECTED / 2) / SEL_H } : { x: 0.5, y: 0.5 }}
+      tracksViewChanges={track}
+      zIndex={selected ? 3 : 2}
+    >
+      {selected ? (
+        <View style={{ width: LABEL_W, height: SEL_H, alignItems: 'center' }}>
+          <View style={[styles.halo, { top: 0, width: HALO, height: HALO, borderRadius: HALO / 2 }]} />
+          <View style={{ marginTop: SEL_TOP }}>{circle}</View>
+          <View style={styles.pinLabel}>
+            <Text variant="label" weight="bold" tone="onDark" numberOfLines={1}>
+              {label}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View style={{ width: size, height: size }}>{circle}</View>
+      )}
+    </Marker>
+  );
+}
+
+/** Your location: ink dot, white edge, soft halo (mock `.cc-me`). */
+function MeDot({ coordinate }: { coordinate: { latitude: number; longitude: number } }) {
+  const track = useBriefTracking('me');
+  return (
+    <Marker coordinate={coordinate} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={track} zIndex={1} tappable={false}>
+      <View style={styles.meHalo}>
+        <View style={styles.meDot} />
+      </View>
+    </Marker>
+  );
+}
+
+function ShopTile({ uri, name, width, height }: { uri: string | null; name: string; width: number; height: number }) {
+  const initial = (name ?? '').trim().charAt(0).toUpperCase() || '?';
+  return (
+    <View
+      style={[styles.tile, { width, height }]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      {uri ? (
+        <Image source={{ uri }} style={{ width, height }} resizeMode="cover" />
+      ) : (
+        <Text variant="title">{initial}</Text>
+      )}
+    </View>
+  );
+}
+
 export default function NearbyLeadsScreen() {
   const router = useGuardedRouter();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
 
   // Skip until Convex has an authenticated session — listForMobileCRM calls
@@ -134,6 +294,8 @@ export default function NearbyLeadsScreen() {
         ownerPhone: l.ownerPhone ?? null,
         status: l.status,
         isHot: !!l.isHot,
+        isMine: !!l.isMine,
+        photoUrl: (l.previewImageUrl as string | null | undefined) ?? null,
         submitterName: l.submittedBy?.displayName ?? null,
         submitterImage: l.submittedBy?.profileImage ?? null,
         addressString: fullAddress({ businessAddress: l.businessAddress, businessCity: l.businessCity }),
@@ -146,6 +308,8 @@ export default function NearbyLeadsScreen() {
         ownerPhone: string | null;
         status: string;
         isHot: boolean;
+        isMine: boolean;
+        photoUrl: string | null;
         submitterName: string | null;
         submitterImage: string | null;
         addressString: string;
@@ -181,6 +345,8 @@ export default function NearbyLeadsScreen() {
               ownerPhone: l.ownerPhone,
               status: l.status,
               isHot: l.isHot,
+              isMine: l.isMine,
+              photoUrl: l.photoUrl,
               submitterName: l.submitterName,
               submitterImage: l.submitterImage,
               latitude: m.latitude,
@@ -230,250 +396,356 @@ export default function NearbyLeadsScreen() {
     });
   };
 
+  const selectLead = (lead: GeocodedLead) => {
+    setActiveLeadId(lead.leadId);
+    // Shift the centre a little south so the pin sits above the bottom sheet.
+    mapRef.current?.animateToRegion(
+      { latitude: lead.latitude - 0.005, longitude: lead.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 },
+      500,
+    );
+  };
+
   const initialRegion: Region = userLocation
     ? { latitude: userLocation.latitude, longitude: userLocation.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
     : FALLBACK_REGION;
 
-  const nearestThree = geocoded.slice(0, 3);
-  const allWithDistance = geocoded;
   const activeLead = activeLeadId ? geocoded.find((l) => l.leadId === activeLeadId) ?? null : null;
-
   const isLoading = data === undefined || permissionStatus === 'requesting';
+  const plotting = geocodingProgress.total > 0 && geocodingProgress.done < geocodingProgress.total;
+
+  const headline =
+    permissionStatus === 'denied'
+      ? 'Location is off'
+      : isLoading
+        ? 'Finding you…'
+        : `${geocoded.length} of ${leadsWithAddresses.length} shops on the map`;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      {/* Editorial header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <TouchableOpacity
+    <View style={styles.root}>
+      {isLoading ? (
+        <Loading label="Finding your location…" />
+      ) : (
+        <MapView
+          ref={(r) => { mapRef.current = r; }}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          style={StyleSheet.absoluteFill}
+          initialRegion={initialRegion}
+          customMapStyle={QUIET_MAP_STYLE}
+          mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+          showsUserLocation={false}
+          showsMyLocationButton={false}
+          showsPointsOfInterest={false}
+          showsBuildings={false}
+          showsCompass={false}
+          toolbarEnabled={false}
+        >
+          {permissionStatus === 'granted' && userLocation ? <MeDot coordinate={userLocation} /> : null}
+          {geocoded.map((lead) => (
+            <ShopPin
+              key={lead.leadId}
+              lead={lead}
+              selected={activeLeadId === lead.leadId}
+              onPress={() => selectLead(lead)}
+            />
+          ))}
+        </MapView>
+      )}
+
+      {/* Floating header: round back button + white pill */}
+      <View style={[styles.top, { top: insets.top + space.sm }]} pointerEvents="box-none">
+        <View style={styles.topRow}>
+          <Pressable
             onPress={() => router.replace('/(app)/leads')}
-            style={{
-              width: 36, height: 36, borderRadius: 18,
-              backgroundColor: colors.paper3,
-              borderWidth: 1, borderColor: colors.rule,
-              alignItems: 'center', justifyContent: 'center',
-            }}
-            accessibilityLabel="Back to leads"
             accessibilityRole="button"
+            accessibilityLabel="Back to leads"
+            hitSlop={4}
+            style={[styles.round, shadow.soft]}
           >
-            <Ionicons name="arrow-back" size={18} color={colors.ink} />
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Label tracking={1.8}>LIVE BUSINESSES</Label>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-          <Display size="md">Already-interviewed </Display>
-          <Display size="md" italic color={colors.accent}>and live.</Display>
-        </View>
-        <Body size="sm" color={colors.ink2} style={{ marginTop: 6 }}>
-          {permissionStatus === 'denied'
-            ? 'Location off — showing the map without your position.'
-            : isLoading
-              ? 'Finding your location and plotting team leads…'
-              : `${geocoded.length} of ${leadsWithAddresses.length} mappable lead${leadsWithAddresses.length === 1 ? '' : 's'}.`}
-        </Body>
-      </View>
-
-      <Rule strong />
-
-      {/* Map area */}
-      <View style={{ width: '100%', height: 320, backgroundColor: colors.paper2 }}>
-        {isLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color={colors.accent} />
-          </View>
-        ) : (
-          <MapView
-            ref={(r) => { mapRef.current = r; }}
-            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-            style={{ width: '100%', height: '100%' }}
-            initialRegion={initialRegion}
-            showsUserLocation={permissionStatus === 'granted'}
-            showsMyLocationButton={false}
-          >
-            {geocoded.map((lead) => (
-              <Marker
-                key={lead.leadId}
-                coordinate={{ latitude: lead.latitude, longitude: lead.longitude }}
-                onPress={() => setActiveLeadId(lead.leadId)}
-                pinColor={lead.isHot ? '#B43A1F' : '#1F3654'}
-                title={lead.businessName}
-                description={fullAddress(lead) ?? undefined}
-              />
-            ))}
-          </MapView>
-        )}
-      </View>
-
-      {/* Geocoding progress strip */}
-      {geocodingProgress.total > 0 && geocodingProgress.done < geocodingProgress.total ? (
-        <View style={{ paddingHorizontal: 20, paddingVertical: 8, backgroundColor: colors.paper2, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={{ fontFamily: fonts.monoMed, fontSize: 10, letterSpacing: 1.2, color: colors.ink2, textTransform: 'uppercase' }}>
-            Plotting {geocodingProgress.done} / {geocodingProgress.total}
-          </Text>
-        </View>
-      ) : null}
-
-      {geocodeError ? (
-        <View style={{
-          marginHorizontal: 20, marginTop: 10, padding: 12,
-          backgroundColor: colors.warnBg,
-          borderColor: colors.warn, borderWidth: 1,
-          borderRadius: radius.sm,
-        }}>
-          <Body size="sm" weight="medium" color={colors.warn}>{geocodeError}</Body>
-        </View>
-      ) : null}
-
-      {permissionStatus === 'denied' ? (
-        <View style={{ marginHorizontal: 20, marginTop: 10 }}>
-          <Door
-            caption="LOCATION"
-            label="Enable location to sort by distance"
-            variant="ghost"
-            onPress={() => Linking.openSettings()}
-            rightIcon={<Ionicons name="settings-outline" size={18} color={colors.ink} style={{ marginLeft: 12 }} />}
-          />
-        </View>
-      ) : null}
-
-      {/* Nearest list */}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 10 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Label tracking={1.8}>{permissionStatus === 'granted' ? 'NEAREST FIRST' : 'ALL ON MAP'}</Label>
-          {geocoded.length > 0 ? (
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, letterSpacing: 0.6 }}>
-              {geocoded.length} pinned
+            <Ionicons name="arrow-back" size={22} color={colors.ink} />
+          </Pressable>
+          <View style={[styles.titlePill, shadow.soft]} accessibilityRole="header">
+            <Text variant="bodyLg" weight="bold" numberOfLines={1}>
+              Live shops
             </Text>
-          ) : null}
+            <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+              {headline}
+            </Text>
+          </View>
         </View>
 
-        {!isLoading && geocoded.length === 0 ? (
-          <Card large style={{ padding: 22, alignItems: 'center' }}>
-            <View style={{
-              width: 56, height: 56, borderRadius: 28,
-              backgroundColor: colors.paper2,
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Ionicons name="map-outline" size={26} color={colors.ink3} />
-            </View>
-            <View style={{ marginTop: 10, alignItems: 'center' }}>
-              <Display size="sm">Nothing to</Display>
-              <Display size="sm" italic color={colors.accent}>show yet.</Display>
-            </View>
-            <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 280 }}>
-              Once businesses with full addresses are submitted, they'll appear here on the map.
-            </Body>
-          </Card>
+        {permissionStatus === 'denied' ? (
+          <Pressable
+            onPress={() => Linking.openSettings()}
+            accessibilityRole="button"
+            accessibilityLabel="Enable location to sort by distance"
+            style={[styles.floatBtn, shadow.soft]}
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.ink} />
+            <Text variant="label" weight="bold">
+              Turn on location
+            </Text>
+          </Pressable>
         ) : null}
 
-        {(activeLead ? [activeLead, ...allWithDistance.filter((l) => l.leadId !== activeLead.leadId)] : allWithDistance).map((lead) => {
-          const isActive = activeLeadId === lead.leadId;
-          return (
-            <TouchableOpacity
-              key={lead.leadId}
-              onPress={() => {
-                setActiveLeadId(lead.leadId);
-                mapRef.current?.animateToRegion(
-                  { latitude: lead.latitude, longitude: lead.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 },
-                  500,
-                );
-              }}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`${lead.businessName}, ${formatDistance(lead.distanceKm)} away`}
-            >
-              <Card padded={false} large style={{
-                padding: 14,
-                borderColor: isActive ? colors.ink : colors.rule,
-                borderLeftWidth: isActive ? 3 : 1,
-                borderLeftColor: isActive ? colors.accent : colors.rule,
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{
-                    width: 44, height: 44, borderRadius: radius.sm,
-                    backgroundColor: lead.isHot ? colors.dangerBg : colors.businessBg,
-                    alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Ionicons
-                      name={lead.isHot ? 'flame' : 'business-outline'}
-                      size={20}
-                      color={lead.isHot ? colors.danger : colors.business}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>
-                      {lead.businessName}
-                    </Body>
-                    <Body size="xs" color={colors.ink3} numberOfLines={1} style={{ marginTop: 1 }}>
-                      {fullAddress(lead)}
-                    </Body>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{
-                      fontFamily: fonts.serif,
-                      fontSize: 18,
-                      color: colors.ink,
-                      letterSpacing: -0.2,
-                    }}>
-                      {formatDistance(lead.distanceKm)}
-                    </Text>
-                    {lead.distanceKm == null ? (
-                      <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: colors.ink3, letterSpacing: 0.6, marginTop: 2 }}>
-                        DISTANCE OFF
+        {plotting ? (
+          <View style={[styles.floatBtn, shadow.soft]} accessibilityLiveRegion="polite">
+            <ActivityIndicator size="small" color={colors.ink} />
+            <Text variant="label" weight="bold">
+              Plotting {geocodingProgress.done} / {geocodingProgress.total}
+            </Text>
+          </View>
+        ) : null}
+
+        {geocodeError ? <Banner tone="warn" body={geocodeError} /> : null}
+      </View>
+
+      {/* Bottom sheet */}
+      <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, space.lg) + space.sm }]}>
+        <View style={styles.grab} />
+        {activeLead ? (
+          <ActiveShop
+            lead={activeLead}
+            onView={() => router.push(`/(app)/leads/${activeLead.leadId}` as any)}
+            onRoute={() => openInExternalMaps(activeLead)}
+            onClose={() => setActiveLeadId(null)}
+          />
+        ) : (
+          <>
+            <View style={styles.sheetHead}>
+              <Text variant="bodyLg" weight="bold">
+                {permissionStatus === 'granted' ? 'Nearest first' : 'All on the map'}
+              </Text>
+              {geocoded.length > 0 ? (
+                <Text variant="label" tone="muted">
+                  {geocoded.length} pinned
+                </Text>
+              ) : null}
+            </View>
+            {!isLoading && geocoded.length === 0 ? (
+              <View style={styles.emptyWrap}>
+                <Text variant="body" tone="ink2">
+                  No shops with an address yet. They show up here once they do.
+                </Text>
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.cards}
+              >
+                {geocoded.map((lead) => {
+                  const st = isLiveOrYours(lead);
+                  return (
+                    <Pressable
+                      key={lead.leadId}
+                      onPress={() => selectLead(lead)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${lead.businessName}, ${formatDistance(lead.distanceKm)} away`}
+                      style={({ pressed }) => [styles.scard, shadow.soft, pressed ? { opacity: 0.85 } : null]}
+                    >
+                      <ShopTile uri={lead.photoUrl} name={lead.businessName} width={184} height={104} />
+                      <Text variant="body" weight="bold" numberOfLines={1} style={styles.scardTitle}>
+                        {lead.businessName}
                       </Text>
-                    ) : null}
-                  </View>
-                </View>
-
-                {/* Submitter chip */}
-                {lead.submitterName ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 }}>
-                    {lead.submitterImage ? (
-                      <Image source={{ uri: lead.submitterImage }} style={{ width: 22, height: 22, borderRadius: 11 }} />
-                    ) : (
-                      <Avatar name={lead.submitterName} size={22} bg={colors.accentBg} fg={colors.accentInk} />
-                    )}
-                    <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                      Submitted by {lead.submitterName}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* Inline actions when this row is active */}
-                {isActive ? (
-                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-                    <View style={{ flex: 1 }}>
-                      <Door
-                        caption="OPEN"
-                        label="In Google Maps"
-                        variant="solid"
-                        onPress={() => openInExternalMaps(lead)}
-                        rightIcon={<Ionicons name="navigate" size={16} color={colors.paper3} style={{ marginLeft: 8 }} />}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Door
-                        caption="DETAIL"
-                        label="View lead"
-                        variant="ghost"
-                        onPress={() => router.push(`/(app)/leads/${lead.leadId}` as any)}
-                        rightIcon={<Ionicons name="arrow-forward" size={16} color={colors.ink} style={{ marginLeft: 8 }} />}
-                      />
-                    </View>
-                  </View>
-                ) : null}
-              </Card>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </SafeAreaView>
+                      <Text variant="label" weight="medium" tone="muted" numberOfLines={1} style={styles.scardMeta}>
+                        {formatDistance(lead.distanceKm)} · {st ? 'Live' : 'Needs a site'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </>
+        )}
+      </View>
+    </View>
   );
 }
+
+function ActiveShop({
+  lead,
+  onView,
+  onRoute,
+  onClose,
+}: {
+  lead: GeocodedLead;
+  onView: () => void;
+  onRoute: () => void;
+  onClose: () => void;
+}) {
+  const status = leadStatus(lead.status);
+  return (
+    <View style={styles.active}>
+      <View style={styles.activeTop}>
+        <ShopTile uri={lead.photoUrl} name={lead.businessName} width={104} height={128} />
+        <View style={styles.activeText}>
+          <Text variant="heading" numberOfLines={2}>
+            {lead.businessName}
+          </Text>
+          <Text variant="label" weight="semibold" tone="muted" numberOfLines={2}>
+            {formatDistance(lead.distanceKm)}
+            {fullAddress(lead) ? ` · ${fullAddress(lead)}` : ''}
+          </Text>
+          <View style={styles.chipRow}>
+            <Chip label={status.label} tone={status.tone} />
+            {lead.isHot ? <Chip label="Hot" tone="danger" /> : null}
+          </View>
+          {lead.submitterName ? (
+            <View style={styles.byRow}>
+              <Avatar uri={lead.submitterImage} name={lead.submitterName} size={28} />
+              <Text variant="label" weight="medium" tone="muted" numberOfLines={1} style={styles.flex}>
+                Spotted by {lead.submitterName}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+      <View style={styles.activeBtns}>
+        <Button
+          title="View lead"
+          size="md"
+          fullWidth={false}
+          style={styles.flex}
+          onPress={onView}
+          accessibilityLabel="View lead"
+        />
+        <Button
+          title="Route"
+          variant="ghost"
+          size="md"
+          fullWidth={false}
+          icon="navigate"
+          onPress={onRoute}
+          accessibilityLabel="Open in Google Maps"
+        />
+      </View>
+      <TextLink label="All shops" onPress={onClose} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#E9E9E3' },
+  flex: { flex: 1 },
+
+  // pins
+  ringBase: { alignItems: 'center', justifyContent: 'center' },
+  photo: { overflow: 'hidden', backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  halo: { position: 'absolute', backgroundColor: 'rgba(12,10,8,0.10)' },
+  pinLabel: {
+    marginTop: 6,
+    height: LABEL_H,
+    maxWidth: LABEL_W,
+    paddingHorizontal: space.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.soft,
+  },
+  meHalo: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(12,10,8,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  meDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.ink,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+
+  // floating header
+  top: { position: 'absolute', left: space.lg, right: space.lg, gap: space.sm },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  round: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titlePill: {
+    flex: 1,
+    minHeight: 48,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.xs + 2,
+    borderRadius: 26,
+    backgroundColor: colors.card,
+    justifyContent: 'center',
+  },
+  floatBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 48,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+  },
+
+  // bottom sheet
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    shadowColor: '#0C0A08',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  grab: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.ruleStrong,
+    alignSelf: 'center',
+    marginTop: 9,
+  },
+  sheetHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.xl - 4,
+    paddingTop: space.md,
+    paddingBottom: space.md,
+  },
+  emptyWrap: { paddingHorizontal: space.xl - 4, paddingBottom: space.sm },
+  cards: { paddingHorizontal: space.lg, paddingBottom: space.sm, gap: space.sm + 2 },
+  scard: {
+    width: 200,
+    backgroundColor: colors.card,
+    borderRadius: 22,
+    padding: space.sm,
+    paddingBottom: space.md,
+  },
+  scardTitle: { marginTop: space.sm + 1, marginHorizontal: space.xs },
+  scardMeta: { marginHorizontal: space.xs, marginTop: 2 },
+  tile: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: colors.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // selected shop
+  active: { paddingHorizontal: space.lg, paddingTop: space.md, gap: space.md },
+  activeTop: { flexDirection: 'row', gap: space.md },
+  activeText: { flex: 1, gap: space.xs + 1, minWidth: 0 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  byRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  activeBtns: { flexDirection: 'row', gap: space.sm },
+});

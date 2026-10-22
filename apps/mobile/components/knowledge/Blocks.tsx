@@ -1,78 +1,63 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View } from 'react-native';
 import type { Block } from '../../services/knowledge/api';
-import { colors, fonts, radius } from '../../theme/tokens';
+import { Banner, CheckRow, Text } from '../v2';
+import { colors, fonts, radius, space } from '../../theme/v2';
 
-const P = { fontFamily: fonts.sans, fontSize: 15, lineHeight: 24, color: colors.ink2 } as const;
+/** Body paragraph: 17px on a 26px line (long-form reading size). */
+const PARA = { lineHeight: 26 } as const;
 
-function Bullet({ items, ordered }: { items: string[]; ordered?: boolean }) {
+/** Short items read as a checklist (mock `.a-check`); longer sentences stay as plain bullets. */
+const CHECK_MAX_CHARS = 80;
+
+function Bullets({ items }: { items: string[] }) {
+  const asChecks = items.every((it) => it.length <= CHECK_MAX_CHARS);
+  if (asChecks) {
+    return (
+      <View style={styles.checks}>
+        {items.map((it, i) => (
+          <CheckRow key={i} title={it} state="todo" />
+        ))}
+      </View>
+    );
+  }
   return (
-    <View style={{ gap: 8, marginVertical: 4 }}>
+    <View style={styles.list}>
       {items.map((it, i) => (
-        <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          <Text
-            style={{
-              fontFamily: ordered ? fonts.monoMed : fonts.sans,
-              fontSize: ordered ? 13 : 15,
-              lineHeight: 24,
-              color: ordered ? colors.accentInk : colors.accent,
-              width: 22,
-            }}
-          >
-            {ordered ? `${i + 1}.` : '•'}
+        <View key={i} style={styles.itemRow}>
+          <View style={styles.dot} />
+          <Text variant="body" tone="ink2" style={[PARA, styles.flex]}>
+            {it}
           </Text>
-          <Text style={[P, { flex: 1 }]}>{it}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function Callout({ kind, text }: { kind: string; text: string }) {
-  const warn = kind === 'warn';
+function Steps({ items }: { items: string[] }) {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        gap: 10,
-        backgroundColor: warn ? colors.warnBg : colors.accentBg,
-        borderLeftWidth: 3,
-        borderLeftColor: warn ? colors.warn : colors.accent,
-        borderRadius: radius.sm,
-        padding: 14,
-        marginVertical: 6,
-      }}
-    >
-      <Ionicons
-        name={warn ? 'warning-outline' : 'information-circle-outline'}
-        size={18}
-        color={warn ? colors.warn : colors.accentInk}
-        style={{ marginTop: 1 }}
-      />
-      <Text style={[P, { flex: 1, color: warn ? '#7A5300' : colors.accentInk }]}>{text}</Text>
+    <View style={styles.list}>
+      {items.map((it, i) => (
+        <View key={i} style={styles.itemRow}>
+          <View style={styles.num}>
+            <Text variant="label" weight="bold" tone="onAccent">
+              {i + 1}
+            </Text>
+          </View>
+          <Text variant="body" tone="ink2" style={[PARA, styles.flex]}>
+            {it}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }
 
 function CodeBlock({ text }: { text: string }) {
   return (
-    <View
-      style={{
-        backgroundColor: colors.ink,
-        borderRadius: radius.sm,
-        padding: 14,
-        marginVertical: 6,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: fonts.mono,
-          fontSize: 12.5,
-          lineHeight: 20,
-          color: colors.paper3,
-        }}
-      >
+    <View style={styles.code}>
+      <Text variant="body" tone="onDark" style={PARA}>
         {text}
       </Text>
     </View>
@@ -81,53 +66,13 @@ function CodeBlock({ text }: { text: string }) {
 
 function Quote({ text, who }: { text: string; who: string }) {
   return (
-    <View
-      style={{
-        borderLeftWidth: 3,
-        borderLeftColor: colors.ruleStrong,
-        paddingLeft: 14,
-        marginVertical: 6,
-      }}
-    >
-      <Text style={{ fontFamily: fonts.serifIt, fontSize: 18, lineHeight: 26, color: colors.ink }}>
+    <View style={styles.quote}>
+      <Text variant="bodyLg" weight="semibold">
         {text}
       </Text>
       {!!who && (
-        <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1, color: colors.ink3, marginTop: 6 }}>
-          — {who.toUpperCase()}
-        </Text>
-      )}
-    </View>
-  );
-}
-
-function ImagePlaceholder({ caption }: { caption: string }) {
-  return (
-    <View style={{ marginVertical: 6 }}>
-      <View
-        style={{
-          height: 140,
-          backgroundColor: colors.paper2,
-          borderRadius: radius.sm,
-          borderWidth: 1,
-          borderColor: colors.rule,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name="image-outline" size={28} color={colors.ink3} />
-      </View>
-      {!!caption && (
-        <Text
-          style={{
-            fontFamily: fonts.sans,
-            fontSize: 12,
-            color: colors.ink3,
-            textAlign: 'center',
-            marginTop: 6,
-          }}
-        >
-          {caption}
+        <Text variant="label" tone="muted" style={{ marginTop: space.sm }}>
+          {`— ${who}`}
         </Text>
       )}
     </View>
@@ -138,34 +83,34 @@ function ImagePlaceholder({ caption }: { caption: string }) {
 export function BlockView({ block }: { block: Block }) {
   switch (block.t) {
     case 'p':
-      return <Text style={[P, { marginVertical: 6 }]}>{block.text}</Text>;
+      return (
+        <Text variant="body" tone="ink2" style={[PARA, styles.p]}>
+          {block.text}
+        </Text>
+      );
     case 'h2':
       return (
-        <Text
-          style={{
-            fontFamily: fonts.serif,
-            fontSize: 22,
-            lineHeight: 28,
-            color: colors.ink,
-            marginTop: 18,
-            marginBottom: 4,
-          }}
-        >
+        <Text variant="heading" accessibilityRole="header" style={styles.h2}>
           {block.text}
         </Text>
       );
     case 'ul':
-      return <Bullet items={block.items} />;
+      return <Bullets items={block.items} />;
     case 'ol':
-      return <Bullet items={block.items} ordered />;
+      return <Steps items={block.items} />;
     case 'callout':
-      return <Callout kind={block.kind} text={block.text} />;
+      return <Banner tone={block.kind === 'warn' ? 'warn' : 'ok'} body={block.text} style={styles.callout} />;
     case 'code':
       return <CodeBlock text={block.text} />;
     case 'quote':
       return <Quote text={block.text} who={block.who} />;
     case 'image':
-      return <ImagePlaceholder caption={block.caption} />;
+      // The backend only sends a caption (no photo URL), so there is nothing to draw but the caption.
+      return block.caption ? (
+        <Text variant="label" tone="muted" style={styles.caption}>
+          {block.caption}
+        </Text>
+      ) : null;
     default:
       return null;
   }
@@ -174,10 +119,34 @@ export function BlockView({ block }: { block: Block }) {
 /** Renders a full article body. */
 export function ArticleBody({ body }: { body: Block[] }) {
   return (
-    <View>
+    <View style={styles.body}>
       {body.map((b, i) => (
         <BlockView key={i} block={b} />
       ))}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  body: { gap: space.md },
+  flex: { flex: 1 },
+  p: { marginVertical: 0 },
+  h2: { marginTop: space.md },
+  checks: { gap: space.sm },
+  list: { gap: space.md },
+  itemRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.ink, marginTop: 9, marginHorizontal: 5 },
+  num: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 0,
+  },
+  callout: { marginVertical: 0 },
+  code: { backgroundColor: colors.ink, borderRadius: radius.field, padding: space.lg },
+  quote: { borderLeftWidth: 3, borderLeftColor: colors.ruleStrong, paddingLeft: space.lg },
+  caption: { textAlign: 'center', fontFamily: fonts.medium },
+});

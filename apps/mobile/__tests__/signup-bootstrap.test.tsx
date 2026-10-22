@@ -27,7 +27,8 @@ jest.mock('expo-apple-authentication', () => ({
 jest.mock('expo-web-browser', () => ({ maybeCompleteAuthSession: jest.fn() }));
 jest.mock('expo-linking', () => ({ createURL: () => 'negosyodigital:///' }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
-jest.mock('react-native-svg', () => ({ __esModule: true, default: 'MockSvg', Path: 'MockSvgPath' }));
+jest.mock('react-native-svg', () => ({ __esModule: true, default: 'MockSvg', Path: 'MockSvgPath', Defs: 'MockSvgDefs', LinearGradient: 'MockSvgGradient', Rect: 'MockSvgRect', Stop: 'MockSvgStop' }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: jest.fn() }) }));
 jest.mock('../components/TikTokLogo', () => ({ TikTokLogo: () => null }));
 jest.mock('../components/GuardedLink', () => ({ GuardedLink: ({ children }: { children: React.ReactNode }) => children }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
@@ -78,7 +79,7 @@ it('email verification saves creator phone and affiliate referral before activat
 
 it('email affiliate signup persists the lowercase handle and omits an incoming referral', async () => {
   const screen = render(<SignupScreen />);
-  fireEvent.press(screen.getByLabelText('Affiliate account'));
+  fireEvent.press(screen.getByLabelText('Creator account'));
   fillEmailForm(screen);
   fireEvent.changeText(screen.getByLabelText('Page handle'), 'Juan-Shop');
   expect(screen.queryByLabelText('Referral Code')).toBeNull();
@@ -90,7 +91,7 @@ it('Google signup preserves the chosen affiliate profile without a pre-auth back
   mockSSO.mockResolvedValue({ createdSessionId: identity.sessionId, setActive: mockSetActive,
     signUp: { createdUserId: identity.clerkId, emailAddress: identity.email, firstName: 'Google Alex', lastName: 'Cruz' } });
   const screen = render(<SignupScreen />);
-  fireEvent.press(screen.getByLabelText('Affiliate account'));
+  fireEvent.press(screen.getByLabelText('Creator account'));
   fireEvent.changeText(screen.getByLabelText('Mobile Number'), '09171234567');
   fireEvent.changeText(screen.getByLabelText('Page handle'), 'google-shop');
   fireEvent.press(screen.getByLabelText('Accept Terms of Service'));

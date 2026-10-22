@@ -155,3 +155,54 @@ describe('ScreenShell', () => {
     expect(r.getByText('Hi')).toBeTruthy();
   });
 });
+
+describe('v2 form and list parts', () => {
+  it('Field shows its label, forwards typing and shows an error in danger colour', () => {
+    const { Field } = require('../components/v2');
+    const onChangeText = jest.fn();
+    const r = render(<Field label="Email" value="" onChangeText={onChangeText} error="Check your email" />);
+    fireEvent.changeText(r.getByLabelText('Email'), 'a@b.co');
+    expect(onChangeText).toHaveBeenCalledWith('a@b.co');
+    expect(StyleSheet.flatten(r.getByText('Check your email').props.style).color).toBe(colors.danger);
+    expectNoSmallText(r);
+  });
+
+  it('OptionRow reports selected state and presses', () => {
+    const { OptionRow } = require('../components/v2');
+    const onPress = jest.fn();
+    const r = render(<OptionRow title="Field agent" subtitle="Visit shops" icon="camera-outline" selected onPress={onPress} />);
+    const row = r.getByRole('radio');
+    expect(row.props.accessibilityState.selected).toBe(true);
+    fireEvent.press(row);
+    expect(onPress).toHaveBeenCalled();
+    expectNoSmallText(r);
+  });
+
+  it('CheckRow, ChoiceChip, Banner, TextLink and SectionLabel keep text at 16px or more', () => {
+    const { CheckRow, ChoiceChip, Banner, TextLink, SectionLabel } = require('../components/v2');
+    const r = render(
+      <>
+        <CheckRow title="Profile sent" subtitle="Just now" state="done" />
+        <CheckRow title="Team checks" state="now" right="Now" />
+        <ChoiceChip label="Marikina" selected />
+        <Banner tone="warn" title="Offline" body="We will send it later." />
+        <TextLink label="Forgot?" onPress={() => {}} />
+        <SectionLabel>Today</SectionLabel>
+      </>,
+    );
+    expectNoSmallText(r);
+  });
+});
+
+describe('v2 status and money helpers', () => {
+  it('maps submission and lead statuses to chips and formats pesos', () => {
+    const { submissionStatus, leadStatus, formatPeso } = require('../components/v2');
+    expect(submissionStatus('deployed')).toEqual({ label: 'Live', tone: 'ok' });
+    expect(submissionStatus('submitted').label).toBe('In review');
+    expect(submissionStatus('approved', true).label).toBe('Draft');
+    expect(leadStatus('converted').label).toBe('Live');
+    expect(formatPeso(4999)).toBe('₱4,999');
+    expect(formatPeso(1250.4)).toBe('₱1,250');
+    expect(formatPeso(undefined)).toBe('₱0');
+  });
+});

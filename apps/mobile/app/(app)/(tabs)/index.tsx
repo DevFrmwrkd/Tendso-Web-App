@@ -1,76 +1,42 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { Redirect } from 'expo-router';
-import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
-import { GuardedLink } from '../../../components/GuardedLink';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { useNetwork } from '../../../providers/NetworkProvider';
 import { OfflineBanner } from '../../../components/OfflineBanner';
-import { UnlockPricingBar } from '../../../components/UnlockPricingBar';
-import { colors, fonts, radius, space } from '../../../theme/tokens';
-import { Display, Body, Label, Door, Rule, Card, Avatar } from '../../../components/ui/primitives';
 import { openExternalUrl } from '../../../services/links';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { CreatorDashboardPreview } from '../../../components/AccountPreview';
-
-function timeAgo(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const mins  = Math.floor(diff / 60_000);
-  const hours = Math.floor(diff / 3_600_000);
-  const days  = Math.floor(diff / 86_400_000);
-  if (mins  <  1) return 'Just now';
-  if (mins  < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days  === 1) return 'Yesterday';
-  return `${days}d ago`;
-}
-
-const NOTIFICATION_META: Record<string, { icon: any; color: string; bg: string }> = {
-  submission_approved: { icon: 'checkmark-circle',      color: colors.accent,       bg: colors.accentBg },
-  submission_rejected: { icon: 'close-circle',          color: colors.danger,       bg: colors.dangerBg },
-  payout_sent:         { icon: 'cash-outline',          color: colors.accent,       bg: colors.accentBg },
-  new_lead:            { icon: 'person-add-outline',    color: colors.business,     bg: colors.businessBg },
-  website_live:        { icon: 'globe-outline',         color: '#6D28D9',           bg: '#EDE9FE' },
-  submission_created:  { icon: 'add-circle-outline',    color: colors.business,     bg: colors.businessBg },
-  profile_updated:     { icon: 'person-circle-outline', color: colors.warn,         bg: colors.warnBg },
-  password_changed:    { icon: 'lock-closed',           color: colors.ink3,         bg: colors.paper2 },
-  certification:       { icon: 'ribbon',                color: colors.accent,       bg: colors.accentBg },
-  system:              { icon: 'information-circle',    color: colors.ink3,         bg: colors.paper2 },
-};
-
-function statusTone(sub: any) {
-  const isIncomplete = !sub.photos || sub.photos.length === 0 || (!sub.videoStorageId && !sub.audioStorageId);
-  const isDraft = sub.status === 'draft' || isIncomplete;
-  if (sub.status === 'approved')  return { label: 'Verified', bg: colors.accentBg,   ink: colors.accentInk, icon: 'checkmark-circle' as const,    tintBg: colors.accentBg,   tintFg: colors.accent };
-  if (sub.status === 'rejected')  return { label: 'Rejected', bg: colors.dangerBg,   ink: colors.danger,    icon: 'close-circle' as const,        tintBg: colors.dangerBg,   tintFg: colors.danger };
-  if (isDraft)                    return { label: 'Draft',    bg: colors.paper2,     ink: colors.ink3,      icon: 'time-outline' as const,        tintBg: colors.paper2,     tintFg: colors.ink3 };
-  if (sub.status === 'submitted') return { label: 'In Review',bg: colors.businessBg, ink: colors.business,  icon: 'hourglass-outline' as const,   tintBg: colors.businessBg, tintFg: colors.business };
-  // Later lifecycle statuses. Home used to fall through to "Pending" here, so a
-  // paid submission read "Pending" on Home but "Paid" under View All (the
-  // submissions list already handles these). Keep the two in sync.
-  if (sub.status === 'website_generated') return { label: 'Website Ready', bg: colors.businessBg, ink: colors.business,  icon: 'globe-outline' as const,     tintBg: colors.businessBg, tintFg: colors.business };
-  if (sub.status === 'deployed')          return { label: 'Deployed',      bg: colors.accentBg,   ink: colors.accentInk, icon: 'globe-outline' as const,     tintBg: colors.accentBg,   tintFg: colors.accent };
-  if (sub.status === 'paid' || sub.status === 'completed') return { label: 'Paid', bg: colors.accentBg, ink: colors.accentInk, icon: 'cash-outline' as const, tintBg: colors.accentBg, tintFg: colors.accent };
-  return { label: 'Pending', bg: colors.warnBg, ink: colors.warn, icon: 'storefront-outline' as const, tintBg: colors.warnBg, tintFg: colors.warn };
-}
+import {
+  Avatar,
+  BigNumber,
+  Banner,
+  Card,
+  Chip,
+  EmptyState,
+  ListRow,
+  Loading,
+  ScreenShell,
+  SectionLabel,
+  Text,
+  TextLink,
+  formatPeso,
+  shortDate,
+  submissionStatus,
+} from '../../../components/v2';
+import { NotificationIcon, timeAgo } from '../../../components/v2/NotificationIcon';
+import { colors, hit, shadow, space } from '../../../theme/v2';
 
 // Dashboard-tile groupings. "Verified" is approval AND everything downstream of
 // it — a paid/deployed/completed submission is still verified — so it mustn't
 // drop out the moment its status advances past 'approved'. Mirrors the approved
-// set in submissions.getPricingContext so the counts agree across the app.
+// set used elsewhere in the app so the counts agree.
 const APPROVED_STATUSES = [
   'approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated', 'unpublished',
 ];
@@ -89,7 +55,6 @@ export default function HomeScreen() {
 
 function CreatorHomeScreen() {
   const router = useGuardedRouter();
-  const insets = useSafeAreaInsets();
   const { user, isLoaded, isSignedIn } = useUser();
   const { isConnected } = useNetwork();
   const [justCertified, setJustCertified] = useState(false);
@@ -131,25 +96,17 @@ function CreatorHomeScreen() {
   usePushNotifications(creator?._id);
 
   if (!isOffline && (!isLoaded || !isSignedIn || creator === undefined)) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <Loading />;
   }
 
   if (!isOffline && !creator) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <Loading />;
   }
 
   // Complete-profile gate — must come BEFORE the onboarding redirects below,
   // which key off certification, not name. A social sign-up (Apple withholding
   // the name on a repeat authorization, or "Hide My Email") lands here with a
-  // blank name; send them to collect it before onboarding. Once the creator has
+  // blank name; send them to collect it before onboarding. Once the field agent has
   // a name this passes and the normal flow resumes.
   if (
     !isOffline &&
@@ -162,7 +119,7 @@ function CreatorHomeScreen() {
 
   if (!isOffline && !justCertified && creator && !(creator as any).certifiedAt) {
     // Rejected by admin — gate to the dedicated rejection screen.
-    // Checked BEFORE the pending branch because a rejected creator
+    // Checked BEFORE the pending branch because a rejected field agent
     // still has quizPassedAt set (rejection doesn't clear it).
     if ((creator as any).rejectedAt) {
       return <Redirect href={'/(app)/verification-rejected' as any} />;
@@ -184,443 +141,281 @@ function CreatorHomeScreen() {
   const balance = creator?.balance ?? 0;
   const totalEarnings = (creator as any)?.totalEarnings ?? 0;
   const totalWithdrawn = (creator as any)?.totalWithdrawn ?? 0;
+  const unread = unreadCount ?? 0;
+
+  const leadStats = [
+    { label: 'Total', value: leadsData?.stats?.total ?? 0 },
+    { label: 'Hot', value: (leadsData?.leads ?? []).filter((l: any) => l.isHot).length },
+    { label: 'Yours', value: leadsData?.stats?.mine ?? 0 },
+    { label: 'Live', value: leadsData?.stats?.converted ?? 0 },
+  ];
+
+  const summary = [
+    { label: 'Total', value: totalSubs },
+    { label: 'In review', value: pendingSubs },
+    { label: 'Verified', value: approvedSubs },
+  ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
+    <ScreenShell insetBottom={false} contentStyle={styles.content}>
       <OfflineBanner />
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
+
+      {/* Top row: avatar, greeting, bell */}
+      <View style={styles.topRow}>
+        <Avatar
+          uri={(creator as any)?.profileImage}
+          name={firstName || 'U'}
+          size={48}
+        />
+        <Text variant="heading" numberOfLines={1} style={styles.greeting}>
+          {firstName ? `Mabuhay, ${firstName}` : 'Mabuhay'}
+        </Text>
+        <Pressable
+          onPress={() => router.push('/(app)/notifications' as any)}
+          accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+          accessibilityRole="button"
+          hitSlop={4}
+          style={[styles.bell, shadow.soft]}
+        >
+          <Ionicons name="notifications-outline" size={24} color={colors.ink} />
+          {unread > 0 ? (
+            <View style={styles.badge}>
+              <Text variant="chip" tone="onDark" style={styles.badgeText}>
+                {unread > 99 ? '99+' : String(unread)}
+              </Text>
+            </View>
+          ) : null}
+        </Pressable>
+      </View>
+
+      {justCertified ? (
+        <Banner tone="ok" icon="ribbon-outline" title="You're certified" body="Welcome aboard. Find your first shop." />
+      ) : null}
+
+      {/* Balance */}
+      <View style={styles.balance}>
+        <SectionLabel>Available balance</SectionLabel>
+        <BigNumber
+          size="lg"
+          value={formatPeso(balance)}
+          label={`${formatPeso(totalEarnings)} earned · ${formatPeso(totalWithdrawn)} withdrawn`}
+        />
+      </View>
+
+      {/* Shops near you: opens the leads screens (Finds / map) */}
+      <Card
+        variant="dark"
+        onPress={() => router.push('/(app)/leads' as any)}
+        accessibilityLabel="View team leads"
+        style={styles.hero}
       >
-        {/* Editorial header */}
-        <View style={{
-          paddingTop: insets.top + 20,
-          paddingBottom: 20,
-          paddingHorizontal: 24,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Label tracking={1.8}>DASHBOARD</Label>
-            </View>
-            <TouchableOpacity
-              onPress={() => router.push('/(app)/notifications' as any)}
-              accessibilityLabel="Notifications"
-              accessibilityRole="button"
-              hitSlop={8}
-            >
-              <View>
-                <Ionicons name="notifications-outline" size={22} color={colors.ink2} />
-                {(unreadCount ?? 0) > 0 && (
-                  <View style={{
-                    position: 'absolute', top: -3, right: -3,
-                    backgroundColor: colors.danger, borderRadius: 8,
-                    minWidth: 16, height: 16, paddingHorizontal: 3,
-                    alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Text style={{ color: '#fff', fontSize: 9, fontFamily: fonts.sansBold }}>
-                      {(unreadCount ?? 0) > 99 ? '99+' : unreadCount}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
+        <View style={styles.heroTop}>
+          <View style={styles.heroText}>
+            <Text variant="title" tone="onDark">
+              Shops near you
+            </Text>
+            <Text variant="body" tone="onDark" style={styles.heroSub}>
+              Every shop the team has met, including yours.
+            </Text>
           </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 4 }}>
-            {(creator as any)?.profileImage ? (
-              <Image
-                source={{ uri: (creator as any).profileImage }}
-                style={{ width: 48, height: 48, borderRadius: 24 }}
-                accessibilityLabel="Profile picture"
-              />
-            ) : (
-              <Avatar name={firstName || 'U'} size={48} bg={colors.ink} fg={colors.paper3} />
-            )}
-            <View style={{ flex: 1 }}>
-              <Label tracking={1.6}>WELCOME BACK</Label>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-                <Display size="sm">Mabuhay, </Display>
-                <Display size="sm" italic color={colors.accent}>
-                  {firstName ? `${firstName}.` : 'creator.'}
-                </Display>
-              </View>
-            </View>
+          <View style={styles.heroGo}>
+            <Ionicons name="arrow-forward" size={24} color={colors.onAccent} />
           </View>
         </View>
-
-        <Rule strong />
-
-        <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
-          {/* Price-tier progress — unlock higher pricing (matches the web dashboard) */}
-          <UnlockPricingBar creatorId={creator?._id} />
-
-          {/* Balance card — ink dark surface */}
-          <View style={{
-            backgroundColor: colors.ink,
-            borderRadius: radius.lg,
-            padding: 22,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.18,
-            shadowRadius: 18,
-            elevation: 6,
-          }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontFamily: fonts.monoMed,
-                  fontSize: 11,
-                  letterSpacing: 1.6,
-                  textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.55)',
-                }}>
-                  Available balance
-                </Text>
-                <Text style={{
-                  fontFamily: fonts.serif,
-                  fontSize: 44,
-                  lineHeight: 48,
-                  color: colors.paper3,
-                  marginTop: 6,
-                  letterSpacing: -0.6,
-                }}>
-                  ₱{balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Text>
-              </View>
-              <View style={{
-                width: 42, height: 42, borderRadius: 21,
-                borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
-                backgroundColor: 'rgba(255,255,255,0.04)',
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Ionicons name="wallet" size={20} color={colors.accentSolid} />
-              </View>
+        <View style={styles.heroStats}>
+          {leadStats.map((stat) => (
+            <View key={stat.label} style={styles.heroStat}>
+              <Text variant="heading" tone="onDark" tabular>
+                {String(stat.value)}
+              </Text>
+              <Text variant="label" tone="onDark" style={styles.heroStatLabel}>
+                {stat.label}
+              </Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{
-                flex: 1,
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                borderRadius: radius.sm,
-                padding: 12,
-              }}>
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, letterSpacing: 1.4, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                  Total earned
-                </Text>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 15, color: colors.paper3, marginTop: 4 }}>
-                  ₱{totalEarnings.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                </Text>
-              </View>
-              <View style={{
-                flex: 1,
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                borderRadius: radius.sm,
-                padding: 12,
-              }}>
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 9, letterSpacing: 1.4, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
-                  Withdrawn
-                </Text>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 15, color: colors.paper3, marginTop: 4 }}>
-                  ₱{totalWithdrawn.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                </Text>
-              </View>
+          ))}
+        </View>
+      </Card>
+
+      {/* Submissions */}
+      <View style={styles.section}>
+        <View style={styles.sectionHead}>
+          <SectionLabel>Your sites</SectionLabel>
+          <TextLink
+            label="View all"
+            align="right"
+            onPress={() => router.push('/(app)/submissions' as any)}
+            accessibilityHint="Opens all your submissions"
+          />
+        </View>
+
+        <Card style={styles.summary} accessible accessibilityLabel={`${totalSubs} total, ${pendingSubs} in review, ${approvedSubs} verified`}>
+          {summary.map((stat, idx) => (
+            <View key={stat.label} style={[styles.summaryCell, idx > 0 ? styles.summaryDivider : null]}>
+              <Text variant="display" tabular>
+                {String(stat.value)}
+              </Text>
+              <Text variant="label" tone="muted">
+                {stat.label}
+              </Text>
             </View>
-          </View>
+          ))}
+        </Card>
 
-          {/* Quick stats — editorial tiles */}
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            {[
-              { label: 'Total',    value: totalSubs,    icon: 'layers-outline' as const,           tintBg: colors.businessBg, tintFg: colors.business },
-              { label: 'In Review', value: pendingSubs,  icon: 'hourglass-outline' as const,        tintBg: colors.warnBg,     tintFg: colors.warn },
-              { label: 'Verified', value: approvedSubs, icon: 'checkmark-circle-outline' as const, tintBg: colors.accentBg,   tintFg: colors.accent },
-            ].map((stat) => (
-              <Card key={stat.label} padded={false} style={{ flex: 1, paddingVertical: 16, paddingHorizontal: 12, alignItems: 'center', gap: 8 }}>
-                <View style={{
-                  width: 34, height: 34, borderRadius: 17,
-                  backgroundColor: stat.tintBg,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name={stat.icon} size={17} color={stat.tintFg} />
-                </View>
-                <Display size="sm" color={colors.ink}>{String(stat.value)}</Display>
-                <Label tracking={1.4}>{stat.label}</Label>
-              </Card>
-            ))}
-          </View>
-
-          {/* Team Leads — hero card */}
-          <TouchableOpacity
-            onPress={() => router.push('/(app)/leads' as any)}
-            activeOpacity={0.92}
-            accessibilityLabel="View team leads"
-            accessibilityRole="button"
-          >
-            <Card padded={false} large style={{ overflow: 'hidden' }}>
-              <View style={{ padding: 18 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Label tracking={1.8}>TEAM LEADS</Label>
-                  </View>
-                  <Ionicons name="arrow-forward" size={18} color={colors.ink2} />
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', marginTop: 6 }}>
-                  <Display size="sm">
-                    {leadsData?.stats?.total ?? 0} leads,{' '}
-                  </Display>
-                  <Display size="sm" italic color={colors.accent}>
-                    browse the feed.
-                  </Display>
-                </View>
-                <Body size="sm" color={colors.ink2} style={{ marginTop: 6 }}>
-                  See every business the team has interviewed — including yours.
-                </Body>
-              </View>
-
-              {/* Mini stat strip */}
-              <View style={{
-                flexDirection: 'row',
-                borderTopWidth: 1,
-                borderTopColor: colors.rule,
-                backgroundColor: colors.paper2,
-              }}>
-                {[
-                  { label: 'Total',     value: leadsData?.stats?.total     ?? 0, color: colors.ink },
-                  { label: 'Hot',       value: (leadsData?.leads ?? []).filter((l: any) => l.isHot).length, color: colors.danger },
-                  { label: 'Yours',     value: leadsData?.stats?.mine      ?? 0, color: colors.business },
-                  { label: 'Converted', value: leadsData?.stats?.converted ?? 0, color: colors.accent },
-                ].map((stat, idx) => (
-                  <View
-                    key={stat.label}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 12,
-                      alignItems: 'center',
-                      borderRightWidth: idx < 3 ? 1 : 0,
-                      borderRightColor: colors.rule,
-                    }}
-                  >
-                    <Text style={{
-                      fontFamily: fonts.serif,
-                      fontSize: 22,
-                      lineHeight: 24,
-                      color: stat.color,
-                      letterSpacing: -0.3,
-                    }}>
-                      {stat.value}
-                    </Text>
-                    <Text style={{
-                      fontFamily: fonts.monoMed,
-                      fontSize: 9,
-                      letterSpacing: 1.2,
-                      color: colors.ink3,
-                      textTransform: 'uppercase',
-                      marginTop: 2,
-                    }}>
-                      {stat.label}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </Card>
-          </TouchableOpacity>
-
-          {/* Submissions */}
-          <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-              <View>
-                <Display size="sm">Submissions</Display>
-              </View>
-              <GuardedLink href="/(app)/submissions" asChild>
-                <TouchableOpacity accessibilityLabel="View all submissions" accessibilityRole="button" hitSlop={8}>
-                  <Body size="sm" weight="medium" color={colors.accent}>View all →</Body>
-                </TouchableOpacity>
-              </GuardedLink>
-            </View>
-
-            {recentSubmissions.length === 0 ? (
-              <Card large style={{ padding: 28, alignItems: 'center' }}>
-                <View style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  backgroundColor: colors.paper2,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name="storefront-outline" size={26} color={colors.ink3} />
-                </View>
-                <View style={{ marginTop: 12, alignItems: 'center' }}>
-                  <Display size="sm">No submissions</Display>
-                  <Display size="sm" italic color={colors.accent}>yet.</Display>
-                </View>
-                <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 240 }}>
-                  Tap below to list your first business and start earning.
-                </Body>
-                <View style={{ width: '100%', marginTop: 16 }}>
-                  <Door
-                    caption="START HERE"
-                    label="Submit a business"
-                    variant="solid"
-                    onPress={() => router.push('/(app)/submit/info' as any)}
-                    accessibilityLabel="Get started with first submission"
+        {recentSubmissions.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon="storefront-outline"
+              title="No sites yet"
+              body="Visit a shop and start earning."
+              actionLabel="Submit a shop"
+              onAction={() => router.push('/(app)/submit/info' as any)}
+            />
+          </Card>
+        ) : (
+          <Card style={styles.listCard}>
+            {recentSubmissions.map((sub: any, idx: number) => {
+              const isIncomplete = !sub.photos || sub.photos.length === 0 || (!sub.videoStorageId && !sub.audioStorageId);
+              const status = submissionStatus(sub.status, isIncomplete);
+              const hasSite = WEBSITE_READY_STATUSES.includes(sub.status) && !!sub.websiteUrl;
+              const isLast = idx === recentSubmissions.length - 1;
+              return (
+                <View key={sub._id} style={[styles.subRow, !isLast ? styles.subDivider : null]}>
+                  <ListRow
+                    title={sub.businessName}
+                    subtitle={shortDate(sub._creationTime)}
+                    icon="storefront-outline"
+                    trailing={<Chip label={status.label} tone={status.tone} />}
+                    onPress={() => router.push(`/(app)/submissions/${sub._id}` as any)}
+                    accessibilityLabel={`Submission: ${sub.businessName}, status: ${status.label}`}
                   />
+                  {hasSite ? (
+                    <Pressable
+                      onPress={() => void openExternalUrl(sub.websiteUrl)}
+                      hitSlop={6}
+                      accessibilityRole="link"
+                      accessibilityLabel={`View ${sub.businessName} website`}
+                      style={styles.siteLink}
+                    >
+                      <Ionicons name="globe-outline" size={20} color={colors.ink} />
+                      <Text variant="label" weight="bold" style={styles.siteLinkText}>
+                        View website
+                      </Text>
+                    </Pressable>
+                  ) : null}
                 </View>
-              </Card>
-            ) : (
-              <View style={{ gap: 10 }}>
-                {recentSubmissions.map((sub: any) => {
-                  const tone = statusTone(sub);
-                  return (
-                    <GuardedLink key={sub._id} href={`/(app)/submissions/${sub._id}`} asChild>
-                      <TouchableOpacity
-                        accessibilityLabel={`Submission: ${sub.businessName}, status: ${tone.label}`}
-                        accessibilityRole="button"
-                      >
-                        <Card padded={false} style={{
-                          padding: 14,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 }}>
-                            <View style={{
-                              width: 44, height: 44, borderRadius: radius.sm,
-                              backgroundColor: tone.tintBg,
-                              alignItems: 'center', justifyContent: 'center',
-                            }}>
-                              <Ionicons name={tone.icon} size={21} color={tone.tintFg} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>
-                                {sub.businessName}
-                              </Body>
-                              <Body size="xs" color={colors.ink3} style={{ marginTop: 2 }}>
-                                {new Date(sub._creationTime).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </Body>
-                              {WEBSITE_READY_STATUSES.includes(sub.status) && sub.websiteUrl && (
-                                <TouchableOpacity
-                                  onPress={() => void openExternalUrl(sub.websiteUrl)}
-                                  hitSlop={6}
-                                  accessibilityRole="link"
-                                  accessibilityLabel={`View ${sub.businessName} website`}
-                                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 }}
-                                >
-                                  <Ionicons name="globe-outline" size={13} color="#8b5cf6" />
-                                  <Body size="xs" weight="medium" color="#7e22ce">View website</Body>
-                                </TouchableOpacity>
-                              )}
-                            </View>
-                          </View>
-                          <View style={{
-                            paddingHorizontal: 10, paddingVertical: 4,
-                            borderRadius: radius.pill,
-                            backgroundColor: tone.bg,
-                          }}>
-                            <Text style={{
-                              fontFamily: fonts.monoMed,
-                              fontSize: 10,
-                              letterSpacing: 1.0,
-                              textTransform: 'uppercase',
-                              color: tone.ink,
-                            }}>
-                              {tone.label}
-                            </Text>
-                          </View>
-                        </Card>
-                      </TouchableOpacity>
-                    </GuardedLink>
-                  );
-                })}
-              </View>
-            )}
-          </View>
+              );
+            })}
+          </Card>
+        )}
+      </View>
 
-          {/* Recent activity */}
-          <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-              <View>
-                <Display size="sm">Recent activity</Display>
-              </View>
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/notifications' as any)}
-                accessibilityLabel="See all activity"
-                accessibilityRole="button"
-                hitSlop={8}
-              >
-                <Body size="sm" weight="medium" color={colors.accent}>See all →</Body>
-              </TouchableOpacity>
-            </View>
-
-            {!isOffline && notifications === undefined ? (
-              <Card large style={{ padding: 24, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="small" color={colors.accent} />
-              </Card>
-            ) : recentActivity.length === 0 ? (
-              <Card large style={{ padding: 24, alignItems: 'center' }}>
-                <View style={{
-                  width: 50, height: 50, borderRadius: 25,
-                  backgroundColor: colors.paper2,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name="pulse-outline" size={22} color={colors.ink3} />
-                </View>
-                <View style={{ marginTop: 10, alignItems: 'center' }}>
-                  <Display size="sm">Nothing</Display>
-                  <Display size="sm" italic color={colors.accent}>yet.</Display>
-                </View>
-                <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6 }}>
-                  Your recent actions and updates{'\n'}will appear here.
-                </Body>
-              </Card>
-            ) : (
-              <Card padded={false} large style={{ overflow: 'hidden' }}>
-                {recentActivity.map((notif: any, idx: number) => {
-                  const meta = NOTIFICATION_META[notif.type] ?? { icon: 'notifications-outline', color: colors.ink3, bg: colors.paper2 };
-                  const isLast = idx === recentActivity.length - 1;
-                  return (
-                    <View key={notif._id}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 }}>
-                        <View style={{
-                          width: 40, height: 40, borderRadius: 20,
-                          backgroundColor: meta.bg,
-                          alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0,
-                        }}>
-                          <Ionicons name={meta.icon as any} size={18} color={meta.color} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Body size="sm" weight="bold" color={colors.ink} numberOfLines={1}>
-                            {notif.title}
-                          </Body>
-                          <Body size="xs" color={colors.ink3} style={{ marginTop: 1 }} numberOfLines={2}>
-                            {notif.body}
-                          </Body>
-                        </View>
-                        <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
-                          <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3 }}>
-                            {timeAgo(notif._creationTime ?? notif.createdAt)}
-                          </Text>
-                          {!notif.read && (
-                            <View style={{
-                              width: 6, height: 6, borderRadius: 3,
-                              backgroundColor: colors.accent, marginTop: 4,
-                            }} />
-                          )}
-                        </View>
-                      </View>
-                      {!isLast && <Rule style={{ marginHorizontal: 14 }} />}
-                    </View>
-                  );
-                })}
-              </Card>
-            )}
-          </View>
-
-          {/* Bottom brand mark — Google Sans Flex wordmark */}
-          <View style={{ marginTop: space.md, alignItems: 'center', opacity: 0.5 }}>
-            <Body size="xs" color={colors.ink3} style={{ fontFamily: fonts.wordmarkMed, letterSpacing: 2.4, textTransform: 'uppercase' }}>
-              Tendso
-            </Body>
-          </View>
+      {/* Recent activity */}
+      <View style={styles.section}>
+        <View style={styles.sectionHead}>
+          <SectionLabel>Recent activity</SectionLabel>
+          <TextLink
+            label="See all"
+            align="right"
+            onPress={() => router.push('/(app)/notifications' as any)}
+            accessibilityHint="Opens all notifications"
+          />
         </View>
-      </ScrollView>
-    </View>
+
+        {!isOffline && notifications === undefined ? (
+          <Card>
+            <Loading fill={false} />
+          </Card>
+        ) : recentActivity.length === 0 ? (
+          <Card style={styles.emptyActivity}>
+            <Ionicons name="pulse-outline" size={28} color={colors.ink3} />
+            <Text variant="bodyLg" tone="ink2" align="center">
+              Updates will show up here.
+            </Text>
+          </Card>
+        ) : (
+          <Card style={styles.listCard}>
+            {recentActivity.map((notif: any, idx: number) => (
+              <ListRow
+                key={notif._id}
+                title={notif.title}
+                subtitle={notif.body}
+                leading={<NotificationIcon type={notif.type} />}
+                divider={idx < recentActivity.length - 1}
+                trailing={
+                  <View style={styles.when}>
+                    <Text variant="label" tone="muted">
+                      {timeAgo(notif.sentAt ?? notif._creationTime ?? notif.createdAt)}
+                    </Text>
+                    {!notif.read ? <View style={styles.unreadDot} accessibilityLabel="Unread" /> : null}
+                  </View>
+                }
+              />
+            ))}
+          </Card>
+        )}
+      </View>
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  content: { gap: space.xl, paddingBottom: space.xxl + 96 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  greeting: { flex: 1 },
+  bell: {
+    width: hit.icon,
+    height: hit.icon,
+    borderRadius: 999,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 5,
+    borderRadius: 12,
+    backgroundColor: colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { lineHeight: 20 },
+  balance: { gap: space.xs },
+  hero: { gap: space.lg, padding: space.xl - 4 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  heroText: { flex: 1, gap: space.xs },
+  heroSub: { opacity: 0.8 },
+  heroGo: {
+    width: hit.icon,
+    height: hit.icon,
+    borderRadius: 999,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroStats: { flexDirection: 'row', gap: space.sm },
+  heroStat: { flex: 1, gap: 2 },
+  heroStatLabel: { opacity: 0.7 },
+  section: { gap: space.md },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  summary: { flexDirection: 'row', paddingHorizontal: space.sm },
+  summaryCell: { flex: 1, alignItems: 'center', gap: 2 },
+  summaryDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.ruleStrong },
+  listCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  subRow: { paddingBottom: 0 },
+  subDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
+  siteLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: hit.min,
+    marginLeft: hit.icon + space.lg - 2 + space.xs,
+  },
+  siteLinkText: { textDecorationLine: 'underline' },
+  emptyActivity: { alignItems: 'center', gap: space.sm, paddingVertical: space.xl },
+  when: { alignItems: 'flex-end', gap: space.xs },
+  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.ink },
+});

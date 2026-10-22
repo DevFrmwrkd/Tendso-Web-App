@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useClerk, useSession, useUser } from '@clerk/clerk-expo';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@tendso/convex-client';
-import { Body, Display, Door, EditorialField, Label } from '../../components/ui/primitives';
+import { Banner, Button, Card, Field, Loading, OptionRow, ScreenShell, Text, TextLink } from '../../components/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useNetwork } from '../../providers/NetworkProvider';
-import { colors } from '../../theme/tokens';
+import { space } from '../../theme/v2';
 import {
   clearPendingSignupProfile, clearPendingSignupProfiles, createSignupAccount, loadPendingSignupProfile,
   normalizeSignupProfile, savePendingSignupProfile, signupAccountHome, signupErrorMessage, signupProfileErrors,
@@ -21,7 +20,6 @@ export default function AccountSetupScreen() {
   const { signOut } = useClerk();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { isConnected } = useNetwork();
-  const insets = useSafeAreaInsets();
   const router = useGuardedRouter();
   const authenticatedSession = useQuery(api.adminAccess.me, isAuthenticated && user ? {} : 'skip');
   const ownSession = authenticatedSession?.clerkId === user?.id ? authenticatedSession : undefined;
@@ -101,63 +99,74 @@ export default function AccountSetupScreen() {
     }
   };
 
+  const accountLabel = profile.accountType === 'creator' ? 'field agent' : 'creator';
+
   if (isAuthenticated && !isLoading && isOwner) {
-    return <SafeAreaView style={{ flex: 1, padding: 24, justifyContent: 'center', backgroundColor: colors.paper }}>
-      <Display size="md">Business owner account</Display>
-      <Body size="sm" color={colors.ink2}>Manage your website at tendso.com. To become a creator or affiliate, use a different email.</Body>
-      <Door caption="SIGN OUT" label="Use a different login" onPress={() => { void leave().catch((failure) => setError(signupErrorMessage(failure))); }} />
-      {error ? <Body size="sm" color={colors.danger}>{error}</Body> : null}
-    </SafeAreaView>;
+    return <ScreenShell
+      scroll={false}
+      contentStyle={styles.center}
+      footer={<>
+        {error ? <Text variant="label" tone="danger">{error}</Text> : null}
+        <Button title="Use a different login" variant="dark" onPress={() => { void leave().catch((failure) => setError(signupErrorMessage(failure))); }} />
+      </>}>
+      <Card variant="lg" style={styles.ownerCard}>
+        <Text variant="title">Business owner account</Text>
+        <Text variant="bodyLg" tone="ink2">Manage your website at tendso.com. To become a field agent or creator, use a different email.</Text>
+      </Card>
+    </ScreenShell>;
   }
 
   if (!isAuthenticated || isLoading || account === undefined || account || !draftLoaded) {
-    return <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-      <ActivityIndicator size="large" color={colors.accent} />
-      <Body size="sm">Preparing your secure account...</Body>
-    </SafeAreaView>;
+    return <Loading label="Preparing your secure account..." />;
   }
 
-  return <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 32, gap: 18 }}>
-        <Label>FINISH YOUR ACCOUNT</Label>
-        <Display size="md">How will you earn?</Display>
-        <Body size="sm" color={colors.ink2}>Signed in as {identity.email || 'your sign-in account'}. Choose one account type for this login.</Body>
-        {(['creator', 'affiliate'] as const).map((type) => <TouchableOpacity
-          key={type} accessibilityRole="radio" accessibilityLabel={`${type === 'creator' ? 'Creator' : 'Affiliate'} account`}
-          accessibilityState={{ checked: profile.accountType === type }} disabled={saving}
-          onPress={() => change('accountType', type)}
-          style={{ padding: 16, borderWidth: 1, borderColor: profile.accountType === type ? colors.accent : colors.rule, borderRadius: 12 }}>
-          <Body weight="bold">{type === 'creator' ? 'Creator' : 'Affiliate'}</Body>
-          <Body size="sm" color={colors.ink2}>{type === 'creator' ? 'Take photos and interview business owners.' : 'Share your page and earn a commission on sales. No interviews or photos.'}</Body>
-        </TouchableOpacity>)}
-        <EditorialField label={profile.accountType === 'affiliate' ? 'NAME' : 'FIRST NAME'} accessibilityLabel="Name"
+  return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <ScreenShell
+      title="How will you earn?"
+      subtitle={`Signed in as ${identity.email || 'your sign-in account'}.`}
+      footer={<>
+        {isConnected !== true ? <Text variant="label" tone="muted" align="center">Connect to the internet to finish setup.</Text> : null}
+        <Button title={`Create ${accountLabel} account`} onPress={save} disabled={saving || isConnected !== true} loading={saving} />
+        <TextLink label="Use a different login" tone="muted" onPress={() => { void leave().catch((failure) => setError(signupErrorMessage(failure))); }} />
+      </>}>
+      <View style={styles.stack} accessibilityRole="radiogroup">
+        <OptionRow
+          icon="storefront-outline" title="Field agent" subtitle="Visit shops, take photos."
+          selected={profile.accountType === 'creator'} disabled={saving} onPress={() => change('accountType', 'creator')} />
+        <OptionRow
+          icon="share-social-outline" title="Creator" subtitle="Share your page. No photos."
+          selected={profile.accountType === 'affiliate'} disabled={saving} onPress={() => change('accountType', 'affiliate')} />
+      </View>
+      <View style={[styles.stack, styles.fields]}>
+        <Field label={profile.accountType === 'affiliate' ? 'Name' : 'First name'} accessibilityLabel="Name" icon="person-outline"
           value={profile.firstName} onChangeText={(value: string) => change('firstName', value)}
           autoCapitalize="words" editable={!saving} error={fieldErrors.firstName} />
-        <EditorialField label="LAST NAME (OPTIONAL)" accessibilityLabel="Last name" value={profile.lastName}
+        <Field label="Last name (optional)" accessibilityLabel="Last name" icon="person-outline" value={profile.lastName}
           onChangeText={(value: string) => change('lastName', value)} autoCapitalize="words" editable={!saving} />
-        <EditorialField label={profile.accountType === 'affiliate' ? 'MOBILE NUMBER' : 'MOBILE NUMBER (OPTIONAL)'}
-          accessibilityLabel="Mobile number" placeholder="09171234567" value={profile.phone}
+        <Field label={profile.accountType === 'affiliate' ? 'Mobile number' : 'Mobile number (optional)'}
+          accessibilityLabel="Mobile number" icon="call-outline" placeholder="09171234567" value={profile.phone}
           onChangeText={(value: string) => change('phone', value.replace(/[^0-9+]/g, ''))}
           keyboardType="phone-pad" editable={!saving} error={fieldErrors.phone} />
-        {profile.accountType === 'affiliate' ? <>
-          <EditorialField label="PAGE HANDLE" accessibilityLabel="Page handle" placeholder="your-page" value={profile.handle}
-            onChangeText={(value: string) => change('handle', value.toLowerCase())} autoCapitalize="none" autoCorrect={false}
-            editable={!saving} error={fieldErrors.handle} />
-          <Body size="xs" color={colors.ink3}>After admin approval: tendso.com/a/{profile.handle || 'your-page'}. Use lowercase letters, numbers, and hyphens.</Body>
-        </> : <EditorialField label="REFERRAL CODE (OPTIONAL)" accessibilityLabel="Referral code" value={profile.referredByCode}
+        {profile.accountType === 'affiliate' ? <Field label="Page handle" accessibilityLabel="Page handle" icon="link-outline"
+          placeholder="your-page" value={profile.handle}
+          onChangeText={(value: string) => change('handle', value.toLowerCase())} autoCapitalize="none" autoCorrect={false}
+          editable={!saving} error={fieldErrors.handle}
+          helper={`tendso.com/a/${profile.handle || 'your-page'} after approval. Lowercase letters, numbers, hyphens.`} />
+        : <Field label="Referral code (optional)" accessibilityLabel="Referral code" icon="gift-outline" value={profile.referredByCode}
           onChangeText={(value: string) => change('referredByCode', value.toUpperCase())} autoCapitalize="characters"
           autoCorrect={false} editable={!saving} />}
-        <Body size="xs" color={colors.ink3}>To use both account types, sign up with different emails.</Body>
-        {isConnected !== true ? <Body size="sm" color={colors.ink2}>Connect to the internet to finish setup.</Body> : null}
-        {error ? <Body size="sm" color={colors.danger}>{error}</Body> : null}
-        <Door caption="GET STARTED" label={`Create ${profile.accountType} account`} accessibilityLabel={`Create ${profile.accountType} account`}
-          variant="accent" onPress={save} disabled={saving || isConnected !== true} loading={saving} />
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Use a different login" disabled={saving}
-          onPress={() => { void leave().catch((failure) => setError(signupErrorMessage(failure))); }}>
-          <Body size="sm" color={colors.ink2}>Use a different login</Body>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  </SafeAreaView>;
+      </View>
+      <Text variant="label" tone="muted" style={styles.note}>To use both, sign up with different emails.</Text>
+      {error ? <Banner tone="danger" body={error} style={styles.note} /> : null}
+    </ScreenShell>
+  </KeyboardAvoidingView>;
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  stack: { gap: space.md },
+  fields: { marginTop: space.xl },
+  note: { marginTop: space.lg },
+  center: { flex: 1, justifyContent: 'center' },
+  ownerCard: { gap: space.md },
+});

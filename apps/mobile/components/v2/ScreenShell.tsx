@@ -14,6 +14,10 @@ export interface ScreenShellProps {
   subtitle?: string;
   /** Shows the round back button when provided. */
   onBack?: () => void;
+  /** Node at the right end of the top row (a round icon button, a text link). */
+  headerRight?: React.ReactNode;
+  /** Set false on tab screens: the tab bar already covers the home-indicator inset. */
+  insetBottom?: boolean;
   /** 0..1 — draws the single thin progress bar at the top. */
   progress?: number;
   /** The one primary action, pinned above the home indicator. Usually a <Button/>. */
@@ -35,6 +39,8 @@ export function ScreenShell({
   title,
   subtitle,
   onBack,
+  headerRight,
+  insetBottom = true,
   progress,
   footer,
   scroll = true,
@@ -47,7 +53,7 @@ export function ScreenShell({
   const dark = tone === 'dark';
 
   const header =
-    onBack || progress !== undefined ? (
+    onBack || progress !== undefined || headerRight ? (
       <View style={styles.topRow}>
         {onBack ? (
           <Pressable
@@ -60,7 +66,8 @@ export function ScreenShell({
             <Ionicons name="arrow-back" size={22} color={dark ? colors.onDark : colors.ink} />
           </Pressable>
         ) : null}
-        {progress !== undefined ? <ProgressBar value={progress} tone="ink" style={styles.topProgress} /> : null}
+        {progress !== undefined ? <ProgressBar value={progress} tone="ink" style={styles.topProgress} /> : <View style={styles.flex} />}
+        {headerRight}
       </View>
     ) : null;
 
@@ -104,9 +111,9 @@ export function ScreenShell({
         {header}
         {body}
         {footer ? (
-          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space.lg) + space.sm }]}>{footer}</View>
+          <View style={[styles.footer, { paddingBottom: (insetBottom ? Math.max(insets.bottom, space.lg) : space.lg) + space.sm }]}>{footer}</View>
         ) : (
-          <View style={{ height: insets.bottom }} />
+          <View style={{ height: insetBottom ? insets.bottom : 0 }} />
         )}
       </View>
     </View>
