@@ -198,16 +198,17 @@ build 1–2 min → **≈ 7–13 minutes**, inside the 20-minute promise; hard s
 
 ---
 
-## 6. Integration with feat/v2-backend-owners (`// INTEGRATE:` notes)
+## 6. Integration with the owner backend (done on feat/v2-all)
 
-- `convex/aiPipeline/progress.ts` — replace the dynamic `buildProgress.setStep` reference with
-  the typed call. Until merged, the call is caught and logged; progress is kept on the run row.
-- `buildProgress.startPipeline` (owner app) — make its body
-  `await ctx.runMutation(internal.aiPipeline.orchestrator.start, { submissionId, reason: 'owner_app' })`.
-- Rebuild after a change request or style change: `buildProgress.restart`, then
-  `start({ submissionId, reason: 'rebuild', force: true })` (polished photos are reused).
-- `steps.ts customizationsFor` passes `fontChoice` / `colorChoice` as the builder's
-  `fontPairing` / `colorScheme` ids; confirm the vocabularies match.
+- `convex/aiPipeline/progress.ts` calls `internal.buildProgress.setStep` directly; a refusal
+  is logged and the run row keeps the truth.
+- `buildProgress.startPipeline` (scheduled by `ownerApp.submit`) starts
+  `orchestrator.start({ submissionId, reason: 'owner_app' })` when `AI_PIPELINE_ENABLED` is on;
+  off, it hands the submission to Tendso Studio and the steps wait for an admin.
+- Rebuild after a change request or style change: `internal.buildProgress.rebuild`
+  (restart, then `start({ reason: 'rebuild', force: true })`; polished photos are reused).
+- `steps.ts customizationsFor` passes the owner's `fontChoice` / `colorChoice` only when they
+  are builder ids (`components/editor/editorConstants.ts` FONT_PAIRINGS / COLOR_SCHEMES).
 
 ---
 
