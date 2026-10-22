@@ -3,31 +3,42 @@
  * money" calculator. Source of truth for the rules: docs/CREATOR-PROGRAM.md
  * (design-mock branch) and the backend's packages/shared/pricing.ts
  * (CREATOR_OVERRIDE_RATE, CREATOR_OVERRIDE_MONTHS, CREATOR_CODE_DEFAULT_PRICE).
- * Copied here as plain numbers because the web pages only ever show them; the
- * server decides what is actually paid.
+ * The prices and rates come from there (one source); the server decides what is
+ * actually paid.
  */
 
+import {
+    BASE_PRICE,
+    CREATOR_CODE_DEFAULT_DISCOUNT,
+    CREATOR_CODE_DEFAULT_PRICE,
+    CREATOR_OVERRIDE_MONTHS,
+    CREATOR_OVERRIDE_RATE,
+    WEBSITE_PRICE,
+    formatPHP,
+    overrideFor,
+} from "@/lib/pricing";
+
 /** What a shop pays with no code. */
-export const LIST_PRICE = 4999;
+export const LIST_PRICE = WEBSITE_PRICE;
 /** A new creator's code starts at 30% off. */
-export const CODE_PERCENT_OFF = 30;
+export const CODE_PERCENT_OFF = Math.round(CREATOR_CODE_DEFAULT_DISCOUNT * 100);
 /** ₱4,999 × 0.7. */
-export const CODE_PRICE = 3499;
+export const CODE_PRICE = CREATOR_CODE_DEFAULT_PRICE;
 /** What a shop saves with the default code (₱1,500). */
 export const CODE_SAVING = LIST_PRICE - CODE_PRICE;
 /** The creator keeps half of what the shop pays: ₱3,499 / 2, rounded. */
 export const KEEP_PER_SHOP = Math.round(CODE_PRICE / 2);
 /** A creator can discount down to this price and still keeps half. */
-export const FLOOR_PRICE = 999;
+export const FLOOR_PRICE = BASE_PRICE;
 
 /** The creator's share of each sale by a field agent they recruited. */
-export const OVERRIDE_RATE = 0.05;
+export const OVERRIDE_RATE = CREATOR_OVERRIDE_RATE;
 /** How long it runs, from the agent's join date. */
-export const OVERRIDE_MONTHS = 12;
+export const OVERRIDE_MONTHS = CREATOR_OVERRIDE_MONTHS;
 /** The example sale the program page uses everywhere. */
 export const EXAMPLE_SALE = 2999;
 /** 5% of the example sale: ₱150. */
-export const OVERRIDE_PER_SALE = Math.round(EXAMPLE_SALE * OVERRIDE_RATE);
+export const OVERRIDE_PER_SALE = overrideFor(EXAMPLE_SALE);
 
 /** What a field agent keeps on the example sale, used on the "Join <name>'s team" page. */
 export const AGENT_EXAMPLE = { shopsPerWeek: 5, price: EXAMPLE_SALE, keepPerShop: Math.round(EXAMPLE_SALE / 2) } as const;
@@ -41,7 +52,8 @@ export const BUSY: Record<Busy, { share: number; sales: number; label: string }>
     strong: { share: 0.8, sales: 8, label: "Strong" },
 };
 
-export const peso = (n: number) => "₱" + Math.round(n).toLocaleString("en-US");
+/** "₱4,999" (packages/shared/pricing.ts formatPHP). */
+export const peso = formatPHP;
 
 export interface MonthExample {
     /** Recruited agents who sold something this month. */

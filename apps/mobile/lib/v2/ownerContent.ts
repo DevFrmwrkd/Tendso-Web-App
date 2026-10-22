@@ -9,6 +9,7 @@
  */
 import type { ImageSourcePropType } from 'react-native';
 import type { ShotListKey } from './captureContent';
+import { formatPeso } from '../../components/v2/format';
 
 export type SellKindId = 'barber' | 'salon' | 'repair' | 'craft' | 'food' | 'other';
 
@@ -107,9 +108,8 @@ export const PRICE_ONCE = 4999;
 export const MIN_DOWN_PAYMENT = 500;
 export const DOWN_PAYMENT_STEP = 500;
 
-export function peso(n: number): string {
-  return `₱${Math.round(n).toLocaleString('en-US')}`;
-}
+/** "₱4,999" — the app kit's formatter (components/v2/format.ts). */
+export const peso = (n: number): string => formatPeso(n);
 
 /** `<slug>.sites.tendso.com` — the free address (Theo, round 3). */
 export function freeAddress(slug: string): string {
