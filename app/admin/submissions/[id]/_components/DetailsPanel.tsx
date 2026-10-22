@@ -28,6 +28,7 @@ import { giveawayWebsiteStatus } from "@/lib/giveawayReview";
 import { DomainFold } from "./DomainFold";
 import { DriveFact } from "./DriveFact";
 import { GiveawayEvidence } from "./GiveawayEvidence";
+import { ChangeRequests } from "./ChangeRequests";
 import { EmailsFold } from "./EmailsFold";
 import { formatDate, type ClientEmail, type IntakeRow, type SubmissionDoc } from "./review";
 
@@ -375,6 +376,7 @@ export function DetailsContent({
     return (
         <div className="flex flex-col">
             <GiveawayEvidence s={s} posterUrl={posterUrl} compact />
+            <ChangeRequests submissionId={s._id} />
             <Fact label={s.giveawayApplication ? "Website status" : "Status"}>
                 <Status {...(giveawayWebsiteStatus(s) ?? submissionStatus(s.status, "admin"))} className="whitespace-normal break-words" />
                 {!s.giveawayApplication && s.status === "rejected" && s.rejectionReason && <span className="t-meta">Reason: {s.rejectionReason}</span>}

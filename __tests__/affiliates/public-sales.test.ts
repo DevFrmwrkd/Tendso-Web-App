@@ -12,6 +12,7 @@ const modules = {
     './affiliates.ts': () => import('../../convex/affiliates'),
     './ownerIntake.ts': () => import('../../convex/ownerIntake'),
     './payments.ts': () => import('../../convex/payments'),
+    './ownerPayments.ts': () => import('../../convex/ownerPayments'), // Wise deposits settle through applyTokenPayment
     './earnings.ts': () => import('../../convex/earnings'),
     './paymentTokens.ts': () => import('../../convex/paymentTokens'),
     './submissions.ts': () => import('../../convex/submissions'),

@@ -838,6 +838,12 @@ export const submit = mutation({
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.id,
         });
+
+        // 5. Owner app v2: invite the owner ("Sign in with this email to see
+        // your website"). Once per order; also tried again at payment.
+        if (submission.ownerEmail) {
+            await ctx.scheduler.runAfter(0, internal.owners.inviteForSubmission, { submissionId: args.id });
+        }
     },
 });
 

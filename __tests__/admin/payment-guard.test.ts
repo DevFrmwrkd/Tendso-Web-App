@@ -10,6 +10,7 @@ const modules = {
     './submissions.ts': () => import('../../convex/submissions'),
     './paymentTokens.ts': () => import('../../convex/paymentTokens'),
     './payments.ts': () => import('../../convex/payments'),
+    './ownerPayments.ts': () => import('../../convex/ownerPayments'), // Wise deposits settle through applyTokenPayment
     './auditLogs.ts': () => import('../../convex/auditLogs'),
 };
 

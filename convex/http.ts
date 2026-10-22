@@ -268,6 +268,37 @@ http.route({
     }),
 });
 
+// POST /xendit-webhook
+// Xendit invoice callbacks (GCash, Maya, card). Every request must carry the
+// account's verification token in `x-callback-token`, compared against
+// XENDIT_CALLBACK_TOKEN. Feature-off (503) when that env var is missing.
+// Settles the pay token through the same shared path as Wise; idempotent.
+http.route({
+    path: '/xendit-webhook',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const expected = process.env.XENDIT_CALLBACK_TOKEN;
+        if (!expected || !process.env.XENDIT_SECRET_KEY) return jsonResponse({ status: 'disabled' }, 503);
+        const { safeEqual, parseInvoiceCallback } = await import('../lib/payments/xendit');
+        const got = request.headers.get('x-callback-token');
+        if (!got || !safeEqual(got, expected)) return jsonResponse({ error: 'unauthorized' }, 401);
+
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return jsonResponse({ error: 'bad json' }, 400);
+        }
+        const callback = parseInvoiceCallback(body);
+        if (!callback) {
+            // Not an invoice event (or a dashboard test ping). Acknowledge it.
+            return jsonResponse({ status: 'ignored' });
+        }
+        const result = await ctx.runMutation(internal.xendit.handleInvoiceCallback, callback);
+        return jsonResponse({ status: 'ok', result: result.result });
+    }),
+});
+
 // POST /hyperagent-callback
 // Tendso Studio (Hyperagent) posts the rendered images + copy here.
 http.route({
