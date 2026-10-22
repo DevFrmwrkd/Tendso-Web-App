@@ -102,7 +102,7 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
                 </div>
                 <div className="flex flex-col gap-2">
                     <OfferPrice price={price} />
-                    <p className="t-body">Paid once, after your website is live. Nothing to pay today.</p>
+                    <p className="t-body">See it first. Pay once to publish. Nothing to pay today.</p>
                 </div>
                 <ButtonLink variant="primary" size="lg" href={affiliateBuyHref(handle)} block>
                     Get my website <Icon icon={ArrowRight} />

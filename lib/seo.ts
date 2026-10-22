@@ -40,7 +40,7 @@ export function organizationGraph() {
                 url: SITE_URL,
                 logo: { '@type': 'ImageObject', url: abs('/tendso-icon.png'), width: 512, height: 512 },
                 description:
-                    'Tendso helps Filipino local businesses get online fast. A creator visits, asks a few questions, photographs the shop, and a website goes live in 48 hours.',
+                    'Tendso helps Filipino local businesses get online fast. A field agent visits, asks a few questions, photographs the shop, and a website is built the same day, in about 20 minutes.',
                 slogan: "The Thinking Ends Here. So the work doesn't.",
                 areaServed: { '@type': 'Country', name: 'Philippines' },
                 knowsAbout: [
@@ -150,14 +150,14 @@ export function softwareApplicationGraph() {
         offers: [
             {
                 '@type': 'Offer',
-                name: 'Website (launch price)',
+                name: 'Website (lowest price a field agent or creator may offer)',
                 price: '999',
                 priceCurrency: 'PHP',
                 eligibleRegion: { '@type': 'Country', name: 'Philippines' },
             },
             {
                 '@type': 'Offer',
-                name: 'Website (full price ceiling)',
+                name: 'Website (list price)',
                 price: '4999',
                 priceCurrency: 'PHP',
                 eligibleRegion: { '@type': 'Country', name: 'Philippines' },

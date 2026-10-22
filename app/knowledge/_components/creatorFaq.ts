@@ -52,7 +52,7 @@ export const CREATOR_FAQ: CreatorFaqGroup[] = [
             {
                 id: "after-submit",
                 question: "What happens after I submit?",
-                answer: "Your submission enters review (24–48 hours). If approved, we generate a website for the business. Once the business owner pays, you receive your payout.",
+                answer: "Your submission goes to Tendso for a quick check, then the website is built the same day, about 20 minutes after your interview and photos. Once the business owner pays, you receive your payout.",
             },
             {
                 id: "photo-requirements",

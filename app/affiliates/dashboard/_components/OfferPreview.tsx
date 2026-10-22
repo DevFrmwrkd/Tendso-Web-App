@@ -42,7 +42,7 @@ export function OfferPreview({ photo, displayName, message, socialLink, price }:
             <div className="flex flex-col gap-3">
                 <h3 className="t-h2">A website for your shop</h3>
                 <OfferPrice price={price} />
-                <p className="t-meta">One-time payment for your business website.</p>
+                <p className="t-meta">See it first. Pay once to publish your business website.</p>
             </div>
             {safeSocial && <ButtonLink href={safeSocial} target="_blank" rel="noopener noreferrer" className="self-start">Message on Facebook</ButtonLink>}
         </article>
