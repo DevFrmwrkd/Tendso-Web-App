@@ -1,4 +1,5 @@
 import { Button, Footer, Nav, V2Root, type V2Link } from "@/components/v2";
+import { AskTendsoLauncher } from "@/components/v2/chat/AskTendso";
 
 import { LANDING_LINKS } from "./content";
 import { Grid } from "./Grid";
@@ -70,7 +71,8 @@ export function Landing() {
                         </>
                     }
                 />
-                {/* AskTendso chat widget mounts here */}
+                {/* Ask Tendso: the floating help chat (same engine as the Help page). */}
+                <AskTendsoLauncher />
                 <Reveals />
             </div>
         </V2Root>
