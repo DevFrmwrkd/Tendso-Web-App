@@ -85,13 +85,25 @@ export default defineSchema({
         affiliateMessage: v.optional(v.string()),
         affiliateSocialLink: v.optional(v.string()),
         affiliatePrice: v.optional(v.number()),
+        // Creator program (2026-10-21, docs/v2-api-creators.md). A field agent
+        // who joined through a creator's link or code: the creator, when, and
+        // how it was confirmed. Drives the 5% override for 12 months.
+        recruitedByCreatorId: v.optional(v.id('creators')),
+        recruitedAt: v.optional(v.number()),
+        recruitedVia: v.optional(v.string()), // 'code' | 'install_referrer' | 'confirmed'
+        // Creator application extras (role 'affiliate'), shown to the admin
+        // who approves the account. Optional: existing rows never carry them.
+        creatorSocials: v.optional(v.array(v.object({ platform: v.string(), handle: v.string() }))),
+        creatorAudienceSize: v.optional(v.number()),
+        creatorAppliedAt: v.optional(v.number()),
     })
         // Use mobile's index names (by_clerk_id, not by_clerkId)
         .index('by_clerk_id', ['clerkId'])
         .index('by_email', ['email'])
         .index('by_referral_code', ['referralCode'])
         .index('by_affiliate_handle', ['affiliateHandle'])
-        .index('by_status', ['status']),
+        .index('by_status', ['status'])
+        .index('by_recruited_by', ['recruitedByCreatorId']),
 
     // Business submissions
     submissions: defineTable({
@@ -429,7 +441,7 @@ export default defineSchema({
         creatorId: v.id('creators'),
         submissionId: v.id('submissions'),
         amount: v.number(),
-        type: v.string(),   // "submission_approved" | "referral_bonus" | "lead_bonus"
+        type: v.string(),   // "submission_approved" | "referral_bonus" | "lead_bonus" | "creator_override"
         status: v.string(), // "pending" | "available" | "withdrawn"
         createdAt: v.number(),
     })
@@ -860,6 +872,44 @@ export default defineSchema({
     })
         .index('by_creator', ['creatorId'])
         .index('by_token', ['token']),
+
+    // ==================== CREATOR ATTRIBUTION ====================
+    // One row per visit to a creator's link (/a/<handle> = 'shop',
+    // /a/<handle>/earn = 'earn'). ipHash is a salted SHA-256 of the visitor's
+    // IP (ATTRIBUTION_IP_SALT); the raw IP is never stored. Used only to ASK
+    // "Did <name> send you?" — never to attribute on its own.
+    attributionClicks: defineTable({
+        creatorId: v.id('creators'),
+        handle: v.string(),
+        kind: v.union(v.literal('shop'), v.literal('earn')),
+        cookieId: v.optional(v.string()),
+        ipHash: v.optional(v.string()),
+        userAgent: v.optional(v.string()),
+        channel: v.optional(v.string()), // 'web' | 'http'
+        createdAt: v.number(),
+    })
+        .index('by_creator_kind', ['creatorId', 'kind'])
+        .index('by_cookie', ['cookieId', 'createdAt'])
+        .index('by_ip_hash', ['ipHash', 'createdAt']),
+
+    // A signed-in person's confirmed answer to "who sent you?". First claim
+    // wins. For a field agent it also sets creators.recruitedByCreatorId (see
+    // convex/lib/creatorRecruits.ts); for an owner it pre-fills the code.
+    creatorAttributions: defineTable({
+        clerkId: v.string(),
+        creatorId: v.id('creators'),
+        handle: v.string(),
+        kind: v.union(v.literal('agent'), v.literal('owner')),
+        source: v.union(v.literal('install_referrer'), v.literal('confirmed'), v.literal('code')),
+        // 'pending' until a field agent's account exists; 'applied' once linked;
+        // 'not_applied' when the link was refused (reason says why).
+        status: v.string(),
+        reason: v.optional(v.string()),
+        createdAt: v.number(),
+        appliedAt: v.optional(v.number()),
+    })
+        .index('by_clerk_id', ['clerkId'])
+        .index('by_creator_kind', ['creatorId', 'kind']),
 
     // ==================== REFERRALS ====================
     referrals: defineTable({

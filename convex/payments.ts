@@ -179,6 +179,15 @@ export const creditCreatorForPayment = internalMutation({
             }
         }
 
+        // 7b. Creator override: 5% to the creator who recruited this field
+        // agent. It re-reads the row and pays only on PAID IN FULL statuses, so
+        // a down payment (deposit_paid) never triggers it. Idempotent.
+        if (!comped && !submission.giveawayApplication && isCreatorAccount(creator)) {
+            await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, {
+                submissionId: args.submissionId,
+            })
+        }
+
         console.log(
             `[PAYMENTS] Credited ₱${payoutAmount} to creator ${submission.creatorId} for submission ${args.submissionId} ` +
             `(triggered by ${args.triggeredBy}${comped ? ', COMPED — owner paid ₱0' : ''})`

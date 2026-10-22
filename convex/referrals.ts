@@ -2,7 +2,8 @@ import { v } from 'convex/values';
 import { query, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { isCreatorAccount } from '../lib/accounts';
-import { isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
+import { earnsCreatorOverride, isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
+import { attachRecruit } from './lib/creatorRecruits';
 
 // ==================== INTERNAL MUTATIONS ====================
 
@@ -32,6 +33,14 @@ export const createFromSignup = internalMutation({
             .first();
 
         if (existing) return existing._id;
+
+        // Creator recruits from CREATOR_OVERRIDE_CUTOVER on earn the creator 5%
+        // of each sale for 12 months instead of the ₱1,000 bonus, so no
+        // referral row is written for them. Field-agent invites are unchanged.
+        if (referrer.role === 'affiliate' && earnsCreatorOverride(Date.now())) {
+            await attachRecruit(ctx, referred!, referrer, 'code');
+            return null;
+        }
 
         return await ctx.db.insert('referrals', {
             referrerId: args.referrerId,

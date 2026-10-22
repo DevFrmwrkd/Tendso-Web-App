@@ -8,6 +8,7 @@ import {
 } from '../lib/affiliates';
 import { clampSellPrice, ownerChargeFor } from '../lib/pricing';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
+import { insertAffiliateAccount } from './lib/affiliateSignup';
 
 /** Anonymous page data only. Private account, contact and payout data stay private. */
 export const publicPage = query({
@@ -56,52 +57,7 @@ export const create = mutation({
         const handleError = affiliateHandleError(args.handle);
         if (handleError) throw new ConvexError(handleError);
 
-        const existing = await ctx.db.query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
-        if (existing && !existing.isDeleted) {
-            if (existing.role !== 'affiliate') {
-                throw new ConvexError('This login already has another account type. Use a different email for an affiliate account.');
-            }
-            return existing._id;
-        }
-        // Existing emails may not have been normalized by older/mobile signup.
-        const sameEmail = await ctx.db.query('creators').filter((q) => q.neq(q.field('isDeleted'), true)).collect();
-        if (sameEmail.some((account) => account.email.trim().toLowerCase() === email && account.role !== 'affiliate')) {
-            throw new ConvexError('This email already has another account type. Use a different email for an affiliate account.');
-        }
-        const owners = await ctx.db.query('businessOwners').collect();
-        if (owners.some((owner) => owner.clerkId === identity.subject || owner.email.trim().toLowerCase() === email)) {
-            throw new ConvexError('This login or email already has a business owner account. Use a different email for an affiliate account.');
-        }
-        // Deleted handles remain reserved so an old shared link cannot be taken over.
-        const handleOwner = await ctx.db.query('creators')
-            .withIndex('by_affiliate_handle', (q) => q.eq('affiliateHandle', args.handle)).first();
-        if (handleOwner) throw new ConvexError('That page handle is already taken. Choose another one.');
-
-        let referralCode: string;
-        do {
-            referralCode = `AFF${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-        } while (await ctx.db.query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', referralCode)).first());
-        if (existing?.isDeleted) {
-            await ctx.db.patch(existing._id, { clerkId: `deleted_${existing._id}_${Date.now()}` });
-        }
-        return ctx.db.insert('creators', {
-            clerkId: identity.subject,
-            email,
-            firstName,
-            lastName,
-            phone,
-            affiliateHandle: args.handle,
-            referralCode,
-            role: 'affiliate',
-            status: 'pending',
-            balance: 0,
-            totalEarnings: 0,
-            totalWithdrawn: 0,
-            submissionCount: 0,
-            createdAt: Date.now(),
-        });
+        return insertAffiliateAccount(ctx, identity, { firstName, lastName, email, phone, handle: args.handle });
     },
 });
 
