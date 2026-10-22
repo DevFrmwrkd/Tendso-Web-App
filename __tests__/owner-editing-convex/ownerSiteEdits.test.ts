@@ -1,13 +1,14 @@
 import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api } from '../../convex/_generated/api';
+import { api, internal } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
 import { signOwnerBuild } from '../../lib/ownerBuildProof';
 
 const modules = {
     './_generated/server.js': () => import('../../convex/_generated/server'),
+    './http.ts': () => import('../../convex/http'),
     './ownerSiteEdits.ts': () => import('../../convex/ownerSiteEdits'),
     './generatedWebsites.ts': () => import('../../convex/generatedWebsites'),
 };
@@ -20,10 +21,12 @@ beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     process.env.INTERNAL_API_SECRET = SECRET;
+    process.env.CONVEX_SITE_URL = 'https://test.convex.site';
 });
 afterEach(() => {
     vi.useRealTimers();
     delete process.env.INTERNAL_API_SECRET;
+    delete process.env.CONVEX_SITE_URL;
 });
 
 const CONTENT = {
@@ -89,7 +92,7 @@ describe('ownership: only the owner of THIS site gets in', () => {
         await expect(w.anon.query(api.ownerSiteEdits.getDraftForBuild, a)).rejects.toThrow('Please sign in again.');
         await expect(w.anon.mutation(api.ownerSiteEdits.saveDraft, { ...a, content: {}, customizations: {} })).rejects.toThrow('Please sign in again.');
         await expect(w.anon.mutation(api.ownerSiteEdits.discardDraft, a)).rejects.toThrow('Please sign in again.');
-        await expect(w.anon.mutation(api.ownerSiteEdits.generateUploadUrl, a)).rejects.toThrow('Please sign in again.');
+        await expect(w.anon.action(api.ownerSiteEdits.generateUploadUrl, a)).rejects.toThrow('Please sign in again.');
         await expect(w.anon.action(api.ownerSiteEdits.commitBuild, { ...a, html: '<p/>', proof: 'x', draftUpdatedAt: 0 })).rejects.toThrow('Please sign in again.');
     });
 
@@ -101,7 +104,7 @@ describe('ownership: only the owner of THIS site gets in', () => {
             await expect(who.query(api.ownerSiteEdits.getDraftForBuild, a)).rejects.toThrow(NOT_FOUND);
             await expect(who.mutation(api.ownerSiteEdits.saveDraft, { ...a, content: CONTENT, customizations: {} })).rejects.toThrow(NOT_FOUND);
             await expect(who.mutation(api.ownerSiteEdits.discardDraft, a)).rejects.toThrow(NOT_FOUND);
-            await expect(who.mutation(api.ownerSiteEdits.generateUploadUrl, a)).rejects.toThrow(NOT_FOUND);
+            await expect(who.action(api.ownerSiteEdits.generateUploadUrl, a)).rejects.toThrow(NOT_FOUND);
         }
     });
 
@@ -278,6 +281,7 @@ describe('edit -> republish', () => {
         const proof = await signOwnerBuild(SECRET, w.submissionId, HTML);
         await expect(commit(w, HTML + '<script>steal()</script>', proof)).rejects.toThrow('not built by Tendso');
         delete process.env.INTERNAL_API_SECRET;
+    delete process.env.CONVEX_SITE_URL;
         await expect(commit(w, HTML, proof)).rejects.toThrow('not built by Tendso');
         expect(await w.t.run((ctx) => ctx.db.get(w.websiteId))).toEqual(before);
     });
@@ -300,9 +304,73 @@ describe('registerUpload', () => {
     it('throws away a file that is not declared as a photo', async () => {
         const w = await world();
         const text = await w.t.run((ctx) => ctx.storage.store(new Blob(['<script/>'])));
+        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.submissionId, clerkId: 'owner-a', storageId: text });
         const res = await w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: text });
         expect(res).toMatchObject({ ok: false, message: expect.stringContaining('Please choose a photo') });
         expect(await w.t.run(async (ctx) => (await ctx.storage.get(text)) === null)).toBe(true);
+    });
+
+    it('never accepts or deletes an untracked storage object, including published HTML', async () => {
+        const w = await world();
+        const website = await w.t.run((ctx) => ctx.db.get(w.websiteId));
+        const html = website!.htmlStorageId!;
+        const image = await w.t.run((ctx) => ctx.storage.store(new Blob(['photo'], { type: 'image/jpeg' })));
+        for (const storageId of [html, image]) {
+            await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId })).rejects.toThrow('did not upload for this website');
+            expect(await w.t.run(async (ctx) => (await ctx.storage.get(storageId)) !== null)).toBe(true);
+        }
+    });
+
+    it('requires both the recorded owner and site, even when both sites have the same owner', async () => {
+        const w = await world();
+        const image = await w.t.run((ctx) => ctx.storage.store(new Blob(['photo'])));
+        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.otherSubmissionId, clerkId: 'owner-b', storageId: image });
+        await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: image })).rejects.toThrow('did not upload for this website');
+        await w.t.run(async (ctx) => {
+            const owner = (await ctx.db.query('businessOwners').collect()).find((row) => row.clerkId === 'owner-a');
+            await ctx.db.insert('websiteOwnerships', { submissionId: w.otherSubmissionId, businessOwnerId: owner!._id, role: 'owner', claimedAt: NOW });
+        });
+        const ownImage = await w.t.run((ctx) => ctx.storage.store(new Blob(['second'])));
+        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.otherSubmissionId, clerkId: 'owner-a', storageId: ownImage });
+        await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: ownImage })).rejects.toThrow('did not upload for this website');
+        expect(await w.t.run(async (ctx) => (await ctx.storage.get(image)) !== null)).toBe(true);
+        expect(await w.t.run(async (ctx) => (await ctx.storage.get(ownImage)) !== null)).toBe(true);
+    });
+
+    it('records only the object received by the one-time upload endpoint', async () => {
+        const w = await world();
+        const url = await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId });
+        const path = new URL(url).pathname + new URL(url).search;
+        const response = await w.t.fetch(path, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: 'photo' });
+        expect(response.status).toBe(200);
+        const { storageId } = await response.json();
+        const rows = await w.t.run((ctx) => ctx.db.query('ownerSiteUploads').collect());
+        expect(rows).toHaveLength(1);
+        expect(rows[0]).toMatchObject({ submissionId: w.submissionId, storageId });
+        const replay = await w.t.fetch(path, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: 'photo' });
+        expect(replay.status).toBe(403);
+        expect((await w.t.fetch('/owner-site-upload?token=guessed', { method: 'POST', body: 'photo' })).status).toBe(403);
+    });
+
+    it('rejects invalid upload bodies before storing them', async () => {
+        const w = await world();
+        for (const [type, body] of [['text/html', '<script/>'], ['image/jpeg', 'x'.repeat(10 * 1024 * 1024 + 1)]]) {
+            const url = new URL(await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId }));
+            const response = await w.t.fetch(url.pathname + url.search, { method: 'POST', headers: { 'Content-Type': type }, body });
+            expect(response.status).toBe(400);
+        }
+        expect(await w.t.run((ctx) => ctx.db.query('ownerSiteUploads').collect())).toHaveLength(0);
+    });
+
+    it('expires upload capabilities and rechecks ownership before receiving a file', async () => {
+        const w = await world();
+        const url = await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId });
+        const token = new URL(url).searchParams.get('token')!;
+        vi.setSystemTime(NOW + 11 * 60_000);
+        await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token })).rejects.toThrow(NOT_FOUND);
+        vi.setSystemTime(NOW);
+        await w.t.run(async (ctx) => { for (const row of await ctx.db.query('websiteOwnerships').collect()) await ctx.db.delete(row._id); });
+        await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token })).rejects.toThrow(NOT_FOUND);
     });
 
     it('refuses another owner\'s upload and leaves the file alone', async () => {

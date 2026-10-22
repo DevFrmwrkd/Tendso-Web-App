@@ -1464,6 +1464,17 @@ export default defineSchema({
     // presses "Publish changes" (the build then runs on this copy and the result
     // is committed to generatedWebsites). One row per submission. Additive table;
     // nothing else reads it.
+    // Upload capabilities are consumed before storing; only the server records IDs.
+    ownerSiteUploads: defineTable({
+        submissionId: v.id('submissions'),
+        businessOwnerId: v.id('businessOwners'),
+        token: v.optional(v.string()),
+        expiresAt: v.optional(v.number()),
+        storageId: v.optional(v.id('_storage')),
+    })
+        .index('by_token', ['token'])
+        .index('by_storage', ['storageId']),
+
     ownerSiteDrafts: defineTable({
         submissionId: v.id('submissions'),
         businessOwnerId: v.id('businessOwners'),

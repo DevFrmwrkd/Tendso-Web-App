@@ -28,7 +28,7 @@ import { ESSENTIAL_BLOCKS, PINNED_BLOCKS, cleanSectionOrder, cleanText, sameJson
 import { ownerGroups, textFillMessages } from "@/lib/ownerEditorFields";
 import { movableBlocks } from "@/lib/sectionOrder";
 
-import { post, readPhotoSlots, type PhotoSlot } from "./previewHtml";
+import { docOf, post, readPhotoSlots, syncPhotoSlots, type PhotoSlot } from "./previewHtml";
 import type { Json, OwnerEditorActions, OwnerSite, PublishResult, ToolId } from "./types";
 
 export type SaveState = "idle" | "saving" | "saved" | "error";
@@ -270,6 +270,25 @@ export function useOwnerEditor(site: OwnerSite, actions: OwnerEditorActions) {
         for (const s of next) firstSlots.current[s.field] ??= s.src;
         setSlots(next);
     }, []);
+    const pagePhotos = useRef<{ doc: Document | null; originals: PhotoSlot[] }>({ doc: null, originals: [] });
+    const fillPhotos = useCallback(() => {
+        const frame = iframeRef.current;
+        const doc = docOf(frame);
+        if (pagePhotos.current.doc !== doc) {
+            pagePhotos.current = { doc, originals: readPhotoSlots(frame) };
+            for (const s of pagePhotos.current.originals) firstSlots.current[s.field] ??= s.src;
+        }
+        syncPhotoSlots(frame, pagePhotos.current.originals, (field) => {
+            // Mirror applyImageSlot's legacy storage keys, then real schema paths.
+            const path = field === "hero.image" ? "images.0"
+                : field === "about.image" ? "about_images.0"
+                : field === "services.image" ? "services_image"
+                : field.startsWith("services.list.") ? field.replace("services.list.", "services.")
+                : field.startsWith("gallery.tile.") ? field.replace("gallery.tile.", "featured_images.")
+                : field;
+            return getRef.current(path) || getRef.current(field);
+        });
+    }, []);
     const originalOf = (field: string) => firstSlots.current[field];
 
     const [uploading, setUploading] = useState(false);
@@ -332,7 +351,7 @@ export function useOwnerEditor(site: OwnerSite, actions: OwnerEditorActions) {
         // sections
         order, orderedSections, moveSection, toggleSection: (visKey: string) => m.toggleBlock(visKey),
         // photos
-        slots, refreshSlots, setPhoto, originalOf, uploadPhoto, uploading,
+        slots, refreshSlots, fillPhotos, setPhoto, originalOf, uploadPhoto, uploading,
         // saving / publishing
         saveState, flushSave, hasChanges, publish, publishState, resetPublish: () => setPublishState({ phase: "idle" }),
         businessType: site.businessType,

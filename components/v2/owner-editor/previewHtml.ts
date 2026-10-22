@@ -91,3 +91,20 @@ export function readPhotoSlots(iframe: HTMLIFrameElement | null): PhotoSlot[] {
     });
     return out;
 }
+
+/** Replay current draft photos synchronously before the picker reads the slots. */
+export function syncPhotoSlots(iframe: HTMLIFrameElement | null, originals: PhotoSlot[], get: (field: string) => unknown) {
+    const doc = docOf(iframe);
+    if (!doc) return;
+    const values = new Map(originals.map((slot) => {
+        const value = get(slot.field);
+        return [slot.field, typeof value === "string" && value ? value : slot.src];
+    }));
+    doc.querySelectorAll<HTMLElement>("[data-image-field]").forEach((el) => {
+        const src = values.get(el.getAttribute("data-image-field") || "");
+        if (!src) return;
+        const img = el.tagName === "IMG" ? el as HTMLImageElement : el.querySelector("img");
+        if (img) img.setAttribute("src", src);
+        else el.style.backgroundImage = `url(${JSON.stringify(src)})`;
+    });
+}

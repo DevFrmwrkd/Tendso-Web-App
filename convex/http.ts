@@ -1,3 +1,4 @@
+import { receiveUpload } from './ownerSiteEdits';
 import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { internal } from './_generated/api';
@@ -5,6 +6,16 @@ import { verifyWiseWebhook, WISE_SIGNATURE_HEADER } from './lib/wiseWebhookVerif
 import nacl from 'tweetnacl';
 
 const http = httpRouter();
+
+http.route({ path: '/owner-site-upload', method: 'POST', handler: receiveUpload });
+http.route({
+    path: '/owner-site-upload', method: 'OPTIONS',
+    handler: httpAction(async () => new Response(null, { status: 204, headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    } })),
+});
 
 // ---- Discord Ed25519 request-signature verification ----
 function hexToBytes(hex: string): Uint8Array {

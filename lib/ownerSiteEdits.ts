@@ -48,7 +48,7 @@ export const ESSENTIAL_BLOCKS = ['HERO', 'SERVICES', 'LOCATION', 'FOOTER'] as co
 export const PINNED_BLOCKS = ['HERO', 'FOOTER'] as const;
 
 const SCHEME_IDS = new Set<string>(COLOR_SCHEMES.map((c) => c.id));
-const FONT_IDS = new Set<string>(FONT_PAIRINGS.map((f) => f.id));
+const FONT_IDS = new Set<string>(['auto', ...FONT_PAIRINGS.map((f) => f.id)]);
 const VIS_KEY_TO_BLOCK = new Map<string, string>(ALL_BLOCKS.map((b) => [b.visKey, b.name]));
 const ESSENTIAL_VIS_KEYS = new Set<string>(
     ALL_BLOCKS.filter((b) => (ESSENTIAL_BLOCKS as readonly string[]).includes(b.name)).map((b) => b.visKey),
@@ -126,6 +126,16 @@ export function isUnsafeUrl(value: string): boolean {
     return /^\s*(?:javascript|vbscript|data|file|blob):/i.test(value.replace(/[\u0000- ]/g, ''));
 }
 
+/** Links may use web, phone and email protocols, or local page paths. */
+function isAllowedLinkUrl(value: string): boolean {
+    // HTML entities and backslashes must not disguise the scheme in generated HTML.
+    if (/["'<>\\\u0000-\u0020]/.test(value) || /&(?:#|[a-z]+;)/i.test(value)) return false;
+    try {
+        const url = new URL(value, 'https://preview.tendso.com/');
+        return ['https:', 'http:', 'mailto:', 'tel:'].includes(url.protocol);
+    } catch { return false; }
+}
+
 const FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 /** Convex reserves `$`-keys; anything else a site already holds stays. */
 const isSafeKey = (k: string) => k.length > 0 && k.length <= 200 && !k.startsWith('$') && !FORBIDDEN_KEYS.has(k);
@@ -134,13 +144,18 @@ const isSafeKey = (k: string) => k.length > 0 && k.length <= 200 && !k.startsWit
  * Deep-clean `next`, comparing against `base` so an unchanged string is kept
  * exactly as it was. Throws OwnerDraftError for shapes we refuse outright.
  */
-export function cleanAgainst(next: unknown, base: unknown, depth = 0): unknown {
+export function cleanAgainst(next: unknown, base: unknown, depth = 0, field = ''): unknown {
     if (depth > MAX_DEPTH) throw new OwnerDraftError('That page is nested too deeply.');
     if (next === null || next === undefined) return next ?? undefined;
     if (typeof next === 'string') {
-        if (typeof base === 'string' && base === next) return next;
-        if (isUnsafeUrl(next)) return '';
-        return cleanText(next);
+        const image = /(?:image[s]?\d*|photo[s]?|src|thumb|favicon)$/i.test(field);
+        const link = /(?:href|url)$/i.test(field);
+        const value = typeof base === 'string' && base === next ? next : cleanText(next);
+        // Sanitization can join pieces into a protocol (java<x>script:).
+        if (isUnsafeUrl(value)) return '';
+        if (image && value && !isAllowedImageUrl(value)) return '';
+        if (link && value && !isAllowedLinkUrl(value)) return '';
+        return value;
     }
     if (typeof next === 'number') return Number.isFinite(next) ? next : undefined;
     if (typeof next === 'boolean') return next;
@@ -148,7 +163,7 @@ export function cleanAgainst(next: unknown, base: unknown, depth = 0): unknown {
         if (next.length > MAX_ARRAY_LENGTH) throw new OwnerDraftError('One of the lists is too long.');
         const baseArr = Array.isArray(base) ? base : [];
         return next.map((item, i) => {
-            const v = cleanAgainst(item, baseArr[i], depth + 1);
+            const v = cleanAgainst(item, baseArr[i], depth + 1, field);
             // JSON turns holes into null; never store a hole.
             return v === undefined ? null : v;
         });
@@ -158,7 +173,7 @@ export function cleanAgainst(next: unknown, base: unknown, depth = 0): unknown {
         const baseObj = base && typeof base === 'object' && !Array.isArray(base) ? (base as Record<string, unknown>) : {};
         for (const [k, v] of Object.entries(next as Record<string, unknown>)) {
             if (!isSafeKey(k)) continue;
-            const cleaned = cleanAgainst(v, baseObj[k], depth + 1);
+            const cleaned = cleanAgainst(v, baseObj[k], depth + 1, k);
             if (cleaned !== undefined) out[k] = cleaned;
         }
         return out;

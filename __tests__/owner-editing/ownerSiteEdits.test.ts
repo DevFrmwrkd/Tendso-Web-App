@@ -71,6 +71,25 @@ describe('cleanOwnerContent', () => {
         expect(out.about.lead).toBe('');
     });
 
+    it.each([
+        'java<x>script:alert(document.domain)', 'java\nscript:alert(1)',
+        'javascript&#58;alert(1)', 'javascript&colon;alert(1)', 'vbscript:msgbox(1)',
+        'data:text/html,hello', 'blob:https://example.com/id', 'file:///tmp/a',
+        'custom:payload', 'https://example.com/"onclick=alert(1)',
+    ])('rejects sanitized and disallowed URL protocols: %s', (value) => {
+        const out = cleanOwnerContent({ navCtaHref: value, hero: { image: value, cta1: { href: value } }, images: [value] }, {});
+        expect(out).toEqual({ navCtaHref: '', hero: { image: '', cta1: { href: '' } }, images: [''] });
+    });
+
+    it.each(['https://example.com/menu', 'http://example.com', 'mailto:shop@example.com', 'tel:+639170000000', '#about', '/menu'])('allows safe links: %s', (href) => {
+        expect(cleanOwnerContent({ navCtaHref: href }, {}).navCtaHref).toBe(href);
+    });
+
+    it('accepts HTTPS photos and refuses non-image protocols in image fields', () => {
+        expect(cleanOwnerContent({ hero: { image: 'https://cdn.example.com/a.jpg' } }, {})).toEqual({ hero: { image: 'https://cdn.example.com/a.jpg' } });
+        expect(cleanOwnerContent({ hero: { image: 'mailto:shop@example.com' } }, {})).toEqual({ hero: { image: '' } });
+    });
+
     it('puts the shop facts, quotes and map pin back to what the site had', () => {
         const next = structuredClone(BASE) as Record<string, any>;
         next.business_name = 'Hacked';
@@ -136,6 +155,11 @@ describe('cleanOwnerCustomizations', () => {
     it('takes a scheme and font from the editor list only', () => {
         expect(cleanOwnerCustomizations({ colorScheme: 'green', fontPairing: 'classic' }, base)).toMatchObject({ colorScheme: 'green', colorSchemeId: 'green', fontPairing: 'classic', fontPairingId: 'classic' });
         expect(cleanOwnerCustomizations({ colorScheme: 'hot-pink', fontPairing: 'comic' }, base)).toMatchObject({ colorScheme: 'brown', fontPairing: 'auto' });
+    });
+
+    it('resets both stored font fields to the design font', () => {
+        expect(cleanOwnerCustomizations({ fontPairing: 'auto' }, { ...base, fontPairing: 'classic', fontPairingId: 'classic' }))
+            .toMatchObject({ fontPairing: 'auto', fontPairingId: 'auto' });
     });
 
     it('a colour chosen in the same save as a design switch wins over the new design default', () => {

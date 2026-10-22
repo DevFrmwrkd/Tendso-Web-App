@@ -41,9 +41,10 @@ export function PreviewFrame({ model, device }: { model: OwnerEditorModel; devic
             post(frame, { type: "ed:section-visibility", block: b.visKey, visible: m.isBlockEnabled(b.visKey) });
         }
         model.fillPage();
+        model.fillPhotos();
         model.refreshSlots();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [iframeRef, scheme, font, businessType, branded, model.fillPage, model.refreshSlots, m]);
+    }, [iframeRef, scheme, font, businessType, branded, model.fillPage, model.fillPhotos, model.refreshSlots, m]);
 
     // Re-apply when the choice changes without a page reload.
     useEffect(() => { applyTheme(iframeRef.current, scheme, font, businessType, branded); }, [iframeRef, scheme, font, businessType, branded]);
@@ -54,6 +55,14 @@ export function PreviewFrame({ model, device }: { model: OwnerEditorModel; devic
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visibility]);
+
+    // Undo/redo replaces the draft without going through the text/photo tools.
+    const { fillPage, fillPhotos, refreshSlots } = model;
+    useEffect(() => {
+        fillPage();
+        fillPhotos();
+        refreshSlots();
+    }, [m.draft, fillPage, fillPhotos, refreshSlots]);
 
     // Taps on the page.
     useEffect(() => {

@@ -1,6 +1,7 @@
 import { v, ConvexError } from 'convex/values';
 import {
     action,
+    httpAction,
     internalMutation,
     internalQuery,
     mutation,
@@ -245,12 +246,75 @@ export const discardDraft = mutation({
 });
 
 /** A one-time URL for the owner's photo upload (Convex file storage). */
-export const generateUploadUrl = mutation({
+export const generateUploadUrl = action({
     args: { submissionId: v.id('submissions') },
-    handler: async (ctx, args) => {
-        await requireOwnedSite(ctx, args.submissionId);
-        return await ctx.storage.generateUploadUrl();
+    handler: async (ctx, args): Promise<string> => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new ConvexError(SIGN_IN);
+        const token = crypto.randomUUID();
+        await ctx.runMutation(internal.ownerSiteEdits.createUploadTicket, {
+            submissionId: args.submissionId, clerkId: identity.subject, token,
+        });
+        return `${process.env.CONVEX_SITE_URL}/owner-site-upload?token=${token}`;
     },
+});
+
+export const createUploadTicket = internalMutation({
+    args: { submissionId: v.id('submissions'), clerkId: v.string(), token: v.string() },
+    handler: async (ctx, args) => {
+        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+        await ctx.db.insert('ownerSiteUploads', {
+            submissionId: args.submissionId, businessOwnerId: owner._id,
+            token: args.token, expiresAt: Date.now() + 10 * 60_000,
+        });
+    },
+});
+
+/** Consume a single-use capability before receiving a new storage object. */
+export const consumeUpload = internalMutation({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const ticket = await ctx.db.query('ownerSiteUploads')
+            .withIndex('by_token', (q) => q.eq('token', args.token)).unique();
+        if (!ticket || !ticket.expiresAt || ticket.expiresAt < Date.now()) throw new ConvexError(NOT_FOUND);
+        const owner = await ctx.db.get(ticket.businessOwnerId);
+        if (!owner) throw new ConvexError(NOT_FOUND);
+        await requireOwnedSite(ctx, ticket.submissionId, owner.clerkId);
+        await ctx.db.delete(ticket._id);
+        return { submissionId: ticket.submissionId, clerkId: owner.clerkId };
+    },
+});
+
+export const recordUpload = internalMutation({
+    args: { submissionId: v.id('submissions'), clerkId: v.string(), storageId: v.id('_storage') },
+    handler: async (ctx, args) => {
+        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+        await ctx.db.insert('ownerSiteUploads', {
+            submissionId: args.submissionId, businessOwnerId: owner._id, storageId: args.storageId,
+        });
+    },
+});
+
+/** Store the request body ourselves: the caller never chooses the recorded ID. */
+export const receiveUpload = httpAction(async (ctx, request) => {
+    const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
+    const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
+    const token = new URL(request.url).searchParams.get('token');
+    if (!token) return reply({ error: NOT_FOUND }, 403);
+    let target;
+    try { target = await ctx.runMutation(internal.ownerSiteEdits.consumeUpload, { token }); }
+    catch { return reply({ error: NOT_FOUND }, 403); }
+    if (!IMAGE_TYPES.has(request.headers.get('Content-Type') ?? '')) return reply({ error: 'Please choose a photo.' }, 400);
+    const blob = await request.blob();
+    if (blob.size > MAX_PHOTO_BYTES) return reply({ error: 'That photo is too big.' }, 400);
+    const storageId = await ctx.storage.store(blob);
+    try {
+        await ctx.runMutation(internal.ownerSiteEdits.recordUpload, { ...target, storageId });
+    } catch (err) {
+        await ctx.storage.delete(storageId);
+        throw err;
+    }
+    return reply({ storageId });
 });
 
 /**
@@ -260,7 +324,12 @@ export const generateUploadUrl = mutation({
 export const registerUpload = mutation({
     args: { submissionId: v.id('submissions'), storageId: v.id('_storage') },
     handler: async (ctx, args): Promise<{ ok: true; url: string } | { ok: false; message: string }> => {
-        await requireOwnedSite(ctx, args.submissionId);
+        const { owner } = await requireOwnedSite(ctx, args.submissionId);
+        const upload = await ctx.db.query('ownerSiteUploads')
+            .withIndex('by_storage', (q) => q.eq('storageId', args.storageId)).unique();
+        if (!upload || upload.businessOwnerId !== owner._id || upload.submissionId !== args.submissionId) {
+            throw new ConvexError('That photo did not upload for this website. Please try again.');
+        }
         const meta = await ctx.db.system.get(args.storageId);
         // A refusal is a RETURN, not a throw: a thrown error would roll back the
         // delete and leave the unwanted file behind.

@@ -63,7 +63,7 @@ function MySite() {
             </Centered>
         );
     }
-    return <ConvexOwnerEditor submissionId={site.submissionId} />;
+    return <ConvexOwnerEditor key={site.submissionId} submissionId={site.submissionId} />;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {

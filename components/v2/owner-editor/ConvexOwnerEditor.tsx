@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -20,7 +20,7 @@ export function ConvexOwnerEditor({ submissionId }: { submissionId: string }) {
     const state = useQuery(api.ownerSiteEdits.getEditorState, { submissionId: id });
     const save = useMutation(api.ownerSiteEdits.saveDraft);
     const discard = useMutation(api.ownerSiteEdits.discardDraft);
-    const uploadUrl = useMutation(api.ownerSiteEdits.generateUploadUrl);
+    const uploadUrl = useAction(api.ownerSiteEdits.generateUploadUrl);
     const register = useMutation(api.ownerSiteEdits.registerUpload);
 
     // The built page, fetched once.

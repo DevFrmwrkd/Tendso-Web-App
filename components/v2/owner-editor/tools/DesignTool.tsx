@@ -130,7 +130,7 @@ function Card({ t, near, model, active }: { t: TemplateDef; near: boolean; model
                 <div className="flex h-full items-center justify-center text-[16px] text-v2-muted">{near ? "Loading…" : ""}</div>
             )}
             {t.code === model.effectiveCode && (
-                <span className="absolute bottom-3 left-3 inline-flex h-8 items-center gap-1 rounded-full bg-v2-ink px-3 text-[15px] font-medium text-white"><Check size={16} /> In use</span>
+                <span className="absolute bottom-3 left-3 inline-flex h-8 items-center gap-1 rounded-full bg-v2-ink px-3 text-[16px] font-medium text-white"><Check size={16} /> In use</span>
             )}
         </div>
     );
