@@ -163,6 +163,34 @@ describe('override payout', () => {
         expect((await t.run((ctx) => ctx.db.get(agentId)))?.balance).toBe(1500);
     });
 
+    it('fires from the paid-in-full hook: a down payment pays no override, the balance pays it once', async () => {
+        const { t, creatorId } = await setup();
+        const agentId = await recruitByCode(t, 'ana');
+        const saleId = await addSale(t, agentId);
+        const overrideJobs = async () => (await t.run((ctx) => ctx.db.system.query('_scheduled_functions').collect()))
+            .filter((job) => job.name === 'creatorOverrides:creditForSubmission');
+
+        // Down payment: the agent gets their whole cut now, the creator nothing yet.
+        await t.mutation(internal.payments.creditCreatorForPayment, { submissionId: saleId, triggeredBy: 'system:xendit', stage: 'deposit', depositAmount: 500 });
+        expect(await t.run((ctx) => ctx.db.get(saleId))).toMatchObject({ status: 'deposit_paid', depositPaidAt: NOW, balanceDue: 2499 });
+        expect(await overrideJobs()).toEqual([]);
+        expect(await credit(t, saleId)).toMatchObject({ credited: false, reason: 'not_paid_in_full' });
+        expect((await t.run((ctx) => ctx.db.get(agentId)))?.balance).toBe(1500);
+
+        // Balance: paid in full, the override is scheduled exactly once.
+        await t.mutation(internal.payments.creditCreatorForPayment, { submissionId: saleId, triggeredBy: 'system:xendit' });
+        expect(await t.run((ctx) => ctx.db.get(saleId))).toMatchObject({ status: 'completed', paidInFullAt: NOW, balanceDue: 0 });
+        expect(await overrideJobs()).toHaveLength(1);
+        // A repeated webhook is a no-op.
+        await t.mutation(internal.payments.creditCreatorForPayment, { submissionId: saleId, triggeredBy: 'system:xendit' });
+        expect(await overrideJobs()).toHaveLength(1);
+
+        expect(await credit(t, saleId)).toEqual({ credited: true, amount: 150 });
+        expect(await credit(t, saleId)).toMatchObject({ credited: false, reason: 'already_credited' });
+        expect(await overrides(t)).toEqual([expect.objectContaining({ creatorId, submissionId: saleId, amount: 150 })]);
+        expect((await t.run((ctx) => ctx.db.get(agentId)))?.balance).toBe(1500);
+    });
+
     it('never credits on a down payment (deposit_paid), only once paid in full', async () => {
         const { t, creatorId } = await setup();
         const agentId = await recruitByCode(t, 'ana');

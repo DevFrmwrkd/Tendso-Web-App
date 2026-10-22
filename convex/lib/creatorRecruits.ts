@@ -4,19 +4,30 @@ import { isCreatorAccount } from '../../lib/accounts';
 import { affiliateHandleError } from '../../lib/affiliates';
 import { isComped, WEBSITE_PRICE, clampSellPrice } from '../../lib/pricing';
 import { resolveAffiliateOffer } from './affiliateOffer';
+import { isPaidInFull as ownerPaidInFull } from './ownerApp';
 
 /** earnings.type for the creator's 5% on a recruit's sale. */
 export const CREATOR_OVERRIDE_EARNING = 'creator_override';
 
 /**
- * Submission statuses that mean the shop has PAID IN FULL. `deposit_paid`
- * (a down payment) is deliberately absent: the creator override is paid only
- * once the whole price is in.
+ * Submission statuses that mean the shop has PAID IN FULL on a legacy row (no
+ * payment fields). `deposit_paid` (a down payment) is deliberately absent: the
+ * creator override is paid only once the whole price is in.
  */
 export const PAID_IN_FULL_STATUSES = ['paid', 'completed'] as const;
 
-export function isPaidInFull(submission: { status: string }): boolean {
-    return (PAID_IN_FULL_STATUSES as readonly string[]).includes(submission.status);
+/**
+ * Paid in full. One definition for the whole backend: convex/lib/ownerApp.ts
+ * (`paidInFullAt` wins; a down payment with no balance yet is never paid in
+ * full, whatever the status says; legacy rows fall back to the status).
+ */
+export function isPaidInFull(submission: Pick<Doc<'submissions'>, 'status' | 'paidInFullAt' | 'depositPaidAt'>): boolean {
+    return ownerPaidInFull(submission);
+}
+
+/** When the shop paid in full (the v2 field first, then the legacy stamps). */
+export function paidInFullTime(submission: Pick<Doc<'submissions'>, 'paidInFullAt' | 'paidAt' | 'creatorPaidAt'>): number | null {
+    return submission.paidInFullAt ?? submission.paidAt ?? submission.creatorPaidAt ?? null;
 }
 
 /** A real paid sale: paid in full, not a promo site, not a giveaway. */

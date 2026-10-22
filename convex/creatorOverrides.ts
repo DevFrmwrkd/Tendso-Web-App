@@ -3,18 +3,19 @@ import { internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { isCreatorAccount } from '../lib/accounts';
 import { creatorOverrideEndsAt, earnsCreatorOverride, overrideFor } from '../lib/pricing';
-import { CREATOR_OVERRIDE_EARNING, isCreatorOwnSite, isPaidInFull, isPaidSale, samePerson } from './lib/creatorRecruits';
+import { CREATOR_OVERRIDE_EARNING, isCreatorOwnSite, isPaidInFull, isPaidSale, paidInFullTime, samePerson } from './lib/creatorRecruits';
 import { validatePaymentPricing } from './lib/paymentPricing';
 
 /**
  * Credit a creator 5% of a sale made by a field agent they recruited.
  *
- * Runs after the shop has PAID IN FULL (status 'paid' or 'completed'). It
- * re-reads the submission, so a `deposit_paid` row (down payment only) is
- * skipped and must call this again once the balance is in. Safe to call any
- * number of times: one creator_override earning per submission, ever.
+ * Runs after the shop has PAID IN FULL (`paidInFullAt`, or a legacy 'paid' /
+ * 'completed' row). It re-reads the submission, so a down payment (deposit
+ * in, balance not) is skipped. Safe to call any number of times: one
+ * creator_override earning per submission, ever.
  *
- * Scheduled by payments.creditCreatorForPayment and submissions.markPaid.
+ * Scheduled by payments.paidInFullEffects (the one "paid in full" hook: a full
+ * payment, or the balance after a down payment) and submissions.markPaid.
  */
 export const creditForSubmission = internalMutation({
     args: { submissionId: v.id('submissions') },
@@ -48,7 +49,7 @@ export const creditForSubmission = internalMutation({
             return { credited: false, reason: 'own_site' } as const;
         }
 
-        const paidInFullAt = submission.paidAt ?? submission.creatorPaidAt ?? Date.now();
+        const paidInFullAt = paidInFullTime(submission) ?? Date.now();
         if (paidInFullAt < seller.recruitedAt || paidInFullAt >= creatorOverrideEndsAt(seller.recruitedAt)) {
             return { credited: false, reason: 'outside_window' } as const;
         }

@@ -7,7 +7,8 @@ import {
     CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, clampSellPrice, creatorOverrideEndsAt,
     domainAddOnFor, earnsCreatorOverride, isComped, overrideFor, ownerChargeFor,
 } from '../lib/pricing';
-import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidSale } from './lib/creatorRecruits';
+import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidInFull, isPaidSale, paidInFullTime } from './lib/creatorRecruits';
+import { hasOutstandingBalance } from './lib/ownerApp';
 
 /**
  * The creator portal: both income streams side by side. All money is plain ₱
@@ -31,17 +32,24 @@ export function manilaMonth(now: number) {
 /** Statuses where the shop has the site and has not paid in full yet. */
 const STILL_PAYING = new Set(['deposit_paid', 'pending_payment', 'deployed']);
 
+/** The shop has its site and has not paid in full yet (a down payment counts). */
+function stillPaying(submission: Doc<'submissions'>): boolean {
+    if (isPaidInFull(submission)) return false;
+    return STILL_PAYING.has(submission.status) || hasOutstandingBalance(submission);
+}
+
 type ShopStage = 'paid' | 'paying' | 'waiting' | 'not_paid';
 
+/** "Paid" means PAID IN FULL (paidInFullAt first) — the same rule the override uses. */
 function shopStage(submission: Doc<'submissions'>): ShopStage {
-    if (submission.status === 'paid' || submission.status === 'completed') return 'paid';
-    if (submission.status === 'deposit_paid') return 'paying';
+    if (isPaidInFull(submission)) return 'paid';
+    if (submission.status === 'deposit_paid' || hasOutstandingBalance(submission)) return 'paying';
     if (submission.status === 'rejected' || submission.status === 'unpublished') return 'not_paid';
     return 'waiting';
 }
 
 /** When the shop paid in full, as recorded by either payment path. */
-const paidAtOf = (submission: Doc<'submissions'>) => submission.paidAt ?? submission.creatorPaidAt ?? null;
+const paidAtOf = (submission: Doc<'submissions'>) => paidInFullTime(submission);
 
 function websitePriceOf(submission: Doc<'submissions'>): number {
     const domain = domainAddOnFor(submission.submissionType ?? 'standard', submission.domainCostPHP, submission.domainChargedPHP);
@@ -121,7 +129,7 @@ export const summary = query({
                 const inWindow = now < endsAt;
                 if (inWindow) {
                     for (const sale of sales) {
-                        if (STILL_PAYING.has(sale.status) && !isComped(sale) && !sale.giveawayApplication && !isCreatorOwnSite(sale, me)) {
+                        if (stillPaying(sale) && !isComped(sale) && !sale.giveawayApplication && !isCreatorOwnSite(sale, me)) {
                             waitingOverride += overrideFor(websitePriceOf(sale));
                         }
                     }
@@ -147,7 +155,7 @@ export const summary = query({
 
         // ── Payouts ──────────────────────────────────────────────────────────
         const waitingShops = ownSales
-            .filter((submission) => STILL_PAYING.has(submission.status) && submission.creatorPaidAt === undefined && !submission.giveawayApplication)
+            .filter((submission) => stillPaying(submission) && submission.creatorPaidAt === undefined && !submission.giveawayApplication)
             .reduce((sum, submission) => sum + (submission.creatorPayout ?? 0), 0);
         const inFlight = withdrawals
             .filter((row) => row.status === 'pending' || row.status === 'processing')

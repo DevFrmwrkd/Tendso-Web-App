@@ -259,8 +259,8 @@ export async function creditCreatorForPaymentImpl(
 
 /**
  * Everything that happens once, when an order is paid in full (stage 'full'
- * or 'balance'): referral qualification and the custom-domain purchase.
- * Hook other "paid in full" effects here.
+ * or 'balance'): referral qualification, the creator override and the
+ * custom-domain purchase. Hook other "paid in full" effects here.
  */
 async function paidInFullEffects(
     ctx: MutationCtx,
@@ -304,6 +304,15 @@ async function paidInFullEffects(
                 })
             }
         }
+    }
+
+    // 7b. Creator override: 5% to the creator who recruited this field agent.
+    // Paid in full only — never on a down payment, which does not reach this
+    // function. creditForSubmission re-reads the row and is idempotent (one
+    // override per submission), so the balance after a deposit, a later
+    // webhook or submissions.markPaid can never pay it twice.
+    if (!comped && !submission.giveawayApplication && isCreatorAccount(creator)) {
+        await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, { submissionId })
     }
 
     // 8. Custom domain auto-setup
