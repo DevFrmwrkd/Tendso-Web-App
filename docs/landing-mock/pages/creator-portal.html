@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Creator portal · Tendso</title>
+<meta name="description" content="Mika's creator portal: money from shops, monthly money from field agents, links and code, recruited agents, payouts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="creators.css">
+<link rel="stylesheet" href="creator-program.css">
+</head>
+<body class="ag cp cp-solo pt">
+
+<header class="cp-bar">
+  <div class="wrap cp-bar-in">
+    <a class="brand" href="creator-program.html" aria-label="Tendso for creators"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="pt-nav" aria-label="Portal">
+      <a href="#top" class="is-on" aria-current="page">Home</a>
+      <a href="#pt-links">Links</a>
+      <a href="#pt-agents">Agents</a>
+      <a href="#pt-shops">Shops</a>
+      <a href="#pt-pay">Payouts</a>
+    </nav>
+    <div class="cp-bar-r"><span class="pt-me"><span class="cp-g-face" data-face="mika" role="img" aria-label="Mika Santos"></span><span>Mika Santos</span></span></div>
+  </div>
+</header>
+
+<main class="wrap pt-main" id="top">
+  <div class="pt-hi">
+    <div>
+      <h1>Hi, Mika.</h1>
+      <p>Here is October so far. Sample data.</p>
+    </div>
+    <span class="pt-month">October 2026</span>
+  </div>
+
+  <section class="pt-inc" id="pt-inc" aria-label="This month's income"></section>
+
+  <div class="pt-row2">
+    <section class="pt-card" id="pt-links" aria-label="Your links and code"></section>
+    <section class="pt-card" id="pt-funnel" aria-label="From click to sale"></section>
+  </div>
+
+  <section class="pt-card" id="pt-agents" aria-label="Your field agents"></section>
+  <section class="pt-card" id="pt-shops" aria-label="Shops that used your code"></section>
+  <section class="pt-card" id="pt-pay" aria-label="Payouts"></section>
+  <section class="pt-tips" id="pt-tips" aria-label="Tips"></section>
+
+  <footer class="cp-mini-foot">
+    <a class="brand" href="creator-program.html"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <a href="creator-program.html#rules">Creator rules</a>
+    <a href="help.html">Help</a>
+    <a href="legal.html#privacy">Privacy</a>
+    <span>Paid on real sales only. Your 5% is paid once the shop has paid in full.</span>
+  </footer>
+</main>
+
+<script src="../js/core.js"></script>
+<script src="../app/creator-links-screens.js"></script>
+<script src="creator-program.js"></script>
+<script>
+  try { CP.portal(); } catch (e) { console.error('Portal', e); }
+</script>
+</body>
+</html>

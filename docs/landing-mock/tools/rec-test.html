@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tendso Recording Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../css/tokens.css"><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css"><link rel="stylesheet" href="../css/screens.css">
+<style>body{margin:0;padding:24px;background:#EEF0EC;display:flex;gap:24px}.s{width:390px;height:844px;position:relative;border-radius:40px;overflow:hidden}</style>
+</head>
+<body>
+<div class="s" id="a"></div><div class="s" id="b"></div><div class="s" id="c"></div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script><script src="../js/data.js"></script><script src="../js/screens.js"></script>
+<script>
+const v=[['a','interview-2',1],['b','interview-3',4],['c','interview-1',2]];
+v.forEach(([id,vid,q])=>{const m=TendsoScreens.mount(document.getElementById(id),'interview-cam',{video:'assets/video/'+vid+'.mp4',question:q});location.search.includes("play")?m.play():m.reset();});
+</script>
+</body></html>

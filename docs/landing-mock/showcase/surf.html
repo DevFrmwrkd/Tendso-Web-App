@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alon Surf Camp · General Luna, Siargao</title>
+<meta name="description" content="Surf lessons, board rental and surf weeks in General Luna, Siargao, with local coaches.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#06303f;
+  --aqua:#0aa6bf;
+  --coral:#ff5a36;
+  --sand:#fff;
+  --pad:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.5;font-size:17px}
+img{display:block;max-width:100%}
+a{color:inherit}
+.cond{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.anton{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase}
+
+/* ---------- hero ---------- */
+.hero{position:relative;height:100svh;min-height:620px;color:#fff;overflow:hidden;background:var(--aqua)}
+.hero picture,.hero img{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero img{object-fit:cover;object-position:0% 40%}
+.hero::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(0deg,rgba(2,52,70,.5) 0%,rgba(2,52,70,.22) 20%,rgba(2,52,70,0) 38%),
+  linear-gradient(180deg,rgba(2,52,70,.22) 0%,rgba(2,52,70,0) 14%)}
+.hero>*{position:relative;z-index:3}
+.hero::after{z-index:2}
+.top{display:flex;justify-content:space-between;align-items:center;padding:28px var(--pad)}
+.brand{display:flex;align-items:baseline;gap:12px;text-decoration:none}
+.brand b{font-family:'Anton';font-weight:400;font-size:26px;letter-spacing:.04em;text-transform:uppercase}
+.brand span{font-size:13px;opacity:.9}
+.top nav{display:flex;gap:30px}
+.top nav a{text-decoration:none;font-size:15px}
+.top nav a:hover{text-decoration:underline;text-underline-offset:6px}
+.lockup{position:absolute;left:var(--pad);right:var(--pad);bottom:clamp(26px,3.6vh,44px);display:flex;align-items:flex-end;gap:clamp(18px,2.4vw,40px)}
+.num{font-family:'Anton';font-size:clamp(110px,11.5vw,180px);line-height:.8;letter-spacing:-.02em;color:#fff;margin-bottom:-.01em;text-shadow:0 4px 40px rgba(2,52,70,.3)}
+.copy{padding-bottom:.5vw}
+.copy .cond{font-size:15px;display:block;margin-top:14px}
+h1{font-family:'Anton';font-weight:400;text-transform:uppercase;font-size:clamp(40px,4.3vw,68px);line-height:.98;letter-spacing:.005em}
+.go{margin-left:auto;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:12px;text-align:right;padding-bottom:.6vw}
+.go small{font-size:14px;opacity:.95}
+.btn{display:inline-block;background:var(--coral);color:#fff;font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:18px;padding:17px 34px;text-decoration:none;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-2px);background:#ff7450}
+.sidecap{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center;font-size:12px;white-space:nowrap;opacity:.9;display:none}
+
+/* ---------- facts ---------- */
+section{padding:clamp(70px,9vw,140px) var(--pad)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:1500px;margin:0 auto;padding-bottom:0}
+.fact{border-top:2px solid var(--ink);padding:22px 28px 40px 0}
+.fact+.fact{padding-left:28px;border-left:1px solid rgba(6,48,63,.2)}
+.fact .anton{font-size:clamp(70px,8.6vw,130px);line-height:.95;color:var(--aqua)}
+.fact p{max-width:19em;margin-top:10px;font-size:18px}
+
+/* ---------- lessons ---------- */
+.head{display:flex;justify-content:space-between;align-items:end;gap:24px;max-width:1500px;margin:0 auto 46px}
+.head h2{font-family:'Anton';font-weight:400;text-transform:uppercase;font-size:clamp(46px,7vw,110px);line-height:.92}
+.head p{max-width:22em;text-align:right}
+.lessons{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1500px;margin:0 auto}
+.card{background:#eaf9fc;padding:26px 24px 28px;display:flex;flex-direction:column;min-height:330px}
+.card .n{font-family:'Anton';font-size:64px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--aqua)}
+.card h3{font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;font-size:30px;line-height:1.05;margin:18px 0 10px;letter-spacing:.02em}
+.card p{font-size:16px;flex:1;opacity:.9}
+.card .price{margin-top:22px;border-top:1px solid rgba(6,48,63,.3);padding-top:14px;display:flex;justify-content:space-between;align-items:baseline}
+.card .price b{font-family:'Anton';font-weight:400;font-size:34px}
+.card .price span{font-size:13px;opacity:.7;text-transform:uppercase;letter-spacing:.1em;font-family:'Barlow Condensed';font-weight:600}
+.card.hot{background:var(--aqua);color:#fff}
+.card.hot .n{-webkit-text-stroke-color:#fff}
+.card.hot .price{border-color:rgba(255,255,255,.6)}
+.card.hot .price span{opacity:.9}
+
+/* ---------- photo ---------- */
+.shot{padding:0;position:relative}
+.shot img{width:100%;height:min(86vh,800px);object-fit:cover;object-position:50% 60%}
+.shot .strap{display:flex;justify-content:space-between;gap:20px;padding:18px var(--pad);background:var(--ink);color:#fff;font-size:13px}
+
+/* ---------- coach ---------- */
+.coach{display:grid;grid-template-columns:5fr 6fr;gap:clamp(30px,6vw,110px);align-items:center;max-width:1500px;margin:0 auto}
+.coach img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%}
+.coach blockquote{font-family:'Anton';text-transform:uppercase;font-size:clamp(34px,4.6vw,68px);line-height:1.04;margin:16px 0 30px}
+.coach blockquote em{font-style:normal;color:var(--coral)}
+.coach .who{border-top:2px solid var(--ink);padding-top:14px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+/* ---------- season ---------- */
+.season{background:var(--ink);color:#fff}
+.season .head p{color:#cfeef5}
+.table{max-width:1500px;margin:0 auto}
+.tr{display:grid;grid-template-columns:1.1fr 1.4fr 2fr;gap:24px;padding:20px 0;border-top:1px solid rgba(255,255,255,.28);align-items:baseline}
+.tr:last-child{border-bottom:1px solid rgba(255,255,255,.28)}
+.tr .m{font-family:'Anton';font-size:clamp(28px,3vw,44px);text-transform:uppercase;line-height:1}
+.tr .cond{font-size:15px;color:#7fe0f0}
+.tr p{font-size:17px;opacity:.92}
+
+/* ---------- visit ---------- */
+.visit{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(30px,6vw,100px);align-items:end;max-width:1500px;margin:0 auto}
+.visit h2{font-family:'Anton';font-weight:400;text-transform:uppercase;font-size:clamp(50px,8vw,130px);line-height:.9}
+.visit h2 span{color:var(--aqua)}
+.visit dl{display:grid;grid-template-columns:auto 1fr;gap:12px 24px;font-size:18px}
+.visit dt{font-size:14px;color:var(--aqua);padding-top:4px}
+.visit .btn{margin-top:30px;grid-column:1/-1;justify-self:start}
+footer{padding:0 var(--pad) 32px}
+footer div{max-width:1500px;margin:0 auto;border-top:2px solid var(--ink);padding-top:16px;display:flex;justify-content:space-between;font-size:13px;gap:14px;flex-wrap:wrap}
+
+.rv{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+@media (max-width:1000px){
+  .lessons{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:820px){
+  .top nav{display:none}
+  .top{padding-top:22px}
+  .hero img{object-position:50% 50%}
+  .hero::after{background:linear-gradient(0deg,rgba(2,52,70,.72) 0%,rgba(2,52,70,.55) 32%,rgba(2,52,70,0) 58%),linear-gradient(180deg,rgba(2,52,70,.22) 0%,rgba(2,52,70,0) 14%)}
+  .lockup{flex-direction:column;align-items:flex-start;gap:0;bottom:28px}
+  .num{font-size:130px;line-height:.78;margin-bottom:12px}
+  .copy .cond{font-size:14px;margin-top:10px}
+  h1{font-size:clamp(42px,12.5vw,56px)}
+  .go{margin:22px 0 0;align-items:flex-start;text-align:left;flex-direction:row;align-items:center;gap:16px;padding:0}
+  .go small{display:none}
+  .facts{grid-template-columns:1fr}
+  .fact+.fact{padding-left:0;border-left:0}
+  .fact{padding-right:0}
+  .head{flex-direction:column;align-items:flex-start}
+  .head p{text-align:left}
+  .lessons{grid-template-columns:1fr}
+  .card{min-height:0}
+  .coach{grid-template-columns:1fr}
+  .tr{grid-template-columns:1fr;gap:4px;padding:18px 0}
+  .visit{grid-template-columns:1fr}
+  .shot img{height:60vh}
+  .shot .strap{flex-direction:column;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <picture>
+    <source media="(max-width:820px)" srcset="../assets/photos/showcase/surf-owner.jpg">
+    <img src="../assets/photos/showcase/surf-hero.jpg" alt="A surf coach paddles out toward a clean turquoise wave at Cloud 9, Siargao">
+  </picture>
+  <div class="top">
+    <a class="brand" href="#top"><b>Alon Surf Camp</b><span>General Luna, Siargao</span></a>
+    <nav>
+      <a href="#lessons">Lessons</a>
+      <a href="#season">Season</a>
+      <a href="#visit">Find us</a>
+    </nav>
+  </div>
+  <div class="lockup">
+    <div class="num" aria-hidden="true">09</div>
+    <div class="copy">
+      <h1>Catch your<br>first wave.</h1>
+      <span class="cond">Cloud 9 · ten minutes from our door</span>
+    </div>
+    <div class="go">
+      <a class="btn" href="#visit">Book a lesson</a>
+      <small>From ₱1,200 · board and rashguard included</small>
+    </div>
+  </div>
+</header>
+
+<section class="facts">
+  <div class="fact rv"><div class="anton">3</div><p>Students per coach, never more. You get real attention in every wave.</p></div>
+  <div class="fact rv"><div class="anton">2 hrs</div><p>On the water, plus a beach warm-up and a quick photo review.</p></div>
+  <div class="fact rv"><div class="anton">100%</div><p>Siargao-born coaches who surf these breaks every single day.</p></div>
+</section>
+
+<section id="lessons" style="padding-top:clamp(70px,8vw,120px)">
+  <div class="head rv"><h2>Pick your<br>session</h2><p>Every lesson includes a board, a rashguard, reef-safe sunscreen and drinking water. Prices are per person.</p></div>
+  <div class="lessons">
+    <article class="card rv"><div class="n">01</div><h3>First wave</h3><p>Beginner lesson on soft-top boards in the white water at Tuason or Jacking Horse. Stand up on the first day.</p><div class="price"><b>₱1,200</b><span>2 hours</span></div></article>
+    <article class="card hot rv"><div class="n">02</div><h3>Keep going</h3><p>Lineup etiquette, paddling out and catching green waves. For surfers who can already stand up.</p><div class="price"><b>₱1,500</b><span>2 hours</span></div></article>
+    <article class="card rv"><div class="n">03</div><h3>Private coach</h3><p>One coach, one surfer. Video review on the beach and a plan for the rest of your trip.</p><div class="price"><b>₱2,800</b><span>2 hours</span></div></article>
+    <article class="card rv"><div class="n">04</div><h3>Surf week</h3><p>Five lessons, daily board rental and a bed in our fan dorm, a short walk from the beach.</p><div class="price"><b>₱11,500</b><span>5 days</span></div></article>
+  </div>
+</section>
+
+<section class="shot">
+  <img src="../assets/photos/showcase/surf-lesson.jpg" alt="Coach Jelyn laughing with three students as they learn on soft-top boards in clear shallow water" loading="lazy">
+  <div class="strap cond"><span>Beginner break · knee-deep water</span><span>Board rental ₱500 a day</span></div>
+</section>
+
+<section>
+  <div class="coach">
+    <img class="rv" src="../assets/photos/showcase/surf-owner.jpg" alt="Jelyn Cabrillos holding her surfboard on the beach" loading="lazy">
+    <div class="rv">
+      <span class="cond" style="color:var(--aqua)">Meet your coach</span>
+      <blockquote>“The ocean doesn't care how <em>old you are</em>. Just show up and paddle.”</blockquote>
+      <div class="who"><b class="cond" style="font-size:18px">Jelyn Cabrillos</b><span>Founder and head coach · born and raised in General Luna</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="season" id="season">
+  <div class="head rv"><h2>When to<br>come</h2><p>Siargao surfs all year. Here is what the water is doing.</p></div>
+  <div class="table">
+    <div class="tr rv"><div class="m">Aug – Nov</div><div class="cond">Peak swell</div><p>Powerful, hollow waves at Cloud 9 for experienced surfers. Beginners head to the softer breaks at high tide.</p></div>
+    <div class="tr rv"><div class="m">Dec – Mar</div><div class="cond">Smaller and friendly</div><p>Cooler mornings, clean waves and fewer people in the water. Our favourite time for first lessons.</p></div>
+    <div class="tr rv"><div class="m">Apr – Jul</div><div class="cond">Hot and glassy</div><p>Warm, flat-ish mornings, ideal for longboards and for learning to read the waves.</p></div>
+  </div>
+</section>
+
+<section id="visit">
+  <div class="visit">
+    <h2>Meet us<br><span>on the sand.</span></h2>
+    <dl>
+      <dt class="cond">Find us</dt><dd>Tourism Road, Brgy. Catangnan, General Luna, Siargao 8419</dd>
+      <dt class="cond">Hours</dt><dd>Daily, 6:00 am – 6:00 pm<br>Lessons at 6:30, 9:30 and 2:30 (we follow the tide)</dd>
+      <dt class="cond">Call or text</dt><dd>0917 555 0173</dd>
+      <dt class="cond">Pay with</dt><dd>GCash, cash or card</dd>
+      <a class="btn" href="tel:09175550173">Message to book</a>
+    </dl>
+  </div>
+</section>
+<footer><div><span>© Alon Surf Camp · General Luna, Siargao Island</span><span>Lifeguard-certified coaches · DOT-accredited</span></div></footer>
+
+<script>
+(function(){
+  var els=[].slice.call(document.querySelectorAll('.rv'));
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>
