@@ -7,9 +7,9 @@ import { STORE_AVAILABILITY } from "./content";
 import { AppleIcon, PlayIcon } from "./icons";
 
 /**
- * The landing's store buttons: "Coming soon on the App Store and Google Play"
- * until a store link exists (admin settings or NEXT_PUBLIC_*_URL,
- * lib/v2/appLinks.ts), then the mock's buttons for the listed stores.
+ * The landing's store buttons use the released listings from admin settings,
+ * deploy env or lib/v2/appLinks.ts. An unavailable link says nothing about
+ * whether the app is released.
  *  - "icons": the two round icon buttons next to the hero CTA;
  *  - "badges": the black store badges in the Download path.
  */

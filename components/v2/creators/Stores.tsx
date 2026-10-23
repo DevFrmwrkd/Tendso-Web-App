@@ -17,7 +17,7 @@ export function StoreRow() {
                         <b>App Store</b>
                     </span>
                 </a>
-            ) : <p>Coming soon on the App Store</p>}
+            ) : <p>App Store link unavailable</p>}
             {links.googlePlay ? (
                 <a className="store" href={links.googlePlay} target="_blank" rel="noopener noreferrer">
                     <PlayIcon />
@@ -26,7 +26,7 @@ export function StoreRow() {
                         <b>Google Play</b>
                     </span>
                 </a>
-            ) : <p>Coming soon on Google Play</p>}
+            ) : <p>Google Play link unavailable</p>}
         </div>
     );
 }

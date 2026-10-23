@@ -14,7 +14,7 @@ import { V2_ROUTES } from "@/components/v2/links";
 export const A = "/v2/landing";
 
 // ---- links ---------------------------------------------------------------------
-export const STORE_AVAILABILITY = "Coming soon on the App Store and Google Play";
+export const STORE_AVAILABILITY = "Download links are temporarily unavailable.";
 
 /** The /v2 site map (components/v2/links.ts). */
 export const LANDING_LINKS = {

@@ -17,7 +17,7 @@ import {
     peso,
 } from "@/lib/v2/creatorProgram";
 import { SAMPLE_PORTAL } from "@/lib/v2/creatorSample";
-import { DEFAULT_STORE_LINKS, safeStoreUrl } from "@/lib/v2/appLinks";
+import { DEFAULT_STORE_LINKS, RELEASED_STORE_LINKS, safeStoreUrl } from "@/lib/v2/appLinks";
 
 describe("creator program numbers", () => {
     it("matches docs/CREATOR-PROGRAM.md", () => {
@@ -113,7 +113,24 @@ describe("store links", () => {
         expect(safeStoreUrl(null, "x")).toBe("x");
         expect(safeStoreUrl("javascript:alert(1)", "x")).toBe("x");
     });
-    it("leaves unconfirmed listings empty", () => {
-        expect(DEFAULT_STORE_LINKS).toEqual({ appStore: "", googlePlay: "" });
+    it("uses the existing released listings as defaults", () => {
+        expect(DEFAULT_STORE_LINKS).toEqual(RELEASED_STORE_LINKS);
+        expect(DEFAULT_STORE_LINKS.appStore).toBe("https://apps.apple.com/ph/app/tendso/id6786666106");
+        expect(DEFAULT_STORE_LINKS.googlePlay).toBe("https://play.google.com/store/apps/details?id=com.negosyodigital.app");
+    });
+
+    it("keeps deploy environment overrides ahead of the released defaults", () => {
+        const environment = jest.replaceProperty(process, "env", {
+            ...process.env,
+            NEXT_PUBLIC_APP_STORE_URL: "https://apps.apple.com/ph/app/tendso/id6786666106?ct=deploy",
+            NEXT_PUBLIC_GOOGLE_PLAY_URL: "https://play.google.com/store/apps/details?id=com.negosyodigital.app&referrer=deploy",
+        });
+        try {
+            jest.isolateModules(() => {
+                const { DEFAULT_STORE_LINKS: links } = jest.requireActual("@/lib/v2/appLinks");
+                expect(links.appStore).toContain("?ct=deploy");
+                expect(links.googlePlay).toContain("&referrer=deploy");
+            });
+        } finally { environment.restore(); }
     });
 });

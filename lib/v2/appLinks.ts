@@ -4,8 +4,8 @@
  *
  * Order: the admin's "App links" panel first (Convex settings `app_store_url` /
  * `play_store_url`, edited in app/admin/featured-sites), then the deploy env
- * (NEXT_PUBLIC_APP_STORE_URL / NEXT_PUBLIC_GOOGLE_PLAY_URL). With neither, the
- * buttons show "Coming soon". Read them with `useStoreLinks()` (./useStoreLinks).
+ * (NEXT_PUBLIC_APP_STORE_URL / NEXT_PUBLIC_GOOGLE_PLAY_URL), then Tendso's
+ * released listings. Read them with `useStoreLinks()` (./useStoreLinks).
  */
 
 /** The Android package id from apps/mobile/app.json. */
@@ -16,7 +16,7 @@ export const PLAY_STORE_SETTING = "play_store_url";
 export const APP_STORE_SETTING = "app_store_url";
 
 export interface StoreLinks {
-    /** "" = not listed yet. */
+    /** An empty value means the link is unavailable. */
     appStore: string;
     googlePlay: string;
 }
@@ -33,10 +33,16 @@ export function safeStoreUrl(value: unknown, fallback: string): string {
     return fallback;
 }
 
-/** From the deploy env (inlined at build time). */
+/** Existing released listings, also configured in the production App links settings. */
+export const RELEASED_STORE_LINKS: StoreLinks = {
+    appStore: "https://apps.apple.com/ph/app/tendso/id6786666106",
+    googlePlay: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`,
+};
+
+/** Env overrides are inlined at build time; loading/missing settings still get working links. */
 export const DEFAULT_STORE_LINKS: StoreLinks = {
-    appStore: safeStoreUrl(process.env.NEXT_PUBLIC_APP_STORE_URL, ""),
-    googlePlay: safeStoreUrl(process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL, ""),
+    appStore: safeStoreUrl(process.env.NEXT_PUBLIC_APP_STORE_URL, RELEASED_STORE_LINKS.appStore),
+    googlePlay: safeStoreUrl(process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL, RELEASED_STORE_LINKS.googlePlay),
 };
 
 export const hasAnyStoreLink = (links: StoreLinks) => Boolean(links.appStore || links.googlePlay);

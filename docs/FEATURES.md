@@ -58,7 +58,7 @@ All empty = the feature stays off and today's behaviour is kept. Values never go
 | Var | What it does |
 |---|---|
 | `NEXT_PUBLIC_XENDIT_ENABLED` | `true` turns on the GCash / Maya / Card buttons on `/v2/pay/[token]` (else "Coming soon") |
-| `NEXT_PUBLIC_APP_STORE_URL`, `NEXT_PUBLIC_GOOGLE_PLAY_URL` | Store buttons on every `/v2` page. The admin "App links" settings (`app_store_url` / `play_store_url`) win when set; neither = "Coming soon" |
+| `NEXT_PUBLIC_APP_STORE_URL`, `NEXT_PUBLIC_GOOGLE_PLAY_URL` | Optional store-link overrides on every `/v2` page. Admin "App links" settings (`app_store_url` / `play_store_url`) win when set; otherwise use these env values, then Tendso's existing released App Store / Google Play listings. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Landing hire form widget |
 | `LANDING_LEADS_SECRET`, `INTERNAL_API_SECRET` | Same values as on Convex |
 | `NEXT_PUBLIC_CONVEX_SITE_URL` | Optional (default derived from `NEXT_PUBLIC_CONVEX_URL`) |

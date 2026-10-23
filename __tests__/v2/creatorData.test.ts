@@ -45,14 +45,14 @@ describe("creator sample mode", () => {
 });
 
 describe("creator store buttons", () => {
-    it("shows coming soon without dead links when listings are not configured", () => {
+    it.each([undefined, null])("keeps released store links while settings are loading or missing (%s)", (setting) => {
         const { useQuery } = jest.requireMock("convex/react");
-        useQuery.mockReturnValue(null);
+        useQuery.mockReturnValue(setting);
         const { StoreRow } = jest.requireActual("@/components/v2/creators/Stores");
         const html = renderToStaticMarkup(createElement(StoreRow));
-        expect(html).toContain("Coming soon on the App Store");
-        expect(html).toContain("Coming soon on Google Play");
-        expect(html).not.toContain("href=");
+        expect(html).toContain('href="https://apps.apple.com/ph/app/tendso/id6786666106"');
+        expect(html).toContain('href="https://play.google.com/store/apps/details?id=com.negosyodigital.app"');
+        expect(html).not.toContain("Coming soon");
     });
 
     it("links to configured listings", () => {
