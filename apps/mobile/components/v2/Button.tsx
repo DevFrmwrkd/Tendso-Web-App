@@ -38,6 +38,8 @@ const palette: Record<ButtonVariant, { bg: string; fg: string; border: string }>
 /**
  * Pill button (mock `.door`): centred label, 18/700, >= 56pt tall.
  * Primary = accent fill, dark = ink fill, ghost = tinted fill.
+ * Keep native press-state callbacks out of NativeWind's style interop: its v4
+ * wrapper drops callback styles, including this button's background and size.
  */
 export function Button({
   title,
@@ -64,6 +66,7 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
+      cssInterop={false}
       style={({ pressed }) => [
         styles.base,
         {

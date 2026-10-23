@@ -65,6 +65,7 @@ export function SocialPill({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled, busy: !!loading }}
+      cssInterop={false}
       style={({ pressed }) => [
         styles.google,
         shadow.soft,
@@ -232,6 +233,7 @@ export function AccountTypeOption({
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={subtitle}
       accessibilityState={{ checked: selected, selected, disabled: !!disabled }}
+      cssInterop={false}
       style={({ pressed }) => [
         styles.option,
         shadow.soft,

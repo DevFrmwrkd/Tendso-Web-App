@@ -531,6 +531,7 @@ function RoundAction({
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={4}
+      cssInterop={false}
       style={({ pressed }) => [styles.action, pressed ? { opacity: 0.7 } : null]}
     >
       <Ionicons name={icon} size={22} color={colors.ink} />
@@ -578,6 +579,7 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
             ? `Lead post about ${lead.businessName}, ${status.label}`
             : `Lead from ${title}, ${status.label}`
         }
+        cssInterop={false}
         style={({ pressed }) => [styles.leadMain, pressed ? { opacity: 0.85 } : null]}
       >
         <PhotoTile uri={lead.previewImageUrl} name={title} />

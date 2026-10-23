@@ -541,6 +541,7 @@ export default function NearbyLeadsScreen() {
                       onPress={() => selectLead(lead)}
                       accessibilityRole="button"
                       accessibilityLabel={`${lead.businessName}, ${formatDistance(lead.distanceKm)} away`}
+                      cssInterop={false}
                       style={({ pressed }) => [styles.scard, shadow.soft, pressed ? { opacity: 0.85 } : null]}
                     >
                       <ShopTile uri={lead.photoUrl} name={lead.businessName} width={184} height={104} />

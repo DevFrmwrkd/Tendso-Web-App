@@ -23,6 +23,7 @@ export function ChoiceChip({ label, selected, onPress, icon, style }: ChoiceChip
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected: !!selected }}
+      cssInterop={false}
       style={({ pressed }) => [styles.chip, shadow.soft, selected ? styles.on : null, pressed ? { opacity: 0.85 } : null, style]}
     >
       {selected ? (

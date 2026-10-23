@@ -88,6 +88,7 @@ export default function ArticleScreen() {
                 onPress={() => vote(true)}
                 accessibilityRole="button"
                 accessibilityLabel="Yes, this was helpful"
+                cssInterop={false}
                 style={({ pressed }) => [styles.vote, pressed ? { opacity: 0.8 } : null]}
               >
                 <Ionicons name="thumbs-up-outline" size={22} color={colors.ink} />
@@ -97,6 +98,7 @@ export default function ArticleScreen() {
                 onPress={() => vote(false)}
                 accessibilityRole="button"
                 accessibilityLabel="No, this was not helpful"
+                cssInterop={false}
                 style={({ pressed }) => [styles.vote, pressed ? { opacity: 0.8 } : null]}
               >
                 <Ionicons name="thumbs-down-outline" size={22} color={colors.ink} />

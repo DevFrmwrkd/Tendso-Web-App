@@ -93,6 +93,7 @@ export function AnswerCard({
                     onPress={() => article && onOpenArticle(article)}
                     accessibilityRole="button"
                     accessibilityLabel={`Source: ${s.title}`}
+                    cssInterop={false}
                     style={({ pressed }) => [styles.source, { opacity: article ? (pressed ? 0.7 : 1) : 0.5 }]}
                   >
                     <Ionicons name="document-text-outline" size={20} color={colors.ink} />

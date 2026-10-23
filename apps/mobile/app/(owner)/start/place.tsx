@@ -99,6 +99,7 @@ export default function PlaceScreen() {
             onPress={locate}
             accessibilityRole="button"
             accessibilityLabel="Use my location"
+            cssInterop={false}
             style={({ pressed }) => [
               { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start', minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.bg2 },
               pressed && { opacity: 0.8 },

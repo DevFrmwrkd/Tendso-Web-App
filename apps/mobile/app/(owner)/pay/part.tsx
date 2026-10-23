@@ -24,6 +24,7 @@ export default function PayPart() {
       onPress={() => setAmount((a) => stepDownPayment(a, dir, total, min))}
       accessibilityRole="button"
       accessibilityLabel={dir === 1 ? 'More' : 'Less'}
+      cssInterop={false}
       style={({ pressed }) => [styles.step, pressed && { opacity: 0.7 }]}
     >
       <Ionicons name={dir === 1 ? 'add' : 'remove'} size={28} color={colors.ink} />

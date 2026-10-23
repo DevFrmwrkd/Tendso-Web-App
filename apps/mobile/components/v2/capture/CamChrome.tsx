@@ -58,6 +58,7 @@ export function GlassButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={8}
+      cssInterop={false}
       style={({ pressed }) => [styles.glassBtn, pressed && { opacity: 0.7 }]}
     >
       <Ionicons name={icon} size={22} color="#fff" />

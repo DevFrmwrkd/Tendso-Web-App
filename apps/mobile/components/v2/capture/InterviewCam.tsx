@@ -485,6 +485,7 @@ export function InterviewCam({
             disabled={framingPhase || busy || state.phase === 'done'}
             accessibilityRole="button"
             accessibilityLabel={paused ? L.resume : 'Pause'}
+            cssInterop={false}
             style={({ pressed }) => [styles.pauseRing, { opacity: framingPhase ? 0.5 : pressed ? 0.8 : 1 }]}
           >
             <View style={styles.pauseDot}>
@@ -497,6 +498,7 @@ export function InterviewCam({
           disabled={framingPhase || busy || state.phase === 'done'}
           accessibilityRole="button"
           accessibilityLabel={paused ? L.resume : last ? L.finish : L.next}
+          cssInterop={false}
           style={({ pressed }) => [styles.next, { opacity: framingPhase ? 0.55 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
         >
           <Text style={styles.nextText} numberOfLines={1}>{paused ? L.resume : last ? L.finish : L.next}</Text>

@@ -189,6 +189,7 @@ export default function SubmissionsScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${sub.businessName}, ${status.label}`}
+                  cssInterop={false}
                   style={({ pressed }) => [styles.card, shadow.soft, pressed ? styles.pressed : null]}
                 >
                   <View style={styles.top}>

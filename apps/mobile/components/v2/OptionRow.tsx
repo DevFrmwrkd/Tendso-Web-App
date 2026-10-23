@@ -49,6 +49,7 @@ export function OptionRow({
       accessibilityState={{ selected: !!selected, disabled: !!disabled }}
       accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}, ${subtitle}` : title)}
       accessibilityHint={accessibilityHint}
+      cssInterop={false}
       style={({ pressed }) => [
         styles.row,
         shadow.soft,

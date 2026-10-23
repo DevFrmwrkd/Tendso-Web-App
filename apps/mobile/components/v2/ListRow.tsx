@@ -69,6 +69,7 @@ export function ListRow({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}, ${subtitle}` : title)}
       accessibilityHint={accessibilityHint}
+      cssInterop={false}
       style={({ pressed }) => [rowStyle, pressed ? { backgroundColor: colors.bg2 } : null]}
     >
       {content}

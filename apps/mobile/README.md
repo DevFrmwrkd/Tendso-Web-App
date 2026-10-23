@@ -45,6 +45,12 @@ npm run bundle:check --workspace apps/mobile
 The bundle check exports Android and iOS JavaScript/assets into ignored
 `apps/mobile/dist/`. It does not sign, upload or release a native app.
 
+Pressables styled with a native `style={({ pressed }) => ...}` callback use
+`cssInterop={false}`. NativeWind v4 otherwise drops those callback styles in
+native builds, even without a `className`. Keep class-based components on the
+normal NativeWind path. The `native-pressable-styles` regression tests explicitly
+enable the real styling interop, which normally stays disabled in Jest.
+
 Web and mobile retain their own React, Jest and Tailwind versions. Keep mobile
 dependencies in this workspace's `package.json`; update the root lockfile from
 the repository root rather than creating a mobile lockfile.

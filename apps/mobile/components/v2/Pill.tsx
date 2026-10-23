@@ -44,6 +44,7 @@ export function Pill({ label, tone = 'neutral', onPress, selected, accessibility
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: !!selected }}
+      cssInterop={false}
       style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
     >
       {body}

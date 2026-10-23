@@ -171,6 +171,7 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
             disabled={!ready || busy}
             accessibilityRole="button"
             accessibilityLabel="Take photo"
+            cssInterop={false}
             style={({ pressed }) => [styles.shutter, { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
           >
             <View style={styles.shutterIn}>{busy ? <ActivityIndicator color={colors.ink} /> : null}</View>

@@ -29,6 +29,7 @@ export function Card({ variant = 'default', onPress, accessibilityLabel, style, 
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
+        cssInterop={false}
         style={({ pressed }) => [base, pressed ? { transform: [{ scale: 0.99 }] } : null]}
       >
         {children}

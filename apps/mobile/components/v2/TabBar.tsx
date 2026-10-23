@@ -84,6 +84,7 @@ export function V2TabBar({ state, navigation, items, center, centerAfter = 2 }: 
               accessibilityRole="button"
               accessibilityLabel={center.accessibilityLabel ?? center.label}
               accessibilityState={{ disabled: !!center.disabled }}
+              cssInterop={false}
               style={({ pressed }) => [
                 styles.centerBtn,
                 shadow.press,

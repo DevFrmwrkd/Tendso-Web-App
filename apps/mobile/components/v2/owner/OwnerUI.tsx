@@ -48,6 +48,7 @@ export function OptionRow({
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       accessibilityLabel={label}
+      cssInterop={false}
       style={({ pressed }) => [styles.opt, shadow.soft, selected && styles.optOn, pressed && { transform: [{ scale: 0.99 }] }]}
     >
       {photo ? <Image source={photo} style={styles.optImg} /> : null}
@@ -84,6 +85,7 @@ export function WayCard({
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       accessibilityLabel={`${title}. ${meta}`}
+      cssInterop={false}
       style={({ pressed }) => [styles.way, shadow.soft, selected && styles.optOn, pressed && { transform: [{ scale: 0.99 }] }]}
     >
       <View style={styles.wayImg}>
