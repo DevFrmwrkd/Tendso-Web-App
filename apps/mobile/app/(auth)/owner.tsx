@@ -8,6 +8,7 @@ import { KeyboardAvoidingView, Linking, Platform, Pressable, View } from 'react-
 import { useRouter } from 'expo-router';
 import { useSignIn, useSignUp } from '@clerk/clerk-expo';
 import { Button, ScreenShell, Text } from '../../components/v2';
+import { AuthLink } from '../../components/v2/AuthParts';
 import { Field } from '../../components/v2/owner/OwnerUI';
 import { ownerIntake, setOwnerIntent } from '../../lib/v2/ownerIntake';
 import { PRIVACY_URL, TERMS_URL } from '../../services/links';
@@ -30,8 +31,9 @@ export default function OwnerAuthScreen() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsAlternativeSignIn, setNeedsAlternativeSignIn] = useState(false);
 
-  // This person has a business: the root layout sends them to the owner app after sign-in.
+  // This person has a business: the root layout opens the owner section after sign-in.
   useEffect(() => { void setOwnerIntent(true); }, []);
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -40,12 +42,18 @@ export default function OwnerAuthScreen() {
     if (!signInLoaded || !signUpLoaded || !signIn || !signUp) return;
     setBusy(true);
     setError(null);
+    setNeedsAlternativeSignIn(false);
     ownerIntake.set({ ownerName: name.trim() || undefined });
     const address = email.trim().toLowerCase();
     try {
       const attempt = await signIn.create({ identifier: address });
       const factor: any = attempt.supportedFirstFactors?.find((f: any) => f.strategy === 'email_code');
-      if (!factor) throw new Error('This email signs in another way. Use "I already have an account".');
+      if (!factor) {
+        setError('This account uses a different sign-in method. Use your password, Apple or Google to continue.');
+        setNeedsAlternativeSignIn(true);
+        setBusy(false);
+        return;
+      }
       await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: factor.emailAddressId });
       setMode('signIn');
       setStep('code');
@@ -97,15 +105,14 @@ export default function OwnerAuthScreen() {
     }
   };
 
-  const back = async () => {
+  const back = () => {
     if (step === 'code') {
       setStep('email');
       setCode('');
       setError(null);
       return;
     }
-    await setOwnerIntent(false);
-    router.replace({ pathname: '/', params: { welcome: '1' } });
+    router.replace({ pathname: '/', params: { welcome: 'business' } });
   };
 
   return (
@@ -142,6 +149,9 @@ export default function OwnerAuthScreen() {
               onSubmitEditing={emailOk ? sendCode : undefined}
             />
             {error ? <Text tone="danger">{error}</Text> : null}
+            {needsAlternativeSignIn ? (
+              <AuthLink label="Use password, Apple or Google" onPress={() => router.replace('/(auth)/login')} />
+            ) : null}
           </View>
         </ScreenShell>
       ) : (

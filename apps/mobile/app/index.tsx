@@ -1,19 +1,20 @@
 /**
  * First launch: the welcome choice (design v2, mock js/screens.js `welcome`).
- * "I have a business" → the owner app (email code sign-up).
+ * "I have a business" → the business welcome, then email-code sign-up/sign-in.
  * "I want to earn"    → the existing field-agent sign-up, unchanged.
  * Signed-in people skip this; returning signed-out people go to their sign-in.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Image, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useNetwork } from '../providers/NetworkProvider';
-import { Button, Text } from '../components/v2';
+import { Button, TendsoMark, Text } from '../components/v2';
 import { Buddy } from '../components/v2/owner/OwnerUI';
 import { colors, space } from '../theme/v2';
 import { hasOwnerIntent, setOwnerIntent } from '../lib/v2/ownerIntake';
@@ -40,7 +41,8 @@ export default function Index() {
   const [cachedAuth, setCachedAuth] = useState<boolean | null>(null);
   // Explicit navigation may reopen the choice without erasing first-launch
   // history, account state or an owner's saved work. Auth still wins below.
-  const shouldShowWelcome = showWelcome || welcome === '1';
+  const businessWelcome = welcome === 'business';
+  const shouldShowWelcome = showWelcome || welcome === '1' || businessWelcome;
 
   useEffect(() => {
     (async () => {
@@ -73,7 +75,16 @@ export default function Index() {
   const business = async () => {
     await seen();
     await setOwnerIntent(true);
+    router.replace({ pathname: '/', params: { welcome: 'business' } });
+  };
+  const startBusiness = async () => {
+    await seen();
+    await setOwnerIntent(true);
     router.replace('/(auth)/owner');
+  };
+  const backToChoice = async () => {
+    await setOwnerIntent(false);
+    router.replace({ pathname: '/', params: { welcome: '1' } });
   };
   const earn = async () => {
     await seen();
@@ -103,25 +114,35 @@ export default function Index() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style="dark" />
-      <PhotoWall />
+      <PhotoWall business={businessWelcome} />
+      {businessWelcome ? (
+        <Pressable onPress={backToChoice} accessibilityRole="button" accessibilityLabel="Back to welcome choices" hitSlop={8} style={[styles.back, { top: insets.top + space.sm }]}>
+          <Ionicons name="arrow-back" size={22} color={colors.ink} />
+        </Pressable>
+      ) : null}
       <Animated.View
         style={[
           styles.bottom,
+          businessWelcome ? styles.businessBottom : null,
           { paddingBottom: insets.bottom + space.lg, opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] },
         ]}
       >
-        <Buddy size={92} />
-        <Text variant="hero" align="center" accessibilityRole="header">
+        {businessWelcome ? <Buddy size={92} /> : <TendsoMark size={72} style={styles.brand} />}
+        <Text variant="hero" weight={businessWelcome ? 'extrabold' : undefined} style={businessWelcome ? styles.businessHeading : undefined} align="center" accessibilityRole="header">
           Your shop online.
         </Text>
         <Text variant="bodyLg" tone="ink2" align="center">
           Made from your phone.
         </Text>
         <View style={styles.buttons}>
-          <Button title="I have a business" onPress={business} />
-          <Button title="I want to earn" variant="ghost" onPress={earn} />
+          {businessWelcome ? <Button title="Get started" onPress={startBusiness} /> : (
+            <>
+              <Button title="I have a business" onPress={business} />
+              <Button title="I want to earn" variant="ghost" onPress={earn} />
+            </>
+          )}
         </View>
-        <Pressable onPress={logIn} accessibilityRole="button" hitSlop={8} style={styles.link}>
+        <Pressable onPress={businessWelcome ? startBusiness : logIn} accessibilityRole="button" hitSlop={8} style={styles.link}>
           <Text weight="bold" align="center">
             I already have an account
           </Text>
@@ -132,11 +153,13 @@ export default function Index() {
 }
 
 /** Three slow columns of real shops (mock `.w2-wall`). */
-function PhotoWall() {
+function PhotoWall({ business }: { business: boolean }) {
   const { width } = useWindowDimensions();
-  const colW = (width - space.md * 4) / 3;
+  const wallWidth = business ? width + 92 : width;
+  const colW = (wallWidth - space.md * 4) / 3;
   const tileH = colW * 1.3;
   const loop = tileH * 3 + space.md * 3;
+  const fadeHeight = business ? 260 : 120;
   const anims = useRef(WALL.map(() => new Animated.Value(0))).current;
   useEffect(() => {
     const runs = anims.map((a, i) =>
@@ -146,39 +169,50 @@ function PhotoWall() {
     return () => runs.forEach((r) => r.stop());
   }, [anims]);
   return (
-    <View style={styles.wall} pointerEvents="none" accessibilityElementsHidden>
-      {WALL.map((col, i) => (
-        <View key={i} style={{ width: colW, overflow: 'hidden' }}>
-          <Animated.View
-            style={{
-              gap: space.md,
-              marginTop: i === 1 ? -tileH * 0.4 : 0,
-              transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: i === 1 ? [-loop, 0] : [0, -loop] }) }],
-            }}
-          >
-            {[...col, ...col].map((src, k) => (
-              <Image key={k} source={src} style={{ width: colW, height: tileH, borderRadius: 20 }} />
-            ))}
-          </Animated.View>
-        </View>
-      ))}
-      <Svg style={styles.wallFade} width="100%" height={120} pointerEvents="none">
+    <View style={[styles.wallFrame, business ? styles.businessWallFrame : null]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[styles.wall, business ? styles.businessWall : null]}>
+        {WALL.map((col, i) => (
+          <View key={i} style={{ width: colW, overflow: 'hidden' }}>
+            <Animated.View
+              style={{
+                gap: space.md,
+                marginTop: i === 1 ? -tileH * 0.4 : 0,
+                transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: i === 1 ? [-loop, 0] : [0, -loop] }) }],
+              }}
+            >
+              {[...col, ...col].map((src, k) => (
+                <Image key={k} source={src} style={{ width: colW, height: tileH, borderRadius: 20 }} />
+              ))}
+            </Animated.View>
+          </View>
+        ))}
+      </View>
+      <Svg style={[styles.wallFade, { height: fadeHeight }]} width="100%" height={fadeHeight} pointerEvents="none">
         <Defs>
           <LinearGradient id="wallFade" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={colors.bg} stopOpacity={0} />
+            <Stop offset="0.45" stopColor={colors.bg} stopOpacity={business ? 0.85 : 0.45} />
+            <Stop offset="0.72" stopColor={colors.bg} stopOpacity={business ? 1 : 0.72} />
             <Stop offset="1" stopColor={colors.bg} stopOpacity={1} />
           </LinearGradient>
         </Defs>
-        <Rect x="0" y="0" width="100%" height={120} fill="url(#wallFade)" />
+        <Rect x="0" y="0" width="100%" height={fadeHeight} fill="url(#wallFade)" />
       </Svg>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wall: { ...StyleSheet.absoluteFillObject, bottom: '38%', flexDirection: 'row', gap: space.md, paddingHorizontal: space.md, overflow: 'hidden' },
-  wallFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120 },
+  brand: { marginVertical: 10 },
+  back: { position: 'absolute', left: space.gutter, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, zIndex: 1 },
+  wallFrame: { ...StyleSheet.absoluteFillObject, bottom: '38%', overflow: 'hidden' },
+  businessWallFrame: { bottom: '30%' },
+  wall: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', gap: space.md, paddingHorizontal: space.md, overflow: 'hidden' },
+  businessWall: { left: -46, right: -46, top: -40, bottom: -40, transform: [{ rotate: '-7deg' }] },
+  wallFade: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.gutter, alignItems: 'center', gap: space.sm, backgroundColor: colors.bg, paddingTop: space.md },
+  businessBottom: { backgroundColor: 'transparent' },
+  businessHeading: { fontSize: 34, lineHeight: 38, letterSpacing: -1.1 },
   buttons: { alignSelf: 'stretch', gap: space.md, marginTop: space.lg },
   link: { minHeight: 48, justifyContent: 'center', marginTop: space.xs },
 });
