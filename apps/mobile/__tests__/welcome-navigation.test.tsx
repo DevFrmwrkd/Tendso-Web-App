@@ -168,15 +168,18 @@ describe('Welcome choice navigation', () => {
     expect(screen.queryByTestId('redirect')).toBeNull();
   });
 
-  it.each(['Get started', 'I already have an account'])(
-    'sends business Welcome %s to owner email-code authentication',
-    async (label) => {
+  it.each([
+    ['Get started', 'signup'],
+    ['I already have an account', 'signin'],
+  ] as const)(
+    'sends business Welcome %s to the correct owner email-code mode',
+    async (label, mode) => {
       await AsyncStorage.setItem('ndm_has_seen_onboarding', 'true');
       mockParams = { welcome: 'business' };
       const screen = render(<Index />);
       await waitFor(() => expect(screen.getByText(label)).toBeTruthy());
       fireEvent.press(screen.getByText(label));
-      await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(auth)/owner'));
+      await waitFor(() => expect(mockReplace).toHaveBeenCalledWith({ pathname: '/(auth)/owner', params: { mode } }));
       expect(mockSetOwnerIntent).toHaveBeenCalledWith(true);
       expect(await AsyncStorage.getItem('ndm_has_seen_onboarding')).toBe('true');
       expect(mockReplace).not.toHaveBeenCalledWith('/(auth)/login');

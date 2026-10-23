@@ -77,10 +77,10 @@ export default function Index() {
     await setOwnerIntent(true);
     router.replace({ pathname: '/', params: { welcome: 'business' } });
   };
-  const startBusiness = async () => {
+  const startBusiness = async (mode: 'signup' | 'signin') => {
     await seen();
     await setOwnerIntent(true);
-    router.replace('/(auth)/owner');
+    router.replace({ pathname: '/(auth)/owner', params: { mode } });
   };
   const backToChoice = async () => {
     await setOwnerIntent(false);
@@ -135,7 +135,7 @@ export default function Index() {
           {businessWelcome ? 'Made from your phone.' : 'Or help shops near you get online, and earn for every site.'}
         </Text>
         <View style={styles.buttons}>
-          {businessWelcome ? <Button title="Get started" onPress={startBusiness} /> : (
+          {businessWelcome ? <Button title="Get started" onPress={() => startBusiness('signup')} /> : (
             <>
               <Button title="I have a business" variant="ghost" onPress={business} />
               <Button title="I want to earn as a field agent" onPress={earn} />
@@ -143,7 +143,7 @@ export default function Index() {
           )}
         </View>
         {businessWelcome ? (
-          <Pressable onPress={startBusiness} accessibilityRole="button" hitSlop={8} style={styles.link}>
+          <Pressable onPress={() => startBusiness('signin')} accessibilityRole="button" hitSlop={8} style={styles.link}>
             <Text weight="bold" align="center">I already have an account</Text>
           </Pressable>
         ) : (
