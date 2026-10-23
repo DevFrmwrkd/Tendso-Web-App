@@ -20,7 +20,7 @@ export const strings: Strings = {
         "r1.nav.closeMenu": "Close menu",
         "r1.lang": "Language",
         "r1.foot.blurb":
-            "Real websites for Filipino local businesses — built by trained creators who come to you, live in days, and paid for only once it's live.",
+            "Real websites for Filipino local businesses — built the same day by trained field agents who come to you. See it first, pay once to publish.",
         "r1.foot.operated": "Operated by VONAS, OPC, a registered PH company.",
         "r1.foot.operatedShort": "Operated by VONAS, OPC",
         "r1.foot.talk": "Talk to us",
@@ -48,7 +48,7 @@ export const strings: Strings = {
         "r1.nav.closeMenu": "Isara ang menu",
         "r1.lang": "Wika",
         "r1.foot.blurb":
-            "Totoong websites para sa mga lokal na negosyong Pilipino — gawa ng mga trained creator na pupunta sa inyo, live sa loob ng ilang araw, at babayaran lang kapag live na.",
+            "Totoong websites para sa mga lokal na negosyong Pilipino — gawa sa parehong araw ng mga trained field agent na pupunta sa inyo. Tingnan muna, isang bayad para i-publish.",
         "r1.foot.operated": "Pinapatakbo ng VONAS, OPC, isang rehistradong kompanya sa PH.",
         "r1.foot.operatedShort": "Pinapatakbo ng VONAS, OPC",
         "r1.foot.talk": "Kausapin kami",

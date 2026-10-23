@@ -1,4 +1,5 @@
 import React from 'react';
+import { affiliateUrl } from '../components/affiliate/model';
 import { Share } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { CopyButton, ShareTools } from '../components/affiliate/ShareTools';
@@ -29,9 +30,9 @@ beforeEach(() => {
 });
 
 it('copies the canonical personal URL and confirms completion', async () => {
-  const view = render(<CopyButton value="https://tendso.com/a/my-page" label="Copy link" />);
+  const view = render(<CopyButton value="https://tendso.com/v2/a/my-page" label="Copy link" />);
   fireEvent.press(view.getByLabelText('Copy link'));
-  await waitFor(() => expect(mockClipboard).toHaveBeenCalledWith('https://tendso.com/a/my-page'));
+  await waitFor(() => expect(mockClipboard).toHaveBeenCalledWith('https://tendso.com/v2/a/my-page'));
   expect(view.getByText('Copied.')).toBeTruthy();
 });
 
@@ -50,7 +51,7 @@ it('shares a printable PNG using the A4 aspect and the native share sheet', asyn
   const view = render(<ShareTools handle="my-page" displayName="My saved offer" price={3999} disabled={false} />);
   fireEvent.press(view.getByLabelText('Share printable poster PNG'));
   await waitFor(() => expect(mockCapture).toHaveBeenCalledWith(expect.anything(), { format: 'png', quality: 1, width: 1240, height: 1754 }));
-  expect(mockShareImage).toHaveBeenCalledWith('file:///affiliate-poster.png', { mimeType: 'image/png', dialogTitle: 'Share printable affiliate poster' });
+  expect(mockShareImage).toHaveBeenCalledWith('file:///affiliate-poster.png', { mimeType: 'image/png', dialogTitle: 'Share printable creator poster' });
 });
 
 it('does not invoke native sharing or image capture for a disabled offer', () => {
@@ -61,4 +62,9 @@ it('does not invoke native sharing or image capture for a disabled offer', () =>
   expect(mockCapture).not.toHaveBeenCalled();
   expect(mockShareImage).not.toHaveBeenCalled();
   link.mockRestore();
+});
+
+it('generates v2 creator share links for links and QR codes', () => {
+  expect(affiliateUrl('my-page')).toBe('https://tendso.com/v2/a/my-page');
+  expect(affiliateUrl('a/b')).toBe('https://tendso.com/v2/a/a%2Fb');
 });

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent B test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<base href="../">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/phone.css">
+<link rel="stylesheet" href="css/paths.css">
+<link rel="stylesheet" href="css/people.css">
+<link rel="stylesheet" href="css/work.css">
+<style>.b-spacer{height:40vh;display:grid;place-items:center;color:var(--muted);font:500 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em}</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Tendso home"><img src="assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#work" data-open-work>Work</a>
+      <a href="#people">People</a>
+      <a href="#paths">Join us</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--line btn--sm" href="#hire">Hire an agent</a>
+      <a class="btn btn--accent btn--sm" href="#download">Download the app</a>
+      <button class="nav-menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="top">
+  <div class="b-spacer">Agent B test page · sections above are owned by others</div>
+  <section class="paths" id="paths" data-mount></section>
+  <section class="people" id="people" data-mount></section>
+</main>
+<footer class="foot" id="foot" data-mount></footer>
+<div class="work" id="work" data-mount hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/paths.js"></script>
+<script src="js/people.js"></script>
+<script src="js/work.js"></script>
+<script src="js/foot.js"></script>
+<script>
+  const mods = ['Paths', 'People', 'Work', 'Foot'];
+  mods.forEach((m) => { try { window['Tendso' + m]?.init(); } catch (e) { console.error(m, e); } });
+  T.init();
+  mods.forEach((m) => { try { window['Tendso' + m]?.ready?.(); } catch (e) { console.error(m, e); } });
+  const q = new URLSearchParams(location.search);
+  if (q.has('work')) setTimeout(() => TendsoWork.open(q.get('work') || undefined), 50);
+  if (q.has('pair')) setTimeout(() => document.querySelector('#case-' + (q.get('work') || 'kalan') + ' .case-pair')?.scrollIntoView({ block: 'center' }), 900);
+  if (q.has('err')) setTimeout(() => document.querySelector('.hire-go').click(), 50);
+  if (q.has('sent')) setTimeout(() => {
+    const f = document.querySelector('form.hire');
+    f.name.value = 'Kalan'; f.type.value = 'Restaurant'; f.city.value = 'Marikina'; f.phone.value = '0917 123 4567';
+    f.querySelector('input[value="Morning"]').checked = true; document.querySelector('.hire-go').click();
+  }, 50);
+</script>
+</body>
+</html>

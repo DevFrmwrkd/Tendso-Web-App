@@ -1,75 +1,41 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-  Modal,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useSignUp, useSSO } from '@clerk/clerk-expo';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { GuardedLink } from '../../components/GuardedLink';
-import { useAppleAuth } from '../../hooks/useAppleAuth';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { TikTokLogo } from '@/components/TikTokLogo';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { GuardedLink } from '../../components/GuardedLink';
+import { useAppleAuth } from '../../hooks/useAppleAuth';
+import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import {
   activateSignupSession, normalizeSignupProfile, savePendingSignupProfile, signupProfileErrors,
 } from '../../services/signupProfile';
 import type { SignupAccountType } from '../../services/signupProfile';
-import { Display, Body, Label, Door, Rule, EditorialField } from '@/components/ui/primitives';
-import { colors, fonts, radius } from '@/theme/tokens';
 import { openExternalUrl, TERMS_URL, PRIVACY_URL } from '../../services/links';
+import { Banner, Button, Field, ScreenShell, SectionLabel, Text } from '../../components/v2';
+import {
+  AccountTypeOption,
+  AuthLink,
+  CodeBoxes,
+  GooglePill,
+  OrDivider,
+  PasswordEye,
+  SocialPill,
+  SOCIAL_HEIGHT,
+  SOCIAL_RADIUS,
+  TermsCheck,
+  TikTokProfileSheet,
+} from '../../components/v2/AuthParts';
+import { TikTokLogo } from '@/components/TikTokLogo';
+import { space } from '../../theme/v2';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Actual Google logo in 4 official brand colors
-// Shared geometry for the social sign-in buttons so Apple's native button and
-// our Google button stay identical in shape.
-//
-// NOTE: Apple's AppleAuthenticationButton renders its corners fully rounded
-// regardless of a smaller `cornerRadius`, so we pin BOTH buttons to the pill
-// radius (height / 2). Passing the same explicit value to each guarantees they
-// match whether or not Apple honours the prop.
-const BUTTON_HEIGHT = 54;
-const BUTTON_RADIUS = BUTTON_HEIGHT / 2;
-// Apple's button auto-sizes its own label (~0.4 x height) and exposes NO font
-// control, so we can only approximate it on the Google side. Onest reads a
-// little wider than SF Pro, so we sit just under Apple's ratio.
-const BUTTON_LABEL_SIZE = 19;
-
-function GoogleLogo({ size = 20 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <Path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <Path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <Path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
-    </Svg>
-  );
-}
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// The TikTok button is switched off today (it was commented out before the restyle too). The handler
+// and the profile sheet stay wired so turning it on is a one-line change.
+const TIKTOK_ENABLED = false;
 
 export default function SignupScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
@@ -79,7 +45,7 @@ export default function SignupScreen() {
   // Google. Our own hook rather than Clerk's useSignInWithApple, which drops
   // the name Apple returns on a first authorization.
   const { startAppleAuth } = useAppleAuth();
-  const insets = useSafeAreaInsets();
+  const router = useGuardedRouter();
 
   const [accountType, setAccountType] = useState<SignupAccountType>('creator');
   const [handle, setHandle] = useState('');
@@ -409,308 +375,145 @@ export default function SignupScreen() {
     ssoSetActiveRef.current = null;
   };
 
+  const clearFieldError = (key: string) =>
+    setFieldErrors((e) => { const n = { ...e }; delete n[key]; return n; });
+  const busy = loading || googleLoading || tiktokLoading || appleLoading;
+
   // ── Verification screen ────────────────────────────────────────────────────
   if (pendingVerification) {
     return (
-      <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: colors.paper }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingTop: insets.top + 32,
-            paddingBottom: insets.bottom + 24,
-            paddingHorizontal: 28,
-            justifyContent: 'center',
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScreenShell
+          title="Check your email"
+          subtitle={`We sent a 6-digit code to ${email}`}
+          onBack={() => {
+            setPendingVerification(false);
+            setCode('');
+            setError('');
           }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={{ marginBottom: 28 }}>
-            <Label tracking={1.8} style={{ marginBottom: 18 }}>VERIFY EMAIL</Label>
-            <Display size="md">Check your</Display>
-            <Display size="md" italic color={colors.accent}>inbox.</Display>
-          </View>
-
-          <Body size="md" color={colors.ink2} style={{ marginBottom: 28 }}>
-            We sent a 6-digit code to{' '}
-            <Body size="md" weight="medium" color={colors.ink}>{email}</Body>
-          </Body>
-
-          {error ? (
-            <View
-              style={{
-                backgroundColor: colors.dangerBg,
-                borderColor: colors.danger,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                padding: 14,
-                marginBottom: 16,
-              }}
-            >
-              <Body size="sm" color={colors.danger} weight="medium">{error}</Body>
-            </View>
-          ) : null}
-          {resendSuccess ? (
-            <View
-              style={{
-                backgroundColor: colors.accentBg,
-                borderColor: colors.accent,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                padding: 14,
-                marginBottom: 16,
-              }}
-            >
-              <Body size="sm" color={colors.accentInk} weight="medium">
-                A new code has been sent to your email.
-              </Body>
-            </View>
-          ) : null}
-
-          <View style={{ marginBottom: 24 }}>
-            <TextInput
-              style={{
-                backgroundColor: colors.paper3,
-                borderColor: colors.rule,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                paddingHorizontal: 16,
-                height: 68,
-                textAlign: 'center',
-                fontFamily: fonts.mono,
-                fontSize: 28,
-                letterSpacing: 12,
-                color: colors.ink,
-              }}
-              placeholder="000000"
-              placeholderTextColor={colors.ink3}
-              value={code}
-              onChangeText={setCode}
-              keyboardType="number-pad"
-              maxLength={6}
-              accessibilityLabel="Verification Code"
+          footer={
+            <Button
+              title="Verify email"
+              loading={loading}
+              disabled={resendLoading}
+              onPress={handleVerify}
             />
-            <View style={{ marginTop: 8, paddingHorizontal: 4 }}>
-              <Label>6-DIGIT CODE</Label>
-            </View>
+          }
+        >
+          {error ? <Banner tone="danger" body={error} style={styles.banner} /> : null}
+          {resendSuccess ? (
+            <Banner tone="ok" body="A new code is on its way." style={styles.banner} />
+          ) : null}
+
+          <CodeBoxes value={code} onChangeText={setCode} accessibilityLabel="Verification Code" />
+
+          <View style={styles.resend}>
+            <AuthLink
+              label={resendLoading ? 'Sending…' : "Didn't receive it? Resend code"}
+              accessibilityLabel="Resend Code"
+              onPress={handleResendCode}
+              disabled={loading || resendLoading}
+            />
           </View>
-
-          <Door
-            caption="VERIFY"
-            label={loading ? 'Verifying…' : 'Verify email'}
-            variant="solid"
-            loading={loading}
-            disabled={loading || resendLoading}
-            onPress={handleVerify}
-            rightIcon={loading ? <ActivityIndicator color={colors.paper3} /> : undefined}
-          />
-
-          <TouchableOpacity
-            style={{
-              marginTop: 16,
-              paddingVertical: 14,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderColor: colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.sm,
-            }}
-            onPress={handleResendCode}
-            disabled={loading || resendLoading}
-            accessibilityLabel="Resend Code"
-            accessibilityRole="button"
-          >
-            {resendLoading ? (
-              <ActivityIndicator color={colors.ink3} size="small" />
-            ) : (
-              <Body size="sm" color={colors.ink2}>Didn't receive it? Resend code</Body>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ marginTop: 16, alignItems: 'center' }}
-            onPress={() => {
-              setPendingVerification(false);
-              setCode('');
-              setError('');
-            }}
-            accessibilityLabel="Back to signup"
-            accessibilityRole="button"
-          >
-            <Label color={colors.ink3}>← BACK TO SIGNUP</Label>
-          </TouchableOpacity>
-        </ScrollView>
+        </ScreenShell>
       </KeyboardAvoidingView>
     );
   }
 
   // ── Signup form ────────────────────────────────────────────────────────────
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.paper }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: insets.top + 32,
-          paddingBottom: insets.bottom + 24,
-          paddingHorizontal: 28,
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Editorial header */}
-        <Label tracking={1.8} style={{ marginBottom: 18 }}>GET STARTED</Label>
-
-        <View style={{ marginBottom: 8 }}>
-          <Display size="lg">Make</Display>
-          <Display size="lg" italic color={colors.accent}>your account.</Display>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScreenShell title="Make your account" subtitle="Two minutes, one form." onBack={() => router.replace({ pathname: '/', params: { welcome: '1' } })}>
+        <View style={styles.section} accessibilityLabel="Choose an account type">
+          <SectionLabel>Account type</SectionLabel>
+          <AccountTypeOption
+            title="Field agent"
+            subtitle="Visit shops, take photos, interview"
+            icon="camera-outline"
+            selected={accountType === 'creator'}
+            disabled={busy}
+            accessibilityLabel="Field agent account"
+            onPress={() => { setAccountType('creator'); setFieldErrors({}); setError(''); }}
+          />
+          <AccountTypeOption
+            title="Creator"
+            subtitle="Share my link with shop owners"
+            icon="link-outline"
+            selected={accountType === 'affiliate'}
+            disabled={busy}
+            accessibilityLabel="Creator account"
+            onPress={() => { setAccountType('affiliate'); setFieldErrors({}); setError(''); }}
+          />
+          <Text variant="label" weight="medium" tone="muted" style={styles.note}>
+            One login, one account type. Use another email for a second account.
+          </Text>
         </View>
 
-        <Body size="md" color={colors.ink2} style={{ marginTop: 12, marginBottom: 28, maxWidth: 320 }}>
-          Start your digital business journey. Two minutes, one form.
-        </Body>
+        {error ? <Banner tone="danger" body={error} style={styles.banner} /> : null}
 
-        <View style={{ gap: 10, marginBottom: 24 }} accessibilityLabel="Choose an account type">
-          {(['creator', 'affiliate'] as const).map((type) => (
-            <TouchableOpacity
-              key={type}
-              accessibilityRole="radio"
-              accessibilityLabel={type === 'creator' ? 'Creator account' : 'Affiliate account'}
-              accessibilityState={{ checked: accountType === type }}
-              disabled={loading || googleLoading || appleLoading || tiktokLoading}
-              onPress={() => { setAccountType(type); setFieldErrors({}); setError(''); }}
-              style={{ borderWidth: 1, borderColor: accountType === type ? colors.accent : colors.rule, borderRadius: radius.sm, padding: 14 }}
-            >
-              <Body weight="bold">{type === 'creator' ? 'Creator' : 'Affiliate'}</Body>
-              <Body size="sm" color={colors.ink2}>
-                {type === 'creator' ? 'Photograph businesses and interview their owners.' : 'Share your page, set your price, and earn a commission.'}
-              </Body>
-            </TouchableOpacity>
-          ))}
-          <Body size="xs" color={colors.ink3}>One login has one account type. Use another email for a second account.</Body>
-        </View>
-
-        {error ? (
-          <View
-            style={{
-              backgroundColor: colors.dangerBg,
-              borderColor: colors.danger,
-              borderWidth: 1,
-              borderRadius: radius.sm,
-              padding: 14,
-              marginBottom: 18,
-            }}
-          >
-            <Body size="sm" color={colors.danger} weight="medium">{error}</Body>
-          </View>
-        ) : null}
-
-        {/* Name row */}
-        <View style={{ flexDirection: 'row', marginBottom: 18, gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <EditorialField
-              icon="person-outline"
+        <View style={styles.section}>
+          <SectionLabel>Your name</SectionLabel>
+          <View style={styles.split}>
+            <Field
+              containerStyle={styles.half}
+              label="First name"
               placeholder="Juan"
               value={firstName}
-              onChangeText={(t: string) => { setFirstName(t); setFieldErrors((e) => { const n = {...e}; delete n.firstName; return n; }); }}
+              onChangeText={(t: string) => { setFirstName(t); clearFieldError('firstName'); }}
               autoCapitalize="words"
               editable={!loading}
               accessibilityLabel="First Name"
-              label="FIRST NAME"
               error={fieldErrors.firstName}
             />
-          </View>
-          <View style={{ flex: 1 }}>
-            <EditorialField
-              placeholder="Dela Cruz"
+            <Field
+              containerStyle={styles.half}
+              label="Last name"
+              placeholder={accountType === 'affiliate' ? 'Optional' : 'Dela Cruz'}
               value={lastName}
-              onChangeText={(t: string) => { setLastName(t); setFieldErrors((e) => { const n = {...e}; delete n.lastName; return n; }); }}
+              onChangeText={(t: string) => { setLastName(t); clearFieldError('lastName'); }}
               autoCapitalize="words"
               editable={!loading}
               accessibilityLabel="Last Name"
-              label={accountType === 'affiliate' ? 'LAST NAME (OPTIONAL)' : 'LAST NAME'}
               error={fieldErrors.lastName}
             />
           </View>
         </View>
 
-        {/* Email */}
-        <View style={{ marginBottom: 18 }}>
-          <EditorialField
+        <View style={styles.section}>
+          <SectionLabel>Contact</SectionLabel>
+          <Field
+            label="Email"
             icon="mail-outline"
             placeholder="your@email.com"
             value={email}
-            onChangeText={(t: string) => { setEmail(t); setFieldErrors((e) => { const n = {...e}; delete n.email; return n; }); }}
+            onChangeText={(t: string) => { setEmail(t); clearFieldError('email'); }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             editable={!loading}
             accessibilityLabel="Email"
-            label="EMAIL"
             error={fieldErrors.email}
+          />
+          <Field
+            label="Mobile"
+            prefix="+63"
+            placeholder="912 345 6789"
+            value={phone}
+            onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
+            keyboardType="number-pad"
+            maxLength={15}
+            editable={!loading}
+            accessibilityLabel="Mobile Number"
+            error={fieldErrors.phone}
+            helper={accountType === 'affiliate' ? 'Required' : 'Optional'}
           />
         </View>
 
-        {/* Phone with +63 prefix */}
-        <View style={{ marginBottom: 18 }}>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <View
-              style={{
-                backgroundColor: colors.paper3,
-                borderColor: colors.rule,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                paddingHorizontal: 14,
-                height: 54,
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontFamily: fonts.monoMed, fontSize: 14, color: colors.ink2, letterSpacing: 0.5 }}>+63</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.sm,
-                  paddingHorizontal: 14,
-                  height: 54,
-                }}
-              >
-                <Ionicons name="call-outline" size={18} color={colors.ink3} />
-                <TextInput
-                  style={{ flex: 1, marginLeft: 10, fontFamily: fonts.sans, fontSize: 15, color: colors.ink }}
-                  placeholder="912 345 6789"
-                  placeholderTextColor={colors.ink3}
-                  value={phone}
-                  onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  maxLength={15}
-                  editable={!loading}
-                  accessibilityLabel="Mobile Number"
-                />
-              </View>
-            </View>
-          </View>
-          <View style={{ marginTop: 6, paddingHorizontal: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Label>MOBILE</Label>
-            <Label color={colors.ink3}>{accountType === 'affiliate' ? 'REQUIRED' : 'OPTIONAL'}</Label>
-          </View>
-          {fieldErrors.phone ? <Body size="xs" color={colors.danger}>{fieldErrors.phone}</Body> : null}
-        </View>
-
         {accountType === 'affiliate' ? (
-          <View style={{ marginBottom: 18 }}>
-            <EditorialField
-              label="PAGE HANDLE"
+          <View style={styles.section}>
+            <SectionLabel>Your page</SectionLabel>
+            <Field
+              label="Page handle"
               placeholder="your-page"
               value={handle}
               onChangeText={(value: string) => setHandle(value.toLowerCase())}
@@ -719,378 +522,168 @@ export default function SignupScreen() {
               editable={!loading}
               accessibilityLabel="Page handle"
               error={fieldErrors.handle}
+              helper={`After admin approval, your page will be tendso.com/a/${handle || 'your-page'}`}
             />
-            <Body size="xs" color={colors.ink3}>After admin approval, your page will be tendso.com/a/{handle || 'your-page'}.</Body>
           </View>
         ) : null}
 
-        {/* Password */}
-        <View style={{ marginBottom: 18 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.paper3,
-              borderColor: fieldErrors.password ? colors.danger : colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.sm,
-              paddingHorizontal: 14,
-              height: 54,
-            }}
-          >
-            <Ionicons name="lock-closed-outline" size={18} color={fieldErrors.password ? colors.danger : colors.ink3} />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontFamily: fonts.sans, fontSize: 15, color: colors.ink }}
-              placeholder="At least 8 characters"
-              placeholderTextColor={colors.ink3}
-              value={password}
-              onChangeText={(t) => { setPassword(t); setFieldErrors((e) => { const n = {...e}; delete n.password; return n; }); }}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-              accessibilityLabel="Password"
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
-              <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={18} color={colors.ink3} />
-            </TouchableOpacity>
-          </View>
-          <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-            <Label color={fieldErrors.password ? colors.danger : colors.ink3}>
-              {fieldErrors.password ? fieldErrors.password.toUpperCase() : 'PASSWORD'}
-            </Label>
-          </View>
+        <View style={styles.section}>
+          <SectionLabel>Password</SectionLabel>
+          <Field
+            label="Password"
+            icon="lock-closed-outline"
+            placeholder="At least 8 characters"
+            value={password}
+            onChangeText={(t) => { setPassword(t); clearFieldError('password'); }}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            accessibilityLabel="Password"
+            error={fieldErrors.password}
+            right={<PasswordEye shown={showPassword} onToggle={() => setShowPassword(!showPassword)} />}
+          />
+          <Field
+            label="Confirm password"
+            icon="lock-closed-outline"
+            placeholder="Type it again"
+            value={confirmPassword}
+            onChangeText={(t) => { setConfirmPassword(t); clearFieldError('confirmPassword'); }}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            accessibilityLabel="Confirm Password"
+            error={fieldErrors.confirmPassword}
+          />
         </View>
 
-        {/* Confirm Password */}
-        <View style={{ marginBottom: 18 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.paper3,
-              borderColor: fieldErrors.confirmPassword ? colors.danger : colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.sm,
-              paddingHorizontal: 14,
-              height: 54,
-            }}
-          >
-            <Ionicons name="lock-closed-outline" size={18} color={fieldErrors.confirmPassword ? colors.danger : colors.ink3} />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontFamily: fonts.sans, fontSize: 15, color: colors.ink }}
-              placeholder="Confirm your password"
-              placeholderTextColor={colors.ink3}
-              value={confirmPassword}
-              onChangeText={(t) => { setConfirmPassword(t); setFieldErrors((e) => { const n = {...e}; delete n.confirmPassword; return n; }); }}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-              accessibilityLabel="Confirm Password"
-            />
-          </View>
-          <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-            <Label color={fieldErrors.confirmPassword ? colors.danger : colors.ink3}>
-              {fieldErrors.confirmPassword ? fieldErrors.confirmPassword.toUpperCase() : 'CONFIRM PASSWORD'}
-            </Label>
-          </View>
-        </View>
-
-        {/* Referral Code */}
-        {accountType === 'creator' ? <View style={{ marginBottom: 24 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.paper3,
-              borderColor: colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.sm,
-              paddingHorizontal: 14,
-              height: 54,
-            }}
-          >
-            <Ionicons name="gift-outline" size={18} color={colors.ink3} />
-            <TextInput
-              style={{ flex: 1, marginLeft: 10, fontFamily: fonts.mono, fontSize: 15, color: colors.ink, letterSpacing: 1 }}
-              placeholder="Enter referral code"
-              placeholderTextColor={colors.ink3}
+        {accountType === 'creator' ? (
+          <View style={styles.section}>
+            <SectionLabel>Referral</SectionLabel>
+            <Field
+              label="Referral code"
+              icon="gift-outline"
+              placeholder="Enter code"
               value={referredByCode}
               onChangeText={(text) => setReferredByCode(text.toUpperCase())}
               autoCapitalize="characters"
               autoCorrect={false}
               editable={!loading}
               accessibilityLabel="Referral Code"
+              helper="Optional"
             />
           </View>
-          <View style={{ marginTop: 6, paddingHorizontal: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Label>REFERRAL CODE</Label>
-            <Label color={colors.ink3}>OPTIONAL</Label>
-          </View>
-        </View> : null}
+        ) : null}
 
-        {/* Terms checkbox */}
-        <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20 }}
-          onPress={() => setAcceptedTerms(!acceptedTerms)}
-          activeOpacity={0.7}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: acceptedTerms }}
-          accessibilityLabel="Accept Terms of Service"
-        >
-          <View
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: radius.xs,
-              borderWidth: 1.5,
-              borderColor: acceptedTerms ? colors.accent : colors.ruleStrong,
-              backgroundColor: acceptedTerms ? colors.accent : 'transparent',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 12,
-              marginTop: 2,
-            }}
-          >
-            {acceptedTerms && <Ionicons name="checkmark" size={14} color={colors.paper3} />}
-          </View>
-          <View style={{ flex: 1 }}>
-            <Body size="sm" color={colors.ink2}>
-              I agree to the{' '}
-              <Body
-                size="sm"
-                weight="medium"
-                color={colors.accent}
-                style={{ textDecorationLine: 'underline' }}
-                onPress={() => void openExternalUrl(TERMS_URL)}
-              >
-                Terms of Service
-              </Body>
-              {' '}and{' '}
-              <Body
-                size="sm"
-                weight="medium"
-                color={colors.accent}
-                style={{ textDecorationLine: 'underline' }}
-                onPress={() => void openExternalUrl(PRIVACY_URL)}
-              >
-                Privacy Policy
-              </Body>
-            </Body>
-          </View>
-        </TouchableOpacity>
-
-        {/* Create account door — accent variant (this is the earning moment) */}
-        <Door
-          caption="CREATE ACCOUNT"
-          label={loading ? 'Creating…' : 'Get started'}
-          variant="accent"
-          loading={loading}
-          disabled={loading || googleLoading || tiktokLoading || !acceptedTerms}
-          onPress={handleSignup}
-          rightIcon={loading ? <ActivityIndicator color="#fff" /> : undefined}
-        />
-
-        {/* Divider */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24 }}>
-          <View style={{ flex: 1 }}><Rule /></View>
-          <View style={{ marginHorizontal: 14 }}>
-            <Label>OR</Label>
-          </View>
-          <View style={{ flex: 1 }}><Rule /></View>
+        <View style={styles.section}>
+          <TermsCheck
+            checked={acceptedTerms}
+            onToggle={() => setAcceptedTerms(!acceptedTerms)}
+            onOpenTerms={() => void openExternalUrl(TERMS_URL)}
+            onOpenPrivacy={() => void openExternalUrl(PRIVACY_URL)}
+          />
+          <Button
+            title="Get started"
+            loading={loading}
+            disabled={loading || googleLoading || tiktokLoading || !acceptedTerms}
+            onPress={handleSignup}
+          />
         </View>
+
+        <OrDivider />
 
         {!acceptedTerms && (
-          <View style={{ alignItems: 'center', marginBottom: 12 }}>
-            <Label color={colors.ink3}>ACCEPT TERMS TO CONTINUE</Label>
-          </View>
+          <Text variant="label" weight="medium" tone="muted" align="center" style={styles.gate}>
+            Accept the terms to continue.
+          </Text>
         )}
 
-        {/* Sign up with Apple — required by App Store Guideline 4.8 since we
-            offer Google. Apple's OFFICIAL button component: the HIG mandates
-            their exact mark/wording, so don't swap in a custom one. The terms
-            gate is enforced in the handler (this component has no `disabled`).
-            Placed ABOVE Google per Apple's HIG, which asks for Sign in with
-            Apple to be at least as prominent as other sign-in options. */}
-        {Platform.OS === 'ios' && appleAvailable && (
-          <View style={{ marginBottom: 12, opacity: appleLoading || !acceptedTerms ? 0.55 : 1 }}>
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={BUTTON_RADIUS}
-              style={{ height: BUTTON_HEIGHT, width: '100%' }}
-              onPress={handleAppleSignUp}
+        {/* Sign up with Apple is required by App Store Guideline 4.8 since we offer Google. Apple's
+            OFFICIAL button: the HIG mandates their exact mark and wording, so we don't draw our own.
+            The terms gate is enforced in the handler (this component has no `disabled`). It sits
+            ABOVE Google (HIG: at least as prominent) and shares its height and pill radius. */}
+        <View style={styles.social}>
+          {Platform.OS === 'ios' && appleAvailable && (
+            <View style={{ opacity: appleLoading || !acceptedTerms ? 0.55 : 1 }}>
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={SOCIAL_RADIUS}
+                style={styles.apple}
+                onPress={handleAppleSignUp}
+              />
+            </View>
+          )}
+          <GooglePill
+            onPress={handleGoogleSignUp}
+            disabled={busy || !acceptedTerms}
+            loading={googleLoading}
+            dimmed={!acceptedTerms}
+          />
+          {TIKTOK_ENABLED ? (
+            <SocialPill
+              logo={<TikTokLogo size={22} />}
+              label="Continue with TikTok"
+              onPress={handleTikTokSignUp}
+              disabled={loading || googleLoading || tiktokLoading}
+              loading={tiktokLoading}
             />
-          </View>
-        )}
+          ) : null}
+        </View>
 
-        {/* Google — keeps its own light "ghost door" colours; only the SHAPE is
-            matched to Apple's button (same BUTTON_HEIGHT + same radius.md
-            corners) so the two line up as a pair. */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          disabled={loading || googleLoading || tiktokLoading || appleLoading || !acceptedTerms}
-          onPress={handleGoogleSignUp}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: BUTTON_HEIGHT,
-            paddingHorizontal: 22,
-            backgroundColor: colors.paper3,
-            borderColor: colors.ink,
-            borderWidth: 1,
-            borderRadius: BUTTON_RADIUS,
-            opacity: googleLoading || !acceptedTerms ? 0.55 : 1,
-          }}
-          accessibilityLabel="Continue with Google"
-          accessibilityRole="button"
-        >
-          {googleLoading ? (
-            <ActivityIndicator color={colors.ink} />
-          ) : (
-            <>
-              <GoogleLogo size={20} />
-              <Text style={{ fontFamily: fonts.sansMed, fontSize: BUTTON_LABEL_SIZE, color: colors.ink, marginLeft: 10 }}>
-                Continue with Google
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          className={`h-14 rounded-xl items-center justify-center flex-row border mt-3 ${
-            tiktokLoading ? 'bg-zinc-100 border-zinc-200' : 'bg-white border-zinc-300'
-          }`}
-          onPress={handleTikTokSignUp}
-          disabled={loading || googleLoading || tiktokLoading}
-          accessibilityLabel="Continue with TikTok"
-          accessibilityRole="button"
-        >
-          {tiktokLoading ? (
-            <ActivityIndicator color="#71717a" />
-          ) : (
-            <>
-              <TikTokLogo size={20} />
-              <Text className="text-zinc-700 font-semibold text-base ml-3">
-                Continue with TikTok
-              </Text>
-            </>
-          )}
-        </TouchableOpacity> */}
-
-        {/* Footer */}
-        <View style={{ marginTop: 32, flexDirection: 'row', justifyContent: 'center', alignItems: 'baseline' }}>
-          <Body size="sm" color={colors.ink3}>Already with us? </Body>
+        <View style={styles.alt}>
+          <Text variant="body" weight="semibold" tone="ink2">
+            Already with us?
+          </Text>
           <GuardedLink href="/(auth)/login" asChild>
-            <TouchableOpacity hitSlop={6} accessibilityLabel="Sign In" accessibilityRole="button">
-              <Body size="sm" weight="medium" color={colors.accent}>Sign in →</Body>
-            </TouchableOpacity>
+            <AuthLink label="Sign in" accessibilityLabel="Sign In" />
           </GuardedLink>
         </View>
-      </ScrollView>
+      </ScreenShell>
 
-      {/* TikTok Complete Profile Modal */}
-      <Modal visible={showTikTokProfile} transparent animationType="slide" onRequestClose={closeTikTokModal}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-            <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: insets.bottom + 24 }}>
-              <View className="items-center pt-3 pb-2">
-                <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#d4d4d8' }} />
-              </View>
-              <ScrollView className="px-6 pt-2 pb-4" keyboardShouldPersistTaps="handled">
-                <View className="items-center mb-6">
-                  <View className="w-14 h-14 bg-zinc-100 rounded-full items-center justify-center mb-3">
-                    <TikTokLogo size={28} />
-                  </View>
-                  <Text className="text-xl font-bold text-zinc-900 text-center">
-                    {ttStep === 'profile' ? 'Complete Your Profile' : 'Verify Your Email'}
-                  </Text>
-                  <Text className="text-zinc-500 text-center mt-1 px-4">
-                    {ttStep === 'profile'
-                      ? "TikTok doesn't share your details. Please provide them to finish signing up."
-                      : `We sent a 6-digit code to ${ttEmail}`}
-                  </Text>
-                </View>
-
-                {ttError ? (<View className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4"><Text className="text-red-600 text-sm font-medium">{ttError}</Text></View>) : null}
-
-                {ttStep === 'profile' ? (
-                  <>
-                    <View className="flex-row mb-4">
-                      <View className="flex-1 mr-2">
-                        <Text className="text-zinc-700 font-medium mb-2">First Name *</Text>
-                        <View className="flex-row items-center bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14">
-                          <Ionicons name="person-outline" size={20} color="#71717a" />
-                          <TextInput className="flex-1 ml-3 text-base text-zinc-900" placeholder="Juan" placeholderTextColor="#a1a1aa"
-                            value={ttFirstName} onChangeText={setTtFirstName} autoCapitalize="words" editable={!ttLoading} />
-                        </View>
-                      </View>
-                      <View className="flex-1 ml-2">
-                        <Text className="text-zinc-700 font-medium mb-2">{accountType === 'affiliate' ? 'Last Name (optional)' : 'Last Name *'}</Text>
-                        <View className="flex-row items-center bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14">
-                          <TextInput className="flex-1 text-base text-zinc-900" placeholder="Dela Cruz" placeholderTextColor="#a1a1aa"
-                            value={ttLastName} onChangeText={setTtLastName} autoCapitalize="words" editable={!ttLoading} />
-                        </View>
-                      </View>
-                    </View>
-
-                    <View className="mb-4">
-                      <Text className="text-zinc-700 font-medium mb-2">Email *</Text>
-                      <View className="flex-row items-center bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14">
-                        <Ionicons name="mail-outline" size={20} color="#71717a" />
-                        <TextInput className="flex-1 ml-3 text-base text-zinc-900" placeholder="your@email.com" placeholderTextColor="#a1a1aa"
-                          value={ttEmail} onChangeText={setTtEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} editable={!ttLoading} />
-                      </View>
-                    </View>
-
-                    <View className="mb-6">
-                      <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-zinc-700 font-medium">Mobile Number</Text>
-                        <Text className="text-xs text-zinc-400">Optional</Text>
-                      </View>
-                      <View className="flex-row">
-                        <View className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14 items-center justify-center mr-2">
-                          <Text className="text-zinc-700 font-medium">+63</Text>
-                        </View>
-                        <View className="flex-1 flex-row items-center bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14">
-                          <Ionicons name="call-outline" size={20} color="#71717a" />
-                          <TextInput className="flex-1 ml-3 text-base text-zinc-900" placeholder="912 345 6789" placeholderTextColor="#a1a1aa"
-                            value={ttPhone} onChangeText={(v) => setTtPhone(v.replace(/[^0-9]/g, ''))} keyboardType="number-pad" maxLength={15} editable={!ttLoading} />
-                        </View>
-                      </View>
-                    </View>
-
-                    <TouchableOpacity className={`h-14 rounded-xl items-center justify-center ${ttLoading ? 'bg-zinc-400' : 'bg-zinc-900'}`}
-                      onPress={handleTikTokSubmitProfile} disabled={ttLoading}>
-                      {ttLoading ? <ActivityIndicator color="white" /> : <Text className="text-white font-semibold text-base">Continue</Text>}
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <View className="mb-6">
-                      <Text className="text-zinc-700 font-medium mb-2">Verification Code</Text>
-                      <TextInput className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 h-14 text-center text-2xl tracking-widest text-zinc-900"
-                        placeholder="000000" placeholderTextColor="#a1a1aa" value={ttCode} onChangeText={setTtCode}
-                        keyboardType="number-pad" maxLength={6} editable={!ttLoading} />
-                    </View>
-
-                    <TouchableOpacity className={`h-14 rounded-xl items-center justify-center ${ttLoading ? 'bg-emerald-400' : 'bg-emerald-600'}`}
-                      onPress={handleTikTokVerifyEmail} disabled={ttLoading}>
-                      {ttLoading ? <ActivityIndicator color="white" /> : <Text className="text-white font-semibold text-base">Verify Email</Text>}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity className="mt-3 items-center" onPress={() => { setTtStep('profile'); setTtError(''); setTtCode(''); }}>
-                      <Text className="text-zinc-500 text-sm">Back to profile</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-
-                <TouchableOpacity className="mt-3 items-center pb-4" onPress={closeTikTokModal}>
-                  <Text className="text-zinc-400 text-sm">Cancel</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <TikTokProfileSheet
+        visible={showTikTokProfile}
+        step={ttStep}
+        firstName={ttFirstName}
+        lastName={ttLastName}
+        email={ttEmail}
+        phone={ttPhone}
+        code={ttCode}
+        onChangeFirstName={setTtFirstName}
+        onChangeLastName={setTtLastName}
+        onChangeEmail={setTtEmail}
+        onChangePhone={(v) => setTtPhone(v.replace(/[^0-9]/g, ''))}
+        onChangeCode={setTtCode}
+        loading={ttLoading}
+        error={ttError}
+        lastNameOptional={accountType === 'affiliate'}
+        onSubmitProfile={handleTikTokSubmitProfile}
+        onVerify={handleTikTokVerifyEmail}
+        onBackToProfile={() => {
+          setTtStep('profile');
+          setTtError('');
+          setTtCode('');
+        }}
+        onClose={closeTikTokModal}
+      />
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  banner: { marginBottom: space.lg },
+  section: { gap: space.md, marginBottom: space.xl },
+  note: { paddingHorizontal: space.xs },
+  split: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
+  half: { flex: 1, minWidth: 0 },
+  resend: { marginTop: space.lg },
+  gate: { marginBottom: space.md },
+  social: { gap: space.md },
+  apple: { height: SOCIAL_HEIGHT, width: '100%' },
+  alt: {
+    marginTop: space.lg,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+  },
+});

@@ -15,7 +15,7 @@ export function AdminButton({ label, onPress, disabled = false, busy = false, da
   label: string; onPress: () => void | Promise<void>; disabled?: boolean; busy?: boolean; danger?: boolean;
 }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: disabled || busy, busy }}
-    disabled={disabled || busy} onPress={onPress} style={({ pressed }) => [styles.button, danger && styles.dangerButton, (disabled || busy) && { opacity: .45 }, pressed && { opacity: .75 }]}>
+    disabled={disabled || busy} onPress={onPress} cssInterop={false} style={({ pressed }) => [styles.button, danger && styles.dangerButton, (disabled || busy) && { opacity: .45 }, pressed && { opacity: .75 }]}>
     {busy ? <ActivityIndicator color={colors.paper3} /> : <Text style={styles.buttonText}>{label}</Text>}
   </Pressable>;
 }

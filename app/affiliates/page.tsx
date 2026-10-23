@@ -3,10 +3,11 @@ import { ArrowRight, Link2, Users, Wallet } from "lucide-react";
 import Link from "next/link";
 
 import { ButtonLink, Icon, PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
-import { BASE_PRICE, COMMISSION_RATE, PRICE_CEILING, REFERRAL_BONUS, formatPHP } from "@/lib/pricing";
+import { BASE_PRICE, COMMISSION_RATE, PRICE_CEILING, formatPHP } from "@/lib/pricing";
+import { AFFILIATE_RECRUIT_REWARD, AFFILIATE_RECRUIT_TERMS } from "@/lib/affiliateReferralProgram";
 
 const SHARE = Math.round(COMMISSION_RATE * 100);
-const DESCRIPTION = `Share your own Tendso page, set your website price from ${formatPHP(BASE_PRICE)} to ${formatPHP(PRICE_CEILING)}, and earn ${SHARE}% of every sale. Refer creators for ${formatPHP(REFERRAL_BONUS)}.`;
+const DESCRIPTION = `Share your own Tendso page, set your website price from ${formatPHP(BASE_PRICE)} to ${formatPHP(PRICE_CEILING)}, and earn ${SHARE}% of every sale. ${AFFILIATE_RECRUIT_REWARD}`;
 
 export const metadata: Metadata = {
     title: "Share a link, earn a commission — Tendso affiliates",
@@ -44,7 +45,8 @@ export default function AffiliatesPage() {
                     <section className="t-card t-card-pad flex flex-col gap-3">
                         <Icon icon={Users} size={20} />
                         <h2 className="t-h2">Refer creators</h2>
-                        <p className="t-body">Earn {formatPHP(REFERRAL_BONUS)} when a creator you refer makes their first paid sale.</p>
+                        <p className="t-body">{AFFILIATE_RECRUIT_REWARD}</p>
+                        <p className="t-meta">{AFFILIATE_RECRUIT_TERMS}</p>
                     </section>
                 </div>
 

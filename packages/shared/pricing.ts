@@ -57,8 +57,60 @@ export const COMMISSION_RATE = 0.5;
 /** Flat add-on charged to the owner for a custom domain (year 1 + setup). */
 export const CUSTOM_DOMAIN_ADDON = 500;
 
+/**
+ * Smallest down payment an owner may make (PHP). A payment is either the whole
+ * owner total or a down payment between this and the total; the balance is due
+ * later. The selling field agent is credited their whole cut when the down
+ * payment lands. See convex/ownerPayments.ts and docs/v2-api-owners.md.
+ */
+export const MIN_DOWN_PAYMENT = 500;
+
 /** One-time bonus when a referred creator lands their first paid submission. */
 export const REFERRAL_BONUS = 1000;
+
+/**
+ * ── CREATOR OVERRIDE (decided 2026-10-21, docs/CREATOR-PROGRAM.md) ──────────
+ *
+ * A creator (code role `affiliate`) earns a share of every sale made by a field
+ * agent who joined through the creator's link or code. One level only: nobody
+ * earns on their recruit's recruits. It is paid only once the shop has paid in
+ * full, on the website price (the custom-domain add-on excluded), and only for
+ * sales within CREATOR_OVERRIDE_MONTHS of the day the agent joined.
+ *
+ * It replaces REFERRAL_BONUS for creator recruits who join on or after
+ * CREATOR_OVERRIDE_CUTOVER. Referrals recorded before it keep their ₱1,000.
+ */
+export const CREATOR_OVERRIDE_RATE = 0.05;
+
+/** How long a recruit's sales earn their creator the override, from the join date. */
+export const CREATOR_OVERRIDE_MONTHS = 12;
+
+/** 2026-10-21 00:00 Asia/Manila. Creator recruits from this moment get the override, not REFERRAL_BONUS. */
+export const CREATOR_OVERRIDE_CUTOVER = Date.UTC(2026, 9, 20, 16, 0, 0);
+
+/** A creator's code takes this much off WEBSITE_PRICE by default (₱4,999 → ₱3,499). */
+export const CREATOR_CODE_DEFAULT_DISCOUNT = 0.3;
+
+/** The price a new creator's code starts at; they can change it later, down to BASE_PRICE. */
+export const CREATOR_CODE_DEFAULT_PRICE = Math.round(WEBSITE_PRICE * (1 - CREATOR_CODE_DEFAULT_DISCOUNT));
+
+/** The creator's override for one sale, from the website price (domain add-on excluded). */
+export function overrideFor(websitePrice: number): number {
+    if (!Number.isFinite(websitePrice) || websitePrice <= 0) return 0;
+    return Math.round(websitePrice * CREATOR_OVERRIDE_RATE);
+}
+
+/** True when a recruit who joined at `joinedAt` earns their creator the override instead of REFERRAL_BONUS. */
+export function earnsCreatorOverride(joinedAt: number): boolean {
+    return Number.isFinite(joinedAt) && joinedAt >= CREATOR_OVERRIDE_CUTOVER;
+}
+
+/** The moment a recruit's override window closes: the join date plus CREATOR_OVERRIDE_MONTHS calendar months. */
+export function creatorOverrideEndsAt(joinedAt: number): number {
+    const end = new Date(joinedAt);
+    end.setUTCMonth(end.getUTCMonth() + CREATOR_OVERRIDE_MONTHS);
+    return end.getTime();
+}
 
 /**
  * ── CAMPAIGN DISCOUNTS ──────────────────────────────────────────────────────

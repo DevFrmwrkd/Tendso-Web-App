@@ -17,6 +17,7 @@ const mockSave = jest.fn();
 const mockAction = jest.fn();
 
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
+jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
@@ -59,7 +60,7 @@ describe('native affiliate access and live data', () => {
     expect(home.getByText('₱2,500')).toBeTruthy();
     home.unmount();
     const sales = render(<AffiliateSalesScreen />);
-    expect(sales.getByText('Sample coffee shop')).toBeTruthy();
+    expect(sales.getByText('Sample barbershop')).toBeTruthy();
     sales.unmount();
     const page = render(<AffiliatePageScreen />);
     expect(page.getByLabelText('Display name').props.editable).toBe(false);
@@ -80,6 +81,19 @@ describe('native affiliate access and live data', () => {
     expect(view.getAllByText('Loading…')).toHaveLength(3);
   });
 
+  it('shows team commissions alongside earlier one-time referral bonuses', () => {
+    const portal = { ...samplePortal,
+      recruits: [{ _id: 'new-agent' as typeof sampleAffiliate._id, referredName: 'New Team Agent', createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 250 }],
+      recruitStats: { total: 1, earning: 1, totalEarned: 250 },
+    };
+    const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
+    expect(view.getByText('New Team Agent')).toBeTruthy();
+    expect(view.getByText('5% team commissions · 1')).toBeTruthy();
+    expect(view.getByText(/₱250 team commission earned/)).toBeTruthy();
+    expect(view.getByText('Earlier ₱1,000 referrals · 1')).toBeTruthy();
+    expect(view.getByText('Alex Reyes')).toBeTruthy();
+  });
+
   it('keeps suspended pages read-only without mounting write hooks', () => {
     mockAccount.account = { ...sampleAffiliate, status: 'suspended' };
     const view = render(<AffiliatePageScreen />);
@@ -95,7 +109,7 @@ describe('native affiliate access and live data', () => {
     const view = render(<AffiliateSalesScreen />);
     expect(mockPaginated).toHaveBeenCalledWith('affiliates:sales', {}, { initialNumItems: 10 });
     expect(view.getByText('₱999')).toBeTruthy();
-    expect(view.getByText('₱500')).toBeTruthy();
+    expect(view.getByText('+₱500')).toBeTruthy();
     fireEvent.press(view.getByLabelText('Show more sales'));
     expect(loadMore).toHaveBeenCalledWith(10);
   });

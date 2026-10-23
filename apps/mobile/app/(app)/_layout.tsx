@@ -14,6 +14,7 @@ import { clearPendingSignupProfiles } from '../../services/signupProfile';
 import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
 import { PendingAffiliateApproval } from '../../components/affiliate/PendingApproval';
 import { colors, fonts } from '../../theme/tokens';
+import { hasOwnerIntent } from '../../lib/v2/ownerIntake';
 
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
 
@@ -26,6 +27,9 @@ export default function AppLayout() {
   const updateLastActive = useMutation(api.creators.updateLastActive);
   const [cachedAuth, setCachedAuth] = useState<boolean | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  // "I have a business" on the welcome screen: a new account with no agent profile is an owner.
+  const [ownerIntent, setOwnerIntentState] = useState<boolean | null>(null);
+  useEffect(() => { void hasOwnerIntent().then(setOwnerIntentState); }, []);
 
   // Auto-sync offline data when connectivity returns
   useOfflineSync({
@@ -85,7 +89,14 @@ export default function AppLayout() {
       <ActivityIndicator accessibilityLabel="Loading account" color={colors.accent} />
     </View>
   );
-  if (mobileAccount.isBlocked || mobileAccount.isOwner || (mobileAccount.isOffline && mobileAccount.role !== 'creator')
+  // Shop owners have their own app section (replaces the old "Continue on the web" dead end).
+  // Agents, creators and admins are routed exactly as before.
+  if (!mobileAccount.isOffline && mobileAccount.isOwner) return <Redirect href={'/(owner)' as never} />;
+  if (!mobileAccount.isOffline && mobileAccount.account === null) {
+    if (ownerIntent === null) return null;
+    if (ownerIntent) return <Redirect href={'/(owner)' as never} />;
+  }
+  if (mobileAccount.isBlocked || (mobileAccount.isOffline && mobileAccount.role !== 'creator')
     || (!mobileAccount.isOffline && mobileAccount.account && !mobileAccount.role)) {
     return (
       <View style={{ flex: 1, padding: 24, justifyContent: 'center', backgroundColor: colors.paper, gap: 16 }}>

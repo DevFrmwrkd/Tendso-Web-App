@@ -109,8 +109,8 @@ function withPlayReferrer(url: string, source: string): string {
 
 const STEPS = [
     "Tell us about your shop and send a few photos. About ten minutes, on your phone or PC.",
-    "We build your website and email it to you within 48 to 72 hours.",
-    `You pay ${formatPHP(websitePrice)} only after you have seen it live.`,
+    "We build your website the same day, in about 20 minutes, and email it to you.",
+    `You see it first. You pay ${formatPHP(websitePrice)} once to publish it.`,
 ];
 
 /** The same six lines the price card on the homepage promises. */
@@ -266,7 +266,7 @@ export default function OtrPage() {
                                 <span className="text-xl leading-6 text-r1-ink-3 line-through tabular-nums">{formatPHP(listPrice)}</span>
                             </p>
                             <p className="t-body">
-                                Paid once, after your website is live. No monthly fees. Your discount is
+                                See it first. Pay once to publish. Your discount is
                                 already applied — nothing to type.
                             </p>
                         </div>
@@ -371,8 +371,8 @@ export default function OtrPage() {
                             and the renewal it carries, are on the form where
                             it is actually made. */}
                         <p className="text-[13px] leading-[18px] text-r1-ink-2">
-                            Paid once, after your website is live. Nothing to pay today, and no monthly
-                            fees ever.
+                            See it first. Nothing to pay today. Pay once to publish, or start with a
+                            down payment from ₱500.
                         </p>
                     </section>
                     <p className="t-meta px-1">Price for OTR viewers: 30% off the {formatPHP(listPrice)} website.</p>

@@ -3,6 +3,7 @@ import { query, mutation, internalQuery, internalMutation } from './_generated/s
 import { internal } from './_generated/api';
 import { requireAccountOwner, requireAdmin, requireAuth } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
+import { applyPendingAgentAttribution } from './lib/creatorRecruits';
 
 // ==================== QUERIES ====================
 
@@ -294,6 +295,9 @@ export const create = mutation({
                 referredId: creatorId,
                 referralCode: incomingCode,
             });
+        } else if (!args.referredBy) {
+            // "Did <creator> send you?" answered before this account existed.
+            await applyPendingAgentAttribution(ctx, creatorId);
         }
 
         return creatorId;

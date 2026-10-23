@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState, useNavigationContainerRef } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { View, Image, Text, ActivityIndicator, LogBox } from 'react-native';
 import { AppProviders } from '../providers/AppProviders';
@@ -15,7 +15,9 @@ import {
 import {
   Onest_400Regular,
   Onest_500Medium,
+  Onest_600SemiBold,
   Onest_700Bold,
+  Onest_800ExtraBold,
 } from '@expo-google-fonts/onest';
 import {
   JetBrainsMono_400Regular,
@@ -26,6 +28,9 @@ import {
   GoogleSansFlex_700Bold,
 } from '@expo-google-fonts/google-sans-flex';
 import { colors } from '../theme/tokens';
+import { useOtaUpdate } from '../hooks/useOtaUpdate';
+import { initSentry, navigationIntegration, sentryEnabled, withSentry } from '../lib/sentry';
+import { OWNER_SAMPLE_DATA } from '../lib/v2/ownerFlags';
 import '../global.css';
 
 // Ignore the navigation warning from OAuth callbacks with legacy payload format
@@ -48,6 +53,9 @@ if (__DEV__) {
   };
 }
 
+// Crash reporting: no-op without EXPO_PUBLIC_SENTRY_DSN and in development.
+initSentry();
+
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
@@ -60,6 +68,16 @@ function InitialLayout() {
   const router = useRouter();
   const navigationState = useRootNavigationState();
 
+  // Sentry navigation tracing (expo-router's container ref). Only registers when Sentry is enabled.
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    if (sentryEnabled && navigationRef) navigationIntegration.registerNavigationContainer(navigationRef);
+  }, [navigationRef]);
+
+  // Over-the-air updates: checks when the app returns to the foreground, downloads quietly,
+  // applies on the NEXT launch (never reloads mid-task). No-op in dev / Expo Go.
+  useOtaUpdate();
+
   // Editorial Paper fonts (Instrument Serif + Onest + JetBrains Mono) for the
   // redesigned UI. If they fail to load we still render — system fallbacks
   // are declared in theme/tokens.ts.
@@ -68,7 +86,10 @@ function InitialLayout() {
     InstrumentSerif_400Regular_Italic,
     Onest_400Regular,
     Onest_500Medium,
+    // Design v2 weights (theme/v2.ts `fonts`): the mock uses 400/500/600/700/800.
+    Onest_600SemiBold,
     Onest_700Bold,
+    Onest_800ExtraBold,
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
     // Tendso wordmark — Google Sans Flex on the literal brand surfaces only
@@ -147,18 +168,31 @@ function InitialLayout() {
   useEffect(() => {
     if (!readyToRender || !navigationState?.key) return;
 
+    // Design v2 kit preview (deep link negosyodigital://v2-kit): no auth, no redirects.
+    if (segments[0] === 'v2-kit') return;
+
     const inAuthGroup = segments[0] === '(auth)';
+    // The welcome (index) is public: it offers "I have a business" / "I want to earn".
+    // Sample mode (dev only) lets the owner screens run without signing in.
+    const isPublic = inAuthGroup
+      || (segments as string[]).length === 0
+      || (OWNER_SAMPLE_DATA && segments[0] === '(owner)');
 
     // When offline with cached auth, treat user as "signed in" for routing purposes
     const effectivelySignedIn = isSignedIn || (isConnected === false && cachedAuth === true);
 
     if (effectivelySignedIn && inAuthGroup) {
-      // User is signed in (or offline with cached auth), redirect to tabs home
-      router.replace('/(app)/(tabs)/' as any);
+      // Resolve the authenticated account in (app) before considering device intent.
+      // Its layout gives existing roles precedence and applies owner intent only to new accounts.
+      router.replace('/(app)/(tabs)/');
       setTimeout(() => setIsAuthTransitioning(false), 500);
-    } else if (!effectivelySignedIn && !inAuthGroup) {
-      // Truly not signed in — redirect to login
-      router.replace('/(auth)/login');
+    } else if (!effectivelySignedIn && !isPublic) {
+      // Truly not signed in — redirect to login (owners: the email-code sign-in)
+      if (segments[0] === '(owner)') {
+        router.replace('/(auth)/owner' as any);
+      } else {
+        router.replace('/(auth)/login');
+      }
       setTimeout(() => setIsAuthTransitioning(false), 500);
     } else {
       // Already in correct group, clear transitioning state
@@ -174,6 +208,8 @@ function InitialLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="(owner)" />
+        <Stack.Screen name="v2-kit" />
       </Stack>
       {showOverlay && (
         <View style={{
@@ -220,7 +256,7 @@ function InitialLayout() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <AppProviders>
       <SheetDimHost>
@@ -229,3 +265,5 @@ export default function RootLayout() {
     </AppProviders>
   );
 }
+
+export default withSentry(RootLayout);

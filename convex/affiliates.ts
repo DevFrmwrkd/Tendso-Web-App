@@ -6,8 +6,10 @@ import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliateHandleError, affiliatePhoneError,
     affiliatePhotoError, affiliatePriceError, affiliateSocialLinkError,
 } from '../lib/affiliates';
-import { clampSellPrice, ownerChargeFor } from '../lib/pricing';
+import { clampSellPrice, creatorOverrideEndsAt, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
+import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
+import { insertAffiliateAccount } from './lib/affiliateSignup';
 
 /** Anonymous page data only. Private account, contact and payout data stay private. */
 export const publicPage = query({
@@ -56,52 +58,7 @@ export const create = mutation({
         const handleError = affiliateHandleError(args.handle);
         if (handleError) throw new ConvexError(handleError);
 
-        const existing = await ctx.db.query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
-        if (existing && !existing.isDeleted) {
-            if (existing.role !== 'affiliate') {
-                throw new ConvexError('This login already has another account type. Use a different email for an affiliate account.');
-            }
-            return existing._id;
-        }
-        // Existing emails may not have been normalized by older/mobile signup.
-        const sameEmail = await ctx.db.query('creators').filter((q) => q.neq(q.field('isDeleted'), true)).collect();
-        if (sameEmail.some((account) => account.email.trim().toLowerCase() === email && account.role !== 'affiliate')) {
-            throw new ConvexError('This email already has another account type. Use a different email for an affiliate account.');
-        }
-        const owners = await ctx.db.query('businessOwners').collect();
-        if (owners.some((owner) => owner.clerkId === identity.subject || owner.email.trim().toLowerCase() === email)) {
-            throw new ConvexError('This login or email already has a business owner account. Use a different email for an affiliate account.');
-        }
-        // Deleted handles remain reserved so an old shared link cannot be taken over.
-        const handleOwner = await ctx.db.query('creators')
-            .withIndex('by_affiliate_handle', (q) => q.eq('affiliateHandle', args.handle)).first();
-        if (handleOwner) throw new ConvexError('That page handle is already taken. Choose another one.');
-
-        let referralCode: string;
-        do {
-            referralCode = `AFF${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-        } while (await ctx.db.query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', referralCode)).first());
-        if (existing?.isDeleted) {
-            await ctx.db.patch(existing._id, { clerkId: `deleted_${existing._id}_${Date.now()}` });
-        }
-        return ctx.db.insert('creators', {
-            clerkId: identity.subject,
-            email,
-            firstName,
-            lastName,
-            phone,
-            affiliateHandle: args.handle,
-            referralCode,
-            role: 'affiliate',
-            status: 'pending',
-            balance: 0,
-            totalEarnings: 0,
-            totalWithdrawn: 0,
-            submissionCount: 0,
-            createdAt: Date.now(),
-        });
+        return insertAffiliateAccount(ctx, identity, { firstName, lastName, email, phone, handle: args.handle });
     },
 });
 
@@ -198,13 +155,39 @@ export const portal = query({
             throw new ConvexError('An affiliate account is required.');
         }
 
-        const [earningRows, withdrawals, referralRows, deployed, pendingPayment] = await Promise.all([
+        const [earningRows, withdrawals, referralRows, deployed, pendingPayment, recruitRows] = await Promise.all([
             ctx.db.query('earnings').withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).order('desc').collect(),
             ctx.db.query('withdrawals').withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).order('desc').collect(),
             ctx.db.query('referrals').withIndex('by_referrer', (q) => q.eq('referrerId', affiliate._id)).order('desc').collect(),
             ctx.db.query('submissions').withIndex('by_creator_status', (q) => q.eq('creatorId', affiliate._id).eq('status', 'deployed')).collect(),
             ctx.db.query('submissions').withIndex('by_creator_status', (q) => q.eq('creatorId', affiliate._id).eq('status', 'pending_payment')).collect(),
+            ctx.db.query('creators').withIndex('by_recruited_by', (q) => q.eq('recruitedByCreatorId', affiliate._id)).collect(),
         ]);
+
+        // Both programs remain visible in the existing portal. Old referral
+        // rows keep their one-time bonus; new recruits have recurring earnings
+        // and must never be projected as another pending ₱1,000 promise.
+        const overrideRows = earningRows.filter((row) => row.type === CREATOR_OVERRIDE_EARNING);
+        const overrideSales = await Promise.all(overrideRows.map((row) => ctx.db.get(row.submissionId)));
+        const overrideByRecruit = new Map<string, number>();
+        for (const [index, row] of overrideRows.entries()) {
+            const submission = overrideSales[index];
+            if (submission) overrideByRecruit.set(submission.creatorId, (overrideByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+        }
+        const legacyReferredIds = new Set(referralRows.map((row) => row.referredId));
+        const recruits = recruitRows
+            .filter((recruit) => !recruit.isDeleted && recruit.status !== 'deleted'
+                && recruit.recruitedAt !== undefined && earnsCreatorOverride(recruit.recruitedAt)
+                && !legacyReferredIds.has(recruit._id))
+            .map((recruit) => ({
+                _id: recruit._id,
+                referredName: [recruit.firstName, recruit.lastName].filter(Boolean).join(' ') || 'New field agent',
+                createdAt: recruit.recruitedAt!,
+                endsAt: creatorOverrideEndsAt(recruit.recruitedAt!),
+                earning: Date.now() < creatorOverrideEndsAt(recruit.recruitedAt!),
+                totalEarned: overrideByRecruit.get(recruit._id) ?? 0,
+            }))
+            .sort((a, b) => b.createdAt - a.createdAt);
         const [earnings, referrals] = await Promise.all([
             Promise.all(earningRows.map(async (earning) => {
                 const submission = await ctx.db.get(earning.submissionId);
@@ -245,6 +228,12 @@ export const portal = query({
             earnings,
             withdrawals,
             referrals,
+            recruits,
+            recruitStats: {
+                total: recruits.length,
+                earning: recruits.filter((row) => row.earning).length,
+                totalEarned: overrideRows.reduce((sum, row) => sum + row.amount, 0),
+            },
             referralStats: {
                 total: referrals.length,
                 pending: referrals.filter((row) => row.status === 'pending').length,

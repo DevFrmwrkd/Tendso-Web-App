@@ -20,7 +20,7 @@
  *
  * THE LOOK IS ROUND 1 (board Start, the thanks state): the funnel frame with
  * "Back to site", one highlighted card repeating back what was sent, then what
- * happens in the next 48–72 hours.
+ * happens next, same day.
  */
 
 import { useSyncExternalStore, type ReactNode } from "react";
@@ -97,7 +97,7 @@ function PaidThanks({ receipt }: { receipt: SubmittedReceipt | null }) {
                     <p className="t-sub">
                         We&apos;ll build it and email you at{" "}
                         <strong className="font-semibold text-r1-ink [overflow-wrap:anywhere]">{email ?? "the address you gave us"}</strong>{" "}
-                        {`within 48–72 hours with your site and ${howToPay}.`}
+                        {`the same day, with your site and ${howToPay}.`}
                     </p>
                 </div>
 
@@ -125,20 +125,20 @@ function PaidThanks({ receipt }: { receipt: SubmittedReceipt | null }) {
                                 </span>
                             </Fact>
                         ) : null}
-                        <Fact term="When you pay">Once, only after your site is live</Fact>
+                        <Fact term="When you pay">Once, to publish it — after you have seen it</Fact>
                         {forLine ? <Fact term="For">{forLine}</Fact> : null}
                     </dl>
                 </Highlight>
 
                 <section className="flex flex-col gap-4" aria-labelledby="start-next-hours">
                     <h2 id="start-next-hours" className="t-h2">
-                        The next 48–72 hours
+                        What happens next
                     </h2>
                     <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
                         {[
                             "Our team reads your answers and builds your site from them — your words, your photos.",
-                            "We check it and put it live.",
-                            `We email you the link and ${howToPay}. That email is the first time you see it.`,
+                            "We check it and keep it ready for you.",
+                            `We email you a link to see it and ${howToPay}. That email is the first time you see it.`,
                         ].map((line, index) => (
                             <li key={index} className="flex items-start gap-3">
                                 <span className="inline-flex size-6 flex-none items-center justify-center rounded-full text-xs font-semibold tabular-nums text-r1-ink-3 ring-[1.5px] ring-inset ring-r1-line-2">
@@ -153,7 +153,7 @@ function PaidThanks({ receipt }: { receipt: SubmittedReceipt | null }) {
                 <Card className="flex flex-col gap-2.5 px-5 py-5 sm:px-6">
                     <h2 className="text-sm font-semibold leading-5">Nothing to do now</h2>
                     <ul className="t-body m-0 flex list-disc flex-col gap-1.5 pl-[18px]">
-                        <li>You don&apos;t pay anything until your site is live.</li>
+                        <li>You don&apos;t pay anything until you have seen your site.</li>
                         <li>There&apos;s no account to make and nothing to install.</li>
                         <li>Keep an eye on that inbox — check spam too, in case our email lands there.</li>
                     </ul>

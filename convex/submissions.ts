@@ -838,6 +838,12 @@ export const submit = mutation({
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.id,
         });
+
+        // 5. Owner app v2: invite the owner ("Sign in with this email to see
+        // your website"). Once per order; also tried again at payment.
+        if (submission.ownerEmail) {
+            await ctx.scheduler.runAfter(0, internal.owners.inviteForSubmission, { submissionId: args.id });
+        }
     },
 });
 
@@ -878,11 +884,18 @@ export const markPaid = mutation({
         if (submission.giveawayApplication) {
             throw new Error('Giveaway websites must be given away rather than marked paid.');
         }
+        const now = Date.now();
         await ctx.db.patch(args.id, {
             status: 'paid',
             paymentReference: args.paymentReference,
-            paidAt: Date.now(),
+            paidAt: now,
+            // An admin marking the order paid means the whole price is in
+            // (convex/lib/ownerApp.ts isPaidInFull reads this field first).
+            paidInFullAt: submission.paidInFullAt ?? now,
+            ...(submission.depositPaidAt ? { balanceDue: 0 } : {}),
         });
+        // Paid in full: the recruiting creator's 5% override (idempotent).
+        await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, { submissionId: args.id });
     },
 });
 

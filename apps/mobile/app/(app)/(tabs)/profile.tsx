@@ -1,16 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   Alert,
-  Image,
   Modal,
   Platform,
   PermissionsAndroid,
-  TextInput,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
 import Constants from 'expo-constants';
 import { useUser, useClerk } from '@clerk/clerk-expo';
@@ -25,32 +23,70 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import CertificateCard from '../../../components/CertificateCard';
-import { colors, fonts, radius, space } from '../../../theme/tokens';
-import { Display, Body, Label, Door, Card, Rule, Avatar } from '../../../components/ui/primitives';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { PreviewProfile } from '../../../components/AccountPreview';
+import { colors, radius, shadow, space } from '../../../theme/v2';
+import {
+  Avatar,
+  Banner,
+  Button,
+  Card,
+  Chip,
+  Field,
+  ListRow,
+  Loading,
+  ScreenShell,
+  SectionLabel,
+  Text,
+  TextLink,
+  formatPeso,
+} from '../../../components/v2';
 
 type MenuItem = {
-  icon: any;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   sublabel?: string;
   onPress: () => void;
-  tintBg?: string;
-  tintFg?: string;
-  showArrow?: boolean;
-  danger?: boolean;
-};
-
-type MenuSection = {
-  title: string;
-  step?: string;
-  items: MenuItem[];
+  trailing?: React.ReactNode;
 };
 
 export default function ProfileScreen() {
   const { isPreview, account } = useMobileAccount();
   return isPreview ? <PreviewProfile /> : <PersonalProfile isAffiliate={account?.role === 'affiliate'} />;
+}
+
+/** One white card holding a stack of icon rows. */
+function MenuCard({ items }: { items: MenuItem[] }) {
+  return (
+    <Card style={styles.menuCard}>
+      {items.map((item, idx) => (
+        <ListRow
+          key={item.label}
+          icon={item.icon}
+          title={item.label}
+          subtitle={item.sublabel}
+          trailing={item.trailing}
+          onPress={item.onPress}
+          accessibilityLabel={item.label}
+          divider={idx < items.length - 1}
+        />
+      ))}
+    </Card>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <Card style={styles.stat} accessibilityLabel={`${label} ${value}`}>
+      <Text variant="heading" weight="extrabold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        {value}
+      </Text>
+      <Text variant="label" tone="muted" numberOfLines={1}>
+        {label}
+      </Text>
+    </Card>
+  );
 }
 
 function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
@@ -76,7 +112,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   );
 
   // Count real submissions rather than the creator.submissionCount counter,
-  // which isn't maintained and reads 0 even for creators with earnings. Mirrors
+  // which isn't maintained and reads 0 even for field agents with earnings. Mirrors
   // the Home dashboard, which counts this query's length.
   const submissions = useQuery(
     api.submissions.getByCreatorId,
@@ -145,400 +181,231 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
     setReferralError('');
     try {
       await applyReferralCode({ id: creator._id, referredByCode: referralCode.trim() });
-      Alert.alert('Referral applied!', 'The referral code has been applied successfully.');
+      Alert.alert('Code applied!', 'Your code has been applied.');
       setShowReferralInput(false);
       setReferralCode('');
     } catch (err: any) {
-      setReferralError(err?.message || 'Failed to apply referral code.');
+      setReferralError(err?.message || 'Could not apply that code.');
     } finally {
       setReferralLoading(false);
     }
   };
 
   if (!isOffline && (!isLoaded || creator === undefined)) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <Loading />;
   }
 
   const firstName = creator?.firstName || '';
   const lastName = creator?.lastName || '';
-  const displayName = [firstName, lastName].filter(Boolean).join(' ') || user?.fullName || 'Creator';
-  const email = creator?.email || user?.primaryEmailAddress?.emailAddress || '';
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(' ') || user?.fullName || (isAffiliate ? 'Creator' : 'Field agent');
   const isCertified = !isAffiliate && !!creator?.certifiedAt;
-
-  const accountItems: MenuItem[] = [
-    {
-      icon: 'person-outline',
-      label: 'Edit profile',
-      sublabel: 'Update your name and details',
-      onPress: () => router.push('/(app)/edit-profile' as any),
-      showArrow: true,
-      tintBg: colors.paper2,
-      tintFg: colors.ink2,
-    },
-    {
-      icon: 'notifications-outline',
-      label: 'Notifications',
-      sublabel: 'Manage your notification settings',
-      onPress: () => router.push('/(app)/notifications' as any),
-      showArrow: true,
-      tintBg: colors.paper2,
-      tintFg: colors.ink2,
-    },
-    {
-      icon: 'shield-checkmark-outline',
-      // Apple / Google users have no password (Clerk's passwordEnabled is false),
-      // so "Change" is meaningless — offer "Set a password" instead, which lets
-      // them also sign in with email as a backup. The screen adapts to match.
-      label: user?.passwordEnabled ? 'Change password' : 'Set a password',
-      sublabel: user?.passwordEnabled
-        ? 'Update your account password'
-        : 'Add email login as a backup',
-      onPress: () => router.push('/(app)/change-password' as any),
-      showArrow: true,
-      tintBg: colors.paper2,
-      tintFg: colors.ink2,
-    },
-  ];
-
-  if (!isAffiliate && !creator?.referredByCode) {
-    accountItems.push({
-      icon: 'gift-outline',
-      label: 'Enter referral code',
-      sublabel: 'Apply a code from another creator',
-      onPress: () => {
-        setShowReferralInput(true);
-        setReferralCode('');
-        setReferralError('');
-      },
-      showArrow: true,
-      tintBg: colors.businessBg,
-      tintFg: colors.business,
-    });
-  }
-
-  if (isCertified) {
-    accountItems.push({
-      icon: 'ribbon-outline',
-      label: 'Show my certificate',
-      sublabel: 'View and share your certification',
-      onPress: () => setShowCertModal(true),
-      showArrow: true,
-      tintBg: colors.accentBg,
-      tintFg: colors.accent,
-    });
-  }
-
-  // The old "My activity" section was dropped as redundant: Submissions is on
-  // Home ("View all" + recents), Earnings just switched to the Wallet tab, and
-  // Referrals now lives in the Wallet tab (referral bonuses pay into that
-  // balance) — Profile already shows Submissions/Balance/Earned as stat tiles.
-
-  const menuSections: MenuSection[] = [
-    {
-      step: '02',
-      title: 'Account',
-      items: isAffiliate && creator?.status === 'suspended' ? accountItems.filter(item => item.label !== 'Edit profile') : accountItems,
-    },
-    {
-      step: '04',
-      title: 'Support',
-      items: [
-        // Help & FAQ moved into the Learn tab — help lives in one place now.
-        {
-          icon: 'document-text-outline',
-          label: 'Terms of service',
-          onPress: () => router.push('/(app)/terms-of-service' as any),
-          showArrow: true,
-          tintBg: colors.paper2,
-          tintFg: colors.ink2,
-        },
-        {
-          icon: 'lock-closed-outline',
-          label: 'Privacy policy',
-          onPress: () => router.push('/(app)/privacy-policy' as any),
-          showArrow: true,
-          tintBg: colors.paper2,
-          tintFg: colors.ink2,
-        },
-      ],
-    },
-  ];
+  const profileImage = (creator as any)?.profileImage as string | undefined;
 
   const balance = creator?.balance ?? 0;
   const totalEarnings = (creator as any)?.totalEarnings ?? 0;
   const submissionCount = submissions?.length ?? 0;
 
+  // Field agents: their work, then settings, then the small print. Creators
+  // (role `affiliate`) keep the trimmed menu: settings and legal only.
+  const workItems: MenuItem[] = [];
+  if (!isAffiliate) {
+    if (isCertified) {
+      workItems.push({
+        icon: 'ribbon-outline',
+        label: 'Show my certificate',
+        sublabel: 'View and share it',
+        onPress: () => setShowCertModal(true),
+      });
+    }
+    workItems.push(
+      {
+        icon: 'storefront-outline',
+        label: 'Your submissions',
+        onPress: () => router.push('/(app)/submissions' as any),
+        trailing: submissions
+          ? (
+            <View style={styles.trailing}>
+              <Text variant="bodyLg" weight="bold" tone="muted">{String(submissionCount)}</Text>
+              <Ionicons name="chevron-forward" size={22} color={colors.ink3} />
+            </View>
+          )
+          : undefined,
+      },
+      {
+        icon: 'book-outline',
+        label: 'Learn & help',
+        sublabel: 'Guides and Ask Tendso',
+        onPress: () => router.push('/(app)/(tabs)/knowledge' as any),
+      },
+      {
+        icon: 'help-circle-outline',
+        label: 'Help & FAQ',
+        onPress: () => router.push('/(app)/help-faq' as any),
+      },
+      {
+        icon: 'people-outline',
+        label: 'Invite field agents',
+        onPress: () => router.push('/(app)/referrals' as any),
+      },
+    );
+  }
+
+  const settingsItems: MenuItem[] = [
+    {
+      icon: 'create-outline',
+      label: 'Edit profile',
+      onPress: () => router.push('/(app)/edit-profile' as any),
+    },
+    {
+      icon: 'notifications-outline',
+      label: 'Notifications',
+      // It opens the inbox; there are no notification settings.
+      sublabel: 'See your latest updates',
+      onPress: () => router.push('/(app)/notifications' as any),
+    },
+    {
+      icon: 'lock-closed-outline',
+      // Apple / Google users have no password (Clerk's passwordEnabled is false),
+      // so "Change" is meaningless — offer "Set a password" instead, which lets
+      // them also sign in with email as a backup. The screen adapts to match.
+      label: user?.passwordEnabled ? 'Change password' : 'Set a password',
+      onPress: () => router.push('/(app)/change-password' as any),
+    },
+  ];
+
+  if (!isAffiliate && !creator?.referredByCode) {
+    settingsItems.push({
+      icon: 'gift-outline',
+      label: 'Enter referral code',
+      sublabel: 'Got a code from a friend?',
+      onPress: () => {
+        setShowReferralInput(true);
+        setReferralCode('');
+        setReferralError('');
+      },
+    });
+  }
+
+  const visibleSettings =
+    isAffiliate && creator?.status === 'suspended'
+      ? settingsItems.filter((item) => item.label !== 'Edit profile')
+      : settingsItems;
+
+  const aboutItems: MenuItem[] = [
+    {
+      icon: 'document-text-outline',
+      label: 'Terms of service',
+      onPress: () => router.push('/(app)/terms-of-service' as any),
+    },
+    {
+      icon: 'shield-checkmark-outline',
+      label: 'Privacy policy',
+      onPress: () => router.push('/(app)/privacy-policy' as any),
+    },
+  ];
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <OfflineBanner />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-        {/* Editorial header */}
-        <View style={{
-          paddingTop: insets.top + 20,
-          paddingBottom: 20,
-          paddingHorizontal: 24,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-            <Label tracking={1.8}>PROFILE</Label>
-          </View>
+    <>
+      <ScreenShell insetBottom={false} contentStyle={styles.content}>
+        <OfflineBanner />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            {(creator as any)?.profileImage ? (
-              <Image
-                source={{ uri: (creator as any).profileImage }}
-                style={{ width: 72, height: 72, borderRadius: 36 }}
-                accessibilityLabel="Profile picture"
-                accessibilityRole="image"
-              />
-            ) : (
-              <Avatar name={displayName} size={72} bg={colors.ink} fg={colors.paper3} />
-            )}
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-                <Display size="sm">{firstName || 'You'}</Display>
-                {lastName ? (
-                  <Display size="sm" italic color={colors.accent}> {lastName}.</Display>
+        <View style={styles.header}>
+          <Avatar uri={profileImage} name={displayName} size={64} ring />
+          <View style={styles.headerText}>
+            <Text variant="heading" numberOfLines={2}>
+              {displayName}
+            </Text>
+            <Text variant="label" tone="muted" weight="medium">
+              {isAffiliate ? 'Creator' : 'Field agent'}
+            </Text>
+          </View>
+        </View>
+
+        {isCertified || creator?.referralCode ? (
+          <View style={styles.chips}>
+            {isCertified ? <Chip label="Certified" tone="ok" /> : null}
+            {creator?.referralCode ? <Chip label={`Your code ${creator.referralCode}`} tone="muted" /> : null}
+          </View>
+        ) : null}
+
+        <View style={styles.stats}>
+          {!isAffiliate ? <StatTile label="Submitted" value={String(submissionCount)} /> : null}
+          <StatTile label="Balance" value={formatPeso(balance)} />
+          <StatTile label="Earned" value={formatPeso(totalEarnings)} />
+        </View>
+
+        {workItems.length > 0 ? <MenuCard items={workItems} /> : null}
+
+        <SectionLabel style={styles.sectionLabel}>Settings</SectionLabel>
+        <MenuCard items={visibleSettings} />
+
+        <SectionLabel style={styles.sectionLabel}>About</SectionLabel>
+        <MenuCard items={aboutItems} />
+
+        <Card style={styles.menuCard}>
+          <ListRow
+            title={signingOut ? 'Signing out…' : 'Sign out'}
+            leading={
+              <View style={styles.signOutIcon}>
+                {signingOut ? (
+                  <ActivityIndicator size="small" color={colors.danger} />
                 ) : (
-                  <Display size="sm" italic color={colors.accent}>.</Display>
+                  <Ionicons name="log-out-outline" size={22} color={colors.danger} />
                 )}
               </View>
-              <Body size="sm" color={colors.ink3} numberOfLines={1}>{email}</Body>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
-                {creator?.referralCode && (
-                  <View style={{
-                    flexDirection: 'row', alignItems: 'center',
-                    backgroundColor: colors.paper2,
-                    borderRadius: radius.pill,
-                    paddingHorizontal: 10, paddingVertical: 3, gap: 5,
-                  }}>
-                    <Ionicons name="gift-outline" size={10} color={colors.ink2} />
-                    <Text style={{
-                      fontFamily: fonts.monoMed,
-                      fontSize: 10, letterSpacing: 1.0,
-                      color: colors.ink2,
-                    }}>
-                      {creator.referralCode}
-                    </Text>
-                  </View>
-                )}
-                {isCertified && (
-                  <View style={{
-                    flexDirection: 'row', alignItems: 'center',
-                    backgroundColor: colors.accentBg,
-                    borderRadius: radius.pill,
-                    paddingHorizontal: 10, paddingVertical: 3, gap: 5,
-                  }}>
-                    <Ionicons name="ribbon-outline" size={10} color={colors.accentInk} />
-                    <Text style={{
-                      fontFamily: fonts.monoMed,
-                      fontSize: 10, letterSpacing: 1.0,
-                      color: colors.accentInk,
-                    }}>
-                      CERTIFIED
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <Rule strong />
-
-        {/* Stats strip */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            {[
-              ...(!isAffiliate ? [{ label: 'Submissions', value: String(submissionCount) }] : []),
-              { label: 'Balance',      value: `₱${balance.toLocaleString('en-PH', { maximumFractionDigits: 0 })}` },
-              { label: 'Earned',       value: `₱${totalEarnings.toLocaleString('en-PH', { maximumFractionDigits: 0 })}` },
-            ].map((s) => (
-              <Card key={s.label} padded={false} style={{ flex: 1, paddingVertical: 14, paddingHorizontal: 10, alignItems: 'center', gap: 6 }}>
-                <Text style={{
-                  fontFamily: fonts.serif,
-                  fontSize: 22,
-                  lineHeight: 24,
-                  color: colors.ink,
-                  letterSpacing: -0.3,
-                }}>
-                  {s.value}
-                </Text>
-                <Label tracking={1.4}>{s.label}</Label>
-              </Card>
-            ))}
-          </View>
-        </View>
-
-        {/* Menu sections */}
-        <View style={{ padding: 20, gap: 22 }}>
-          {menuSections.map((section) => (
-            <View key={section.title}>
-              <View style={{ marginBottom: 10, paddingLeft: 4 }}>
-                <Display size="sm">{section.title}</Display>
-              </View>
-              <Card padded={false} large style={{ overflow: 'hidden' }}>
-                {section.items.map((item, idx) => (
-                  <View key={item.label}>
-                    <TouchableOpacity
-                      style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 }}
-                      onPress={item.onPress}
-                      activeOpacity={0.7}
-                      accessibilityLabel={item.label}
-                      accessibilityRole="button"
-                    >
-                      <View style={{
-                        width: 38, height: 38, borderRadius: radius.sm,
-                        backgroundColor: item.tintBg ?? colors.paper2,
-                        alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <Ionicons name={item.icon} size={18} color={item.tintFg ?? colors.ink2} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Body size="md" weight="medium" color={colors.ink}>{item.label}</Body>
-                        {item.sublabel && (
-                          <Body size="xs" color={colors.ink3} style={{ marginTop: 2 }}>{item.sublabel}</Body>
-                        )}
-                      </View>
-                      {item.showArrow && (
-                        <Ionicons name="chevron-forward" size={16} color={colors.ink3} />
-                      )}
-                    </TouchableOpacity>
-                    {idx < section.items.length - 1 && <Rule style={{ marginHorizontal: 14 }} />}
-                  </View>
-                ))}
-              </Card>
-            </View>
-          ))}
-
-          {/* Sign out */}
-          <TouchableOpacity
-            onPress={handleSignOut}
-            disabled={signingOut}
+            }
+            onPress={signingOut ? undefined : handleSignOut}
             accessibilityLabel="Sign out"
-            accessibilityRole="button"
-            activeOpacity={0.7}
-          >
-            <Card padded={false} large style={{
-              padding: 14,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              borderColor: colors.dangerBg,
-            }}>
-              <View style={{
-                width: 38, height: 38, borderRadius: radius.sm,
-                backgroundColor: colors.dangerBg,
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                {signingOut
-                  ? <ActivityIndicator size="small" color={colors.danger} />
-                  : <Ionicons name="log-out-outline" size={18} color={colors.danger} />
-                }
-              </View>
-              <Body size="md" weight="bold" color={colors.danger} style={{ flex: 1 }}>
-                {signingOut ? 'Signing out…' : 'Sign out'}
-              </Body>
-            </Card>
-          </TouchableOpacity>
+          />
+        </Card>
 
-          <Text style={{
-            fontFamily: fonts.wordmarkMed,
-            fontSize: 10,
-            letterSpacing: 2.4,
-            color: colors.ink3,
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            opacity: 0.6,
-          }}>
-            Tendso · v{Constants.expoConfig?.version ?? ''}
-          </Text>
-        </View>
-      </ScrollView>
+        <Text variant="label" tone="muted" align="center" style={styles.version}>
+          Tendso · v{Constants.expoConfig?.version ?? ''}
+        </Text>
+      </ScreenShell>
 
-      {/* Referral code modal */}
+      {/* Referral code sheet */}
       <SwipeSheet
         visible={showReferralInput}
         onClose={() => setShowReferralInput(false)}
         dismissable={!referralLoading}
       >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <View style={{
-                width: 44, height: 44, borderRadius: 22,
-                backgroundColor: colors.businessBg,
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Ionicons name="gift" size={20} color={colors.business} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Label tracking={1.6}>REFERRAL</Label>
-                <Display size="sm" style={{ marginTop: 2 }}>Got a code?</Display>
-              </View>
-            </View>
+        <View style={styles.sheetBody}>
+          <Text variant="title">Got a code?</Text>
+          <Text variant="bodyLg" tone="ink2">
+            Type the code a field agent or creator shared with you.
+          </Text>
 
-            <Body size="sm" color={colors.ink2} style={{ marginBottom: 16 }}>
-              Apply a referral code from a fellow creator.
-            </Body>
+          <Field
+            label="Referral code"
+            icon="gift-outline"
+            placeholder="e.g. JUD8A3BK"
+            value={referralCode}
+            onChangeText={(t) => setReferralCode(t.toUpperCase())}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!referralLoading}
+            accessibilityLabel="Referral code"
+          />
 
-            <View style={{
-              flexDirection: 'row', alignItems: 'center',
-              backgroundColor: colors.paper3,
-              borderColor: colors.rule, borderWidth: 1,
-              borderRadius: radius.sm,
-              paddingHorizontal: 14, height: 54,
-              marginBottom: 12,
-            }}>
-              <Ionicons name="gift-outline" size={18} color={colors.ink3} />
-              <TextInput
-                style={{
-                  flex: 1, marginLeft: 10,
-                  fontFamily: fonts.sansMed,
-                  fontSize: 16, color: colors.ink,
-                  letterSpacing: 2,
-                }}
-                placeholder="e.g. JUD8A3BK"
-                placeholderTextColor={colors.ink3}
-                value={referralCode}
-                onChangeText={(t) => setReferralCode(t.toUpperCase())}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                editable={!referralLoading}
-                accessibilityLabel="Referral code"
-              />
-            </View>
+          {referralError !== '' ? <Banner tone="danger" body={referralError} /> : null}
 
-            {referralError !== '' && (
-              <View style={{
-                backgroundColor: colors.dangerBg,
-                borderColor: colors.danger, borderWidth: 1,
-                borderRadius: radius.sm,
-                padding: 12, marginBottom: 12,
-              }}>
-                <Body size="sm" weight="medium" color={colors.danger}>{referralError}</Body>
-              </View>
-            )}
-
-            <Door
-              caption="APPLY"
-              label={referralLoading ? 'Applying…' : 'Apply code'}
-              variant="solid"
-              loading={referralLoading}
-              disabled={referralLoading || !referralCode.trim()}
-              onPress={handleApplyReferral}
-              accessibilityLabel="Apply referral code"
-            />
-            <TouchableOpacity
-              onPress={() => setShowReferralInput(false)}
-              disabled={referralLoading}
-              style={{ alignItems: 'center', marginTop: 14 }}
-              accessibilityLabel="Cancel"
-              accessibilityRole="button"
-            >
-              <Body size="sm" color={colors.ink3}>Cancel</Body>
-            </TouchableOpacity>
+          <Button
+            title={referralLoading ? 'Applying…' : 'Apply code'}
+            loading={referralLoading}
+            disabled={referralLoading || !referralCode.trim()}
+            onPress={handleApplyReferral}
+            accessibilityLabel="Apply referral code"
+          />
+          <TextLink
+            label="Cancel"
+            tone="muted"
+            onPress={() => {
+              if (!referralLoading) setShowReferralInput(false);
+            }}
+          />
+        </View>
       </SwipeSheet>
 
       {/* Certificate modal */}
@@ -548,58 +415,32 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
         transparent
         onRequestClose={() => setShowCertModal(false)}
       >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.55)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-        }}>
-          <View style={{
-            backgroundColor: colors.paper,
-            borderRadius: radius.xl,
-            width: '100%',
-            maxHeight: '88%',
-            overflow: 'hidden',
-          }}>
-            {/* Modal header */}
-            <View style={{
-              flexDirection: 'row', alignItems: 'center',
-              paddingHorizontal: 16, paddingVertical: 14,
-              borderBottomWidth: 1, borderBottomColor: colors.rule,
-            }}>
-              <TouchableOpacity
+        <View style={[styles.scrim, { paddingTop: insets.top + space.lg, paddingBottom: Math.max(insets.bottom, space.lg) }]}>
+          <View style={styles.certPanel}>
+            <View style={styles.certHeader}>
+              <Pressable
                 onPress={() => setShowCertModal(false)}
-                style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: colors.paper2,
-                  alignItems: 'center', justifyContent: 'center',
-                }}
+                style={styles.roundButton}
                 accessibilityLabel="Close certificate"
                 accessibilityRole="button"
+                hitSlop={4}
               >
-                <Ionicons name="close" size={18} color={colors.ink} />
-              </TouchableOpacity>
-              <View style={{ flex: 1, alignItems: 'center' }}>
-                <Label tracking={1.6}>CERTIFICATE</Label>
-                <Display size="sm">Your award</Display>
-              </View>
-              <TouchableOpacity
+                <Ionicons name="close" size={22} color={colors.ink} />
+              </Pressable>
+              <Text variant="heading" style={styles.certTitle}>Your certificate</Text>
+              <Pressable
                 onPress={handleShareCert}
-                style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: colors.paper2,
-                  alignItems: 'center', justifyContent: 'center',
-                }}
+                style={styles.roundButton}
                 accessibilityLabel="Share certificate"
                 accessibilityRole="button"
+                hitSlop={4}
               >
-                <Ionicons name="share-outline" size={16} color={colors.ink} />
-              </TouchableOpacity>
+                <Ionicons name="share-outline" size={22} color={colors.ink} />
+              </Pressable>
             </View>
 
             <ScrollView
-              contentContainerStyle={{ padding: 20, alignItems: 'center' }}
+              contentContainerStyle={styles.certScroll}
               showsVerticalScrollIndicator={false}
             >
               <CertificateCard
@@ -622,30 +463,75 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
               />
             </ScrollView>
 
-            <View style={{
-              paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20, gap: 10,
-              borderTopWidth: 1, borderTopColor: colors.rule,
-            }}>
-              <Door
-                caption="SAVE"
-                label="Save to gallery"
-                variant="solid"
+            <View style={styles.certFooter}>
+              <Button
+                title="Save to gallery"
+                variant="dark"
+                size="md"
+                icon="download-outline"
                 onPress={handleDownloadCert}
                 accessibilityLabel="Save certificate to gallery"
-                rightIcon={<Ionicons name="download-outline" size={18} color={colors.paper3} style={{ marginLeft: 12 }} />}
               />
-              <Door
-                caption="SHARE"
-                label="Send to others"
-                variant="accent"
+              <Button
+                title="Send to others"
+                size="md"
+                icon="share-outline"
                 onPress={handleShareCert}
                 accessibilityLabel="Share certificate"
-                rightIcon={<Ionicons name="share-outline" size={18} color="#fff" style={{ marginLeft: 12 }} />}
               />
             </View>
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  content: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.xxl },
+  header: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  headerText: { flex: 1, gap: space.xs },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  stats: { flexDirection: 'row', gap: space.md },
+  stat: { flex: 1, minWidth: 0, paddingHorizontal: space.md, paddingVertical: space.lg, gap: space.xs },
+  menuCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  sectionLabel: { marginTop: space.sm, paddingLeft: space.xs },
+  trailing: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  signOutIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.dangerBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  version: { marginTop: space.sm },
+  sheetBody: { gap: space.lg },
+  scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'center', alignItems: 'center', paddingHorizontal: space.lg },
+  certPanel: {
+    width: '100%',
+    maxHeight: '92%',
+    backgroundColor: colors.bg,
+    borderRadius: radius.cardLg,
+    overflow: 'hidden',
+  },
+  certHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+  },
+  certTitle: { flex: 1, textAlign: 'center' },
+  roundButton: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.soft,
+  },
+  certScroll: { padding: space.lg, alignItems: 'center' },
+  certFooter: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.lg, gap: space.md },
+});

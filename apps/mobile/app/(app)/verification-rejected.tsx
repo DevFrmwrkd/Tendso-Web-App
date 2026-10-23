@@ -1,15 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  BackHandler,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Linking,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, BackHandler, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useUser, useClerk } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
@@ -17,8 +7,8 @@ import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { colors, fonts, radius, space } from '../../theme/tokens';
-import { Display, Body, Label, Door, Card, Rule } from '../../components/ui/primitives';
+import { Avatar, Button, Card, CheckRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
 const SUPPORT_EMAIL = 'support@negosyo-digital.com';
 
@@ -43,7 +33,7 @@ export default function VerificationRejectedScreen() {
   );
   const requestRecertification = useMutation(api.creators.requestRecertification);
 
-  // Block hardware back — this is a locked screen until the creator
+  // Block hardware back — this is a locked screen until the field agent
   // either retakes the quiz or signs out.
   useFocusEffect(
     useCallback(() => {
@@ -99,7 +89,7 @@ export default function VerificationRejectedScreen() {
     const subject = encodeURIComponent('Verification rejected — request for review');
     const body = encodeURIComponent(
       `Hello Tendso team,\n\n` +
-      `My creator account was not approved and I'd like to ask for another review.\n\n` +
+      `My field agent account was not approved and I'd like to ask for another review.\n\n` +
       `Name: ${firstName}\nEmail: ${email}\n\n` +
       `[ Please add anything you'd like the team to know here. ]\n`
     );
@@ -116,229 +106,101 @@ export default function VerificationRejectedScreen() {
     } catch {}
   };
 
-  // Loading state while the creator profile resolves
+  // Loading state while the field agent profile resolves
   if (creator === undefined) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </SafeAreaView>
-    );
+    return <Loading />;
   }
 
   const firstName = (creator as any)?.firstName ?? '';
+  const lastName = (creator as any)?.lastName ?? '';
+  const phone = (creator as any)?.phone as string | undefined;
   const rejectedAt = (creator as any)?.rejectedAt as number | undefined;
   const rejectionReason = (creator as any)?.rejectionReason as string | undefined;
-  const quizPassedAt = (creator as any)?.quizPassedAt as number | undefined;
+  const profileImage = (creator as any)?.profileImage as string | undefined;
+  const photo = profileImage && /^https?:/.test(profileImage) ? profileImage : user?.imageUrl;
+  const fullName = [firstName, lastName].filter(Boolean).join(' ');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
-      {/* Sign-out chip (only escape hatch) */}
-      <View style={{
-        paddingHorizontal: 20, paddingVertical: 12,
-        flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
-      }}>
-        <TouchableOpacity
+    <ScreenShell
+      title={firstName ? `Almost there, ${firstName}` : 'Almost there'}
+      subtitle="We couldn't approve your profile yet."
+      headerRight={
+        <Pressable
           onPress={handleSignOut}
           accessibilityLabel="Sign out"
           accessibilityRole="button"
-          style={{
-            flexDirection: 'row', alignItems: 'center', gap: 6,
-            paddingHorizontal: 12, paddingVertical: 6,
-            borderRadius: radius.pill,
-            backgroundColor: colors.paper3,
-            borderWidth: 1, borderColor: colors.rule,
-          }}
+          style={[styles.signOut, shadow.soft]}
         >
-          <Ionicons name="log-out-outline" size={13} color={colors.ink2} />
-          <Text style={{
-            fontFamily: fonts.monoMed,
-            fontSize: 10, letterSpacing: 1.2,
-            color: colors.ink2,
-            textTransform: 'uppercase',
-          }}>
-            Sign out
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: 24,
-          paddingTop: 8,
-          paddingBottom: 40,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Editorial eyebrow */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger }} />
-          <Label tracking={1.8} color={colors.danger}>NOT APPROVED</Label>
-        </View>
-
-        {/* Headline */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 12 }}>
-          <Display size="md">Your application </Display>
-          <Display size="md" italic color={colors.danger}>wasn't approved.</Display>
-        </View>
-
-        <Body size="md" color={colors.ink2} style={{ marginBottom: 24, maxWidth: 340 }}>
-          {firstName ? `Hi ${firstName}, ` : ''}
-          our team reviewed your account and unfortunately couldn't verify you this time.
-          {' '}You can retake the certification quiz or get in touch with us if you think this was a mistake.
-        </Body>
-
-        {/* Rejection reason card (only when admin supplied one) */}
-        {rejectionReason ? (
-          <Card large style={{
-            marginBottom: 18,
-            padding: 18,
-            borderColor: colors.dangerBg,
-            borderLeftWidth: 3,
-            borderLeftColor: colors.danger,
-          }}>
-            <Label tracking={1.6} color={colors.danger}>REVIEWER NOTE</Label>
-            <Body size="md" color={colors.ink} style={{ marginTop: 8, lineHeight: 22 }}>
-              {rejectionReason}
-            </Body>
-            {rejectedAt ? (
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 10, letterSpacing: 0.6,
-                color: colors.ink3,
-                marginTop: 10,
-                textTransform: 'uppercase',
-              }}>
-                Reviewed {timeAgo(rejectedAt)}
-              </Text>
-            ) : null}
-          </Card>
-        ) : (
-          <Card large style={{
-            marginBottom: 18,
-            padding: 18,
-            borderStyle: 'dashed',
-          }}>
-            <Label tracking={1.6}>NO REASON GIVEN</Label>
-            <Body size="sm" color={colors.ink3} style={{ marginTop: 6 }}>
-              The reviewer didn't leave a specific note. If you'd like more detail, reach out to support below.
-            </Body>
-            {rejectedAt ? (
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 10, letterSpacing: 0.6,
-                color: colors.ink3,
-                marginTop: 10,
-                textTransform: 'uppercase',
-              }}>
-                Reviewed {timeAgo(rejectedAt)}
-              </Text>
-            ) : null}
-          </Card>
-        )}
-
-        {/* Timeline strip */}
-        <Card padded={false} large style={{ marginBottom: 22, overflow: 'hidden' }}>
-          {/* Step 1 — done */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14 }}>
-            <View style={{
-              width: 24, height: 24, borderRadius: 12,
-              backgroundColor: colors.accent,
-              alignItems: 'center', justifyContent: 'center',
-              marginRight: 12,
-            }}>
-              <Ionicons name="checkmark" size={14} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Body size="sm" weight="bold" color={colors.ink}>Quiz passed</Body>
-              {quizPassedAt ? (
-                <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, marginTop: 1, letterSpacing: 0.5 }}>
-                  {timeAgo(quizPassedAt)}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          <Rule />
-
-          {/* Step 2 — rejected */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14 }}>
-            <View style={{
-              width: 24, height: 24, borderRadius: 12,
-              backgroundColor: colors.danger,
-              alignItems: 'center', justifyContent: 'center',
-              marginRight: 12,
-            }}>
-              <Ionicons name="close" size={14} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Body size="sm" weight="bold" color={colors.ink}>Admin review — not approved</Body>
-              {rejectedAt ? (
-                <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, marginTop: 1, letterSpacing: 0.5 }}>
-                  {timeAgo(rejectedAt)}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          <Rule />
-
-          {/* Step 3 — locked */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14 }}>
-            <View style={{
-              width: 24, height: 24, borderRadius: 12,
-              backgroundColor: colors.paper2,
-              borderWidth: 1, borderColor: colors.ruleStrong,
-              alignItems: 'center', justifyContent: 'center',
-              marginRight: 12,
-            }}>
-              <Ionicons name="lock-closed" size={11} color={colors.ink3} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Body size="sm" weight="bold" color={colors.ink3}>Account activation locked</Body>
-              <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, marginTop: 1, letterSpacing: 0.5 }}>
-                Retake the quiz or contact support
-              </Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Actions */}
-        <View style={{ gap: 10, marginBottom: 18 }}>
-          <Door
-            caption="TRY AGAIN"
-            label={retrying ? 'Resetting…' : 'Retake the certification quiz'}
-            variant="solid"
+          <Ionicons name="log-out-outline" size={20} color={colors.ink} />
+          <Text variant="label" weight="bold">Sign out</Text>
+        </Pressable>
+      }
+      footer={
+        <>
+          <Button
+            title={retrying ? 'Resetting…' : 'Fix and resend'}
             loading={retrying}
             disabled={retrying}
             onPress={handleTryAgain}
             accessibilityLabel="Retake the certification quiz"
           />
-          <Door
-            caption="SUPPORT"
-            label="Email the team"
+          <Button
+            title="Ask the team"
             variant="ghost"
             onPress={handleContactSupport}
             accessibilityLabel="Contact support"
-            rightIcon={<Ionicons name="mail-outline" size={18} color={colors.ink} style={{ marginLeft: 12 }} />}
           />
+        </>
+      }
+    >
+      <Card style={styles.reason}>
+        <View>
+          <Avatar uri={photo} name={firstName} size={64} />
+          <View style={styles.cross}>
+            <Ionicons name="close" size={16} color="#FFFFFF" />
+          </View>
         </View>
-
-        {/* Soft reassurance */}
-        <View style={{
-          flexDirection: 'row', alignItems: 'flex-start', gap: 10,
-          padding: 14,
-          backgroundColor: colors.paper2,
-          borderRadius: radius.sm,
-          borderLeftWidth: 3,
-          borderLeftColor: colors.ink3,
-        }}>
-          <Ionicons name="information-circle-outline" size={16} color={colors.ink2} style={{ marginTop: 1 }} />
-          <Body size="sm" color={colors.ink2} style={{ flex: 1, lineHeight: 20 }}>
-            Retaking the quiz is free. Once you submit again, an admin will re-review your account — usually within 24 hours.
-          </Body>
+        <View style={styles.reasonText}>
+          <Text variant="body" weight="bold">{rejectionReason || 'No reason was given'}</Text>
+          <Text variant="label" tone="muted" weight="medium">
+            {rejectionReason ? '' : 'Ask the team for details. '}
+            {rejectedAt ? `Reviewed ${timeAgo(rejectedAt)}.` : ''}
+          </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </Card>
+      <View style={styles.checks}>
+        {fullName ? <CheckRow title="Full name" subtitle={fullName} state="ok" /> : null}
+        {phone ? <CheckRow title="Mobile" subtitle={phone} state="ok" /> : null}
+        <CheckRow title="Certification quiz" subtitle="Take it again. It is free." state="bad" right="Fix" />
+      </View>
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  signOut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: hit.icon,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+  },
+  reason: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  reasonText: { flex: 1, gap: space.xs },
+  cross: {
+    position: 'absolute',
+    right: -4,
+    bottom: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.danger,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checks: { gap: space.sm, marginTop: space.lg },
+});

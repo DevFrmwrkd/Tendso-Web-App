@@ -229,7 +229,7 @@ function NextStep({ s, stage, token, now }: { s: Submission; stage: Stage; token
         case "review":
             return <NextBox text="Tendso is reviewing it. You get a notification when it's approved, or if something needs fixing." />;
         case "building":
-            return <NextBox text={`It's approved, and Tendso is making the website. Once it's live, ${owner} gets a pay link.`} />;
+            return <NextBox text={`It's approved, and Tendso is making the website. Once it's built, ${owner} gets a pay link.`} />;
         case "live":
             return (
                 <NextBox highlight text={`When ${owner} ${pays} with the pay link, ${yourShare} moves from pending to your Wallet.`}>

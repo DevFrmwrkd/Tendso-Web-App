@@ -49,6 +49,8 @@ export const sampleAffiliatePortal: AffiliatePortal = {
         { _id: "preview-referral-pending" as Id<"referrals">, referredName: "Jamie Cruz", status: "pending", bonusAmount: 0, createdAt: Date.UTC(2026, 9, 5, 2) },
     ],
     referralStats: { total: 2, pending: 1, qualified: 0, paid: 1, totalEarned: 1000 },
+    recruits: [{ _id: "preview-team-agent" as Id<"creators">, referredName: "Taylor Santos", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 0 }],
+    recruitStats: { total: 1, earning: 1, totalEarned: 0 },
 };
 
 export const sampleCreator: Doc<"creators"> = {

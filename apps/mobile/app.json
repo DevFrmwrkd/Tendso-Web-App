@@ -111,7 +111,8 @@
         {
           "locationWhenInUsePermission": "The app uses your location to show the nearest businesses submitted by other creators."
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true
@@ -124,6 +125,14 @@
         "projectId": "1af0a81e-a4de-4099-8c98-5ae63d73e0c5"
       }
     },
-    "owner": "theo_va"
+    "owner": "theo_va",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1af0a81e-a4de-4099-8c98-5ae63d73e0c5",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }
