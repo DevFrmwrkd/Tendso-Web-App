@@ -51,6 +51,12 @@ native builds, even without a `className`. Keep class-based components on the
 normal NativeWind path. The `native-pressable-styles` regression tests explicitly
 enable the real styling interop, which normally stays disabled in Jest.
 
+A distributable preview also needs the matching public Convex URL and Clerk key
+from its EAS profile. `eas update` does not load a build profile's `env` values
+automatically. Supply them explicitly, clear Metro's cache when switching
+environments, and verify the exported bundle contains the intended public values
+before publishing: cached production transforms can retain missing or old values.
+
 Web and mobile retain their own React, Jest and Tailwind versions. Keep mobile
 dependencies in this workspace's `package.json`; update the root lockfile from
 the repository root rather than creating a mobile lockfile.
