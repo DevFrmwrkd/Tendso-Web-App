@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Image, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter, useLocalSearchParams, Redirect } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,12 +31,16 @@ export default function Index() {
   const { isLoaded, isSignedIn } = useAuth();
   const { isConnected } = useNetwork();
   const router = useRouter();
+  const { welcome } = useLocalSearchParams<{ welcome?: string }>();
   const insets = useSafeAreaInsets();
 
   const [checking, setChecking] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [ownerBefore, setOwnerBefore] = useState(false);
   const [cachedAuth, setCachedAuth] = useState<boolean | null>(null);
+  // Explicit navigation may reopen the choice without erasing first-launch
+  // history, account state or an owner's saved work. Auth still wins below.
+  const shouldShowWelcome = showWelcome || welcome === '1';
 
   useEffect(() => {
     (async () => {
@@ -60,9 +64,9 @@ export default function Index() {
 
   const fade = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!showWelcome || checking) return;
+    if (!shouldShowWelcome || checking) return;
     Animated.timing(fade, { toValue: 1, duration: 600, delay: 150, easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true }).start();
-  }, [showWelcome, checking, fade]);
+  }, [shouldShowWelcome, checking, fade]);
 
   const seen = () => AsyncStorage.setItem(ONBOARDING_KEY, 'true').catch(() => {});
 
@@ -94,7 +98,7 @@ export default function Index() {
 
   const effectivelySignedIn = isSignedIn || (isConnected === false && cachedAuth === true);
   if (effectivelySignedIn) return <Redirect href={'/(app)/(tabs)/' as any} />;
-  if (!showWelcome) return <Redirect href={ownerBefore ? '/(auth)/owner' : '/(auth)/login'} />;
+  if (!shouldShowWelcome) return <Redirect href={ownerBefore ? '/(auth)/owner' : '/(auth)/login'} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>

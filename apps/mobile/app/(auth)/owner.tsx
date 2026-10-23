@@ -97,16 +97,15 @@ export default function OwnerAuthScreen() {
     }
   };
 
-  const back = () => {
+  const back = async () => {
     if (step === 'code') {
       setStep('email');
       setCode('');
       setError(null);
       return;
     }
-    void setOwnerIntent(false);
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
+    await setOwnerIntent(false);
+    router.replace({ pathname: '/', params: { welcome: '1' } });
   };
 
   return (

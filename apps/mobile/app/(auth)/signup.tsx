@@ -423,7 +423,7 @@ export default function SignupScreen() {
   // ── Signup form ────────────────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScreenShell title="Make your account" subtitle="Two minutes, one form." onBack={() => router.back()}>
+      <ScreenShell title="Make your account" subtitle="Two minutes, one form." onBack={() => router.replace({ pathname: '/', params: { welcome: '1' } })}>
         <View style={styles.section} accessibilityLabel="Choose an account type">
           <SectionLabel>Account type</SectionLabel>
           <AccountTypeOption

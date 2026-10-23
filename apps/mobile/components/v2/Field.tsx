@@ -5,8 +5,12 @@ import { colors, fonts, radius, shadow, space } from '../../theme/v2';
 import { Text } from './Text';
 
 export interface FieldProps extends Omit<TextInputProps, 'style'> {
-  /** The label sits inside the white card, above the value (mock `.cc-field`). */
+  /** The accessible label; inside the default card or above an outlined field. */
   label: string;
+  /** Outlined sign-in fields put the label above a compact, shadow-free input. */
+  variant?: 'card' | 'outlined';
+  /** Optional action beside an outlined field's label. */
+  labelRight?: React.ReactNode;
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   /** Shown under the card in danger colour; also turns the border red. */
   error?: string | null;
@@ -20,20 +24,27 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
 }
 
 /**
- * Labelled text field. White card, soft shadow, 2pt ink border while focused.
+ * Labelled text field. Default white card or compact, shadow-free outline.
  * Label 16, value 18 (Rule #1: nothing under 16). Forwards the ref to the TextInput.
  */
 export const Field = forwardRef<TextInput, FieldProps>(function Field(
-  { label, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, editable = true, accessibilityLabel, ...input },
+  { label, variant = 'card', labelRight, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, editable = true, accessibilityLabel, ...input },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const outlined = variant === 'outlined';
   return (
     <View style={containerStyle}>
+      {outlined ? (
+        <View style={styles.labelRow}>
+          <Text variant="label" weight="medium" tone="muted">{label}</Text>
+          {labelRight}
+        </View>
+      ) : null}
       <View
         style={[
           styles.card,
-          shadow.soft,
+          outlined ? styles.outlined : shadow.soft,
           focused ? styles.focus : null,
           error ? styles.error : null,
           !editable ? styles.locked : null,
@@ -41,9 +52,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
       >
         {icon ? <Ionicons name={icon} size={22} color={colors.ink3} /> : null}
         <View style={styles.body}>
-          <Text variant="label" tone="muted">
-            {label}
-          </Text>
+          {!outlined ? (
+            <Text variant="label" tone="muted">{label}</Text>
+          ) : null}
           <View style={styles.inputRow}>
             {prefix ? (
               <Text variant="bodyLg" weight="semibold" style={styles.prefix}>
@@ -85,6 +96,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
 });
 
 const styles = StyleSheet.create({
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 24, marginBottom: space.sm },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -97,6 +109,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  outlined: { minHeight: 64, paddingVertical: space.lg, borderRadius: radius.card, borderWidth: 1, borderColor: colors.rule },
   focus: { borderColor: colors.ink },
   error: { borderColor: colors.danger },
   locked: { backgroundColor: colors.bg2 },

@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSignIn, useSignUp, useSSO } from '@clerk/clerk-expo';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { GuardedLink } from '../../components/GuardedLink';
 import { useAppleAuth } from '../../hooks/useAppleAuth';
+import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { openExternalUrl, TERMS_URL, PRIVACY_URL } from '../../services/links';
 import { Banner, Button, Field, ScreenShell, TendsoMark, Text } from '../../components/v2';
 import {
@@ -31,6 +32,7 @@ const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 const TIKTOK_ENABLED = false;
 
 export default function LoginScreen() {
+  const router = useGuardedRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
   const { signUp, setActive: setSignUpActive } = useSignUp();
   const { startSSOFlow: startGoogleSSOFlow } = useSSO();
@@ -349,7 +351,10 @@ export default function LoginScreen() {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScreenShell>
         <View style={styles.head}>
-          <TendsoMark size={52} />
+          <View style={styles.brandRow}>
+            <TendsoMark size={52} />
+            <AuthLink label="Back to welcome" onPress={() => router.replace({ pathname: '/', params: { welcome: '1' } })} />
+          </View>
           <Text variant="display" accessibilityRole="header">
             Welcome back
           </Text>
@@ -363,6 +368,7 @@ export default function LoginScreen() {
         <View style={styles.fields}>
           <Field
             label="Email"
+            variant="outlined"
             icon="mail-outline"
             placeholder="your@email.com"
             value={email}
@@ -375,6 +381,14 @@ export default function LoginScreen() {
           />
           <Field
             label="Password"
+            variant="outlined"
+            labelRight={
+              <GuardedLink href="/(auth)/forgot-password" asChild>
+                <Pressable accessibilityRole="link" accessibilityLabel="Forgot password" hitSlop={12} style={styles.forgot}>
+                  <Text variant="label" weight="bold" style={styles.underline}>Forgot?</Text>
+                </Pressable>
+              </GuardedLink>
+            }
             icon="lock-closed-outline"
             placeholder="Your password"
             value={password}
@@ -385,10 +399,6 @@ export default function LoginScreen() {
             right={<PasswordEye shown={showPassword} onToggle={() => setShowPassword(!showPassword)} />}
           />
         </View>
-
-        <GuardedLink href="/(auth)/forgot-password" asChild>
-          <AuthLink label="Forgot password?" align="right" accessibilityLabel="Forgot password" />
-        </GuardedLink>
 
         <Button
           title="Sign in"
@@ -495,9 +505,11 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: { gap: space.sm, marginBottom: space.xl },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   banner: { marginBottom: space.lg },
-  fields: { gap: space.md },
-  primary: { marginTop: space.sm },
+  fields: { gap: space.xl },
+  forgot: { minHeight: 24, justifyContent: 'center' },
+  primary: { marginTop: space.xl },
   social: { gap: space.md },
   apple: { height: SOCIAL_HEIGHT, width: '100%' },
   consent: { marginTop: space.xl - 4, paddingHorizontal: space.sm, lineHeight: 24 },
