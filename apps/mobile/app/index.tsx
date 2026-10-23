@@ -1,7 +1,7 @@
 /**
  * First launch: the welcome choice (design v2, mock js/screens.js `welcome`).
  * "I have a business" → the business welcome, then email-code sign-up/sign-in.
- * "I want to earn"    → the existing field-agent sign-up, unchanged.
+ * "I want to earn as a field agent" → the existing field-agent sign-up.
  * Signed-in people skip this; returning signed-out people go to their sign-in.
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -128,25 +128,32 @@ export default function Index() {
         ]}
       >
         {businessWelcome ? <Buddy size={92} /> : <TendsoMark size={72} style={styles.brand} />}
-        <Text variant="hero" weight={businessWelcome ? 'extrabold' : undefined} style={businessWelcome ? styles.businessHeading : undefined} align="center" accessibilityRole="header">
-          Your shop online.
+        <Text variant={businessWelcome ? 'hero' : 'title'} weight={businessWelcome ? 'extrabold' : undefined} style={businessWelcome ? styles.businessHeading : undefined} align="center" accessibilityRole="header">
+          {businessWelcome ? 'Your shop online.' : 'Your shop online.\nPay once, own it.'}
         </Text>
-        <Text variant="bodyLg" tone="ink2" align="center">
-          Made from your phone.
+        <Text variant={businessWelcome ? 'bodyLg' : 'label'} weight="medium" tone={businessWelcome ? 'ink2' : 'muted'} style={businessWelcome ? undefined : styles.choiceMessage} align="center">
+          {businessWelcome ? 'Made from your phone.' : 'Or help shops near you get online, and earn for every site.'}
         </Text>
         <View style={styles.buttons}>
           {businessWelcome ? <Button title="Get started" onPress={startBusiness} /> : (
             <>
-              <Button title="I have a business" onPress={business} />
-              <Button title="I want to earn" variant="ghost" onPress={earn} />
+              <Button title="I have a business" variant="ghost" onPress={business} />
+              <Button title="I want to earn as a field agent" onPress={earn} />
             </>
           )}
         </View>
-        <Pressable onPress={businessWelcome ? startBusiness : logIn} accessibilityRole="button" hitSlop={8} style={styles.link}>
-          <Text weight="bold" align="center">
-            I already have an account
-          </Text>
-        </Pressable>
+        {businessWelcome ? (
+          <Pressable onPress={startBusiness} accessibilityRole="button" hitSlop={8} style={styles.link}>
+            <Text weight="bold" align="center">I already have an account</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.loginRow}>
+            <Text variant="label" weight="medium" tone="muted">Already have an account?</Text>
+            <Pressable onPress={logIn} accessibilityRole="link" hitSlop={8} style={styles.link}>
+              <Text variant="label" weight="bold" style={styles.underline}>Log in</Text>
+            </Pressable>
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -213,6 +220,9 @@ const styles = StyleSheet.create({
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: space.gutter, alignItems: 'center', gap: space.sm, backgroundColor: colors.bg, paddingTop: space.md },
   businessBottom: { backgroundColor: 'transparent' },
   businessHeading: { fontSize: 34, lineHeight: 38, letterSpacing: -1.1 },
+  choiceMessage: { maxWidth: 340, lineHeight: 22 },
   buttons: { alignSelf: 'stretch', gap: space.md, marginTop: space.lg },
   link: { minHeight: 48, justifyContent: 'center', marginTop: space.xs },
+  loginRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', columnGap: space.xs },
+  underline: { textDecorationLine: 'underline' },
 });
