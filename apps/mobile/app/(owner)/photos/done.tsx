@@ -24,8 +24,9 @@ export default function PhotosDone() {
   const guided = new Map<number, string>();
   sub?.shots.filter((s) => !s.extra).forEach((s) => guided.set(s.index, s.url));
   intake.shots?.forEach((uri, i) => { if (uri) guided.set(i, uri); });
-  const extras = (sub?.shots ?? []).filter((s) => s.extra).sort((a, b) => a.index - b.index).map((s) => s.url);
-  const photos = [...[...guided.entries()].sort((a, b) => a[0] - b[0]).map(([, u]) => u), ...extras];
+  const extras = new Map((sub?.shots ?? []).filter((s) => s.extra).map((s) => [s.index, s.url]));
+  intake.uploads?.forEach((u) => { if (u.submissionId === id && u.kind === 'photo' && u.extra) extras.set(u.index, u.uri); });
+  const photos = [...[...guided.entries()].sort((a, b) => a[0] - b[0]).map(([, u]) => u), ...[...extras.entries()].sort((a, b) => a[0] - b[0]).map(([, u]) => u)];
   const enough = photos.length >= MIN_PHOTOS_TO_SEND;
 
   const tile = (width - space.gutter * 2 - space.sm * 2) / 3;
@@ -33,6 +34,7 @@ export default function PhotosDone() {
   const addOwn = async () => {
     if (!id) return;
     const used = new Set((sub?.shots ?? []).filter((s) => s.extra).map((s) => s.index));
+    extras.forEach((_, index) => used.add(index));
     const free = Array.from({ length: MAX_EXTRAS }, (_, i) => i).filter((i) => !used.has(i));
     const uris = await pickFromLibrary(free.length);
     uris.forEach((uri, k) => save(id, uri, { index: free[k], extra: true, label: 'Your photo' }));

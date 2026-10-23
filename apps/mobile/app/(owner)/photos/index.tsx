@@ -8,17 +8,20 @@ import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { MAX_EXTRAS, pickFromLibrary, useSaveOwnerPhoto } from '../../../lib/v2/ownerPhotos';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
+import { useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { space } from '../../../theme/v2';
 
 export default function PhotosIntro() {
   const router = useRouter();
   const { id } = useOwnerSite();
   const sub = useOwnerSubmission(id);
+  const intake = useOwnerIntake();
   const save = useSaveOwnerPhoto();
 
   const fromPhone = async () => {
     if (!id) return;
     const used = new Set((sub?.shots ?? []).filter((s) => s.extra).map((s) => s.index));
+    intake.uploads?.forEach((u) => { if (u.submissionId === id && u.kind === 'photo' && u.extra) used.add(u.index); });
     const free = Array.from({ length: MAX_EXTRAS }, (_, i) => i).filter((i) => !used.has(i));
     const uris = await pickFromLibrary(free.length);
     uris.forEach((uri, k) => save(id, uri, { index: free[k], extra: true, label: 'Your photo' }));

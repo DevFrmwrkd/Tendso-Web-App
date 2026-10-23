@@ -34,7 +34,7 @@ export const CREATORS_SAMPLE = process.env.NODE_ENV === "development" && process
 
 // ---- function references (docs/v2-api-creators.md) ---------------------------------------
 const fn = {
-    getCreatorByCode: api.creatorProgram.getCreatorByCode,
+    getCreatorByHandle: api.creatorProgram.getCreatorByHandle,
     myApplication: api.creatorProgram.myApplication,
     checkAvailability: api.creatorProgram.checkAvailability,
     apply: api.creatorProgram.apply,
@@ -51,9 +51,9 @@ export function errorMessage(err: unknown, fallback = "Something went wrong. Ple
 // ---- creator card (/a/<handle>, /a/<handle>/earn) -----------------------------------------
 export type CardState = { status: "loading" } | { status: "found"; card: CreatorCard } | { status: "missing" };
 
-/** The public card behind a handle or code. `missing` also covers a pending or suspended creator. */
+/** The public card behind a page handle. `missing` also covers a pending or suspended creator. */
 export function useCreatorCard(handle: string): CardState {
-    const live = useQuery(fn.getCreatorByCode, CREATORS_SAMPLE ? "skip" : { code: handle });
+    const live = useQuery(fn.getCreatorByHandle, CREATORS_SAMPLE ? "skip" : { handle });
     if (CREATORS_SAMPLE) {
         return handle.toLowerCase() === SAMPLE_CREATOR_CARD.handle ? { status: "found", card: SAMPLE_CREATOR_CARD } : { status: "missing" };
     }

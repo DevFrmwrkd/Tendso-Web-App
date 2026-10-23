@@ -4,24 +4,18 @@
  */
 import { useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { useSaveShot, useUploadFile } from './ownerData';
-import { uploadQueue } from './uploadQueue';
+import { useOwnerUploads } from './ownerUploads';
 import type { SubmissionId } from './ownerTypes';
 
 export const MAX_EXTRAS = 10;
 
 export function useSaveOwnerPhoto() {
-  const upload = useUploadFile();
-  const saveShot = useSaveShot();
+  const { remember } = useOwnerUploads();
   return useCallback(
     (id: SubmissionId, uri: string, opts: { index: number; extra: boolean; label?: string }) => {
-      const key = `${opts.extra ? 'extra' : 'shot'}-${opts.index}`;
-      uploadQueue.add(key, opts.label ?? 'Photo', async () => {
-        const url = await upload(uri, { folder: 'images', contentType: 'image/jpeg', filename: `owner-${key}.jpg` });
-        await saveShot({ submissionId: id, index: opts.index, url, label: opts.label, extra: opts.extra });
-      });
+      remember({ kind: 'photo', submissionId: id, uri, ...opts });
     },
-    [upload, saveShot],
+    [remember],
   );
 }
 

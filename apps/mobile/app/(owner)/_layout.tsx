@@ -7,10 +7,23 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { Button, ScreenShell, Text } from '../../components/v2';
-import { useEnsureOwner, useOwnerMe } from '../../lib/v2/ownerData';
+import { useEnsureOwner, useOwnerMe, useOwnerSubmission } from '../../lib/v2/ownerData';
 import { OWNER_SAMPLE_DATA } from '../../lib/v2/ownerFlags';
-import { ownerIntake, setOwnerIntent } from '../../lib/v2/ownerIntake';
+import { ownerIntake, setOwnerIntent, useOwnerIntake } from '../../lib/v2/ownerIntake';
+import { useOwnerUploads } from '../../lib/v2/ownerUploads';
+import { useOwnerSite } from '../../lib/v2/useOwnerSite';
 import { colors } from '../../theme/v2';
+
+function UploadRecovery() {
+  const { id, site } = useOwnerSite();
+  const intake = useOwnerIntake();
+  const sub = useOwnerSubmission(site?.phase === 'draft' ? id : null);
+  const { resume } = useOwnerUploads();
+  useEffect(() => {
+    if (id && sub && site?.phase === 'draft') void resume(id, sub).catch(() => {});
+  }, [id, sub, site?.phase, intake.uploads, resume]);
+  return null;
+}
 
 export default function OwnerLayout() {
   const { isLoaded, isSignedIn, signOut } = useAuth();
@@ -19,8 +32,9 @@ export default function OwnerLayout() {
   const ensure = useEnsureOwner();
   const asked = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [intakeReady, setIntakeReady] = useState(false);
 
-  useEffect(() => { void ownerIntake.load(); }, []);
+  useEffect(() => { void ownerIntake.load().then(() => setIntakeReady(true)); }, []);
 
   useEffect(() => {
     if (!signedIn || me !== null || asked.current) return;
@@ -57,7 +71,7 @@ export default function OwnerLayout() {
     );
   }
 
-  if (!me) {
+  if (!me || !intakeReady) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator color={colors.ink} accessibilityLabel="Loading" />
@@ -68,11 +82,14 @@ export default function OwnerLayout() {
 
   const cam = { gestureEnabled: false, animation: 'fade' as const, presentation: 'fullScreenModal' as const };
   return (
-    <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
-      <Stack.Screen name="talk/record" options={cam} />
-      <Stack.Screen name="photos/shoot" options={cam} />
-      <Stack.Screen name="building" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="live" options={{ gestureEnabled: false }} />
-    </Stack>
+    <>
+      <UploadRecovery />
+      <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
+        <Stack.Screen name="talk/record" options={cam} />
+        <Stack.Screen name="photos/shoot" options={cam} />
+        <Stack.Screen name="building" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="live" options={{ gestureEnabled: false }} />
+      </Stack>
+    </>
   );
 }

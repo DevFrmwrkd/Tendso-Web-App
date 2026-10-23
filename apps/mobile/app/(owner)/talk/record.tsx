@@ -5,10 +5,10 @@
 import React, { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { InterviewCam, type InterviewClip } from '../../../components/v2/capture';
-import { useOwnerSubmission, useSaveAnswer, useUploadFile } from '../../../lib/v2/ownerData';
+import { useOwnerSubmission } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { firstMissingAnswer, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
-import { uploadQueue } from '../../../lib/v2/uploadQueue';
+import { useOwnerUploads } from '../../../lib/v2/ownerUploads';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 
 export default function TalkRecord() {
@@ -16,24 +16,16 @@ export default function TalkRecord() {
   const intake = useOwnerIntake();
   const { id } = useOwnerSite();
   const sub = useOwnerSubmission(id);
-  const upload = useUploadFile();
-  const saveAnswer = useSaveAnswer();
+  const { remember } = useOwnerUploads();
 
   const onClip = useCallback((clip: InterviewClip) => {
     if (!id) return;
-    const video = clip.kind === 'video';
-    uploadQueue.add(`answer-${clip.index}`, `Answer ${clip.index + 1}`, async () => {
-      const url = await upload(clip.uri, {
-        folder: video ? 'videos' : 'audio',
-        contentType: video ? 'video/mp4' : 'audio/m4a',
-        filename: `owner-answer-${clip.index + 1}.${video ? 'mp4' : 'm4a'}`,
-      });
-      await saveAnswer({ submissionId: id, index: clip.index, lang: clip.lang, mediaUrl: url, mediaType: clip.kind, durationSec: clip.durationSec });
-    });
-  }, [id, upload, saveAnswer]);
+    remember({ kind: 'answer', submissionId: id, index: clip.index, uri: clip.uri, mediaType: clip.kind, lang: clip.lang, durationSec: clip.durationSec });
+  }, [id, remember]);
 
   if (sub === undefined) return null;
-  const startAt = firstMissingAnswer((sub?.interview ?? []).filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index));
+  const localAnswers = (intake.uploads ?? []).filter((u) => u.submissionId === id && u.kind === 'answer').map((u) => u.index);
+  const startAt = firstMissingAnswer([...(sub?.interview ?? []).filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index), ...localAnswers]);
 
   return (
     <InterviewCam

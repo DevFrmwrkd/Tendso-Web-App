@@ -34,8 +34,8 @@ describe("creator sample mode", () => {
             useMutation.mockReturnValue(apply);
             const { useCreatorCard, useApplyAsCreator } = jest.requireActual("@/lib/v2/creatorData");
             expect(useCreatorCard("mika")).toEqual({ status: "missing" });
-            expect(useQuery).toHaveBeenCalledWith(expect.anything(), { code: "mika" });
-            expect(getFunctionName(useQuery.mock.calls[0][0])).toBe("creatorProgram:getCreatorByCode");
+            expect(useQuery.mock.calls[0][1]).toEqual({ handle: "mika" });
+            expect(getFunctionName(useQuery.mock.calls[0][0])).toBe("creatorProgram:getCreatorByHandle");
             pending = useApplyAsCreator()(args);
             expect(getFunctionName(useMutation.mock.calls[0][0])).toBe("creatorProgram:apply");
         });

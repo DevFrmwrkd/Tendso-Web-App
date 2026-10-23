@@ -138,3 +138,12 @@ export const getCreatorByCode = query({
         return creatorCard(found.affiliate, found.price);
     },
 });
+
+/** Public /a/<handle> pages resolve only the handle namespace, including legacy accounts. */
+export const getCreatorByHandle = query({
+    args: { handle: v.string() },
+    handler: async (ctx, args) => {
+        const found = await findActiveCreator(ctx, args.handle, 'handle');
+        return found ? creatorCard(found.affiliate, found.price) : null;
+    },
+});

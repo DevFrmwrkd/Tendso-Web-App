@@ -9,6 +9,19 @@ import type { SellKindId } from './ownerContent';
 import type { Lang } from './captureContent';
 import type { SubmissionId } from './ownerTypes';
 
+/** Serializable upload journal. Keep successful entries until submit so a stale
+ * server snapshot cannot enqueue the same local file again. */
+export type OwnerUpload = {
+  submissionId: SubmissionId;
+  index: number;
+  uri: string;
+  uploadedUrl?: string;
+  saved?: boolean;
+} & (
+  | { kind: 'photo'; extra: boolean; label?: string }
+  | { kind: 'answer'; mediaType: 'video' | 'audio'; lang: Lang; durationSec: number }
+);
+
 export interface OwnerIntake {
   /** The name typed on the sign-up screen (sent with owners.ensure). */
   ownerName?: string;
@@ -25,6 +38,8 @@ export interface OwnerIntake {
   submissionId?: SubmissionId;
   /** Local photo uris per guided task (for the strip while uploads finish). */
   shots?: (string | null)[];
+  /** Pending photos (including extras) and interview recordings, resumable after restart. */
+  uploads?: OwnerUpload[];
   /** The design picked (template code). */
   design?: string;
 }
@@ -32,6 +47,7 @@ export interface OwnerIntake {
 const KEY = 'tendso_owner_intake_v1';
 let state: OwnerIntake = {};
 let loaded = false;
+let writes: Promise<void> = Promise.resolve();
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -59,13 +75,18 @@ export const ownerIntake = {
   set(patch: Partial<OwnerIntake>) {
     state = { ...state, ...patch };
     emit();
-    void AsyncStorage.setItem(KEY, JSON.stringify(state)).catch(() => {});
+    const json = JSON.stringify(state);
+    writes = writes.catch(() => {}).then(() => AsyncStorage.setItem(KEY, json));
+    void writes.catch(() => {});
   },
+  /** Finish the journal write before starting network work or leaving capture. */
+  flush(): Promise<void> { return writes; },
   /** After the site is sent (or on sign-out): start fresh next time. */
   clear() {
     state = {};
     emit();
-    void AsyncStorage.removeItem(KEY).catch(() => {});
+    writes = writes.catch(() => {}).then(() => AsyncStorage.removeItem(KEY));
+    void writes.catch(() => {});
   },
 };
 

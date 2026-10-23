@@ -17,7 +17,7 @@ export default function Today() {
   const draft = useOwnerSubmission(site?.phase === 'draft' ? id : null);
   const name = firstName(me);
   const phase = site?.phase ?? null;
-  const action = todayAction(phase);
+  const action = todayAction(phase, site);
   const step =
     phase === 'draft'
       ? resumeStep('draft', draft ? {

@@ -21,6 +21,8 @@
  */
 
 import { useConvex, useConvexAuth, useMutation, useQuery } from "convex/react";
+import { SignInButton } from "@clerk/nextjs";
+import { ConvexError } from "convex/values";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -34,7 +36,6 @@ import {
     paidOnOf,
     paymentDetailsText,
     payView,
-    priceSplit,
     shortDate,
     transferAmount,
     transferAmountShown,
@@ -49,7 +50,7 @@ import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
 import { getPaymentConfig } from "@/lib/payment/config";
 import { formatPHP } from "@/lib/pricing";
 
-import { isFieldAgentSale, pendingCopy } from "./payRules";
+import { isFieldAgentSale, orderPriceSplit, paidReceipt, paymentKind, pendingCopy } from "./payRules";
 import { CheckIcon, PbBrand, PlusIcon, copyWithToast, usePbToast } from "./shared";
 import { XENDIT_ENABLED, useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
 
@@ -61,9 +62,6 @@ const paymentConfig = getPaymentConfig();
 /** The smallest down payment (packages/shared/pricing.ts MIN_DOWN_PAYMENT). The agent keeps their whole cut upfront. */
 const DOWN_PAYMENT = 500;
 
-type TokenKind = "full" | "deposit" | "balance";
-const kindOf = (token: Token): TokenKind => (token.kind === "deposit" || token.kind === "balance" ? token.kind : "full");
-
 export function PayPage() {
     const params = useParams();
     const token = params.token as string;
@@ -72,11 +70,12 @@ export function PayPage() {
 
     const paymentToken = useQuery(api.paymentTokens.getByToken, { token });
     const submission = useQuery(api.submissions.getById, paymentToken?.submissionId ? { id: paymentToken.submissionId } : "skip");
+    const publication = useQuery(api.paymentTokens.getPublicationByToken, paymentToken ? { token } : "skip");
     const wiseEmail = paymentConfig.wiseEmail || "support@negosyo.digital";
     // Wait for the submission too: its status decides "paid" when an admin matched the transfer by hand.
-    const loading = paymentToken === undefined || (paymentToken !== null && submission === undefined);
+    const loading = paymentToken === undefined || (paymentToken !== null && (submission === undefined || publication === undefined));
 
-    return <PayView loading={loading} token={paymentToken ?? null} submission={submission ?? null} now={now} wiseEmail={wiseEmail} ownerHome={isOwner} />;
+    return <PayView loading={loading} token={paymentToken ?? null} submission={submission ?? null} publishedUrl={publication?.liveUrl ?? null} now={now} wiseEmail={wiseEmail} ownerHome={isOwner} />;
 }
 
 /** The page itself, from data. Split from PayPage so every state can be rendered without a backend. */
@@ -87,6 +86,7 @@ export function PayView({
     now,
     wiseEmail,
     ownerHome,
+    publishedUrl,
 }: {
     loading: boolean;
     token: Token | null;
@@ -94,6 +94,7 @@ export function PayView({
     now: number;
     wiseEmail: string;
     ownerHome: boolean;
+    publishedUrl?: string | null;
 }) {
     const { node: toast, show } = usePbToast();
     const view = loading ? "loading" : !token ? "notfound" : payView(token, submission, now);
@@ -111,8 +112,8 @@ export function PayView({
             <main className="pb-py-main">
                 {view === "loading" && <Loading />}
                 {view === "notfound" && <NotFound />}
-                {token && view === "pending" && <Pending token={token} submission={submission} now={now} wiseEmail={wiseEmail} show={show} />}
-                {token && view === "paid" && <Paid token={token} submission={submission} ownerHome={ownerHome} />}
+                {token && view === "pending" && <Pending token={token} submission={submission} now={now} wiseEmail={wiseEmail} show={show} publishedUrl={publishedUrl} />}
+                {token && view === "paid" && <Paid token={token} submission={submission} ownerHome={ownerHome} publishedUrl={publishedUrl} />}
                 {token && view === "expired" && <Expired token={token} submission={submission} now={now} />}
             </main>
             {toast}
@@ -131,6 +132,7 @@ function Hero({
     ctas,
     url,
     preview,
+    noPreviewText = "Private until you pay. We send your link the moment it is live.",
 }: {
     name: string | null;
     state: string;
@@ -140,6 +142,7 @@ function Hero({
     ctas?: ReactNode;
     url: string | null;
     preview: string;
+    noPreviewText?: string;
 }) {
     return (
         <section className="v2-wrap pb-py-hero" aria-labelledby="py-h">
@@ -176,7 +179,7 @@ function Hero({
                 ) : (
                     <div className="pb-py-nopreview">
                         <p className="pb-py-nopreview-name">{name ?? "Your website"}</p>
-                        <p className="pb-py-nopreview-p">Private until you pay. We send your link the moment it is live.</p>
+                        <p className="pb-py-nopreview-p">{noPreviewText}</p>
                     </div>
                 )}
                 <span className="pb-py-preview">{preview}</span>
@@ -187,18 +190,17 @@ function Hero({
 
 /* ---- pending ----------------------------------------------------------------- */
 
-function Pending({ token, submission, now, wiseEmail, show }: { token: Token; submission: Submission; now: number; wiseEmail: string; show: (m: string) => void }) {
+function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { token: Token; submission: Submission; now: number; wiseEmail: string; show: (m: string) => void; publishedUrl?: string | null }) {
     const name = submission?.businessName ?? null;
     const money = formatPHP(token.amount);
-    const url = liveUrlOf(submission?.websiteUrl);
-    const offline = submission?.status === "unpublished";
-    const live = !!url && !offline;
+    const url = publishedUrl === undefined ? submission?.status === "unpublished" ? null : liveUrlOf(submission?.websiteUrl) : liveUrlOf(publishedUrl);
+    const live = !!url;
     const agentSale = isFieldAgentSale(submission);
     const text = pendingCopy({ agentSale, live });
-    const { domain, addOn, websiteLine, discount } = priceSplit(token.amount, submission);
-    const struckTotal = discount && !domain ? discount.listPrice : null;
+    const { domain, addOn, websiteLine, discount } = orderPriceSplit(token, submission);
+    const kind = paymentKind(token);
+    const struckTotal = kind === "full" && discount && !domain ? discount.listPrice : null;
     const copy = (value: string, done: string) => void copyWithToast(value, done, show);
-    const kind = kindOf(token);
     const balanceAfter = kind === "deposit" && submission?.amount ? Math.max(0, submission.amount - token.amount) : null;
     const priceLabel = kind === "deposit" ? "Down payment" : kind === "balance" ? "The rest of your payment" : text.priceLabel;
     const payCta = kind === "full" ? `Pay ${money} once` : `Pay ${money} now`;
@@ -239,7 +241,7 @@ function Pending({ token, submission, now, wiseEmail, show }: { token: Token; su
                         <span className="sr-only">{struckTotal !== null ? "Now " : ""}</span>
                         {money}.<small>{kind === "full" ? "Once. No monthly fee." : kind === "deposit" ? "Now. No monthly fee." : "Then it's paid. No monthly fee."}</small>
                     </h2>
-                    {domain && websiteLine > 0 && (
+                    {kind === "full" && domain && websiteLine > 0 && (
                         <dl className="pb-py-split">
                             <div>
                                 <dt>Website, paid once</dt>
@@ -470,17 +472,22 @@ function MethodArea({ token }: { token: string }) {
 
 /* ---- paid -------------------------------------------------------------------- */
 
-function Paid({ token, submission, ownerHome }: { token: Token; submission: Submission; ownerHome: boolean }) {
+function Paid({ token, submission, ownerHome, publishedUrl }: { token: Token; submission: Submission; ownerHome: boolean; publishedUrl?: string | null }) {
     const name = submission?.businessName ?? null;
     const money = formatPHP(token.amount);
     const paidAt = paidOnOf(token, submission);
-    const url = liveUrlOf(submission?.websiteUrl);
-    const { domain, discount } = priceSplit(token.amount, submission);
+    const { kind, total, paid, balance, url, domain, discount, websiteLine } = paidReceipt(token, submission, publishedUrl);
+    const installment = kind !== "full";
+    const outstanding = balance === null || balance > 0;
+    const title = kind === "deposit" ? "Down payment received." : kind === "balance" ? "Balance payment received." : "Payment received.";
+    const sub = outstanding
+        ? balance === null ? "Your down payment is in. Contact us for your remaining balance." : `${formatPHP(balance)} remains. Pay the balance when you're ready.`
+        : url ? "Paid in full. Your website is live." : "Paid in full. We'll send your link once your site is published.";
     const byWise = Boolean(token.wiseTransactionId);
 
     return (
         <>
-            <Hero name={name} state="Live" dot="live" title="Your site is live." sub="Paid once. It's yours." url={url} preview={url ? `Live · ${hostOf(url)}` : "Live"} />
+            <Hero name={name} state={url ? "Live" : "Payment received"} dot={url ? "live" : undefined} title={title} sub={sub} url={url} preview={url ? `Live · ${hostOf(url)}` : "Not public yet"} noPreviewText="We'll send your public link once your site is published." />
             <section className="v2-wrap pb-py-done" aria-labelledby="paid-h">
                 <div className="pb-py-done-mark">
                     <CheckIcon size={34} />
@@ -488,12 +495,20 @@ function Paid({ token, submission, ownerHome }: { token: Token; submission: Subm
                 <h2 className="pb-py-done-h" id="paid-h">
                     Your receipt.
                 </h2>
-                <p className="pb-py-done-p">Your website is yours. Keep this page as your proof of payment.</p>
+                <p className="pb-py-done-p">Keep this page as your proof of {kind === "deposit" ? "down payment" : "payment"}.</p>
                 <dl className="pb-py-receipt">
                     <div>
-                        <dt>Website, paid once</dt>
-                        <dd>{discount ? formatPHP(discount.price) : money}</dd>
+                        <dt>{kind === "deposit" ? "Down payment received" : kind === "balance" ? "Balance payment received" : domain ? "Full payment received" : "Website, paid once"}</dt>
+                        <dd>{installment || domain ? money : formatPHP(websiteLine)}</dd>
                     </div>
+                    {!installment && domain && <div><dt>Website</dt><dd>{formatPHP(websiteLine)}</dd></div>}
+                    {installment && total !== null && (
+                        <>
+                            <div><dt>Order total</dt><dd>{formatPHP(total)}</dd></div>
+                            <div><dt>Paid so far</dt><dd>{formatPHP(paid)}</dd></div>
+                            <div><dt>Balance due</dt><dd>{formatPHP(balance!)}</dd></div>
+                        </>
+                    )}
                     {discount && (
                         <div>
                             <dt>Discount</dt>
@@ -536,9 +551,10 @@ function Paid({ token, submission, ownerHome }: { token: Token; submission: Subm
                     )}
                 </dl>
                 <div className="pb-py-done-cta">
+                    {kind === "deposit" && outstanding && <BalancePayment token={token} balance={balance} />}
                     {ownerHome ? (
                         <Button href="/my-business" variant="primary">
-                            Open my website
+                            Manage my website
                         </Button>
                     ) : url ? (
                         <Button href={url} variant="primary" target="_blank" rel="noopener noreferrer">
@@ -550,6 +566,39 @@ function Paid({ token, submission, ownerHome }: { token: Token; submission: Subm
                     </Button>
                 </div>
             </section>
+        </>
+    );
+}
+
+/** The same payer-authorized balance-token flow used by the owner app. */
+function BalancePayment({ token, balance }: { token: Token; balance: number | null }) {
+    const { isAuthenticated, isLoading } = useConvexAuth();
+    const createPayToken = useMutation(api.ownerPayments.createPayToken);
+    const router = useRouter();
+    const [busy, setBusy] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+    const start = async () => {
+        setBusy(true);
+        setMessage(null);
+        try {
+            // The server rechecks the payer, approval and the current balance.
+            const next = await createPayToken({ submissionId: token.submissionId, kind: "balance" });
+            router.push(`/v2/pay/${encodeURIComponent(next.token)}`);
+        } catch (error) {
+            setMessage(error instanceof ConvexError && typeof error.data === "string" ? error.data : "We couldn't open your balance payment. Please try again or contact Tendso.");
+            setBusy(false);
+        }
+    };
+    if (isLoading) return <Button disabled>Loading payment options…</Button>;
+    if (!isAuthenticated) return (
+        <SignInButton mode="modal" forceRedirectUrl={`/v2/pay/${encodeURIComponent(token.token)}`}>
+            <Button>Sign in to pay the balance</Button>
+        </SignInButton>
+    );
+    return (
+        <>
+            <Button disabled={busy} onClick={() => void start()}>{busy ? "One moment…" : balance === null ? "Pay the balance" : `Pay ${formatPHP(balance)} balance`}</Button>
+            {message && <p className="pb-py-methods-msg" role="status">{message}</p>}
         </>
     );
 }

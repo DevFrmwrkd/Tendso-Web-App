@@ -6,7 +6,8 @@
  *   sell → place → how → talk → photos → design → building → check → pay → live → home
  */
 import { INTERVIEW_QUESTIONS } from './captureContent';
-import type { OwnerPhase } from './ownerTypes';
+import type { OwnerPhase, SiteSummary } from './ownerTypes';
+import { peso } from './ownerContent';
 
 export type OwnerStep =
   | 'sell'
@@ -128,7 +129,14 @@ export function hasSiteHome(phase: OwnerPhase | null): boolean {
 }
 
 /** The one big action on the Today tab for a phase. */
-export function todayAction(phase: OwnerPhase | null): { label: string; step: OwnerStep } {
+export function outstandingPayment(site: Pick<SiteSummary, 'total' | 'amountPaid' | 'balanceDue' | 'paidInFull'> | null | undefined): { label: string; step: 'pay' } | null {
+  if (!site || site.paidInFull || site.total <= 0 || site.balanceDue <= 0) return null;
+  return { label: `Pay ${peso(site.balanceDue)}`, step: 'pay' };
+}
+
+export function todayAction(phase: OwnerPhase | null, site?: SiteSummary | null): { label: string; step: OwnerStep } {
+  const payment = outstandingPayment(site);
+  if (phase === 'live' && payment) return payment;
   switch (phase) {
     case null:
       return { label: 'Make my website', step: 'sell' };

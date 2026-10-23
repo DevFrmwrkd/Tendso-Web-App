@@ -1,6 +1,6 @@
 "use client";
 
-import { REFERRAL_BONUS, formatPHP } from "@/lib/pricing";
+import { AFFILIATE_RECRUIT_REWARD, AFFILIATE_RECRUIT_TERMS } from "@/lib/affiliateReferralProgram";
 import { CopyButton } from "./CopyButton";
 
 export function ReferralCard({ code, disabled = false }: { code: string; disabled?: boolean }) {
@@ -8,7 +8,8 @@ export function ReferralCard({ code, disabled = false }: { code: string; disable
         <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby="affiliate-referral-heading">
             <div className="flex flex-col gap-1">
                 <h2 id="affiliate-referral-heading" className="t-h2">Refer a creator</h2>
-                <p className="t-meta">Earn {formatPHP(REFERRAL_BONUS)} when a creator using your code makes their first paid sale.</p>
+                <p className="t-meta">{AFFILIATE_RECRUIT_REWARD}</p>
+                <p className="t-meta">{AFFILIATE_RECRUIT_TERMS}</p>
             </div>
             {code ? <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="t-num select-all break-all text-2xl font-semibold tracking-wider text-r1-ink">{code}</span>

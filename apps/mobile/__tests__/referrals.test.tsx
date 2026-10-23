@@ -35,12 +35,12 @@ const people = [
 ];
 const stats = { total: 3, pending: 1, qualified: 1, paid: 1, totalEarned: 1000 };
 
-function setup() {
+function setup(portal: Record<string, unknown> = { referrals: people, referralStats: stats }) {
   mockUseQuery.mockImplementation((key: string) => {
     if (key === "creators:getByClerkId") return { _id: "c1", referralCode: "RHEA123" };
     if (key === "referrals:getByReferrer") return people;
     if (key === "referrals:getStats") return stats;
-    if (key === "affiliates:portal") return { referrals: people, referralStats: stats };
+    if (key === "affiliates:portal") return portal;
     return undefined;
   });
 }
@@ -85,5 +85,37 @@ describe("ReferralsScreen", () => {
     mockRole = "creator";
     const agentView = render(<ReferralsScreen />);
     expect(agentView.queryByText(/5%/)).toBeNull();
+  });
+
+  it("shows post-cutover recruits even when there are no legacy referral records", () => {
+    mockRole = "affiliate";
+    setup({
+      referrals: [], referralStats: { total: 0, pending: 0, qualified: 0, paid: 0, totalEarned: 0 },
+      recruits: [{ _id: "new-agent", referredName: "New Agent", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 250 }],
+      recruitStats: { total: 1, earning: 1, totalEarned: 250 },
+    });
+    const view = render(<ReferralsScreen />);
+    expect(view.getByText("New Agent")).toBeTruthy();
+    expect(view.getByText("5% team commissions · 1")).toBeTruthy();
+    expect(view.getByText("5% active")).toBeTruthy();
+    expect(view.getByText(/₱250 team commission earned/)).toBeTruthy();
+    expect(view.queryByText("No one yet")).toBeNull();
+    expect(view.queryByText("Earlier ₱1,000 referrals")).toBeNull();
+  });
+
+  it("keeps earlier bonuses separate from active and expired team commissions", () => {
+    mockRole = "affiliate";
+    setup({
+      referrals: people, referralStats: stats,
+      recruits: [{ _id: "expired-agent", referredName: "Earlier Team Agent", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: false, totalEarned: 750 }],
+      recruitStats: { total: 1, earning: 0, totalEarned: 750 },
+    });
+    const view = render(<ReferralsScreen />);
+    expect(view.getByText("Earlier Team Agent")).toBeTruthy();
+    expect(view.getByText("Ended")).toBeTruthy();
+    expect(view.getByText("Earlier ₱1,000 referrals")).toBeTruthy();
+    expect(view.getByText("Rhea Manalo")).toBeTruthy();
+    expect(view.getByText("₱1,000 bonus pending")).toBeTruthy();
+    expect(view.getByText(/₱750 team commission earned/)).toBeTruthy();
   });
 });

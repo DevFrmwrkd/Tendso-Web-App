@@ -25,6 +25,7 @@ export interface QueueSnapshot {
 const MAX_TRIES = 3;
 let jobs: Job[] = [];
 let running = false;
+let generation = 0;
 let snapshot: QueueSnapshot = { total: 0, done: 0, failed: 0, pending: 0 };
 const listeners = new Set<() => void>();
 let idle: (() => void)[] = [];
@@ -43,6 +44,7 @@ function recompute() {
 
 async function pump() {
   if (running) return;
+  const startedIn = generation;
   running = true;
   try {
     for (;;) {
@@ -52,8 +54,10 @@ async function pump() {
       recompute();
       try {
         await job.run();
+        if (startedIn !== generation) return;
         job.status = 'done';
       } catch (e: any) {
+        if (startedIn !== generation) return;
         job.tries += 1;
         job.error = e?.message ?? String(e);
         job.status = job.tries >= MAX_TRIES ? 'failed' : 'waiting';
@@ -61,11 +65,22 @@ async function pump() {
       recompute();
     }
   } finally {
-    running = false;
+    if (startedIn === generation) running = false;
   }
 }
 
 export const uploadQueue = {
+  /** Resume a persisted job once, even if multiple screens reconcile it. */
+  ensure(id: string, label: string, run: () => Promise<unknown>) {
+    if (jobs.some((j) => j.id === id)) return;
+    this.add(id, label, run);
+  },
+  /** Superseded retakes must not leave failed jobs blocking submission. Running
+   * network work may finish; its owner-journal check prevents the stale save. */
+  cancel(id: string) {
+    jobs = jobs.filter((j) => j.id !== id);
+    recompute();
+  },
   /** Add a job. A job with the same id replaces a waiting / failed one (a retake). */
   add(id: string, label: string, run: () => Promise<unknown>) {
     jobs = jobs.filter((j) => !(j.id === id && j.status !== 'running' && j.status !== 'done'));
@@ -98,6 +113,7 @@ export const uploadQueue = {
   },
   /** Tests / sign-out. */
   reset() {
+    generation += 1;
     jobs = [];
     running = false;
     recompute();

@@ -5,7 +5,7 @@ import { ShotGuide } from '../../../components/v2/capture';
 import { shotList } from '../../../lib/v2/captureContent';
 import { sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
-import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
+import { useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { useSaveOwnerPhoto } from '../../../lib/v2/ownerPhotos';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
@@ -26,9 +26,6 @@ export default function PhotosShoot() {
       tasks={tasks}
       initial={initial}
       onShot={(index, uri) => {
-        const shots = (ownerIntake.get().shots ?? Array(tasks.length).fill(null)).slice();
-        shots[index] = uri;
-        ownerIntake.set({ shots });
         if (id) save(id, uri, { index, extra: false, label: tasks[index].t });
       }}
       onDone={() => router.replace(STEP_ROUTE['photos-done'] as never)}

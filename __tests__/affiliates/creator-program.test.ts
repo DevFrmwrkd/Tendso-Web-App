@@ -387,6 +387,40 @@ describe('creator sign-up and code', () => {
 });
 
 describe('creator portal', () => {
+    it('keeps the existing affiliate portal accurate across the referral-program cutover', async () => {
+        const { t, creatorId, mika } = await setup();
+        vi.setSystemTime(CREATOR_OVERRIDE_CUTOVER - DAY);
+        const oldAgent = await recruitByCode(t, 'old-agent');
+        vi.setSystemTime(NOW);
+        const newAgent = await recruitByCode(t, 'new-agent');
+        const saleId = await addSale(t, newAgent, { status: 'paid', paidAt: NOW });
+        await credit(t, saleId);
+        // Neither a repeated referral delivery nor the old bonus qualifier
+        // should give the same new recruit a second compensation program.
+        await t.mutation(internal.referrals.createFromSignup, { referrerId: creatorId, referredId: newAgent, referralCode: 'MIKA30' });
+        await t.mutation(internal.referrals.qualifyByCreator, { referredId: newAgent, bonusAmount: REFERRAL_BONUS });
+
+        const portal = await mika.query(api.affiliates.portal, {});
+        expect(portal.referrals).toEqual([expect.objectContaining({ status: 'pending', bonusAmount: 0 })]);
+        expect(portal.referralStats).toEqual({ total: 1, pending: 1, qualified: 0, paid: 0, totalEarned: 0 });
+        expect(portal.recruits).toEqual([{
+            _id: newAgent, referredName: 'new-agent', createdAt: NOW,
+            endsAt: creatorOverrideEndsAt(NOW), earning: true, totalEarned: 150,
+        }]);
+        expect(portal.recruitStats).toEqual({ total: 1, earning: 1, totalEarned: 150 });
+        expect(portal.earnings).toEqual([expect.objectContaining({ type: 'creator_override', amount: 150 })]);
+        expect(portal.summary.balance).toBe(150);
+        expect(portal.recruits.some((row) => row._id === oldAgent)).toBe(false);
+        expect(JSON.stringify(portal.recruits)).not.toContain('@example.com');
+
+        // Previously earned recurring commissions remain in history even after
+        // the earning window expires or the affiliate is suspended.
+        vi.setSystemTime(creatorOverrideEndsAt(NOW));
+        await t.run((ctx) => ctx.db.patch(creatorId, { status: 'suspended' }));
+        expect((await mika.query(api.affiliates.portal, {})).recruits[0])
+            .toMatchObject({ earning: false, totalEarned: 150 });
+    });
+
     it.each(['deposit_paid', 'pending_payment', 'deployed'])('excludes own-shop email and phone matches from pending team earnings (%s)', async (status) => {
         const { t, mika } = await setup();
         const agentId = await recruitByCode(t, 'ana');

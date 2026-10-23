@@ -67,6 +67,8 @@ export const samplePortal: AffiliatePortal = {
   earnings: [], withdrawals: [],
   referrals: [{ _id: 'sample-referral' as Id<'referrals'>, referredName: 'Alex Reyes', status: 'pending', bonusAmount: 0, createdAt: sampleTime }],
   referralStats: { total: 1, pending: 1, qualified: 0, paid: 0, totalEarned: 0 },
+  recruits: [],
+  recruitStats: { total: 0, earning: 0, totalEarned: 0 },
 };
 
 export const sampleSales: AffiliateSale[] = [

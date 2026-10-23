@@ -18,6 +18,7 @@ import { useChooseDesign, useOwnerSubmission, useSubmitSite, WEB_ORIGIN } from '
 import { ownerIntake, useOwnerIntake } from '../../lib/v2/ownerIntake';
 import { STEP_ROUTE } from '../../lib/v2/ownerFlow';
 import { uploadQueue } from '../../lib/v2/uploadQueue';
+import { useOwnerUploads } from '../../lib/v2/ownerUploads';
 import { useOwnerSite } from '../../lib/v2/useOwnerSite';
 import { colors, radius, shadow, space } from '../../theme/v2';
 
@@ -36,6 +37,7 @@ export default function DesignPicker() {
   const sub = useOwnerSubmission(id);
   const choose = useChooseDesign();
   const submit = useSubmitSite();
+  const { resume } = useOwnerUploads();
   const kind = sellKind(intake.kind) ?? sellKindFromServer(sub?.businessType, sub?.shotListKey);
   const designs = designsFor(kind.id);
 
@@ -54,13 +56,14 @@ export default function DesignPicker() {
   };
 
   const use = async (k: number) => {
-    if (!id) return;
+    if (!id || sub === undefined) return;
     const d = designs[k];
     setBusy(true);
     setError(null);
     try {
       ownerIntake.set({ design: d.code });
       await choose({ submissionId: id, templateId: d.code });
+      await resume(id, sub);
       await uploadQueue.drain(); // every answer and photo is saved before we build
       if (uploadQueue.snapshot().failed > 0) {
         uploadQueue.retry();
@@ -71,7 +74,8 @@ export default function DesignPicker() {
       }
       await submit({ submissionId: id });
       setOpen(null);
-      ownerIntake.set({ shots: undefined });
+      ownerIntake.set({ shots: undefined, uploads: undefined });
+      await ownerIntake.flush();
       router.replace(STEP_ROUTE.building as never);
     } catch (e: any) {
       setError(e?.data ?? e?.message ?? 'Please try again.');
@@ -90,7 +94,7 @@ export default function DesignPicker() {
       footer={
         <>
           {error ? <Text tone="danger" align="center">{error}</Text> : null}
-          <Button title="Use this design" loading={busy} onPress={() => use(cur)} />
+          <Button title="Use this design" disabled={!id || sub === undefined} loading={busy} onPress={() => use(cur)} />
         </>
       }
     >
@@ -141,7 +145,7 @@ export default function DesignPicker() {
           {open !== null ? <SiteFrame uri={previewUri(designs[open])} style={styles.full} testID="design-full-site" /> : null}
           <View style={{ paddingHorizontal: space.gutter, gap: space.sm }}>
             {error ? <Text tone="danger" align="center">{error}</Text> : null}
-            <Button title="Use this design" loading={busy} onPress={() => open !== null && use(open)} />
+            <Button title="Use this design" disabled={!id || sub === undefined} loading={busy} onPress={() => open !== null && use(open)} />
           </View>
         </View>
       </Modal>

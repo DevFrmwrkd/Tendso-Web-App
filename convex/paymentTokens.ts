@@ -112,6 +112,24 @@ export const getByToken = query({
     },
 })
 
+/** Public receipt capability: expose the current live URL, never private preview content. */
+export const getPublicationByToken = query({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const token = await ctx.db.query('paymentTokens').withIndex('by_token', (q) => q.eq('token', args.token)).first()
+        if (!token || token.status === 'cancelled') return null
+        const submission = await ctx.db.get(token.submissionId)
+        if (!submission) return null
+        const website = await ctx.db.query('generatedWebsites').withIndex('by_submissionId', (q) => q.eq('submissionId', token.submissionId)).first()
+        // generatedWebsites owns publication. An old submission.unpublishedAt may
+        // remain after republishing, and a saved websiteUrl can outlive a takedown.
+        const url = website
+            ? website.status === 'published' && !website.offlineAt ? website.publishedUrl ?? submission.websiteUrl : null
+            : submission.status !== 'unpublished' && !submission.unpublishedAt ? submission.websiteUrl : null
+        return { liveUrl: url && /^https?:\/\//i.test(url) ? url : null }
+    },
+})
+
 // Internal query to get payment token by token string (used by actions)
 export const getByTokenInternal = internalQuery({
     args: { token: v.string() },

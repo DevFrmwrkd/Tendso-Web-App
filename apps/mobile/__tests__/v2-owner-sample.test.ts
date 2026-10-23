@@ -105,6 +105,26 @@ describe('upload queue', () => {
     await uploadQueue.drain();
     expect(uploadQueue.snapshot().failed).toBe(0);
   });
+
+  it('a reset does not let an old worker consume the new account queue', async () => {
+    let finishOld!: () => void;
+    const old = new Promise<void>((resolve) => { finishOld = resolve; });
+    uploadQueue.add('old', 'Old account', () => old);
+    uploadQueue.reset();
+    let finishNew!: () => void;
+    const next = new Promise<void>((resolve) => { finishNew = resolve; });
+    const order: string[] = [];
+    uploadQueue.add('new', 'New account', async () => { await next; order.push('new'); });
+    uploadQueue.add('after', 'After', async () => { order.push('after'); });
+    finishOld();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(order).toEqual([]);
+    expect(uploadQueue.snapshot().pending).toBe(2);
+    finishNew();
+    await uploadQueue.drain();
+    expect(order).toEqual(['new', 'after']);
+  });
 });
 
 // keep the type import used

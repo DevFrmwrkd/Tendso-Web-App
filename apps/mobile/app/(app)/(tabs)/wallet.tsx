@@ -63,6 +63,7 @@ const WITHDRAWAL_STATUS: Record<string, { label: string; tone: ChipTone }> = {
 const EARNING_TITLE: Record<string, string> = {
   submission_approved: 'Site payout',
   referral_bonus: 'From your invites',
+  creator_override: '5% team commission',
   lead_bonus: 'Lead bonus',
 };
 

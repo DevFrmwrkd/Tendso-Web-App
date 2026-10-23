@@ -7,6 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useNetwork } from '../../providers/NetworkProvider';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
+import { AffiliateRecruits } from '../../components/affiliate/Recruits';
 import { colors, space } from '../../theme/v2';
 import {
   Avatar,
@@ -150,7 +151,11 @@ export default function ReferralsScreen() {
         </View>
       </Card>
 
-      {/* Counts */}
+      {isAffiliate && portal ? <AffiliateRecruits portal={portal} /> : null}
+
+      {isAffiliate && people.length > 0 ? <SectionLabel>Earlier ₱1,000 referrals</SectionLabel> : null}
+      {/* Earlier bonuses are not counted as new 5% recruits. */}
+      {!isAffiliate || people.length > 0 ? <>
       <View style={styles.counts}>
         <Count label="Invited" value={String(stats?.total ?? 0)} />
         <Count label="Qualified" value={String(qualifiedCount)} />
@@ -159,7 +164,7 @@ export default function ReferralsScreen() {
 
       {/* People */}
       <View style={styles.section}>
-        <SectionLabel>People you invited</SectionLabel>
+        <SectionLabel>{isAffiliate ? 'Earlier invitations' : 'People you invited'}</SectionLabel>
         {people.length === 0 ? (
           <Card style={styles.empty}>
             <Text variant="heading">No one yet</Text>
@@ -196,6 +201,7 @@ export default function ReferralsScreen() {
           </Card>
         )}
       </View>
+      </> : null}
 
       {/* How it works */}
       <View style={styles.section}>

@@ -169,6 +169,18 @@ describe("WalletScreen", () => {
     expect(getByText("No earnings yet")).toBeTruthy();
   });
 
+  it("identifies team commission credits separately from earlier referral bonuses", () => {
+    const earnings = [
+      { _id: "team", type: "creator_override", amount: 250, createdAt: Date.now() },
+      { _id: "bonus", type: "referral_bonus", amount: 1000, createdAt: Date.now() },
+    ];
+    setupQueries(mockCreator, earnings);
+    const view = render(<WalletScreen />);
+    expect(view.getByText("5% team commission")).toBeTruthy();
+    expect(view.getByText("From your invites")).toBeTruthy();
+    expect(view.getByText("+₱250")).toBeTruthy();
+  });
+
   it("shows empty state when no withdrawals", () => {
     setupQueries(mockCreator, mockEarnings, []);
     const { getByText } = render(<WalletScreen />);

@@ -9,6 +9,7 @@ import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, AffiliateLoading, type AffiliateAccessProps } from './Screen';
 import { DEFAULT_CODE_DISCOUNT, DEFAULT_CODE_KEEP, DEFAULT_CODE_PRICE, RECRUIT_SHARE_PERCENT, type AffiliatePortal, samplePortal } from './model';
 import { CopyButton } from './ShareTools';
+import { AffiliateRecruits } from './Recruits';
 
 export function AffiliateHomeScreen() {
   return <AffiliateAccess>{(props) => props.isPreview ? <HomeContent {...props} portal={samplePortal} /> : <LiveHome {...props} />}</AffiliateAccess>;
@@ -78,15 +79,16 @@ export function HomeContent({ account, isPreview, isOffline, portal }: Affiliate
       <Text variant="label" tone="muted">{`They enter it when they sign up in the app. Creators cannot be referred. Invites already pending keep the ${formatPHP(REFERRAL_BONUS)} bonus.`}</Text>
     </Card>
 
-    {portal === undefined ? <AffiliateLoading inline label="Loading invited field agents" /> : <View style={styles.list}>
-      <SectionLabel>{`Field agents invited · ${portal.referralStats.total}`}</SectionLabel>
-      {portal.referrals.length === 0
-        ? <Text variant="body" tone="muted">Field agents appear here after they sign up with your code.</Text>
-        : <Card style={styles.rows}>{portal.referrals.map((row, index) => {
+    {portal === undefined ? <AffiliateLoading inline label="Loading invited field agents" /> : <>
+      <AffiliateRecruits portal={portal} />
+      {portal.referrals.length > 0 ? <View style={styles.list}>
+        <SectionLabel>{`Earlier ₱1,000 referrals · ${portal.referralStats.total}`}</SectionLabel>
+        <Card style={styles.rows}>{portal.referrals.map((row, index) => {
           const info = referralLine(row);
           return <ListRow key={row._id} leading={<Avatar name={row.referredName} size={48} />} title={row.referredName} subtitle={info.line} trailing={<Chip label={info.chip} tone={info.tone} />} divider={index < portal.referrals.length - 1} />;
-        })}</Card>}
-    </View>}
+        })}</Card>
+      </View> : null}
+    </>}
   </AffiliateFrame>;
 }
 

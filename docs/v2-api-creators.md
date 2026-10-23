@@ -87,9 +87,15 @@ Live check while the person types.
 
 ### `creatorProgram.getCreatorByCode` (query, public)
 
-- Args: `{ code: string }` — a code (`MIKA30`, any case) or a handle (`mika` / `@mika`).
+- Args: `{ code: string }` — a referral code (`MIKA30`, any case). Handles and codes have separate namespaces.
 - Returns: `CreatorCard | null`.
 - Use it for "Mika's code: you save ₱1,500" at owner checkout and "Join Mika's team" at agent sign-up. To charge the discounted price, owner checkout keeps passing `affiliateHandle: card.handle` to the existing `ownerIntake.submitOwnerIntake`.
+
+### `creatorProgram.getCreatorByHandle` (query, public)
+
+- Args: `{ handle: string }` — a page handle (`mika` / `@mika`, any case).
+- Returns: `CreatorCard | null`, with the same active-account and clamped-price rules.
+- Use this for `/a/<handle>` and `/a/<handle>/earn`, including existing affiliates whose generated referral code differs from their handle. It never falls back to another account's referral code.
 
 ---
 
@@ -178,6 +184,16 @@ For the app's first open (iOS: Apple passes nothing through the App Store).
   - Writes one `earnings` row `{ type: "creator_override", status: "available", amount, creatorId: <creator>, submissionId }` per submission, adds to `balance` and `totalEarnings`, and sends a notification. Returns `{ credited: true, amount }` or `{ credited: false, reason }`.
 
 ---
+
+The existing `/affiliates/dashboard` and mobile affiliate screens also expose
+both programs through `affiliates.portal`. Its `referrals` and `referralStats`
+fields keep their legacy bonus meaning. Additive `recruits` rows contain
+`{ _id, referredName, createdAt, endsAt, earning, totalEarned }`, and
+`recruitStats` contains `{ total, earning, totalEarned }` for recurring team
+commissions. Recruits never appear as pending ₱1,000 bonuses. Earnings history
+includes `creator_override` rows; the normal wallet and withdrawal flow pays
+these too. This response contains only the signed-in affiliate's team, without
+agents' contact details. Earlier referral bonuses are not migrated or reset.
 
 ## 4. Creator portal — `creatorPortal.summary` (query, active or suspended creator)
 

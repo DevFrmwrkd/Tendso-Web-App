@@ -12,7 +12,7 @@ import { colors, space } from '../../../theme/v2';
 
 export default function Pay() {
   const router = useRouter();
-  const { id } = useOwnerSite();
+  const { id, site } = useOwnerSite();
   const pay = usePaymentState(id);
 
   if (pay === undefined) {
@@ -27,6 +27,7 @@ export default function Pay() {
 
   const method = (kind: string, amount: number) =>
     router.push({ pathname: '/(owner)/pay/method', params: { kind, amount: String(amount) } } as never);
+  const isLive = site?.phase === 'live' || !!site?.publishedUrl;
 
   if (pay.canPayBalance) {
     return (
@@ -43,8 +44,8 @@ export default function Pay() {
 
   return (
     <ScreenShell
-      title="Publish your site"
-      subtitle="See it first. Pay once to publish."
+      title={isLive ? 'Pay for your site' : 'Publish your site'}
+      subtitle={isLive ? 'Your site is already live. Pay once.' : 'See it first. Pay once to publish.'}
       onBack={() => router.back()}
       footer={
         <>

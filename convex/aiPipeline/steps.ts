@@ -144,7 +144,7 @@ export function makeDeps(ctx: ActionCtx, run: Doc<'aiPipelineRuns'>): PipelineDe
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 websiteContent: plain(built.websiteContent) as any,
             });
-            if (!saved.saved) throw new PipelineError('the run ended while the site was building', 'stale', false);
+            if (!saved.saved) throw new PipelineError('the run ended or another site was built while this site was building', 'stale', false);
             return { templateName: built.templateName, htmlStorageId: String(htmlStorageId) };
         },
     };
