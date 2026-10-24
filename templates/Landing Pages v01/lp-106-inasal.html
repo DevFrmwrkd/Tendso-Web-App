@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inasal sa Uling — charcoal-grilled chicken inasal, unli rice & sinamak, the Bacolod way in Bacolod City</title>
+<meta name="description" content="Inasal sa Uling is a chicken inasal house in Bacolod City, Negros Occidental — chicken marinated in lemongrass, calamansi and annatto, grilled over coconut coals and basted with annatto oil, served with garlic rice, sinamak vinegar and chicken oil. Since 2009." />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Inasal sa Uling", phone: "+63 34 555 0119", phoneDisplay: "(034) 555 0119", email: "kaon@inasalsauling.ph", foundedYear: 2009 },
+  hero: {
+    kicker: "Chicken inasal · charcoal-grilled · unli rice · Bacolod City, Negros",
+    headline: "Grilled over coals, brushed with annatto, eaten with your hands.",
+    lede: "A chicken inasal house in Bacolod, the city that made inasal famous — chicken marinated overnight in lemongrass, calamansi, vinegar and annatto, skewered and grilled over glowing coconut coals, basted with annatto oil until the skin turns amber. Served with garlic rice, a saucer of chicken oil, and sinamak to spike it. Kaon na — come and eat.",
+    primaryCta: { label: "Order or dine in", href: "#book" },
+    secondaryCta: { label: "The inasal", href: "#services" },
+    image: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Skewered chicken grilling over glowing charcoal."
+  },
+  trust: { years: "Grilling over coals since 2009" },
+  about: {
+    heading: "The secret is the baste. Annatto oil, over the coals, again and again.",
+    paragraphs: [
+      "Inasal sa Uling is a chicken inasal house in Bacolod City, and inasal is Bacolod's gift to the Filipino table — chicken marinated and grilled over charcoal in a way that belongs to Negros the way lechon belongs to Cebu. 'Inasal' means grilled, and 'sa uling' means over charcoal, which is the whole point: not roasted, not fried, but grilled over glowing coconut coals so the marinade caramelises and the skin turns amber and smoky.",
+      "We opened in 2009 doing one thing properly. Every piece — the pecho breast, the paa leg, the pak-pak wing, and the prized parts like isol, atay and baticolon — is marinated overnight in a blend of lemongrass, calamansi, vinegar, garlic, ginger and annatto, then skewered on bamboo and grilled over coals while we baste it with annatto oil, over and over, until it glows. That basting is the secret, and it's why inasal looks and tastes like nothing else off a grill.",
+      "It comes the way it should: with garlic rice, a little saucer of chicken oil to pour over, sinamak — spiced coconut vinegar — to dip and spike it, and your hands, because inasal is kamayan food. Unli rice keeps everyone full. We grill for dine-in, for take-out, and for parties by the tray. Bacolod is the City of Smiles, and there's a reason half of them happen over a plate of inasal."
+    ],
+    portrait: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Grilling over an open charcoal fire."
+  },
+  services: [
+    { name: "Chicken inasal, by the part", description: "Order it your way: pecho (breast), paa (leg quarter), pak-pak (wing) — all marinated overnight and grilled over coals with the annatto baste. Served with rice, chicken oil and sinamak. The whole reason we exist." },
+    { name: "Inasal specials — isol, atay & more", description: "The parts the regulars fight over: isol (chicken tail), atay (liver), baticolon (gizzard) and pak-pak — grilled on skewers, smoky and rich. Order a plate of specials for the table and thank us later." },
+    { name: "Unli rice & chicken oil", description: "Garlic rice with unlimited refills and the little saucer of golden chicken oil that makes inasal what it is — pour it over the rice, mix in sinamak, and understand why Bacolodnons never tire of it." },
+    { name: "Take-out & by the tray", description: "Inasal packed hot for the road, or grilled by the tray for fiestas, offices and family gatherings — with rice, chicken oil and sinamak on the side. Order ahead and we'll have the coals going." },
+    { name: "Negrense sides", description: "Kansi soup, chicken inasal soup, grilled isaw and the day's Negrense sides to round out the meal — plus batchoy when we've got it, because you're in the province that knows soup." },
+    { name: "Party & catering grills", description: "We bring the inasal to your celebration — trays of grilled chicken and specials, rice, sinamak and chicken oil, scaled to the headcount and delivered hot around Bacolod. Book early for fiesta season." }
+  ],
+  why: [
+    { title: "Grilled over coconut coals.", body: "Real uling — glowing coconut charcoal — not gas, not an oven. That's where the smoke, the char and the caramelised marinade come from. It's the difference between inasal and plain grilled chicken." },
+    { title: "The annatto baste, over and over.", body: "We brush the chicken with annatto oil again and again as it grills, which is why the skin glows amber and tastes of far more than chicken. Skip the baste and it isn't inasal — so we never do." },
+    { title: "Marinated overnight, never rushed.", body: "Lemongrass, calamansi, vinegar, garlic and ginger, worked into the chicken overnight so the flavour is in the meat before it ever hits the coals. You can't fake that with a quick soak." }
+  ],
+  how: [
+    { step: "01", title: "Pick your parts", body: "Pecho, paa, pak-pak, or a plate of specials — isol, atay, baticolon. Tell us how many are eating and how hungry. Unli rice comes with it, so come with an appetite." },
+    { step: "02", title: "We grill to order", body: "Your chicken goes on the coals fresh, basted with annatto oil until it glows amber and smoky. It takes a few minutes — grilled properly, not sitting under a lamp — so it's worth the short wait." },
+    { step: "03", title: "Dress it your way", body: "Pour the chicken oil over your rice, mix in sinamak to taste, squeeze calamansi, and eat with your hands — kamayan. That's not a gimmick; it's how inasal is meant to be enjoyed." },
+    { step: "04", title: "Take a tray home", body: "Feeding a crowd or a party? Order by the tray with rice, chicken oil and sinamak, dine-in or delivered hot around Bacolod. Message us a day ahead for big orders and fiesta dates." }
+  ],
+  testimonials: [
+    { quote: "I'm Bacolodnon and I've eaten inasal my whole life, so believe me: this is the real thing. The baste is generous, the isol is grilled just right, and the chicken oil on unli rice is dangerous. Better than the chains, honestly, and it tastes like home. Kaon na, everyone.", name: "Rhea T.", context: "regular, Bacolod" },
+    { quote: "Stopped here on a Negros trip on a local's recommendation and it ruined chain inasal for me forever. Smoky, amber, juicy, and the sinamak had a proper kick. We ordered a second round of pecho we were so happy. This is why you eat where the locals eat.", name: "Daniel & Faye", context: "visitors from Manila" },
+    { quote: "Ordered five trays for our office fiesta and it was the best decision I made all year. Delivered hot, the specials were a huge hit, and the chicken oil and sinamak came perfectly packed. Everyone asked where it was from. Our new go-to for every celebration.", name: "Grace M.", context: "office fiesta catering" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600&q=85&auto=format&fit=crop", alt: "Skewered chicken grilling over charcoal." },
+    { src: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop", alt: "Grilling over an open charcoal fire." },
+    { src: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop", alt: "Grilled chicken plated with rice." },
+    { src: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=1600&q=85&auto=format&fit=crop", alt: "Charcoal grill with skewers." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "A plate of grilled food with rice." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A table set for a meal at dusk." }
+  ],
+  faq: [
+    { q: "What makes Bacolod chicken inasal different from other grilled chicken?", a: "Two things, mainly: the marinade and the baste. Inasal is not simply grilled chicken — it's chicken marinated in a distinctly Negrense blend of lemongrass (tanglad), calamansi, vinegar, garlic, ginger and, crucially, annatto (achuete), then grilled over charcoal while being basted repeatedly with annatto-infused oil. That basting is what gives inasal its signature amber-orange colour and its rich, savoury, faintly tangy flavour that goes well beyond ordinary grilled chicken. It's cooked over live coconut charcoal, which adds smoke and char you can't get from gas or an oven. And it's traditionally served with garlic rice, a saucer of chicken oil to pour over, and sinamak (spiced coconut vinegar) for dipping — the whole combination is the experience. Bacolod is considered the home of inasal, and while it's now found all over the country, eating it here, grilled to order over real uling, is a different thing entirely from the frozen, reheated version." },
+    { q: "What is sinamak and chicken oil, and how do I use them?", a: "They're the two things that turn good inasal into a proper Bacolod meal, and locals have strong feelings about both. Chicken oil is the golden, annatto-tinted oil rendered and infused during grilling — you pour it over your garlic rice, and it carries all the smoky, savoury flavour of the grill into every grain. Sinamak is a spiced native vinegar, usually coconut vinegar steeped with siling labuyo (bird's-eye chili), garlic, ginger and sometimes labuyo leaves — sharp, garlicky and hot, used as a dip for the chicken and to cut through the richness. The classic move is to mix a little chicken oil into your rice, dip your inasal in sinamak, and alternate bites; some people spoon sinamak straight onto the rice too. There's no wrong way, but if you've never had inasal 'dressed' properly, ask us and we'll show you — it's the difference between eating grilled chicken and eating inasal." },
+    { q: "Should I really eat inasal with my hands?", a: "Yes, if you want the full experience — inasal is classic kamayan food, meaning eaten with clean hands rather than cutlery, and there's a real reason beyond tradition. Eating with your hands lets you get right into the chicken around the bone, mix your rice with chicken oil and sinamak the way you like it, and simply enjoy it more directly; many Bacolodnons will tell you inasal just tastes better eaten this way. We provide everything you need to do it comfortably and cleanly, and of course cutlery is always there for anyone who prefers it — there's absolutely no pressure. But if you're up for it, wash up, dig in with your hands, and eat the way inasal has been enjoyed here for generations. It's relaxed, communal and part of the fun, especially over unli rice with friends and family around the table." },
+    { q: "What are the inasal 'specials' like isol and atay?", a: "The specials are the grilled chicken parts beyond the usual breast and leg, and for a lot of regulars they're the best part of the whole meal. Isol is the chicken tail — fatty, rich and incredibly flavourful when grilled over coals with the annatto baste, and often the first thing to sell out. Atay is chicken liver, skewered and grilled until just done, savoury and a little creamy. Baticolon is the gizzard, chewy in the good way and deeply savoury. Pak-pak (wings) are also a favourite for the crispy, well-basted skin. These are all grilled on bamboo skewers and are cheap, punchy and perfect with an ice-cold drink and rice. If you're new to inasal, order a plate of mixed specials for the table alongside your pecho or paa — it's the easiest way to understand why Negrenses take their inasal so seriously. Do come a little early or order ahead, because the isol especially goes fast." },
+    { q: "Can you cater a party or grill by the tray?", a: "Yes — party trays and catering are a big part of what we do, because inasal is celebration food and a fixture at Bacolod fiestas, birthdays and office gatherings. We grill by the tray, mixing parts and specials however you like, and pack rice, chicken oil and sinamak on the side so everything arrives ready to dress and eat. We can deliver hot around Bacolod or have trays ready for pick-up, and for bigger events we can talk through quantities so nobody goes hungry and you're not left with too much. We ask for at least a day's notice for trays, and more during fiesta season, Christmas and other peak dates when the grill is busy, so we can marinate properly overnight and grill fresh rather than rushing. Tell us the headcount, the date and the mix of parts you'd like — or let us suggest a spread — and we'll sort a fair price. Nothing makes an office party disappear faster than a tray of good inasal." },
+    { q: "Do you use real charcoal, and is it grilled fresh?", a: "Yes on both counts — 'sa uling' literally means 'over charcoal,' and we wouldn't call ourselves that if we cut the corner. We grill over live coconut charcoal, which burns hot and clean and gives inasal its essential smoke and char, and we grill to order rather than pre-cooking batches to sit under a lamp. That means when it's busy there's sometimes a short wait for your chicken, and we'd honestly rather you wait a few minutes for inasal grilled fresh and basted properly than hand you something reheated. The marinating happens the night before — that can't be rushed — but the actual grilling and basting is done fresh for your order. If you're in a hurry, tell us and we'll be straight with you about timing, and for take-out and trays, ordering ahead means it's grilled to your pick-up or delivery time and travels at its best. Real coals, fresh grill, generous baste — that's the whole promise." }
+  ],
+  area: { places: ["Bacolod City", "Talisay", "Silay", "Bago", "Negros Occidental", "Delivery & catering"] },
+  credentials: [
+    { label: "Since 2009", detail: "A chicken inasal house in Bacolod" },
+    { label: "Over coconut coals", detail: "Grilled sa uling, basted with annatto oil" },
+    { label: "Marinated overnight", detail: "Lemongrass, calamansi, vinegar & achuete" },
+    { label: "Unli rice", detail: "With chicken oil & sinamak, kamayan-style" }
+  ],
+  location: { name: "Inasal sa Uling", addressStreet: "21 Lacson Street, Mandalagan", addressLocality: "Bacolod City", addressRegion: "Negros Occidental", addressPostcode: "6100", addressCountry: "Philippines" },
+  cta: { heading: "Kaon na. The coals are ready.", body: "Chicken inasal marinated overnight and grilled over coconut coals with the annatto baste, unli garlic rice, chicken oil and sinamak — dine-in, take-out or by the tray for the party. Grilling in Bacolod since 2009.", primary: { label: "Order or dine in", href: "#book" }, secondary: { label: "(034) 555 0119", href: "tel:+63345550119" } },
+  messaging: { whatsapp: "https://wa.me/63345550119", messenger: "https://m.me/inasalsauling" }
+};
+</script>
+
+<style>
+  :root {
+    --char:#1a120b; --char-2:#241811; --cream:#f7ecd6; --annatto:#d8641f; --ember:#e0a52a; --lime:#7a8f3c;
+    --mid:#8a7a63; --mid-d:#cbb692; --rule-d:rgba(247,236,214,0.16);
+    --disp:"Anton",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--char);color:var(--cream);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--ember);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ember);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6vw,88px);line-height:0.92;margin:0 0 0.3em;letter-spacing:0.005em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--annatto);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--annatto);color:var(--cream);} .btn-primary:hover{background:var(--ember);color:var(--char);}
+  .btn-ghost{border:1.5px solid rgba(247,236,214,0.4);color:var(--cream);} .btn-ghost:hover{background:var(--cream);color:var(--char);border-color:var(--cream);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(26,18,11,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:27px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--annatto);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7.6vw,116px);line-height:0.86;letter-spacing:0.004em;text-transform:uppercase;margin:0 0 34px;max-width:16ch;}
+  .hero-headline .em{color:var(--annatto);}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--ember);color:transparent;}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;}
+  .hero-photo::after{content:"SA ULING · SINCE 2009";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.14em;background:var(--annatto);color:var(--cream);padding:7px 12px;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--ember);color:var(--char);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(26,18,11,0.82);font-weight:700;}
+
+  .about{background:var(--cream);color:var(--char);}
+  .about .h2{color:var(--char);} .about .h2 em{color:var(--annatto);}
+  .about .sw-head{color:var(--mid);border-color:rgba(26,18,11,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#4a3826;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(247,236,214,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(216,100,31,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(26px,2.8vw,38px);margin:0;line-height:0.96;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--cream);color:var(--char);}
+  .why .sw-head{color:var(--mid);border-color:rgba(26,18,11,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--annatto);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:30px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#4a3826;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule-d);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:25px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--char-2);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(30px,4vw,58px);line-height:1.0;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--annatto);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--annatto);color:var(--cream);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.08;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--ember);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(247,236,214,0.3);border-radius:2px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.12;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--cream);color:var(--char);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#4a3826;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(26,18,11,0.16);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid rgba(247,236,214,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(160deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--annatto);color:var(--cream);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7vw,118px);line-height:0.88;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--cream);color:transparent;}
+  .cta-band p{color:rgba(247,236,214,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--annatto);} .cta-band .btn-primary:hover{background:var(--ember);color:var(--char);}
+  .cta-band .btn-ghost{border-color:rgba(247,236,214,0.6);color:var(--cream);} .cta-band .btn-ghost:hover{background:var(--cream);color:var(--annatto);}
+
+  footer{background:var(--char);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ember);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--annatto);color:var(--cream);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,100,31,0.4);}
+  .msg-fab a:hover{background:var(--cream);color:var(--char);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Inasal sa Uling","description":"Chicken inasal house in Bacolod City, Negros Occidental — chicken marinated in lemongrass, calamansi and annatto, grilled over coconut coals and basted with annatto oil, served with garlic rice, chicken oil and sinamak. Since 2009.","servesCuisine":"Filipino","url":"https://inasalsauling.ph/","telephone":"+63345550119","email":"kaon@inasalsauling.ph","address":{"@type":"PostalAddress","streetAddress":"21 Lacson Street, Mandalagan","addressLocality":"Bacolod City","addressRegion":"Negros Occidental","postalCode":"6100","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":10.6770,"longitude":122.9540},"areaServed":["Bacolod City","Talisay","Silay","Bago"],"image":["https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600"],"foundingDate":"2009"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What makes Bacolod chicken inasal different?","acceptedAnswer":{"@type":"Answer","text":"The marinade and the baste. Inasal is chicken marinated in lemongrass, calamansi, vinegar, garlic, ginger and annatto, then grilled over charcoal while basted repeatedly with annatto oil — giving its amber colour and rich, tangy flavour. Cooked over live coconut charcoal for smoke and char, and served with garlic rice, chicken oil and sinamak. Bacolod is the home of inasal, and eating it grilled to order over real uling is a different thing from the reheated version."}},
+{"@type":"Question","name":"What is sinamak and chicken oil?","acceptedAnswer":{"@type":"Answer","text":"Chicken oil is the golden annatto-tinted oil rendered during grilling — pour it over garlic rice for the grill's smoky flavour. Sinamak is spiced coconut vinegar steeped with chili, garlic and ginger — sharp and hot, used to dip the chicken and cut the richness. Mix chicken oil into your rice, dip your inasal in sinamak, and alternate bites. Ask us and we'll show you how to dress it properly."}},
+{"@type":"Question","name":"Should I eat inasal with my hands?","acceptedAnswer":{"@type":"Answer","text":"Yes for the full experience — inasal is classic kamayan (hand-eating) food. It lets you get into the chicken around the bone and mix rice with chicken oil and sinamak your way, and many Bacolodnons say it tastes better. We provide everything to do it cleanly, and cutlery is always there for anyone who prefers it. No pressure — but if you're up for it, dig in."}},
+{"@type":"Question","name":"What are the inasal specials like isol and atay?","acceptedAnswer":{"@type":"Answer","text":"The grilled parts beyond breast and leg — often the best part. Isol is the fatty, flavourful chicken tail (first to sell out); atay is grilled liver, savoury and creamy; baticolon is gizzard, chewy and savoury; pak-pak are well-basted wings. All grilled on skewers, cheap and punchy with rice and a cold drink. New to inasal? Order a plate of mixed specials for the table — and come early, the isol goes fast."}},
+{"@type":"Question","name":"Can you cater a party or grill by the tray?","acceptedAnswer":{"@type":"Answer","text":"Yes — trays mixing parts and specials however you like, with rice, chicken oil and sinamak packed on the side, delivered hot around Bacolod or ready for pick-up. We ask for at least a day's notice, more during fiesta season, so we can marinate overnight and grill fresh. Tell us the headcount, date and mix of parts, or let us suggest a spread, and we'll sort a fair price."}},
+{"@type":"Question","name":"Do you use real charcoal, and is it grilled fresh?","acceptedAnswer":{"@type":"Answer","text":"Yes — 'sa uling' means 'over charcoal.' We grill over live coconut charcoal and grill to order rather than pre-cooking batches to sit under a lamp, so there's sometimes a short wait when busy — better than reheated. Marinating happens the night before; the grilling and basting are done fresh for your order. For take-out and trays, ordering ahead means it's grilled to your pick-up or delivery time."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Inasal sa <span>Uling</span></a>
+    <nav class="nav-links">
+      <a href="#about">The inasal</a><a href="#services">What we grill</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Chicken inasal · charcoal-grilled · unli rice · Bacolod City, Negros</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Grilled over <span class="out">coals,</span> brushed with annatto, eaten with your <span class="em">hands.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=2000&q=85&auto=format&fit=crop"
+             alt="Skewered chicken grilling over glowing charcoal." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A chicken inasal house in Bacolod, the city that made inasal famous — chicken marinated overnight in lemongrass, calamansi, vinegar and annatto, skewered and grilled over glowing coconut coals, basted with annatto oil until the skin turns amber. Served with garlic rice, a saucer of chicken oil, and sinamak to spike it. Kaon na — come and eat.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or dine in</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The inasal</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Grilling over coals since 2009</span>
+    <span>Marinated overnight</span>
+    <span>Basted with annatto oil</span>
+    <span>Unli rice · chicken oil · sinamak</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 01 / THE INASAL</span><span>BACOLOD, THE HOME OF IT</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The secret is the baste. Annatto oil, over the coals, again and <em>again.</em></h2>
+        <p>Inasal sa Uling is a chicken inasal house in Bacolod City, and inasal is Bacolod's gift to the Filipino table — chicken marinated and grilled over charcoal in a way that belongs to Negros the way lechon belongs to Cebu. "Inasal" means grilled, and "sa uling" means over charcoal, which is the whole point: not roasted, not fried, but grilled over glowing coconut coals so the marinade caramelises and the skin turns amber and smoky.</p>
+        <p>We opened in 2009 doing one thing properly. Every piece — the pecho breast, the paa leg, the pak-pak wing, and the prized parts like isol, atay and baticolon — is marinated overnight in a blend of lemongrass, calamansi, vinegar, garlic, ginger and annatto, then skewered on bamboo and grilled over coals while we baste it with annatto oil, over and over, until it glows. That basting is the secret, and it's why inasal looks and tastes like nothing else off a grill.</p>
+        <p>It comes the way it should: with garlic rice, a little saucer of chicken oil to pour over, sinamak — spiced coconut vinegar — to dip and spike it, and your hands, because inasal is kamayan food. Unli rice keeps everyone full. We grill for dine-in, for take-out, and for parties by the tray. Bacolod is the City of Smiles, and there's a reason half of them happen over a plate of inasal.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1200&q=85&auto=format&fit=crop"
+           alt="Grilling over an open charcoal fire." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--char);">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 02 / WHAT WE GRILL</span><span>PECHO · PAA · SPECIALS · TRAYS</span></div>
+    <h2 class="h2">What we grill.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Chicken inasal</h3><p>Order it your way: pecho (breast), paa (leg), pak-pak (wing) — marinated overnight and grilled over coals with the annatto baste. With rice, chicken oil and sinamak. The whole reason we exist.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Specials — isol &amp; atay</h3><p>The parts the regulars fight over: isol (tail), atay (liver), baticolon (gizzard) and pak-pak — grilled on skewers, smoky and rich. Order a plate of specials for the table and thank us later.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Unli rice &amp; chicken oil</h3><p>Garlic rice with unlimited refills and the little saucer of golden chicken oil that makes inasal what it is — pour it over the rice, mix in sinamak, and understand why we never tire of it.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Take-out &amp; by the tray</h3><p>Inasal packed hot for the road, or grilled by the tray for fiestas, offices and family gatherings — with rice, chicken oil and sinamak on the side. Order ahead and we'll have the coals going.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Negrense sides</h3><p>Kansi soup, chicken inasal soup, grilled isaw and the day's Negrense sides to round out the meal — plus batchoy when we've got it, because you're in the province that knows soup.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Party &amp; catering grills</h3><p>We bring the inasal to your celebration — trays of grilled chicken and specials, rice, sinamak and chicken oil, scaled to the headcount and delivered hot around Bacolod. Book early for fiesta season.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 03 / THE DIFFERENCE</span><span>WHY IT GLOWS</span></div>
+    <h2 class="h2">Why it glows.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Over coconut coals.</h3><p>Real uling — glowing coconut charcoal — not gas, not an oven. That's where the smoke, the char and the caramelised marinade come from. The difference between inasal and plain grilled chicken.</p></div>
+      <div><span class="no">02 / 03</span><h3>The annatto baste.</h3><p>We brush the chicken with annatto oil again and again as it grills, which is why the skin glows amber and tastes of far more than chicken. Skip the baste and it isn't inasal — so we never do.</p></div>
+      <div><span class="no">03 / 03</span><h3>Marinated overnight.</h3><p>Lemongrass, calamansi, vinegar, garlic and ginger, worked into the chicken overnight so the flavour is in the meat before it hits the coals. You can't fake that with a quick soak.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 04 / HOW IT GOES</span><span>PICK · GRILL · DRESS · TAKE HOME</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Pick your parts</h3><p>Pecho, paa, pak-pak, or a plate of specials — isol, atay, baticolon. Tell us how many are eating and how hungry. Unli rice comes with it, so come with an appetite.</p></li>
+      <li><span class="step">STEP 02</span><h3>We grill to order</h3><p>Your chicken goes on the coals fresh, basted with annatto oil until it glows amber and smoky. It takes a few minutes — grilled properly, not under a lamp — so it's worth the short wait.</p></li>
+      <li><span class="step">STEP 03</span><h3>Dress it your way</h3><p>Pour the chicken oil over your rice, mix in sinamak to taste, squeeze calamansi, and eat with your hands — kamayan. That's not a gimmick; it's how inasal is meant to be enjoyed.</p></li>
+      <li><span class="step">STEP 04</span><h3>Take a tray home</h3><p>Feeding a crowd or a party? Order by the tray with rice, chicken oil and sinamak, dine-in or delivered hot around Bacolod. Message us a day ahead for big orders and fiesta dates.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 05 / FROM THE TABLE</span><span>KAON NA, EVERYONE</span></div>
+    <blockquote class="t-quote">“The chicken oil on unli rice is dangerous. Better than the chains, honestly, and it tastes like home. <em>Kaon na, everyone.</em>”</blockquote>
+    <div class="t-attr">Rhea T. — regular, Bacolod</div>
+    <div class="t-sub">
+      <figure><blockquote>“Stopped here on a Negros trip on a local's recommendation and it ruined chain inasal for me forever. Smoky, amber, juicy, and the sinamak had a proper kick. We ordered a second round of pecho we were so happy. This is why you eat where the locals eat.”</blockquote><figcaption>Daniel &amp; Faye — visitors from Manila</figcaption></figure>
+      <figure><blockquote>“Ordered five trays for our office fiesta and it was the best decision I made all year. Delivered hot, the specials were a huge hit, and the chicken oil and sinamak came perfectly packed. Everyone asked where it was from. Our new go-to for every celebration.”</blockquote><figcaption>Grace M. — office fiesta catering</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(26,18,11,0.16);"><span>PLATE 06 / OFF THE GRILL</span><span>SMOKE, CHAR &amp; AMBER</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600&q=85&auto=format&fit=crop" alt="Skewered chicken grilling over charcoal." /><figcaption>THE GRILL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop" alt="Grilling over an open charcoal fire." /><figcaption>THE COALS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop" alt="Grilled chicken plated with rice." /><figcaption>THE PLATE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=1600&q=85&auto=format&fit=crop" alt="Charcoal grill with skewers." /><figcaption>THE SKEWERS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="A plate of grilled food with rice." /><figcaption>THE MEAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A table set for a meal at dusk." /><figcaption>THE TABLE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 07 / BEFORE YOU ORDER</span><span>BASTE, SINAMAK &amp; SPECIALS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you order.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63345550119" style="color:var(--ember);font-weight:700;">(034) 555 0119</a>. Tell us the headcount and the date and we'll fire up the coals.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What makes Bacolod chicken inasal different?</summary><p>Two things, mainly: the marinade and the baste. Inasal is not simply grilled chicken — it's chicken marinated in a distinctly Negrense blend of lemongrass (tanglad), calamansi, vinegar, garlic, ginger and, crucially, annatto (achuete), then grilled over charcoal while being basted repeatedly with annatto-infused oil. That basting is what gives inasal its signature amber-orange colour and its rich, savoury, faintly tangy flavour that goes well beyond ordinary grilled chicken. It's cooked over live coconut charcoal, which adds smoke and char you can't get from gas or an oven. And it's traditionally served with garlic rice, a saucer of chicken oil, and sinamak for dipping. Bacolod is considered the home of inasal, and eating it here, grilled to order over real uling, is a different thing entirely from the frozen, reheated version.</p></details>
+        <details><summary>What is sinamak and chicken oil, and how do I use them?</summary><p>They're the two things that turn good inasal into a proper Bacolod meal. Chicken oil is the golden, annatto-tinted oil rendered and infused during grilling — you pour it over your garlic rice, and it carries all the smoky, savoury flavour of the grill into every grain. Sinamak is a spiced native vinegar, usually coconut vinegar steeped with siling labuyo, garlic and ginger — sharp, garlicky and hot, used as a dip for the chicken and to cut through the richness. The classic move is to mix a little chicken oil into your rice, dip your inasal in sinamak, and alternate bites. There's no wrong way, but if you've never had inasal 'dressed' properly, ask us and we'll show you — it's the difference between eating grilled chicken and eating inasal.</p></details>
+        <details><summary>Should I really eat inasal with my hands?</summary><p>Yes, if you want the full experience — inasal is classic kamayan food, eaten with clean hands rather than cutlery, and there's a real reason beyond tradition. Eating with your hands lets you get right into the chicken around the bone, mix your rice with chicken oil and sinamak the way you like it, and enjoy it more directly; many Bacolodnons will tell you inasal just tastes better this way. We provide everything you need to do it comfortably and cleanly, and of course cutlery is always there for anyone who prefers it — no pressure at all. But if you're up for it, wash up, dig in with your hands, and eat the way inasal has been enjoyed here for generations.</p></details>
+        <details><summary>What are the inasal 'specials' like isol and atay?</summary><p>The specials are the grilled chicken parts beyond the usual breast and leg, and for a lot of regulars they're the best part of the meal. Isol is the chicken tail — fatty, rich and incredibly flavourful grilled over coals with the annatto baste, and often the first to sell out. Atay is chicken liver, skewered and grilled until just done, savoury and a little creamy. Baticolon is the gizzard, chewy in the good way. Pak-pak (wings) are a favourite for the crispy, well-basted skin. These are all grilled on bamboo skewers and are cheap, punchy and perfect with an ice-cold drink and rice. If you're new to inasal, order a plate of mixed specials for the table — and come a little early, because the isol especially goes fast.</p></details>
+        <details><summary>Can you cater a party or grill by the tray?</summary><p>Yes — party trays and catering are a big part of what we do, because inasal is celebration food and a fixture at Bacolod fiestas, birthdays and office gatherings. We grill by the tray, mixing parts and specials however you like, and pack rice, chicken oil and sinamak on the side so everything arrives ready to dress and eat. We can deliver hot around Bacolod or have trays ready for pick-up, and for bigger events we can talk through quantities. We ask for at least a day's notice for trays, and more during fiesta season and Christmas, so we can marinate properly overnight and grill fresh. Tell us the headcount, the date and the mix of parts — or let us suggest a spread — and we'll sort a fair price.</p></details>
+        <details><summary>Do you use real charcoal, and is it grilled fresh?</summary><p>Yes on both counts — 'sa uling' literally means 'over charcoal,' and we wouldn't call ourselves that if we cut the corner. We grill over live coconut charcoal, which burns hot and clean and gives inasal its essential smoke and char, and we grill to order rather than pre-cooking batches to sit under a lamp. That means when it's busy there's sometimes a short wait, and we'd honestly rather you wait a few minutes for inasal grilled fresh and basted properly than hand you something reheated. The marinating happens the night before — that can't be rushed — but the actual grilling and basting is done fresh for your order. For take-out and trays, ordering ahead means it's grilled to your pick-up or delivery time and travels at its best.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 08 / WE GRILL FOR</span><span>NEGROS OCCIDENTAL</span></div>
+    <ul class="area-list">
+      <li>Bacolod City</li><li>Talisay</li><li>Silay</li><li>Bago</li><li>Negros Occidental</li><li>Delivery &amp; catering</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 09 / THE ESSENTIALS</span><span>HOW WE GRILL</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2009</div><div class="detail">A chicken inasal house in Bacolod</div></div>
+      <div><div class="label">Over coconut coals</div><div class="detail">Grilled sa uling, basted with annatto oil</div></div>
+      <div><div class="label">Marinated overnight</div><div class="detail">Lemongrass, calamansi, vinegar &amp; achuete</div></div>
+      <div><div class="label">Unli rice</div><div class="detail">With chicken oil &amp; sinamak, kamayan-style</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 10 / THE GRILL HOUSE</span><span>LACSON ST, BACOLOD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Inasal sa Uling</strong><br />
+          21 Lacson Street, Mandalagan<br />
+          Bacolod City 6100<br /><br />
+          <a href="tel:+63345550119" data-bind="business.phoneDisplay">(034) 555 0119</a><br />
+          <a href="mailto:kaon@inasalsauling.ph" data-bind="business.email">kaon@inasalsauling.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>10AM – 10PM</span></div>
+          <div class="row"><span>SPECIALS</span><span>WHILE THEY LAST</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Lacson Street in Mandalagan — follow the smoke off the grill. Dine-in, take-out, or delivered hot around Bacolod.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Inasal sa Uling, Bacolod" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=122.9390%2C10.6670%2C122.9690%2C10.6870&layer=mapnik&marker=10.6770%2C122.9540"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">PLATE 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Kaon na. The coals are <em>ready.</em></h2>
+    <p data-bind="cta.body">Chicken inasal marinated overnight and grilled over coconut coals with the annatto baste, unli garlic rice, chicken oil and sinamak — dine-in, take-out or by the tray for the party. Grilling in Bacolod since 2009.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or dine in</a>
+      <a class="btn btn-ghost" href="tel:+63345550119" data-bind="cta.secondary.label">(034) 555 0119</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63345550119" data-bind="messaging.whatsapp" aria-label="Message the grill house">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Inasal sa <span style="color:var(--annatto);">Uling</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A chicken inasal house in Bacolod — grilled over coconut coals with the annatto baste, since 2009. Kaon na.</p>
+      </div>
+      <div>
+        <h4>The grill house</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          21 Lacson Street, Mandalagan<br />Bacolod City 6100<br />
+          <a href="tel:+63345550119">(034) 555 0119</a><br />
+          <a href="mailto:kaon@inasalsauling.ph">kaon@inasalsauling.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we grill</a><a href="#about">The inasal</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> INASAL SA ULING</span>
+      <span>GRILLED OVER COALS · BACOLOD</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

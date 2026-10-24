@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Thread &amp; Chalk — bespoke tailor in Glasgow's Merchant City</title>
+<meta name="description" content="Thread &amp; Chalk is a bespoke tailor in Glasgow's Merchant City — a suit cut by hand from your own paper pattern, fitted over three sittings, and built to outlast the occasion you bought it for." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Thread & Chalk", phone: "+44 141 552 7080", phoneDisplay: "0141 552 7080", email: "fittings@threadandchalk.co.uk", foundedYear: 2013 },
+  hero: {
+    kicker: "Bespoke tailor · cut by hand · Merchant City, Glasgow",
+    headline: "A pattern cut for one body. Yours.",
+    lede: "Not made-to-measure from a size chart with the seams let out. Bespoke: your own paper pattern, drafted from twenty-odd measurements, cut by hand, fitted over three sittings, and kept on the rack with your name on it so the next one takes half the time.",
+    primaryCta: { label: "Book a first fitting", href: "#book" },
+    secondaryCta: { label: "How bespoke works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Tailor chalking a pattern on cloth at the cutting table."
+  },
+  trust: { years: "Cutting since 2013" },
+  about: {
+    heading: "Paper first. Cloth second.",
+    paragraphs: [
+      "Every Thread & Chalk garment begins as a paper pattern, drafted by hand from your measurements and your posture — the dropped shoulder, the longer left arm, the way you actually stand rather than the way a mannequin does. That pattern is yours forever. It hangs in the pattern room with your name on the corner.",
+      "There are two cutters and one machinist, and the person who takes your measurements is the person who drafts your pattern. Nothing is outsourced to a factory in the small print. The canvas is floating and sewn, not glued; a glued chest is how a jacket dies in five years and we won't be party to it.",
+      "We make suits, jackets, overcoats and the occasional wildly specific waistcoat. We will talk you out of a fashionable lapel and into one you'll still respect in a decade. That conversation is included."
+    ],
+    portrait: "https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Hand-stitching a jacket lapel at the bench."
+  },
+  services: [
+    { name: "The bespoke suit", description: "Your own pattern, floating canvas, three fittings minimum. Twelve to sixteen weeks. The one every other garment is measured against." },
+    { name: "Jackets & overcoats", description: "Sports coats, blazers, and winter coats with the weight and the pockets a Glasgow winter actually requires. Same pattern, half the ceremony." },
+    { name: "The second suit", description: "Once your pattern exists, the next garment skips the drafting. Faster, and the fit only improves as the pattern learns you." },
+    { name: "Wedding parties", description: "Groom bespoke, party made-to-measure off a shared cloth, everyone fitted and delivered on a timeline that survives a wedding. We've never missed one." },
+    { name: "Alterations & resurrection", description: "We'll refit a suit that fitted the old you, rescue a charity-shop find worth rescuing, and honestly tell you when something isn't worth the labour." },
+    { name: "Cloth consultation", description: "The bunch books are the fun part — mills we trust, weights that suit the climate, and a firm hand steering you off anything you'll regret in photos." }
+  ],
+  why: [
+    { title: "Your pattern, kept for life.", body: "Drafted by hand, filed under your name, reused for every future garment. Bespoke means the pattern exists; if it doesn't, it isn't bespoke, whatever the label says." },
+    { title: "Floating canvas, always.", body: "The chest is stitched, not fused. It moulds to you, breathes, and survives the dry cleaner. A glued jacket bubbles and dies; ours are built to be re-lined, not replaced." },
+    { title: "The measurer is the cutter.", body: "One pair of hands from tape to shears. Nothing lost in translation to a factory, because there is no factory — just the bench you're standing at." }
+  ],
+  how: [
+    { step: "01", title: "Measure & draft", body: "An hour of measuring, posture and cloth. We draft your paper pattern from it — the document the whole suit descends from." },
+    { step: "02", title: "The baste fitting", body: "You try the suit half-made, tacked in white thread. We rip and re-cut at this stage; that's what it's for. Bring honesty about how it feels." },
+    { step: "03", title: "The forward fitting", body: "Closer now, real stitching, fine adjustments to balance and length. Usually the last time we take a shear to it." },
+    { step: "04", title: "Finish & collect", body: "Hand-finished buttonholes, your choice of lining, pressed and delivered. Your pattern goes on the rack for next time." }
+  ],
+  testimonials: [
+    { quote: "I owned expensive suits before this. I didn't own one that fit until Thread & Chalk. The difference isn't the cloth — it's that the jacket moves when I do instead of fighting me.", name: "Andrew C.", context: "first bespoke suit, navy hopsack" },
+    { quote: "They talked me out of the lapel I wanted and into the one I needed. Three years on I've looked at the wedding photos a hundred times and thanked them silently each time.", name: "Rory M.", context: "wedding party of six" },
+    { quote: "My father's overcoat, recut to fit me. Anyone else would have said buy a new one. They rebuilt the shoulders and gave me back twenty years of a coat I'd have lost.", name: "James H.", context: "resurrection, inherited coat" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600&q=85&auto=format&fit=crop", alt: "Chalking the pattern on cloth." },
+    { src: "https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=1600&q=85&auto=format&fit=crop", alt: "Hand-stitching a lapel." },
+    { src: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1600&q=85&auto=format&fit=crop", alt: "A finished suit on the form." },
+    { src: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1600&q=85&auto=format&fit=crop", alt: "A rail of cloth in the workroom." },
+    { src: "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?w=1600&q=85&auto=format&fit=crop", alt: "Shears and tape on the cutting table." },
+    { src: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1600&q=85&auto=format&fit=crop", alt: "Sleeve and button detail." }
+  ],
+  faq: [
+    { q: "What's the difference between bespoke and made-to-measure?", a: "Made-to-measure adjusts a block pattern to your dimensions. Bespoke drafts a pattern from scratch, for you, then cuts and fits it over several sittings. Bespoke costs more and fits better, and the gap widens every year the garment is worn. If a shop can't show you a paper pattern with your name on it, it's made-to-measure." },
+    { q: "How long does a suit take?", a: "Twelve to sixteen weeks for a first bespoke suit, across three fittings. Your second suit is faster because the pattern already exists. Weddings we plan backwards from the date and have never been late — ask us how tight is too tight before you panic." },
+    { q: "What does it cost?", a: "Cloth and complexity set the price, so it's a conversation, not a sticker. What we'll promise: the quote is fixed once the cloth is chosen, and nothing is added later. Bring a budget and we'll build the best suit inside it, honestly." },
+    { q: "Can I bring my own cloth?", a: "Yes, though we'll assess it first — some cloth is lovely and unsuitable, and it's kinder to say so before we cut. Our bunch books cover mills we trust, but a length you've carried home from a trip has a story we're glad to build into a jacket." },
+    { q: "Do you make for women?", a: "Yes. Bespoke tailoring for women is some of our favourite work and there's far too little of it done well. Same process, same floating canvas, same pattern kept for life." },
+    { q: "What if I lose or gain weight?", a: "Small changes we alter — that's what the inlays are for; we leave cloth in the seams precisely so a suit can follow you a size in either direction. Big changes mean a new pattern, but the old one stays on file in case you return to it. Bodies move; good tailoring expects it." }
+  ],
+  area: { places: ["Merchant City", "West End", "Southside", "Edinburgh", "Stirling", "further by appointment"] },
+  credentials: [
+    { label: "Canvas", detail: "Floating, hand-padded chest — never fused" },
+    { label: "Pattern", detail: "Individually drafted, kept on file for life" },
+    { label: "Cloth", detail: "British & Italian mills, bunch books on site" },
+    { label: "Made here", detail: "Cut & sewn in the Merchant City workroom" }
+  ],
+  location: { name: "Thread & Chalk", addressStreet: "12 Wilson Street", addressLocality: "Glasgow", addressRegion: "Merchant City", addressPostcode: "G1 1SS", addressCountry: "United Kingdom" },
+  cta: { heading: "A suit that moves when you do.", body: "Book a first fitting. An hour of measuring, a bunch book, and the start of a pattern that's yours for life.", primary: { label: "Book a first fitting", href: "#book" }, secondary: { label: "0141 552 7080", href: "tel:+441415527080" } },
+  messaging: { whatsapp: "https://wa.me/441415527080", messenger: "https://m.me/threadandchalk" }
+};
+</script>
+
+<style>
+  :root {
+    --chalk:#efe9df; --charcoal:#211f1d; --claret:#7a2233; --stone:#c9bfae;
+    --ink:#1a1917; --mid:#6f675b; --mid-d:#a99f8f; --rule:rgba(33,31,29,0.16); --rule-d:rgba(239,233,223,0.16);
+    --disp:"Fraunces",serif; --sans:"Archivo",system-ui,sans-serif; --mono:"Spline Sans Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--chalk);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--claret);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--claret);}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(32px,4.6vw,62px);line-height:1.02;margin:0 0 0.5em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13.5px;letter-spacing:0.02em;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--charcoal);color:var(--chalk);} .btn-primary:hover{background:var(--claret);}
+  .btn-ghost{border:1.5px solid var(--charcoal);} .btn-ghost:hover{background:var(--charcoal);color:var(--chalk);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--charcoal);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(239,233,223,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--charcoal);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-size:20px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm em{font-style:italic;color:var(--claret);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — cutting-table split with chalk measurement callouts */
+  .hero{padding:clamp(50px,7vw,98px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7vw,104px);line-height:0.94;letter-spacing:-0.025em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--claret);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.72;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .callout{position:absolute;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--chalk);background:rgba(33,31,29,0.82);padding:5px 9px;white-space:nowrap;}
+  .callout.a{top:14%;left:-10px;} .callout.b{top:46%;right:-10px;} .callout.c{bottom:16%;left:-10px;}
+  .callout::before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--claret);top:50%;transform:translateY(-50%);}
+  .callout.a::before,.callout.c::before{right:-9px;} .callout.b::before{left:-9px;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .callout{display:none;}}
+
+  .trust{padding:0;background:var(--charcoal);color:var(--stone);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(201,191,174,0.85);}
+
+  .about{background:var(--charcoal);color:var(--chalk);}
+  .about .h2{color:var(--chalk);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.75;margin:0 0 1em;color:var(--mid-d);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — pattern-piece ledger rows */
+  .svc-rows{border-top:1.5px solid var(--charcoal);}
+  .svc-row{display:grid;grid-template-columns:96px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(122,34,51,0.05);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--claret);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(21px,2.2vw,28px);margin:0;line-height:1.12;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--claret);color:var(--chalk);}
+  .why .h2{color:var(--chalk);}
+  .why .idx-head{border-color:rgba(239,233,223,0.4);color:rgba(239,233,223,0.7);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--stone);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:23px;margin:0 0 10px;line-height:1.14;}
+  .why-grid p{color:rgba(239,233,223,0.88);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--charcoal);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--claret);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--charcoal);color:var(--chalk);}
+  .testimonials .idx-head{border-color:rgba(239,233,223,0.4);color:rgba(239,233,223,0.7);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(23px,3vw,40px);line-height:1.22;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — swatch grid */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:saturate(0.92);transition:0.25s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;border-top:1px solid var(--rule);padding-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--charcoal);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--claret);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--charcoal);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--charcoal);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--claret);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-size:16px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--charcoal);color:var(--chalk);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--charcoal);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.35);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--claret);color:var(--chalk);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--stone);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(36px,5.4vw,80px);line-height:0.98;margin:16px auto 18px;max-width:16ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;}
+  .cta-band p{color:rgba(239,233,223,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--chalk);color:var(--charcoal);}
+  .cta-band .btn-primary:hover{background:var(--charcoal);color:var(--chalk);}
+  .cta-band .btn-ghost{border-color:rgba(239,233,223,0.6);color:var(--chalk);}
+  .cta-band .btn-ghost:hover{background:var(--chalk);color:var(--claret);}
+
+  footer{background:var(--chalk);border-top:1.5px solid var(--charcoal);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--claret);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--chalk);padding:13px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(33,31,29,0.3);}
+  .msg-fab a:hover{background:var(--claret);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ClothingStore","name":"Thread & Chalk","description":"Bespoke tailor in Glasgow's Merchant City — hand-cut suits from an individual paper pattern, fitted over three sittings.","url":"https://threadandchalk.co.uk/","telephone":"+441415527080","email":"fittings@threadandchalk.co.uk","address":{"@type":"PostalAddress","streetAddress":"12 Wilson Street","addressLocality":"Glasgow","addressRegion":"Glasgow City","postalCode":"G1 1SS","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":55.8583,"longitude":-4.2470},"areaServed":["Glasgow","Merchant City","Edinburgh","Stirling"],"image":["https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600"],"foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between bespoke and made-to-measure?","acceptedAnswer":{"@type":"Answer","text":"Made-to-measure adjusts a block pattern; bespoke drafts a pattern from scratch and fits it over several sittings. If there's no paper pattern with your name on it, it's made-to-measure."}},
+{"@type":"Question","name":"How long does a suit take?","acceptedAnswer":{"@type":"Answer","text":"Twelve to sixteen weeks for a first bespoke suit across three fittings; the second is faster because the pattern exists."}},
+{"@type":"Question","name":"What does it cost?","acceptedAnswer":{"@type":"Answer","text":"Cloth and complexity set the price. The quote is fixed once the cloth is chosen, with nothing added later."}},
+{"@type":"Question","name":"Can I bring my own cloth?","acceptedAnswer":{"@type":"Answer","text":"Yes, though we'll assess it first — some cloth is lovely and unsuitable, and it's kinder to say so before we cut."}},
+{"@type":"Question","name":"Do you make for women?","acceptedAnswer":{"@type":"Answer","text":"Yes — same process, same floating canvas, same pattern kept for life."}},
+{"@type":"Question","name":"What if I lose or gain weight?","acceptedAnswer":{"@type":"Answer","text":"Small changes we alter using the seam inlays; big changes mean a new pattern, but the old one stays on file."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Thread <em>&amp;</em> Chalk</a>
+    <nav class="nav-links">
+      <a href="#about">The workroom</a><a href="#services">Bespoke</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v48">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Bespoke tailor · cut by hand · Merchant City, Glasgow</div>
+      <h1 data-comment-anchor="hero-headline">A pattern cut for <em>one body.</em> Yours.</h1>
+      <p class="lede" data-bind="hero.lede">Not made-to-measure from a size chart with the seams let out. Bespoke: your own paper pattern, drafted from twenty-odd measurements, cut by hand, fitted over three sittings, and kept on the rack with your name on it so the next one takes half the time.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a first fitting</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How bespoke works</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=2000&q=85&auto=format&fit=crop"
+           alt="Tailor chalking a pattern on cloth at the cutting table." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <span class="callout a">SHOULDER · 18¼"</span>
+      <span class="callout b">CHEST · 41"</span>
+      <span class="callout c">SLEEVE · 25½" L / 25¾" R</span>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Cutting since 2013</span>
+    <span>Floating canvas, never fused</span>
+    <span>Your pattern kept for life</span>
+    <span>Cut &amp; sewn on site</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v14">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 01 / THE WORKROOM</span><span>PAPER FIRST, CLOTH SECOND</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=1200&q=85&auto=format&fit=crop"
+           alt="Hand-stitching a jacket lapel at the bench." />
+      <div class="about-prose">
+        <h2 class="h2">Paper first. <em>Cloth second.</em></h2>
+        <p>Every Thread &amp; Chalk garment begins as a paper pattern, drafted by hand from your measurements and your posture — the dropped shoulder, the longer left arm, the way you actually stand rather than the way a mannequin does. That pattern is yours forever. It hangs in the pattern room with your name on the corner.</p>
+        <p>There are two cutters and one machinist, and the person who takes your measurements is the person who drafts your pattern. Nothing is outsourced to a factory in the small print. The canvas is floating and sewn, not glued; a glued chest is how a jacket dies in five years and we won't be party to it.</p>
+        <p>We make suits, jackets, overcoats and the occasional wildly specific waistcoat. We will talk you out of a fashionable lapel and into one you'll still respect in a decade. That conversation is included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v41">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 02 / THE WORK</span><span>FROM THE ORDER BOOK</span></div>
+    <h2 class="h2">The order book.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Piece 01</span><h3>The bespoke suit</h3><p>Your own pattern, floating canvas, three fittings minimum. Twelve to sixteen weeks. The one every other garment is measured against.</p></div>
+      <div class="svc-row"><span class="no">Piece 02</span><h3>Jackets &amp; overcoats</h3><p>Sports coats, blazers, and winter coats with the weight and the pockets a Glasgow winter actually requires. Same pattern, half the ceremony.</p></div>
+      <div class="svc-row"><span class="no">Piece 03</span><h3>The second suit</h3><p>Once your pattern exists, the next garment skips the drafting. Faster, and the fit only improves as the pattern learns you.</p></div>
+      <div class="svc-row"><span class="no">Piece 04</span><h3>Wedding parties</h3><p>Groom bespoke, party made-to-measure off a shared cloth, everyone fitted and delivered on a timeline that survives a wedding. We've never missed one.</p></div>
+      <div class="svc-row"><span class="no">Piece 05</span><h3>Alterations &amp; resurrection</h3><p>We'll refit a suit that fitted the old you, rescue a charity-shop find worth rescuing, and honestly tell you when something isn't worth the labour.</p></div>
+      <div class="svc-row"><span class="no">Piece 06</span><h3>Cloth consultation</h3><p>The bunch books are the fun part — mills we trust, weights that suit the climate, and a firm hand steering you off anything you'll regret in photos.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v13">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 03 / STANDARDS</span><span>NON-NEGOTIABLE, ALL THREE</span></div>
+    <h2 class="h2">What makes it bespoke.</h2>
+    <div class="why-grid">
+      <div><span class="no">STD 1/3</span><h3>Your pattern, kept for life.</h3><p>Drafted by hand, filed under your name, reused for every future garment. Bespoke means the pattern exists; if it doesn't, it isn't bespoke, whatever the label says.</p></div>
+      <div><span class="no">STD 2/3</span><h3>Floating canvas, always.</h3><p>The chest is stitched, not fused. It moulds to you, breathes, and survives the dry cleaner. A glued jacket bubbles and dies; ours are built to be re-lined, not replaced.</p></div>
+      <div><span class="no">STD 3/3</span><h3>The measurer is the cutter.</h3><p>One pair of hands from tape to shears. Nothing lost in translation to a factory, because there is no factory — just the bench you're standing at.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 04 / THE PROCESS</span><span>MEASURE → BASTE → FORWARD → FINISH</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Sitting 01</span><h3>Measure &amp; draft</h3><p>An hour of measuring, posture and cloth. We draft your paper pattern from it — the document the whole suit descends from.</p></li>
+      <li><span class="step">Sitting 02</span><h3>The baste fitting</h3><p>You try the suit half-made, tacked in white thread. We rip and re-cut at this stage; that's what it's for. Bring honesty about how it feels.</p></li>
+      <li><span class="step">Sitting 03</span><h3>The forward fitting</h3><p>Closer now, real stitching, fine adjustments to balance and length. Usually the last time we take a shear to it.</p></li>
+      <li><span class="step">Sitting 04</span><h3>Finish &amp; collect</h3><p>Hand-finished buttonholes, your choice of lining, pressed and delivered. Your pattern goes on the rack for next time.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v13">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 05 / CLIENTS</span><span>COLLECTED AT THE FINAL FITTING</span></div>
+    <blockquote class="t-quote">“The difference isn't the cloth — it's that the jacket moves when I do instead of fighting me.”</blockquote>
+    <div class="t-attr">Andrew C. — first bespoke suit, navy hopsack</div>
+    <div class="t-sub">
+      <figure><blockquote>“They talked me out of the lapel I wanted and into the one I needed. Three years on I've looked at the wedding photos a hundred times and thanked them silently each time.”</blockquote><figcaption>Rory M. — wedding party of six</figcaption></figure>
+      <figure><blockquote>“My father's overcoat, recut to fit me. Anyone else would have said buy a new one. They rebuilt the shoulders and gave me back twenty years of a coat I'd have lost.”</blockquote><figcaption>James H. — resurrection, inherited coat</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v41">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 06 / THE BENCH</span><span>CHALK, CLOTH, SHEARS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600&q=85&auto=format&fit=crop" alt="Chalking the pattern on cloth." /><figcaption>THE CHALK LINE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=1600&q=85&auto=format&fit=crop" alt="Hand-stitching a lapel." /><figcaption>PADDING THE LAPEL, BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1600&q=85&auto=format&fit=crop" alt="A finished suit on the form." /><figcaption>FINISHED, ON THE FORM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=1600&q=85&auto=format&fit=crop" alt="A rail of cloth in the workroom." /><figcaption>THE CLOTH RAIL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?w=1600&q=85&auto=format&fit=crop" alt="Shears and tape on the table." /><figcaption>SHEARS &amp; TAPE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1600&q=85&auto=format&fit=crop" alt="Sleeve and button detail." /><figcaption>WORKING CUFF, FOUR BUTTONS</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 07 / ASKED AT THE FIRST FITTING</span><span>TAPE STILL AROUND THE NECK</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the <em>first fitting.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441415527080" style="color:var(--claret);">0141 552 7080</a>. If we're mid-baste, we'll call back once the pins are out.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between bespoke and made-to-measure?</summary><p>Made-to-measure adjusts a block pattern to your dimensions. Bespoke drafts a pattern from scratch, for you, then cuts and fits it over several sittings. Bespoke costs more and fits better, and the gap widens every year the garment is worn. If a shop can't show you a paper pattern with your name on it, it's made-to-measure.</p></details>
+        <details><summary>How long does a suit take?</summary><p>Twelve to sixteen weeks for a first bespoke suit, across three fittings. Your second suit is faster because the pattern already exists. Weddings we plan backwards from the date and have never been late — ask us how tight is too tight before you panic.</p></details>
+        <details><summary>What does it cost?</summary><p>Cloth and complexity set the price, so it's a conversation, not a sticker. What we'll promise: the quote is fixed once the cloth is chosen, and nothing is added later. Bring a budget and we'll build the best suit inside it, honestly.</p></details>
+        <details><summary>Can I bring my own cloth?</summary><p>Yes, though we'll assess it first — some cloth is lovely and unsuitable, and it's kinder to say so before we cut. Our bunch books cover mills we trust, but a length you've carried home from a trip has a story we're glad to build into a jacket.</p></details>
+        <details><summary>Do you make for women?</summary><p>Yes. Bespoke tailoring for women is some of our favourite work and there's far too little of it done well. Same process, same floating canvas, same pattern kept for life.</p></details>
+        <details><summary>What if I lose or gain weight?</summary><p>Small changes we alter — that's what the inlays are for; we leave cloth in the seams precisely so a suit can follow you a size in either direction. Big changes mean a new pattern, but the old one stays on file in case you return to it. Bodies move; good tailoring expects it.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 08 / CLIENTS TRAVEL FROM</span><span>GLASGOW &amp; THE CENTRAL BELT</span></div>
+    <ul class="area-list">
+      <li>Merchant City</li><li>West End</li><li>Southside</li><li>Edinburgh</li><li>Stirling</li><li>Further by appointment</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 09 / THE MAKING</span><span>HOW IT'S BUILT</span></div>
+    <div class="creds">
+      <div><div class="label">Canvas</div><div class="detail">Floating, hand-padded chest — never fused</div></div>
+      <div><div class="label">Pattern</div><div class="detail">Individually drafted, kept on file for life</div></div>
+      <div><div class="label">Cloth</div><div class="detail">British &amp; Italian mills, bunch books on site</div></div>
+      <div><div class="label">Made here</div><div class="detail">Cut &amp; sewn in the Merchant City workroom</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>PATTERN 10 / FIND US</span><span>12 WILSON STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Thread &amp; Chalk</strong><br />
+          12 Wilson Street<br />
+          Merchant City, Glasgow G1 1SS<br /><br />
+          <a href="tel:+441415527080" data-bind="business.phoneDisplay">0141 552 7080</a><br />
+          <a href="mailto:fittings@threadandchalk.co.uk" data-bind="business.email">fittings@threadandchalk.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>BY APPOINTMENT</span></div>
+          <div class="row"><span>FITTINGS</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">Fittings are booked, not walk-in — the workroom is quiet on purpose. Live hours on our Google Business Profile. First floor, above the old bank; the brass plate says the rest.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Thread &amp; Chalk, Wilson Street, Glasgow" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-4.2560%2C55.8550%2C-4.2380%2C55.8620&layer=mapnik&marker=55.8583%2C-4.2470"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v16">
+  <div class="wrap">
+    <div class="kick">PATTERN 11 / BOOK</div>
+    <h2 data-bind="cta.heading">A suit that moves <em>when you do.</em></h2>
+    <p data-bind="cta.body">Book a first fitting. An hour of measuring, a bunch book, and the start of a pattern that's yours for life.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a first fitting</a>
+      <a class="btn btn-ghost" href="tel:+441415527080" data-bind="cta.secondary.label">0141 552 7080</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441415527080" data-bind="messaging.whatsapp" aria-label="Message the workroom">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">Thread <em style="color:var(--claret);">&amp;</em> Chalk</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A bespoke tailor in Glasgow's Merchant City. Cutting by hand since 2013.</p>
+      </div>
+      <div>
+        <h4>The workroom</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          12 Wilson Street<br />Glasgow G1 1SS<br />
+          <a href="tel:+441415527080">0141 552 7080</a><br />
+          <a href="mailto:fittings@threadandchalk.co.uk">fittings@threadandchalk.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Bespoke</a><a href="#about">The workroom</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THREAD &amp; CHALK LTD</span>
+      <span>CUT ONCE · WORN FOR DECADES</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ursa Chocolate — bean-to-bar chocolatier in Oxford's Jericho</title>
+<meta name="description" content="Ursa is a bean-to-bar chocolate maker in Jericho, Oxford. Single-origin bars roasted and stone-ground on site, fresh bonbons on Fridays, and tastings that ruin supermarket chocolate forever." />
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Anonymous+Pro:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ursa Chocolate", phone: "+44 1865 552 384", phoneDisplay: "01865 552 384", email: "hello@ursachocolate.co.uk", foundedYear: 2018 },
+  hero: {
+    kicker: "Bean-to-bar · roasted & stone-ground on site · Jericho, Oxford",
+    headline: "Chocolate with a passport, made behind that window.",
+    lede: "Every bar starts as sacks of cacao from farms we can name and visit — roasted, cracked, winnowed and stone-ground for three days in the back of this shop. Two ingredients, single origins, and a flavour range supermarket chocolate has quietly trained you to forget exists.",
+    primaryCta: { label: "The bar library", href: "#services" },
+    secondaryCta: { label: "Book a tasting", href: "#book" },
+    image: "https://images.unsplash.com/photo-1511381939415-e44015466834?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Dark chocolate bars broken into shards."
+  },
+  trust: { years: "Grinding in Jericho since 2018" },
+  about: {
+    heading: "Two ingredients. Three days. One window.",
+    paragraphs: [
+      "Ursa exists because of one bar of Madagascan chocolate eaten in 2016 that tasted of raspberries despite containing none. Chasing that flavour led to a roaster, a vintage winnower rebuilt from Dutch scrap, two granite melangers named Castor and Pollux, and eventually this shop.",
+      "Bean-to-bar means exactly that: sacks arrive, bars leave, everything happens in between the two — behind the big window, where you can watch. Most of our bars are two ingredients, cacao and sugar. The flavour differences between origins do the rest, and they are not subtle.",
+      "The bonbon counter runs Fridays and Saturdays, made fresh that week and gone by Sunday. We refuse to ship them; a bonbon that can survive the post isn't a bonbon worth eating."
+    ],
+    portrait: "https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Chocolate being tempered on a marble slab."
+  },
+  services: [
+    { name: "Single-origin bars", description: "Eight origins on the shelf, roasted and ground here. Each label carries the farm, harvest year and our tasting notes — argue with them, that's the fun." },
+    { name: "The Friday bonbon counter", description: "Twelve flavours, made Wednesday, sold from Friday, gone by Sunday. Never shipped, never stockpiled, occasionally fought over." },
+    { name: "Tastings & pairings", description: "Ninety minutes, six origins, one revelation about what chocolate actually tastes like. Occasional whisky and cheese collaborations." },
+    { name: "The chocolate subscription", description: "Two bars a month — one from the shelf, one experimental batch that may never exist again. With roasting notes, posted UK-wide." },
+    { name: "Drinking chocolate", description: "Ground from the same origins, mixed to order at the counter. The Ecuadorian with oat milk has its own small cult." },
+    { name: "Weddings & commissions", description: "Favours, dessert-course bars and one memorable request for a chocolate portrait of a labrador. We'll talk about anything except white chocolate with glitter." }
+  ],
+  why: [
+    { title: "We make it. Actually.", body: "Not melted, not remoulded, not 'crafted' from someone else's couverture. Sacks of cacao arrive; bars leave. The window shows the whole process because there's nothing to hide." },
+    { title: "Origins you can taste.", body: "Madagascar tastes of red fruit, Vietnam of honey and spice, Ecuador of flowers. Same recipe, wildly different bars. That's the entire argument for doing this properly." },
+    { title: "Freshness is an ingredient.", body: "Bonbons live a week and we sell them that way. Bars are stamped with their grind date. Chocolate is produce, not confectionery with a two-year shelf life." }
+  ],
+  how: [
+    { step: "01", title: "Taste at the counter", body: "Every bar on the shelf is open for tasting. Start with two origins side by side — the difference does the selling." },
+    { step: "02", title: "Watch it made", body: "The window runs Tuesday to Friday: roasting Tuesdays, grinding midweek, tempering and moulding Thursdays." },
+    { step: "03", title: "Take bars home", body: "Wrapped in paper, stamped with grind date and origin. Store them like wine, not like sweets — cool, dark, never the fridge." },
+    { step: "04", title: "Come back opinionated", body: "Regulars argue origin rankings like football. The Madagascar-versus-Vietnam debate has run three years and shows no sign of settling." }
+  ],
+  testimonials: [
+    { quote: "I did the tasting as a sceptic — chocolate is chocolate, I thought. Six origins later I was holding a shard of Madagascan going 'RASPBERRIES. WHY IS IT RASPBERRIES.' They see this reaction weekly, apparently.", name: "Fiona C.", context: "tasting convert, now subscriber" },
+    { quote: "The Friday bonbon queue is Jericho's best social club. You stand in line, you defend your flavour choices, you leave with a box you said you'd share and won't.", name: "Ben A.", context: "Friday counter regular" },
+    { quote: "They made our wedding favours — one bar per guest, origin chosen per table. People still mention them two years later. Nobody mentions the cake.", name: "Priya & Tom", context: "wedding commission, 2024" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1511381939415-e44015466834?w=1600&q=85&auto=format&fit=crop", alt: "Bars broken for tasting." },
+    { src: "https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1600&q=85&auto=format&fit=crop", alt: "Tempering on the marble slab." },
+    { src: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=1600&q=85&auto=format&fit=crop", alt: "Cacao beans after roasting." },
+    { src: "https://images.unsplash.com/photo-1548907040-4baa42d10919?w=1600&q=85&auto=format&fit=crop", alt: "Friday's bonbons, briefly." },
+    { src: "https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=1600&q=85&auto=format&fit=crop", alt: "The melangers, mid-grind." },
+    { src: "https://images.unsplash.com/photo-1542843137-8791a6904d14?w=1600&q=85&auto=format&fit=crop", alt: "Drinking chocolate, made to order." }
+  ],
+  faq: [
+    { q: "Why does your chocolate cost more than supermarket chocolate?", a: "Because we pay farmers three to four times the commodity rate for cacao worth naming, then spend three days making it into chocolate. A bar costs about the same as two coffees and lasts considerably longer, unless it doesn't." },
+    { q: "What does 'bean-to-bar' actually mean?", a: "That we make chocolate from raw cacao, not melt down someone else's. Roasting, cracking, winnowing, grinding, conching, tempering — all of it happens behind the window. Most 'artisan chocolate' skips all of that; ask any maker where their sacks are." },
+    { q: "Which bar should I start with?", a: "Come taste and we'll find out together. The general pattern: fruit people land on Madagascar, caramel people on Venezuela, and people who claim not to like dark chocolate get the Ecuador 70% and go quiet." },
+    { q: "Why won't you ship bonbons?", a: "Fresh cream ganache lives about a week and hates temperature swings. A bonbon engineered to survive the post is engineered away from being good. Bars ship happily; bonbons are a reason to visit Jericho." },
+    { q: "Do you have vegan and dairy-free bars?", a: "Most of the shelf already is — dark bars are cacao and sugar, nothing else. The oat-milk bars are properly creamy, and Friday's counter always has vegan bonbons, labelled and unpatronising." },
+    { q: "Can I see it being made?", a: "The window runs whenever the machines do — roasting Tuesdays, grinding midweek, moulding Thursdays. Tastings go behind the scenes properly, melangers and all. Children ask the best questions; bring them." }
+  ],
+  area: { places: ["Jericho", "City centre", "Summertown", "Cowley Road", "Headington", "Botley"] },
+  credentials: [
+    { label: "Sourcing", detail: "Direct-trade cacao, farm named on every bar" },
+    { label: "Made here", detail: "Roasted, ground & tempered on site" },
+    { label: "Hygiene", detail: "Food hygiene rating 5, inspected" },
+    { label: "Fresh", detail: "Grind date stamped on every wrapper" }
+  ],
+  location: { name: "Ursa Chocolate", addressStreet: "23 Walton Street", addressLocality: "Jericho, Oxford", addressRegion: "Oxfordshire", addressPostcode: "OX2 6AA", addressCountry: "United Kingdom" },
+  cta: { heading: "Come taste what chocolate's been hiding.", body: "Two origins, side by side, at the counter. Thirty seconds. That's all it takes.", primary: { label: "Visit the shop", href: "#location" }, secondary: { label: "01865 552 384", href: "tel:+441865552384" } },
+  messaging: { whatsapp: "https://wa.me/441865552384", messenger: "https://m.me/ursachocolate" }
+};
+</script>
+
+<style>
+  :root {
+    --cocoa:#2e1f1a; --cream:#f8f1e8; --husk:#efe2d2; --rose:#d98a7e;
+    --foil:#c98d3c; --mid:#8a7568; --mid-light:#c4ac9d; --rule:rgba(46,31,26,0.15);
+    --display:"Prata",serif;
+    --sans:"Hanken Grotesk",system-ui,sans-serif;
+    --mono:"Anonymous Pro",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--cocoa);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--rose);}
+  .wrap{width:min(1180px,92vw);margin-inline:auto;}
+  .origin{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rose);font-weight:700;}
+  .h2{font-family:var(--display);font-size:clamp(29px,4vw,50px);line-height:1.14;margin:0 0 0.5em;font-weight:400;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(70px,9vw,120px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 28px;font-family:var(--sans);font-weight:600;font-size:14px;text-decoration:none;transition:0.18s;letter-spacing:0.01em;}
+  .btn-primary{background:var(--cocoa);color:var(--cream);} .btn-primary:hover{background:var(--rose);color:var(--cocoa);}
+  .btn-ghost{border:1.5px solid var(--cocoa);} .btn-ghost:hover{background:var(--cocoa);color:var(--cream);}
+  .wrapper-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--cocoa);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,56px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(248,241,232,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--cocoa);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-size:19px;text-decoration:none;}
+  .wm span{color:var(--rose);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — bar-wrapper composition: photo segmented like a chocolate bar */
+  .hero{padding:clamp(52px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.4vw,58px);line-height:1.1;margin:20px 0 22px;}
+  .hero h1 em{font-style:italic;color:var(--rose);}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.74;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-bar{position:relative;}
+  .hero-bar .squares{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;aspect-ratio:4/5;}
+  .hero-bar .squares div{overflow:hidden;background:var(--cocoa);}
+  .hero-bar .squares img{width:200%;height:200%;object-fit:cover;max-width:none;}
+  .hero-bar .squares div:nth-child(2) img{transform:translateX(-50%);}
+  .hero-bar .squares div:nth-child(3) img{transform:translateY(-50%);}
+  .hero-bar .squares div:nth-child(4) img{transform:translate(-50%,-50%);}
+  .bar-label{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);background:var(--cocoa);color:var(--cream);padding:12px 26px;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;white-space:nowrap;font-weight:700;}
+  .bar-label b{color:var(--rose);font-weight:700;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--cocoa);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(248,241,232,0.75);font-weight:700;}
+
+  .about{background:var(--husk);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.76;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — wrapper labels */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .svc-card{background:#fff;border:1.5px solid var(--cocoa);padding:clamp(22px,2.8vw,32px);position:relative;}
+  .svc-card::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:repeating-linear-gradient(90deg,var(--rose) 0 22px,var(--cocoa) 22px 44px);}
+  .svc-card .pct{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--rose);display:block;margin:8px 0 12px;text-transform:uppercase;font-weight:700;}
+  .svc-card h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 8px;line-height:1.25;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.66;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--cocoa);color:var(--cream);}
+  .why .h2{color:var(--cream);}
+  .why .wrapper-head{border-color:rgba(248,241,232,0.4);color:rgba(248,241,232,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--rose);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 10px;line-height:1.25;}
+  .why-grid p{color:var(--mid-light);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--cocoa);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--rose);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--husk);}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(22px,2.8vw,36px);line-height:1.3;max-width:32ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--cocoa);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — tasting squares */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(46,31,26,0.85));color:var(--cream);font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;padding:26px 12px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--cocoa);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"◻";color:var(--rose);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{content:"◼";}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--cocoa);font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--cocoa);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rose);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--display);font-size:15.5px;line-height:1.45;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1.5px solid var(--cocoa);padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-size:17.5px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--cocoa);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--rose);color:var(--cocoa);padding:clamp(80px,10vw,140px) 0;text-align:center;}
+  .cta-band .origin{color:var(--cocoa);}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(32px,4.6vw,60px);line-height:1.1;margin:16px auto 18px;max-width:20ch;}
+  .cta-band p{color:rgba(46,31,26,0.75);max-width:44ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-ghost{border-color:var(--cocoa);}
+
+  footer{background:var(--cream);border-top:1.5px solid var(--cocoa);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rose);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--cocoa);color:var(--cream);padding:13px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(46,31,26,0.3);}
+  .msg-fab a:hover{background:var(--rose);color:var(--cocoa);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Ursa Chocolate","description":"Bean-to-bar chocolate maker in Jericho, Oxford. Single-origin bars roasted and stone-ground on site, fresh bonbons on Fridays, tastings.","url":"https://ursachocolate.co.uk/","telephone":"+441865552384","email":"hello@ursachocolate.co.uk","address":{"@type":"PostalAddress","streetAddress":"23 Walton Street","addressLocality":"Oxford","addressRegion":"Oxfordshire","postalCode":"OX2 6AA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.7594,"longitude":-1.2681},"areaServed":["Jericho","Oxford","Summertown","Headington"],"image":["https://images.unsplash.com/photo-1511381939415-e44015466834?w=1600"],"foundingDate":"2018"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why does your chocolate cost more than supermarket chocolate?","acceptedAnswer":{"@type":"Answer","text":"We pay farmers three to four times the commodity rate, then spend three days making it into chocolate."}},
+{"@type":"Question","name":"What does 'bean-to-bar' actually mean?","acceptedAnswer":{"@type":"Answer","text":"We make chocolate from raw cacao — roasting, winnowing, grinding, conching, tempering — all on site."}},
+{"@type":"Question","name":"Which bar should I start with?","acceptedAnswer":{"@type":"Answer","text":"Come taste. Fruit people land on Madagascar, caramel people on Venezuela, dark-chocolate sceptics get the Ecuador 70%."}},
+{"@type":"Question","name":"Why won't you ship bonbons?","acceptedAnswer":{"@type":"Answer","text":"Fresh ganache lives about a week. A bonbon engineered to survive the post is engineered away from being good."}},
+{"@type":"Question","name":"Do you have vegan and dairy-free bars?","acceptedAnswer":{"@type":"Answer","text":"Most of the shelf already is — dark bars are cacao and sugar only. Vegan bonbons every Friday."}},
+{"@type":"Question","name":"Can I see it being made?","acceptedAnswer":{"@type":"Answer","text":"The window runs whenever the machines do; tastings go behind the scenes properly."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Ursa <span>Chocolate</span></a>
+    <nav class="nav-links">
+      <a href="#about">The window</a><a href="#services">Bars</a><a href="#location">Find us</a><a href="#book">Tastings</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v33">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="origin" data-bind="hero.kicker">Bean-to-bar · roasted &amp; stone-ground on site · Jericho, Oxford</div>
+      <h1 data-bind="hero.headline">Chocolate with a passport, <em>made behind that window.</em></h1>
+      <p class="lede" data-bind="hero.lede">Every bar starts as sacks of cacao from farms we can name and visit — roasted, cracked, winnowed and stone-ground for three days in the back of this shop. Two ingredients, single origins, and a flavour range supermarket chocolate has quietly trained you to forget exists.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">The bar library</a>
+        <a class="btn btn-ghost" href="#book" data-bind="hero.secondaryCta.label">Book a tasting</a>
+      </div>
+    </div>
+    <div class="hero-bar">
+      <div class="squares">
+        <div><img src="https://images.unsplash.com/photo-1511381939415-e44015466834?w=2000&q=85&auto=format&fit=crop" alt="Dark chocolate bars broken into shards." data-bind="hero.image" data-bind-alt="hero.imageAlt" /></div>
+        <div><img src="https://images.unsplash.com/photo-1511381939415-e44015466834?w=2000&q=85&auto=format&fit=crop" alt="" aria-hidden="true" /></div>
+        <div><img src="https://images.unsplash.com/photo-1511381939415-e44015466834?w=2000&q=85&auto=format&fit=crop" alt="" aria-hidden="true" /></div>
+        <div><img src="https://images.unsplash.com/photo-1511381939415-e44015466834?w=2000&q=85&auto=format&fit=crop" alt="" aria-hidden="true" /></div>
+      </div>
+      <div class="bar-label">70% · SAMBIRANO VALLEY, <b>MADAGASCAR</b></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Grinding in Jericho since 2018</span>
+    <span>Direct-trade cacao</span>
+    <span>Two-ingredient bars</span>
+    <span>Bonbons Fridays only</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 01 / THE SHOP</span><span>CASTOR &amp; POLLUX, GRINDING</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Two ingredients. Three days. One window.</h2>
+        <p>Ursa exists because of one bar of Madagascan chocolate eaten in 2016 that tasted of raspberries despite containing none. Chasing that flavour led to a roaster, a vintage winnower rebuilt from Dutch scrap, two granite melangers named Castor and Pollux, and eventually this shop.</p>
+        <p>Bean-to-bar means exactly that: sacks arrive, bars leave, everything happens in between the two — behind the big window, where you can watch. Most of our bars are two ingredients, cacao and sugar. The flavour differences between origins do the rest, and they are not subtle.</p>
+        <p>The bonbon counter runs Fridays and Saturdays, made fresh that week and gone by Sunday. We refuse to ship them; a bonbon that can survive the post isn't a bonbon worth eating.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1200&q=85&auto=format&fit=crop"
+           alt="Chocolate being tempered on a marble slab." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v26">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 02 / THE SHELF</span><span>READ THE WRAPPERS</span></div>
+    <h2 class="h2">On the wrappers.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="pct">LOT A · EIGHT ORIGINS</span><h3>Single-origin bars</h3><p>Eight origins on the shelf, roasted and ground here. Each label carries the farm, harvest year and our tasting notes — argue with them, that's the fun.</p></div>
+      <div class="svc-card"><span class="pct">LOT B · FRI–SAT ONLY</span><h3>The Friday bonbon counter</h3><p>Twelve flavours, made Wednesday, sold from Friday, gone by Sunday. Never shipped, never stockpiled, occasionally fought over.</p></div>
+      <div class="svc-card"><span class="pct">LOT C · 90 MINUTES</span><h3>Tastings &amp; pairings</h3><p>Ninety minutes, six origins, one revelation about what chocolate actually tastes like. Occasional whisky and cheese collaborations.</p></div>
+      <div class="svc-card"><span class="pct">LOT D · MONTHLY</span><h3>The chocolate subscription</h3><p>Two bars a month — one from the shelf, one experimental batch that may never exist again. With roasting notes, posted UK-wide.</p></div>
+      <div class="svc-card"><span class="pct">LOT E · AT THE COUNTER</span><h3>Drinking chocolate</h3><p>Ground from the same origins, mixed to order at the counter. The Ecuadorian with oat milk has its own small cult.</p></div>
+      <div class="svc-card"><span class="pct">LOT F · BY COMMISSION</span><h3>Weddings &amp; commissions</h3><p>Favours, dessert-course bars and one memorable request for a chocolate portrait of a labrador. We'll talk about anything except white chocolate with glitter.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 03 / THE POINT</span><span>PRINTED INSIDE EVERY WRAPPER</span></div>
+    <h2 class="h2">Why bother doing it this way.</h2>
+    <div class="why-grid">
+      <div><span class="no">REASON 1/3</span><h3>We make it. Actually.</h3><p>Not melted, not remoulded, not "crafted" from someone else's couverture. Sacks of cacao arrive; bars leave. The window shows the whole process because there's nothing to hide.</p></div>
+      <div><span class="no">REASON 2/3</span><h3>Origins you can taste.</h3><p>Madagascar tastes of red fruit, Vietnam of honey and spice, Ecuador of flowers. Same recipe, wildly different bars. That's the entire argument for doing this properly.</p></div>
+      <div><span class="no">REASON 3/3</span><h3>Freshness is an ingredient.</h3><p>Bonbons live a week and we sell them that way. Bars are stamped with their grind date. Chocolate is produce, not confectionery with a two-year shelf life.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 04 / FIRST VISIT</span><span>COUNTER → CONVERT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Taste at the counter</h3><p>Every bar on the shelf is open for tasting. Start with two origins side by side — the difference does the selling.</p></li>
+      <li><span class="step">Step 02</span><h3>Watch it made</h3><p>The window runs Tuesday to Friday: roasting Tuesdays, grinding midweek, tempering and moulding Thursdays.</p></li>
+      <li><span class="step">Step 03</span><h3>Take bars home</h3><p>Wrapped in paper, stamped with grind date and origin. Store them like wine, not like sweets — cool, dark, never the fridge.</p></li>
+      <li><span class="step">Step 04</span><h3>Come back opinionated</h3><p>Regulars argue origin rankings like football. The Madagascar-versus-Vietnam debate has run three years and shows no sign of settling.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 05 / CONVERTS</span><span>REACTIONS, DOCUMENTED</span></div>
+    <blockquote class="t-quote">“Six origins later I was holding a shard of Madagascan going ‘RASPBERRIES. WHY IS IT RASPBERRIES.’ They see this reaction weekly, apparently.”</blockquote>
+    <div class="t-attr">Fiona C. — tasting convert, now subscriber</div>
+    <div class="t-sub">
+      <figure><blockquote>“The Friday bonbon queue is Jericho's best social club. You stand in line, you defend your flavour choices, you leave with a box you said you'd share and won't.”</blockquote><figcaption>Ben A. — Friday counter regular</figcaption></figure>
+      <figure><blockquote>“They made our wedding favours — one bar per guest, origin chosen per table. People still mention them two years later. Nobody mentions the cake.”</blockquote><figcaption>Priya &amp; Tom — wedding commission</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v26">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 06 / BEHIND THE WINDOW</span><span>ROAST → GRIND → TEMPER</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1511381939415-e44015466834?w=1600&q=85&auto=format&fit=crop" alt="Bars broken for tasting." /><figcaption>THE TASTING SHARDS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1600&q=85&auto=format&fit=crop" alt="Tempering on the marble slab." /><figcaption>TEMPER, THURSDAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=1600&q=85&auto=format&fit=crop" alt="Cacao beans after roasting." /><figcaption>POST-ROAST, COOLING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1548907040-4baa42d10919?w=1600&q=85&auto=format&fit=crop" alt="Friday's bonbons, briefly." /><figcaption>FRIDAY'S TWELVE, BRIEFLY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=1600&q=85&auto=format&fit=crop" alt="The melangers, mid-grind." /><figcaption>CASTOR &amp; POLLUX, DAY TWO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1542843137-8791a6904d14?w=1600&q=85&auto=format&fit=crop" alt="Drinking chocolate, made to order." /><figcaption>THE DRINKING CULT</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 07 / ASKED AT THE COUNTER</span><span>MID-TASTING, USUALLY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441865552384" style="color:var(--rose);">01865 552 384</a> or message us. During tempering, answers arrive slightly delayed and smelling of chocolate.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why does your chocolate cost more than supermarket chocolate?</summary><p>Because we pay farmers three to four times the commodity rate for cacao worth naming, then spend three days making it into chocolate. A bar costs about the same as two coffees and lasts considerably longer, unless it doesn't.</p></details>
+        <details><summary>What does "bean-to-bar" actually mean?</summary><p>That we make chocolate from raw cacao, not melt down someone else's. Roasting, cracking, winnowing, grinding, conching, tempering — all of it happens behind the window. Most "artisan chocolate" skips all of that; ask any maker where their sacks are.</p></details>
+        <details><summary>Which bar should I start with?</summary><p>Come taste and we'll find out together. The general pattern: fruit people land on Madagascar, caramel people on Venezuela, and people who claim not to like dark chocolate get the Ecuador 70% and go quiet.</p></details>
+        <details><summary>Why won't you ship bonbons?</summary><p>Fresh cream ganache lives about a week and hates temperature swings. A bonbon engineered to survive the post is engineered away from being good. Bars ship happily; bonbons are a reason to visit Jericho.</p></details>
+        <details><summary>Do you have vegan and dairy-free bars?</summary><p>Most of the shelf already is — dark bars are cacao and sugar, nothing else. The oat-milk bars are properly creamy, and Friday's counter always has vegan bonbons, labelled and unpatronising.</p></details>
+        <details><summary>Can I see it being made?</summary><p>The window runs whenever the machines do — roasting Tuesdays, grinding midweek, moulding Thursdays. Tastings go behind the scenes properly, melangers and all. Children ask the best questions; bring them.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 08 / REGULARS WALK FROM</span><span>OXFORD, MOSTLY JERICHO</span></div>
+    <ul class="area-list">
+      <li>Jericho</li><li>City centre</li><li>Summertown</li><li>Cowley Road</li><li>Headington</li><li>Botley</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 09 / THE PAPERWORK</span><span>TRACEABLE TO THE FARM</span></div>
+    <div class="creds">
+      <div><div class="label">Sourcing</div><div class="detail">Direct-trade cacao, farm named on every bar</div></div>
+      <div><div class="label">Made here</div><div class="detail">Roasted, ground &amp; tempered on site</div></div>
+      <div><div class="label">Hygiene</div><div class="detail">Food hygiene rating 5, inspected</div></div>
+      <div><div class="label">Fresh</div><div class="detail">Grind date stamped on every wrapper</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="wrapper-head"><span>LOT 10 / FIND US</span><span>23 WALTON STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ursa Chocolate</strong><br />
+          23 Walton Street<br />
+          Jericho, Oxford OX2 6AA<br /><br />
+          <a href="tel:+441865552384" data-bind="business.phoneDisplay">01865 552 384</a><br />
+          <a href="mailto:hello@ursachocolate.co.uk" data-bind="business.email">hello@ursachocolate.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SUN</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>MON – TUE</span><span>ROASTING DAYS</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. If the window's machines are running, the smell reaches the canal; follow it.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ursa Chocolate, Walton Street, Oxford" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.2780%2C51.7560%2C-1.2580%2C51.7630&layer=mapnik&marker=51.7594%2C-1.2681"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="origin">LOT 11 / VISIT</div>
+    <h2 data-bind="cta.heading">Come taste what chocolate's been hiding.</h2>
+    <p data-bind="cta.body">Two origins, side by side, at the counter. Thirty seconds. That's all it takes.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Visit the shop</a>
+      <a class="btn btn-ghost" href="tel:+441865552384" data-bind="cta.secondary.label">01865 552 384</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441865552384" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">Ursa <span>Chocolate</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A bean-to-bar chocolate maker on Walton Street, Jericho, Oxford. Since 2018.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          23 Walton Street<br />Oxford OX2 6AA<br />
+          <a href="tel:+441865552384">01865 552 384</a><br />
+          <a href="mailto:hello@ursachocolate.co.uk">hello@ursachocolate.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Bars &amp; bonbons</a><a href="#about">The window</a><a href="#location">Find us</a><a href="#book">Tastings</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> URSA CHOCOLATE LTD</span>
+      <span>TWO INGREDIENTS · ZERO SHORTCUTS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

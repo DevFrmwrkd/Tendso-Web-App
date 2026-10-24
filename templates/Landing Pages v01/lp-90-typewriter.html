@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ribbon & Return — vintage typewriter shop, service and rental in Edinburgh</title>
+<meta name="description" content="Ribbon & Return is a vintage typewriter shop in Edinburgh — restored manual and electric typewriters sold with a guarantee, servicing and repair, ribbons and supplies, and typewriters for hire on film sets and at events." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ribbon & Return", phone: "+44 131 555 0192", phoneDisplay: "0131 555 0192", email: "shop@ribbonandreturn.co.uk", foundedYear: 2009 },
+  hero: {
+    kicker: "Vintage typewriters · service · ribbons · hire · Edinburgh",
+    headline: "A machine with one job, that does it for a hundred years.",
+    lede: "A vintage typewriter shop in Edinburgh — restoring, selling, servicing and hiring out manual and electric machines that were built to outlast us. Every typewriter we sell is stripped, cleaned, adjusted and typed hard before it leaves, and it comes with a guarantee and a lifetime of ribbons. No screen, no updates, no battery. Just you and the page.",
+    primaryCta: { label: "Find your typewriter", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://plus.unsplash.com/premium_photo-1682125856519-73f77e8ee6b6?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A vintage typewriter with a sheet of paper."
+  },
+  trust: { years: "At the bench since 2009" },
+  about: {
+    heading: "We don't sell nostalgia. We sell working machines that happen to be beautiful.",
+    paragraphs: [
+      "Ribbon & Return is a typewriter shop and repair bench in Edinburgh, run by people who use these machines every day and can't stand seeing a good one sold as a dusty prop. We started in 2009 fixing our own collection and friends' finds, and it grew into a shop because it turned out half the city had a grandmother's Olivetti in a cupboard that only needed a service to sing again.",
+      "Every typewriter we sell is a genuine restoration, not a wipe-down and a price tag: stripped, degreased, re-lubricated with the right oils in the right places, segment cleaned, type slugs de-gunked, platen assessed, alignment and escapement adjusted, and then typed hard, page after page, until we'd happily use it ourselves. Then it gets a fresh ribbon, a guarantee, and a promise of ribbons for life.",
+      "We service and repair machines you already own, sell restored ones across the whole span from portable manuals to grand electrics, stock ribbons and supplies for models the big shops gave up on decades ago, and hire typewriters out to film and TV productions, weddings and events. Whatever brings you in — a writer's tool, a gift, a prop, or a cupboard rescue — you'll leave with something that works."
+    ],
+    portrait: "https://images.unsplash.com/photo-1750653345581-77d5f260b049?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A close-up of typewriter keys."
+  },
+  services: [
+    { name: "Restored typewriters, guaranteed", description: "Manual and electric machines fully restored and typed hard before sale — from pocket portables to grand desk models. Each comes with a fresh ribbon, a written guarantee and ribbons for life." },
+    { name: "Service & repair", description: "Sticking keys, a jammed carriage, a faded impression, a machine that's sat for forty years — we service and repair every make we can find parts for, and honestly assess the ones we can't." },
+    { name: "Ribbons & supplies", description: "Fresh ribbons, spools, correction supplies and hard-to-find parts for models the high street abandoned decades ago. If your machine takes it, we probably stock it or can wind it." },
+    { name: "Typewriters for hire", description: "Period-correct machines for film, TV, theatre, photo shoots, weddings and events — delivered working, with ribbons and a spare, and set up on the day if you need it." },
+    { name: "Valuations & sourcing", description: "Honest valuations for insurance or sale, and sourcing for collectors after a specific make, model or year. We'll tell you what a machine really is and what it's really worth." },
+    { name: "Guestbook & event machines", description: "A restored typewriter as a wedding guestbook or event centrepiece — guests type their messages onto a scroll or cards. We set it up, stock the paper, and keep it running." }
+  ],
+  why: [
+    { title: "Every machine is typed hard before sale.", body: "We don't judge a typewriter by how it looks on a shelf but by how it types, page after page. If it skips, jams or fades under real use, it doesn't leave the bench until it doesn't." },
+    { title: "Ribbons for life.", body: "The commonest reason a typewriter dies is a ribbon nobody sells any more. Buy from us and you'll never be stuck — we keep you in ribbons for your machine for as long as we're open." },
+    { title: "We actually use them.", body: "We're not dealers flipping curios; we type on these machines daily. The advice you get is from people who know which models are a joy to write on and which are a handsome pain." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the job", body: "A machine to write a novel on, a gift, a film-set prop, or the Imperial from the attic that needs reviving? We start from what you'll actually do with it." },
+    { step: "02", title: "Try the keys", body: "Typing feel is everything and utterly personal. Sit down at a few machines, type a paragraph on each, and feel the difference before you choose. There's no rushing this." },
+    { step: "03", title: "Restored & guaranteed", body: "Buy a machine we've restored, or leave yours for a full service. Either way it's typed hard, set right, fitted with a fresh ribbon and backed by a guarantee." },
+    { step: "04", title: "Ribbons for life", body: "Come back whenever you need a ribbon, a service or advice. A typewriter is a decades-long relationship, and we're the bench that keeps yours going." }
+  ],
+  testimonials: [
+    { quote: "I write everything first drafts on the Hermes they restored for me — no email, no browser, no distraction, just the words and that beautiful clack. They matched the machine to how I type, threw in ribbons, and service it once a year. It has genuinely changed how I work.", name: "Isla F.", context: "restored Hermes 3000" },
+    { quote: "My grandfather's typewriter had seized solid and I assumed it was scrap. They stripped it, freed everything, replaced the platen and had it typing like new — and told me its whole history while they were at it. It's on my desk now and I use it. Priceless, honestly.", name: "Callum R.", context: "service & restoration" },
+    { quote: "Hired six period machines for a 1950s-set short film. Delivered working, period-correct, with spare ribbons and someone who knew how they'd have been used. Saved our production from a props nightmare. First call for every shoot now.", name: "Tessa M.", context: "film hire" }
+  ],
+  gallery: [
+    { src: "https://plus.unsplash.com/premium_photo-1682125856519-73f77e8ee6b6?w=1600&q=85&auto=format&fit=crop", alt: "A vintage typewriter with paper." },
+    { src: "https://images.unsplash.com/photo-1750653345581-77d5f260b049?w=1600&q=85&auto=format&fit=crop", alt: "A close-up of typewriter keys." },
+    { src: "https://images.unsplash.com/photo-1550777006-9ee6c430227d?w=1600&q=85&auto=format&fit=crop", alt: "An old typewriter on a desk." },
+    { src: "https://images.unsplash.com/photo-1675278439277-e1f3b27d7e99?w=1600&q=85&auto=format&fit=crop", alt: "Close-up of vintage typewriter keys." },
+    { src: "https://images.unsplash.com/photo-1550777006-9ee6c430227d?w=1600&q=85&auto=format&fit=crop", alt: "A vintage typewriter in dim light." },
+    { src: "https://images.unsplash.com/photo-1675278439277-e1f3b27d7e99?w=1600&q=85&auto=format&fit=crop", alt: "A vintage typewriter close up." }
+  ],
+  faq: [
+    { q: "Should I buy a manual or an electric typewriter?", a: "It depends entirely on how and where you'll use it, and we'll help you feel the difference rather than guess. Manual typewriters need no power, go anywhere, are simpler to maintain and give you that direct, physical connection to the page that most people are really after — the trade-off is that they need a firmer, more even touch and can tire your hands over very long sessions. Electric machines are lighter to the touch, give a crisp consistent impression and suit long typing days, but they need mains power, are heavier, more complex inside, and a bit less romantic. For most people writing at home we steer them to a good manual portable; for someone typing all day, or with a lighter touch, an electric can be kinder. Come and type on both — ten minutes at the keys tells you more than any spec sheet." },
+    { q: "Is it hard to get ribbons, and will my machine become unusable?", a: "This is the single biggest worry people have and the single biggest reason old typewriters end up dead in cupboards — so we've built the shop around solving it. The good news is that the vast majority of typewriters, even quite obscure ones, take ribbon on standard spools that we stock or can wind fresh ribbon onto for you, so 'they don't make ribbons any more' is almost never actually true. When you buy a machine from us, we tell you exactly what it takes and keep you supplied for as long as we're open — ribbons for life is a genuine promise, not a slogan. If you already own a machine and can't find ribbon, bring it in; we'll identify what it needs and sort you out. A typewriter should never die for want of a ribbon." },
+    { q: "How much does a good restored typewriter cost?", a: "Less than people fear for a machine that'll outlive them, and it spans a wide range. A solid, fully-restored manual portable — a great everyday writer's machine — sits in the middle of our range; simpler or more basic models cost less, while sought-after classics, grand desk machines and pristine rare models cost more. What you're paying for above the raw machine is the restoration: hours of stripping, cleaning, adjusting and hard testing, plus a fresh ribbon, a guarantee and ribbons for life. A cheap untouched typewriter off an auction site might cost less upfront and then need all of that work anyway, often more than the machine is worth. We'll always show you options at different prices and be honest about which represent good value to actually use, not just to look at." },
+    { q: "My old family typewriter is seized/filthy — is it worth saving?", a: "Nearly always, yes, and reviving family machines is some of the work we love most. A typewriter that's 'seized' has usually just got decades of hardened old oil, dust and grime gumming up mechanisms that are themselves perfectly sound — strip it, degrease it, re-lubricate it properly, and it comes back to life astonishingly often. Genuinely dead machines, with cracked frames, badly rusted parts or a perished platen we can't replace, do exist but are the exception. Bring it in and we'll assess it honestly and for free: tell you what's wrong, what a service or restoration would cost, and whether it's worth it — factoring in that a machine with family history is worth saving at a point where a random junk-shop find might not be. We'll never charge you to fix something we'd tell you to walk away from." },
+    { q: "Can I hire typewriters for a film, wedding or event?", a: "Yes — hire is a big part of what we do, from single machines to whole period-correct sets. For film, TV and theatre we supply working, era-appropriate typewriters (a 1920s office and a 1970s newsroom used very different machines, and we care about getting it right), delivered with ribbons, spares and, if you need it, someone on set who knows how they were actually used. For weddings and events, a restored typewriter makes a wonderful guestbook or centrepiece — guests type their messages, and it's far more memorable than a card. We handle delivery, setup, paper and ribbons, and collection afterwards. Tell us the date, the era and the scale, and we'll put a package together." },
+    { q: "Do you buy typewriters, or take them in part-exchange?", a: "Both, depending on the machine. We're always interested in good typewriters, whether a single quality machine, a collection, or something unusual, and we'll give you an honest assessment — what it is, its condition, and what we can offer, whether outright or against something you're buying from us. We're particularly keen on well-kept classics and less common models, but we'll look at anything and tell you straight if it's better sold elsewhere or simply not worth much. If you've inherited a machine and don't know what it is, send us photographs of the whole typewriter, the make and model names, and the type it produces, and we'll tell you what you've got. Honesty about value is how we've kept the trade's trust since 2009." }
+  ],
+  area: { places: ["Edinburgh", "Leith", "Glasgow", "Stirling", "Dunfermline", "Scotland-wide"] },
+  credentials: [
+    { label: "Since 2009", detail: "A working bench, not a curio counter" },
+    { label: "Typed hard", detail: "Every machine tested page after page before sale" },
+    { label: "Ribbons for life", detail: "Kept in ribbons for as long as we're open" },
+    { label: "Guaranteed", detail: "Written guarantee on every restored machine" }
+  ],
+  location: { name: "Ribbon & Return", addressStreet: "22 St Stephen Street", addressLocality: "Edinburgh", addressRegion: "Midlothian", addressPostcode: "EH3 5AL", addressCountry: "United Kingdom" },
+  cta: { heading: "Find the machine you'll still be typing on in 2075.", body: "Come in and type on a few — feel the keys, hear the clack, and let us match you to a restored machine with a guarantee and ribbons for life. Writers, gift-givers, film crews and cupboard-rescuers all welcome.", primary: { label: "Find your typewriter", href: "#book" }, secondary: { label: "0131 555 0192", href: "tel:+441315550192" } },
+  messaging: { whatsapp: "https://wa.me/441315550192", messenger: "https://m.me/ribbonandreturn" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#141210; --cream:#ece5d8; --ink-red:#b23a34; --teal:#3f7d78; --amber:#d29b3f;
+    --ink:#141210; --mid:#7a7266; --mid-d:#a49b8c; --rule:rgba(20,18,16,0.16); --rule-d:rgba(236,229,216,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--cream);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--amber);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--ink-red);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--amber);color:var(--void);} .btn-primary:hover{background:var(--cream);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(236,229,216,0.4);color:var(--cream);} .btn-ghost:hover{background:var(--cream);color:var(--void);border-color:var(--cream);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(236,229,216,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(20,18,16,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(236,229,216,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--ink-red);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(46px,8vw,120px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:16ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--teal);color:transparent;}
+  .hero-headline .em{color:var(--ink-red);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--amber);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(20,18,16,0.82);font-weight:700;}
+
+  .about{background:var(--cream);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--ink-red);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#4a4238;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(236,229,216,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(236,229,216,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(178,58,52,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--cream);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--ink-red);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#4a4238;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(236,229,216,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--ink-red);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(236,229,216,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--amber);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(236,229,216,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(236,229,216,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--amber);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(236,229,216,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(236,229,216,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--cream);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#4a4238;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(236,229,216,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(180deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ink-red);color:var(--cream);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--cream);color:transparent;}
+  .cta-band p{color:rgba(236,229,216,0.86);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--ink-red);} .cta-band .btn-primary:hover{background:var(--amber);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(236,229,216,0.6);color:var(--cream);} .cta-band .btn-ghost:hover{background:var(--cream);color:var(--ink-red);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(236,229,216,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(236,229,216,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ink-red);color:var(--cream);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(178,58,52,0.4);}
+  .msg-fab a:hover{background:var(--cream);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Ribbon & Return","description":"Vintage typewriter shop in Edinburgh — restored manual and electric typewriters sold with a guarantee, servicing and repair, ribbons and supplies, and typewriters for hire on film sets and at events.","url":"https://ribbonandreturn.co.uk/","telephone":"+441315550192","email":"shop@ribbonandreturn.co.uk","address":{"@type":"PostalAddress","streetAddress":"22 St Stephen Street","addressLocality":"Edinburgh","addressRegion":"Midlothian","postalCode":"EH3 5AL","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":55.9570,"longitude":-3.2050},"areaServed":["Edinburgh","Leith","Glasgow","Stirling"],"image":["https://plus.unsplash.com/premium_photo-1682125856519-73f77e8ee6b6?w=1600"],"foundingDate":"2009"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Should I buy a manual or an electric typewriter?","acceptedAnswer":{"@type":"Answer","text":"It depends on how and where you'll use it. Manuals need no power, go anywhere and give a direct feel, but want a firmer touch. Electrics are lighter to type and crisp but need mains power and are heavier. For most home writers we suggest a good manual portable; for all-day typing an electric can be kinder. Come and type on both."}},
+{"@type":"Question","name":"Is it hard to get ribbons?","acceptedAnswer":{"@type":"Answer","text":"Almost never, despite the myth. Most machines take ribbon on standard spools we stock or can wind fresh. Buy from us and we keep you supplied for life; bring in a machine you own and we'll identify and supply what it needs. A typewriter should never die for want of a ribbon."}},
+{"@type":"Question","name":"How much does a good restored typewriter cost?","acceptedAnswer":{"@type":"Answer","text":"A wide range: a fully-restored manual portable sits mid-range, simpler models less, sought-after classics more. You're paying for hours of restoration plus a fresh ribbon, a guarantee and ribbons for life. A cheap untouched machine often needs all that work anyway. We show options at different prices honestly."}},
+{"@type":"Question","name":"My old family typewriter is seized — is it worth saving?","acceptedAnswer":{"@type":"Answer","text":"Nearly always. 'Seized' usually means decades of hardened oil and grime on sound mechanisms; strip, degrease and re-lubricate and it revives. We assess honestly and free, tell you what's wrong and what it'd cost, and factor in family history. We won't charge to fix what we'd tell you to walk away from."}},
+{"@type":"Question","name":"Can I hire typewriters for a film, wedding or event?","acceptedAnswer":{"@type":"Answer","text":"Yes — single machines to whole period sets. For film and TV we supply working, era-correct machines with ribbons, spares and on-set help. For weddings a restored typewriter makes a memorable guestbook. We handle delivery, setup, paper and collection. Tell us the date, era and scale."}},
+{"@type":"Question","name":"Do you buy typewriters or take part-exchange?","acceptedAnswer":{"@type":"Answer","text":"Both. We're interested in good machines, single or collections, and give an honest assessment — outright or against a purchase. Keen on well-kept classics and rarer models, but we'll look at anything and say if it's better sold elsewhere. Send photos of the whole machine, make/model and the type it produces."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Ribbon <span>&amp;</span> Return</a>
+    <nav class="nav-links">
+      <a href="#about">The bench</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Find yours</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v76">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Vintage typewriters · service · ribbons · hire · Edinburgh</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      A machine with <span class="out">one job,</span> that does it for <span class="em">a hundred years.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://plus.unsplash.com/premium_photo-1682125856519-73f77e8ee6b6?w=2000&q=85&auto=format&fit=crop"
+             alt="A vintage typewriter with a sheet of paper." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A vintage typewriter shop in Edinburgh — restoring, selling, servicing and hiring out manual and electric machines that were built to outlast us. Every typewriter we sell is stripped, cleaned, adjusted and typed hard before it leaves, and it comes with a guarantee and a lifetime of ribbons. No screen, no updates, no battery. Just you and the page.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Find your typewriter</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2009</span>
+    <span>Every machine typed hard before sale</span>
+    <span>Ribbons for life</span>
+    <span>Written guarantee</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v42">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 01 / THE BENCH</span><span>WORKING MACHINES, NOT PROPS</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">We don't sell nostalgia. We sell working machines that happen to be <em>beautiful.</em></h2>
+        <p>Ribbon &amp; Return is a typewriter shop and repair bench in Edinburgh, run by people who use these machines every day and can't stand seeing a good one sold as a dusty prop. We started in 2009 fixing our own collection and friends' finds, and it grew into a shop because it turned out half the city had a grandmother's Olivetti in a cupboard that only needed a service to sing again.</p>
+        <p>Every typewriter we sell is a genuine restoration, not a wipe-down and a price tag: stripped, degreased, re-lubricated with the right oils in the right places, segment cleaned, type slugs de-gunked, platen assessed, alignment and escapement adjusted, and then typed hard, page after page, until we'd happily use it ourselves. Then it gets a fresh ribbon, a guarantee, and a promise of ribbons for life.</p>
+        <p>We service and repair machines you already own, sell restored ones across the whole span from portable manuals to grand electrics, stock ribbons and supplies for models the big shops gave up on decades ago, and hire typewriters out to film and TV productions, weddings and events. Whatever brings you in — a writer's tool, a gift, a prop, or a cupboard rescue — you'll leave with something that works.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1750653345581-77d5f260b049?w=1200&q=85&auto=format&fit=crop"
+           alt="A close-up of typewriter keys." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v69" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 02 / WHAT WE DO</span><span>SELL · SERVICE · SUPPLY · HIRE</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Restored typewriters, guaranteed</h3><p>Manual and electric machines fully restored and typed hard before sale — from pocket portables to grand desk models. Each comes with a fresh ribbon, a written guarantee and ribbons for life.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Service &amp; repair</h3><p>Sticking keys, a jammed carriage, a faded impression, a machine that's sat for forty years — we service and repair every make we can find parts for, and honestly assess the ones we can't.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Ribbons &amp; supplies</h3><p>Fresh ribbons, spools, correction supplies and hard-to-find parts for models the high street abandoned decades ago. If your machine takes it, we probably stock it or can wind it.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Typewriters for hire</h3><p>Period-correct machines for film, TV, theatre, photo shoots, weddings and events — delivered working, with ribbons and a spare, and set up on the day if you need it.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Valuations &amp; sourcing</h3><p>Honest valuations for insurance or sale, and sourcing for collectors after a specific make, model or year. We'll tell you what a machine really is and what it's really worth.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Guestbook &amp; event machines</h3><p>A restored typewriter as a wedding guestbook or event centrepiece — guests type their messages onto a scroll or cards. We set it up, stock the paper, and keep it running.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v41">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 03 / THE DIFFERENCE</span><span>WHY BUY FROM A BENCH</span></div>
+    <h2 class="h2">Why buy from a bench.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Every machine is typed hard before sale.</h3><p>We don't judge a typewriter by how it looks on a shelf but by how it types, page after page. If it skips, jams or fades under real use, it doesn't leave the bench until it doesn't.</p></div>
+      <div><span class="no">02 / 03</span><h3>Ribbons for life.</h3><p>The commonest reason a typewriter dies is a ribbon nobody sells any more. Buy from us and you'll never be stuck — we keep you in ribbons for your machine for as long as we're open.</p></div>
+      <div><span class="no">03 / 03</span><h3>We actually use them.</h3><p>We're not dealers flipping curios; we type on these machines daily. The advice you get is from people who know which models are a joy to write on and which are a handsome pain.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 04 / HOW IT GOES</span><span>JOB → KEYS → RESTORE → RIBBONS</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the job</h3><p>A machine to write a novel on, a gift, a film-set prop, or the Imperial from the attic that needs reviving? We start from what you'll actually do with it.</p></li>
+      <li><span class="step">STEP 02</span><h3>Try the keys</h3><p>Typing feel is everything and utterly personal. Sit down at a few machines, type a paragraph on each, and feel the difference before you choose. There's no rushing this.</p></li>
+      <li><span class="step">STEP 03</span><h3>Restored &amp; guaranteed</h3><p>Buy a machine we've restored, or leave yours for a full service. Either way it's typed hard, set right, fitted with a fresh ribbon and backed by a guarantee.</p></li>
+      <li><span class="step">STEP 04</span><h3>Ribbons for life</h3><p>Come back whenever you need a ribbon, a service or advice. A typewriter is a decades-long relationship, and we're the bench that keeps yours going.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v41">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 05 / FROM THE DESK</span><span>WHAT THEY TYPE ON</span></div>
+    <blockquote class="t-quote">“Just the words and that beautiful clack. It has genuinely <em>changed how I work.</em>”</blockquote>
+    <div class="t-attr">Isla F. — restored Hermes 3000</div>
+    <div class="t-sub">
+      <figure><blockquote>“My grandfather's typewriter had seized solid and I assumed it was scrap. They stripped it, freed everything, replaced the platen and had it typing like new — and told me its whole history while they were at it. It's on my desk now and I use it. Priceless, honestly.”</blockquote><figcaption>Callum R. — service &amp; restoration</figcaption></figure>
+      <figure><blockquote>“Hired six period machines for a 1950s-set short film. Delivered working, period-correct, with spare ribbons and someone who knew how they'd have been used. Saved our production from a props nightmare. First call for every shoot now.”</blockquote><figcaption>Tessa M. — film hire</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v69" class="about" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>KEY 06 / THE MACHINES</span><span>KEYS, BARS &amp; RIBBON</span></div>
+    <div class="g-grid">
+      <figure><img src="https://plus.unsplash.com/premium_photo-1682125856519-73f77e8ee6b6?w=1600&q=85&auto=format&fit=crop" alt="A vintage typewriter with paper." /><figcaption>READY TO TYPE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1750653345581-77d5f260b049?w=1600&q=85&auto=format&fit=crop" alt="A close-up of typewriter keys." /><figcaption>THE KEYS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1550777006-9ee6c430227d?w=1600&q=85&auto=format&fit=crop" alt="An old typewriter on a desk." /><figcaption>ON THE DESK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1675278439277-e1f3b27d7e99?w=1600&q=85&auto=format&fit=crop" alt="Close-up of vintage typewriter keys." /><figcaption>THE TYPE BARS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1550777006-9ee6c430227d?w=1600&q=85&auto=format&fit=crop" alt="A vintage typewriter in dim light." /><figcaption>THE PAGE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1675278439277-e1f3b27d7e99?w=1600&q=85&auto=format&fit=crop" alt="A vintage typewriter close up." /><figcaption>RESTORED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 07 / ASKED AT THE COUNTER</span><span>BEFORE YOU BUY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441315550192" style="color:var(--amber);font-weight:700;">0131 555 0192</a>, or bring the machine in. We love a seized old classic on the bench.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Should I buy a manual or an electric typewriter?</summary><p>It depends entirely on how and where you'll use it, and we'll help you feel the difference rather than guess. Manual typewriters need no power, go anywhere, are simpler to maintain and give you that direct, physical connection to the page that most people are really after — the trade-off is that they need a firmer, more even touch and can tire your hands over very long sessions. Electric machines are lighter to the touch, give a crisp consistent impression and suit long typing days, but they need mains power, are heavier, more complex inside, and a bit less romantic. For most people writing at home we steer them to a good manual portable; for someone typing all day, or with a lighter touch, an electric can be kinder. Come and type on both — ten minutes at the keys tells you more than any spec sheet.</p></details>
+        <details><summary>Is it hard to get ribbons, and will my machine become unusable?</summary><p>This is the single biggest worry people have and the single biggest reason old typewriters end up dead in cupboards — so we've built the shop around solving it. The good news is that the vast majority of typewriters, even quite obscure ones, take ribbon on standard spools that we stock or can wind fresh ribbon onto for you, so "they don't make ribbons any more" is almost never actually true. When you buy a machine from us, we tell you exactly what it takes and keep you supplied for as long as we're open — ribbons for life is a genuine promise, not a slogan. If you already own a machine and can't find ribbon, bring it in; we'll identify what it needs and sort you out. A typewriter should never die for want of a ribbon.</p></details>
+        <details><summary>How much does a good restored typewriter cost?</summary><p>Less than people fear for a machine that'll outlive them, and it spans a wide range. A solid, fully-restored manual portable — a great everyday writer's machine — sits in the middle of our range; simpler or more basic models cost less, while sought-after classics, grand desk machines and pristine rare models cost more. What you're paying for above the raw machine is the restoration: hours of stripping, cleaning, adjusting and hard testing, plus a fresh ribbon, a guarantee and ribbons for life. A cheap untouched typewriter off an auction site might cost less upfront and then need all of that work anyway, often more than the machine is worth. We'll always show you options at different prices and be honest about which represent good value to actually use, not just to look at.</p></details>
+        <details><summary>My old family typewriter is seized/filthy — is it worth saving?</summary><p>Nearly always, yes, and reviving family machines is some of the work we love most. A typewriter that's "seized" has usually just got decades of hardened old oil, dust and grime gumming up mechanisms that are themselves perfectly sound — strip it, degrease it, re-lubricate it properly, and it comes back to life astonishingly often. Genuinely dead machines, with cracked frames, badly rusted parts or a perished platen we can't replace, do exist but are the exception. Bring it in and we'll assess it honestly and for free: tell you what's wrong, what a service or restoration would cost, and whether it's worth it — factoring in that a machine with family history is worth saving at a point where a random junk-shop find might not be. We'll never charge you to fix something we'd tell you to walk away from.</p></details>
+        <details><summary>Can I hire typewriters for a film, wedding or event?</summary><p>Yes — hire is a big part of what we do, from single machines to whole period-correct sets. For film, TV and theatre we supply working, era-appropriate typewriters (a 1920s office and a 1970s newsroom used very different machines, and we care about getting it right), delivered with ribbons, spares and, if you need it, someone on set who knows how they were actually used. For weddings and events, a restored typewriter makes a wonderful guestbook or centrepiece — guests type their messages, and it's far more memorable than a card. We handle delivery, setup, paper and ribbons, and collection afterwards. Tell us the date, the era and the scale, and we'll put a package together.</p></details>
+        <details><summary>Do you buy typewriters, or take them in part-exchange?</summary><p>Both, depending on the machine. We're always interested in good typewriters, whether a single quality machine, a collection, or something unusual, and we'll give you an honest assessment — what it is, its condition, and what we can offer, whether outright or against something you're buying from us. We're particularly keen on well-kept classics and less common models, but we'll look at anything and tell you straight if it's better sold elsewhere or simply not worth much. If you've inherited a machine and don't know what it is, send us photographs of the whole typewriter, the make and model names, and the type it produces, and we'll tell you what you've got. Honesty about value is how we've kept the trade's trust since 2009.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 08 / WRITERS FROM</span><span>EDINBURGH & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Edinburgh</li><li>Leith</li><li>Glasgow</li><li>Stirling</li><li>Dunfermline</li><li>Scotland-wide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v16" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2009</div><div class="detail">A working bench, not a curio counter</div></div>
+      <div><div class="label">Typed hard</div><div class="detail">Every machine tested page after page before sale</div></div>
+      <div><div class="label">Ribbons for life</div><div class="detail">Kept in ribbons for as long as we're open</div></div>
+      <div><div class="label">Guaranteed</div><div class="detail">Written guarantee on every restored machine</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>KEY 10 / FIND THE SHOP</span><span>ST STEPHEN STREET, STOCKBRIDGE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ribbon &amp; Return</strong><br />
+          22 St Stephen Street<br />
+          Edinburgh EH3 5AL<br /><br />
+          <a href="tel:+441315550192" data-bind="business.phoneDisplay">0131 555 0192</a><br />
+          <a href="mailto:shop@ribbonandreturn.co.uk" data-bind="business.email">shop@ribbonandreturn.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>TUE – SAT</span><span>10 – 5:30</span></div>
+          <div class="row"><span>SUN – MON</span><span>CLOSED</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on St Stephen Street in Stockbridge; the repair bench is at the back — come and watch a machine come apart if you like.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ribbon & Return, Edinburgh" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.2140%2C55.9530%2C-3.1960%2C55.9610&layer=mapnik&marker=55.9570%2C-3.2050"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v44">
+  <div class="wrap">
+    <div class="kick">KEY 11 / FIND YOURS</div>
+    <h2 data-bind="cta.heading">Find the machine you'll still be typing on <em>in 2075.</em></h2>
+    <p data-bind="cta.body">Come in and type on a few — feel the keys, hear the clack, and let us match you to a restored machine with a guarantee and ribbons for life. Writers, gift-givers, film crews and cupboard-rescuers all welcome.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Find your typewriter</a>
+      <a class="btn btn-ghost" href="tel:+441315550192" data-bind="cta.secondary.label">0131 555 0192</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441315550192" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Ribbon <span style="color:var(--ink-red);">&amp;</span> Return</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A vintage typewriter shop and repair bench in Edinburgh. Working machines, not props, since 2009.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          22 St Stephen Street<br />Edinburgh EH3 5AL<br />
+          <a href="tel:+441315550192">0131 555 0192</a><br />
+          <a href="mailto:shop@ribbonandreturn.co.uk">shop@ribbonandreturn.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The bench</a><a href="#location">Find us</a><a href="#book">Find yours</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> RIBBON &amp; RETURN</span>
+      <span>NO SCREEN · NO BATTERY · JUST THE PAGE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

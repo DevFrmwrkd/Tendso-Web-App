@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Andok's Kanto Grill — lechon manok, liempo & pork barbecue off the rotisserie, Cabanatuan</title>
+<meta name="description" content="Andok's Kanto Grill roasts lechon manok in Cabanatuan — whole chickens marinated overnight and turned on the rotisserie until the skin crackles, plus grilled liempo, pork barbecue sticks, java rice and atchara. Take-out, delivery and party trays. Turning the spit since 2008." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Andok's Kanto Grill", phone: "+63 44 555 0193", phoneDisplay: "(044) 555 0193", email: "orders@kantogrill.ph", foundedYear: 2008 },
+  hero: {
+    kicker: "Lechon manok · liempo · pork BBQ · Cabanatuan, Nueva Ecija",
+    headline: "Whole chickens turning on the spit. That smell does the advertising.",
+    lede: "A roadside rotisserie grill in Cabanatuan — whole chickens marinated overnight in soy, calamansi, lemongrass and garlic, then turned slowly over coals until the skin goes crackling-gold and the meat falls off the bone. Plus grilled liempo, pork barbecue on sticks, java rice and house atchara. Take-out, delivery, and party trays that make you everyone's favourite person.",
+    primaryCta: { label: "Order for pick-up", href: "#book" },
+    secondaryCta: { label: "Off the grill", href: "#services" },
+    image: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Chicken roasting over glowing coals on a grill."
+  },
+  trust: { years: "Turning the spit since 2008" },
+  about: {
+    heading: "One chicken, one fire, one job: get the skin right.",
+    paragraphs: [
+      "Andok's Kanto Grill is a roadside lechon manok stand in Cabanatuan, and lechon manok — literally 'roast chicken' — is one of the great everyday Filipino dinners. It's the thing you grab on the way home when you don't want to cook: a whole roasted chicken in a bag, a tub of java rice, some atchara, and dinner's done for a family of five for the price of a couple of fast-food meals. Every kanto in the country has one. Not every one gets it right.",
+      "We've been turning the spit since 2008, and the whole discipline is in two places: the marinade and the fire. Our chickens sit overnight in soy, calamansi, lemongrass, garlic and pepper, so the flavour is in the meat rather than brushed on the outside. Then they're skewered whole and turned slowly over live coals — not baked in a gas oven — so the fat renders down, the skin dries and crisps to that lacquered crackling gold, and the meat inside stays properly juicy.",
+      "Beyond the chicken we grill liempo (pork belly) marinated the same way, skewers of pork barbecue glazed sweet and sticky, and we cook the java rice and pickle the green-papaya atchara that go with them. Everything's built for take-out and delivery — bagged hot, ready in minutes — and we do party trays for fiestas, birthdays and offices. Roadside food, done seriously. Follow the smoke to the kanto."
+    ],
+    portrait: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Meat grilling over an open charcoal fire."
+  },
+  services: [
+    { name: "Whole lechon manok", description: "The headliner: a whole chicken marinated overnight and rotisserie-roasted over coals to crackling-gold skin and juicy meat. Bagged hot with sauce, ready to carry home. Order whole or half." },
+    { name: "Grilled liempo", description: "Pork belly marinated in the same soy-calamansi-lemongrass blend and grilled over coals until the edges char and the fat renders — chopped and served with rice and vinegar dip. The pork order to get." },
+    { name: "Pork barbecue sticks", description: "The classic Filipino BBQ skewer: pork marinated sweet-savoury and glazed as it grills, sticky, charred and dangerously easy to eat five of. Sold by the stick — nobody has ever bought only one." },
+    { name: "Java rice & sides", description: "Golden java rice cooked with annatto and garlic, plus plain rice, house-pickled green-papaya atchara and our vinegar-chili dip — the sides that turn a roast chicken into a proper Filipino meal." },
+    { name: "Take-out & delivery", description: "Everything bagged hot and ready in minutes for the drive home, or delivered around Cabanatuan. Message us your order ahead and it'll be off the spit and waiting when you pull up. No queue." },
+    { name: "Party trays & fiesta orders", description: "Multiple chickens, trays of liempo and barbecue, rice and atchara, scaled to your headcount for birthdays, fiestas and office parties. Order a day ahead and we'll have the coals going for you." }
+  ],
+  why: [
+    { title: "Marinated overnight.", body: "Soy, calamansi, lemongrass, garlic and pepper, worked into the chicken the night before so the flavour is in the meat. A quick brush of sauce at the end fools nobody, least of all a Filipino." },
+    { title: "Roasted over live coals.", body: "Real charcoal on a turning spit, not a gas oven. That's where the smoke, the rendered fat and the lacquered crackling skin come from — and skin is the entire reason people choose one stand over another." },
+    { title: "Cheapest good dinner in town.", body: "A whole chicken, java rice and atchara feeds a family for less than a couple of fast-food meals. It's honest, filling, genuinely delicious food at a price that respects your wallet." }
+  ],
+  how: [
+    { step: "01", title: "Message or pull up", body: "Order ahead by phone or chat so it's ready when you arrive, or just pull up at the kanto and see what's turning. Peak dinner hours move fast — ordering ahead skips the queue entirely." },
+    { step: "02", title: "Pick your spread", body: "Whole or half chicken, liempo, BBQ sticks, java or plain rice, extra atchara and dip. Feeding a crowd? Tell us the headcount and we'll tell you honestly how much you actually need." },
+    { step: "03", title: "Off the spit, into the bag", body: "Chopped or whole, bagged hot with sauce and sides, in a couple of minutes. It travels well and stays hot for the drive — though frankly the smell in the car is its own kind of torture." },
+    { step: "04", title: "Eat it with your hands", body: "Rice, chicken, a splash of vinegar dip, and no cutlery required. That's the correct way. Order party trays a day ahead for fiestas and offices and become the barangay's favourite person." }
+  ],
+  testimonials: [
+    { quote: "The skin. That's it, that's the review — the skin is perfect every single time, crackling and golden, and the meat underneath is still juicy. We buy from here at least twice a week and my kids ask for it by name. Best lechon manok in Cabanatuan, no contest.", name: "Nanay Lita", context: "twice-a-week regular" },
+    { quote: "Ordered eight chickens, trays of liempo and barbecue for my dad's 70th and it was perfect — hot, on time, generous portions, and half the price of a caterer. The titos demolished the BBQ sticks. Everyone asked where it was from. Now our default for every family occasion.", name: "Jhun R.", context: "birthday party trays" },
+    { quote: "I work late and this is my dinner three nights a week. Message the order, pull up, it's bagged and hot, and it costs less than fast food while being infinitely better. The java rice and atchara combo is genuinely great. Reliable, fast, delicious. Solid people too.", name: "Marvin S.", context: "regular take-out" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600&q=85&auto=format&fit=crop", alt: "Chicken roasting over glowing coals on a grill." },
+    { src: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop", alt: "Meat grilling over an open charcoal fire." },
+    { src: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop", alt: "Grilled meat plated with rice." },
+    { src: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=1600&q=85&auto=format&fit=crop", alt: "Skewers cooking on a charcoal grill." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "A plate of grilled food with rice." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A roadside food stall in the evening." }
+  ],
+  faq: [
+    { q: "What is lechon manok, and how is it different from ordinary roast chicken?", a: "Lechon manok is the Filipino take on roast chicken, and while the basic idea — a whole chicken roasted until golden — is universal, the execution is distinctly ours. The chicken is marinated, usually in a soy-based mixture with calamansi, garlic, pepper and often lemongrass (tanglad) stuffed into the cavity, so it's seasoned through rather than just on the surface. It's then roasted whole on a rotisserie spit, traditionally over live charcoal, which slowly renders the fat, bastes the bird in its own juices as it turns, and dries the skin into that signature crackling, lacquered gold finish. The result is smokier, more savoury and more aromatic than a typical oven roast, with skin that's the main event. It's also sold in a specific way that's part of the culture: from roadside stands and kanto stalls, bagged hot to take home with rice and atchara, cheap enough to be a regular family dinner rather than a Sunday occasion. That combination — the marinade, the charcoal spit, and the everyday accessibility — is what makes lechon manok its own thing." },
+    { q: "Do you really use charcoal, or is it a gas oven?", a: "Real charcoal, on a turning spit — and it genuinely matters, which is why we're happy to be asked. Gas rotisseries are faster, cleaner and cheaper to run, and plenty of places use them, but charcoal does two things gas can't quite match: it imparts a subtle smokiness through the skin and into the meat, and the radiant heat crisps the skin in a way that produces that proper crackling texture rather than a softer roast finish. Since skin is the single thing customers judge a lechon manok on, we're not willing to trade it. The trade-off on our side is more work — managing the fire, watching the turn, dealing with heat and smoke all day — and slightly longer cook times, which is why ordering ahead at peak hours is worth doing. But the difference is on the plate, and our regulars can tell instantly. If you've been buying lechon manok that arrives pale and soft-skinned, try one off a real charcoal spit; it's a different food." },
+    { q: "How much chicken should I order for a group?", a: "As a practical guide, a whole chicken comfortably feeds around three to four people as a main dish with rice and sides, or stretches further if it's part of a bigger spread with liempo, barbecue and other viands on the table. For a family dinner, one chicken plus rice and atchara is the classic order. For parties, the honest rule is that people always eat more lechon manok than they think they will, especially with barbecue sticks in the mix, so we'd rather help you slightly over-order than have you run short in front of guests — and leftovers are excellent the next day, or turned into a quick chicken sopas or fried rice. Tell us the headcount, the occasion and what else you're serving, and we'll give you a straight recommendation on how many chickens, how many trays of liempo and how many sticks of barbecue you actually need. For fiestas and big gatherings, ordering at least a day ahead lets us marinate properly and have the coals going for your pick-up time." },
+    { q: "Can you deliver, and will it still be hot and crisp?", a: "Yes, we deliver around Cabanatuan, and we pack specifically to protect the thing that matters most — the skin. Lechon manok travels reasonably well because it's roasted whole and holds its heat, but the enemy is trapped steam: if a hot chicken is sealed tightly in plastic for too long, its own moisture softens that crackling skin you paid for. So we bag it to vent, get it moving quickly, and time cooking to your pick-up or delivery window rather than letting it sit under a lamp. Our honest advice at your end: open the bag when it arrives rather than leaving it sealed, and eat it soon — within the hour is ideal. If you need it later, keep it uncovered somewhere warm rather than wrapped, and a few minutes in a hot oven or air fryer will bring the skin right back. For big orders and parties, tell us your serving time and we'll plan the roast around it so it lands at its best." },
+    { q: "What's the difference between liempo and pork barbecue?", a: "They're both grilled pork and both excellent, but they're different cuts and different experiences. Liempo is pork belly — a slab of layered fat and meat, marinated in our soy-calamansi-lemongrass blend and grilled over coals until the outside chars and the fat renders, then chopped and served with rice and a vinegar-chili dip. It's rich, meaty and substantial: an ulam, a proper main dish. Pork barbecue is the classic Filipino skewer: smaller pieces of pork, marinated in a sweeter, more soy-and-banana-ketchup-leaning mixture and basted repeatedly as it grills so it develops a sticky, caramelised glaze. It's snackier, sweeter, sold by the stick, and it's the thing you buy 'just a couple' of and then eat five. Most tables order both: liempo as the main event alongside the chicken, and a handful of barbecue sticks because nobody can resist them. If you're not sure, get one of each and see which your family reaches for first." },
+    { q: "Do you do party trays and fiesta orders?", a: "Yes, and it's a big part of what we do, because roast chicken and grilled pork are exactly what Filipino gatherings run on. We'll put together multiple whole chickens, trays of chopped liempo, batches of barbecue sticks, java or plain rice and atchara, all scaled to your headcount and packed for a party table — for birthdays, fiestas, baptisms, reunions, office parties and school events. It's considerably cheaper than conventional catering and, frankly, more popular with guests. We ask for at least a day's notice so we can marinate the chickens properly overnight (that step can't be rushed) and plan the fire for your timing, and more notice during fiesta season, Christmas and long weekends when we're busiest. Just message or call with your date, time, headcount and any preferences, and we'll suggest quantities honestly, confirm a price, and have everything hot and ready for pick-up or delivery. Bring lechon manok to a party and you will be thanked repeatedly." }
+  ],
+  area: { places: ["Cabanatuan", "Sta. Rosa", "Talavera", "San Leonardo", "Nueva Ecija", "Delivery & party trays"] },
+  credentials: [
+    { label: "Since 2008", detail: "Turning the spit at the kanto" },
+    { label: "Marinated overnight", detail: "Soy, calamansi, lemongrass & garlic" },
+    { label: "Live charcoal", detail: "Real coals, real crackling skin" },
+    { label: "Trays & delivery", detail: "Fiesta orders around Nueva Ecija" }
+  ],
+  location: { name: "Andok's Kanto Grill", addressStreet: "47 Maharlika Highway, Barangay Mabini", addressLocality: "Cabanatuan", addressRegion: "Nueva Ecija", addressPostcode: "3100", addressCountry: "Philippines" },
+  cta: { heading: "Dinner's sorted. Follow the smoke.", body: "Whole lechon manok marinated overnight and roasted over live coals, grilled liempo, sticky pork barbecue, java rice and atchara — take-out, delivery and party trays around Cabanatuan. Turning the spit since 2008.", primary: { label: "Order for pick-up", href: "#book" }, secondary: { label: "(044) 555 0193", href: "tel:+63445550193" } },
+  messaging: { whatsapp: "https://wa.me/63445550193", messenger: "https://m.me/kantogrill" }
+};
+</script>
+
+<style>
+  :root {
+    --char:#171310; --char-2:#0f0c0a; --bone:#f6efe3; --bone-2:#fdf8ef; --ink:#231c16; --ink-2:#4b3f34;
+    --skin:#d9902f; --glaze:#c2451f; --calamansi:#8fa63c;
+    --mid:#8b7c6a; --mid-d:#c7b49a; --rule-d:rgba(246,239,227,0.15);
+    --disp:"Archivo",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--char);color:var(--bone);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--skin);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--skin);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:900;font-size:clamp(38px,5.4vw,80px);line-height:0.98;margin:0 0 0.3em;letter-spacing:-0.025em;}
+  .h2 em{font-style:normal;color:var(--glaze);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--glaze);color:var(--bone-2);} .btn-primary:hover{background:var(--skin);color:var(--char);}
+  .btn-ghost{border:1.5px solid rgba(246,239,227,0.4);color:var(--bone);} .btn-ghost:hover{background:var(--bone);color:var(--char);border-color:var(--bone);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(23,19,16,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:900;font-size:21px;text-decoration:none;letter-spacing:-0.03em;text-transform:uppercase;}
+  .wm span{color:var(--skin);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:900;font-size:clamp(40px,6.4vw,98px);line-height:0.92;letter-spacing:-0.03em;margin:0 0 32px;max-width:17ch;}
+  .hero-headline .em{color:var(--skin);}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--glaze);color:transparent;}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;}
+  .hero-photo::after{content:"OVER LIVE COALS · SINCE 2008";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--glaze);color:var(--bone-2);padding:7px 12px;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--skin);color:var(--char);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(23,19,16,0.82);font-weight:700;}
+
+  .about{background:var(--bone);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--glaze);}
+  .about .sw-head{color:var(--mid);border-color:rgba(35,28,22,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#463a2e;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(246,239,227,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(194,69,31,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--skin);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:800;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.0;letter-spacing:-0.025em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--bone);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:rgba(35,28,22,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--glaze);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:800;font-size:27px;margin:0 0 10px;line-height:1.0;letter-spacing:-0.025em;}
+  .why-grid p{color:#463a2e;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--glaze);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--skin);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:800;font-size:22px;margin:8px 0 8px;line-height:1.02;letter-spacing:-0.025em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--char-2);}
+  .t-quote{font-family:var(--disp);font-weight:800;font-size:clamp(28px,3.7vw,54px);line-height:1.04;max-width:25ch;margin:0 0 24px;letter-spacing:-0.03em;}
+  .t-quote em{font-style:normal;color:var(--skin);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--glaze);color:var(--bone-2);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:800;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.14;letter-spacing:-0.025em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--skin);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(246,239,227,0.3);border-radius:2px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--skin);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:800;font-size:19px;line-height:1.12;letter-spacing:-0.025em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--bone);color:var(--ink);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.26;letter-spacing:-0.025em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#463a2e;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(35,28,22,0.16);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid rgba(246,239,227,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(160deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--glaze);color:var(--bone-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--bone-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:900;font-size:clamp(42px,6.2vw,102px);line-height:0.94;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--skin);}
+  .cta-band p{color:rgba(253,248,239,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--bone-2);color:var(--glaze);} .cta-band .btn-primary:hover{background:var(--skin);color:var(--char);}
+  .cta-band .btn-ghost{border-color:var(--bone-2);color:var(--bone-2);} .cta-band .btn-ghost:hover{background:var(--bone-2);color:var(--glaze);}
+
+  footer{background:var(--char);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--skin);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--glaze);color:var(--bone-2);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(194,69,31,0.4);}
+  .msg-fab a:hover{background:var(--skin);color:var(--char);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Andok's Kanto Grill","description":"Roadside rotisserie grill in Cabanatuan — whole lechon manok marinated overnight and roasted over live coals, plus grilled liempo, pork barbecue sticks, java rice and atchara, with take-out, delivery and party trays. Since 2008.","servesCuisine":"Filipino","url":"https://kantogrill.ph/","telephone":"+63445550193","email":"orders@kantogrill.ph","address":{"@type":"PostalAddress","streetAddress":"47 Maharlika Highway, Barangay Mabini","addressLocality":"Cabanatuan","addressRegion":"Nueva Ecija","postalCode":"3100","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":15.4860,"longitude":120.9670},"areaServed":["Cabanatuan","Sta. Rosa","Talavera","San Leonardo"],"image":["https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600"],"foundingDate":"2008"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is lechon manok and how is it different from ordinary roast chicken?","acceptedAnswer":{"@type":"Answer","text":"Lechon manok is the Filipino take on roast chicken: marinated in a soy-based mixture with calamansi, garlic, pepper and often lemongrass stuffed in the cavity, so it's seasoned through rather than just on the surface, then roasted whole on a rotisserie spit over live charcoal. The turning bastes the bird in its own juices and dries the skin to a crackling, lacquered gold. It's smokier and more savoury than an oven roast, and it's sold from roadside kanto stands, bagged hot with rice and atchara, cheap enough to be a regular family dinner."}},
+{"@type":"Question","name":"Do you really use charcoal, or is it a gas oven?","acceptedAnswer":{"@type":"Answer","text":"Real charcoal on a turning spit. Gas rotisseries are faster and cheaper to run, but charcoal imparts a subtle smokiness and its radiant heat crisps the skin into proper crackling rather than a softer roast finish. Since skin is what customers judge a lechon manok on, we won't trade it. The trade-off is more work and slightly longer cook times, which is why ordering ahead at peak hours helps. If you've been buying pale, soft-skinned lechon manok, try one off a real charcoal spit."}},
+{"@type":"Question","name":"How much chicken should I order for a group?","acceptedAnswer":{"@type":"Answer","text":"A whole chicken comfortably feeds three to four as a main with rice and sides, and stretches further as part of a bigger spread with liempo and barbecue. For a family dinner, one chicken plus rice and atchara is the classic order. For parties, people always eat more than expected, so we'd rather help you slightly over-order — leftovers are excellent the next day. Tell us the headcount, occasion and what else you're serving and we'll recommend honestly. Order a day ahead for fiestas."}},
+{"@type":"Question","name":"Can you deliver, and will it still be hot and crisp?","acceptedAnswer":{"@type":"Answer","text":"Yes, we deliver around Cabanatuan and pack to protect the skin. Lechon manok holds its heat well, but the enemy is trapped steam — sealed tightly in plastic, its own moisture softens the crackling. So we bag it to vent, move it quickly, and time cooking to your window rather than letting it sit under a lamp. At your end: open the bag on arrival and eat within the hour; if keeping it later, leave it uncovered somewhere warm and a few minutes in a hot oven or air fryer brings the skin back."}},
+{"@type":"Question","name":"What's the difference between liempo and pork barbecue?","acceptedAnswer":{"@type":"Answer","text":"Liempo is pork belly — a slab of layered fat and meat marinated in our soy-calamansi-lemongrass blend and grilled over coals until charred and rendered, then chopped and served with rice and vinegar dip. It's rich and substantial, a proper main. Pork barbecue is the classic skewer: smaller pieces in a sweeter marinade, basted repeatedly for a sticky caramelised glaze — snackier, sold by the stick. Most tables order both: liempo as the main event, barbecue because nobody can resist."}},
+{"@type":"Question","name":"Do you do party trays and fiesta orders?","acceptedAnswer":{"@type":"Answer","text":"Yes — multiple whole chickens, trays of chopped liempo, batches of barbecue sticks, java or plain rice and atchara, scaled to your headcount for birthdays, fiestas, baptisms, reunions and office parties. It's considerably cheaper than conventional catering and more popular with guests. We ask for at least a day's notice so we can marinate overnight and plan the fire for your timing, more during fiesta season and holidays. Message with date, time, headcount and preferences and we'll suggest quantities and confirm a price."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Andok's <span>Kanto Grill</span></a>
+    <nav class="nav-links">
+      <a href="#about">The grill</a><a href="#services">Off the grill</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Lechon manok · liempo · pork BBQ · Cabanatuan, Nueva Ecija</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Whole chickens turning on the <span class="out">spit.</span> That smell does the <span class="em">advertising.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=2000&q=85&auto=format&fit=crop"
+             alt="Chicken roasting over glowing coals on a grill." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A roadside rotisserie grill in Cabanatuan — whole chickens marinated overnight in soy, calamansi, lemongrass and garlic, then turned slowly over coals until the skin goes crackling-gold and the meat falls off the bone. Plus grilled liempo, pork barbecue on sticks, java rice and house atchara. Take-out, delivery, and party trays that make you everyone's favourite person.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order for pick-up</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">Off the grill</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Turning the spit since 2008</span>
+    <span>Marinated overnight</span>
+    <span>Roasted over live coals</span>
+    <span>Take-out · delivery · trays</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 01 / THE GRILL</span><span>ON THE MAHARLIKA HIGHWAY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">One chicken, one fire, one job: get the skin <em>right.</em></h2>
+        <p>Andok's Kanto Grill is a roadside lechon manok stand in Cabanatuan, and lechon manok — literally "roast chicken" — is one of the great everyday Filipino dinners. It's the thing you grab on the way home when you don't want to cook: a whole roasted chicken in a bag, a tub of java rice, some atchara, and dinner's done for a family of five for the price of a couple of fast-food meals. Every kanto in the country has one. Not every one gets it right.</p>
+        <p>We've been turning the spit since 2008, and the whole discipline is in two places: the marinade and the fire. Our chickens sit overnight in soy, calamansi, lemongrass, garlic and pepper, so the flavour is in the meat rather than brushed on the outside. Then they're skewered whole and turned slowly over live coals — not baked in a gas oven — so the fat renders down, the skin dries and crisps to that lacquered crackling gold, and the meat inside stays properly juicy.</p>
+        <p>Beyond the chicken we grill liempo (pork belly) marinated the same way, skewers of pork barbecue glazed sweet and sticky, and we cook the java rice and pickle the green-papaya atchara that go with them. Everything's built for take-out and delivery — bagged hot, ready in minutes — and we do party trays for fiestas, birthdays and offices. Roadside food, done seriously. Follow the smoke to the kanto.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1200&q=85&auto=format&fit=crop"
+           alt="Meat grilling over an open charcoal fire." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--char);">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 02 / OFF THE GRILL</span><span>MANOK · LIEMPO · BBQ · TRAYS</span></div>
+    <h2 class="h2">Off the grill.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Whole lechon manok</h3><p>The headliner: a whole chicken marinated overnight and rotisserie-roasted over coals to crackling-gold skin and juicy meat. Bagged hot with sauce, ready to carry home. Order whole or half.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Grilled liempo</h3><p>Pork belly marinated in the same soy-calamansi-lemongrass blend and grilled over coals until the edges char and the fat renders — chopped and served with rice and vinegar dip. The pork order to get.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Pork barbecue sticks</h3><p>The classic Filipino BBQ skewer: pork marinated sweet-savoury and glazed as it grills, sticky, charred and dangerously easy to eat five of. Sold by the stick — nobody has ever bought only one.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Java rice &amp; sides</h3><p>Golden java rice cooked with annatto and garlic, plus plain rice, house-pickled green-papaya atchara and our vinegar-chili dip — the sides that turn a roast chicken into a proper Filipino meal.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Take-out &amp; delivery</h3><p>Everything bagged hot and ready in minutes for the drive home, or delivered around Cabanatuan. Message us your order ahead and it'll be off the spit and waiting when you pull up. No queue.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Party trays &amp; fiesta orders</h3><p>Multiple chickens, trays of liempo and barbecue, rice and atchara, scaled to your headcount for birthdays, fiestas and office parties. Order a day ahead and we'll have the coals going for you.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 03 / THE DIFFERENCE</span><span>WHY THE SKIN CRACKLES</span></div>
+    <h2 class="h2">Why the skin <em>crackles.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Marinated overnight.</h3><p>Soy, calamansi, lemongrass, garlic and pepper, worked into the chicken the night before so the flavour is in the meat. A quick brush of sauce at the end fools nobody, least of all a Filipino.</p></div>
+      <div><span class="no">02 / 03</span><h3>Roasted over live coals.</h3><p>Real charcoal on a turning spit, not a gas oven. That's where the smoke, the rendered fat and the lacquered crackling skin come from — and skin is the entire reason people choose one stand over another.</p></div>
+      <div><span class="no">03 / 03</span><h3>Cheapest good dinner in town.</h3><p>A whole chicken, java rice and atchara feeds a family for less than a couple of fast-food meals. Honest, filling, genuinely delicious food at a price that respects your wallet.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 04 / HOW IT GOES</span><span>ORDER · PICK · BAG · EAT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Message or pull up</h3><p>Order ahead by phone or chat so it's ready when you arrive, or just pull up at the kanto and see what's turning. Peak dinner hours move fast — ordering ahead skips the queue entirely.</p></li>
+      <li><span class="step">STEP 02</span><h3>Pick your spread</h3><p>Whole or half chicken, liempo, BBQ sticks, java or plain rice, extra atchara and dip. Feeding a crowd? Tell us the headcount and we'll tell you honestly how much you actually need.</p></li>
+      <li><span class="step">STEP 03</span><h3>Off the spit, into the bag</h3><p>Chopped or whole, bagged hot with sauce and sides, in a couple of minutes. It travels well and stays hot for the drive — though the smell in the car is its own kind of torture.</p></li>
+      <li><span class="step">STEP 04</span><h3>Eat it with your hands</h3><p>Rice, chicken, a splash of vinegar dip, and no cutlery required. That's the correct way. Order party trays a day ahead for fiestas and become the barangay's favourite person.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 05 / FROM THE KANTO</span><span>THAT'S IT, THAT'S THE REVIEW</span></div>
+    <blockquote class="t-quote">“The skin. That's it, that's the review — perfect every single time. <em>Best in Cabanatuan, no contest.</em>”</blockquote>
+    <div class="t-attr">Nanay Lita — twice-a-week regular</div>
+    <div class="t-sub">
+      <figure><blockquote>“Ordered eight chickens, trays of liempo and barbecue for my dad's 70th and it was perfect — hot, on time, generous portions, and half the price of a caterer. The titos demolished the BBQ sticks. Everyone asked where it was from. Now our default for every family occasion.”</blockquote><figcaption>Jhun R. — birthday party trays</figcaption></figure>
+      <figure><blockquote>“I work late and this is my dinner three nights a week. Message the order, pull up, it's bagged and hot, and it costs less than fast food while being infinitely better. The java rice and atchara combo is genuinely great. Reliable, fast, delicious. Solid people too.”</blockquote><figcaption>Marvin S. — regular take-out</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--bone);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(35,28,22,0.16);"><span>SPIT 06 / AT THE FIRE</span><span>SMOKE, GLAZE &amp; GOLD</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=1600&q=85&auto=format&fit=crop" alt="Chicken roasting over glowing coals on a grill." /><figcaption>THE SPIT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop" alt="Meat grilling over an open charcoal fire." /><figcaption>THE COALS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop" alt="Grilled meat plated with rice." /><figcaption>THE PLATE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=1600&q=85&auto=format&fit=crop" alt="Skewers cooking on a charcoal grill." /><figcaption>THE STICKS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="A plate of grilled food with rice." /><figcaption>THE JAVA RICE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A roadside food stall in the evening." /><figcaption>THE KANTO</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 07 / BEFORE YOU ORDER</span><span>COALS, PORTIONS &amp; TRAYS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you order.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63445550193" style="color:var(--skin);font-weight:700;">(044) 555 0193</a>. Order ahead at dinner time; the queue at the kanto is real.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What is lechon manok, and how is it different from ordinary roast chicken?</summary><p>Lechon manok is the Filipino take on roast chicken, and while the basic idea is universal, the execution is distinctly ours. The chicken is marinated, usually in a soy-based mixture with calamansi, garlic, pepper and often lemongrass stuffed into the cavity, so it's seasoned through rather than just on the surface. It's then roasted whole on a rotisserie spit, traditionally over live charcoal, which slowly renders the fat, bastes the bird in its own juices as it turns, and dries the skin into that signature crackling, lacquered gold finish. The result is smokier, more savoury and more aromatic than a typical oven roast, with skin that's the main event. It's also sold from roadside kanto stalls, bagged hot to take home with rice and atchara, cheap enough to be a regular family dinner rather than a Sunday occasion.</p></details>
+        <details><summary>Do you really use charcoal, or is it a gas oven?</summary><p>Real charcoal, on a turning spit — and it genuinely matters. Gas rotisseries are faster, cleaner and cheaper to run, and plenty of places use them, but charcoal does two things gas can't quite match: it imparts a subtle smokiness through the skin and into the meat, and the radiant heat crisps the skin in a way that produces that proper crackling texture rather than a softer roast finish. Since skin is the single thing customers judge a lechon manok on, we're not willing to trade it. The trade-off on our side is more work — managing the fire, watching the turn, dealing with heat and smoke all day — and slightly longer cook times, which is why ordering ahead at peak hours is worth doing. If you've been buying lechon manok that arrives pale and soft-skinned, try one off a real charcoal spit; it's a different food.</p></details>
+        <details><summary>How much chicken should I order for a group?</summary><p>As a practical guide, a whole chicken comfortably feeds around three to four people as a main dish with rice and sides, or stretches further if it's part of a bigger spread with liempo, barbecue and other viands on the table. For a family dinner, one chicken plus rice and atchara is the classic order. For parties, the honest rule is that people always eat more lechon manok than they think they will, so we'd rather help you slightly over-order than have you run short in front of guests — and leftovers are excellent the next day, or turned into chicken sopas or fried rice. Tell us the headcount, the occasion and what else you're serving, and we'll give you a straight recommendation. For fiestas and big gatherings, ordering at least a day ahead lets us marinate properly and have the coals going for your pick-up time.</p></details>
+        <details><summary>Can you deliver, and will it still be hot and crisp?</summary><p>Yes, we deliver around Cabanatuan, and we pack specifically to protect the thing that matters most — the skin. Lechon manok travels reasonably well because it's roasted whole and holds its heat, but the enemy is trapped steam: if a hot chicken is sealed tightly in plastic for too long, its own moisture softens that crackling skin. So we bag it to vent, get it moving quickly, and time cooking to your pick-up or delivery window rather than letting it sit under a lamp. Our honest advice at your end: open the bag when it arrives rather than leaving it sealed, and eat it soon — within the hour is ideal. If you need it later, keep it uncovered somewhere warm rather than wrapped, and a few minutes in a hot oven or air fryer will bring the skin right back.</p></details>
+        <details><summary>What's the difference between liempo and pork barbecue?</summary><p>They're both grilled pork and both excellent, but they're different cuts and different experiences. Liempo is pork belly — a slab of layered fat and meat, marinated in our soy-calamansi-lemongrass blend and grilled over coals until the outside chars and the fat renders, then chopped and served with rice and a vinegar-chili dip. It's rich, meaty and substantial: an ulam, a proper main dish. Pork barbecue is the classic Filipino skewer: smaller pieces of pork in a sweeter marinade, basted repeatedly as it grills so it develops a sticky, caramelised glaze. It's snackier, sweeter, sold by the stick, and it's the thing you buy 'just a couple' of and then eat five. Most tables order both. If you're not sure, get one of each and see which your family reaches for first.</p></details>
+        <details><summary>Do you do party trays and fiesta orders?</summary><p>Yes, and it's a big part of what we do, because roast chicken and grilled pork are exactly what Filipino gatherings run on. We'll put together multiple whole chickens, trays of chopped liempo, batches of barbecue sticks, java or plain rice and atchara, all scaled to your headcount and packed for a party table — for birthdays, fiestas, baptisms, reunions, office parties and school events. It's considerably cheaper than conventional catering and, frankly, more popular with guests. We ask for at least a day's notice so we can marinate the chickens properly overnight and plan the fire for your timing, and more notice during fiesta season, Christmas and long weekends. Message or call with your date, time, headcount and preferences, and we'll suggest quantities honestly and have everything hot and ready.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 08 / WE DELIVER TO</span><span>NUEVA ECIJA</span></div>
+    <ul class="area-list">
+      <li>Cabanatuan</li><li>Sta. Rosa</li><li>Talavera</li><li>San Leonardo</li><li>Nueva Ecija</li><li>Delivery &amp; party trays</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 09 / THE ESSENTIALS</span><span>HOW WE ROAST</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2008</div><div class="detail">Turning the spit at the kanto</div></div>
+      <div><div class="label">Marinated overnight</div><div class="detail">Soy, calamansi, lemongrass &amp; garlic</div></div>
+      <div><div class="label">Live charcoal</div><div class="detail">Real coals, real crackling skin</div></div>
+      <div><div class="label">Trays &amp; delivery</div><div class="detail">Fiesta orders around Nueva Ecija</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SPIT 10 / THE KANTO</span><span>MAHARLIKA HIGHWAY, CABANATUAN</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Andok's Kanto Grill</strong><br />
+          47 Maharlika Highway, Barangay Mabini<br />
+          Cabanatuan, Nueva Ecija 3100<br /><br />
+          <a href="tel:+63445550193" data-bind="business.phoneDisplay">(044) 555 0193</a><br />
+          <a href="mailto:orders@kantogrill.ph" data-bind="business.email">orders@kantogrill.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>10AM – 9PM</span></div>
+          <div class="row"><span>DINNER RUSH</span><span>5PM – 7PM</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on the Maharlika Highway in Barangay Mabini — look for the spit and follow the smoke. Order ahead to skip the dinner queue.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Andok's Kanto Grill, Cabanatuan" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.9520%2C15.4760%2C120.9820%2C15.4960&layer=mapnik&marker=15.4860%2C120.9670"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">SPIT 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Dinner's sorted. Follow the <em>smoke.</em></h2>
+    <p data-bind="cta.body">Whole lechon manok marinated overnight and roasted over live coals, grilled liempo, sticky pork barbecue, java rice and atchara — take-out, delivery and party trays around Cabanatuan. Turning the spit since 2008.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order for pick-up</a>
+      <a class="btn btn-ghost" href="tel:+63445550193" data-bind="cta.secondary.label">(044) 555 0193</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63445550193" data-bind="messaging.whatsapp" aria-label="Message the grill">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Andok's <span style="color:var(--skin);">Kanto Grill</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A roadside rotisserie in Cabanatuan — lechon manok, liempo and BBQ over live coals since 2008.</p>
+      </div>
+      <div>
+        <h4>The grill</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          47 Maharlika Highway, Brgy. Mabini<br />Cabanatuan, Nueva Ecija 3100<br />
+          <a href="tel:+63445550193">(044) 555 0193</a><br />
+          <a href="mailto:orders@kantogrill.ph">orders@kantogrill.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Off the grill</a><a href="#about">The grill</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> ANDOK'S KANTO GRILL</span>
+      <span>OVER LIVE COALS · CABANATUAN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sundial Lido — open-air swimming pool in Margate</title>
+<meta name="description" content="Sundial Lido is a restored 1930s open-air swimming pool on the Margate seafront — heated fifty-metre pool, lane swimming from six, family afternoons, and a sun terrace that opens rain or shine." />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Sundial Lido", phone: "+44 1843 220 550", phoneDisplay: "01843 220 550", email: "front@sundiallido.co.uk", foundedYear: 1934 },
+  hero: {
+    kicker: "Open-air pool · heated 50m · Margate seafront · est. 1934",
+    headline: "Fifty metres of open sky, heated to 26°.",
+    lede: "A 1930s seafront lido brought back to life: a heated fifty-metre pool under open sky, lane swimming from six in the morning, family afternoons that sound like summer, and a sun terrace that stays open when it rains — because a swim in the rain is the best-kept secret in Margate.",
+    primaryCta: { label: "Sessions & tickets", href: "#services" },
+    secondaryCta: { label: "Today's water temp", href: "#location" },
+    image: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Turquoise open-air swimming pool under a blue sky."
+  },
+  trust: { years: "On the seafront since 1934" },
+  about: {
+    heading: "Ninety years. One length at a time.",
+    paragraphs: [
+      "Sundial opened in 1934 as one of the great seaside lidos, closed in the lean years like most of them, and reopened after a community trust spent a decade and a great deal of stubbornness bringing it back. The fountain works again. The clock on the diving-board wall keeps time. The paint is the original teal, matched from a chip found under sixty years of repainting.",
+      "The pool is a full fifty metres, heated to twenty-six degrees so the season runs March to November, and open to the sky the whole time. Lane swimmers have it from six; families from noon; and on the longest evenings we open late and the water goes gold.",
+      "It's run as a trust, not a chain. Every ticket keeps the boiler on and the paint fresh, and members' names are painted, one per tile, along the plant-room wall. There is a waiting list for a tile. There is not, yet, a waiting list to swim."
+    ],
+    portrait: "https://images.unsplash.com/photo-1600965962361-9035dbfd1c50?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Swimmer doing lengths in an outdoor pool at dawn."
+  },
+  services: [
+    { name: "Lane swimming", description: "Six lanes, roped by pace, from 6am. Fast, medium and 'social' lanes honestly labelled and gently policed. The dawn slot is a cult; join it." },
+    { name: "Family afternoons", description: "Noon onwards: the shallow end, the fountain on, floats from the bin, and a lifeguard who means it. The best-value afternoon on the coast, weather no object." },
+    { name: "Membership", description: "Annual and monthly, swim as often as you like, and eventually your name on a tile along the plant-room wall. It's the only loyalty scheme we've ever loved." },
+    { name: "Lessons & squads", description: "Learn-to-swim for all ages, adult improvers who never quite got the hang of it, and a masters squad that races and mostly wins." },
+    { name: "Sunrise & late swims", description: "Dawn lanes and long-evening late openings when the water turns gold. Seasonal, announced on the board, worshipped by regulars." },
+    { name: "The sun terrace & kiosk", description: "Deckchairs, decent coffee, an ice-cream hatch, and the finest people-watching in Margate — swim optional, though you'll cave." }
+  ],
+  why: [
+    { title: "Heated, so the season is long.", body: "Twenty-six degrees, March to November, under open sky. Not a summer novelty — a pool you can swim before work in April and after work in October." },
+    { title: "Fifty real metres.", body: "A proper Olympic-length tank, not a leisure puddle with a flume. Lanes for swimmers who count lengths and a shallow end for everyone still learning to." },
+    { title: "Owned by the town.", body: "A community trust, not a leisure operator. Every ticket keeps a listed 1934 lido alive; profits become paint, boiler parts and another summer open." }
+  ],
+  how: [
+    { step: "01", title: "Check the board", body: "Water temp, session times and lane setup posted daily — on the gate, online, and on the seafront webcam for the truly keen." },
+    { step: "02", title: "Book or walk up", body: "Lanes can be booked; family afternoons are walk-up. Members skip the queue and swim on impulse, which is the whole point of membership." },
+    { step: "03", title: "In you get", body: "Heated changing village, hot showers that stay hot, and towels for hire if you forgot. The cold shock is optional and, frankly, character-building." },
+    { step: "04", title: "Stay on the terrace", body: "Deckchair, coffee, ice cream, and the sea over the wall. Half our swimmers stay longer on the terrace than in the water. No notes." }
+  ],
+  testimonials: [
+    { quote: "I swim at 6am before the school run and it has rearranged my entire personality for the better. Fifty metres of open sky and steam coming off the water — nothing on land competes.", name: "Nadia R.", context: "dawn lanes, four years" },
+    { quote: "Rained the whole afternoon and the kids didn't notice — they were already wet. A swim in the rain in a heated pool is genuinely magical and I will not be taking questions.", name: "The Okafor family", context: "family afternoon regulars" },
+    { quote: "My name is on a tile by the plant room. I have achieved things in my career that mattered less to me. The lido saved a piece of this town and let me pay towards it.", name: "Geoff T.", context: "founding member, tile 041" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1600&q=85&auto=format&fit=crop", alt: "The turquoise pool from the terrace." },
+    { src: "https://images.unsplash.com/photo-1600965962361-9035dbfd1c50?w=1600&q=85&auto=format&fit=crop", alt: "A swimmer mid-length at dawn." },
+    { src: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=1600&q=85&auto=format&fit=crop", alt: "Lane ropes and clear water." },
+    { src: "https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1600&q=85&auto=format&fit=crop", alt: "The deckchair terrace in the sun." },
+    { src: "https://images.unsplash.com/photo-1560089000-7433a4ebbd64?w=1600&q=85&auto=format&fit=crop", alt: "A swimmer mid-stroke in a lane." },
+    { src: "https://images.unsplash.com/photo-1600965962102-9d260a71890d?w=1600&q=85&auto=format&fit=crop", alt: "Evening light on the water." }
+  ],
+  faq: [
+    { q: "Is the pool really heated?", a: "To twenty-six degrees, all season, which runs March to November. It's warm enough that the dawn swimmers get steam off the surface on a cold morning — one of the great sights of a Margate spring. The changing village and showers are heated too." },
+    { q: "Do I need to book?", a: "Lane sessions can be booked and fill fast at peak times, so booking is wise. Family afternoons are walk-up — just turn up. Members can book earlier and skip the queue, which most decide is worth it by about their third visit." },
+    { q: "What if it rains?", a: "We open anyway, and honestly it's a highlight. You're already wet, the water's warm, and the terrace has cover for the coffee. We close only for thunder and lightning — lifeguard's call, and it's final." },
+    { q: "How cold is too cold — when do you close?", a: "The pool is heated, so weather rarely closes us; the season boundaries are about daylight and running costs, not swimmer bravery. High winds or electrical storms clear the water. Otherwise, dress warm on the walk in and you'll be glad you came." },
+    { q: "Can children swim?", a: "Of course — family afternoons from noon, a proper shallow end, floats to borrow, and lifeguards throughout. Under-eights need an adult in the water within arm's reach; that's the one rule we never bend." },
+    { q: "How does membership work?", a: "Monthly or annual, unlimited swims, priority booking, and a genuine hand in keeping a 1934 lido alive. Long-standing members eventually get their name painted on a tile by the plant room — there's a waiting list, and it's the good kind of problem." }
+  ],
+  area: { places: ["Margate", "Cliftonville", "Broadstairs", "Ramsgate", "Westgate-on-Sea", "Whitstable"] },
+  credentials: [
+    { label: "Heritage", detail: "Grade II listed 1934 seafront lido, restored" },
+    { label: "The pool", detail: "50m × 6 lanes, heated to 26°C, March–Nov" },
+    { label: "Safeguarding", detail: "RLSS-qualified lifeguards on every session" },
+    { label: "Owned by", detail: "Registered community trust, not-for-profit" }
+  ],
+  location: { name: "Sundial Lido", addressStreet: "The Promenade, Marine Terrace", addressLocality: "Margate", addressRegion: "Kent", addressPostcode: "CT9 1XJ", addressCountry: "United Kingdom" },
+  cta: { heading: "The water's 26°. The sky's free.", body: "Lane swim before work, bring the kids after noon, or just take the terrace. The season's open — come get in.", primary: { label: "Sessions & tickets", href: "#services" }, secondary: { label: "01843 220 550", href: "tel:+441843220550" } },
+  messaging: { whatsapp: "https://wa.me/441843220550", messenger: "https://m.me/sundiallido" }
+};
+</script>
+
+<style>
+  :root {
+    --pool:#0f9bbd; --deep:#0a4f66; --cream:#fbf6ec; --sun:#f4b430; --coral:#ef6f53;
+    --ink:#0b3543; --mid:#5a7883; --mid-l:#bfe0e8; --rule:rgba(11,53,67,0.15); --rule-d:rgba(251,246,236,0.2);
+    --disp:"Poppins",system-ui,sans-serif; --sans:"Familjen Grotesk",system-ui,sans-serif; --mono:"DM Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--coral);}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--pool);}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(32px,4.8vw,64px);line-height:0.98;letter-spacing:-0.03em;margin:0 0 0.45em;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:15px 28px;font-family:var(--disp);font-weight:600;font-size:14px;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--coral);color:var(--cream);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:2px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--cream);}
+  .lane-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  .light .lane-head{color:var(--mid-l);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(251,246,236,0.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-0.03em;text-decoration:none;}
+  .wm span{color:var(--pool);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — pool-tile deco: giant temp readout + lane-numbered photo */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(42px,6vw,92px);line-height:0.92;letter-spacing:-0.04em;margin:20px 0 22px;}
+  .hero h1 em{font-style:normal;color:var(--pool);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.7;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;}
+  .temp-badge{position:absolute;top:-18px;right:-14px;background:var(--sun);color:var(--ink);width:120px;height:120px;border-radius:50%;display:grid;place-content:center;text-align:center;font-family:var(--disp);box-shadow:0 12px 30px rgba(11,53,67,0.25);border:4px solid var(--cream);}
+  .temp-badge b{font-size:34px;font-weight:800;line-height:1;letter-spacing:-0.03em;}
+  .temp-badge small{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;display:block;margin-top:4px;}
+  .lanetag{position:absolute;left:-12px;bottom:24px;background:var(--ink);color:var(--cream);padding:12px 18px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;line-height:1.9;text-transform:uppercase;border-radius:4px;}
+  .lanetag b{color:var(--sun);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .temp-badge{width:96px;height:96px;right:8px;} .temp-badge b{font-size:26px;}}
+
+  .trust{padding:0;background:var(--deep);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(251,246,236,0.85);}
+
+  .about{background:var(--deep);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.74;margin:0 0 1em;color:var(--mid-l);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:6px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — lane-lane cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .svc-card{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:clamp(22px,2.8vw,32px);position:relative;overflow:hidden;transition:0.18s;}
+  .svc-card::before{content:"";position:absolute;top:0;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,var(--pool) 0 20px,var(--cream) 20px 24px);}
+  .svc-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(11,53,67,0.14);}
+  .svc-card .ln{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--pool);display:block;margin:8px 0 12px;text-transform:uppercase;}
+  .svc-card h3{font-family:var(--disp);font-weight:700;font-size:19px;margin:0 0 8px;line-height:1.15;letter-spacing:-0.02em;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.64;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--pool);color:var(--ink);}
+  .why .lane-head{border-color:rgba(11,53,67,0.3);color:var(--deep);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--cream);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:22px;margin:0 0 10px;line-height:1.12;letter-spacing:-0.02em;}
+  .why-grid p{color:var(--deep);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--coral);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:18px;margin:10px 0 8px;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--deep);color:var(--cream);}
+  .testimonials .lane-head{border-color:rgba(251,246,236,0.3);color:var(--mid-l);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(23px,3vw,42px);line-height:1.1;max-width:30ch;margin:0 0 22px;letter-spacing:-0.03em;}
+  .t-quote em{font-style:normal;color:var(--sun);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-l);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;color:var(--mid-l);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-l);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — poolside contact strip */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:6px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--cream);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"~";color:var(--pool);font-size:22px;flex-shrink:0;transition:0.2s;line-height:1;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);color:var(--coral);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--ink);border-radius:999px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--ink);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:15px;line-height:1.4;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--deep);color:var(--cream);border-radius:8px;padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:19px;line-height:1.5;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-l);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-l);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:8px;min-height:380px;overflow:hidden;border:2px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--coral);color:var(--cream);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream);opacity:0.85;}
+  .cta-band h2{font-family:var(--disp);font-weight:800;font-size:clamp(38px,5.6vw,84px);line-height:0.94;margin:16px auto 18px;max-width:15ch;letter-spacing:-0.04em;}
+  .cta-band h2 em{font-style:normal;color:var(--sun);}
+  .cta-band p{color:rgba(251,246,236,0.9);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--coral);}
+  .cta-band .btn-primary:hover{background:var(--ink);color:var(--cream);}
+  .cta-band .btn-ghost{border-color:var(--cream);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--coral);}
+
+  footer{background:var(--cream);border-top:2px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--pool);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:var(--cream);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--disp);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(239,111,83,0.4);}
+  .msg-fab a:hover{background:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Sundial Lido","description":"Restored 1930s open-air swimming pool on the Margate seafront — heated 50m pool, lane swimming, family afternoons and a sun terrace.","url":"https://sundiallido.co.uk/","telephone":"+441843220550","email":"front@sundiallido.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Promenade, Marine Terrace","addressLocality":"Margate","addressRegion":"Kent","postalCode":"CT9 1XJ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.3890,"longitude":1.3790},"areaServed":["Margate","Cliftonville","Broadstairs","Ramsgate"],"image":["https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1600"],"foundingDate":"1934"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the pool really heated?","acceptedAnswer":{"@type":"Answer","text":"To twenty-six degrees, all season, March to November. Changing village and showers are heated too."}},
+{"@type":"Question","name":"Do I need to book?","acceptedAnswer":{"@type":"Answer","text":"Lane sessions can be booked and fill fast; family afternoons are walk-up. Members book earlier and skip the queue."}},
+{"@type":"Question","name":"What if it rains?","acceptedAnswer":{"@type":"Answer","text":"We open anyway — you're already wet and the water's warm. We close only for thunder and lightning."}},
+{"@type":"Question","name":"When do you close for weather?","acceptedAnswer":{"@type":"Answer","text":"High winds or electrical storms clear the water. The heated pool means weather rarely closes us."}},
+{"@type":"Question","name":"Can children swim?","acceptedAnswer":{"@type":"Answer","text":"Family afternoons from noon with a shallow end, floats and lifeguards. Under-eights need an adult within arm's reach."}},
+{"@type":"Question","name":"How does membership work?","acceptedAnswer":{"@type":"Answer","text":"Monthly or annual, unlimited swims, priority booking, and eventually your name on a tile by the plant room."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Sundial <span>Lido</span></a>
+    <nav class="nav-links">
+      <a href="#about">The lido</a><a href="#services">Swim</a><a href="#location">Find us</a><a href="#services">Tickets</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v49">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Open-air pool · heated 50m · Margate seafront · est. 1934</div>
+      <h1 data-comment-anchor="hero-headline">Fifty metres of open sky, <em>heated to 26°.</em></h1>
+      <p class="lede" data-bind="hero.lede">A 1930s seafront lido brought back to life: a heated fifty-metre pool under open sky, lane swimming from six in the morning, family afternoons that sound like summer, and a sun terrace that stays open when it rains — because a swim in the rain is the best-kept secret in Margate.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Sessions &amp; tickets</a>
+        <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Today's water temp</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=2000&q=85&auto=format&fit=crop"
+           alt="Turquoise open-air swimming pool under a blue sky." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="temp-badge"><span><b>26°</b><small>Water today</small></span></div>
+      <div class="lanetag">LANES OPEN <b>06:00</b><br />50M · 6 LANES<br />SEASON: MAR–NOV</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the seafront since 1934</span>
+    <span>Heated to 26°, Mar–Nov</span>
+    <span>Community-owned trust</span>
+    <span>Open in the rain</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v15">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 01 / THE LIDO</span><span>RESTORED, TILE BY TILE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Ninety years. One length at a time.</h2>
+        <p>Sundial opened in 1934 as one of the great seaside lidos, closed in the lean years like most of them, and reopened after a community trust spent a decade and a great deal of stubbornness bringing it back. The fountain works again. The clock on the diving-board wall keeps time. The paint is the original teal, matched from a chip found under sixty years of repainting.</p>
+        <p>The pool is a full fifty metres, heated to twenty-six degrees so the season runs March to November, and open to the sky the whole time. Lane swimmers have it from six; families from noon; and on the longest evenings we open late and the water goes gold.</p>
+        <p>It's run as a trust, not a chain. Every ticket keeps the boiler on and the paint fresh, and members' names are painted, one per tile, along the plant-room wall. There is a waiting list for a tile. There is not, yet, a waiting list to swim.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1600965962361-9035dbfd1c50?w=1200&q=85&auto=format&fit=crop"
+           alt="Swimmer doing lengths in an outdoor pool at dawn." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v42">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 02 / SESSIONS</span><span>ROPED BY PACE</span></div>
+    <h2 class="h2">Pick your lane.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="ln">Lane 1 · from 06:00</span><h3>Lane swimming</h3><p>Six lanes, roped by pace, from 6am. Fast, medium and "social" lanes honestly labelled and gently policed. The dawn slot is a cult; join it.</p></div>
+      <div class="svc-card"><span class="ln">Lane 2 · from noon</span><h3>Family afternoons</h3><p>The shallow end, the fountain on, floats from the bin, and a lifeguard who means it. The best-value afternoon on the coast, weather no object.</p></div>
+      <div class="svc-card"><span class="ln">Lane 3 · all season</span><h3>Membership</h3><p>Annual and monthly, swim as often as you like, and eventually your name on a tile along the plant-room wall. The only loyalty scheme we've ever loved.</p></div>
+      <div class="svc-card"><span class="ln">Lane 4 · all ages</span><h3>Lessons &amp; squads</h3><p>Learn-to-swim for all ages, adult improvers who never quite got the hang of it, and a masters squad that races and mostly wins.</p></div>
+      <div class="svc-card"><span class="ln">Lane 5 · seasonal</span><h3>Sunrise &amp; late swims</h3><p>Dawn lanes and long-evening late openings when the water turns gold. Announced on the board, worshipped by regulars.</p></div>
+      <div class="svc-card"><span class="ln">Lane 6 · dry</span><h3>The sun terrace &amp; kiosk</h3><p>Deckchairs, decent coffee, an ice-cream hatch, and the finest people-watching in Margate — swim optional, though you'll cave.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v14">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 03 / WHY SUNDIAL</span><span>THREE THINGS THE SEA CAN'T DO</span></div>
+    <h2 class="h2">Why a heated tank beats the sea.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Heated, so the season is long.</h3><p>Twenty-six degrees, March to November, under open sky. Not a summer novelty — a pool you can swim before work in April and after work in October.</p></div>
+      <div><span class="no">02 / 03</span><h3>Fifty real metres.</h3><p>A proper Olympic-length tank, not a leisure puddle with a flume. Lanes for swimmers who count lengths and a shallow end for everyone still learning to.</p></div>
+      <div><span class="no">03 / 03</span><h3>Owned by the town.</h3><p>A community trust, not a leisure operator. Every ticket keeps a listed 1934 lido alive; profits become paint, boiler parts and another summer open.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 04 / YOUR FIRST SWIM</span><span>BOARD → BOOK → IN → TERRACE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Check the board</h3><p>Water temp, session times and lane setup posted daily — on the gate, online, and on the seafront webcam for the truly keen.</p></li>
+      <li><span class="step">Step 02</span><h3>Book or walk up</h3><p>Lanes can be booked; family afternoons are walk-up. Members skip the queue and swim on impulse, which is the whole point of membership.</p></li>
+      <li><span class="step">Step 03</span><h3>In you get</h3><p>Heated changing village, hot showers that stay hot, and towels for hire if you forgot. The cold shock is optional and character-building.</p></li>
+      <li><span class="step">Step 04</span><h3>Stay on the terrace</h3><p>Deckchair, coffee, ice cream, and the sea over the wall. Half our swimmers stay longer on the terrace than in the water. No notes.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v14">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 05 / SWIMMERS</span><span>DRIPPING, HAPPY, QUOTED</span></div>
+    <blockquote class="t-quote">“Fifty metres of open sky and steam coming off the water — <em>nothing on land competes.</em>”</blockquote>
+    <div class="t-attr">Nadia R. — dawn lanes, four years</div>
+    <div class="t-sub">
+      <figure><blockquote>“Rained the whole afternoon and the kids didn't notice — they were already wet. A swim in the rain in a heated pool is genuinely magical and I will not be taking questions.”</blockquote><figcaption>The Okafor family — family afternoon regulars</figcaption></figure>
+      <figure><blockquote>“My name is on a tile by the plant room. I have achieved things in my career that mattered less to me. The lido saved a piece of this town and let me pay towards it.”</blockquote><figcaption>Geoff T. — founding member, tile 041</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v42">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 06 / POOLSIDE</span><span>SHOT BETWEEN LENGTHS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1600&q=85&auto=format&fit=crop" alt="The turquoise pool from the terrace." /><figcaption>THE TANK, FROM THE TERRACE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600965962361-9035dbfd1c50?w=1600&q=85&auto=format&fit=crop" alt="A swimmer mid-length at dawn." /><figcaption>DAWN LANES, 06:12</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1530549387789-4c1017266635?w=1600&q=85&auto=format&fit=crop" alt="Lane ropes and clear water." /><figcaption>ROPED BY PACE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1600&q=85&auto=format&fit=crop" alt="The deckchair terrace in the sun." /><figcaption>THE SUN TERRACE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1560089000-7433a4ebbd64?w=1600&q=85&auto=format&fit=crop" alt="A swimmer mid-stroke in a lane." /><figcaption>MID-POOL, FULL STROKE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600965962102-9d260a71890d?w=1600&q=85&auto=format&fit=crop" alt="Evening light on the water." /><figcaption>WHEN THE WATER GOES GOLD</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 07 / ASKED AT THE GATE</span><span>USUALLY WHILE TOWELLING OFF</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the gate.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441843220550" style="color:var(--pool);">01843 220 550</a>. The webcam on our site shows the water right now, if you're deciding.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is the pool really heated?</summary><p>To twenty-six degrees, all season, which runs March to November. It's warm enough that the dawn swimmers get steam off the surface on a cold morning — one of the great sights of a Margate spring. The changing village and showers are heated too.</p></details>
+        <details><summary>Do I need to book?</summary><p>Lane sessions can be booked and fill fast at peak times, so booking is wise. Family afternoons are walk-up — just turn up. Members can book earlier and skip the queue, which most decide is worth it by about their third visit.</p></details>
+        <details><summary>What if it rains?</summary><p>We open anyway, and honestly it's a highlight. You're already wet, the water's warm, and the terrace has cover for the coffee. We close only for thunder and lightning — lifeguard's call, and it's final.</p></details>
+        <details><summary>How cold is too cold — when do you close?</summary><p>The pool is heated, so weather rarely closes us; the season boundaries are about daylight and running costs, not swimmer bravery. High winds or electrical storms clear the water. Otherwise, dress warm on the walk in and you'll be glad you came.</p></details>
+        <details><summary>Can children swim?</summary><p>Of course — family afternoons from noon, a proper shallow end, floats to borrow, and lifeguards throughout. Under-eights need an adult in the water within arm's reach; that's the one rule we never bend.</p></details>
+        <details><summary>How does membership work?</summary><p>Monthly or annual, unlimited swims, priority booking, and a genuine hand in keeping a 1934 lido alive. Long-standing members eventually get their name painted on a tile by the plant room — there's a waiting list, and it's the good kind of problem.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 08 / SWIMMERS COME FROM</span><span>THE ISLE OF THANET &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Margate</li><li>Cliftonville</li><li>Broadstairs</li><li>Ramsgate</li><li>Westgate-on-Sea</li><li>Whitstable</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 09 / THE ESSENTIALS</span><span>LISTED, HEATED, GUARDED</span></div>
+    <div class="creds">
+      <div><div class="label">Heritage</div><div class="detail">Grade II listed 1934 seafront lido, restored</div></div>
+      <div><div class="label">The pool</div><div class="detail">50m × 6 lanes, heated to 26°C, March–Nov</div></div>
+      <div><div class="label">Safeguarding</div><div class="detail">RLSS-qualified lifeguards on every session</div></div>
+      <div><div class="label">Owned by</div><div class="detail">Registered community trust, not-for-profit</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lane-head"><span>LENGTH 10 / FIND US</span><span>THE PROMENADE, MARINE TERRACE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Sundial Lido</strong><br />
+          The Promenade, Marine Terrace<br />
+          Margate CT9 1XJ<br /><br />
+          <a href="tel:+441843220550" data-bind="business.phoneDisplay">01843 220 550</a><br />
+          <a href="mailto:front@sundiallido.co.uk" data-bind="business.email">front@sundiallido.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MAR – NOV</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>WATER TEMP</span><span>ON THE WEBCAM</span></div>
+          <p class="gbp-note">Session times and today's water temperature live on our Google Business Profile and the seafront webcam. Right on the prom — you'll see the fountain before the gate.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Sundial Lido, Marine Terrace, Margate" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=1.3700%2C51.3850%2C1.3880%2C51.3930&layer=mapnik&marker=51.3890%2C1.3790"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section class="cta-band" data-component="CTA-BAND" data-variant="v17">
+  <div class="wrap">
+    <div class="kick">LENGTH 11 / DIVE IN</div>
+    <h2 data-bind="cta.heading">The water's 26°. <em>The sky's free.</em></h2>
+    <p data-bind="cta.body">Lane swim before work, bring the kids after noon, or just take the terrace. The season's open — come get in.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">Sessions &amp; tickets</a>
+      <a class="btn btn-ghost" href="tel:+441843220550" data-bind="cta.secondary.label">01843 220 550</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441843220550" data-bind="messaging.whatsapp" aria-label="Message the lido">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">Sundial <span style="color:var(--pool);">Lido</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A restored 1934 open-air lido on the Margate seafront. Run by a community trust.</p>
+      </div>
+      <div>
+        <h4>The lido</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          The Promenade, Marine Terrace<br />Margate CT9 1XJ<br />
+          <a href="tel:+441843220550">01843 220 550</a><br />
+          <a href="mailto:front@sundiallido.co.uk">front@sundiallido.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Swim</a><a href="#about">The lido</a><a href="#location">Find us</a><a href="#services">Membership</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SUNDIAL LIDO TRUST · REG. CHARITY</span>
+      <span>OPEN SKY · WARM WATER · SINCE 1934</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

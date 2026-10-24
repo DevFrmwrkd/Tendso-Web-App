@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Groundswell — surf school &amp; shop in Newquay, Fistral</title>
+<meta name="description" content="Groundswell is a surf school and shop above Fistral Beach, Newquay. Lessons for absolute beginners to improvers, board and wetsuit hire, honest surf reports since 2009." />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Groundswell", phone: "+44 1637 852 774", phoneDisplay: "01637 852 774", email: "surf@groundswell.uk", foundedYear: 2009 },
+  hero: {
+    kicker: "Surf school · hire · honest reports · Fistral Beach, Newquay",
+    headline: "The sea doesn't check your CV. Everyone starts as a beginner here.",
+    lede: "A surf school and shop fifty metres above Fistral. Lessons from absolute zero, boards and winter-grade wetsuits for hire, and a daily surf report written by someone who actually paddled out.",
+    primaryCta: { label: "Book a lesson", href: "#book" },
+    secondaryCta: { label: "Today's conditions", href: "#services" },
+    image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Surfer walking to the water with a board at golden hour."
+  },
+  trust: { years: "Above Fistral since 2009" },
+  about: {
+    heading: "Fifty metres from the tideline.",
+    paragraphs: [
+      "Groundswell started as two coaches, a van, and a rail of wetsuits that smelled exactly how you'd imagine. Fifteen years later there's a proper shop, a drying room that has changed lives, and a coaching team that has taught upwards of twenty thousand first waves.",
+      "The teaching philosophy is simple: the ocean sets the lesson plan. Coaches read the day's conditions and adapt — small clean days are for pop-ups and trim, bigger days move to the sheltered corner, and some days the sea says no and we say it honestly and rebook you free.",
+      "The daily report is written at 7am by whoever surfed first. It will tell you the truth, including 'don't bother today', because a shop you trust on the flat days is a shop you trust on the firing ones."
+    ],
+    portrait: "https://images.unsplash.com/photo-1526188717906-ab4a2f949f4d?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Coach carrying soft-top boards across the beach."
+  },
+  services: [
+    { name: "Absolute beginners", description: "Two hours, everything included, waist-deep water. The pop-up, the whitewash ride, and the grin — guaranteed in roughly that order." },
+    { name: "Improver coaching", description: "Green waves, turning, positioning, etiquette. Video review on the beach while your arms recover." },
+    { name: "Kids' surf club", description: "Ages 8–16, Saturday mornings, badges and everything. Beach-safety certified coaches, ratio 1:4 in the water." },
+    { name: "Board & wetsuit hire", description: "Soft-tops to shortboards, winter-grade suits (5/4, boots, hoods) that actually fit. Hot shower and drying room included." },
+    { name: "The shop", description: "Hardware, wax, repairs, and advice that starts with 'what are you actually surfing?' rather than the price tag." },
+    { name: "Surf hire + report club", description: "Season pass: unlimited hire, locker, the 7am report by text, and priority rebooking when the sea cancels on you." }
+  ],
+  why: [
+    { title: "The ocean writes the plan.", body: "Coaches adapt every session to the day's sea. Nobody runs a fixed lesson into a rip because the laminated card said so." },
+    { title: "Honest reports.", body: "The 7am report includes 'don't bother' days. Fifteen years of not lying about waves is the marketing budget." },
+    { title: "Small ratios, warm suits.", body: "Max six per coach in the water, 1:4 for kids, and winter suits good enough that cold stops being the reason you quit." }
+  ],
+  how: [
+    { step: "01", title: "Book & check", body: "Book online; the night before, we confirm the session against the forecast." },
+    { step: "02", title: "Suit up", body: "Suits, boards and beach briefing at the shop. The walk down is the warm-up." },
+    { step: "03", title: "Two hours in it", body: "Coached in the water, not shouted at from the sand. Max six per coach." },
+    { step: "04", title: "Debrief & dry", body: "Video clips on the beach, hot shower, drying room, and the honest 'what next'." }
+  ],
+  testimonials: [
+    { quote: "Stood up on my third wave aged 43, having failed at two previous surf schools. The difference was a coach in the water beside me instead of a megaphone on the beach.", name: "Karen F.", context: "beginner course" },
+    { quote: "They texted the night before to say conditions were dangerous for beginners and rebooked us free. That's when I knew these were the right people.", name: "Dipesh V.", context: "family lesson" },
+    { quote: "My son has gone from boogie boards to proper green waves in one season of surf club. He now critiques my pop-up, which I'm told is character building.", name: "Tom B.", context: "surf club parent" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop", alt: "Walking out at golden hour." },
+    { src: "https://images.unsplash.com/photo-1526188717906-ab4a2f949f4d?w=1600&q=85&auto=format&fit=crop", alt: "Soft-tops heading to the water." },
+    { src: "https://images.unsplash.com/photo-1455729552865-3658a5d39692?w=1600&q=85&auto=format&fit=crop", alt: "First whitewash rides." },
+    { src: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1600&q=85&auto=format&fit=crop", alt: "Clean lines at Fistral." },
+    { src: "https://images.unsplash.com/photo-1414073875831-b47709631146?w=1600&q=85&auto=format&fit=crop", alt: "Wetsuits on the drying rail." },
+    { src: "https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=1600&q=85&auto=format&fit=crop", alt: "Sunset session, improvers group." }
+  ],
+  faq: [
+    { q: "I've never surfed and I'm not a strong swimmer.", a: "Beginners' lessons happen in waist-deep water and you keep the board — it's a giant flotation device. You need to be comfortable in the sea, not fast in a pool. Tell us when you book and the coach will keep you shoreward of the group." },
+    { q: "What's included in a lesson?", a: "Board, suit (plus boots and hood in winter), beach briefing, two hours of coaching in the water, and the hot shower afterwards, which in February is the best part." },
+    { q: "What if the sea is flat or dangerous?", a: "We tell you the night before and rebook free, or refund if the trip doesn't allow it. We cancel for danger and for flatness — a lesson in nothing teaches nothing." },
+    { q: "How cold is it really?", a: "Cornish water runs about 8°C in March and 17°C in September. In a proper 5/4 with boots you'll be genuinely fine — cold hands after 90 minutes in deep winter, honestly disclosed." },
+    { q: "Am I too old to learn?", a: "Our oldest first-timer this decade was 71. If you can get from lying down to standing on land — however inelegantly — the sea will meet you halfway." },
+    { q: "Do you run private lessons?", a: "One-to-one and family privates, any day the sea cooperates. Same price logic: one coach, your pace, video included." },
+    { q: "Can I just hire a board?", a: "If you can demonstrate basic competence (we'll ask three questions and watch you carry it), yes. If you're new, one lesson first — the sea here has rips that don't negotiate." }
+  ],
+  area: { places: ["Fistral Beach", "Towan & Great Western", "Crantock", "Watergate Bay", "Perranporth (summer outpost)", "visitors from everywhere"] },
+  credentials: [
+    { label: "Surfing England", detail: "Accredited surf school" },
+    { label: "Coaches", detail: "ISA qualified, RNLI beach lifeguard certified" },
+    { label: "Ratios", detail: "Max 1:6 adults, 1:4 kids in water" },
+    { label: "Insurance", detail: "Full activity & public liability" }
+  ],
+  location: { name: "Groundswell", addressStreet: "Headland Road, Fistral Beach", addressLocality: "Newquay", addressRegion: "Cornwall", addressPostcode: "TR7 1HN", addressCountry: "United Kingdom" },
+  cta: { heading: "The tide's already on its way. So are you.", body: "Book the lesson. Worst case, you spend two hours in the Atlantic laughing. There is no worst case.", primary: { label: "Book a lesson", href: "#book" }, secondary: { label: "01637 852 774", href: "tel:+441637852774" } },
+  messaging: { whatsapp: "https://wa.me/441637852774", messenger: "https://m.me/groundswellnewquay" }
+};
+</script>
+
+<style>
+  :root {
+    --foam:#f1f4f2; --sand:#e6dfcf; --deep:#0e3a4c; --deep-2:#0a2c3a;
+    --kelp:#587a6e; --flare:#e8632c; --rule:rgba(14,58,76,0.15);
+    --sans:"Bricolage Grotesque",system-ui,sans-serif;
+    --mono:"Overpass Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--foam);color:var(--deep);font-family:var(--sans);font-size:16px;line-height:1.56;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .tide{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--flare);font-weight:600;}
+  .h2{font-weight:800;font-size:clamp(32px,4.5vw,60px);line-height:1.0;letter-spacing:-0.03em;margin:0 0 0.45em;}
+  .body{color:#5f7078;line-height:1.7;}
+  section{padding:clamp(72px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 27px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;text-decoration:none;transition:0.18s;border-radius:999px;}
+  .btn-primary{background:var(--flare);color:#fff;} .btn-primary:hover{background:var(--deep);}
+  .btn-ghost{border:2px solid var(--deep);} .btn-ghost:hover{background:var(--deep);color:var(--foam);}
+  .swell-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#7d8d93;border-bottom:2px solid var(--deep);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(241,244,242,0.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--deep);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-weight:800;font-size:18px;letter-spacing:-0.02em;text-decoration:none;text-transform:uppercase;}
+  .wm .w{color:var(--flare);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#7d8d93;font-weight:600;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--flare);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — tide-table split */
+  .hero{padding:clamp(48px,7vw,96px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .hero h1{font-weight:800;font-size:clamp(36px,4.8vw,68px);line-height:0.99;letter-spacing:-0.035em;margin:20px 0 24px;}
+  .hero h1 .sea{color:var(--flare);}
+  .hero .lede{color:#5f7078;max-width:44ch;line-height:1.7;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:18px;}
+  .tide-table{position:absolute;bottom:-20px;left:-16px;background:var(--deep);color:var(--foam);border-radius:12px;padding:16px 20px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;line-height:1.9;box-shadow:0 14px 34px rgba(14,58,76,0.3);}
+  .tide-table .hd{color:var(--flare);letter-spacing:0.16em;font-weight:600;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .tide-table{left:12px;}}
+
+  .trust{padding:0;background:var(--deep);color:var(--foam);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(241,244,242,0.75);}
+
+  .about{background:var(--sand);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.74;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:18px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — swell-window rows */
+  .svc-list{border-top:2px solid var(--deep);margin-top:clamp(26px,4vw,44px);}
+  .svc-row{display:grid;grid-template-columns:110px 300px 1fr;gap:24px;padding:25px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .svc-row .win{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--flare);font-weight:600;}
+  .svc-row .name{font-weight:800;font-size:23px;letter-spacing:-0.025em;}
+  .svc-row .desc{color:#5f7078;font-size:15px;max-width:54ch;line-height:1.66;}
+  @media(max-width:820px){.svc-row{grid-template-columns:96px 1fr;} .svc-row .desc{grid-column:1/-1;}}
+
+  .why{background:var(--deep);color:var(--foam);}
+  .why .h2{color:var(--foam);}
+  .why .swell-head{border-color:rgba(241,244,242,0.35);color:rgba(241,244,242,0.55);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .ft{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--flare);display:block;margin-bottom:14px;font-weight:600;}
+  .why-grid h3{font-weight:800;font-size:21px;letter-spacing:-0.025em;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(241,244,242,0.68);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;background:#fff;border-radius:16px;padding:24px;border:2px solid var(--deep);}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--flare);font-weight:600;}
+  .how-grid h3{font-weight:800;font-size:18px;letter-spacing:-0.02em;margin:10px 0 8px;}
+  .how-grid p{color:#5f7078;margin:0;font-size:13.5px;line-height:1.6;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .t-quote{font-weight:700;font-size:clamp(24px,3.3vw,44px);line-height:1.15;max-width:28ch;margin:0 0 22px;letter-spacing:-0.03em;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#7d8d93;margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--deep);padding-top:34px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.62;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#7d8d93;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — horizon strip: wide rows alternating */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(12px,1.6vw,20px);}
+  .g-grid figure{margin:0;grid-column:span 2;}
+  .g-grid figure:nth-child(1),.g-grid figure:nth-child(2){grid-column:span 3;}
+  .g-grid img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#7d8d93;margin-top:8px;}
+  @media(max-width:820px){.g-grid{grid-template-columns:1fr 1fr;} .g-grid figure,.g-grid figure:nth-child(1),.g-grid figure:nth-child(2){grid-column:span 1;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--deep);}
+  .faq-list summary{font-weight:700;font-size:17.5px;letter-spacing:-0.015em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"~";color:var(--flare);font-size:22px;line-height:0.8;flex-shrink:0;font-weight:700;}
+  .faq-list details[open] summary::after{content:"≈";}
+  .faq-list p{margin:14px 0 0;color:#5f7078;font-size:14.5px;max-width:56ch;line-height:1.66;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px;border:2px solid var(--deep);border-radius:999px;font-weight:600;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--deep);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--flare);margin-bottom:8px;font-weight:600;}
+  .creds .detail{font-weight:700;font-size:16px;letter-spacing:-0.015em;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--sand);border-radius:18px;padding:32px;}
+  .nap address{font-style:normal;font-weight:700;font-size:20px;line-height:1.5;letter-spacing:-0.015em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(14,58,76,0.18);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:#5f7078;}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:#5f7078;margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:18px;min-height:380px;overflow:hidden;border:2px solid var(--deep);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--flare);color:#fff;padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-weight:800;font-size:clamp(36px,5.2vw,78px);line-height:0.96;letter-spacing:-0.035em;margin:14px 0 18px;max-width:16ch;}
+  .cta-band p{color:rgba(255,255,255,0.92);max-width:44ch;margin:0 0 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--deep);color:#fff;}
+  .cta-band .btn-primary:hover{background:#fff;color:var(--deep);}
+  .cta-band .btn-ghost{border-color:#fff;color:#fff;}
+  .cta-band .btn-ghost:hover{background:#fff;color:var(--flare);}
+
+  footer{background:var(--deep-2);color:rgba(241,244,242,0.85);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--flare);margin:0 0 14px;font-weight:600;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--foam);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(241,244,242,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(241,244,242,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--deep);color:var(--foam);padding:13px 19px;border-radius:999px;text-decoration:none;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;box-shadow:0 8px 24px rgba(14,58,76,0.3);}
+  .msg-fab a:hover{background:var(--flare);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Groundswell","description":"Surf school and shop above Fistral Beach, Newquay. Lessons, hire, honest daily reports since 2009.","url":"https://groundswell.uk/","telephone":"+441637852774","email":"surf@groundswell.uk","address":{"@type":"PostalAddress","streetAddress":"Headland Road, Fistral Beach","addressLocality":"Newquay","addressRegion":"Cornwall","postalCode":"TR7 1HN","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.4166,"longitude":-5.1005},"areaServed":["Newquay","Cornwall"],"image":["https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600"],"foundingDate":"2009"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never surfed and I'm not a strong swimmer.","acceptedAnswer":{"@type":"Answer","text":"Beginners' lessons happen in waist-deep water and you keep the board. Comfort in the sea matters more than pool speed."}},
+{"@type":"Question","name":"What's included in a lesson?","acceptedAnswer":{"@type":"Answer","text":"Board, suit, beach briefing, two hours of in-water coaching, hot shower after."}},
+{"@type":"Question","name":"What if the sea is flat or dangerous?","acceptedAnswer":{"@type":"Answer","text":"We tell you the night before and rebook free, or refund."}},
+{"@type":"Question","name":"How cold is it really?","acceptedAnswer":{"@type":"Answer","text":"8°C in March to 17°C in September. A proper 5/4 with boots keeps you genuinely fine."}},
+{"@type":"Question","name":"Am I too old to learn?","acceptedAnswer":{"@type":"Answer","text":"Our oldest first-timer this decade was 71."}},
+{"@type":"Question","name":"Can I just hire a board?","acceptedAnswer":{"@type":"Answer","text":"With basic demonstrated competence, yes. If you're new, one lesson first."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">GROUND<span class="w">SWELL</span></a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">Lessons &amp; hire</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v24">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="tide" data-bind="hero.kicker">Surf school · hire · honest reports · Fistral Beach, Newquay</div>
+      <h1 data-bind="hero.headline">The sea doesn't check your CV. <span class="sea">Everyone starts as a beginner here.</span></h1>
+      <p class="lede" data-bind="hero.lede">A surf school and shop fifty metres above Fistral. Lessons from absolute zero, boards and winter-grade wetsuits for hire, and a daily surf report written by someone who actually paddled out.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a lesson</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">Today's conditions</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=2000&q=85&auto=format&fit=crop"
+           alt="Surfer walking to the water with a board at golden hour." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="tide-table">
+        <div class="hd">FISTRAL · 07:00 REPORT</div>
+        <div>SWELL 3–4FT · SW · CLEAN</div>
+        <div>LOW 09:41 · HIGH 15:52</div>
+        <div>VERDICT: GO. OBVIOUSLY.</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Above Fistral since 2009</span>
+    <span>20,000+ first waves</span>
+    <span>Surfing England accredited</span>
+    <span>RNLI-certified coaches</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap">
+    <div class="swell-head"><span>01 / THE SHOP</span><span>50M ABOVE THE TIDELINE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Fifty metres from the tideline.</h2>
+        <p>Groundswell started as two coaches, a van, and a rail of wetsuits that smelled exactly how you'd imagine. Fifteen years later there's a proper shop, a drying room that has changed lives, and a coaching team that has taught upwards of twenty thousand first waves.</p>
+        <p>The teaching philosophy is simple: the ocean sets the lesson plan. Coaches read the day's conditions and adapt — and some days the sea says no, and we say it honestly and rebook you free.</p>
+        <p>The daily report is written at 7am by whoever surfed first. It will tell you the truth, including "don't bother today".</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1526188717906-ab4a2f949f4d?w=1200&q=85&auto=format&fit=crop"
+           alt="Coach carrying soft-top boards across the beach." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v17">
+  <div class="wrap">
+    <div class="swell-head"><span>02 / LESSONS &amp; HIRE</span><span>THE OCEAN SETS THE PLAN</span></div>
+    <h2 class="h2">Ways into the water.</h2>
+    <div class="svc-list">
+      <div class="svc-row"><span class="win">1–2FT</span><span class="name">Absolute beginners</span><span class="desc">Two hours, everything included, waist-deep water. The pop-up, the whitewash ride, and the grin — guaranteed in roughly that order.</span></div>
+      <div class="svc-row"><span class="win">2–4FT</span><span class="name">Improver coaching</span><span class="desc">Green waves, turning, positioning, etiquette. Video review on the beach while your arms recover.</span></div>
+      <div class="svc-row"><span class="win">SAT AM</span><span class="name">Kids' surf club</span><span class="desc">Ages 8–16, Saturday mornings, badges and everything. Beach-safety certified coaches, ratio 1:4 in the water.</span></div>
+      <div class="svc-row"><span class="win">ALL YEAR</span><span class="name">Board &amp; wetsuit hire</span><span class="desc">Soft-tops to shortboards, winter-grade suits (5/4, boots, hoods) that actually fit. Hot shower and drying room included.</span></div>
+      <div class="svc-row"><span class="win">THE SHOP</span><span class="name">Hardware &amp; repairs</span><span class="desc">Wax, leashes, ding repairs, and advice that starts with "what are you actually surfing?" rather than the price tag.</span></div>
+      <div class="svc-row"><span class="win">SEASON</span><span class="name">Hire + report club</span><span class="desc">Season pass: unlimited hire, locker, the 7am report by text, and priority rebooking when the sea cancels on you.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="swell-head"><span>03 / WHY US</span><span>THREE READINGS</span></div>
+    <h2 class="h2">Read the water.</h2>
+    <div class="why-grid">
+      <div><span class="ft">READING 1/3</span><h3>The ocean writes the plan.</h3><p>Coaches adapt every session to the day's sea. Nobody runs a fixed lesson into a rip because the laminated card said so.</p></div>
+      <div><span class="ft">READING 2/3</span><h3>Honest reports.</h3><p>The 7am report includes "don't bother" days. Fifteen years of not lying about waves is the marketing budget.</p></div>
+      <div><span class="ft">READING 3/3</span><h3>Small ratios, warm suits.</h3><p>Max six per coach in the water, 1:4 for kids, and winter suits good enough that cold stops being the reason you quit.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="swell-head"><span>04 / A LESSON</span><span>BOOK → PADDLE OUT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Book &amp; check</h3><p>Book online; the night before, we confirm the session against the forecast.</p></li>
+      <li><span class="step">STEP 02</span><h3>Suit up</h3><p>Suits, boards and beach briefing at the shop. The walk down is the warm-up.</p></li>
+      <li><span class="step">STEP 03</span><h3>Two hours in it</h3><p>Coached in the water, not shouted at from the sand. Max six per coach.</p></li>
+      <li><span class="step">STEP 04</span><h3>Debrief &amp; dry</h3><p>Video clips on the beach, hot shower, drying room, and the honest "what next".</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v2" style="background:var(--sand);">
+  <div class="wrap">
+    <div class="swell-head"><span>05 / FROM THE LINE-UP</span><span>THREE VOICES</span></div>
+    <blockquote class="t-quote">“Stood up on my third wave aged 43, having failed at two previous surf schools. The difference was a coach in the water beside me instead of a megaphone on the beach.”</blockquote>
+    <div class="t-attr">Karen F. — beginner course</div>
+    <div class="t-sub">
+      <figure><blockquote>“They texted the night before to say conditions were dangerous for beginners and rebooked us free. That's when I knew these were the right people.”</blockquote><figcaption>Dipesh V. — family lesson</figcaption></figure>
+      <figure><blockquote>“My son has gone from boogie boards to proper green waves in one season of surf club. He now critiques my pop-up, which I'm told is character building.”</blockquote><figcaption>Tom B. — surf club parent</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v17">
+  <div class="wrap">
+    <div class="swell-head"><span>06 / THE HORIZON</span><span>THIS SEASON</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop" alt="Walking out at golden hour." /><figcaption>GOLDEN HOUR PADDLE-OUT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1600&q=85&auto=format&fit=crop" alt="Clean lines at Fistral." /><figcaption>FISTRAL · 4FT · CLEAN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526188717906-ab4a2f949f4d?w=1600&q=85&auto=format&fit=crop" alt="Soft-tops heading to the water." /><figcaption>SOFT-TOP ARMY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1455729552865-3658a5d39692?w=1600&q=85&auto=format&fit=crop" alt="First whitewash rides." /><figcaption>FIRST WAVES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414073875831-b47709631146?w=1600&q=85&auto=format&fit=crop" alt="Wetsuits on the drying rail." /><figcaption>THE DRYING ROOM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1505459668311-8dfac7952bf0?w=1600&q=85&auto=format&fit=crop" alt="Sunset session, improvers group." /><figcaption>IMPROVERS · SUNSET</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="swell-head"><span>07 / FAQ</span><span>ASKED AT THE COUNTER, DRIPPING</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you paddle out.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441637852774" style="color:var(--flare);">01637 852 774</a>. If the surf's good, leave a message. Priorities.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've never surfed and I'm not a strong swimmer.</summary><p>Beginners' lessons happen in waist-deep water and you keep the board — it's a giant flotation device. You need to be comfortable in the sea, not fast in a pool. Tell us when you book and the coach will keep you shoreward of the group.</p></details>
+        <details><summary>What's included in a lesson?</summary><p>Board, suit (plus boots and hood in winter), beach briefing, two hours of coaching in the water, and the hot shower afterwards, which in February is the best part.</p></details>
+        <details><summary>What if the sea is flat or dangerous?</summary><p>We tell you the night before and rebook free, or refund if the trip doesn't allow it. We cancel for danger and for flatness — a lesson in nothing teaches nothing.</p></details>
+        <details><summary>How cold is it really?</summary><p>Cornish water runs about 8°C in March and 17°C in September. In a proper 5/4 with boots you'll be genuinely fine — cold hands after 90 minutes in deep winter, honestly disclosed.</p></details>
+        <details><summary>Am I too old to learn?</summary><p>Our oldest first-timer this decade was 71. If you can get from lying down to standing on land — however inelegantly — the sea will meet you halfway.</p></details>
+        <details><summary>Do you run private lessons?</summary><p>One-to-one and family privates, any day the sea cooperates. Same price logic: one coach, your pace, video included.</p></details>
+        <details><summary>Can I just hire a board?</summary><p>If you can demonstrate basic competence (we'll ask three questions and watch you carry it), yes. If you're new, one lesson first — the sea here has rips that don't negotiate.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="swell-head"><span>08 / BREAKS WE WORK</span><span>NEWQUAY &amp; AROUND</span></div>
+    <ul class="area-list">
+      <li>Fistral Beach</li><li>Towan &amp; Great Western</li><li>Crantock</li><li>Watergate Bay</li><li>Perranporth · summer</li><li>Visitors from everywhere</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="swell-head"><span>09 / SAFETY FILE</span><span>THE SERIOUS BIT</span></div>
+    <div class="creds">
+      <div><div class="label">Surfing England</div><div class="detail">Accredited surf school</div></div>
+      <div><div class="label">Coaches</div><div class="detail">ISA qualified, RNLI beach lifeguard certified</div></div>
+      <div><div class="label">Ratios</div><div class="detail">Max 1:6 adults, 1:4 kids in water</div></div>
+      <div><div class="label">Insurance</div><div class="detail">Full activity &amp; public liability</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="swell-head"><span>10 / FIND US</span><span>HEADLAND ROAD, FISTRAL</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Groundswell</strong><br />
+          Headland Road, Fistral Beach<br />
+          Newquay TR7 1HN<br /><br />
+          <a href="tel:+441637852774" data-bind="business.phoneDisplay">01637 852 774</a><br />
+          <a href="mailto:surf@groundswell.uk" data-bind="business.email">surf@groundswell.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>DAILY</span><span>TIDE-DEPENDENT</span></div>
+          <div class="row"><span>WINTER</span><span>SHORTER, HONEST</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile and flex with the season. The 7am report is posted every day the shop opens.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Groundswell, Fistral Beach, Newquay" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-5.1080%2C50.4140%2C-5.0930%2C50.4195&layer=mapnik&marker=50.4166%2C-5.1005"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="tide" style="color:rgba(255,255,255,0.85);">11 / BOOKING</div>
+    <h2 data-bind="cta.heading">The tide's already on its way. So are you.</h2>
+    <p data-bind="cta.body">Book the lesson. Worst case, you spend two hours in the Atlantic laughing. There is no worst case.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a lesson</a>
+      <a class="btn btn-ghost" href="tel:+441637852774" data-bind="cta.secondary.label">01637 852 774</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441637852774" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="color:var(--foam);font-size:19px;">GROUND<span class="w">SWELL</span></div>
+        <p style="margin-top:12px;max-width:34ch;color:rgba(241,244,242,0.6);font-size:14px;line-height:1.7;">Surf school and shop above Fistral Beach, Newquay. Since 2009.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Headland Road, Fistral Beach<br />Newquay TR7 1HN<br />
+          <a href="tel:+441637852774">01637 852 774</a><br />
+          <a href="mailto:surf@groundswell.uk">surf@groundswell.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Lessons &amp; hire</a><a href="#book">Book</a><a href="#about">The shop</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> GROUNDSWELL SURF LTD</span>
+      <span>NEVER TURN YOUR BACK ON THE SEA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

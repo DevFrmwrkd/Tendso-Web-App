@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sarao Kings Body Works — custom jeepney fabrication, chrome & hand-painted art, Las Piñas</title>
+<meta name="description" content="Sarao Kings Body Works builds and restores the Filipino jeepney in Las Piñas — stainless bodies, chrome horses and ornaments, hand-painted panels and lettering, upholstery and full restorations, for operators, collectors and events. Hammering steel since 1979." />
+<link href="https://fonts.googleapis.com/css2?family=Staatliches&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Sarao Kings Body Works", phone: "+63 2 8555 0198", phoneDisplay: "(02) 8555 0198", email: "shop@saraokings.ph", foundedYear: 1979 },
+  hero: {
+    kicker: "Custom jeepney fabrication · chrome · hand-painted art · Las Piñas, Metro Manila",
+    headline: "We don't build vehicles. We build the loudest, proudest art on the road.",
+    lede: "A jeepney body works in Las Piñas, hammering steel into the King of the Road since 1979 — stainless bodies formed by hand, chrome horses rearing off the hood, hand-painted panels and lettering, and interiors trimmed to the driver's dream. New builds, full restorations and custom art for operators, collectors, brands and events. The Filipino jeepney, made the way it was born to be.",
+    primaryCta: { label: "Start a build", href: "#book" },
+    secondaryCta: { label: "What we build", href: "#services" },
+    image: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A brightly decorated vehicle with chrome and paint."
+  },
+  trust: { years: "Building the King of the Road since 1979" },
+  about: {
+    heading: "Every jeepney is one of a kind. That's not a slogan — it's how we work.",
+    paragraphs: [
+      "Sarao Kings Body Works is a jeepney fabricator in Las Piñas, the town synonymous with jeepney-making. The jeepney is the Philippines' most iconic vehicle — born from surplus US military jeeps after the war, stretched, roofed and reborn as public transport, and then, unmistakably, decorated: chrome, mirrors, painted scenes, streamers, horses on the hood, and the driver's family names down the side. It's less a bus than a rolling declaration, and no two are ever the same.",
+      "We've been hammering, welding and painting them since 1979, and we still do it the traditional way — forming stainless-steel body panels largely by hand, fitting the engine and running gear, then handing the shell to our chrome men, upholsterers and, most importantly, our painters. The hand-painted art is the soul of the jeepney: the lettering, the landscapes, the saints and slogans, the family names. A machine can't give you that. A craftsman who's done it for forty years can.",
+      "Today we build new jeepneys for operators, fully restore vintage ones for collectors and museums, fabricate custom bodies and art for brands, films, resorts and events, and take on the chrome, paint and upholstery jobs that keep a working jeepney proud. The traditional jeepney faces an uncertain future on the roads, which makes the craft matter more, not less. As long as someone wants one built right, the King of the Road rolls on — and we'll be the ones who built it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A metalworker shaping steel in a workshop."
+  },
+  services: [
+    { name: "New jeepney builds", description: "A jeepney built from the ground up — hand-formed stainless body, engine and running gear fitted, seating, chrome and hand-painted art to your specification. For operators who want a King of the Road that's genuinely theirs." },
+    { name: "Vintage restoration", description: "Full, careful restoration of classic and vintage jeepneys for collectors, museums and proud owners — bodywork, chrome, paint and interior brought back to their glory, honouring the original where it counts." },
+    { name: "Chrome & ornaments", description: "The rearing chrome horses, the mirrors, the grilles, the badges and the antennae — the jeepney's unmistakable metal jewellery, fabricated, plated and fitted. The shine that makes a jeepney a jeepney." },
+    { name: "Hand-painted art & lettering", description: "The soul of the vehicle: hand-painted landscapes, saints, slogans, pinstriping and the family names down the side, worked by painters who've done it for decades. Custom scenes and liveries for anyone." },
+    { name: "Upholstery & interiors", description: "Bench seats trimmed and padded, ceilings lined, the driver's cockpit fitted out — the interior finished for long days on the road or for showpiece condition. Comfort and pride, stitched in." },
+    { name: "Brand, film & event builds", description: "Custom jeepney bodies, art and full vehicles for brands, films, resorts, museums and events — a rolling billboard, a set piece, or a static showpiece. The most Filipino thing you can park at a launch." }
+  ],
+  why: [
+    { title: "Formed and painted by hand.", body: "Stainless panels shaped by hand, art brushed on by painters with decades in their wrists. The jeepney was never a production-line product — it's coachbuilt, and we still build it that way." },
+    { title: "Forty-plus years of the craft.", body: "We've been building jeepneys since 1979, through every trend and every engine. That experience is in every weld, every chrome curve and every painted line. You can't shortcut four decades." },
+    { title: "Truly one of a kind.", body: "No two jeepneys we build are the same, because no two owners are. Your names, your saints, your scenes, your chrome. We build you the one that's unmistakably yours — that's the whole point of a jeepney." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the dream", body: "New build, restoration, or custom art? An operator's workhorse, a collector's showpiece, or a brand's rolling billboard? Bring us the vision, the budget and any references, and we'll talk it through honestly." },
+    { step: "02", title: "Design & quote", body: "We work up the specification — body, engine, seating, chrome, paint scheme and lettering — sketch the art, and give you a clear quote and timeline. A jeepney is a real build, so we plan it properly." },
+    { step: "03", title: "Fabricated & finished", body: "Steel formed and welded, mechanicals fitted, chrome plated, interior trimmed, and the art hand-painted last. We'll keep you posted through the stages — it takes time, because doing it by hand does." },
+    { step: "04", title: "Roll it out", body: "Final checks, a proper look-over with you, and your jeepney rolls out — road-ready or show-ready. We stand behind the build, and we're here for chrome, paint and upkeep for years after." }
+  ],
+  testimonials: [
+    { quote: "Sarao Kings built two jeepneys for my route and they turn heads at every stop — the chrome, the paint, my family's names down the side exactly as I wanted. Solid build, honest pricing, and real pride in the work. My drivers argue over who gets to take them out. Kings, truly.", name: "Mang Boy", context: "jeepney operator" },
+    { quote: "We commissioned a full vintage restoration and they treated our old jeepney like the heirloom it is. The hand-painted panels are museum quality and the chrome gleams like new. These are among the last true jeepney craftsmen and it shows in every detail. Priceless work.", name: "Heritage collector", context: "vintage restoration" },
+    { quote: "For our brand launch we needed a showstopper and Sarao Kings built us a fully custom jeepney in our colours with hand-painted art. It was the most photographed thing at the event by a mile. Professional, creative, and unmistakably Filipino. Nothing else comes close for impact.", name: "Marketing lead", context: "brand event build" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=1600&q=85&auto=format&fit=crop", alt: "A brightly decorated vehicle with chrome and paint." },
+    { src: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1600&q=85&auto=format&fit=crop", alt: "A metalworker shaping steel." },
+    { src: "https://images.unsplash.com/photo-1504222490345-c075b6008014?w=1600&q=85&auto=format&fit=crop", alt: "Chrome detail on a vehicle." },
+    { src: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=85&auto=format&fit=crop", alt: "A workshop with tools and metal." },
+    { src: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=1600&q=85&auto=format&fit=crop", alt: "Bright paint and lettering on metal." },
+    { src: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&q=85&auto=format&fit=crop", alt: "A polished chrome vehicle detail." }
+  ],
+  faq: [
+    { q: "What exactly is a jeepney, and why is it decorated like that?", a: "The jeepney is the Philippines' most iconic mode of public transport and, arguably, its most recognisable cultural object on wheels. It originated after the Second World War, when surplus American military jeeps left in the country were rebuilt by ingenious local hands — stretched to add rows of bench seating, fitted with a roof, and turned into cheap, shared public transport. Over the decades it evolved its own unmistakable style: gleaming stainless-steel bodies, banks of chrome ornaments, rows of side mirrors, chrome horses mounted on the hood like hood ornaments on steroids, and, above all, exuberant hand-painted decoration — landscapes, religious imagery, slogans, pop-culture references and the operator's family names emblazoned down the sides. The decoration isn't random flash; it's a genuine folk-art tradition and an expression of the owner's identity, faith, family and pride. Each jeepney is effectively a rolling personal statement, which is exactly why no two are alike and why building them is as much art as engineering." },
+    { q: "Do you build brand-new jeepneys, or only repair and decorate?", a: "Both — we're a full body works, so we do everything from a complete new build to individual chrome, paint and upholstery jobs. A ground-up new build is exactly what it sounds like: we form the stainless-steel body largely by hand, fit the engine and running gear, install the seating and interior, add the chrome and ornaments, and finish with the hand-painted art and lettering, delivering a complete, road-ready jeepney built to the operator's specification. But we also take on restorations of old and vintage jeepneys, and standalone jobs — re-chroming, a new paint scheme, fresh lettering, re-upholstering the seats — for owners who want to keep their existing jeepney proud rather than replace it. And we build custom, sometimes non-running showpiece jeepneys for brands, films, resorts and events. So whether you want a whole new King of the Road, a faithful restoration, or just the chrome and art refreshed, we can help — tell us what you've got and what you want, and we'll scope it." },
+    { q: "How long does a jeepney build take, and roughly what does it cost?", a: "It varies enormously with the scope, so the honest answer is that we quote each project individually after understanding what you want — but it helps to set expectations. A jeepney is coachbuilt largely by hand, not stamped out on a production line, so a full new build or a comprehensive restoration is a matter of weeks to months rather than days, depending on the complexity of the bodywork, the amount and intricacy of the chrome, and especially the ambition of the hand-painted art, which is skilled, time-consuming work. Cost similarly depends on size, mechanical specification, materials, how much chrome and ornamentation you want, and the extent of the custom artwork; a simple refresh is a modest job, while a fully custom new build with elaborate art is a serious commission. Rather than quote a misleading figure blind, we'd much rather talk through your vision and budget and give you a clear, honest quote and timeline for your specific project. Come and see us, or send your ideas and references, and we'll lay it out plainly." },
+    { q: "Is the artwork really hand-painted, and can I choose the design?", a: "Yes, genuinely hand-painted — the artwork and lettering on our jeepneys are brushed on by hand by painters who have been doing this specific craft for decades, and it's the part of the work we're proudest of. This is the true folk-art heart of the jeepney tradition: the landscapes, the religious imagery, the pinstriping, the decorative lettering and the all-important family names, all rendered by a human hand, which is exactly why they have the character, boldness and one-of-a-kind quality that no machine-cut vinyl wrap can replicate. And yes, you absolutely choose the design — it's your jeepney and, traditionally, an expression of your identity. Whether you want the classic repertoire (scenery, saints, your family's names down the side), a specific theme, a brand's colours and logo, or something entirely your own, our painters will work with you, sketch it up, and bring it to life. Custom liveries for brands, films and events are very much part of what we do. The design conversation is one of the best parts of the whole build." },
+    { q: "Can you build a jeepney for a brand, film, resort or event?", a: "Absolutely, and it's some of our favourite work. A jeepney is an incredibly powerful visual — instantly, unmistakably Filipino, gloriously eye-catching, and rich with cultural meaning — which makes it a phenomenal centrepiece for a brand activation, a film or TV production, a resort or restaurant, a museum, or a special event. We can build a fully custom jeepney in your colours and branding with bespoke hand-painted art, restore and re-liver an existing one, or fabricate a static, non-running showpiece designed purely to look spectacular parked at your venue or launch. We've made rolling billboards, film set pieces, and photogenic display vehicles, and clients consistently find the jeepney out-photographs and out-remembers almost anything else at an event. If you're a marketer, producer, designer or venue with an idea, bring it to us with your timeline and budget and we'll tell you honestly what's achievable and how — including whether a full build, a restoration or a showpiece best suits your purpose. It's the most Filipino statement you can make, and we love making it." },
+    { q: "With jeepney modernization, does traditional jeepney-building still have a future?", a: "It's a real and complicated question, and we won't pretend otherwise. The traditional jeepney does face an uncertain future as public-transport modernization programmes push towards newer, standardised, often imported or factory-built vehicles, and that genuinely threatens the old coachbuilding trade and the communities, like ours here in the jeepney-making heartland, that grew up around it. We take that seriously. But we also believe the craft itself — the hand-formed steel, the chrome work, and above all the hand-painted folk art — has enduring value well beyond its role as a transport vehicle: as heritage, as art, as identity, and as something collectors, cultural institutions, brands and proud individuals will always want built and kept alive. So our work is increasingly about restoration, preservation, custom and commemorative builds, and keeping the skills and the artistry going even as the transport landscape changes. As long as people value the King of the Road as the icon it is — and we believe they will — there's a future in building it right. We intend to be among those who keep it rolling." }
+  ],
+  area: { places: ["Las Piñas", "Parañaque", "Metro Manila", "Cavite", "Nationwide builds", "Export enquiries"] },
+  credentials: [
+    { label: "Since 1979", detail: "Building jeepneys in Las Piñas" },
+    { label: "Hand-formed", detail: "Stainless bodies shaped by hand" },
+    { label: "Hand-painted", detail: "Folk-art panels & lettering, by masters" },
+    { label: "Build & restore", detail: "Operators, collectors, brands & events" }
+  ],
+  location: { name: "Sarao Kings Body Works", addressStreet: "88 Real Street, Pamplona", addressLocality: "Las Piñas", addressRegion: "Metro Manila", addressPostcode: "1740", addressCountry: "Philippines" },
+  cta: { heading: "Commission the King of the Road.", body: "New jeepney builds, vintage restorations, chrome, hand-painted art and custom vehicles for operators, collectors, brands and events — coachbuilt by hand in Las Piñas since 1979. Bring us the dream and we'll build it.", primary: { label: "Start a build", href: "#book" }, secondary: { label: "(02) 8555 0198", href: "tel:+63285550198" } },
+  messaging: { whatsapp: "https://wa.me/63285550198", messenger: "https://m.me/saraokings" }
+};
+</script>
+
+<style>
+  :root {
+    --steel:#1b1e24; --steel-2:#12151a; --chrome:#e8ecf1; --chrome-2:#f5f7fa; --ink:#20242c; --ink-2:#454c58;
+    --jeepred:#d92f2f; --jeepblue:#2159b8; --jeepyellow:#f2c015; --jeepgreen:#1f9663;
+    --mid:#7f8792; --mid-d:#b7bfca; --rule-d:rgba(232,236,241,0.15);
+    --disp:"Staatliches",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--steel);color:var(--chrome);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--jeepyellow);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--jeepyellow);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6vw,88px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--jeepred);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--jeepred);color:var(--chrome-2);} .btn-primary:hover{background:var(--jeepyellow);color:var(--steel);}
+  .btn-ghost{border:1.5px solid rgba(232,236,241,0.4);color:var(--chrome);} .btn-ghost:hover{background:var(--chrome);color:var(--steel);border-color:var(--chrome);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(27,30,36,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:27px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--jeepred);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7vw,112px);line-height:0.9;letter-spacing:0.01em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .em{color:var(--jeepred);}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--jeepyellow);color:transparent;}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;}
+  .hero-photo::after{content:"COACHBUILT BY HAND · SINCE 1979";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.14em;background:var(--jeepred);color:var(--chrome-2);padding:7px 12px;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--jeepyellow);color:var(--steel);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(27,30,36,0.82);font-weight:700;}
+
+  .about{background:var(--chrome);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--jeepred);}
+  .about .sw-head{color:var(--mid);border-color:rgba(32,36,44,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#3d434e;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(232,236,241,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(217,47,47,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--jeepyellow);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(26px,2.8vw,38px);margin:0;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--chrome);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:rgba(32,36,44,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--jeepred);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:30px;margin:0 0 10px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#3d434e;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule-d);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--jeepyellow);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:25px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--steel-2);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(30px,4vw,58px);line-height:1.0;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--jeepred);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--jeepred);color:var(--chrome-2);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.08;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--jeepyellow);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(232,236,241,0.3);border-radius:2px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--jeepyellow);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.12;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--chrome);color:var(--ink);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#3d434e;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(32,36,44,0.16);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid rgba(232,236,241,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(180deg) brightness(0.92);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--jeepred);color:var(--chrome-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--chrome-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7vw,118px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--chrome-2);color:transparent;}
+  .cta-band p{color:rgba(245,247,250,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--chrome-2);color:var(--jeepred);} .cta-band .btn-primary:hover{background:var(--jeepyellow);color:var(--steel);}
+  .cta-band .btn-ghost{border-color:rgba(245,247,250,0.6);color:var(--chrome-2);} .cta-band .btn-ghost:hover{background:var(--chrome-2);color:var(--jeepred);}
+
+  footer{background:var(--steel);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--jeepyellow);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--jeepred);color:var(--chrome-2);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(217,47,47,0.4);}
+  .msg-fab a:hover{background:var(--chrome-2);color:var(--steel);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AutoBodyShop","name":"Sarao Kings Body Works","description":"Jeepney fabricator and body works in Las Piñas — new jeepney builds, vintage restorations, chrome and hand-painted art, upholstery and custom builds for operators, collectors, brands and events. Since 1979.","url":"https://saraokings.ph/","telephone":"+63285550198","email":"shop@saraokings.ph","address":{"@type":"PostalAddress","streetAddress":"88 Real Street, Pamplona","addressLocality":"Las Piñas","addressRegion":"Metro Manila","postalCode":"1740","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.4460,"longitude":120.9820},"areaServed":["Las Piñas","Parañaque","Metro Manila","Cavite"],"image":["https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=1600"],"foundingDate":"1979"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a jeepney, and why is it decorated like that?","acceptedAnswer":{"@type":"Answer","text":"The jeepney is the Philippines' most iconic public transport, born after WWII when surplus US military jeeps were rebuilt — stretched, roofed and fitted with bench seating. Over decades it evolved a signature style: gleaming stainless bodies, banks of chrome, rows of mirrors, chrome horses on the hood, and exuberant hand-painted decoration — landscapes, religious imagery, slogans and the operator's family names. It's a genuine folk-art tradition expressing the owner's identity, faith, family and pride, which is why no two are alike."}},
+{"@type":"Question","name":"Do you build brand-new jeepneys, or only repair and decorate?","acceptedAnswer":{"@type":"Answer","text":"Both — we're a full body works. A ground-up new build means forming the stainless body by hand, fitting engine and running gear, installing seating and interior, adding chrome and finishing with hand-painted art, delivered road-ready to spec. We also restore old and vintage jeepneys and do standalone jobs — re-chroming, new paint, fresh lettering, re-upholstery — and build custom showpiece jeepneys for brands, films and events. Tell us what you've got and want, and we'll scope it."}},
+{"@type":"Question","name":"How long does a build take, and what does it cost?","acceptedAnswer":{"@type":"Answer","text":"It varies with scope, so we quote each project individually. A jeepney is coachbuilt by hand, not stamped out, so a full new build or comprehensive restoration is weeks to months depending on bodywork, chrome and especially the ambition of the hand-painted art. Cost depends on size, mechanical spec, materials, ornamentation and artwork — a simple refresh is modest, a fully custom build is a serious commission. Rather than quote blind, come see us or send ideas and references and we'll give a clear, honest quote and timeline."}},
+{"@type":"Question","name":"Is the artwork really hand-painted, and can I choose the design?","acceptedAnswer":{"@type":"Answer","text":"Yes — the artwork and lettering are brushed on by hand by painters who've done this craft for decades, and it's the part we're proudest of. It's the folk-art heart of the jeepney: landscapes, religious imagery, pinstriping, decorative lettering and family names, with a character no vinyl wrap can replicate. And you absolutely choose the design — classic scenery and saints, your family's names, a theme, a brand's colours and logo, or something entirely your own. Our painters sketch it up and bring it to life."}},
+{"@type":"Question","name":"Can you build a jeepney for a brand, film, resort or event?","acceptedAnswer":{"@type":"Answer","text":"Absolutely — a jeepney is instantly, unmistakably Filipino and gloriously eye-catching, making it a phenomenal centrepiece for brand activations, film and TV, resorts, museums and events. We can build a fully custom jeepney in your branding with bespoke art, restore and re-liver an existing one, or fabricate a static non-running showpiece designed to look spectacular parked at your venue. Bring us your idea, timeline and budget and we'll tell you honestly what's achievable and how."}},
+{"@type":"Question","name":"With modernization, does traditional jeepney-building have a future?","acceptedAnswer":{"@type":"Answer","text":"It's a real, complicated question. Modernization programmes push towards newer, standardised vehicles, which genuinely threatens the old coachbuilding trade and the communities around it, and we take that seriously. But the craft — hand-formed steel, chrome work and above all hand-painted folk art — has enduring value as heritage, art and identity that collectors, institutions, brands and proud individuals will always want. Our work is increasingly restoration, preservation and custom builds. As long as people value the King of the Road, there's a future in building it right."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Sarao Kings <span>Body Works</span></a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we build</a><a href="#location">Find us</a><a href="#book">Start a build</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Custom jeepney fabrication · chrome · hand-painted art · Las Piñas, Metro Manila</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      We don't build vehicles. We build the loudest, proudest <span class="em">art on the road.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=2000&q=85&auto=format&fit=crop"
+             alt="A brightly decorated vehicle with chrome and paint." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A jeepney body works in Las Piñas, hammering steel into the King of the Road since 1979 — stainless bodies formed by hand, chrome horses rearing off the hood, hand-painted panels and lettering, and interiors trimmed to the driver's dream. New builds, full restorations and custom art for operators, collectors, brands and events. The Filipino jeepney, made the way it was born to be.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Start a build</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we build</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Building the King of the Road since 1979</span>
+    <span>Hand-formed stainless</span>
+    <span>Hand-painted folk art</span>
+    <span>Build · restore · custom</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 01 / THE SHOP</span><span>LAS PIÑAS, JEEPNEY TOWN</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Every jeepney is one of a kind. That's not a slogan — it's how we <em>work.</em></h2>
+        <p>Sarao Kings Body Works is a jeepney fabricator in Las Piñas, the town synonymous with jeepney-making. The jeepney is the Philippines' most iconic vehicle — born from surplus US military jeeps after the war, stretched, roofed and reborn as public transport, and then, unmistakably, decorated: chrome, mirrors, painted scenes, streamers, horses on the hood, and the driver's family names down the side. It's less a bus than a rolling declaration, and no two are ever the same.</p>
+        <p>We've been hammering, welding and painting them since 1979, and we still do it the traditional way — forming stainless-steel body panels largely by hand, fitting the engine and running gear, then handing the shell to our chrome men, upholsterers and, most importantly, our painters. The hand-painted art is the soul of the jeepney: the lettering, the landscapes, the saints and slogans, the family names. A machine can't give you that. A craftsman who's done it for forty years can.</p>
+        <p>Today we build new jeepneys for operators, fully restore vintage ones for collectors and museums, fabricate custom bodies and art for brands, films, resorts and events, and take on the chrome, paint and upholstery jobs that keep a working jeepney proud. The traditional jeepney faces an uncertain future on the roads, which makes the craft matter more, not less. As long as someone wants one built right, the King of the Road rolls on — and we'll be the ones who built it.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1200&q=85&auto=format&fit=crop"
+           alt="A metalworker shaping steel in a workshop." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--steel);">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 02 / WHAT WE BUILD</span><span>NEW · RESTORE · CHROME · ART</span></div>
+    <h2 class="h2">What we build.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>New jeepney builds</h3><p>A jeepney built from the ground up — hand-formed stainless body, engine and running gear fitted, seating, chrome and hand-painted art to your specification. For operators who want one that's genuinely theirs.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Vintage restoration</h3><p>Full, careful restoration of classic and vintage jeepneys for collectors, museums and proud owners — bodywork, chrome, paint and interior brought back to their glory, honouring the original where it counts.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Chrome &amp; ornaments</h3><p>The rearing chrome horses, the mirrors, the grilles, the badges and the antennae — the jeepney's unmistakable metal jewellery, fabricated, plated and fitted. The shine that makes a jeepney a jeepney.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Hand-painted art &amp; lettering</h3><p>The soul of the vehicle: hand-painted landscapes, saints, slogans, pinstriping and the family names down the side, worked by painters who've done it for decades. Custom scenes and liveries for anyone.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Upholstery &amp; interiors</h3><p>Bench seats trimmed and padded, ceilings lined, the driver's cockpit fitted out — the interior finished for long days on the road or for showpiece condition. Comfort and pride, stitched in.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Brand, film &amp; event builds</h3><p>Custom jeepney bodies, art and full vehicles for brands, films, resorts, museums and events — a rolling billboard, a set piece, or a static showpiece. The most Filipino thing you can park at a launch.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 03 / THE DIFFERENCE</span><span>WHY COACHBUILT MATTERS</span></div>
+    <h2 class="h2">Why coachbuilt <em>matters.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Formed &amp; painted by hand.</h3><p>Stainless panels shaped by hand, art brushed on by painters with decades in their wrists. The jeepney was never a production-line product — it's coachbuilt, and we still build it that way.</p></div>
+      <div><span class="no">02 / 03</span><h3>Forty-plus years of craft.</h3><p>We've been building jeepneys since 1979, through every trend and every engine. That experience is in every weld, every chrome curve and every painted line. You can't shortcut four decades.</p></div>
+      <div><span class="no">03 / 03</span><h3>Truly one of a kind.</h3><p>No two jeepneys we build are the same, because no two owners are. Your names, your saints, your scenes, your chrome. We build the one that's unmistakably yours — that's the whole point.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 04 / HOW IT GOES</span><span>DREAM · DESIGN · BUILD · ROLL</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the dream</h3><p>New build, restoration, or custom art? An operator's workhorse, a collector's showpiece, or a brand's rolling billboard? Bring us the vision, the budget and references, and we'll talk it through honestly.</p></li>
+      <li><span class="step">STEP 02</span><h3>Design &amp; quote</h3><p>We work up the specification — body, engine, seating, chrome, paint scheme and lettering — sketch the art, and give you a clear quote and timeline. A jeepney is a real build, so we plan it properly.</p></li>
+      <li><span class="step">STEP 03</span><h3>Fabricated &amp; finished</h3><p>Steel formed and welded, mechanicals fitted, chrome plated, interior trimmed, and the art hand-painted last. We'll keep you posted through the stages — it takes time, because doing it by hand does.</p></li>
+      <li><span class="step">STEP 04</span><h3>Roll it out</h3><p>Final checks, a proper look-over with you, and your jeepney rolls out — road-ready or show-ready. We stand behind the build, and we're here for chrome, paint and upkeep for years after.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 05 / FROM THE OWNERS</span><span>KINGS, TRULY</span></div>
+    <blockquote class="t-quote">“My family's names down the side exactly as I wanted. My drivers argue over who gets to take them out. <em>Kings, truly.</em>”</blockquote>
+    <div class="t-attr">Mang Boy — jeepney operator</div>
+    <div class="t-sub">
+      <figure><blockquote>“We commissioned a full vintage restoration and they treated our old jeepney like the heirloom it is. The hand-painted panels are museum quality and the chrome gleams like new. These are among the last true jeepney craftsmen and it shows in every detail. Priceless work.”</blockquote><figcaption>Heritage collector — vintage restoration</figcaption></figure>
+      <figure><blockquote>“For our brand launch we needed a showstopper and Sarao Kings built us a fully custom jeepney in our colours with hand-painted art. It was the most photographed thing at the event by a mile. Professional, creative, and unmistakably Filipino. Nothing else comes close for impact.”</blockquote><figcaption>Marketing lead — brand event build</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--chrome);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(32,36,44,0.16);"><span>BUILD 06 / FROM THE SHOP FLOOR</span><span>STEEL, CHROME &amp; PAINT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=1600&q=85&auto=format&fit=crop" alt="A brightly decorated vehicle with chrome and paint." /><figcaption>THE KING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1600&q=85&auto=format&fit=crop" alt="A metalworker shaping steel." /><figcaption>THE STEEL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1504222490345-c075b6008014?w=1600&q=85&auto=format&fit=crop" alt="Chrome detail on a vehicle." /><figcaption>THE CHROME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=85&auto=format&fit=crop" alt="A workshop with tools and metal." /><figcaption>THE SHOP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=1600&q=85&auto=format&fit=crop" alt="Bright paint and lettering on metal." /><figcaption>THE ART</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&q=85&auto=format&fit=crop" alt="A polished chrome vehicle detail." /><figcaption>THE SHINE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 07 / BEFORE YOU COMMISSION</span><span>BUILDS, ART &amp; THE FUTURE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you commission.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63285550198" style="color:var(--jeepred);font-weight:700;">(02) 8555 0198</a>. Bring your vision, your budget and any references, and we'll build it right.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is a jeepney, and why is it decorated like that?</summary><p>The jeepney is the Philippines' most iconic mode of public transport and its most recognisable cultural object on wheels. It originated after the Second World War, when surplus American military jeeps were rebuilt by ingenious local hands — stretched to add rows of bench seating, fitted with a roof, and turned into cheap, shared public transport. Over decades it evolved its own unmistakable style: gleaming stainless-steel bodies, banks of chrome ornaments, rows of side mirrors, chrome horses mounted on the hood, and, above all, exuberant hand-painted decoration — landscapes, religious imagery, slogans, pop-culture references and the operator's family names down the sides. The decoration isn't random flash; it's a genuine folk-art tradition and an expression of the owner's identity, faith, family and pride. Each jeepney is effectively a rolling personal statement, which is why no two are alike.</p></details>
+        <details><summary>Do you build brand-new jeepneys, or only repair and decorate?</summary><p>Both — we're a full body works, so we do everything from a complete new build to individual chrome, paint and upholstery jobs. A ground-up new build means we form the stainless-steel body largely by hand, fit the engine and running gear, install the seating and interior, add the chrome and ornaments, and finish with the hand-painted art and lettering, delivering a complete, road-ready jeepney built to spec. But we also restore old and vintage jeepneys, and take standalone jobs — re-chroming, a new paint scheme, fresh lettering, re-upholstering the seats — for owners who want to keep their existing jeepney proud. And we build custom, sometimes non-running showpiece jeepneys for brands, films, resorts and events. Tell us what you've got and what you want, and we'll scope it.</p></details>
+        <details><summary>How long does a jeepney build take, and roughly what does it cost?</summary><p>It varies enormously with the scope, so we quote each project individually after understanding what you want. A jeepney is coachbuilt largely by hand, not stamped out on a production line, so a full new build or comprehensive restoration is a matter of weeks to months rather than days, depending on the complexity of the bodywork, the amount and intricacy of the chrome, and especially the ambition of the hand-painted art, which is skilled, time-consuming work. Cost similarly depends on size, mechanical specification, materials, how much chrome and ornamentation you want, and the extent of the custom artwork; a simple refresh is a modest job, a fully custom new build with elaborate art is a serious commission. Rather than quote a misleading figure blind, we'd much rather talk through your vision and budget and give you a clear, honest quote and timeline.</p></details>
+        <details><summary>Is the artwork really hand-painted, and can I choose the design?</summary><p>Yes, genuinely hand-painted — the artwork and lettering are brushed on by hand by painters who have been doing this specific craft for decades, and it's the part of the work we're proudest of. This is the true folk-art heart of the jeepney tradition: the landscapes, the religious imagery, the pinstriping, the decorative lettering and the all-important family names, all rendered by a human hand, which is exactly why they have the character, boldness and one-of-a-kind quality that no machine-cut vinyl wrap can replicate. And yes, you absolutely choose the design — it's your jeepney and, traditionally, an expression of your identity. Whether you want the classic repertoire (scenery, saints, family names), a specific theme, a brand's colours and logo, or something entirely your own, our painters will work with you, sketch it up, and bring it to life.</p></details>
+        <details><summary>Can you build a jeepney for a brand, film, resort or event?</summary><p>Absolutely, and it's some of our favourite work. A jeepney is an incredibly powerful visual — instantly, unmistakably Filipino, gloriously eye-catching, and rich with cultural meaning — which makes it a phenomenal centrepiece for a brand activation, a film or TV production, a resort or restaurant, a museum, or a special event. We can build a fully custom jeepney in your colours and branding with bespoke hand-painted art, restore and re-liver an existing one, or fabricate a static, non-running showpiece designed purely to look spectacular parked at your venue or launch. Clients consistently find the jeepney out-photographs and out-remembers almost anything else at an event. Bring us your idea, timeline and budget and we'll tell you honestly what's achievable and how.</p></details>
+        <details><summary>With jeepney modernization, does traditional jeepney-building still have a future?</summary><p>It's a real and complicated question, and we won't pretend otherwise. The traditional jeepney does face an uncertain future as public-transport modernization programmes push towards newer, standardised, often factory-built vehicles, and that genuinely threatens the old coachbuilding trade and the communities that grew up around it. We take that seriously. But we also believe the craft itself — the hand-formed steel, the chrome work, and above all the hand-painted folk art — has enduring value well beyond its role as a transport vehicle: as heritage, as art, as identity, and as something collectors, cultural institutions, brands and proud individuals will always want built and kept alive. So our work is increasingly about restoration, preservation, custom and commemorative builds. As long as people value the King of the Road as the icon it is, there's a future in building it right.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 08 / WE BUILD FOR</span><span>METRO MANILA &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Las Piñas</li><li>Parañaque</li><li>Metro Manila</li><li>Cavite</li><li>Nationwide builds</li><li>Export enquiries</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 09 / THE ESSENTIALS</span><span>HOW WE BUILD</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1979</div><div class="detail">Building jeepneys in Las Piñas</div></div>
+      <div><div class="label">Hand-formed</div><div class="detail">Stainless bodies shaped by hand</div></div>
+      <div><div class="label">Hand-painted</div><div class="detail">Folk-art panels &amp; lettering, by masters</div></div>
+      <div><div class="label">Build &amp; restore</div><div class="detail">Operators, collectors, brands &amp; events</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BUILD 10 / THE YARD</span><span>REAL ST, LAS PIÑAS</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Sarao Kings Body Works</strong><br />
+          88 Real Street, Pamplona<br />
+          Las Piñas 1740<br /><br />
+          <a href="tel:+63285550198" data-bind="business.phoneDisplay">(02) 8555 0198</a><br />
+          <a href="mailto:shop@saraokings.ph" data-bind="business.email">shop@saraokings.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>8AM – 6PM</span></div>
+          <div class="row"><span>VISITS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The yard is on Real Street in Pamplona, Las Piñas. Come and see builds in progress — appointments help us give you our full attention.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Sarao Kings Body Works, Las Piñas" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.9670%2C14.4360%2C120.9970%2C14.4560&layer=mapnik&marker=14.4460%2C120.9820"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">BUILD 11 / START A BUILD</div>
+    <h2 data-bind="cta.heading">Commission the King of the <em>Road.</em></h2>
+    <p data-bind="cta.body">New jeepney builds, vintage restorations, chrome, hand-painted art and custom vehicles for operators, collectors, brands and events — coachbuilt by hand in Las Piñas since 1979. Bring us the dream and we'll build it.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Start a build</a>
+      <a class="btn btn-ghost" href="tel:+63285550198" data-bind="cta.secondary.label">(02) 8555 0198</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63285550198" data-bind="messaging.whatsapp" aria-label="Message the body works">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Sarao Kings <span style="color:var(--jeepred);">Body Works</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A jeepney body works in Las Piñas — coachbuilding the King of the Road by hand since 1979.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          88 Real Street, Pamplona<br />Las Piñas 1740<br />
+          <a href="tel:+63285550198">(02) 8555 0198</a><br />
+          <a href="mailto:shop@saraokings.ph">shop@saraokings.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we build</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Start a build</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SARAO KINGS BODY WORKS</span>
+      <span>KING OF THE ROAD · LAS PIÑAS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

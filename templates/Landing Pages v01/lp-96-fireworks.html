@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Powder & Spark — professional fireworks displays for weddings and events, Cheshire</title>
+<meta name="description" content="Powder & Spark design and fire professional fireworks displays across the North West — weddings, celebrations, corporate and civic events, plus low-noise and choreographed-to-music shows. Fully insured, BPA-trained firers, since 2005." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Powder & Spark", phone: "+44 1625 555 340", phoneDisplay: "01625 555 340", email: "fire@powderandspark.co.uk", foundedYear: 2005 },
+  hero: {
+    kicker: "Professional fireworks displays · weddings · events · Cheshire",
+    headline: "Ninety seconds of sky that a room of people never forgets.",
+    lede: "We design and fire professional fireworks displays across the North West — weddings, birthdays, corporate launches and civic events — choreographed to your moment and, if you like, to music. Every show is designed by hand, fired by BPA-trained professionals, fully insured and risk-assessed. You bring the occasion; we'll put the exclamation mark on the end of it.",
+    primaryCta: { label: "Plan a display", href: "#book" },
+    secondaryCta: { label: "What we fire", href: "#services" },
+    image: "https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Fireworks bursting over water at night."
+  },
+  trust: { years: "Lighting up the sky since 2005" },
+  about: {
+    heading: "A firework is a full second of engineering, timed to the half-beat of your night.",
+    paragraphs: [
+      "Powder &amp; Spark is a professional fireworks company based in Cheshire, firing displays across the North West and beyond. We started in 2005 doing village bonfire nights and grew into a team that now lights up weddings, festivals, corporate launches and civic celebrations — but the thrill has never faded, because there is nothing like the collective gasp of a crowd when the first shell breaks over their heads. We chase that gasp for a living.",
+      "Every display we fire is designed by hand for the specific occasion, site and budget, not pulled off a shelf. We choose each effect, colour and rhythm to build a story in the sky — a slow, elegant opening; a heart-stopping middle; a finale that empties the magazine — and we can choreograph the whole thing tightly to a piece of music that means something to you. Safety underpins all of it: BPA-trained firers, full public liability insurance, detailed risk assessments, and honest advice about what a site can and can't take.",
+      "We fire the full range — grand wedding displays, spectacular event shows, quieter low-noise displays that are kind to animals and young children, daytime and smoke effects, and pyromusical shows synced to the beat. We handle the licensing, the liaison with your venue, the setup and the safe firing, and we clear the site afterwards so all you're left with is the memory. Tell us the moment; we'll design the sky above it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1533230408708-8f9f91d1235a?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A single firework bursting in the night sky."
+  },
+  services: [
+    { name: "Wedding displays", description: "A hand-designed display to close your wedding — from an intimate two-minute burst to a grand finale over a lake. Choreographed to your first dance or a favourite song if you wish." },
+    { name: "Event & festival shows", description: "Spectacular displays for festivals, shows, sporting events and public celebrations, scaled and designed to the site, the crowd and the occasion, with full crowd-safety planning." },
+    { name: "Pyromusical displays", description: "Fireworks choreographed frame-tight to music — every break, colour and rhythm timed to the beat. The most breathtaking (and technical) thing we do, and worth every second." },
+    { name: "Low-noise displays", description: "All the colour and spectacle with far less bang — kinder to animals, young children and noise-sensitive venues, and increasingly the choice for weddings near livestock or neighbours." },
+    { name: "Corporate & civic", description: "Product launches, brand events, town celebrations and switch-ons, delivered to a professional brief with the licensing, insurance and reliability a corporate or council client needs." },
+    { name: "Daytime & smoke effects", description: "Coloured smoke, daytime shell effects and confetti for reveals, gender-reveals, photo moments and brand activations where a night display isn't an option. Bold, bright and camera-ready." }
+  ],
+  why: [
+    { title: "Every show designed by hand.", body: "We never fire a display off the shelf. Each is composed for your occasion, site and budget — effect by effect, colour by colour, beat by beat — so the sky tells your story, not a generic one." },
+    { title: "Safety is the whole trade.", body: "BPA-trained firers, full public liability insurance, thorough risk assessments and honest site advice. A fireworks display is only ever as good as it is safe, and we will never cut that corner." },
+    { title: "We handle everything.", body: "Licensing, venue liaison, setup, firing and full site clearance afterwards. You plan the party; we take care of the entire display end to end, so the night runs without a single worry for you." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the moment", body: "A wedding finale, a festival climax, a launch, a big birthday? We start from the occasion, the feeling you want, your venue and your budget, and shape everything from there." },
+    { step: "02", title: "We design the sky", body: "We compose a display effect by effect — and, for a pyromusical, frame-tight to your track — then talk you through it, so you know exactly what your ninety seconds (or nine minutes) will look like." },
+    { step: "03", title: "Licensing & liaison", body: "We handle the permissions, insurance, risk assessment and all the liaison with your venue and, where needed, the authorities. The paperwork is our problem, not yours." },
+    { step: "04", title: "Fire & clear", body: "On the night we set up, fire the display safely to the second, and clear the entire site afterwards. You keep the memory (and the photographs); we take away everything else." }
+  ],
+  testimonials: [
+    { quote: "They closed our wedding with a display fired to the song from our first dance, and I have never heard a marquee of two hundred people make a sound like that. Every beat of the music had a firework on it. Our guests still talk about it two years on. Worth every single penny and more.", name: "Charlotte & James", context: "wedding pyromusical" },
+    { quote: "We needed a low-noise display for a wedding next to a stables and were amazed — every bit as beautiful, barely a bang, and the horses (and the neighbours) were completely fine. The care they took over the site and the animals was extraordinary. Utterly professional from first call to final clear-up.", name: "Eleanor F.", context: "low-noise wedding display" },
+    { quote: "Booked Powder & Spark for our town's switch-on and they delivered a genuinely spectacular show on a tight civic budget, with all the licensing and crowd-safety handled faultlessly. Thousands of people, not a single hitch, and a finale that got a roar. We've rebooked them for three years running.", name: "Cllr. D. Mensah", context: "civic celebration" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?w=1600&q=85&auto=format&fit=crop", alt: "Fireworks bursting over water at night." },
+    { src: "https://images.unsplash.com/photo-1533230408708-8f9f91d1235a?w=1600&q=85&auto=format&fit=crop", alt: "A single firework bursting in the sky." },
+    { src: "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=1600&q=85&auto=format&fit=crop", alt: "Fireworks over a crowd at night." },
+    { src: "https://images.unsplash.com/photo-1481931098730-318b6f776db0?w=1600&q=85&auto=format&fit=crop", alt: "Golden fireworks filling the night sky." },
+    { src: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&q=85&auto=format&fit=crop", alt: "A crowd watching a display with raised hands." },
+    { src: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1600&q=85&auto=format&fit=crop", alt: "Colourful fireworks over the horizon." }
+  ],
+  faq: [
+    { q: "How far ahead should we book, and how does planning work?", a: "Book as far ahead as you can, especially for popular wedding dates and the weeks around New Year and bonfire season, when we fill up months and sometimes a year in advance — but do ask even at short notice, because we can occasionally fit in a display with only a few weeks' warning. Planning starts with a conversation about your occasion, your venue and your budget, from which we design a display and give you a clear, itemised quote. Once you're happy and booked, we take over the technical side: liaising with your venue about the firing site and any restrictions, carrying out the risk assessment, arranging the licensing and notifying the relevant authorities where required, and confirming the running order and timings with you. In the final week we reconfirm everything and check the forecast. On the day we arrive early, set up, and fire to the agreed moment. Your job is simply to enjoy it; ours is everything else." },
+    { q: "Are fireworks displays safe, and are you insured?", a: "Safety is the foundation of everything we do, and a professional display fired by trained, insured operators is a world away from a back-garden box of fireworks. Our firers are BPA-trained (British Pyrotechnists Association), we carry full public liability insurance, and every single display is preceded by a detailed written risk assessment covering the firing site, the fallout zone, spectator distances, wind limits and emergency procedures. We inspect and confirm the site in advance, set safe distances for the crowd, monitor wind conditions on the night and will delay or, in genuinely unsafe conditions, stand down a display rather than fire it unsafely — that judgement is ours and it is non-negotiable. We fire professional-category fireworks that the public can't buy, from properly-engineered mortars and racks, under controlled conditions. In twenty years we've fired thousands of displays safely, and that record exists precisely because we treat safety as the whole trade, not an afterthought." },
+    { q: "Can you choreograph the fireworks to music?", a: "Yes — pyromusical displays, fired frame-tight to a piece of music, are the most spectacular thing we do and among our favourite commissions. Choosing the right track is part of the magic (a first-dance song, an anthem, a piece with real dynamic light and shade), and from it we compose the display so that every break, colour change and rhythmic run is timed to the beat, the crescendos crowned with the biggest shells and the quiet passages painted with elegant, slower effects. It's considerably more technical and more time-consuming to design and fire than a standard display, so it costs more and needs a little more planning and the right site, but the effect on an audience is simply on another level — people don't just watch it, they feel it. If you have a piece of music that matters to you and a moment worth marking, tell us; turning a song into ninety seconds of sky is exactly what we love to do." },
+    { q: "What is a low-noise display, and is it as good?", a: "A low-noise (or 'quiet') display uses fireworks chosen for their colour, movement and beauty rather than their bang, giving you a genuinely spectacular show with only a fraction of the noise — and yes, it really is as beautiful, just quieter. It's an increasingly popular choice, and for good reason: it's far kinder to horses, dogs and other animals, to young children and noise-sensitive guests, and to neighbours, which makes it ideal for weddings at rural venues near livestock, for events in residential areas, or simply for anyone who loves the colour of fireworks but not the concussion. We design low-noise displays with the same care as any other, building colour, height and rhythm into a proper crescendo — you lose very little of the spectacle and gain a lot of goodwill. If your venue has concerns about noise, or you simply prefer a gentler show, ask us; we'll design something that still makes the crowd gasp, just without making the horses bolt." },
+    { q: "What happens if the weather is bad on the night?", a: "Fireworks and weather are old adversaries, and we plan for it so you don't have to worry. Light rain is generally fine — fireworks are surprisingly weatherproof and we protect the equipment — and a display will go ahead in most conditions. The real limiting factor is wind: strong or gusty wind, particularly blowing towards the crowd, affects the safe fallout zone, and if conditions on the night are genuinely unsafe we will delay the display to see if the wind drops and, as a last resort, stand it down for safety — a decision that is always ours to make and always errs on the side of caution. Because most of our work is for fixed occasions like weddings, an outright cancellation is rare and we'll always do everything possible to fire, including adjusting timing or firing position; where a display genuinely cannot go ahead for safety, we'll discuss rescheduling. We monitor the forecast closely in the run-up and keep you informed. Twenty years of reading British skies means we very rarely get caught out." },
+    { q: "Do you only cover Cheshire, and how big can a display be?", a: "We're based in Cheshire and much of our work is across the North West — Manchester, Liverpool, Chester and the surrounding counties — but we travel further afield for the right commission, so do ask wherever you are and we'll tell you honestly whether we're the right team for the location. As for scale, we fire everything from intimate close-proximity displays for small weddings, where a beautiful two-minute show fires from just beyond the guests, right up to large-scale event and civic displays for crowds of thousands with big shells and long, building finales — and, crucially, we scale the design and the budget to your occasion rather than pushing you towards more than you need. A small, well-designed display at the right moment can be every bit as moving as a huge one; a huge one, properly engineered, can take a crowd's breath clean away. Tell us your site, your guest numbers and your budget, and we'll design the biggest, best display that fits all three safely." }
+  ],
+  area: { places: ["Cheshire", "Manchester", "Liverpool", "Chester", "North West", "Staffordshire"] },
+  credentials: [
+    { label: "Since 2005", detail: "Thousands of displays fired safely" },
+    { label: "BPA-trained", detail: "Professional, qualified firers on every show" },
+    { label: "Fully insured", detail: "Public liability & written risk assessments" },
+    { label: "End to end", detail: "Design, licensing, firing and full clear-up" }
+  ],
+  location: { name: "Powder & Spark", addressStreet: "Unit 4, Bollin Works", addressLocality: "Macclesfield", addressRegion: "Cheshire", addressPostcode: "SK11 7QT", addressCountry: "United Kingdom" },
+  cta: { heading: "Give your night the ending it deserves.", body: "Weddings, events, pyromusicals and low-noise shows — designed by hand, fired by professionals, insured and cleared away by morning. Tell us the moment and we'll design the sky above it.", primary: { label: "Plan a display", href: "#book" }, secondary: { label: "01625 555 340", href: "tel:+441625555340" } },
+  messaging: { whatsapp: "https://wa.me/441625555340", messenger: "https://m.me/powderandspark" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#0a0a14; --moon:#eae6f0; --magenta:#d6437e; --gold:#e8b53c; --azure:#4a7fd0;
+    --ink:#0a0a14; --mid:#6a677e; --mid-d:#a9a5bd; --rule:rgba(10,10,20,0.16); --rule-d:rgba(234,230,240,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--moon);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--magenta);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--magenta);color:var(--moon);} .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(234,230,240,0.4);color:var(--moon);} .btn-ghost:hover{background:var(--moon);color:var(--void);border-color:var(--moon);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(234,230,240,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(10,10,20,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(234,230,240,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--magenta);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--azure);color:transparent;}
+  .hero-headline .em{color:var(--magenta);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(10,10,20,0.82);font-weight:700;}
+
+  .about{background:var(--moon);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--magenta);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#38364a;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(234,230,240,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(234,230,240,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(214,67,126,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--moon);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--magenta);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#38364a;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(234,230,240,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--magenta);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(234,230,240,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--magenta);color:var(--moon);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(234,230,240,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(234,230,240,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(234,230,240,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(234,230,240,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--moon);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#38364a;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(234,230,240,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(210deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--magenta);color:var(--moon);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--moon);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--moon);color:transparent;}
+  .cta-band p{color:rgba(234,230,240,0.9);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--moon);color:var(--magenta);} .cta-band .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(234,230,240,0.6);color:var(--moon);} .cta-band .btn-ghost:hover{background:var(--moon);color:var(--magenta);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(234,230,240,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(234,230,240,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--magenta);color:var(--moon);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(214,67,126,0.4);}
+  .msg-fab a:hover{background:var(--moon);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Powder & Spark","description":"Professional fireworks displays across the North West — weddings, celebrations, corporate and civic events, plus low-noise and choreographed-to-music shows. Fully insured, BPA-trained firers.","url":"https://powderandspark.co.uk/","telephone":"+441625555340","email":"fire@powderandspark.co.uk","address":{"@type":"PostalAddress","streetAddress":"Unit 4, Bollin Works","addressLocality":"Macclesfield","addressRegion":"Cheshire","postalCode":"SK11 7QT","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.2590,"longitude":-2.1250},"areaServed":["Cheshire","Manchester","Liverpool","Chester"],"image":["https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?w=1600"],"foundingDate":"2005"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How far ahead should we book?","acceptedAnswer":{"@type":"Answer","text":"As far ahead as you can, especially for wedding dates and around New Year and bonfire season, though we can sometimes fit displays at short notice. Planning starts with a conversation, then a designed display and itemised quote. Once booked we handle venue liaison, risk assessment, licensing and timings, reconfirm in the final week, and fire on the day."}},
+{"@type":"Question","name":"Are displays safe, and are you insured?","acceptedAnswer":{"@type":"Answer","text":"Yes. Our firers are BPA-trained, we carry full public liability insurance, and every display has a written risk assessment covering site, fallout zone, spectator distances and wind limits. We monitor wind on the night and will delay or stand down rather than fire unsafely. We use professional fireworks the public can't buy, under controlled conditions."}},
+{"@type":"Question","name":"Can you choreograph fireworks to music?","acceptedAnswer":{"@type":"Answer","text":"Yes — pyromusical displays fired frame-tight to a track are the most spectacular thing we do. We compose the display so every break, colour and rhythm times to the beat. It's more technical and costs more, needs the right site, but the effect is on another level — people feel it, not just watch it."}},
+{"@type":"Question","name":"What is a low-noise display, and is it as good?","acceptedAnswer":{"@type":"Answer","text":"It uses fireworks chosen for colour and movement rather than bang — genuinely spectacular, just quieter. It's far kinder to animals, young children, noise-sensitive guests and neighbours, ideal for rural weddings near livestock or residential areas. We build the same crescendo of colour and height; you lose little spectacle and gain goodwill."}},
+{"@type":"Question","name":"What happens if the weather is bad?","acceptedAnswer":{"@type":"Answer","text":"Light rain is fine and displays go ahead in most conditions; wind is the real limit. If conditions are genuinely unsafe we delay to see if wind drops and, as a last resort, stand down for safety. Outright cancellation is rare; we'll adjust timing or position where we can, and discuss rescheduling if a display truly can't fire. We monitor the forecast closely."}},
+{"@type":"Question","name":"Do you only cover Cheshire, and how big can a display be?","acceptedAnswer":{"@type":"Answer","text":"Based in Cheshire, mostly working across the North West, but we travel for the right commission. We fire everything from intimate close-proximity displays for small weddings to large event and civic shows for thousands, scaling design and budget to your occasion. Tell us your site, guest numbers and budget and we'll design the best display that fits all three safely."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Powder <span>&amp;</span> Spark</a>
+    <nav class="nav-links">
+      <a href="#about">The work</a><a href="#services">What we fire</a><a href="#location">Find us</a><a href="#book">Plan</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v82">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Professional fireworks displays · weddings · events · Cheshire</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Ninety seconds of <span class="out">sky</span> that a room of people <span class="em">never forgets.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?w=2000&q=85&auto=format&fit=crop"
+             alt="Fireworks bursting over water at night." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">We design and fire professional fireworks displays across the North West — weddings, birthdays, corporate launches and civic events — choreographed to your moment and, if you like, to music. Every show is designed by hand, fired by BPA-trained professionals, fully insured and risk-assessed. You bring the occasion; we'll put the exclamation mark on the end of it.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Plan a display</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we fire</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Lighting up the sky since 2005</span>
+    <span>BPA-trained firers</span>
+    <span>Fully insured &amp; risk-assessed</span>
+    <span>Design to clear-up, handled</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v48">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 01 / THE WORK</span><span>DESIGNED BY HAND, FIRED BY PROS</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A firework is a full second of engineering, timed to the half-beat of <em>your night.</em></h2>
+        <p>Powder &amp; Spark is a professional fireworks company based in Cheshire, firing displays across the North West and beyond. We started in 2005 doing village bonfire nights and grew into a team that now lights up weddings, festivals, corporate launches and civic celebrations — but the thrill has never faded, because there is nothing like the collective gasp of a crowd when the first shell breaks over their heads. We chase that gasp for a living.</p>
+        <p>Every display we fire is designed by hand for the specific occasion, site and budget, not pulled off a shelf. We choose each effect, colour and rhythm to build a story in the sky — a slow, elegant opening; a heart-stopping middle; a finale that empties the magazine — and we can choreograph the whole thing tightly to a piece of music that means something to you. Safety underpins all of it: BPA-trained firers, full public liability insurance, detailed risk assessments, and honest advice about what a site can and can't take.</p>
+        <p>We fire the full range — grand wedding displays, spectacular event shows, quieter low-noise displays that are kind to animals and young children, daytime and smoke effects, and pyromusical shows synced to the beat. We handle the licensing, the liaison with your venue, the setup and the safe firing, and we clear the site afterwards so all you're left with is the memory. Tell us the moment; we'll design the sky above it.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1533230408708-8f9f91d1235a?w=1200&q=85&auto=format&fit=crop"
+           alt="A single firework bursting in the night sky." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v75" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 02 / WHAT WE FIRE</span><span>WEDDINGS · EVENTS · PYROMUSICAL</span></div>
+    <h2 class="h2">What we fire.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Wedding displays</h3><p>A hand-designed display to close your wedding — from an intimate two-minute burst to a grand finale over a lake. Choreographed to your first dance or a favourite song if you wish.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Event &amp; festival shows</h3><p>Spectacular displays for festivals, shows, sporting events and public celebrations, scaled and designed to the site, the crowd and the occasion, with full crowd-safety planning.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Pyromusical displays</h3><p>Fireworks choreographed frame-tight to music — every break, colour and rhythm timed to the beat. The most breathtaking (and technical) thing we do, and worth every second.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Low-noise displays</h3><p>All the colour and spectacle with far less bang — kinder to animals, young children and noise-sensitive venues, and increasingly the choice for weddings near livestock or neighbours.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Corporate &amp; civic</h3><p>Product launches, brand events, town celebrations and switch-ons, delivered to a professional brief with the licensing, insurance and reliability a corporate or council client needs.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Daytime &amp; smoke effects</h3><p>Coloured smoke, daytime shell effects and confetti for reveals, gender-reveals, photo moments and brand activations where a night display isn't an option. Bold, bright and camera-ready.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v47">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 03 / THE DIFFERENCE</span><span>WHY POWDER & SPARK</span></div>
+    <h2 class="h2">Why Powder &amp; Spark.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Every show designed by hand.</h3><p>We never fire a display off the shelf. Each is composed for your occasion, site and budget — effect by effect, colour by colour, beat by beat — so the sky tells your story, not a generic one.</p></div>
+      <div><span class="no">02 / 03</span><h3>Safety is the whole trade.</h3><p>BPA-trained firers, full public liability insurance, thorough risk assessments and honest site advice. A fireworks display is only ever as good as it is safe, and we will never cut that corner.</p></div>
+      <div><span class="no">03 / 03</span><h3>We handle everything.</h3><p>Licensing, venue liaison, setup, firing and full site clearance afterwards. You plan the party; we take care of the entire display end to end, so the night runs without a single worry for you.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 04 / HOW IT GOES</span><span>BRIEF → DESIGN → LICENSE → FIRE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the moment</h3><p>A wedding finale, a festival climax, a launch, a big birthday? We start from the occasion, the feeling you want, your venue and your budget, and shape everything from there.</p></li>
+      <li><span class="step">STEP 02</span><h3>We design the sky</h3><p>We compose a display effect by effect — and, for a pyromusical, frame-tight to your track — then talk you through it, so you know exactly what your ninety seconds (or nine minutes) will look like.</p></li>
+      <li><span class="step">STEP 03</span><h3>Licensing &amp; liaison</h3><p>We handle the permissions, insurance, risk assessment and all the liaison with your venue and, where needed, the authorities. The paperwork is our problem, not yours.</p></li>
+      <li><span class="step">STEP 04</span><h3>Fire &amp; clear</h3><p>On the night we set up, fire the display safely to the second, and clear the entire site afterwards. You keep the memory (and the photographs); we take away everything else.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v47">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 05 / FROM THE CROWD</span><span>THE GASP WE CHASE</span></div>
+    <blockquote class="t-quote">“Every beat of the music had a firework on it. Our guests still talk about it <em>two years on.</em>”</blockquote>
+    <div class="t-attr">Charlotte &amp; James — wedding pyromusical</div>
+    <div class="t-sub">
+      <figure><blockquote>“We needed a low-noise display for a wedding next to a stables and were amazed — every bit as beautiful, barely a bang, and the horses (and the neighbours) were completely fine. The care they took over the site and the animals was extraordinary. Utterly professional from first call to final clear-up.”</blockquote><figcaption>Eleanor F. — low-noise wedding display</figcaption></figure>
+      <figure><blockquote>“Booked Powder &amp; Spark for our town's switch-on and they delivered a genuinely spectacular show on a tight civic budget, with all the licensing and crowd-safety handled faultlessly. Thousands of people, not a single hitch, and a finale that got a roar. We've rebooked them for three years running.”</blockquote><figcaption>Cllr. D. Mensah — civic celebration</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v75" class="about" style="background:var(--moon);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>SHOW 06 / IN THE SKY</span><span>BREAK, COLOUR &amp; FINALE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?w=1600&q=85&auto=format&fit=crop" alt="Fireworks bursting over water at night." /><figcaption>THE OPENER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1533230408708-8f9f91d1235a?w=1600&q=85&auto=format&fit=crop" alt="A single firework bursting in the sky." /><figcaption>THE BREAK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=1600&q=85&auto=format&fit=crop" alt="Fireworks over a crowd at night." /><figcaption>OVER THE CROWD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1481931098730-318b6f776db0?w=1600&q=85&auto=format&fit=crop" alt="Golden fireworks filling the night sky." /><figcaption>THE FINALE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1600&q=85&auto=format&fit=crop" alt="A crowd watching a display with raised hands." /><figcaption>THE GASP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=1600&q=85&auto=format&fit=crop" alt="Colourful fireworks over the horizon." /><figcaption>THE COLOUR</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 07 / BEFORE YOU BOOK</span><span>PLANNING, SAFETY & WEATHER</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you book.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441625555340" style="color:var(--gold);font-weight:700;">01625 555 340</a>. Tell us the date and the moment, and we'll tell you honestly what's possible.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How far ahead should we book, and how does planning work?</summary><p>Book as far ahead as you can, especially for popular wedding dates and the weeks around New Year and bonfire season, when we fill up months and sometimes a year in advance — but do ask even at short notice, because we can occasionally fit in a display with only a few weeks' warning. Planning starts with a conversation about your occasion, your venue and your budget, from which we design a display and give you a clear, itemised quote. Once you're happy and booked, we take over the technical side: liaising with your venue about the firing site and any restrictions, carrying out the risk assessment, arranging the licensing and notifying the relevant authorities where required, and confirming the running order and timings with you. In the final week we reconfirm everything and check the forecast. On the day we arrive early, set up, and fire to the agreed moment. Your job is simply to enjoy it; ours is everything else.</p></details>
+        <details><summary>Are fireworks displays safe, and are you insured?</summary><p>Safety is the foundation of everything we do, and a professional display fired by trained, insured operators is a world away from a back-garden box of fireworks. Our firers are BPA-trained (British Pyrotechnists Association), we carry full public liability insurance, and every single display is preceded by a detailed written risk assessment covering the firing site, the fallout zone, spectator distances, wind limits and emergency procedures. We inspect and confirm the site in advance, set safe distances for the crowd, monitor wind conditions on the night and will delay or, in genuinely unsafe conditions, stand down a display rather than fire it unsafely — that judgement is ours and it is non-negotiable. We fire professional-category fireworks that the public can't buy, from properly-engineered mortars and racks, under controlled conditions. In twenty years we've fired thousands of displays safely, and that record exists precisely because we treat safety as the whole trade, not an afterthought.</p></details>
+        <details><summary>Can you choreograph the fireworks to music?</summary><p>Yes — pyromusical displays, fired frame-tight to a piece of music, are the most spectacular thing we do and among our favourite commissions. Choosing the right track is part of the magic (a first-dance song, an anthem, a piece with real dynamic light and shade), and from it we compose the display so that every break, colour change and rhythmic run is timed to the beat, the crescendos crowned with the biggest shells and the quiet passages painted with elegant, slower effects. It's considerably more technical and more time-consuming to design and fire than a standard display, so it costs more and needs a little more planning and the right site, but the effect on an audience is simply on another level — people don't just watch it, they feel it. If you have a piece of music that matters to you and a moment worth marking, tell us; turning a song into ninety seconds of sky is exactly what we love to do.</p></details>
+        <details><summary>What is a low-noise display, and is it as good?</summary><p>A low-noise (or "quiet") display uses fireworks chosen for their colour, movement and beauty rather than their bang, giving you a genuinely spectacular show with only a fraction of the noise — and yes, it really is as beautiful, just quieter. It's an increasingly popular choice, and for good reason: it's far kinder to horses, dogs and other animals, to young children and noise-sensitive guests, and to neighbours, which makes it ideal for weddings at rural venues near livestock, for events in residential areas, or simply for anyone who loves the colour of fireworks but not the concussion. We design low-noise displays with the same care as any other, building colour, height and rhythm into a proper crescendo — you lose very little of the spectacle and gain a lot of goodwill. If your venue has concerns about noise, or you simply prefer a gentler show, ask us; we'll design something that still makes the crowd gasp, just without making the horses bolt.</p></details>
+        <details><summary>What happens if the weather is bad on the night?</summary><p>Fireworks and weather are old adversaries, and we plan for it so you don't have to worry. Light rain is generally fine — fireworks are surprisingly weatherproof and we protect the equipment — and a display will go ahead in most conditions. The real limiting factor is wind: strong or gusty wind, particularly blowing towards the crowd, affects the safe fallout zone, and if conditions on the night are genuinely unsafe we will delay the display to see if the wind drops and, as a last resort, stand it down for safety — a decision that is always ours to make and always errs on the side of caution. Because most of our work is for fixed occasions like weddings, an outright cancellation is rare and we'll always do everything possible to fire, including adjusting timing or firing position; where a display genuinely cannot go ahead for safety, we'll discuss rescheduling. We monitor the forecast closely in the run-up and keep you informed. Twenty years of reading British skies means we very rarely get caught out.</p></details>
+        <details><summary>Do you only cover Cheshire, and how big can a display be?</summary><p>We're based in Cheshire and much of our work is across the North West — Manchester, Liverpool, Chester and the surrounding counties — but we travel further afield for the right commission, so do ask wherever you are and we'll tell you honestly whether we're the right team for the location. As for scale, we fire everything from intimate close-proximity displays for small weddings, where a beautiful two-minute show fires from just beyond the guests, right up to large-scale event and civic displays for crowds of thousands with big shells and long, building finales — and, crucially, we scale the design and the budget to your occasion rather than pushing you towards more than you need. A small, well-designed display at the right moment can be every bit as moving as a huge one; a huge one, properly engineered, can take a crowd's breath clean away. Tell us your site, your guest numbers and your budget, and we'll design the biggest, best display that fits all three safely.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 08 / WE FIRE ACROSS</span><span>THE NORTH WEST</span></div>
+    <ul class="area-list">
+      <li>Cheshire</li><li>Manchester</li><li>Liverpool</li><li>Chester</li><li>North West</li><li>Staffordshire</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v22" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2005</div><div class="detail">Thousands of displays fired safely</div></div>
+      <div><div class="label">BPA-trained</div><div class="detail">Professional, qualified firers on every show</div></div>
+      <div><div class="label">Fully insured</div><div class="detail">Public liability &amp; written risk assessments</div></div>
+      <div><div class="label">End to end</div><div class="detail">Design, licensing, firing and full clear-up</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHOW 10 / THE BASE</span><span>BOLLIN WORKS, MACCLESFIELD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Powder &amp; Spark</strong><br />
+          Unit 4, Bollin Works<br />
+          Macclesfield SK11 7QT<br /><br />
+          <a href="tel:+441625555340" data-bind="business.phoneDisplay">01625 555 340</a><br />
+          <a href="mailto:fire@powderandspark.co.uk" data-bind="business.email">fire@powderandspark.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>OFFICE MON – FRI</span><span>9 – 5:30</span></div>
+          <div class="row"><span>DISPLAYS</span><span>BY BOOKING</span></div>
+          <p class="gbp-note">Office and licensed magazine at Bollin Works. Displays fired at your venue across the North West. Consultations by appointment — evenings and weekends to suit couples.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Powder & Spark, Macclesfield" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.1340%2C53.2550%2C-2.1160%2C53.2630&layer=mapnik&marker=53.2590%2C-2.1250"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v50">
+  <div class="wrap">
+    <div class="kick">SHOW 11 / PLAN</div>
+    <h2 data-bind="cta.heading">Give your night the ending it <em>deserves.</em></h2>
+    <p data-bind="cta.body">Weddings, events, pyromusicals and low-noise shows — designed by hand, fired by professionals, insured and cleared away by morning. Tell us the moment and we'll design the sky above it.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Plan a display</a>
+      <a class="btn btn-ghost" href="tel:+441625555340" data-bind="cta.secondary.label">01625 555 340</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441625555340" data-bind="messaging.whatsapp" aria-label="Message the team">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Powder <span style="color:var(--magenta);">&amp;</span> Spark</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">Professional fireworks displays across the North West — weddings, events and pyromusicals. Designed by hand, fired safely, since 2005.</p>
+      </div>
+      <div>
+        <h4>The base</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Unit 4, Bollin Works<br />Macclesfield SK11 7QT<br />
+          <a href="tel:+441625555340">01625 555 340</a><br />
+          <a href="mailto:fire@powderandspark.co.uk">fire@powderandspark.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we fire</a><a href="#about">The work</a><a href="#location">Find us</a><a href="#book">Plan</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> POWDER &amp; SPARK</span>
+      <span>YOU BRING THE NIGHT · WE BRING THE SKY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

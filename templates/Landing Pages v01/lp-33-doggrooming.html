@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Wash House — dog grooming in Didsbury, Manchester</title>
+<meta name="description" content="The Wash House is a calm, one-dog-at-a-time grooming salon in Didsbury. Full grooms, puppy introductions, nervous-dog specialists, no cages ever." />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Andika:ital@0;1&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Wash House", phone: "+44 161 445 8812", phoneDisplay: "0161 445 8812", email: "woof@thewashhouse.dog", foundedYear: 2020 },
+  hero: {
+    kicker: "One dog at a time · no cages, ever · Didsbury, Manchester",
+    headline: "One dog in the salon at a time. Yours.",
+    lede: "A calm grooming salon where your dog is the only client in the building. No cage drying, no barking chorus, no conveyor belt — just ninety unhurried minutes and a groomer who reads dogs better than most people read rooms.",
+    primaryCta: { label: "Book a groom", href: "#book" },
+    secondaryCta: { label: "Nervous dog? Start here", href: "#services" },
+    image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Dog being gently bathed in a grooming tub."
+  },
+  trust: { years: "Grooming in Didsbury since 2020" },
+  about: {
+    heading: "Built for the dogs who hate the groomer's.",
+    paragraphs: [
+      "The Wash House exists because of a rescue lurcher called Bram who shook through every grooming appointment of his life — until his owner (now our founder) retrained as a groomer to figure out why. The answer was obvious once seen: noise, cages, strange dogs, and being rushed.",
+      "So this salon removed all four. One dog in the building at a time. No cages — dogs are towel-and-stand dried, or air-dried on the sofa if that's their preference (it's often their preference). Appointments run ninety minutes so nothing ever has to be hurried through.",
+      "Two groomers work here, both trained in low-stress handling. Half our clients arrive labelled 'difficult' by other salons. Almost none of them leave that way."
+    ],
+    portrait: "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Freshly groomed golden retriever looking pleased."
+  },
+  services: [
+    { name: "The full groom", description: "Bath, brush-out, style cut, nails, ears, and the triumphant bandana. Ninety minutes, one dog: yours." },
+    { name: "Bath & tidy", description: "The in-between service — wash, dry, face-feet-fanny tidy, nails. Out in an hour, smelling like a better decision." },
+    { name: "Puppy introductions", description: "Three short visits before any real grooming happens. Sniff the room, hear the dryer, eat the cheese, go home. Worth every minute." },
+    { name: "Nervous & rescue dogs", description: "Longer, slower appointments built around your dog's history. We go at their pace, even when that pace is glacial." },
+    { name: "Hand stripping", description: "For the wire-coated gentry — terriers, dachshunds, spaniels. Proper technique that keeps the coat working as designed." },
+    { name: "The de-shed", description: "For the huskies, shepherds and labs redecorating your home twice a year. Includes a bag of your own dog to take home, if you want proof." }
+  ],
+  why: [
+    { title: "One dog at a time.", body: "No barking chorus, no strange dogs, no waiting in a crate while others are done. The single-dog policy is the whole business model." },
+    { title: "Never cage dried.", body: "Cage dryers are efficient and horrible. We towel, stand-dry, or wait. Your dog's blood pressure is worth the extra twenty minutes." },
+    { title: "Fear-free trained.", body: "Both groomers certified in low-stress handling. We stop before a dog needs us to stop, which is how they learn we will." }
+  ],
+  how: [
+    { step: "01", title: "Tell us about the dog", body: "Breed, coat, age, and the honest history — bites, fears, previous salon dramas. No judgement; it's briefing, not confession." },
+    { step: "02", title: "Meet & sniff", body: "New dogs get fifteen free minutes to case the joint before their first appointment. Cheese is involved." },
+    { step: "03", title: "The groom", body: "Ninety minutes, door locked to other clients, radio on low. You can wait in the café over the road; we'll text photos." },
+    { step: "04", title: "Handover & notes", body: "What we did, what we noticed (lumps, ears, teeth), and when to come back. Photo taken for the wall of fame, obviously." }
+  ],
+  testimonials: [
+    { quote: "My collie was banned from two salons. The Wash House sent me a photo of him ASLEEP mid-groom. Asleep. I showed my vet, who didn't believe it either.", name: "Sarah K.", context: "reactive collie, reformed" },
+    { quote: "The puppy introduction visits felt like overkill until I saw my spaniel drag me toward the salon door at appointment one, tail going like a metronome.", name: "David L.", context: "cocker spaniel puppy" },
+    { quote: "They found a lump behind my old boy's ear during his bath and told me to get it checked that week. It mattered. I'll never take him anywhere else.", name: "Maureen P.", context: "elderly labrador" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1581888227599-779811939961?w=1600&q=85&auto=format&fit=crop", alt: "Gentle bath time." },
+    { src: "https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=1600&q=85&auto=format&fit=crop", alt: "Freshly groomed and pleased about it." },
+    { src: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1600&q=85&auto=format&fit=crop", alt: "Two clients waiting for the school run." },
+    { src: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=1600&q=85&auto=format&fit=crop", alt: "The before photo." },
+    { src: "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=1600&q=85&auto=format&fit=crop", alt: "Post-groom bandana moment." },
+    { src: "https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=1600&q=85&auto=format&fit=crop", alt: "The wall of fame gets a new member." }
+  ],
+  faq: [
+    { q: "My dog is genuinely difficult. Bitey, even.", a: "Tell us everything when you book — the honest version. We take muzzle-trained dogs, we work slow, and we stop sessions early rather than push a dog past coping. Some dogs take three visits to finish one groom the first time. That's fine. That's the job." },
+    { q: "Why is there only one dog at a time?", a: "Because most grooming stress isn't the bath or the clippers — it's the environment. Strange dogs, barking, cage dryers, waiting. Remove those and 'difficult' dogs frequently just... aren't." },
+    { q: "How long does a groom take?", a: "Ninety minutes for a full groom, an hour for a bath and tidy. Nervous dogs get longer slots at no extra charge, because rushing them undoes months of progress." },
+    { q: "Can I stay and watch?", a: "For puppy introductions, yes. For grooms, most dogs behave better without their human audience — separation drama is real. The café over the road does an excellent flat white, and we text photos mid-groom." },
+    { q: "How often should my dog be groomed?", a: "Coat-dependent: every 4–6 weeks for poodle crosses and full-coated breeds, 8–12 for short coats and hand-stripped breeds. We'll give you an honest schedule, not a sales one — and show you the brush-out routine between visits." },
+    { q: "What if you find something during the groom?", a: "Lumps, ear trouble, bad teeth, sore spots — we note them in your handover and tell you plainly if we think a vet should look. Groomers see more of your dog's skin than anyone; we treat that seriously." },
+    { q: "Do you groom cats?", a: "No — cats deserve a specialist, and we know a good one in Chorlton. We'll pass on the number without a flicker of judgement about your life choices." }
+  ],
+  area: { places: ["Didsbury", "Withington", "Chorlton", "Fallowfield", "Heaton Mersey", "West Didsbury"] },
+  credentials: [
+    { label: "Qualified", detail: "City & Guilds Level 3 dog grooming" },
+    { label: "Fear-free", detail: "Low-stress handling certified, both groomers" },
+    { label: "First aid", detail: "Canine first-aid trained, kit on site" },
+    { label: "Insured", detail: "Full salon & care liability cover" }
+  ],
+  location: { name: "The Wash House", addressStreet: "6 Warburton Street", addressLocality: "Didsbury, Manchester", addressRegion: "Greater Manchester", addressPostcode: "M20 6WA", addressCountry: "United Kingdom" },
+  cta: { heading: "Your dog already forgave you for the last groomer.", body: "Book the meet-and-sniff. Bring the honest history. We'll bring the cheese.", primary: { label: "Book a groom", href: "#book" }, secondary: { label: "0161 445 8812", href: "tel:+441614458812" } },
+  messaging: { whatsapp: "https://wa.me/441614458812", messenger: "https://m.me/thewashhousedog" }
+};
+</script>
+
+<style>
+  :root {
+    --suds:#f3f6f8; --towel:#dfe9ef; --navy:#27415a; --cobalt:#2e6fd8;
+    --mid:#6c7f90; --biscuit:#e0a458; --rule:rgba(39,65,90,0.15);
+    --display:"Baloo 2",system-ui,sans-serif;
+    --sans:"Andika",system-ui,sans-serif;
+    --mono:"Red Hat Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--suds);color:var(--navy);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1220px,93vw);margin-inline:auto;}
+  .collar{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--cobalt);font-weight:500;}
+  .h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.2vw,54px);line-height:1.06;letter-spacing:-0.01em;margin:0 0 0.45em;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(70px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 27px;font-family:var(--display);font-size:14px;font-weight:700;text-decoration:none;transition:0.18s;border-radius:14px;}
+  .btn-primary{background:var(--cobalt);color:#fff;} .btn-primary:hover{background:var(--navy);}
+  .btn-ghost{border:2px solid var(--navy);} .btn-ghost:hover{background:var(--navy);color:var(--suds);}
+  .tag-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#93a5b4;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,246,248,0.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--navy);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--display);font-weight:800;font-size:19px;text-decoration:none;}
+  .wm .paw{color:var(--cobalt);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#93a5b4;font-weight:500;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--cobalt);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — appointment-tag composition */
+  .hero{padding:clamp(48px,7vw,94px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:800;font-size:clamp(36px,4.8vw,66px);line-height:1.04;letter-spacing:-0.015em;margin:18px 0 22px;}
+  .hero h1 .yours{color:var(--cobalt);}
+  .hero .lede{color:var(--mid);max-width:46ch;line-height:1.7;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:24px;}
+  .apt-tag{position:absolute;top:20px;right:-12px;background:#fff;border:2px solid var(--navy);border-radius:12px;padding:14px 18px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;line-height:1.9;box-shadow:5px 5px 0 var(--biscuit);transform:rotate(2deg);}
+  .apt-tag .hd{color:var(--cobalt);letter-spacing:0.14em;font-weight:500;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .apt-tag{right:10px;}}
+
+  .trust{padding:0;background:var(--navy);color:var(--suds);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(243,246,248,0.75);}
+
+  .about{background:var(--towel);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.74;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:24px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — kennel-tag cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);margin-top:clamp(26px,4vw,44px);}
+  .svc-card{background:#fff;border:2px solid var(--navy);border-radius:18px;padding:clamp(22px,2.8vw,32px);position:relative;transition:0.18s;}
+  .svc-card::before{content:"";position:absolute;top:16px;right:16px;width:14px;height:14px;border-radius:50%;border:2px solid var(--navy);background:var(--towel);}
+  .svc-card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(39,65,90,0.16);}
+  .svc-card .tno{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;color:var(--cobalt);display:block;margin-bottom:12px;text-transform:uppercase;font-weight:500;}
+  .svc-card h3{font-family:var(--display);font-weight:700;font-size:20px;margin:0 0 8px;line-height:1.15;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.64;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--cobalt);color:#fff;}
+  .why .h2{color:#fff;}
+  .why .tag-head{border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.65);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .bone{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--biscuit);display:block;margin-bottom:14px;font-weight:500;}
+  .why-grid h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(255,255,255,0.8);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--navy);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--cobalt);font-weight:500;text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:700;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--towel);}
+  .t-quote{font-family:var(--display);font-weight:700;font-size:clamp(22px,3vw,40px);line-height:1.18;max-width:28ch;margin:0 0 22px;letter-spacing:-0.01em;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#93a5b4;margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--navy);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.68;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#93a5b4;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — wall of fame polaroids */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,28px);}
+  .g-grid figure{margin:0;background:#fff;border:2px solid var(--navy);border-radius:6px;padding:10px 10px 14px;}
+  .g-grid figure:nth-child(odd){transform:rotate(-1.2deg);}
+  .g-grid figure:nth-child(even){transform:rotate(1.2deg);}
+  .g-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:3px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-top:10px;text-align:center;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--navy);}
+  .faq-list summary{font-family:var(--display);font-weight:700;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"🦴";font-size:13px;flex-shrink:0;filter:grayscale(1);transition:0.2s;}
+  .faq-list details[open] summary::after{filter:grayscale(0);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.68;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px;border:2px solid var(--navy);border-radius:14px;font-weight:500;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--navy);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--cobalt);margin-bottom:8px;font-weight:500;}
+  .creds .detail{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:2px solid var(--navy);border-radius:18px;padding:32px;box-shadow:6px 6px 0 var(--biscuit);}
+  .nap address{font-style:normal;font-family:var(--display);font-weight:700;font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:18px;min-height:380px;overflow:hidden;border:2px solid var(--navy);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--navy);color:var(--suds);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--display);font-weight:800;font-size:clamp(32px,4.6vw,64px);line-height:1.04;letter-spacing:-0.015em;margin:14px 0 18px;max-width:18ch;}
+  .cta-band p{color:rgba(243,246,248,0.85);max-width:44ch;margin:0 0 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--biscuit);color:var(--navy);}
+  .cta-band .btn-primary:hover{background:#fff;}
+  .cta-band .btn-ghost{border-color:rgba(243,246,248,0.6);color:var(--suds);}
+  .cta-band .btn-ghost:hover{background:var(--suds);color:var(--navy);}
+
+  footer{background:var(--suds);border-top:2px solid var(--navy);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--cobalt);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#93a5b4;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--cobalt);color:#fff;padding:13px 19px;border-radius:14px;text-decoration:none;font-family:var(--display);font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(46,111,216,0.3);}
+  .msg-fab a:hover{background:var(--navy);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"The Wash House","description":"One-dog-at-a-time grooming salon in Didsbury, Manchester. Full grooms, puppy introductions, nervous-dog specialists, no cages.","url":"https://thewashhouse.dog/","telephone":"+441614458812","email":"woof@thewashhouse.dog","address":{"@type":"PostalAddress","streetAddress":"6 Warburton Street","addressLocality":"Manchester","addressRegion":"Greater Manchester","postalCode":"M20 6WA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.4163,"longitude":-2.2312},"areaServed":["Didsbury","Withington","Chorlton","Manchester"],"image":["https://images.unsplash.com/photo-1581888227599-779811939961?w=1600"],"foundingDate":"2020"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"My dog is genuinely difficult. Bitey, even.","acceptedAnswer":{"@type":"Answer","text":"Tell us everything when you book. We work slow, take muzzle-trained dogs, and stop sessions early rather than push a dog past coping."}},
+{"@type":"Question","name":"Why is there only one dog at a time?","acceptedAnswer":{"@type":"Answer","text":"Most grooming stress is the environment. Remove it and 'difficult' dogs frequently just aren't."}},
+{"@type":"Question","name":"How long does a groom take?","acceptedAnswer":{"@type":"Answer","text":"Ninety minutes full groom, an hour bath-and-tidy. Nervous dogs get longer at no extra charge."}},
+{"@type":"Question","name":"Can I stay and watch?","acceptedAnswer":{"@type":"Answer","text":"Puppy intros yes; grooms usually go better without the audience. We text photos."}},
+{"@type":"Question","name":"How often should my dog be groomed?","acceptedAnswer":{"@type":"Answer","text":"4–6 weeks for full coats, 8–12 for short and hand-stripped coats. Honest schedule, not a sales one."}},
+{"@type":"Question","name":"Do you groom cats?","acceptedAnswer":{"@type":"Answer","text":"No — we'll refer you to a cat specialist in Chorlton."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">The Wash House<span class="paw"> ●</span></a>
+    <nav class="nav-links">
+      <a href="#about">The salon</a><a href="#services">Grooms</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v27">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="collar" data-bind="hero.kicker">One dog at a time · no cages, ever · Didsbury, Manchester</div>
+      <h1 data-bind="hero.headline">One dog in the salon at a time. <span class="yours">Yours.</span></h1>
+      <p class="lede" data-bind="hero.lede">A calm grooming salon where your dog is the only client in the building. No cage drying, no barking chorus, no conveyor belt — just ninety unhurried minutes and a groomer who reads dogs better than most people read rooms.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a groom</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">Nervous dog? Start here</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1581888227599-779811939961?w=2000&q=85&auto=format&fit=crop"
+           alt="Dog being gently bathed in a grooming tub." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="apt-tag">
+        <div class="hd">NOW IN THE TUB</div>
+        <div>BRAM · LURCHER</div>
+        <div>SALON STATUS: HIS</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Grooming in Didsbury since 2020</span>
+    <span>Fear-free certified</span>
+    <span>No cages, ever</span>
+    <span>City &amp; Guilds Level 3</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>01 / THE SALON</span><span>BECAUSE OF A LURCHER CALLED BRAM</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=1200&q=85&auto=format&fit=crop"
+           alt="Freshly groomed golden retriever looking pleased." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Built for the dogs who hate the groomer's.</h2>
+        <p>The Wash House exists because of a rescue lurcher called Bram who shook through every grooming appointment of his life — until his owner (now our founder) retrained as a groomer to figure out why. The answer was obvious once seen: noise, cages, strange dogs, and being rushed.</p>
+        <p>So this salon removed all four. One dog in the building at a time. No cages — dogs are towel-and-stand dried, or air-dried on the sofa if that's their preference (it's often their preference).</p>
+        <p>Half our clients arrive labelled "difficult" by other salons. Almost none of them leave that way.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v20">
+  <div class="wrap">
+    <div class="tag-head"><span>02 / THE GROOMS</span><span>NINETY MINUTES, ONE CLIENT</span></div>
+    <h2 class="h2">On the appointment tags.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="tno">TAG 01</span><h3>The full groom</h3><p>Bath, brush-out, style cut, nails, ears, and the triumphant bandana. Ninety minutes, one dog: yours.</p></div>
+      <div class="svc-card"><span class="tno">TAG 02</span><h3>Bath &amp; tidy</h3><p>The in-between service — wash, dry, face-feet-fanny tidy, nails. Out in an hour, smelling like a better decision.</p></div>
+      <div class="svc-card"><span class="tno">TAG 03</span><h3>Puppy introductions</h3><p>Three short visits before any real grooming. Sniff the room, hear the dryer, eat the cheese, go home.</p></div>
+      <div class="svc-card"><span class="tno">TAG 04</span><h3>Nervous &amp; rescue dogs</h3><p>Longer, slower appointments built around your dog's history. We go at their pace, even when that pace is glacial.</p></div>
+      <div class="svc-card"><span class="tno">TAG 05</span><h3>Hand stripping</h3><p>For the wire-coated gentry — terriers, dachshunds, spaniels. Proper technique that keeps the coat working as designed.</p></div>
+      <div class="svc-card"><span class="tno">TAG 06</span><h3>The de-shed</h3><p>For the huskies, shepherds and labs redecorating your home twice a year. Includes a bag of your own dog to take home, if you want proof.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>03 / HOUSE RULES</span><span>THREE, NON-NEGOTIABLE</span></div>
+    <h2 class="h2">The house rules.</h2>
+    <div class="why-grid">
+      <div><span class="bone">RULE 1/3</span><h3>One dog at a time.</h3><p>No barking chorus, no strange dogs, no waiting in a crate while others are done. The single-dog policy is the whole business model.</p></div>
+      <div><span class="bone">RULE 2/3</span><h3>Never cage dried.</h3><p>Cage dryers are efficient and horrible. We towel, stand-dry, or wait. Your dog's blood pressure is worth the extra twenty minutes.</p></div>
+      <div><span class="bone">RULE 3/3</span><h3>Fear-free trained.</h3><p>Both groomers certified in low-stress handling. We stop before a dog needs us to stop, which is how they learn we will.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>04 / FIRST VISIT</span><span>SNIFF → BANDANA</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us about the dog</h3><p>Breed, coat, age, and the honest history — bites, fears, previous salon dramas. It's briefing, not confession.</p></li>
+      <li><span class="step">STEP 02</span><h3>Meet &amp; sniff</h3><p>New dogs get fifteen free minutes to case the joint before their first appointment. Cheese is involved.</p></li>
+      <li><span class="step">STEP 03</span><h3>The groom</h3><p>Ninety minutes, door locked to other clients, radio on low. We'll text photos to the café over the road.</p></li>
+      <li><span class="step">STEP 04</span><h3>Handover &amp; notes</h3><p>What we did, what we noticed (lumps, ears, teeth), and when to come back. Photo for the wall of fame, obviously.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="tag-head"><span>05 / GOOD DOGS</span><span>AND THEIR HUMANS</span></div>
+    <blockquote class="t-quote">“My collie was banned from two salons. The Wash House sent me a photo of him ASLEEP mid-groom. Asleep.”</blockquote>
+    <div class="t-attr">Sarah K. — reactive collie, reformed</div>
+    <div class="t-sub">
+      <figure><blockquote>“The puppy introduction visits felt like overkill until I saw my spaniel drag me toward the salon door at appointment one, tail going like a metronome.”</blockquote><figcaption>David L. — cocker spaniel puppy</figcaption></figure>
+      <figure><blockquote>“They found a lump behind my old boy's ear during his bath and told me to get it checked that week. It mattered. I'll never take him anywhere else.”</blockquote><figcaption>Maureen P. — elderly labrador</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v20">
+  <div class="wrap">
+    <div class="tag-head"><span>06 / WALL OF FAME</span><span>RECENT GRADUATES</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1581888227599-779811939961?w=1600&q=85&auto=format&fit=crop" alt="Gentle bath time." /><figcaption>TUB TIME · GENTLE CYCLE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1591160690555-5debfba289f0?w=1600&q=85&auto=format&fit=crop" alt="Freshly groomed and pleased about it." /><figcaption>FRESHLY GRADUATED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1600&q=85&auto=format&fit=crop" alt="Two clients waiting for the school run." /><figcaption>THE SCHOOL RUN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=1600&q=85&auto=format&fit=crop" alt="The before photo." /><figcaption>THE “BEFORE” PHOTO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=1600&q=85&auto=format&fit=crop" alt="Post-groom bandana moment." /><figcaption>BANDANA MOMENT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=1600&q=85&auto=format&fit=crop" alt="The wall of fame gets a new member." /><figcaption>NEW MEMBER INDUCTED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>07 / ASKED AT THE DOOR</span><span>USUALLY MID-WAG</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the door.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441614458812" style="color:var(--cobalt);">0161 445 8812</a>. If we're mid-groom we'll ring back; the client in the tub has priority.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>My dog is genuinely difficult. Bitey, even.</summary><p>Tell us everything when you book — the honest version. We take muzzle-trained dogs, we work slow, and we stop sessions early rather than push a dog past coping. Some dogs take three visits to finish one groom the first time. That's fine. That's the job.</p></details>
+        <details><summary>Why is there only one dog at a time?</summary><p>Because most grooming stress isn't the bath or the clippers — it's the environment. Strange dogs, barking, cage dryers, waiting. Remove those and "difficult" dogs frequently just... aren't.</p></details>
+        <details><summary>How long does a groom take?</summary><p>Ninety minutes for a full groom, an hour for a bath and tidy. Nervous dogs get longer slots at no extra charge, because rushing them undoes months of progress.</p></details>
+        <details><summary>Can I stay and watch?</summary><p>For puppy introductions, yes. For grooms, most dogs behave better without their human audience — separation drama is real. The café over the road does an excellent flat white, and we text photos mid-groom.</p></details>
+        <details><summary>How often should my dog be groomed?</summary><p>Coat-dependent: every 4–6 weeks for poodle crosses and full-coated breeds, 8–12 for short coats and hand-stripped breeds. We'll give you an honest schedule and show you the brush-out routine between visits.</p></details>
+        <details><summary>What if you find something during the groom?</summary><p>Lumps, ear trouble, bad teeth, sore spots — we note them in your handover and tell you plainly if we think a vet should look. Groomers see more of your dog's skin than anyone; we treat that seriously.</p></details>
+        <details><summary>Do you groom cats?</summary><p>No — cats deserve a specialist, and we know a good one in Chorlton. We'll pass on the number without a flicker of judgement about your life choices.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>08 / OUR PACK COMES FROM</span><span>SOUTH MANCHESTER</span></div>
+    <ul class="area-list">
+      <li>Didsbury</li><li>Withington</li><li>Chorlton</li><li>Fallowfield</li><li>Heaton Mersey</li><li>West Didsbury</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>09 / THE PAPERWORK</span><span>HUMANS, VERIFIED</span></div>
+    <div class="creds">
+      <div><div class="label">Qualified</div><div class="detail">City &amp; Guilds Level 3 dog grooming</div></div>
+      <div><div class="label">Fear-free</div><div class="detail">Low-stress handling certified, both groomers</div></div>
+      <div><div class="label">First aid</div><div class="detail">Canine first-aid trained, kit on site</div></div>
+      <div><div class="label">Insured</div><div class="detail">Full salon &amp; care liability cover</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>10 / FIND US</span><span>6 WARBURTON STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Wash House</strong><br />
+          6 Warburton Street<br />
+          Didsbury, Manchester M20 6WA<br /><br />
+          <a href="tel:+441614458812" data-bind="business.phoneDisplay">0161 445 8812</a><br />
+          <a href="mailto:woof@thewashhouse.dog" data-bind="business.email">woof@thewashhouse.dog</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>BY APPOINTMENT</span></div>
+          <div class="row"><span>SUN – MON</span><span>CLOSED</span></div>
+          <p class="gbp-note">Hours on our Google Business Profile. Water bowl outside, lead hooks inside, treats behind the counter — ask first, some clients are on diets.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Wash House, Warburton Street, Didsbury" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.2390%2C53.4135%2C-2.2240%2C53.4190&layer=mapnik&marker=53.4163%2C-2.2312"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="collar" style="color:var(--biscuit);">11 / BOOKING</div>
+    <h2 data-bind="cta.heading">Your dog already forgave you for the last groomer.</h2>
+    <p data-bind="cta.body">Book the meet-and-sniff. Bring the honest history. We'll bring the cheese.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a groom</a>
+      <a class="btn btn-ghost" href="tel:+441614458812" data-bind="cta.secondary.label">0161 445 8812</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441614458812" data-bind="messaging.whatsapp" aria-label="Message the salon">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">The Wash House<span class="paw"> ●</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A one-dog-at-a-time grooming salon in Didsbury, Manchester. Since 2020.</p>
+      </div>
+      <div>
+        <h4>The salon</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          6 Warburton Street<br />Manchester M20 6WA<br />
+          <a href="tel:+441614458812">0161 445 8812</a><br />
+          <a href="mailto:woof@thewashhouse.dog">woof@thewashhouse.dog</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Grooms</a><a href="#book">Book</a><a href="#about">The salon</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THE WASH HOUSE GROOMING LTD</span>
+      <span>WHO'S A GOOD CLIENT? ALL OF THEM</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pica &amp; Quoin — letterpress print studio in Frome, Somerset</title>
+<meta name="description" content="Pica &amp; Quoin is a letterpress print studio in Frome — wedding stationery, business cards and posters printed on cast-iron presses, plus workshops at the type cases." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Pica & Quoin", phone: "+44 1373 452 918", phoneDisplay: "01373 452 918", email: "press@picaandquoin.co.uk", foundedYear: 2013 },
+  hero: {
+    kicker: "Letterpress studio · est. 2013 · Catherine Hill, Frome",
+    headline: "INK. IRON. IMPACT.",
+    lede: "Three tonnes of Victorian press, forty cases of wood and metal type, and a studio that believes a business card should be felt before it's read. Wedding stationery, posters, cards — printed one colour, one pull, one sheet at a time.",
+    primaryCta: { label: "Commission a print", href: "#book" },
+    secondaryCta: { label: "The job board", href: "#services" },
+    image: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Antique type specimens and paper in the studio."
+  },
+  trust: { years: "Printing since 2013" },
+  about: {
+    heading: "Three tonnes of press. Zero pixels.",
+    paragraphs: [
+      "Pica & Quoin runs on two machines with more working history than most streets: an 1893 Wharfedale stop-cylinder that arrived through the window on a crane, and a Heidelberg Windmill that sounds — regulars agree — like a very confident heartbeat.",
+      "Everything is set by hand from the studio's forty cases of type, or plated from your artwork, then printed with real impression. You can feel the letters. That's not a flaw in the process; it is the entire process.",
+      "We take on a handful of commissions a month and keep the rest of the diary for workshops, because the fastest way to explain letterpress is to put your hands on the press and pull."
+    ],
+    portrait: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Proof corrections at the composing stone."
+  },
+  services: [
+    { name: "Wedding stationery", description: "Invitations, save-the-dates, place cards. Two colours, real cotton stock, and impression deep enough to read with your eyes shut." },
+    { name: "Business cards", description: "The handshake before the handshake. One weight of card: heavy. People keep these; that's the point of the price." },
+    { name: "Posters & broadsides", description: "Wood type at sizes your printer driver has nightmares about. Gig posters, protest sheets, wedding readings set like proclamations." },
+    { name: "The beginners' workshop", description: "One day at the cases: set your name, lock the chase, ink the disc, pull the print. Leave with posters and forearms." },
+    { name: "Edition printing", description: "Artists' editions and poetry pamphlets, numbered and slipcased. Slow, priced accordingly, worth it." },
+    { name: "The open press evening", description: "First Thursday monthly. The Windmill runs, the tea flows, and anyone can print the month's community poster. Free, loud, ink involved." }
+  ],
+  why: [
+    { title: "Impression you can feel.", body: "Digital printing kisses the paper. We hit it — calibrated, deliberate, deep. The difference is the whole reason this studio exists." },
+    { title: "Set by hand, every job.", body: "Forty cases of wood and metal type, or your artwork made into plates. Either way a human sets, inks and pulls every single sheet." },
+    { title: "Presses with pedigrees.", body: "The Wharfedale is 130 years old and prints truer than machines a century younger. We are its custodians, not its owners." }
+  ],
+  how: [
+    { step: "01", title: "Bring the words", body: "A name, a date, a poem, a provocation. Bring artwork if you have it; bring nothing but the text if you don't." },
+    { step: "02", title: "Proof at the stone", body: "We set, you approve. Changes happen here, at the composing stone, where they cost minutes not reprints." },
+    { step: "03", title: "The pull", body: "Ink mixed by eye, makeready done properly, then the run. Commission clients are welcome to pull the first sheet." },
+    { step: "04", title: "Take the edition", body: "Wrapped in kraft, tied with string, smelling faintly of ink. Posters come in tubes; excuses come from other studios." }
+  ],
+  testimonials: [
+    { quote: "Our wedding invitations made three separate guests ask who the printer was. One of them framed hers. The invitation. Framed.", name: "Eleanor & Sam", context: "wedding commission, two colours" },
+    { quote: "I gave out my Pica & Quoin business cards at a conference and watched people rub them like they'd found money. Best marketing spend of my year.", name: "Marcus V.", context: "business cards, oxblood on cream" },
+    { quote: "The workshop broke something in my brain in the best way. I now kern shop signs out loud. My family has staged one intervention. I've booked the advanced day.", name: "Jenny O.", context: "beginners' workshop graduate" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=1600&q=85&auto=format&fit=crop", alt: "Antique type specimens and paper." },
+    { src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1600&q=85&auto=format&fit=crop", alt: "Proof corrections at the stone." },
+    { src: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1600&q=85&auto=format&fit=crop", alt: "Ink on the rollers." },
+    { src: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?w=1600&q=85&auto=format&fit=crop", alt: "Prints drying on the line." },
+    { src: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1600&q=85&auto=format&fit=crop", alt: "The wood type wall." },
+    { src: "https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=1600&q=85&auto=format&fit=crop", alt: "A finished broadside, still proud of itself." }
+  ],
+  faq: [
+    { q: "Why does letterpress cost more than digital?", a: "Because a human sets, inks and pulls every sheet on a three-tonne machine, and because the result gets kept, framed and rubbed between fingers. You're not buying printing; you're buying the only card in the stack anyone remembers." },
+    { q: "How long does a commission take?", a: "Three to five weeks depending on the diary and the number of colours — each colour is a separate full run through the press. Weddings: book eight to ten weeks out and everything stays calm." },
+    { q: "Can you print my design?", a: "Almost certainly — we make photopolymer plates from clean artwork. Fine lines and solids love the press; photographic gradients don't. Send the file and we'll tell you straight, usually the same day." },
+    { q: "What's the minimum run?", a: "Fifty for cards and stationery, twenty for posters. Below that the makeready outweighs the run — better to come to a workshop and print it yourself, honestly." },
+    { q: "What happens at the workshop?", a: "Six people, one day, all hands. You'll set type from the cases, lock up a forme, mix ink, and pull your own small edition. Wear things that forgive ink. It gets under fingernails and into personalities." },
+    { q: "Do you sell prints?", a: "The shelf by the door carries current editions and the community posters. First Thursday evenings, whatever's on the Windmill that night is yours to pull and take." }
+  ],
+  area: { places: ["Frome", "Bath", "Bruton", "Westbury", "Warminster", "Shepton Mallet"] },
+  credentials: [
+    { label: "The iron", detail: "1893 Wharfedale + Heidelberg Windmill, both working" },
+    { label: "The type", detail: "40 cases of wood & metal, 6pt to 20-line" },
+    { label: "Guild", detail: "British Printing Society member" },
+    { label: "Stock", detail: "Cotton & recycled papers, FSC-certified" }
+  ],
+  location: { name: "Pica & Quoin", addressStreet: "11 Catherine Hill", addressLocality: "Frome", addressRegion: "Somerset", addressPostcode: "BA11 1BY", addressCountry: "United Kingdom" },
+  cta: { heading: "SAY IT WITH THREE TONNES.", body: "Commissions, workshops, or the first-Thursday open press. The ink is mixed; bring the words.", primary: { label: "Commission a print", href: "#book" }, secondary: { label: "01373 452 918", href: "tel:+441373452918" } },
+  messaging: { whatsapp: "https://wa.me/441373452918", messenger: "https://m.me/picaandquoin" }
+};
+</script>
+
+<style>
+  :root {
+    --paper:#f4f0e6; --ink:#161412; --blue:#1f43d8; --red:#e33d24;
+    --mid:#6f6a60; --rule:rgba(22,20,18,0.18);
+    --black:"Archivo Black",sans-serif; --sans:"Archivo",sans-serif; --mono:"Space Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--blue);}
+  .wrap{width:min(1340px,94vw);margin-inline:auto;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--blue);font-weight:700;}
+  .h2{font-family:var(--black);font-size:clamp(40px,6.5vw,104px);line-height:0.88;letter-spacing:-0.02em;text-transform:uppercase;margin:0 0 0.4em;}
+  .h2 .ghost{-webkit-text-stroke:2px var(--ink);color:transparent;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:16px 30px;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.15s;border:2.5px solid var(--ink);}
+  .btn-primary{background:var(--ink);color:var(--paper);box-shadow:5px 5px 0 var(--blue);} .btn-primary:hover{box-shadow:0 0 0 var(--blue);transform:translate(3px,3px);color:var(--paper);}
+  .btn-ghost{background:var(--paper);} .btn-ghost:hover{background:var(--blue);border-color:var(--blue);color:var(--paper);}
+  .case-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:3px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--black);font-size:20px;text-transform:uppercase;letter-spacing:-0.01em;text-decoration:none;}
+  .wm span{color:var(--blue);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — wood-type monument. Stacked filled/outline lines, image punched in behind the last line. */
+  .hero{padding:clamp(40px,5vw,72px) 0 0;}
+  .hero .kicker{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .hero h1{font-family:var(--black);text-transform:uppercase;line-height:0.82;letter-spacing:-0.025em;margin:26px 0 0;font-size:clamp(72px,17.5vw,300px);}
+  .hero h1 .l1{display:block;}
+  .hero h1 .l2{display:block;-webkit-text-stroke:3px var(--ink);color:transparent;}
+  .hero h1 .l3{display:block;color:var(--blue);}
+  .hero-under{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(30px,5vw,80px);align-items:end;margin-top:clamp(34px,4vw,60px);}
+  .hero-under .lede{font-size:clamp(16px,1.6vw,20px);line-height:1.6;color:var(--ink);font-weight:500;max-width:46ch;}
+  .hero-ctas{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;border:3px solid var(--ink);}
+  .hero-photo img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:contrast(1.05) saturate(0.9);}
+  .hero-photo .plate{position:absolute;top:-3px;left:-3px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.18em;padding:8px 14px;text-transform:uppercase;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;}}
+
+  /* Marquee — glyph train */
+  .marquee{background:var(--ink);color:var(--paper);overflow:hidden;padding:14px 0;border-top:3px solid var(--ink);}
+  .marquee .track{display:flex;gap:0;white-space:nowrap;font-family:var(--black);font-size:clamp(18px,2.4vw,30px);text-transform:uppercase;letter-spacing:0.04em;}
+  @media(prefers-reduced-motion:no-preference){.marquee .track{animation:mq 22s linear infinite;}}
+  @keyframes mq{to{transform:translateX(-50%);}}
+  .marquee span{padding-right:2ch;}
+  .marquee em{font-style:normal;color:var(--blue);-webkit-text-stroke:0;}
+  .marquee i{font-style:normal;-webkit-text-stroke:1.5px var(--paper);color:transparent;}
+
+  .trust{padding:0;background:var(--blue);color:var(--paper);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;}
+
+  /* ABOUT — giant folio number bleeding behind */
+  .about .folio{position:absolute;top:0;right:-2vw;font-family:var(--black);font-size:clamp(160px,30vw,480px);line-height:0.8;color:transparent;-webkit-text-stroke:2px rgba(22,20,18,0.12);pointer-events:none;user-select:none;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:3px solid var(--ink);box-shadow:12px 12px 0 var(--blue);}
+  .about-prose p{font-size:clamp(16px,1.6vw,19px);line-height:1.72;margin:0 0 1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — the type case: giant glyph per cell, inverts on hover */
+  .case-grid{display:grid;grid-template-columns:repeat(3,1fr);border:3px solid var(--ink);}
+  .case-cell{padding:clamp(26px,3vw,40px);border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);position:relative;transition:0.15s;min-height:260px;display:flex;flex-direction:column;}
+  .case-cell:nth-child(3n){border-right:0;}
+  .case-cell:nth-child(n+4){border-bottom:0;}
+  .case-cell:hover{background:var(--ink);color:var(--paper);}
+  .case-cell:hover p{color:rgba(244,240,230,0.75);}
+  .case-cell:hover .glyph{color:var(--blue);-webkit-text-stroke:0;}
+  .case-cell .glyph{font-family:var(--black);font-size:clamp(64px,7vw,110px);line-height:0.8;color:transparent;-webkit-text-stroke:2px currentColor;margin-bottom:auto;}
+  .case-cell h3{font-family:var(--black);font-size:20px;text-transform:uppercase;letter-spacing:-0.01em;margin:22px 0 8px;line-height:1.05;}
+  .case-cell p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.6;}
+  @media(max-width:900px){.case-grid{grid-template-columns:1fr 1fr;} .case-cell:nth-child(3n){border-right:3px solid var(--ink);} .case-cell:nth-child(2n){border-right:0;} .case-cell:nth-child(n+4){border-bottom:3px solid var(--ink);} .case-cell:nth-child(n+5){border-bottom:0;}}
+  @media(max-width:600px){.case-grid{grid-template-columns:1fr;} .case-cell{border-right:0 !important;border-bottom:3px solid var(--ink) !important;} .case-cell:last-child{border-bottom:0 !important;}}
+
+  /* WHY — ink-black manifesto, huge numerals */
+  .why{background:var(--ink);color:var(--paper);}
+  .why .case-head{border-color:var(--paper);color:rgba(244,240,230,0.6);}
+  .why .h2 .ghost{-webkit-text-stroke:2px var(--paper);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .num{font-family:var(--black);font-size:clamp(80px,9vw,140px);line-height:0.8;color:var(--blue);display:block;margin-bottom:18px;}
+  .why-grid h3{font-family:var(--black);font-size:22px;text-transform:uppercase;margin:0 0 10px;line-height:1.05;}
+  .why-grid p{color:rgba(244,240,230,0.72);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  /* HOW — proofing strip */
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:3px solid var(--ink);padding:0;margin:0;}
+  .how-grid > li{list-style:none;padding:26px 22px;border-right:3px solid var(--ink);}
+  .how-grid > li:last-child{border-right:0;}
+  .how-grid .step{font-family:var(--black);font-size:44px;color:transparent;-webkit-text-stroke:1.5px var(--ink);line-height:1;}
+  .how-grid h3{font-family:var(--black);font-size:17px;text-transform:uppercase;margin:14px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13px;line-height:1.6;}
+  @media(max-width:820px){.how-grid{grid-template-columns:1fr 1fr;} .how-grid > li{border-bottom:3px solid var(--ink);} .how-grid > li:nth-child(2n){border-right:0;} .how-grid > li:nth-child(n+3){border-bottom:0;}}
+
+  /* TESTIMONIALS — proclamation */
+  .testimonials{background:var(--blue);color:var(--paper);}
+  .testimonials .case-head{border-color:var(--paper);color:rgba(244,240,230,0.75);}
+  .t-quote{font-family:var(--black);font-size:clamp(28px,4.4vw,64px);line-height:0.98;text-transform:uppercase;letter-spacing:-0.015em;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:normal;color:var(--ink);}
+  .t-attr{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px solid var(--paper);padding-top:34px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.6;margin:0 0 12px;font-weight:500;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(244,240,230,0.75);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — pinned proofs, broken grid */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(12px,1.6vw,22px);}
+  .g-grid figure{margin:0;border:3px solid var(--ink);background:#fff;padding:8px 8px 12px;}
+  .g-grid img{width:100%;object-fit:cover;filter:saturate(0.85) contrast(1.05);}
+  .g-grid figure:nth-child(1){grid-column:span 3;transform:rotate(-1.2deg);}
+  .g-grid figure:nth-child(2){grid-column:span 3;transform:rotate(0.8deg) translateY(14px);}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;}
+  .g-grid figure:nth-child(3){transform:rotate(0.6deg);}
+  .g-grid figure:nth-child(4){transform:rotate(-0.9deg) translateY(10px);}
+  .g-grid figure:nth-child(5){transform:rotate(1deg);}
+  .g-grid figure:nth-child(6){transform:rotate(-0.5deg) translateY(8px);}
+  .g-grid figure:nth-child(-n+2) img{aspect-ratio:16/10;}
+  .g-grid figure:nth-child(n+3) img{aspect-ratio:1/1;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;font-weight:700;text-align:center;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;transform:none !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:3px solid var(--ink);padding:20px 0;}
+  .faq-list summary{font-family:var(--black);font-size:19px;text-transform:uppercase;letter-spacing:-0.01em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.1;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"→";color:var(--blue);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px 20px;border:2.5px solid var(--ink);font-weight:700;box-shadow:4px 4px 0 var(--ink);background:#fff;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:clamp(26px,3.5vw,44px);border:3px solid var(--ink);}
+  .creds > div{padding:24px;border-right:3px solid var(--ink);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;font-weight:700;}
+  .creds .detail{font-family:var(--black);font-size:15px;line-height:1.3;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;} .creds > div{border-bottom:3px solid var(--ink);} .creds > div:nth-child(2n){border-right:0;} .creds > div:nth-child(n+3){border-bottom:0;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:3px solid var(--ink);padding:34px;box-shadow:10px 10px 0 var(--ink);}
+  .nap address{font-style:normal;font-family:var(--black);font-size:19px;line-height:1.4;text-transform:uppercase;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:3px solid var(--ink);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--ink);filter:grayscale(1) contrast(1.05);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — full-bleed shout */
+  .cta-band{background:var(--ink);color:var(--paper);padding:clamp(90px,11vw,160px) 0;overflow:hidden;}
+  .cta-band h2{font-family:var(--black);font-size:clamp(52px,10.5vw,170px);line-height:0.84;text-transform:uppercase;letter-spacing:-0.025em;margin:14px 0 22px;}
+  .cta-band h2 em{font-style:normal;color:transparent;-webkit-text-stroke:3px var(--paper);}
+  .cta-band p{color:rgba(244,240,230,0.75);max-width:46ch;margin:0 0 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn{border-color:var(--paper);}
+  .cta-band .btn-primary{background:var(--blue);color:var(--paper);box-shadow:5px 5px 0 var(--paper);border-color:var(--blue);}
+  .cta-band .btn-ghost{background:transparent;color:var(--paper);}
+  .cta-band .btn-ghost:hover{background:var(--paper);color:var(--ink);border-color:var(--paper);}
+
+  footer{background:var(--paper);border-top:3px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--blue);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:3px solid var(--ink);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:var(--paper);padding:14px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border:2.5px solid var(--ink);box-shadow:5px 5px 0 var(--ink);}
+  .msg-fab a:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink);color:var(--paper);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Pica & Quoin","description":"Letterpress print studio in Frome, Somerset — wedding stationery, business cards, posters and workshops on cast-iron presses.","url":"https://picaandquoin.co.uk/","telephone":"+441373452918","email":"press@picaandquoin.co.uk","address":{"@type":"PostalAddress","streetAddress":"11 Catherine Hill","addressLocality":"Frome","addressRegion":"Somerset","postalCode":"BA11 1BY","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.2279,"longitude":-2.3215},"areaServed":["Frome","Bath","Bruton","Somerset"],"image":["https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=1600"],"foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why does letterpress cost more than digital?","acceptedAnswer":{"@type":"Answer","text":"A human sets, inks and pulls every sheet on a three-tonne machine — and the result gets kept and framed."}},
+{"@type":"Question","name":"How long does a commission take?","acceptedAnswer":{"@type":"Answer","text":"Three to five weeks depending on colours. Weddings: book eight to ten weeks out."}},
+{"@type":"Question","name":"Can you print my design?","acceptedAnswer":{"@type":"Answer","text":"Almost certainly — we make photopolymer plates from clean artwork. Send the file for a same-day answer."}},
+{"@type":"Question","name":"What's the minimum run?","acceptedAnswer":{"@type":"Answer","text":"Fifty for cards and stationery, twenty for posters."}},
+{"@type":"Question","name":"What happens at the workshop?","acceptedAnswer":{"@type":"Answer","text":"Six people, one day: set type, lock a forme, mix ink, pull your own edition."}},
+{"@type":"Question","name":"Do you sell prints?","acceptedAnswer":{"@type":"Answer","text":"Current editions and community posters on the shelf by the door; open press first Thursdays."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">PICA <span>&amp;</span> QUOIN</a>
+    <nav class="nav-links">
+      <a href="#services">The case</a><a href="#about">The presses</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v38">
+  <div class="wrap">
+    <div class="kicker"><span data-bind="hero.kicker">Letterpress studio · est. 2013 · Catherine Hill, Frome</span><span>SPECIMEN SHEET № 44</span></div>
+    <h1 aria-label="Ink. Iron. Impact." data-comment-anchor="hero-headline"><span class="l1">INK.</span><span class="l2">IRON.</span><span class="l3">IMPACT.</span></h1>
+    <div class="hero-under">
+      <div>
+        <p class="lede" data-bind="hero.lede">Three tonnes of Victorian press, forty cases of wood and metal type, and a studio that believes a business card should be felt before it's read. Wedding stationery, posters, cards — printed one colour, one pull, one sheet at a time.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission a print</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The job board</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=2000&q=85&auto=format&fit=crop"
+             alt="Antique type specimens and paper in the studio." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="plate">FORME LOCKED · 60PT WOOD</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>HAND-SET <em>·</em> HAND-INKED <em>·</em> HAND-PULLED <em>·</em> <i>SINCE 2013</i> <em>·</em> </span>
+    <span>HAND-SET <em>·</em> HAND-INKED <em>·</em> HAND-PULLED <em>·</em> <i>SINCE 2013</i> <em>·</em> </span>
+  </div>
+</div>
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Printing since 2013</span>
+    <span>1893 Wharfedale · Heidelberg Windmill</span>
+    <span>40 cases of type</span>
+    <span>British Printing Society</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v4">
+  <div class="folio" aria-hidden="true">P&amp;Q</div>
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 01 / THE STUDIO</span><span>CATHERINE HILL, FROME</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=85&auto=format&fit=crop"
+           alt="Proof corrections at the composing stone." />
+      <div class="about-prose">
+        <h2 class="h2">Three tonnes of press. <span class="ghost">Zero pixels.</span></h2>
+        <p>Pica &amp; Quoin runs on two machines with more working history than most streets: an 1893 Wharfedale stop-cylinder that arrived through the window on a crane, and a Heidelberg Windmill that sounds — regulars agree — like a very confident heartbeat.</p>
+        <p>Everything is set by hand from the studio's forty cases of type, or plated from your artwork, then printed with real impression. You can feel the letters. That's not a flaw in the process; it is the entire process.</p>
+        <p>We take on a handful of commissions a month and keep the rest of the diary for workshops, because the fastest way to explain letterpress is to put your hands on the press and pull.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v31" style="padding-top:0;">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 02 / THE JOB BOARD</span><span>SET FROM THE CASES BELOW</span></div>
+    <h2 class="h2">The job <span class="ghost">board.</span></h2>
+    <div class="case-grid">
+      <div class="case-cell"><span class="glyph">W</span><h3>Wedding stationery</h3><p>Invitations, save-the-dates, place cards. Two colours, real cotton stock, and impression deep enough to read with your eyes shut.</p></div>
+      <div class="case-cell"><span class="glyph">B</span><h3>Business cards</h3><p>The handshake before the handshake. One weight of card: heavy. People keep these; that's the point of the price.</p></div>
+      <div class="case-cell"><span class="glyph">P</span><h3>Posters &amp; broadsides</h3><p>Wood type at sizes your printer driver has nightmares about. Gig posters, protest sheets, wedding readings set like proclamations.</p></div>
+      <div class="case-cell"><span class="glyph">&amp;</span><h3>The beginners' workshop</h3><p>One day at the cases: set your name, lock the chase, ink the disc, pull the print. Leave with posters and forearms.</p></div>
+      <div class="case-cell"><span class="glyph">E</span><h3>Edition printing</h3><p>Artists' editions and poetry pamphlets, numbered and slipcased. Slow, priced accordingly, worth it.</p></div>
+      <div class="case-cell"><span class="glyph">№</span><h3>The open press evening</h3><p>First Thursday monthly. The Windmill runs, the tea flows, and anyone can print the month's community poster. Free, loud, ink involved.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v3">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 03 / THE ARGUMENT</span><span>SET IN 20-LINE WOOD</span></div>
+    <h2 class="h2">Why <span class="ghost">iron wins.</span></h2>
+    <div class="why-grid">
+      <div><span class="num">1</span><h3>Impression you can feel.</h3><p>Digital printing kisses the paper. We hit it — calibrated, deliberate, deep. The difference is the whole reason this studio exists.</p></div>
+      <div><span class="num">2</span><h3>Set by hand, every job.</h3><p>Forty cases of wood and metal type, or your artwork made into plates. Either way a human sets, inks and pulls every single sheet.</p></div>
+      <div><span class="num">3</span><h3>Presses with pedigrees.</h3><p>The Wharfedale is 130 years old and prints truer than machines a century younger. We are its custodians, not its owners.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v2">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 04 / A COMMISSION</span><span>WORDS → STONE → PULL</span></div>
+    <ol class="how-grid">
+      <li><span class="step">01</span><h3>Bring the words</h3><p>A name, a date, a poem, a provocation. Bring artwork if you have it; bring nothing but the text if you don't.</p></li>
+      <li><span class="step">02</span><h3>Proof at the stone</h3><p>We set, you approve. Changes happen here, at the composing stone, where they cost minutes not reprints.</p></li>
+      <li><span class="step">03</span><h3>The pull</h3><p>Ink mixed by eye, makeready done properly, then the run. Commission clients are welcome to pull the first sheet.</p></li>
+      <li><span class="step">04</span><h3>Take the edition</h3><p>Wrapped in kraft, tied with string, smelling faintly of ink. Posters come in tubes; excuses come from other studios.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v3">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 05 / OVERHEARD</span><span>REPORTED VERBATIM</span></div>
+    <blockquote class="t-quote">“One of them framed hers. <em>The invitation. Framed.</em>”</blockquote>
+    <div class="t-attr">Eleanor &amp; Sam — wedding commission, two colours</div>
+    <div class="t-sub">
+      <figure><blockquote>“I gave out my Pica &amp; Quoin business cards at a conference and watched people rub them like they'd found money. Best marketing spend of my year.”</blockquote><figcaption>Marcus V. — business cards, oxblood on cream</figcaption></figure>
+      <figure><blockquote>“The workshop broke something in my brain in the best way. I now kern shop signs out loud. My family has staged one intervention. I've booked the advanced day.”</blockquote><figcaption>Jenny O. — beginners' workshop graduate</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v31">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 06 / PROOFS</span><span>PINNED TO THE DRYING WALL</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=1600&q=85&auto=format&fit=crop" alt="Antique type specimens and paper." /><figcaption>THE FORME, LOCKED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1600&q=85&auto=format&fit=crop" alt="Proof corrections at the stone." /><figcaption>AT THE CASE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1600&q=85&auto=format&fit=crop" alt="Ink on the rollers." /><figcaption>INK, PROCESS BLUE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?w=1600&q=85&auto=format&fit=crop" alt="Prints drying on the line." /><figcaption>THE DRYING LINE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1600&q=85&auto=format&fit=crop" alt="The wood type wall." /><figcaption>20-LINE WOOD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=1600&q=85&auto=format&fit=crop" alt="A finished broadside." /><figcaption>PROOF, APPROVED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v2">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 07 / ASKED AT THE STONE</span><span>ANSWERED MID-PULL</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <span class="ghost">the stone.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441373452918" style="color:var(--blue);font-weight:700;">01373 452 918</a>. If the Windmill's running we genuinely cannot hear you; try again in ten.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why does letterpress cost more than digital?</summary><p>Because a human sets, inks and pulls every sheet on a three-tonne machine, and because the result gets kept, framed and rubbed between fingers. You're not buying printing; you're buying the only card in the stack anyone remembers.</p></details>
+        <details><summary>How long does a commission take?</summary><p>Three to five weeks depending on the diary and the number of colours — each colour is a separate full run through the press. Weddings: book eight to ten weeks out and everything stays calm.</p></details>
+        <details><summary>Can you print my design?</summary><p>Almost certainly — we make photopolymer plates from clean artwork. Fine lines and solids love the press; photographic gradients don't. Send the file and we'll tell you straight, usually the same day.</p></details>
+        <details><summary>What's the minimum run?</summary><p>Fifty for cards and stationery, twenty for posters. Below that the makeready outweighs the run — better to come to a workshop and print it yourself, honestly.</p></details>
+        <details><summary>What happens at the workshop?</summary><p>Six people, one day, all hands. You'll set type from the cases, lock up a forme, mix ink, and pull your own small edition. Wear things that forgive ink. It gets under fingernails and into personalities.</p></details>
+        <details><summary>Do you sell prints?</summary><p>The shelf by the door carries current editions and the community posters. First Thursday evenings, whatever's on the Windmill that night is yours to pull and take.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 08 / JOBS ARRIVE FROM</span><span>SOMERSET &amp; WILTSHIRE</span></div>
+    <ul class="area-list">
+      <li>Frome</li><li>Bath</li><li>Bruton</li><li>Westbury</li><li>Warminster</li><li>Shepton Mallet</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 09 / THE PAPERWORK</span><span>INK-STAINED, VALID</span></div>
+    <div class="creds">
+      <div><div class="label">The iron</div><div class="detail">1893 Wharfedale + Heidelberg Windmill, both working</div></div>
+      <div><div class="label">The type</div><div class="detail">40 cases of wood &amp; metal, 6pt to 20-line</div></div>
+      <div><div class="label">Guild</div><div class="detail">British Printing Society member</div></div>
+      <div><div class="label">Stock</div><div class="detail">Cotton &amp; recycled papers, FSC-certified</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="case-head"><span>GALLEY 10 / FIND US</span><span>11 CATHERINE HILL</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Pica &amp; Quoin</strong><br />
+          11 Catherine Hill<br />
+          Frome BA11 1BY<br /><br />
+          <a href="tel:+441373452918" data-bind="business.phoneDisplay">01373 452 918</a><br />
+          <a href="mailto:press@picaandquoin.co.uk" data-bind="business.email">press@picaandquoin.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>FIRST THU</span><span>OPEN PRESS, EVENING</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. Halfway up the cobbled hill; follow the sound of the Windmill.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Pica &amp; Quoin, Catherine Hill, Frome" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.3310%2C51.2240%2C-2.3120%2C51.2320&layer=mapnik&marker=51.2279%2C-2.3215"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v6">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--blue);">GALLEY 11 / COMMISSION</div>
+    <h2>SAY IT WITH <em>THREE TONNES.</em></h2>
+    <p data-bind="cta.body">Commissions, workshops, or the first-Thursday open press. The ink is mixed; bring the words.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission a print</a>
+      <a class="btn btn-ghost" href="tel:+441373452918" data-bind="cta.secondary.label">01373 452 918</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441373452918" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">PICA <span style="color:var(--blue);">&amp;</span> QUOIN</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A letterpress print studio on Catherine Hill, Frome. Since 2013.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          11 Catherine Hill<br />Frome BA11 1BY<br />
+          <a href="tel:+441373452918">01373 452 918</a><br />
+          <a href="mailto:press@picaandquoin.co.uk">press@picaandquoin.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The job board</a><a href="#about">The presses</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> PICA &amp; QUOIN LTD</span>
+      <span>TYPE HIGH · 0.918" · NO EXCEPTIONS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stille Baths — bathhouse & wellness studio in Amsterdam Oost</title>
+<meta name="description" content="Stille Baths is a small bathhouse and wellness studio in Amsterdam Oost — thermal circuit, sauna rituals, massage and breathwork, booked in two-hour sessions. Phones stay in the lockers." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Stille Baths", phone: "+31 20 210 44 78", phoneDisplay: "+31 20 210 44 78", email: "front@stillebaths.nl", foundedYear: 2020 },
+  hero: {
+    kicker: "Bathhouse & wellness studio — Amsterdam Oost",
+    headline: "Two hours where nobody can reach you.",
+    lede: "A small bathhouse in a converted tram depot: thermal circuit, sauna rituals, cold plunge, massage and breathwork. Sessions are two hours, capped at twenty guests. Phones stay in the lockers.",
+    primaryCta: { label: "Book a session", href: "#book" },
+    secondaryCta: { label: "The circuit", href: "#services" },
+    image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Steam rising off warm water in a dim, stone-lined pool room."
+  },
+  trust: { years: "Open in Oost since 2020" },
+  about: {
+    heading: "Quiet is the whole product.",
+    paragraphs: [
+      "Stille opened in 2020 in the shell of a 1920s tram depot in Amsterdam Oost. We kept the brick, the roof trusses and the echo, and poured two warm pools, a cold plunge, two saunas and a steam room into the middle of it. The name means 'quiet', and we enforce it kindly: no phones past the lockers, voices low, no clocks on the walls.",
+      "Sessions run two hours and are capped at twenty guests — roughly half the number the room could hold. The circuit is unguided; a card in the changing room suggests an order, and the rest is yours. Twice a day a sauna master runs an aufguss ritual that is worth planning around.",
+      "The massage and breathwork studios sit off the main hall, behind a heavy curtain. Practitioners are employed, not rented a room — the person who treats you in March is the person who treats you in November."
+    ],
+    portrait: "https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "The bathhouse hall — brick, steam, and soft light from high windows."
+  },
+  services: [
+    { name: "The bath session", description: "Two hours, the full circuit — warm pools, two saunas, steam room, cold plunge, rest hall. Towels and oils included." },
+    { name: "Aufguss ritual", description: "A guided sauna ceremony with essential oils and towel work, twice daily. Included in any session; seats are first-come." },
+    { name: "Massage", description: "Deep tissue, classic, and pregnancy massage — 60 or 90 minutes, before or after your bath. Employed practitioners only." },
+    { name: "Breathwork", description: "Small-group guided sessions in the vaulted side room, four mornings a week. Beginners are the majority." },
+    { name: "Morning silence", description: "The first session of the day is fully silent — no aufguss, no talking, twelve guests. Regulars call it church." },
+    { name: "The whole house", description: "The entire bathhouse, twenty guests, three hours, a sauna master, and the kitchen's broth and bread. Evenings only." }
+  ],
+  why: [
+    { title: "Capped at twenty, always.", body: "The room could hold twice that. It never will. You will always find a place to lie down, swim, and sit in silence." },
+    { title: "No phones, no clocks.", body: "Both stay in the lockers. Two hours is long enough that you stop counting them — that is the point." },
+    { title: "Practitioners on staff.", body: "Massage and breathwork are given by people employed here, trained here, and still here next season." }
+  ],
+  how: [
+    { step: "01", title: "Book a session", body: "Online, up to four weeks ahead. Morning silence and weekend evenings go first." },
+    { step: "02", title: "Arrive fifteen early", body: "Check in, lockers, robe and towels. The phone goes in the small safe; you keep the key on your wrist." },
+    { step: "03", title: "Take the circuit", body: "Warm, hot, cold, rest — in whatever order your body argues for. The card in the changing room helps first-timers." },
+    { step: "04", title: "Leave slowly", body: "The rest hall has broth, tea and low chairs. Nobody will hurry you out; the next session simply flows in." }
+  ],
+  testimonials: [
+    { quote: "I have been coming every other Sunday for three years. It is the only appointment I have never once been tempted to cancel.", name: "Femke V.", context: "morning-silence regular" },
+    { quote: "The aufguss ritual is theatre, weather and therapy at the same time. I brought my father, who distrusts anything called wellness. He now owns a robe.", name: "Jasper D.", context: "Oost" },
+    { quote: "Quiet, dark, warm, and completely unpretentious. The best two hours in Amsterdam that don't involve food.", name: "Anna L.", context: "visiting monthly from Utrecht" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1600&q=85&auto=format&fit=crop", alt: "Steam over warm water in the stone pool room." },
+    { src: "https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1600&q=85&auto=format&fit=crop", alt: "The bathhouse hall under high windows." },
+    { src: "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1600&q=85&auto=format&fit=crop", alt: "Massage room with warm towels and low light." },
+    { src: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=1600&q=85&auto=format&fit=crop", alt: "Sauna interior, cedar benches." },
+    { src: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=1600&q=85&auto=format&fit=crop", alt: "Folded robes and towels on a shelf." },
+    { src: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600&q=85&auto=format&fit=crop", alt: "The rest hall — low chairs, plants, herbal tea." }
+  ],
+  faq: [
+    { q: "Do I need to bring anything?", a: "Nothing. Robe, towels, sandals, oils and hair ties are included. Swimwear is required in the pools and optional in the saunas — the two zones are signed." },
+    { q: "Is it mixed?", a: "Yes, all sessions are mixed. Tuesday evening is women-only; the last Sunday evening of the month is men-only. Both are marked in the booking calendar." },
+    { q: "I've never done a cold plunge. Will anyone push me?", a: "No one will push you into anything, ever. The card in the changing room suggests a gentle first circuit, and staff are happy to talk you through it." },
+    { q: "Can I book massage without a bath session?", a: "Yes, though most guests pair them. Massage-only bookings enter through the side door and still get the rest hall afterwards." },
+    { q: "Is the bathhouse accessible?", a: "Step-free throughout, a pool hoist, an accessible changing room, and one adapted massage table. Tell us when you book so we can hold the nearest locker." },
+    { q: "Can I come pregnant?", a: "The warm pools and rest hall, yes, throughout. Saunas and the cold plunge come with standard medical cautions — our pregnancy-trained masseuse can advise, and your midwife outranks us." },
+    { q: "What if I fall asleep in the rest hall?", a: "You will not be the first or the fifth that day. Staff wake rest-hall sleepers ten minutes before session end, gently." },
+    { q: "Is there an age limit?", a: "Eighteen and up. Quiet is fragile." }
+  ],
+  area: { places: ["Oost", "Watergraafsmeer", "De Pijp", "Centrum", "Plantage", "IJburg", "Diemen", "Zeeburg"] },
+  credentials: [
+    { label: "Massage practitioners", detail: "NGS-registered, employed on staff" },
+    { label: "Sauna masters", detail: "Aufguss WM-certified, two on rotation" },
+    { label: "Water quality", detail: "Tested daily, audited quarterly (GGD)" },
+    { label: "First aid", detail: "BHV-certified staff on every shift" }
+  ],
+  location: { name: "Stille Baths", addressStreet: "Polderweg 96", addressLocality: "Amsterdam Oost", addressRegion: "Noord-Holland", addressPostcode: "1093 KP", addressCountry: "Netherlands" },
+  cta: { heading: "The lockers are waiting for your phone.", body: "Sessions open four weeks ahead. Morning silence fills first.", primary: { label: "Book a session", href: "#book" }, secondary: { label: "+31 20 210 44 78", href: "tel:+31202104478" } },
+  messaging: { whatsapp: "https://wa.me/31202104478", messenger: "https://m.me/stillebaths" }
+};
+</script>
+
+<style>
+  :root {
+    --stone: #e9e2d6;
+    --stone-2: #ddd3c2;
+    --clay: #c9b8a0;
+    --ink: #2b241c;
+    --ink-soft: #6f6355;
+    --moss: #4a5340;
+    --terra: #9c5b38;
+    --mist: #f3efe7;
+    --rule: rgba(43,36,28,0.14);
+    --serif: "Marcellus", Georgia, serif;
+    --sans: "Karla", system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--stone); color: var(--ink); font-family: var(--sans); font-weight: 400; font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1240px, 92vw); margin-inline: auto; }
+  .kicker { font-family: var(--sans); font-weight: 600; font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--terra); }
+  .h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4.4vw, 60px); line-height: 1.1; letter-spacing: 0.01em; margin: 0 0 0.45em; }
+  .body { font-size: 16px; line-height: 1.7; color: var(--ink-soft); }
+  section { padding: clamp(80px, 10vw, 148px) 0; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 28px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; font-weight: 600; border-radius: 999px; transition: 0.25s; }
+  .btn-primary { background: var(--moss); color: var(--mist); }
+  .btn-primary:hover { background: var(--ink); }
+  .btn-ghost { border: 1px solid var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--mist); }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; z-index: 50; background: color-mix(in oklab, var(--stone) 88%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+  .wm { font-family: var(--serif); font-size: 21px; letter-spacing: 0.18em; text-transform: uppercase; text-decoration: none; }
+  .nav-links { display: flex; gap: 32px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--terra); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO — arch window */
+  .hero { padding: clamp(56px, 8vw, 110px) 0 clamp(64px, 9vw, 130px); }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(40px, 6vw, 100px); align-items: center; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 5.6vw, 82px); line-height: 1.05; letter-spacing: 0.005em; margin: 22px 0 26px; max-width: 15ch; }
+  .hero .lede { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.65; color: var(--ink-soft); max-width: 44ch; }
+  .hero-ctas { margin-top: 36px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-arch { position: relative; }
+  .hero-arch img { width: 100%; aspect-ratio: 4/5.4; object-fit: cover; border-radius: 999px 999px 24px 24px; }
+  .hero-arch .plate { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); background: var(--mist); border: 1px solid var(--rule); border-radius: 999px; padding: 12px 26px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+  @media (max-width: 820px) { .hero-grid { grid-template-columns: 1fr; } }
+
+  /* TRUST */
+  .trust { padding: 0; background: var(--moss); color: var(--mist); }
+  .trust .row { display: flex; justify-content: center; gap: clamp(18px, 3.5vw, 48px); flex-wrap: wrap; padding: 20px 0; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; color: rgba(243,239,231,0.85); }
+  .trust .row .o { color: var(--clay); }
+
+  /* ABOUT */
+  .about { background: var(--mist); }
+  .about-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(40px, 6vw, 100px); align-items: center; }
+  .about-grid img { aspect-ratio: 3/4; object-fit: cover; width: 100%; border-radius: 24px; }
+  .about-prose p { font-size: clamp(17px, 1.6vw, 20px); line-height: 1.7; margin: 0 0 1.1em; }
+  @media (max-width: 820px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES — ritual cards */
+  .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: clamp(36px, 5vw, 60px); }
+  .svc-card { background: var(--mist); border-radius: 22px; padding: 38px 32px; display: flex; flex-direction: column; gap: 14px; }
+  .svc-card:nth-child(even) { background: var(--stone-2); }
+  .svc-card .glyph { font-family: var(--serif); font-size: 30px; color: var(--terra); line-height: 1; }
+  .svc-card h3 { font-family: var(--serif); font-weight: 400; font-size: 25px; margin: 0; line-height: 1.15; }
+  .svc-card p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+  @media (max-width: 820px) { .svc-grid { grid-template-columns: 1fr; } }
+
+  /* WHY */
+  .why { background: var(--moss); color: var(--mist); }
+  .why .h2 { color: var(--mist); }
+  .why .kicker { color: var(--clay); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 5vw, 72px); margin-top: clamp(36px, 5vw, 60px); }
+  .why-grid .num { font-family: var(--serif); font-size: 40px; color: var(--clay); display: block; margin-bottom: 18px; line-height: 1; }
+  .why-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.2; margin: 0 0 12px; }
+  .why-grid p { color: rgba(243,239,231,0.72); margin: 0; font-size: 15px; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* HOW */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(22px, 3vw, 44px); margin-top: clamp(36px, 5vw, 60px); padding: 0; }
+  .how-grid > li { list-style: none; background: var(--mist); border-radius: 20px; padding: 30px 26px; }
+  .how-grid .step { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 600; color: var(--terra); }
+  .how-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 12px 0 10px; line-height: 1.15; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 14px; }
+  @media (max-width: 820px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 540px) { .how-grid { grid-template-columns: 1fr; } }
+
+  /* TESTIMONIALS */
+  .testimonials { background: var(--mist); }
+  .t-quote { font-family: var(--serif); font-size: clamp(24px, 3.2vw, 46px); line-height: 1.25; max-width: 28ch; margin: 0 0 24px; }
+  .t-attr { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); margin-bottom: clamp(44px, 6vw, 76px); }
+  .t-sub { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 90px); border-top: 1px solid var(--rule); padding-top: 40px; }
+  .t-sub blockquote { font-size: 18px; line-height: 1.6; margin: 0 0 14px; }
+  .t-sub figcaption { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+  @media (max-width: 760px) { .t-sub { grid-template-columns: 1fr; } }
+
+  /* GALLERY — soft grid */
+  .g-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: clamp(36px, 5vw, 60px); }
+  .g-grid figure { margin: 0; border-radius: 20px; overflow: hidden; }
+  .g-grid img { width: 100%; height: 100%; object-fit: cover; }
+  .g-grid figure:nth-child(1) { grid-column: span 4; aspect-ratio: 16/10; }
+  .g-grid figure:nth-child(2) { grid-column: span 2; aspect-ratio: 4/5; }
+  .g-grid figure:nth-child(3) { grid-column: span 2; aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(4) { grid-column: span 2; aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(5) { grid-column: span 2; aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(6) { grid-column: span 6; aspect-ratio: 21/8; border-radius: 999px; }
+  @media (max-width: 760px) { .g-grid figure { grid-column: span 6 !important; aspect-ratio: 4/3 !important; border-radius: 20px !important; } }
+
+  /* FAQ */
+  .faq { background: var(--mist); }
+  .faq-grid { display: grid; grid-template-columns: 2fr 3fr; gap: clamp(40px, 6vw, 100px); }
+  .faq-list details { border-bottom: 1px solid var(--rule); padding: 24px 0; }
+  .faq-list details:first-child { border-top: 1px solid var(--rule); }
+  .faq-list summary { font-family: var(--serif); font-size: 21px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 22px; line-height: 1.3; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "○"; color: var(--terra); font-size: 14px; flex-shrink: 0; }
+  .faq-list details[open] summary::after { content: "●"; }
+  .faq-list p { margin: 14px 0 0; color: var(--ink-soft); font-size: 15px; max-width: 58ch; }
+  @media (max-width: 760px) { .faq-grid { grid-template-columns: 1fr; } }
+
+  /* AREA */
+  .area-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; padding: 0; }
+  .area-list li { list-style: none; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 12px 22px; background: var(--mist); border-radius: 999px; color: var(--ink-soft); }
+
+  /* CREDS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: clamp(32px, 4vw, 52px); }
+  .creds > div { background: var(--mist); border-radius: 18px; padding: 28px 24px; }
+  .creds .label { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; font-weight: 600; color: var(--terra); margin-bottom: 12px; }
+  .creds .detail { font-family: var(--serif); font-size: 18px; line-height: 1.35; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(28px, 4vw, 56px); margin-top: clamp(36px, 5vw, 56px); }
+  .nap { background: var(--mist); border-radius: 24px; padding: 40px; }
+  .nap address { font-style: normal; font-family: var(--serif); font-size: clamp(20px, 1.9vw, 26px); line-height: 1.45; }
+  .nap a { text-decoration: none; }
+  .hours { font-size: 13px; margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 22px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 5px 0; color: var(--ink-soft); letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; font-weight: 600; }
+  .hours .gbp-note { font-size: 13px; color: var(--ink-soft); margin-top: 16px; line-height: 1.6; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .map-frame { border-radius: 24px; overflow: hidden; min-height: 420px; filter: sepia(0.22) saturate(0.8); }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 420px; }
+  @media (max-width: 820px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA */
+  .cta-band { background: var(--clay); color: var(--ink); padding: clamp(90px, 12vw, 170px) 0; text-align: center; }
+  .cta-band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 5vw, 74px); line-height: 1.08; margin: 16px auto 20px; max-width: 20ch; }
+  .cta-band p { color: rgba(43,36,28,0.7); max-width: 44ch; margin: 0 auto 38px; font-size: 17px; }
+  .cta-band .ctas { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .cta-band .btn-primary { background: var(--ink); color: var(--stone); }
+  .cta-band .btn-ghost { border-color: var(--ink); }
+
+  /* FOOTER */
+  footer { background: var(--ink); color: rgba(233,226,214,0.85); padding: 68px 0 36px; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 44px; }
+  .footer-grid h4 { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--clay); margin: 0 0 16px; font-weight: 600; }
+  .footer-grid a { text-decoration: none; display: block; padding: 3px 0; font-size: 14px; color: var(--stone); }
+  .footer-grid a:hover { color: var(--clay); }
+  .colophon { margin-top: 60px; padding-top: 22px; border-top: 1px solid rgba(233,226,214,0.16); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(233,226,214,0.5); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--moss); color: var(--mist); padding: 14px 20px; text-decoration: none; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; border-radius: 999px; box-shadow: 0 10px 28px rgba(74,83,64,0.35); }
+  .msg-fab a:hover { background: var(--ink); }
+  .msg-fab svg { width: 13px; height: 13px; }
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HealthAndBeautyBusiness","name":"Stille Baths","description":"Bathhouse and wellness studio in Amsterdam Oost — thermal circuit, sauna rituals, massage and breathwork.","url":"https://stillebaths.nl/","telephone":"+31202104478","email":"front@stillebaths.nl","address":{"@type":"PostalAddress","streetAddress":"Polderweg 96","addressLocality":"Amsterdam","addressRegion":"Noord-Holland","postalCode":"1093 KP","addressCountry":"NL"},"geo":{"@type":"GeoCoordinates","latitude":52.3547,"longitude":4.9247},"areaServed":["Amsterdam Oost","Watergraafsmeer","Centrum","Diemen"],"image":["https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1600"],"foundingDate":"2020"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Do I need to bring anything?","acceptedAnswer":{"@type":"Answer","text":"Nothing. Robe, towels, sandals, oils and hair ties are included."}},
+{"@type":"Question","name":"Is it mixed?","acceptedAnswer":{"@type":"Answer","text":"Yes, all sessions are mixed. Tuesday evening is women-only; the last Sunday evening of the month is men-only."}},
+{"@type":"Question","name":"Will anyone push me into the cold plunge?","acceptedAnswer":{"@type":"Answer","text":"No one will push you into anything, ever."}},
+{"@type":"Question","name":"Can I book massage without a bath session?","acceptedAnswer":{"@type":"Answer","text":"Yes, though most guests pair them."}},
+{"@type":"Question","name":"Is the bathhouse accessible?","acceptedAnswer":{"@type":"Answer","text":"Step-free throughout, a pool hoist, an accessible changing room, and one adapted massage table."}},
+{"@type":"Question","name":"Can I come pregnant?","acceptedAnswer":{"@type":"Answer","text":"The warm pools and rest hall, yes. Saunas and the cold plunge come with standard medical cautions."}},
+{"@type":"Question","name":"What if I fall asleep in the rest hall?","acceptedAnswer":{"@type":"Answer","text":"Staff wake rest-hall sleepers ten minutes before session end, gently."}},
+{"@type":"Question","name":"Is there an age limit?","acceptedAnswer":{"@type":"Answer","text":"Eighteen and up."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Stille</a>
+    <nav class="nav-links">
+      <a href="#about">The house</a>
+      <a href="#services">The circuit</a>
+      <a href="#location">Find us</a>
+      <a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v9">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker" data-bind="hero.kicker">Bathhouse &amp; wellness studio — Amsterdam Oost</div>
+      <h1 data-bind="hero.headline">Two hours where nobody can reach you.</h1>
+      <p class="lede" data-bind="hero.lede">A small bathhouse in a converted tram depot: thermal circuit, sauna rituals, cold plunge, massage and breathwork. Sessions are two hours, capped at twenty guests. Phones stay in the lockers.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a session</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The circuit</a>
+      </div>
+    </div>
+    <div class="hero-arch">
+      <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=2000&q=85&auto=format&fit=crop"
+           alt="Steam rising off warm water in a dim, stone-lined pool room."
+           data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="plate">Polderweg 96 · est. 2020</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Open in Oost since 2020</span>
+    <span class="o">○</span><span>Sessions capped at twenty</span>
+    <span class="o">○</span><span>NGS-registered practitioners</span>
+    <span class="o">○</span><span>Water tested daily</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap about-grid">
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1400&q=85&auto=format&fit=crop"
+         alt="The bathhouse hall — brick, steam, and soft light from high windows." />
+    <div class="about-prose">
+      <div class="kicker">The house</div>
+      <h2 class="h2" data-bind="about.heading">Quiet is the whole product.</h2>
+      <p>Stille opened in 2020 in the shell of a 1920s tram depot in Amsterdam Oost. We kept the brick, the roof trusses and the echo, and poured two warm pools, a cold plunge, two saunas and a steam room into the middle of it. The name means 'quiet', and we enforce it kindly: no phones past the lockers, voices low, no clocks on the walls.</p>
+      <p>Sessions run two hours and are capped at twenty guests — roughly half the number the room could hold. Twice a day a sauna master runs an aufguss ritual that is worth planning around.</p>
+      <p>The massage and breathwork studios sit off the main hall, behind a heavy curtain. Practitioners are employed, not rented a room — the person who treats you in March is the person who treats you in November.</p>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v7">
+  <div class="wrap">
+    <div class="kicker">The circuit &amp; the studios</div>
+    <h2 class="h2">Six ways to spend two hours.</h2>
+    <div class="svc-grid">
+      <article class="svc-card"><span class="glyph">~</span><h3>The bath session</h3><p>Two hours, the full circuit — warm pools, two saunas, steam room, cold plunge, rest hall. Towels and oils included.</p></article>
+      <article class="svc-card"><span class="glyph">≈</span><h3>Aufguss ritual</h3><p>A guided sauna ceremony with essential oils and towel work, twice daily. Included in any session; seats are first-come.</p></article>
+      <article class="svc-card"><span class="glyph">○</span><h3>Massage</h3><p>Deep tissue, classic, and pregnancy massage — 60 or 90 minutes, before or after your bath. Employed practitioners only.</p></article>
+      <article class="svc-card"><span class="glyph">●</span><h3>Breathwork</h3><p>Small-group guided sessions in the vaulted side room, four mornings a week. Beginners are the majority.</p></article>
+      <article class="svc-card"><span class="glyph">◌</span><h3>Morning silence</h3><p>The first session of the day is fully silent — no aufguss, no talking, twelve guests. Regulars call it church.</p></article>
+      <article class="svc-card"><span class="glyph">◍</span><h3>The whole house</h3><p>The entire bathhouse, twenty guests, three hours, a sauna master, and the kitchen's broth and bread. Evenings only.</p></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Held to, daily</div>
+    <h2 class="h2">Three quiet promises.</h2>
+    <div class="why-grid">
+      <div><span class="num">I</span><h3>Capped at twenty, always.</h3><p>The room could hold twice that. It never will. You will always find a place to lie down, swim, and sit in silence.</p></div>
+      <div><span class="num">II</span><h3>No phones, no clocks.</h3><p>Both stay in the lockers. Two hours is long enough that you stop counting them — that is the point.</p></div>
+      <div><span class="num">III</span><h3>Practitioners on staff.</h3><p>Massage and breathwork are given by people employed here, trained here, and still here next season.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">A first visit</div>
+    <h2 class="h2">How a session goes.</h2>
+    <ol class="how-grid">
+      <li><span class="step">One</span><h3>Book a session</h3><p>Online, up to four weeks ahead. Morning silence and weekend evenings go first.</p></li>
+      <li><span class="step">Two</span><h3>Arrive fifteen early</h3><p>Check in, lockers, robe and towels. The phone goes in the small safe; you keep the key on your wrist.</p></li>
+      <li><span class="step">Three</span><h3>Take the circuit</h3><p>Warm, hot, cold, rest — in whatever order your body argues for. The card in the changing room helps first-timers.</p></li>
+      <li><span class="step">Four</span><h3>Leave slowly</h3><p>The rest hall has broth, tea and low chairs. Nobody will hurry you out; the next session simply flows in.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">From the rest hall</div>
+    <blockquote class="t-quote">“I have been coming every other Sunday for three years. It is the only appointment I have never once been tempted to cancel.”</blockquote>
+    <div class="t-attr">Femke V. — morning-silence regular</div>
+    <div class="t-sub">
+      <figure><blockquote>“The aufguss ritual is theatre, weather and therapy at the same time. I brought my father, who distrusts anything called wellness. He now owns a robe.”</blockquote><figcaption>Jasper D. — Oost</figcaption></figure>
+      <figure><blockquote>“Quiet, dark, warm, and completely unpretentious. The best two hours in Amsterdam that don't involve food.”</blockquote><figcaption>Anna L. — visiting monthly from Utrecht</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v7">
+  <div class="wrap">
+    <div class="kicker">The rooms</div>
+    <h2 class="h2">Steam, stone, cedar.</h2>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1600&q=85&auto=format&fit=crop" alt="Steam over warm water in the stone pool room." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1600&q=85&auto=format&fit=crop" alt="The bathhouse hall under high windows." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1600&q=85&auto=format&fit=crop" alt="Massage room with warm towels and low light." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=1600&q=85&auto=format&fit=crop" alt="Sauna interior, cedar benches." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=1600&q=85&auto=format&fit=crop" alt="Folded robes and towels on a shelf." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600&q=85&auto=format&fit=crop" alt="The rest hall — low chairs, plants, herbal tea." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section class="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap faq-grid">
+    <div>
+      <div class="kicker">Asked at the desk</div>
+      <h2 class="h2">Before your first visit.</h2>
+      <p class="body">Anything else — ring <a href="tel:+31202104478" style="color:var(--terra);">+31 20 210 44 78</a> or write to the front desk. We answer between sessions.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>Do I need to bring anything?</summary><p>Nothing. Robe, towels, sandals, oils and hair ties are included. Swimwear is required in the pools and optional in the saunas — the two zones are signed.</p></details>
+      <details><summary>Is it mixed?</summary><p>Yes, all sessions are mixed. Tuesday evening is women-only; the last Sunday evening of the month is men-only. Both are marked in the booking calendar.</p></details>
+      <details><summary>I've never done a cold plunge. Will anyone push me?</summary><p>No one will push you into anything, ever. The card in the changing room suggests a gentle first circuit, and staff are happy to talk you through it.</p></details>
+      <details><summary>Can I book massage without a bath session?</summary><p>Yes, though most guests pair them. Massage-only bookings enter through the side door and still get the rest hall afterwards.</p></details>
+      <details><summary>Is the bathhouse accessible?</summary><p>Step-free throughout, a pool hoist, an accessible changing room, and one adapted massage table. Tell us when you book so we can hold the nearest locker.</p></details>
+      <details><summary>Can I come pregnant?</summary><p>The warm pools and rest hall, yes, throughout. Saunas and the cold plunge come with standard medical cautions — our pregnancy-trained masseuse can advise, and your midwife outranks us.</p></details>
+      <details><summary>What if I fall asleep in the rest hall?</summary><p>You will not be the first or the fifth that day. Staff wake rest-hall sleepers ten minutes before session end, gently.</p></details>
+      <details><summary>Is there an age limit?</summary><p>Eighteen and up. Quiet is fragile.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Guests come from</div>
+    <ul class="area-list">
+      <li>Oost</li><li>Watergraafsmeer</li><li>De Pijp</li><li>Centrum</li>
+      <li>Plantage</li><li>IJburg</li><li>Diemen</li><li>Zeeburg</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Standards</div>
+    <h2 class="h2">Kept, checked, certified.</h2>
+    <div class="creds">
+      <div><div class="label">Massage practitioners</div><div class="detail">NGS-registered, employed on staff</div></div>
+      <div><div class="label">Sauna masters</div><div class="detail">Aufguss WM-certified, two on rotation</div></div>
+      <div><div class="label">Water quality</div><div class="detail">Tested daily, audited quarterly (GGD)</div></div>
+      <div><div class="label">First aid</div><div class="detail">BHV-certified staff on every shift</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">The old depot</div>
+    <h2 class="h2">Polderweg 96, Oost.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Stille Baths</strong><br />
+          Polderweg 96<br />
+          1093 KP Amsterdam<br /><br />
+          <a href="tel:+31202104478" data-bind="business.phoneDisplay">+31 20 210 44 78</a><br />
+          <a href="mailto:front@stillebaths.nl" data-bind="business.email">front@stillebaths.nl</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>Mon – Fri</span><span>—</span></div>
+          <div class="row"><span>Sat – Sun</span><span>—</span></div>
+          <p class="gbp-note">Session times are kept current on our Google Business Profile. The building is two minutes from Muiderpoort station; bikes park in the old tram shed.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Stille Baths, Polderweg, Amsterdam" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=4.9160%2C52.3510%2C4.9330%2C52.3585&layer=mapnik&marker=52.3547%2C4.9247"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v6">
+  <div class="wrap">
+    <div class="kicker" style="color: var(--terra);">Booking</div>
+    <h2 data-bind="cta.heading">The lockers are waiting for your phone.</h2>
+    <p data-bind="cta.body">Sessions open four weeks ahead. Morning silence fills first.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a session</a>
+      <a class="btn btn-ghost" href="tel:+31202104478" data-bind="cta.secondary.label">+31 20 210 44 78</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/31202104478" data-bind="messaging.whatsapp" aria-label="Message the front desk">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Front desk
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wm" href="#" style="font-size: 26px; color: var(--stone);">Stille</a>
+        <p class="body" style="margin-top: 14px; max-width: 34ch; color: rgba(233,226,214,0.65);">A bathhouse and wellness studio in a converted tram depot, Amsterdam Oost. Since 2020.</p>
+      </div>
+      <div>
+        <h4>The house</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.7;">
+          Polderweg 96<br />
+          1093 KP Amsterdam<br />
+          <a href="tel:+31202104478">+31 20 210 44 78</a><br />
+          <a href="mailto:front@stillebaths.nl">front@stillebaths.nl</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The circuit</a>
+        <a href="#book">Book</a>
+        <a href="#about">The house</a>
+        <a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Stille Baths B.V. · KvK 78219004</span>
+      <span>Quiet is fragile</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

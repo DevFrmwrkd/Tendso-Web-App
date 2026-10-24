@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Came &amp; Cathedral — stained glass studio in Ely, Cambridgeshire</title>
+<meta name="description" content="Came &amp; Cathedral is a stained glass studio in Ely — new leaded windows, church and heritage conservation, repairs, and glass-painting commissions for homes, made by hand in lead and light." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Outfit:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Came & Cathedral", phone: "+44 1353 720 668", phoneDisplay: "01353 720 668", email: "studio@cameandcathedral.co.uk", foundedYear: 2008 },
+  hero: {
+    kicker: "Stained glass studio · leaded lights & conservation · Ely, Cambridgeshire",
+    headline: "We work in lead and light.",
+    lede: "A stained glass studio in the shadow of Ely Cathedral: new leaded windows for homes and churches, heritage conservation for glass that's outlived everyone who made it, and hand-painted commissions where the light does the talking. Cut, leaded, cemented and fired — all of it here, all by hand.",
+    primaryCta: { label: "Commission a window", href: "#book" },
+    secondaryCta: { label: "What the studio does", href: "#services" },
+    image: "https://images.unsplash.com/photo-1718976001400-88f84835109e?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Sunlight streaming through a stained glass window."
+  },
+  trust: { years: "In lead and glass since 2008" },
+  about: {
+    heading: "Glass is the only material that needs the sun to finish it.",
+    paragraphs: [
+      "Everything else you can judge under a workshop light. Stained glass you can't — it isn't finished until it's in the wall with the morning behind it. That's the whole discipline: designing for a light you won't see until the day it's installed, and getting it right anyway.",
+      "The studio does two things that rarely share a roof: new commissions and heritage conservation. The new work keeps the craft alive; the conservation keeps us honest, because there's no better teacher than taking apart a window a medieval glazier made and finding out how they solved a problem you're still struggling with.",
+      "Cutting, leading, cementing, glass-painting and kiln-firing all happen at the benches by the window. We're accredited for church and listed-building work, which means when the diocese calls, we already speak the language."
+    ],
+    portrait: "https://images.unsplash.com/photo-1754141866720-a1c9f6a9bc19?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Detail of a coloured stained glass panel."
+  },
+  services: [
+    { name: "New leaded windows", description: "For homes, churches and public buildings — designed with you, cut and leaded here, glazed on site. Traditional or contemporary; the lead lines are drawn, not incidental." },
+    { name: "Church & heritage conservation", description: "Accredited conservation of historic glass: releading, repair, protective glazing, full removal-and-reinstatement. Documented to conservation standards, faculty paperwork included." },
+    { name: "Repairs & releading", description: "Cracked quarries, bowing panels, Victorian front-door lights that have sagged for a century. Repaired in situ where possible, at the bench where it isn't." },
+    { name: "Glass painting & kiln work", description: "Hand-painted heads, hands, drapery and lettering, fired in the kiln to fuse for good. The old skill that separates a leaded window from a painted one." },
+    { name: "Domestic commissions", description: "Front doors, stair windows, screens and panels for the home. A fanlight that turns a hallway gold at four o'clock is worth more than the money." },
+    { name: "Protective glazing & surveys", description: "Condition surveys, isothermal protective glazing for precious windows, and honest advice on what needs doing now versus what can wait a decade." }
+  ],
+  why: [
+    { title: "Designed for real light.", body: "We work out where your window faces, what time it matters, and what the sun does to each colour through the seasons. A design that ignores the light is just a drawing." },
+    { title: "Accredited for heritage.", body: "Church and listed-building conservation to recognised standards, with the documentation and faculty experience to match. When it's irreplaceable, credentials aren't optional." },
+    { title: "Every stage under one roof.", body: "Cutting, leading, painting, firing, cementing, fitting — all here, all by us. Nothing sub-contracted to a workshop you'll never see." }
+  ],
+  how: [
+    { step: "01", title: "Talk & look at the light", body: "We visit, measure the opening, and note the aspect — which way it faces decides half the design. Bring ideas; we'll bring glass samples." },
+    { step: "02", title: "Cartoon & sample", body: "A full-size cartoon and a fired glass sample so you can see real colour in real light before committing. Approve it in the flesh, not on a screen." },
+    { step: "03", title: "Cut, lead, paint, fire", body: "Made at the bench — glass cut to the cartoon, leaded up, painted and kiln-fired, then cemented and left to cure. The slow part, done properly." },
+    { step: "04", title: "Glazed & sealed", body: "Fitted into the opening, weatherproofed, and — where needed — protected with isothermal secondary glazing. Then we wait for a sunny day with you." }
+  ],
+  testimonials: [
+    { quote: "They conserved a 15th-century window in our chancel that three firms had called beyond saving. It's back in, it glows, and the record they left is so thorough the DAC used it as an exemplar. Extraordinary care.", name: "Churchwarden, St Andrew's", context: "chancel window conservation" },
+    { quote: "We asked for a stair window 'that does something at sunset'. It throws a pool of amber across the landing at half past six that my children lie in like cats. I did not know I was commissioning that. I'm so glad I did.", name: "Naomi & Paul T.", context: "domestic stair window" },
+    { quote: "Our Victorian front door panels had sagged and cracked for decades. Released, repaired, releaded — and matched so well the neighbours think we did nothing. Which, to a conservator, is the highest praise.", name: "Geoff M.", context: "front door releading" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1718976001400-88f84835109e?w=1600&q=85&auto=format&fit=crop", alt: "Sunlight through a stained glass window." },
+    { src: "https://images.unsplash.com/photo-1754141866720-a1c9f6a9bc19?w=1600&q=85&auto=format&fit=crop", alt: "Detail of a coloured glass panel." },
+    { src: "https://images.unsplash.com/photo-1467071114456-dddb1d7b4842?w=1600&q=85&auto=format&fit=crop", alt: "Rose window casting coloured light." },
+    { src: "https://images.unsplash.com/photo-1755039361850-09f585cebe14?w=1600&q=85&auto=format&fit=crop", alt: "Coloured light falling across a stone floor." },
+    { src: "https://images.unsplash.com/photo-1718976001400-88f84835109e?w=1600&q=85&auto=format&fit=crop", alt: "Cathedral window from the inside." },
+    { src: "https://images.unsplash.com/photo-1467071114456-dddb1d7b4842?w=1600&q=85&auto=format&fit=crop", alt: "Geometric stained glass detail." }
+  ],
+  faq: [
+    { q: "How much does a stained glass window cost?", a: "Genuinely, it depends — on size, complexity, how much glass painting it needs, and whether it's new work or conservation. A small front-door panel and a painted church memorial window are different worlds. We quote after seeing the opening; the survey is free and the quote is honest." },
+    { q: "What's the difference between stained glass and leaded glass?", a: "Leaded glass is coloured glass cut and joined with lead came. Stained glass adds hand-painted detail — faces, drapery, shading — fired into the surface in a kiln. Most windows are a mix. We do both, which is rarer than you'd think." },
+    { q: "Can old windows really be saved?", a: "More often than people fear. Bowing, cracked quarries and failing lead are usually repairable, sometimes in situ. We survey first and tell you plainly: conserve, releads, or (rarely) replace. We don't condemn a window to sell you a new one." },
+    { q: "Do you do church and listed-building work?", a: "Yes — it's half of what we do, to accredited conservation standards, with the faculty and DAC paperwork experience that heritage work demands. We're used to working with dioceses, architects and conservation officers." },
+    { q: "How long does a commission take?", a: "A domestic panel, six to twelve weeks. A painted church window or a conservation project, several months — the kiln, the curing and the paperwork all take the time they take. We give you a real programme and keep you posted with photos." },
+    { q: "Will a new window suit an old house?", a: "It can, beautifully, if it's designed for the building rather than dropped into it. We'll steer the design to sit right with your architecture and your light. Sometimes the most sympathetic thing is boldly contemporary; sometimes it's quiet. We'll be honest about which." }
+  ],
+  area: { places: ["Ely", "Cambridge", "Newmarket", "Soham", "March", "Bury St Edmunds"] },
+  credentials: [
+    { label: "Accredited", detail: "ICON-accredited conservation, church & listed work" },
+    { label: "Guild", detail: "British Society of Master Glass Painters member" },
+    { label: "Faculty", detail: "Experienced with DAC & faculty processes" },
+    { label: "Insured", detail: "Full cover for on-site & heritage work" }
+  ],
+  location: { name: "Came & Cathedral", addressStreet: "The Glass Studio, 9 Forehill", addressLocality: "Ely", addressRegion: "Cambridgeshire", addressPostcode: "CB7 4AA", addressCountry: "United Kingdom" },
+  cta: { heading: "Let's make something the sun finishes.", body: "Surveys are free, samples are fired in real glass, and we'll always tell you whether to conserve or create. Commission a window worth waiting for the light.", primary: { label: "Commission a window", href: "#book" }, secondary: { label: "01353 720 668", href: "tel:+441353720668" } },
+  messaging: { whatsapp: "https://wa.me/441353720668", messenger: "https://m.me/cameandcathedral" }
+};
+</script>
+
+<style>
+  :root {
+    --night:#151327; --paper:#f6f3ec; --cobalt:#2f4bc4; --ruby:#c0324a;
+    --gold:#e0a92e; --viridian:#1f7a63; --mid:#8a86a0; --mid-d:#a9a4be; --rule:rgba(246,243,236,0.14);
+    --serif:"Fraunces",serif; --sans:"Outfit",system-ui,sans-serif; --mono:"Space Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--night);color:var(--paper);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .tag{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,4.6vw,60px);line-height:1.04;letter-spacing:-0.01em;margin:0 0 0.5em;}
+  .h2 em{font-style:italic;color:var(--gold);}
+  .body{color:var(--mid-d);line-height:1.72;}
+  section{padding:clamp(72px,9vw,128px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:0.16s;}
+  .btn-primary{background:var(--gold);color:var(--night);} .btn-primary:hover{background:var(--paper);}
+  .btn-ghost{border:1.5px solid var(--mid);color:var(--paper);} .btn-ghost:hover{border-color:var(--paper);background:var(--paper);color:var(--night);}
+  .lead-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  /* leaded colour-strip device */
+  .cames{display:flex;height:8px;margin-bottom:20px;max-width:320px;gap:2px;}
+  .cames span{flex:1;}
+  .cames span:nth-child(1){background:var(--cobalt);} .cames span:nth-child(2){background:var(--ruby);}
+  .cames span:nth-child(3){background:var(--gold);} .cames span:nth-child(4){background:var(--viridian);}
+  .cames span:nth-child(5){background:#7a4bc4;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(21,19,39,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--serif);font-size:21px;letter-spacing:-0.01em;text-decoration:none;}
+  .wm em{font-style:italic;color:var(--gold);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO */
+  .hero{padding:clamp(52px,7vw,104px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,7vw,104px);line-height:0.96;margin:22px 0 24px;letter-spacing:-0.02em;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  .hero .lede{color:var(--mid-d);max-width:52ch;line-height:1.74;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:3/4;object-fit:cover;}
+  /* leaded frame around hero image */
+  .hero-photo::before{content:"";position:absolute;inset:10px;border:2px solid rgba(246,243,236,0.5);pointer-events:none;z-index:2;}
+  .light-tag{position:absolute;bottom:0;right:0;background:var(--night);border:2px solid var(--gold);padding:14px 18px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;line-height:1.8;text-transform:uppercase;font-weight:700;z-index:3;}
+  .light-tag b{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--gold);display:block;letter-spacing:0;text-transform:none;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--gold);color:var(--night);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;}
+
+  .about{background:#1c1a34;}
+  .about-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-grid .photo{position:relative;}
+  .about-grid img{aspect-ratio:3/4;object-fit:cover;width:100%;}
+  .about-grid .photo::after{content:"";position:absolute;inset:10px;border:2px solid rgba(246,243,236,0.4);pointer-events:none;}
+  .about-prose p{font-size:clamp(16px,1.6vw,19px);line-height:1.76;margin:0 0 1em;color:var(--mid-d);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — panel cards, each with a came-colour top edge */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);}
+  .svc-cell{background:var(--night);padding:clamp(24px,3vw,36px);transition:0.2s;position:relative;}
+  .svc-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;}
+  .svc-cell:nth-child(6n+1)::before{background:var(--cobalt);} .svc-cell:nth-child(6n+2)::before{background:var(--ruby);}
+  .svc-cell:nth-child(6n+3)::before{background:var(--gold);} .svc-cell:nth-child(6n+4)::before{background:var(--viridian);}
+  .svc-cell:nth-child(6n+5)::before{background:#7a4bc4;} .svc-cell:nth-child(6n+6)::before{background:var(--cobalt);}
+  .svc-cell:hover{background:#1c1a34;}
+  .svc-cell .no{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;color:var(--gold);display:block;margin:6px 0 12px;text-transform:uppercase;font-weight:700;}
+  .svc-cell h3{font-family:var(--serif);font-weight:500;font-size:21px;margin:0 0 8px;line-height:1.15;}
+  .svc-cell p{color:var(--mid-d);margin:0;font-size:14px;line-height:1.66;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--paper);color:var(--night);}
+  .why .h2{color:var(--night);} .why .h2 em{color:var(--cobalt);}
+  .why .lead-head{border-color:rgba(21,19,39,0.18);color:#7a7690;}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--cobalt);display:block;margin-bottom:8px;line-height:1;}
+  .why-grid h3{font-family:var(--serif);font-weight:500;font-size:23px;margin:0 0 10px;line-height:1.12;}
+  .why-grid p{color:#57536b;margin:0;font-size:15px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--serif);font-weight:500;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#1c1a34;}
+  .t-quote{font-family:var(--serif);font-weight:400;font-size:clamp(24px,3.2vw,44px);line-height:1.12;max-width:28ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:italic;color:var(--gold);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — window grid, colour-drenched */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:3/4;object-fit:cover;transition:0.4s;}
+  .g-grid figure::before{content:"";position:absolute;inset:8px;border:1.5px solid rgba(246,243,236,0.45);pointer-events:none;z-index:2;}
+  .g-grid figure:hover img{transform:scale(1.05);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--night);color:var(--gold);font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 10px;font-weight:700;z-index:3;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--rule);}
+  .faq-list summary{font-family:var(--serif);font-weight:500;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.2;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"◆";color:var(--gold);flex-shrink:0;font-size:12px;transition:0.2s;margin-top:5px;}
+  .faq-list details[open] summary::after{color:var(--ruby);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--rule);font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,2.2vw,28px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--serif);font-weight:500;font-size:15.5px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#1c1a34;border:1px solid var(--rule);border-top:3px solid var(--gold);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-weight:500;font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--rule);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:invert(0.92) hue-rotate(180deg) contrast(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:linear-gradient(135deg,var(--cobalt),#5a2f9c 55%,var(--ruby));color:var(--paper);padding:clamp(88px,11vw,156px) 0;text-align:center;}
+  .cta-band .tag{color:var(--gold);}
+  .cta-band h2{font-family:var(--serif);font-weight:400;font-size:clamp(34px,5vw,72px);line-height:1.02;margin:16px auto 18px;max-width:18ch;letter-spacing:-0.015em;}
+  .cta-band h2 em{font-style:italic;color:var(--gold);}
+  .cta-band p{color:rgba(246,243,236,0.86);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-ghost{border-color:rgba(246,243,236,0.6);color:var(--paper);}
+  .cta-band .btn-ghost:hover{background:var(--paper);color:var(--night);}
+
+  footer{background:var(--night);border-top:1px solid var(--rule);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--night);padding:13px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:0.04em;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .msg-fab a:hover{background:var(--paper);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Came & Cathedral","description":"Stained glass studio in Ely, Cambridgeshire — new leaded windows, church and heritage conservation, repairs and glass-painting commissions.","url":"https://cameandcathedral.co.uk/","telephone":"+441353720668","email":"studio@cameandcathedral.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Glass Studio, 9 Forehill","addressLocality":"Ely","addressRegion":"Cambridgeshire","postalCode":"CB7 4AA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.3990,"longitude":0.2620},"areaServed":["Ely","Cambridge","Newmarket","Soham","Bury St Edmunds"],"image":["https://images.unsplash.com/photo-1718976001400-88f84835109e?w=1600"],"foundingDate":"2008"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How much does a stained glass window cost?","acceptedAnswer":{"@type":"Answer","text":"It depends on size, complexity, glass painting and whether it's new work or conservation. We quote after seeing the opening; the survey is free."}},
+{"@type":"Question","name":"What's the difference between stained glass and leaded glass?","acceptedAnswer":{"@type":"Answer","text":"Leaded glass is coloured glass joined with lead came; stained glass adds hand-painted detail fired in a kiln. Most windows mix both."}},
+{"@type":"Question","name":"Can old windows really be saved?","acceptedAnswer":{"@type":"Answer","text":"More often than people fear. Bowing, cracked quarries and failing lead are usually repairable. We survey first and advise plainly."}},
+{"@type":"Question","name":"Do you do church and listed-building work?","acceptedAnswer":{"@type":"Answer","text":"Yes — to accredited conservation standards, with faculty and DAC paperwork experience."}},
+{"@type":"Question","name":"How long does a commission take?","acceptedAnswer":{"@type":"Answer","text":"A domestic panel, six to twelve weeks; a painted church window or conservation project, several months."}},
+{"@type":"Question","name":"Will a new window suit an old house?","acceptedAnswer":{"@type":"Answer","text":"It can, if designed for the building rather than dropped into it. We'll steer the design to sit right with your architecture and light."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Came <em>&amp;</em> Cathedral</a>
+    <nav class="nav-links">
+      <a href="#services">The studio</a><a href="#about">The craft</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v49">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="cames" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="tag" data-bind="hero.kicker">Stained glass studio · leaded lights &amp; conservation · Ely, Cambridgeshire</div>
+      <h1 data-comment-anchor="hero-headline">We work in <em>lead and light.</em></h1>
+      <p class="lede" data-bind="hero.lede">A stained glass studio in the shadow of Ely Cathedral: new leaded windows for homes and churches, heritage conservation for glass that's outlived everyone who made it, and hand-painted commissions where the light does the talking. Cut, leaded, cemented and fired — all of it here, all by hand.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission a window</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What the studio does</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1718976001400-88f84835109e?w=2000&q=85&auto=format&fit=crop"
+           alt="Sunlight streaming through a stained glass window." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="light-tag"><b>East light</b>MORNING · COBALT &amp; RUBY<br />THE HOUR IT WAS DESIGNED FOR</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">In lead and glass since 2008</span>
+    <span>New work &amp; conservation</span>
+    <span>Every stage under one roof</span>
+    <span>ICON-accredited heritage work</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v15">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 01 / THE STUDIO</span><span>BENCHES BY THE WINDOW</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1754141866720-a1c9f6a9bc19?w=1200&q=85&auto=format&fit=crop"
+             alt="Detail of a coloured stained glass panel." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">Glass is the only material that needs <em>the sun to finish it.</em></h2>
+        <p>Everything else you can judge under a workshop light. Stained glass you can't — it isn't finished until it's in the wall with the morning behind it. That's the whole discipline: designing for a light you won't see until the day it's installed, and getting it right anyway.</p>
+        <p>The studio does two things that rarely share a roof: new commissions and heritage conservation. The new work keeps the craft alive; the conservation keeps us honest, because there's no better teacher than taking apart a window a medieval glazier made and finding out how they solved a problem you're still struggling with.</p>
+        <p>Cutting, leading, cementing, glass-painting and kiln-firing all happen at the benches by the window. We're accredited for church and listed-building work, which means when the diocese calls, we already speak the language.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v42">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 02 / THE STUDIO DOES</span><span>NEW WORK &amp; CONSERVATION</span></div>
+    <h2 class="h2">Lead, glass &amp; fire.</h2>
+    <div class="svc-grid">
+      <div class="svc-cell"><span class="no">Panel 01</span><h3>New leaded windows</h3><p>For homes, churches and public buildings — designed with you, cut and leaded here, glazed on site. Traditional or contemporary; the lead lines are drawn, not incidental.</p></div>
+      <div class="svc-cell"><span class="no">Panel 02</span><h3>Church &amp; heritage conservation</h3><p>Accredited conservation of historic glass: releading, repair, protective glazing, full removal-and-reinstatement. Documented to conservation standards, faculty paperwork included.</p></div>
+      <div class="svc-cell"><span class="no">Panel 03</span><h3>Repairs &amp; releading</h3><p>Cracked quarries, bowing panels, Victorian front-door lights that have sagged for a century. Repaired in situ where possible, at the bench where it isn't.</p></div>
+      <div class="svc-cell"><span class="no">Panel 04</span><h3>Glass painting &amp; kiln work</h3><p>Hand-painted heads, hands, drapery and lettering, fired in the kiln to fuse for good. The old skill that separates a leaded window from a painted one.</p></div>
+      <div class="svc-cell"><span class="no">Panel 05</span><h3>Domestic commissions</h3><p>Front doors, stair windows, screens and panels for the home. A fanlight that turns a hallway gold at four o'clock is worth more than the money.</p></div>
+      <div class="svc-cell"><span class="no">Panel 06</span><h3>Protective glazing &amp; surveys</h3><p>Condition surveys, isothermal protective glazing for precious windows, and honest advice on what needs doing now versus what can wait a decade.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v14">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 03 / WHY THIS STUDIO</span><span>THREE THINGS THAT MATTER</span></div>
+    <h2 class="h2">Why it's worth <em>the wait.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">i</span><h3>Designed for real light.</h3><p>We work out where your window faces, what time it matters, and what the sun does to each colour through the seasons. A design that ignores the light is just a drawing.</p></div>
+      <div><span class="no">ii</span><h3>Accredited for heritage.</h3><p>Church and listed-building conservation to recognised standards, with the documentation and faculty experience to match. When it's irreplaceable, credentials aren't optional.</p></div>
+      <div><span class="no">iii</span><h3>Every stage under one roof.</h3><p>Cutting, leading, painting, firing, cementing, fitting — all here, all by us. Nothing sub-contracted to a workshop you'll never see.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 04 / HOW A COMMISSION GOES</span><span>LOOK → CARTOON → FIRE → GLAZE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Talk &amp; look at the light</h3><p>We visit, measure the opening, and note the aspect — which way it faces decides half the design. Bring ideas; we'll bring glass samples.</p></li>
+      <li><span class="step">STEP 02</span><h3>Cartoon &amp; sample</h3><p>A full-size cartoon and a fired glass sample so you can see real colour in real light before committing. Approve it in the flesh, not on a screen.</p></li>
+      <li><span class="step">STEP 03</span><h3>Cut, lead, paint, fire</h3><p>Made at the bench — glass cut to the cartoon, leaded up, painted and kiln-fired, then cemented and left to cure. The slow part, done properly.</p></li>
+      <li><span class="step">STEP 04</span><h3>Glazed &amp; sealed</h3><p>Fitted into the opening, weatherproofed, and — where needed — protected with isothermal secondary glazing. Then we wait for a sunny day with you.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v14">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 05 / CLIENTS &amp; PARISHES</span><span>WRITTEN AFTER A SUNNY DAY</span></div>
+    <blockquote class="t-quote">“It's back in, it glows, and the record they left the DAC used as <em>an exemplar.</em>”</blockquote>
+    <div class="t-attr">Churchwarden, St Andrew's — chancel window conservation</div>
+    <div class="t-sub">
+      <figure><blockquote>“We asked for a stair window ‘that does something at sunset’. It throws a pool of amber across the landing at half past six that my children lie in like cats. I did not know I was commissioning that. I'm so glad I did.”</blockquote><figcaption>Naomi &amp; Paul T. — domestic stair window</figcaption></figure>
+      <figure><blockquote>“Our Victorian front door panels had sagged and cracked for decades. Released, repaired, releaded — and matched so well the neighbours think we did nothing. Which, to a conservator, is the highest praise.”</blockquote><figcaption>Geoff M. — front door releading</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v42">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 06 / THE WORK</span><span>SHOT WITH THE SUN BEHIND</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1718976001400-88f84835109e?w=1600&q=85&auto=format&fit=crop" alt="Sunlight through a stained glass window." /><figcaption>MORNING, EAST LIGHT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1754141866720-a1c9f6a9bc19?w=1600&q=85&auto=format&fit=crop" alt="Detail of a coloured glass panel." /><figcaption>PAINTED DETAIL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1467071114456-dddb1d7b4842?w=1600&q=85&auto=format&fit=crop" alt="Rose window casting coloured light." /><figcaption>ROSE WINDOW</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1755039361850-09f585cebe14?w=1600&q=85&auto=format&fit=crop" alt="Coloured light falling across a stone floor." /><figcaption>LIGHT ON STONE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1718976001400-88f84835109e?w=1600&q=85&auto=format&fit=crop" alt="Cathedral window from the inside." /><figcaption>FROM WITHIN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1467071114456-dddb1d7b4842?w=1600&q=85&auto=format&fit=crop" alt="Geometric stained glass detail." /><figcaption>LEAD LINES</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 07 / ASKED AT THE STUDIO</span><span>USUALLY OVER A GLASS SAMPLE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the bench.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441353720668" style="color:var(--gold);font-weight:700;">01353 720 668</a>. If we're at the kiln we'll ring back once it's safe to walk away from.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How much does a stained glass window cost?</summary><p>Genuinely, it depends — on size, complexity, how much glass painting it needs, and whether it's new work or conservation. A small front-door panel and a painted church memorial window are different worlds. We quote after seeing the opening; the survey is free and the quote is honest.</p></details>
+        <details><summary>What's the difference between stained glass and leaded glass?</summary><p>Leaded glass is coloured glass cut and joined with lead came. Stained glass adds hand-painted detail — faces, drapery, shading — fired into the surface in a kiln. Most windows are a mix. We do both, which is rarer than you'd think.</p></details>
+        <details><summary>Can old windows really be saved?</summary><p>More often than people fear. Bowing, cracked quarries and failing lead are usually repairable, sometimes in situ. We survey first and tell you plainly: conserve, relead, or (rarely) replace. We don't condemn a window to sell you a new one.</p></details>
+        <details><summary>Do you do church and listed-building work?</summary><p>Yes — it's half of what we do, to accredited conservation standards, with the faculty and DAC paperwork experience that heritage work demands. We're used to working with dioceses, architects and conservation officers.</p></details>
+        <details><summary>How long does a commission take?</summary><p>A domestic panel, six to twelve weeks. A painted church window or a conservation project, several months — the kiln, the curing and the paperwork all take the time they take. We give you a real programme and keep you posted with photos.</p></details>
+        <details><summary>Will a new window suit an old house?</summary><p>It can, beautifully, if it's designed for the building rather than dropped into it. We'll steer the design to sit right with your architecture and your light. Sometimes the most sympathetic thing is boldly contemporary; sometimes it's quiet. We'll be honest about which.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 08 / WE WORK ACROSS</span><span>THE FENS &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Ely</li><li>Cambridge</li><li>Newmarket</li><li>Soham</li><li>March</li><li>Bury St Edmunds</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 09 / THE PAPERWORK</span><span>AS CAREFUL AS THE GLASS</span></div>
+    <div class="creds">
+      <div><div class="label">Accredited</div><div class="detail">ICON-accredited conservation, church &amp; listed work</div></div>
+      <div><div class="label">Guild</div><div class="detail">British Society of Master Glass Painters member</div></div>
+      <div><div class="label">Faculty</div><div class="detail">Experienced with DAC &amp; faculty processes</div></div>
+      <div><div class="label">Insured</div><div class="detail">Full cover for on-site &amp; heritage work</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="lead-head"><span>LIGHT 10 / FIND THE STUDIO</span><span>9 FOREHILL, ELY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Came &amp; Cathedral</strong><br />
+          The Glass Studio, 9 Forehill<br />
+          Ely CB7 4AA<br /><br />
+          <a href="tel:+441353720668" data-bind="business.phoneDisplay">01353 720 668</a><br />
+          <a href="mailto:studio@cameandcathedral.co.uk" data-bind="business.email">studio@cameandcathedral.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>VISITS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. Studio visits by appointment — best on a bright day, when the samples actually do what they promise.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Came &amp; Cathedral, Forehill, Ely" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=0.2520%2C52.3950%2C0.2720%2C52.4030&layer=mapnik&marker=52.3990%2C0.2620"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v17">
+  <div class="wrap">
+    <div class="tag">LIGHT 11 / COMMISSION</div>
+    <h2>Let's make something <em>the sun finishes.</em></h2>
+    <p data-bind="cta.body">Surveys are free, samples are fired in real glass, and we'll always tell you whether to conserve or create. Commission a window worth waiting for the light.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission a window</a>
+      <a class="btn btn-ghost" href="tel:+441353720668" data-bind="cta.secondary.label">01353 720 668</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441353720668" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Came <em style="color:var(--gold);">&amp;</em> Cathedral</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A stained glass studio in the shadow of Ely Cathedral. In lead and light since 2008.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          The Glass Studio, 9 Forehill<br />Ely CB7 4AA<br />
+          <a href="tel:+441353720668">01353 720 668</a><br />
+          <a href="mailto:studio@cameandcathedral.co.uk">studio@cameandcathedral.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The studio</a><a href="#about">The craft</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CAME &amp; CATHEDRAL STUDIO LTD</span>
+      <span>THE SUN FINISHES THE WORK</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

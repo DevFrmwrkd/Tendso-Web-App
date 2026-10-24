@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Valiant — single-screen independent cinema in Ludlow</title>
+<meta name="description" content="The Valiant is a single-screen independent cinema in Ludlow, Shropshire — one carefully chosen film at a time, a proper interval, real projection, and ice cream in tubs." />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Work+Sans:ital,wght@0,400;0,500;0,600;1,400&family=PT+Mono&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Valiant", phone: "+44 1584 872 209", phoneDisplay: "01584 872 209", email: "boxoffice@thevaliant.cinema", foundedYear: 1936 },
+  hero: {
+    kicker: "Single screen · est. 1936 · Mill Street, Ludlow",
+    headline: "One screen. One film. Chosen like it matters.",
+    lede: "The Valiant has shown exactly one film at a time since 1936. No screen seven, no recliner upsell, no twenty minutes of adverts. A programme picked by people who watch everything so you can watch the right thing — with an interval, because some films deserve a breath.",
+    primaryCta: { label: "This week's programme", href: "#services" },
+    secondaryCta: { label: "Find the cinema", href: "#location" },
+    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Red velvet cinema seats facing the screen."
+  },
+  trust: { years: "Projecting since 1936" },
+  about: {
+    heading: "Ninety years of one screen.",
+    paragraphs: [
+      "The Valiant opened in 1936 with a newsreel, a cartoon and a western, and it has survived television, video, the multiplex and the streaming era by doing the one thing none of them do: choosing. One film at a time, programmed by people who watch relentlessly, argued over at a Tuesday meeting that has been known to run three hours.",
+      "The auditorium seats 180 under the original barrel ceiling. The projection box runs modern digital and — four times a year, to a full house — the restored 35mm projector, which sounds like soft rain and smells faintly of warm metal.",
+      "There's an interval in anything over two and a quarter hours. Ice cream arrives in tubs, on trays, from a person. We are aware this is old-fashioned. It is also, by unanimous audience verdict, correct."
+    ],
+    portrait: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Film projector beam cutting through a dark auditorium."
+  },
+  services: [
+    { name: "The main programme", description: "One film, chosen weekly — new releases worth the name, restorations, and the occasional certified masterpiece. Evenings, plus Saturday matinée." },
+    { name: "Reel classics", description: "Sunday afternoons: one classic a month on the big screen, introduced in four unhurried minutes by whoever fought hardest for it at the Tuesday meeting." },
+    { name: "35mm nights", description: "Quarterly. Real film through the restored projector, and yes, you can hear it. Tickets go in a weekend." },
+    { name: "Parent & baby screenings", description: "Thursday mornings — lights up a touch, sound down a notch, pram parking in the foyer, nobody minds the crying. Ours or the babies'." },
+    { name: "Schools & young film club", description: "Term-time screenings for local schools and a Saturday film club that takes under-16s seriously as an audience. Subsidised, deliberately." },
+    { name: "The whole house, hired", description: "180 seats, the screen, the organ alcove and the bar, for premieres, weddings and one memorably contested pub-quiz final." }
+  ],
+  why: [
+    { title: "Programmed, not scheduled.", body: "A multiplex fills screens; we choose a film. The Tuesday programming meeting is the whole product — everything else is seats and light." },
+    { title: "Projection is a craft here.", body: "A trained projectionist checks focus, masking and sound for every single show. Four times a year the 35mm comes out. You can tell. That's the point." },
+    { title: "An audience, not footfall.", body: "Intervals, tub ice cream, a bar you can hear yourself in, and no adverts after the lights go down. People come alone here and nobody finds it odd." }
+  ],
+  how: [
+    { step: "01", title: "Check the board", body: "One film a week, posted outside, online, and in the window of the butcher's on King Street, by tradition nobody can explain." },
+    { step: "02", title: "Book or walk up", body: "Online booking exists and works. So does arriving at ten to eight with cash. Both are honoured equally." },
+    { step: "03", title: "Take your seat", body: "180 of them, original rake, new springs. Row F centre is the connoisseur's choice; we won't pretend otherwise." },
+    { step: "04", title: "The lights go down", body: "A short, curated trailer or two — never adverts — then the film. Interval if it's earned one. Ice cream either way." }
+  ],
+  testimonials: [
+    { quote: "Moving here from London I assumed I'd miss the BFI. The Valiant shows fewer films and chooses better. I've stopped reading reviews; I just go on Thursdays.", name: "Naomi H.", context: "Thursday regular, three years" },
+    { quote: "My daughter's film club ran a season of silent comedies and she came home explaining Buster Keaton to me like a tiny professor. Worth every penny they don't charge.", name: "Gareth E.", context: "film club parent" },
+    { quote: "The 35mm night of Lawrence of Arabia, with an interval, in that room — I have been to weddings that moved me less.", name: "Peter S.", context: "quarterly 35mm faithful" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600&q=85&auto=format&fit=crop", alt: "The auditorium, house lights half." },
+    { src: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1600&q=85&auto=format&fit=crop", alt: "The beam from the projection box." },
+    { src: "https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=1600&q=85&auto=format&fit=crop", alt: "The marquee after dark." },
+    { src: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1600&q=85&auto=format&fit=crop", alt: "35mm reels, checked and ready." },
+    { src: "https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=1600&q=85&auto=format&fit=crop", alt: "Popcorn done properly." },
+    { src: "https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=1600&q=85&auto=format&fit=crop", alt: "The foyer, ten minutes to curtain." }
+  ],
+  faq: [
+    { q: "Why only one film at a time?", a: "Because choosing is the service. Anyone can show you everything — that's called the internet. We watch everything so that what's on our screen is worth leaving the house for. Ninety years in, the method holds." },
+    { q: "Do I need to book?", a: "For 35mm nights and anything with 'restored' in the title, yes, quickly. For most evening shows, walking up works. Saturday matinées are the gamble; bring a fallback plan or a book." },
+    { q: "Is there really an interval?", a: "In anything over about two and a quarter hours, yes. Fifteen minutes, house lights, ice cream in tubs from a tray. Directors' estates have written to thank us. Audiences just queue happily." },
+    { q: "Is the cinema accessible?", a: "Step-free from Mill Street to the stalls, six wheelchair spaces with companion seats, a hearing loop, and regular subtitled and relaxed screenings — dates on the programme and the Google profile." },
+    { q: "Can I bring children?", a: "To anything their certificate allows, obviously — plus the Saturday film club for under-16s and parent-and-baby Thursdays where crying is expected and shushing is banned." },
+    { q: "What's on next week?", a: "Decided on Tuesday, posted by Wednesday: outside the cinema, on the website, and in the butcher's window on King Street. If you know why the butcher's, write in; the archive is incomplete." }
+  ],
+  area: { places: ["Ludlow", "Leominster", "Craven Arms", "Tenbury Wells", "Church Stretton", "Cleobury Mortimer"] },
+  credentials: [
+    { label: "Heritage", detail: "Grade II listed, original 1936 barrel ceiling" },
+    { label: "Projection", detail: "Digital 4K & restored 35mm, trained projectionist" },
+    { label: "Access", detail: "Step-free stalls, loop, subtitled & relaxed shows" },
+    { label: "Independent", detail: "Community-owned since 1994, one screen" }
+  ],
+  location: { name: "The Valiant", addressStreet: "14 Mill Street", addressLocality: "Ludlow", addressRegion: "Shropshire", addressPostcode: "SY8 1BB", addressCountry: "United Kingdom" },
+  cta: { heading: "The lights go down at eight.", body: "One film, chosen like it matters. Row F centre if you're quick.", primary: { label: "See the programme", href: "#services" }, secondary: { label: "01584 872 209", href: "tel:+441584872209" } },
+  messaging: { whatsapp: "https://wa.me/441584872209", messenger: "https://m.me/thevaliantludlow" }
+};
+</script>
+
+<style>
+  :root {
+    --ivory:#f6f1e6; --charcoal:#232020; --carmine:#b3202c; --gilt:#c9973f;
+    --mid:#7c756a; --rule:rgba(35,32,32,0.16);
+    --display:"DM Serif Display",serif;
+    --sans:"Work Sans",system-ui,sans-serif;
+    --mono:"PT Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--charcoal);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--carmine);}
+  .wrap{width:min(1180px,92vw);margin-inline:auto;}
+  .cert{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--carmine);}
+  .h2{font-family:var(--display);font-size:clamp(32px,4.4vw,58px);line-height:1.05;margin:0 0 0.5em;font-weight:400;}
+  .h2 em{font-style:italic;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(70px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 28px;font-family:var(--mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--carmine);color:var(--ivory);} .btn-primary:hover{background:var(--charcoal);}
+  .btn-ghost{border:1.5px solid var(--charcoal);} .btn-ghost:hover{background:var(--charcoal);color:var(--ivory);}
+  .prog-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--charcoal);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,56px);}
+  .marquee-dots{display:flex;gap:6px;margin-bottom:18px;}
+  .marquee-dots span{width:6px;height:6px;border-radius:50%;background:var(--gilt);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(246,241,230,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--charcoal);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-size:21px;text-decoration:none;}
+  .wm span{color:var(--carmine);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — marquee card over deep red curtain band */
+  .hero{padding:clamp(52px,7vw,100px) 0 0;}
+  .hero-top{display:grid;grid-template-columns:1fr;text-align:center;max-width:820px;margin-inline:auto;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(40px,5.4vw,76px);line-height:1.03;margin:20px 0 22px;}
+  .hero h1 em{font-style:italic;color:var(--carmine);}
+  .hero .lede{color:var(--mid);max-width:58ch;margin:0 auto;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin:32px 0 0;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .hero-figure{margin:clamp(44px,6vw,72px) auto 0;position:relative;max-width:1180px;}
+  .hero-figure img{width:100%;aspect-ratio:21/9;object-fit:cover;}
+  .hero-figure::before{content:"";position:absolute;inset:0 0 auto 0;height:10px;background:repeating-linear-gradient(90deg,var(--charcoal) 0 18px,transparent 18px 26px);}
+  .now-showing{position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);background:var(--charcoal);color:var(--ivory);padding:14px 30px;font-family:var(--mono);font-size:10px;letter-spacing:0.22em;text-transform:uppercase;white-space:nowrap;}
+  .now-showing b{color:var(--gilt);font-weight:400;}
+
+  .trust{margin-top:26px;padding:0;background:var(--charcoal);color:var(--ivory);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(246,241,230,0.7);}
+
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.76;margin:0 0 1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — programme listings */
+  .prog{border-top:1.5px solid var(--charcoal);}
+  .prog-row{display:grid;grid-template-columns:130px 1fr 1.4fr;gap:clamp(18px,3vw,44px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .prog-row .scr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--carmine);text-transform:uppercase;}
+  .prog-row h3{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.1vw,26px);margin:0;line-height:1.15;}
+  .prog-row p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.prog-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--carmine);color:var(--ivory);}
+  .why .h2{color:var(--ivory);}
+  .why .prog-head{border-color:rgba(246,241,230,0.5);color:rgba(246,241,230,0.7);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--gilt);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:23px;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(246,241,230,0.88);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--charcoal);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;color:var(--carmine);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#ece4d3;}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(24px,3.1vw,42px);line-height:1.2;max-width:30ch;margin:0 0 22px;}
+  .t-quote em{font-style:italic;color:var(--carmine);}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--charcoal);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — lobby cards */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;background:#fff;padding:10px 10px 16px;box-shadow:0 2px 0 var(--rule);}
+  .g-grid img{width:100%;aspect-ratio:3/2;object-fit:cover;filter:saturate(0.92);}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:12px;text-align:center;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--charcoal);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"▸";color:var(--carmine);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--charcoal);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--charcoal);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--carmine);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-size:16.5px;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1.5px solid var(--charcoal);padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--charcoal);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--charcoal);color:var(--ivory);padding:clamp(84px,10vw,144px) 0;text-align:center;}
+  .cta-band .cert{color:var(--gilt);}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(36px,5vw,72px);line-height:1.04;margin:16px auto 18px;max-width:16ch;}
+  .cta-band h2 em{font-style:italic;color:var(--gilt);}
+  .cta-band p{color:rgba(246,241,230,0.8);max-width:44ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--carmine);}
+  .cta-band .btn-primary:hover{background:var(--gilt);color:var(--charcoal);}
+  .cta-band .btn-ghost{border-color:rgba(246,241,230,0.55);color:var(--ivory);}
+  .cta-band .btn-ghost:hover{background:var(--ivory);color:var(--charcoal);}
+
+  footer{background:var(--ivory);border-top:1.5px solid var(--charcoal);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--carmine);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--ivory);padding:13px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 8px 24px rgba(35,32,32,0.3);}
+  .msg-fab a:hover{background:var(--carmine);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"MovieTheater","name":"The Valiant","description":"Single-screen independent cinema in Ludlow, Shropshire. One carefully chosen film at a time, real projection, intervals and tub ice cream.","url":"https://thevaliant.cinema/","telephone":"+441584872209","email":"boxoffice@thevaliant.cinema","address":{"@type":"PostalAddress","streetAddress":"14 Mill Street","addressLocality":"Ludlow","addressRegion":"Shropshire","postalCode":"SY8 1BB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.3679,"longitude":-2.7186},"areaServed":["Ludlow","Leominster","Craven Arms","Tenbury Wells"],"image":["https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600"],"foundingDate":"1936"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why only one film at a time?","acceptedAnswer":{"@type":"Answer","text":"Choosing is the service. We watch everything so what's on our screen is worth leaving the house for."}},
+{"@type":"Question","name":"Do I need to book?","acceptedAnswer":{"@type":"Answer","text":"For 35mm nights and restorations, yes. Most evening shows take walk-ups."}},
+{"@type":"Question","name":"Is there really an interval?","acceptedAnswer":{"@type":"Answer","text":"In anything over about two and a quarter hours — fifteen minutes, house lights, ice cream in tubs."}},
+{"@type":"Question","name":"Is the cinema accessible?","acceptedAnswer":{"@type":"Answer","text":"Step-free stalls, six wheelchair spaces, hearing loop, and regular subtitled and relaxed screenings."}},
+{"@type":"Question","name":"Can I bring children?","acceptedAnswer":{"@type":"Answer","text":"Anything their certificate allows, plus Saturday film club and parent-and-baby Thursdays."}},
+{"@type":"Question","name":"What's on next week?","acceptedAnswer":{"@type":"Answer","text":"Decided Tuesday, posted Wednesday — outside the cinema, online, and in the butcher's window on King Street."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">The <span>Valiant</span></a>
+    <nav class="nav-links">
+      <a href="#services">Programme</a><a href="#about">The house</a><a href="#location">Find us</a><a href="#tickets">Tickets</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v31">
+  <div class="wrap">
+    <div class="hero-top">
+      <div class="marquee-dots" style="justify-content:center;"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="cert" data-bind="hero.kicker">Single screen · est. 1936 · Mill Street, Ludlow</div>
+      <h1 data-bind="hero.headline">One screen. One film. <em>Chosen like it matters.</em></h1>
+      <p class="lede" data-bind="hero.lede">The Valiant has shown exactly one film at a time since 1936. No screen seven, no recliner upsell, no twenty minutes of adverts. A programme picked by people who watch everything so you can watch the right thing — with an interval, because some films deserve a breath.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">This week's programme</a>
+        <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the cinema</a>
+      </div>
+    </div>
+    <figure class="hero-figure" style="margin-bottom:0;">
+      <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=2000&q=85&auto=format&fit=crop"
+           alt="Red velvet cinema seats facing the screen." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <figcaption class="now-showing">NOW SHOWING · <b>ONE FILM, CHOSEN TUESDAY</b> · DOORS 19:15</figcaption>
+    </figure>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Projecting since 1936</span>
+    <span>Community-owned</span>
+    <span>Digital 4K &amp; 35mm</span>
+    <span>No adverts after lights down</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 01 / THE HOUSE</span><span>GRADE II · BARREL CEILING · 180 SEATS</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1200&q=85&auto=format&fit=crop"
+           alt="Film projector beam cutting through a dark auditorium." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Ninety years of <em>one screen.</em></h2>
+        <p>The Valiant opened in 1936 with a newsreel, a cartoon and a western, and it has survived television, video, the multiplex and the streaming era by doing the one thing none of them do: choosing. One film at a time, programmed by people who watch relentlessly, argued over at a Tuesday meeting that has been known to run three hours.</p>
+        <p>The auditorium seats 180 under the original barrel ceiling. The projection box runs modern digital and — four times a year, to a full house — the restored 35mm projector, which sounds like soft rain and smells faintly of warm metal.</p>
+        <p>There's an interval in anything over two and a quarter hours. Ice cream arrives in tubs, on trays, from a person. We are aware this is old-fashioned. It is also, by unanimous audience verdict, correct.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v24">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 02 / THE PROGRAMME</span><span>DECIDED TUESDAY · POSTED WEDNESDAY</span></div>
+    <h2 class="h2">On the bill.</h2>
+    <div class="prog">
+      <div class="prog-row"><span class="scr">HOUSE · EVENINGS</span><h3>The main programme</h3><p>One film, chosen weekly — new releases worth the name, restorations, and the occasional certified masterpiece. Evenings, plus Saturday matinée.</p></div>
+      <div class="prog-row"><span class="scr">SUN · MONTHLY</span><h3>Reel classics</h3><p>Sunday afternoons: one classic a month on the big screen, introduced in four unhurried minutes by whoever fought hardest for it at the Tuesday meeting.</p></div>
+      <div class="prog-row"><span class="scr">QUARTERLY</span><h3>35mm nights</h3><p>Real film through the restored projector, and yes, you can hear it. Tickets go in a weekend.</p></div>
+      <div class="prog-row"><span class="scr">THU · MORNINGS</span><h3>Parent &amp; baby screenings</h3><p>Lights up a touch, sound down a notch, pram parking in the foyer, nobody minds the crying. Ours or the babies'.</p></div>
+      <div class="prog-row"><span class="scr">TERM-TIME</span><h3>Schools &amp; young film club</h3><p>Screenings for local schools and a Saturday film club that takes under-16s seriously as an audience. Subsidised, deliberately.</p></div>
+      <div class="prog-row"><span class="scr">BY ARRANGEMENT</span><h3>The whole house, hired</h3><p>180 seats, the screen, the organ alcove and the bar, for premieres, weddings and one memorably contested pub-quiz final.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 03 / THE ARGUMENT</span><span>WHY A SINGLE SCREEN SURVIVES</span></div>
+    <h2 class="h2">Why we're still here.</h2>
+    <div class="why-grid">
+      <div><span class="no">EXHIBIT A</span><h3>Programmed, not scheduled.</h3><p>A multiplex fills screens; we choose a film. The Tuesday programming meeting is the whole product — everything else is seats and light.</p></div>
+      <div><span class="no">EXHIBIT B</span><h3>Projection is a craft here.</h3><p>A trained projectionist checks focus, masking and sound for every single show. Four times a year the 35mm comes out. You can tell. That's the point.</p></div>
+      <div><span class="no">EXHIBIT C</span><h3>An audience, not footfall.</h3><p>Intervals, tub ice cream, a bar you can hear yourself in, and no adverts after the lights go down. People come alone here and nobody finds it odd.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 04 / A NIGHT OUT</span><span>BOARD → ROW F</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Check the board</h3><p>One film a week, posted outside, online, and in the window of the butcher's on King Street, by tradition nobody can explain.</p></li>
+      <li><span class="step">Step 02</span><h3>Book or walk up</h3><p>Online booking exists and works. So does arriving at ten to eight with cash. Both are honoured equally.</p></li>
+      <li><span class="step">Step 03</span><h3>Take your seat</h3><p>180 of them, original rake, new springs. Row F centre is the connoisseur's choice; we won't pretend otherwise.</p></li>
+      <li><span class="step">Step 04</span><h3>The lights go down</h3><p>A short, curated trailer or two — never adverts — then the film. Interval if it's earned one. Ice cream either way.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 05 / THE STALLS SPEAK</span><span>COLLECTED IN THE FOYER</span></div>
+    <blockquote class="t-quote">“The Valiant shows fewer films and chooses better. I've stopped reading reviews; <em>I just go on Thursdays.</em>”</blockquote>
+    <div class="t-attr">Naomi H. — Thursday regular, three years</div>
+    <div class="t-sub">
+      <figure><blockquote>“My daughter's film club ran a season of silent comedies and she came home explaining Buster Keaton to me like a tiny professor. Worth every penny they don't charge.”</blockquote><figcaption>Gareth E. — film club parent</figcaption></figure>
+      <figure><blockquote>“The 35mm night of Lawrence of Arabia, with an interval, in that room — I have been to weddings that moved me less.”</blockquote><figcaption>Peter S. — quarterly 35mm faithful</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v24">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 06 / LOBBY CARDS</span><span>THE HOUSE, PHOTOGRAPHED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600&q=85&auto=format&fit=crop" alt="The auditorium, house lights half." /><figcaption>THE STALLS, HOUSE LIGHTS HALF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1600&q=85&auto=format&fit=crop" alt="The beam from the projection box." /><figcaption>THE BEAM, REEL TWO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1595769816263-9b910be24d5f?w=1600&q=85&auto=format&fit=crop" alt="The marquee after dark." /><figcaption>THE MARQUEE, 21:40</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=1600&q=85&auto=format&fit=crop" alt="35mm reels, checked and ready." /><figcaption>35MM, CHECKED TWICE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=1600&q=85&auto=format&fit=crop" alt="Popcorn done properly." /><figcaption>THE CONCESSIONS QUESTION</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=1600&q=85&auto=format&fit=crop" alt="The foyer, ten minutes to curtain." /><figcaption>FOYER, TEN TO CURTAIN</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 07 / ASKED AT THE BOX OFFICE</span><span>USUALLY AT TEN TO EIGHT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the <em>box office.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441584872209" style="color:var(--carmine);">01584 872 209</a>. During a show the phone is off; that should tell you everything about our priorities.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why only one film at a time?</summary><p>Because choosing is the service. Anyone can show you everything — that's called the internet. We watch everything so that what's on our screen is worth leaving the house for. Ninety years in, the method holds.</p></details>
+        <details><summary>Do I need to book?</summary><p>For 35mm nights and anything with "restored" in the title, yes, quickly. For most evening shows, walking up works. Saturday matinées are the gamble; bring a fallback plan or a book.</p></details>
+        <details><summary>Is there really an interval?</summary><p>In anything over about two and a quarter hours, yes. Fifteen minutes, house lights, ice cream in tubs from a tray. Directors' estates have written to thank us. Audiences just queue happily.</p></details>
+        <details><summary>Is the cinema accessible?</summary><p>Step-free from Mill Street to the stalls, six wheelchair spaces with companion seats, a hearing loop, and regular subtitled and relaxed screenings — dates on the programme and the Google profile.</p></details>
+        <details><summary>Can I bring children?</summary><p>To anything their certificate allows, obviously — plus the Saturday film club for under-16s and parent-and-baby Thursdays where crying is expected and shushing is banned.</p></details>
+        <details><summary>What's on next week?</summary><p>Decided on Tuesday, posted by Wednesday: outside the cinema, on the website, and in the butcher's window on King Street. If you know why the butcher's, write in; the archive is incomplete.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 08 / THE AUDIENCE DRIVES FROM</span><span>SOUTH SHROPSHIRE &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Ludlow</li><li>Leominster</li><li>Craven Arms</li><li>Tenbury Wells</li><li>Church Stretton</li><li>Cleobury Mortimer</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 09 / THE PAPERWORK</span><span>LISTED, LOOPED, LICENSED</span></div>
+    <div class="creds">
+      <div><div class="label">Heritage</div><div class="detail">Grade II listed, original 1936 barrel ceiling</div></div>
+      <div><div class="label">Projection</div><div class="detail">Digital 4K &amp; restored 35mm, trained projectionist</div></div>
+      <div><div class="label">Access</div><div class="detail">Step-free stalls, loop, subtitled &amp; relaxed shows</div></div>
+      <div><div class="label">Independent</div><div class="detail">Community-owned since 1994, one screen</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="prog-head"><span>REEL 10 / FIND US</span><span>14 MILL STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Valiant</strong><br />
+          14 Mill Street<br />
+          Ludlow SY8 1BB<br /><br />
+          <a href="tel:+441584872209" data-bind="business.phoneDisplay">01584 872 209</a><br />
+          <a href="mailto:boxoffice@thevaliant.cinema" data-bind="business.email">boxoffice@thevaliant.cinema</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>BOX OFFICE</span><span>FROM 45 MIN BEFORE</span></div>
+          <div class="row"><span>SHOWTIMES</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">Showtimes live on our Google Business Profile and the board outside. The bar opens an hour before the evening show.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Valiant, Mill Street, Ludlow" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.7280%2C52.3640%2C-2.7090%2C52.3720&layer=mapnik&marker=52.3679%2C-2.7186"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="tickets" class="cta-band" data-component="CTA-BAND" data-variant="v4">
+  <div class="wrap">
+    <div class="cert">REEL 11 / TONIGHT</div>
+    <h2 data-bind="cta.heading">The lights go down <em>at eight.</em></h2>
+    <p data-bind="cta.body">One film, chosen like it matters. Row F centre if you're quick.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">See the programme</a>
+      <a class="btn btn-ghost" href="tel:+441584872209" data-bind="cta.secondary.label">01584 872 209</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441584872209" data-bind="messaging.whatsapp" aria-label="Message the box office">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">The <span>Valiant</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A single-screen independent cinema on Mill Street, Ludlow. Since 1936.</p>
+      </div>
+      <div>
+        <h4>The house</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          14 Mill Street<br />Ludlow SY8 1BB<br />
+          <a href="tel:+441584872209">01584 872 209</a><br />
+          <a href="mailto:boxoffice@thevaliant.cinema">boxoffice@thevaliant.cinema</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Programme</a><a href="#about">The house</a><a href="#location">Find us</a><a href="#tickets">Tickets</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THE VALIANT CINEMA CIC</span>
+      <span>ONE SCREEN IS PLENTY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

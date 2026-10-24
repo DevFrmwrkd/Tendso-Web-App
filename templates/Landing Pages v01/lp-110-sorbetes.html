@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manong's Sorbetes — the painted cart, ube, keso & mango dirty ice cream, bookings across Metro Manila</title>
+<meta name="description" content="Manong's Sorbetes is a traditional sorbetes (dirty ice cream) maker in Marikina — coconut-milk ice cream in ube, keso, mango, chocolate and tsokolate flavours, scooped from the painted wooden cart onto a cone or pan de sal, plus cart bookings for parties, weddings and events. Since 2014." />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Manong's Sorbetes", phone: "+63 917 555 0210", phoneDisplay: "0917 555 0210", email: "boking@manongsorbetes.ph", foundedYear: 2014 },
+  hero: {
+    kicker: "Traditional sorbetes · dirty ice cream cart · party bookings · Marikina, Metro Manila",
+    headline: "It's called dirty ice cream. It's the cleanest, happiest thing in the barangay.",
+    lede: "Traditional sorbetes churned the old way — creamy coconut-milk ice cream in ube, keso, mango, chocolate and tsokolate — scooped from a hand-painted wooden cart with the brass bell and the striped umbrella. On a cone, in a cup, or the proper way: stuffed into pan de sal. Manong parks anywhere, and we book the whole cart for parties, weddings and events.",
+    primaryCta: { label: "Book the cart", href: "#book" },
+    secondaryCta: { label: "The flavours", href: "#services" },
+    image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Scoops of colourful ice cream in a traditional container."
+  },
+  trust: { years: "Ringing the bell since 2014" },
+  about: {
+    heading: "'Dirty' is a joke. There's nothing dirty about it — just the street, and joy.",
+    paragraphs: [
+      "Manong's Sorbetes is a traditional sorbetes maker, and first, that name: sorbetes is affectionately called 'dirty ice cream' — not because it's unclean, but because it's the humble street version, sold from a cart on the corner rather than a shiny parlour, the ice cream of Filipino childhood. The nickname is a badge of honour. There's nothing dirty about it; there's everything nostalgic about it.",
+      "What makes sorbetes special is that it's traditionally made with coconut milk (gata) or carabao's milk rather than heavy dairy cream, which gives it a lighter, cleaner, distinctly Filipino character — and flavours that belong to nowhere else: ube (purple yam), keso (yes, cheese, and it's wonderful), mango, chocolate, and thick tsokolate. We churn ours the old way and keep it in the classic drum inside a hand-painted wooden cart, complete with the brass bell that every Filipino recognises from a hundred metres.",
+      "We started in 2014 to keep the tradition rolling — literally. Manong pushes the cart through neighbourhoods, parks near schools and plazas, and scoops onto a cone, into a cup, or, for the purists, stuffed inside a soft pan de sal, which is exactly how a lot of us first ate it. And we book the whole cart, manong and all, for parties, weddings, reunions and corporate events — because nothing makes a crowd smile like the bell, the umbrella, and unlimited scoops."
+    ],
+    portrait: "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A colourful scoop of ice cream on a cone."
+  },
+  services: [
+    { name: "The classic flavours", description: "Ube, keso (cheese), mango, chocolate and tsokolate — the sorbetes line-up of Filipino childhood, churned with coconut milk for that lighter, cleaner scoop. Ask for a mix; nobody said you can only have one." },
+    { name: "Cone, cup, or pan de sal", description: "On a sugar cone, in a cup, or the true-blue way — a scoop stuffed inside soft pan de sal, the ice-cream sandwich every Filipino kid grew up on. However you had it first, we serve it that way." },
+    { name: "Book the cart for parties", description: "The whole hand-painted cart, manong, bell and umbrella, at your event — birthdays, kids' parties, reunions. Unlimited scoops for your guests for a set time. The easiest, happiest crowd-pleaser there is." },
+    { name: "Weddings & corporate events", description: "A charming, nostalgic dessert station for weddings, launches and company events — the sorbetes cart as a photo-worthy centrepiece that guests of every age line up for. We coordinate timing and headcount with your organiser." },
+    { name: "Neighbourhood rounds", description: "Manong still pushes the cart through the barangay and parks near schools and plazas on his regular rounds — follow the bell. Message us to find out where the cart is today, or to request a stop on your street." },
+    { name: "Tubs & take-home", description: "Love a flavour? Take home a tub of ube, keso or mango sorbetes for the freezer — the same coconut-milk churn, ready for merienda and unexpected guests. Order ahead and collect, or add to a booking." }
+  ],
+  why: [
+    { title: "Churned with coconut milk.", body: "Real sorbetes is made with gata or carabao's milk, not heavy cream — lighter, cleaner and unmistakably Filipino. It's why a scoop on a hot day refreshes rather than sits heavy. We keep it traditional." },
+    { title: "Flavours from home.", body: "Ube, keso, mango, tsokolate — the flavours you grew up on, not imported novelties. Cheese ice cream sounds odd until you remember it's the best one. This is the taste of a Filipino childhood." },
+    { title: "The cart is the magic.", body: "The hand-painted wood, the brass bell, the striped umbrella, manong's scoop — the whole thing is nostalgia on wheels. At a party it's a centrepiece; on the street it's a memory. That's what you're booking." }
+  ],
+  how: [
+    { step: "01", title: "Find the cart, or book it", body: "Catch manong on his neighbourhood rounds — follow the bell — or book the whole cart for your event. Message us to find today's route or to reserve a date for a party, wedding or corporate do." },
+    { step: "02", title: "Pick your flavours", body: "For a booking, tell us which flavours you'd like on the cart — ube, keso, mango, chocolate, tsokolate — and roughly how many guests. We'll bring enough churned fresh so nobody misses out." },
+    { step: "03", title: "Cone, cup or pan de sal", body: "At the cart or your event, guests choose their scoop and how to have it — cone, cup, or the classic pan de sal. Unlimited for the booked time; manong keeps the queue moving and the bell ringing." },
+    { step: "04", title: "Everyone leaves smiling", body: "Kids, titas, lolos — the cart flattens every age gap at an event. Take home a tub if you fell for a flavour, and message us next time you want the bell on your street or at your party." }
+  ],
+  testimonials: [
+    { quote: "We booked Manong's cart for my daughter's 7th birthday and it was, hands down, the best decision. The kids went feral for it, the adults got misty about their childhood, and the ube-in-pan-de-sal disappeared instantly. The cart looks gorgeous in photos too. Ten out of ten, will book again.", name: "Aileen R.", context: "kids' party booking" },
+    { quote: "Had the sorbetes cart at our wedding as the merienda station and it stole the show from the fancy dessert table. Everyone lined up, everyone smiled, and our lolos said it took them back seventy years. Keso ice cream at a wedding — genius. Thank you, manong!", name: "Trina & Karl", context: "wedding booking" },
+    { quote: "Manong parks near our village gate and my kids can hear the bell from inside the house. Real coconut-milk sorbetes, proper ube and cheese, and manong is the kindest man alive. This is a piece of Filipino childhood still rolling around our streets. We're so glad it exists.", name: "The Fajardo family", context: "neighbourhood regulars" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=1600&q=85&auto=format&fit=crop", alt: "Scoops of colourful ice cream in a container." },
+    { src: "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1600&q=85&auto=format&fit=crop", alt: "A colourful scoop of ice cream on a cone." },
+    { src: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop", alt: "A bright dessert counter." },
+    { src: "https://images.unsplash.com/photo-1560008581-09826d1de69e?w=1600&q=85&auto=format&fit=crop", alt: "Ice cream cones held up." },
+    { src: "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=85&auto=format&fit=crop", alt: "A colourful scoop close up." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A festive gathering at dusk." }
+  ],
+  faq: [
+    { q: "Why is sorbetes called 'dirty ice cream' — is it actually unhygienic?", a: "No — the nickname is affectionate and a little tongue-in-cheek, not a description of the hygiene. 'Dirty ice cream' (sorbetes) got the name simply because it's the humble, street-sold version of ice cream: dispensed from a colourful cart pushed around neighbourhoods and parked by schools and plazas, rather than served in a fancy air-conditioned parlour. To generations of Filipinos it's the ice cream of childhood, and the 'dirty' tag is worn almost with pride, the way people fondly call other beloved street foods by cheeky names. In practice we take cleanliness seriously — the ice cream is churned and handled properly, kept cold in the traditional drum, and served with clean scoops and utensils. So the name is pure nostalgia and humour; there's nothing dirty about it. If anything, it's one of the happiest, most wholesome things you'll find rolling down a Filipino street." },
+    { q: "What flavours do you have, and what's this about cheese ice cream?", a: "Our line-up is the classic Filipino sorbetes roster: ube (purple yam), keso (cheese), mango, chocolate and tsokolate (a thicker, richer chocolate). And yes — keso, cheese ice cream, is a real and beloved Filipino flavour, and it tends to be the one that surprises first-timers and then wins them over completely. It's mildly sweet, savoury-edged and creamy, often with little bits of cheese through it, and it works far better than it sounds precisely because sorbetes isn't overly sweet to begin with. Ube is the eternal favourite for its gentle, nutty flavour and gorgeous purple colour, mango is bright and summery, and the chocolate and tsokolate cover the classic craving. Most people get a mix — half the fun is a scoop of ube next to a scoop of keso. For bookings, you choose which flavours you'd like on the cart. If you've never had cheese ice cream, this is your sign: order a scoop, thank us later." },
+    { q: "What makes sorbetes different from regular ice cream?", a: "The biggest difference is the base: traditional sorbetes is made with coconut milk (gata) or carabao's (water buffalo) milk rather than the heavy dairy cream used in most commercial ice cream. That gives sorbetes a lighter, cleaner, less heavy texture and a distinct flavour that lets the ube, mango and other flavours come through brightly — it's refreshing on a hot day in a way that rich, dense premium ice cream often isn't. It's typically a little less sweet and less fatty too, which is part of why you can happily eat it in the tropical heat and why the cheese flavour works so well against it. Beyond the recipe, sorbetes is defined by its whole context: the hand-painted wooden cart, the metal drum it's kept in, the brass bell, and the ways it's served — including stuffed into pan de sal. It's less a dessert you buy and more an experience you remember. We make ours the traditional coconut-milk way precisely to keep that character intact." },
+    { q: "Can I really have it in a bread roll (pan de sal)?", a: "Yes, and honestly you should try it at least once — sorbetes stuffed inside a soft pan de sal is a genuine, much-loved Filipino way of eating it, effectively the original ice cream sandwich, and for a lot of Filipinos it's exactly how they first had it as kids. The slightly sweet, pillowy bread against the cold, creamy scoop is a surprisingly perfect combination: the bread soaks up a little of the melt, it's easy to hold and eat on the go, and it's more filling, which made it a smart, affordable merienda for generations of schoolkids. We happily serve it this way alongside the usual cone and cup, and at bookings it's often the option that gets the biggest delighted reaction from anyone who grew up with it. If you've only ever had sorbetes on a cone, ask manong for the pan de sal version — it's a small, delicious piece of edible nostalgia, and it costs next to nothing to make someone's day with it." },
+    { q: "How do I book the cart for a party, wedding or event?", a: "Just message or call us with your date, location, rough guest count and the kind of event, and we'll take it from there. Booking the cart means you get the whole package: the hand-painted wooden sorbetes cart, manong to scoop and keep the queue happy, the bell and umbrella, and unlimited scoops of your chosen flavours for guests for an agreed period of time. It's a phenomenally popular choice for kids' birthdays, family reunions, weddings, school fairs, store openings and corporate events, precisely because it delights every age group and doubles as a charming, photogenic centrepiece. We coordinate timing, flavours and headcount with you (or your event organiser) ahead of the day so there's plenty churned and nobody misses out, and we'll advise on how many flavours and how long makes sense for your crowd. Popular dates — weekends, holidays, the December party season — get booked up, so reach out as early as you can to secure the cart for your day." },
+    { q: "Do you sell tubs to take home, and where can I find the cart normally?", a: "Yes to both. If you fall for a flavour, we sell tubs of our coconut-milk sorbetes — ube, keso, mango and the rest — to take home for the freezer, which is perfect for merienda and for the very Filipino situation of unexpected guests arriving; you can order ahead and collect, or add tubs to an event booking. As for finding the cart day to day: manong still does neighbourhood rounds around Marikina and nearby areas, pushing the cart through villages and parking near schools, plazas and village gates, and the classic way to find him is simply to follow the bell. Because the route moves, the easiest thing is to message us to ask where the cart is that day, or to request a stop on your street or at your village if there's demand from the neighbours. For anything guaranteed — a specific place and time — a booking is the sure way, but there's a special magic to just hearing that bell down the road and running out with your coins." }
+  ],
+  area: { places: ["Marikina", "Quezon City", "Pasig", "Cainta", "Metro Manila", "Cart bookings"] },
+  credentials: [
+    { label: "Since 2014", detail: "Keeping the painted cart rolling" },
+    { label: "Coconut-milk churn", detail: "Traditional gata base, lighter & cleaner" },
+    { label: "Ube · keso · mango", detail: "The flavours of Filipino childhood" },
+    { label: "Cart bookings", detail: "Parties, weddings & events, manong included" }
+  ],
+  location: { name: "Manong's Sorbetes", addressStreet: "5 Bayan-Bayanan Ave, Concepcion", addressLocality: "Marikina", addressRegion: "Metro Manila", addressPostcode: "1807", addressCountry: "Philippines" },
+  cta: { heading: "Book the bell. Watch everyone become a kid again.", body: "Traditional coconut-milk sorbetes in ube, keso, mango and tsokolate, scooped from the hand-painted cart onto a cone, a cup or a pan de sal — plus cart bookings for parties, weddings and events across Metro Manila. Rolling since 2014.", primary: { label: "Book the cart", href: "#book" }, secondary: { label: "0917 555 0210", href: "tel:+639175550210" } },
+  messaging: { whatsapp: "https://wa.me/639175550210", messenger: "https://m.me/manongsorbetes" }
+};
+</script>
+
+<style>
+  :root {
+    --sky:#2e73c9; --sky-2:#1f57a0; --cream:#fff6ea; --cream-2:#fffbf3; --ink:#26303b; --ink-2:#485768;
+    --ube:#7a3f9c; --keso:#f2b83a; --mango:#f28a1e; --cherry:#e0483f;
+    --mid:#8593a1; --rule:rgba(38,48,59,0.12);
+    --disp:"Baloo 2",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--cherry);}
+  .wrap{width:min(1260px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--cherry);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(36px,5.2vw,76px);line-height:1.02;margin:0 0 0.3em;letter-spacing:-0.015em;}
+  .h2 em{font-style:normal;color:var(--cherry);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(74px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--cherry);color:var(--cream-2);} .btn-primary:hover{background:var(--sky);}
+  .btn-ghost{border:2px solid var(--sky);color:var(--sky);} .btn-ghost:hover{background:var(--sky);color:var(--cream-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(255,246,234,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--sky);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:23px;text-decoration:none;letter-spacing:-0.02em;color:var(--sky);}
+  .wm span{color:var(--cherry);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6vw,92px);line-height:1.0;letter-spacing:-0.025em;margin:0 0 32px;max-width:18ch;color:var(--sky);}
+  .hero-headline .em{color:var(--cherry);}
+  .hero-headline .em2{color:var(--ube);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px;border:3px solid var(--sky);}
+  .hero-photo::after{content:"FOLLOW THE BELL · SINCE 2014";position:absolute;left:-8px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;background:var(--keso);color:var(--ink);padding:8px 14px;border-radius:999px;border:2.5px solid var(--sky);transform:rotate(-3deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--sky);color:var(--cream-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,251,243,0.9);font-weight:700;}
+
+  .about{background:var(--cream-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:18px;border:3px solid var(--sky);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--sky);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(224,72,63,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--ube);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(23px,2.5vw,33px);margin:0;line-height:1.06;letter-spacing:-0.015em;color:var(--sky-2);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ube);color:var(--cream-2);}
+  .why .sw-head{color:rgba(255,251,243,0.72);border-color:rgba(255,251,243,0.24);}
+  .why .h2{color:var(--cream-2);} .why .h2 em{color:var(--keso);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--keso);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:26px;margin:0 0 10px;line-height:1.06;letter-spacing:-0.015em;}
+  .why-grid p{color:rgba(255,251,243,0.88);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--cherry);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--ube);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:22px;margin:8px 0 8px;line-height:1.08;letter-spacing:-0.015em;color:var(--sky-2);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ink);color:var(--cream);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.5vw,50px);line-height:1.1;max-width:26ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--keso);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--keso);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid rgba(255,246,234,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(255,246,234,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,246,234,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:14px;border:3px solid var(--sky);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--cherry);color:var(--cream-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--sky);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.18;letter-spacing:-0.015em;color:var(--sky-2);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--cherry);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--sky);border-radius:999px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--keso);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--cherry);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.16;letter-spacing:-0.015em;color:var(--sky-2);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--sky);color:var(--cream-2);padding:34px;border-radius:18px;border:3px solid var(--ink);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.3;letter-spacing:-0.015em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:rgba(255,251,243,0.92);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(255,251,243,0.28);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(255,251,243,0.82);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(255,251,243,0.82);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:18px;border:3px solid var(--sky);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.1) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--cherry);color:var(--cream-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:800;font-size:clamp(40px,6vw,96px);line-height:1.0;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.025em;}
+  .cta-band h2 em{font-style:normal;color:var(--keso);}
+  .cta-band p{color:rgba(255,251,243,0.94);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream-2);color:var(--cherry);} .cta-band .btn-primary:hover{background:var(--sky);color:var(--cream-2);}
+  .cta-band .btn-ghost{border-color:var(--cream-2);color:var(--cream-2);} .cta-band .btn-ghost:hover{background:var(--cream-2);color:var(--cherry);}
+
+  footer{background:var(--ink);color:var(--cream);border-top:3px solid var(--keso);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--keso);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(255,246,234,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(255,246,234,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,246,234,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--cherry);color:var(--cream-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(224,72,63,0.4);border:2.5px solid var(--cream-2);}
+  .msg-fab a:hover{background:var(--sky);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FoodEstablishment","name":"Manong's Sorbetes","description":"Traditional sorbetes (dirty ice cream) maker in Marikina — coconut-milk ice cream in ube, keso, mango, chocolate and tsokolate, scooped from a hand-painted cart onto a cone, cup or pan de sal, plus cart bookings for parties, weddings and events. Since 2014.","servesCuisine":"Filipino desserts","url":"https://manongsorbetes.ph/","telephone":"+639175550210","email":"boking@manongsorbetes.ph","address":{"@type":"PostalAddress","streetAddress":"5 Bayan-Bayanan Ave, Concepcion","addressLocality":"Marikina","addressRegion":"Metro Manila","postalCode":"1807","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.6510,"longitude":121.1050},"areaServed":["Marikina","Quezon City","Pasig","Cainta"],"image":["https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is sorbetes called 'dirty ice cream'?","acceptedAnswer":{"@type":"Answer","text":"The nickname is affectionate and tongue-in-cheek, not about hygiene. Sorbetes got the name because it's the humble, street-sold version — from a colourful cart pushed around neighbourhoods, not a fancy parlour — and to generations of Filipinos it's the ice cream of childhood, so the 'dirty' tag is worn almost with pride. In practice we take cleanliness seriously: churned and handled properly, kept cold in the traditional drum, served with clean scoops. The name is pure nostalgia and humour."}},
+{"@type":"Question","name":"What flavours do you have, and what's this about cheese ice cream?","acceptedAnswer":{"@type":"Answer","text":"The classic roster: ube (purple yam), keso (cheese), mango, chocolate and tsokolate. Keso is a real, beloved Filipino flavour — mildly sweet, savoury-edged and creamy, often with cheese bits through it — and it wins over first-timers because sorbetes isn't overly sweet to begin with. Ube is the eternal favourite, mango is bright, chocolate covers the craving. Most people get a mix. For bookings you choose the cart's flavours. Never had cheese ice cream? This is your sign."}},
+{"@type":"Question","name":"What makes sorbetes different from regular ice cream?","acceptedAnswer":{"@type":"Answer","text":"The base: traditional sorbetes uses coconut milk (gata) or carabao's milk rather than heavy dairy cream, giving it a lighter, cleaner, less heavy texture that lets flavours come through brightly and refreshes on a hot day. It's typically less sweet and less fatty, which is why the cheese flavour works so well. Beyond the recipe, sorbetes is defined by the painted cart, the drum, the bell and the ways it's served — including in pan de sal. We make ours the traditional coconut-milk way to keep that character."}},
+{"@type":"Question","name":"Can I really have it in a bread roll (pan de sal)?","acceptedAnswer":{"@type":"Answer","text":"Yes — sorbetes stuffed in soft pan de sal is a genuine, much-loved Filipino way of eating it, effectively the original ice cream sandwich, and how many Filipinos first had it as kids. The slightly sweet, pillowy bread against the cold scoop is a perfect combination: it soaks up a little melt, is easy to hold on the go, and is more filling. We serve it this way alongside cone and cup, and at bookings it gets the biggest delighted reaction. Ask manong for the pan de sal version."}},
+{"@type":"Question","name":"How do I book the cart for a party, wedding or event?","acceptedAnswer":{"@type":"Answer","text":"Message or call with your date, location, rough guest count and event type. Booking gets you the whole package: the painted cart, manong to scoop, the bell and umbrella, and unlimited scoops of your chosen flavours for an agreed time. It's popular for kids' birthdays, reunions, weddings, fairs, openings and corporate events because it delights every age and is a photogenic centrepiece. We coordinate timing, flavours and headcount ahead. Popular dates book up — reach out early."}},
+{"@type":"Question","name":"Do you sell tubs to take home, and where's the cart normally?","acceptedAnswer":{"@type":"Answer","text":"Yes to tubs — ube, keso, mango and the rest, for the freezer; order ahead and collect, or add to a booking. As for finding the cart, manong does neighbourhood rounds around Marikina and nearby, parking near schools, plazas and village gates — follow the bell. Because the route moves, message us to ask where the cart is that day, or request a stop on your street. For a guaranteed place and time, a booking is the sure way."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Manong's <span>Sorbetes</span></a>
+    <nav class="nav-links">
+      <a href="#about">The cart</a><a href="#services">The flavours</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Traditional sorbetes · dirty ice cream cart · party bookings · Marikina, Metro Manila</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      It's called <span class="em2">dirty</span> ice cream. It's the cleanest, happiest thing in the <span class="em">barangay.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=2000&q=85&auto=format&fit=crop"
+             alt="Scoops of colourful ice cream in a traditional container." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">Traditional sorbetes churned the old way — creamy coconut-milk ice cream in ube, keso, mango, chocolate and tsokolate — scooped from a hand-painted wooden cart with the brass bell and the striped umbrella. On a cone, in a cup, or the proper way: stuffed into pan de sal. Manong parks anywhere, and we book the whole cart for parties, weddings and events.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book the cart</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The flavours</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Ringing the bell since 2014</span>
+    <span>Coconut-milk churn</span>
+    <span>Ube · keso · mango · tsokolate</span>
+    <span>Cart bookings, manong included</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 01 / THE CART</span><span>NOSTALGIA ON WHEELS</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">'Dirty' is a joke. There's nothing dirty about it — just the street, and <em>joy.</em></h2>
+        <p>Manong's Sorbetes is a traditional sorbetes maker, and first, that name: sorbetes is affectionately called "dirty ice cream" — not because it's unclean, but because it's the humble street version, sold from a cart on the corner rather than a shiny parlour, the ice cream of Filipino childhood. The nickname is a badge of honour. There's nothing dirty about it; there's everything nostalgic about it.</p>
+        <p>What makes sorbetes special is that it's traditionally made with coconut milk (gata) or carabao's milk rather than heavy dairy cream, which gives it a lighter, cleaner, distinctly Filipino character — and flavours that belong to nowhere else: ube (purple yam), keso (yes, cheese, and it's wonderful), mango, chocolate, and thick tsokolate. We churn ours the old way and keep it in the classic drum inside a hand-painted wooden cart, complete with the brass bell that every Filipino recognises from a hundred metres.</p>
+        <p>We started in 2014 to keep the tradition rolling — literally. Manong pushes the cart through neighbourhoods, parks near schools and plazas, and scoops onto a cone, into a cup, or, for the purists, stuffed inside a soft pan de sal, which is exactly how a lot of us first ate it. And we book the whole cart, manong and all, for parties, weddings, reunions and corporate events — because nothing makes a crowd smile like the bell, the umbrella, and unlimited scoops.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1200&q=85&auto=format&fit=crop"
+           alt="A colourful scoop of ice cream on a cone." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 02 / THE FLAVOURS</span><span>UBE · KESO · MANGO · BOOKINGS</span></div>
+    <h2 class="h2">The flavours.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The classic flavours</h3><p>Ube, keso (cheese), mango, chocolate and tsokolate — the sorbetes line-up of Filipino childhood, churned with coconut milk for that lighter, cleaner scoop. Ask for a mix; nobody said you can only have one.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Cone, cup, or pan de sal</h3><p>On a sugar cone, in a cup, or the true-blue way — a scoop stuffed inside soft pan de sal, the ice-cream sandwich every Filipino kid grew up on. However you had it first, we serve it that way.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Book the cart for parties</h3><p>The whole hand-painted cart, manong, bell and umbrella, at your event — birthdays, kids' parties, reunions. Unlimited scoops for your guests for a set time. The easiest, happiest crowd-pleaser there is.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Weddings &amp; corporate events</h3><p>A charming, nostalgic dessert station for weddings, launches and company events — the cart as a photo-worthy centrepiece that guests of every age line up for. We coordinate timing and headcount with your organiser.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Neighbourhood rounds</h3><p>Manong still pushes the cart through the barangay and parks near schools and plazas on his regular rounds — follow the bell. Message us to find out where the cart is today, or to request a stop on your street.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Tubs &amp; take-home</h3><p>Love a flavour? Take home a tub of ube, keso or mango sorbetes for the freezer — the same coconut-milk churn, ready for merienda and unexpected guests. Order ahead and collect, or add to a booking.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 03 / THE DIFFERENCE</span><span>WHY THE CART WINS</span></div>
+    <h2 class="h2">Why the cart <em>wins.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Churned with coconut milk.</h3><p>Real sorbetes is made with gata or carabao's milk, not heavy cream — lighter, cleaner and unmistakably Filipino. It's why a scoop on a hot day refreshes rather than sits heavy. We keep it traditional.</p></div>
+      <div><span class="no">02 / 03</span><h3>Flavours from home.</h3><p>Ube, keso, mango, tsokolate — the flavours you grew up on, not imported novelties. Cheese ice cream sounds odd until you remember it's the best one. This is the taste of a Filipino childhood.</p></div>
+      <div><span class="no">03 / 03</span><h3>The cart is the magic.</h3><p>The hand-painted wood, the brass bell, the striped umbrella, manong's scoop — the whole thing is nostalgia on wheels. At a party it's a centrepiece; on the street it's a memory. That's what you're booking.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 04 / HOW IT GOES</span><span>FIND · PICK · SCOOP · SMILE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Find the cart, or book it</h3><p>Catch manong on his neighbourhood rounds — follow the bell — or book the whole cart for your event. Message us to find today's route or to reserve a date for a party, wedding or corporate do.</p></li>
+      <li><span class="step">STEP 02</span><h3>Pick your flavours</h3><p>For a booking, tell us which flavours you'd like on the cart — ube, keso, mango, chocolate, tsokolate — and roughly how many guests. We'll bring enough churned fresh so nobody misses out.</p></li>
+      <li><span class="step">STEP 03</span><h3>Cone, cup or pan de sal</h3><p>At the cart or your event, guests choose their scoop and how to have it — cone, cup, or the classic pan de sal. Unlimited for the booked time; manong keeps the queue moving and the bell ringing.</p></li>
+      <li><span class="step">STEP 04</span><h3>Everyone leaves smiling</h3><p>Kids, titas, lolos — the cart flattens every age gap at an event. Take home a tub if you fell for a flavour, and message us next time you want the bell on your street or at your party.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 05 / FROM THE PARTY</span><span>EVERYONE BECOMES A KID</span></div>
+    <blockquote class="t-quote">“The kids went feral for it, the adults got misty about their childhood, and the ube-in-pan-de-sal disappeared instantly. <em>Ten out of ten.</em>”</blockquote>
+    <div class="t-attr">Aileen R. — kids' party booking</div>
+    <div class="t-sub">
+      <figure><blockquote>“Had the sorbetes cart at our wedding as the merienda station and it stole the show from the fancy dessert table. Everyone lined up, everyone smiled, and our lolos said it took them back seventy years. Keso ice cream at a wedding — genius. Thank you, manong!”</blockquote><figcaption>Trina &amp; Karl — wedding booking</figcaption></figure>
+      <figure><blockquote>“Manong parks near our village gate and my kids can hear the bell from inside the house. Real coconut-milk sorbetes, proper ube and cheese, and manong is the kindest man alive. This is a piece of Filipino childhood still rolling around our streets. We're so glad it exists.”</blockquote><figcaption>The Fajardo family — neighbourhood regulars</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 06 / AT THE CART</span><span>BELL, UMBRELLA &amp; SCOOP</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=1600&q=85&auto=format&fit=crop" alt="Scoops of colourful ice cream in a container." /><figcaption>THE DRUM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1600&q=85&auto=format&fit=crop" alt="A colourful scoop of ice cream on a cone." /><figcaption>THE SCOOP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop" alt="A bright dessert counter." /><figcaption>THE FLAVOURS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1560008581-09826d1de69e?w=1600&q=85&auto=format&fit=crop" alt="Ice cream cones held up." /><figcaption>THE CONE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=85&auto=format&fit=crop" alt="A colourful scoop close up." /><figcaption>THE UBE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A festive gathering at dusk." /><figcaption>THE PARTY</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 07 / GOOD TO KNOW</span><span>THE NAME, THE FLAVOURS &amp; BOOKINGS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550210" style="color:var(--cherry);font-weight:700;">0917 555 0210</a>. Booking a party? Tell us the date and headcount and we'll bring the bell.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is sorbetes called 'dirty ice cream' — is it actually unhygienic?</summary><p>No — the nickname is affectionate and a little tongue-in-cheek, not a description of hygiene. 'Dirty ice cream' (sorbetes) got the name simply because it's the humble, street-sold version of ice cream: dispensed from a colourful cart pushed around neighbourhoods and parked by schools and plazas, rather than served in a fancy air-conditioned parlour. To generations of Filipinos it's the ice cream of childhood, and the 'dirty' tag is worn almost with pride. In practice we take cleanliness seriously — the ice cream is churned and handled properly, kept cold in the traditional drum, and served with clean scoops and utensils. The name is pure nostalgia and humour; there's nothing dirty about it.</p></details>
+        <details><summary>What flavours do you have, and what's this about cheese ice cream?</summary><p>Our line-up is the classic Filipino sorbetes roster: ube (purple yam), keso (cheese), mango, chocolate and tsokolate (a thicker, richer chocolate). And yes — keso, cheese ice cream, is a real and beloved Filipino flavour, and it tends to be the one that surprises first-timers and then wins them over completely. It's mildly sweet, savoury-edged and creamy, often with little bits of cheese through it, and it works far better than it sounds precisely because sorbetes isn't overly sweet to begin with. Ube is the eternal favourite, mango is bright and summery, and chocolate and tsokolate cover the classic craving. Most people get a mix. For bookings, you choose which flavours you'd like on the cart. If you've never had cheese ice cream, order a scoop and thank us later.</p></details>
+        <details><summary>What makes sorbetes different from regular ice cream?</summary><p>The biggest difference is the base: traditional sorbetes is made with coconut milk (gata) or carabao's (water buffalo) milk rather than the heavy dairy cream used in most commercial ice cream. That gives sorbetes a lighter, cleaner, less heavy texture and a distinct flavour that lets the ube, mango and other flavours come through brightly — it's refreshing on a hot day in a way that rich, dense premium ice cream often isn't. It's typically a little less sweet and less fatty too, which is part of why you can happily eat it in the tropical heat and why the cheese flavour works so well against it. Beyond the recipe, sorbetes is defined by the painted cart, the drum, the bell, and the ways it's served, including in pan de sal. We make ours the traditional coconut-milk way to keep that character intact.</p></details>
+        <details><summary>Can I really have it in a bread roll (pan de sal)?</summary><p>Yes, and honestly you should try it at least once — sorbetes stuffed inside a soft pan de sal is a genuine, much-loved Filipino way of eating it, effectively the original ice cream sandwich, and for a lot of Filipinos it's exactly how they first had it as kids. The slightly sweet, pillowy bread against the cold, creamy scoop is a surprisingly perfect combination: the bread soaks up a little of the melt, it's easy to hold and eat on the go, and it's more filling, which made it a smart, affordable merienda for generations of schoolkids. We happily serve it this way alongside the usual cone and cup, and at bookings it's often the option that gets the biggest delighted reaction. If you've only ever had sorbetes on a cone, ask manong for the pan de sal version.</p></details>
+        <details><summary>How do I book the cart for a party, wedding or event?</summary><p>Just message or call us with your date, location, rough guest count and the kind of event, and we'll take it from there. Booking the cart means you get the whole package: the hand-painted wooden cart, manong to scoop and keep the queue happy, the bell and umbrella, and unlimited scoops of your chosen flavours for guests for an agreed period of time. It's a phenomenally popular choice for kids' birthdays, family reunions, weddings, school fairs, store openings and corporate events, precisely because it delights every age group and doubles as a charming, photogenic centrepiece. We coordinate timing, flavours and headcount with you ahead of the day so there's plenty churned and nobody misses out. Popular dates — weekends, holidays, the December party season — get booked up, so reach out as early as you can.</p></details>
+        <details><summary>Do you sell tubs to take home, and where can I find the cart normally?</summary><p>Yes to both. If you fall for a flavour, we sell tubs of our coconut-milk sorbetes — ube, keso, mango and the rest — to take home for the freezer, perfect for merienda and for unexpected guests; you can order ahead and collect, or add tubs to an event booking. As for finding the cart day to day: manong still does neighbourhood rounds around Marikina and nearby areas, pushing the cart through villages and parking near schools, plazas and village gates, and the classic way to find him is to follow the bell. Because the route moves, the easiest thing is to message us to ask where the cart is that day, or to request a stop on your street. For a specific place and time, a booking is the sure way — but there's a special magic to just hearing that bell down the road.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 08 / WE ROLL ACROSS</span><span>METRO MANILA</span></div>
+    <ul class="area-list">
+      <li>Marikina</li><li>Quezon City</li><li>Pasig</li><li>Cainta</li><li>Metro Manila</li><li>Cart bookings</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 09 / THE ESSENTIALS</span><span>HOW WE ROLL</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2014</div><div class="detail">Keeping the painted cart rolling</div></div>
+      <div><div class="label">Coconut-milk churn</div><div class="detail">Traditional gata base, lighter &amp; cleaner</div></div>
+      <div><div class="label">Ube · keso · mango</div><div class="detail">The flavours of Filipino childhood</div></div>
+      <div><div class="label">Cart bookings</div><div class="detail">Parties, weddings &amp; events, manong included</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SCOOP 10 / THE BASE</span><span>CONCEPCION, MARIKINA</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Manong's Sorbetes</strong><br />
+          5 Bayan-Bayanan Ave, Concepcion<br />
+          Marikina 1807<br /><br />
+          <a href="tel:+639175550210" data-bind="business.phoneDisplay">0917 555 0210</a><br />
+          <a href="mailto:boking@manongsorbetes.ph" data-bind="business.email">boking@manongsorbetes.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>ROUNDS</span><span>DAILY, PM</span></div>
+          <div class="row"><span>BOOKINGS</span><span>7 DAYS</span></div>
+          <p class="gbp-note">Live details on our Google Business Profile. The cart moves — message us for today's route, or book it for your event. Our base in Concepcion is for pickups and tub orders.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Manong's Sorbetes, Marikina" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.0900%2C14.6410%2C121.1200%2C14.6610&layer=mapnik&marker=14.6510%2C121.1050"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">SCOOP 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Book the bell. Watch everyone become a kid <em>again.</em></h2>
+    <p data-bind="cta.body">Traditional coconut-milk sorbetes in ube, keso, mango and tsokolate, scooped from the hand-painted cart onto a cone, a cup or a pan de sal — plus cart bookings for parties, weddings and events across Metro Manila. Rolling since 2014.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the cart</a>
+      <a class="btn btn-ghost" href="tel:+639175550210" data-bind="cta.secondary.label">0917 555 0210</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550210" data-bind="messaging.whatsapp" aria-label="Message Manong's Sorbetes">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;color:var(--cream);">Manong's <span style="color:var(--keso);">Sorbetes</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(255,246,234,0.72);">Traditional coconut-milk sorbetes from the hand-painted cart — ube, keso, mango and the bell, since 2014.</p>
+      </div>
+      <div>
+        <h4>The cart</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(255,246,234,0.72);">
+          5 Bayan-Bayanan Ave, Concepcion<br />Marikina 1807<br />
+          <a href="tel:+639175550210">0917 555 0210</a><br />
+          <a href="mailto:boking@manongsorbetes.ph">boking@manongsorbetes.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The flavours</a><a href="#about">The cart</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MANONG'S SORBETES</span>
+      <span>FOLLOW THE BELL · METRO MANILA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

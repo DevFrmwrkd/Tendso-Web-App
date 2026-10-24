@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Warp & Weft — handweaving studio, rugs, cloth and loom classes in Hebden Bridge</title>
+<meta name="description" content="Warp & Weft is a handweaving studio in Hebden Bridge — handwoven rugs, throws and cloth made on the loom, commissions, repairs and re-weaving, and beginners' to advanced weaving classes. Woven by hand since 2008." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Warp & Weft", phone: "+44 1422 555 176", phoneDisplay: "01422 555 176", email: "studio@warpandweft.co.uk", foundedYear: 2008 },
+  hero: {
+    kicker: "Handweaving studio · rugs · cloth · classes · Hebden Bridge",
+    headline: "Thread over thread over thread, until it becomes a thing you keep.",
+    lede: "A handweaving studio in Hebden Bridge, weaving rugs, throws and cloth on the loom the slow way — one pick at a time, in natural fibres, dyed and finished by hand. We weave to commission, repair and re-weave treasured textiles, and teach the craft from your first shuttle to your own finished cloth. Made on the loom, to be handed down.",
+    primaryCta: { label: "Commission or book a class", href: "#book" },
+    secondaryCta: { label: "What we weave", href: "#services" },
+    image: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A rolled handwoven rug."
+  },
+  trust: { years: "At the loom since 2008" },
+  about: {
+    heading: "A machine can weave a mile of cloth in an hour. We'd rather weave a yard that lasts a century.",
+    paragraphs: [
+      "Warp &amp; Weft is a handweaving studio in the old mill town of Hebden Bridge, where cloth has been made for centuries. We weave on floor looms the traditional way — dressing the loom with the warp thread by painstaking thread, then throwing the weft one pick at a time — because handwoven cloth has a life, a drape and a durability that no machine-made length can touch. It is slow, meditative, occasionally maddening work, and we wouldn't swap it for anything.",
+      "We founded the studio in 2008 in a former weaving shed, working only in natural fibres — wool, linen, cotton, silk — much of it dyed by hand, and we make rugs, throws, blankets, scarves and lengths of cloth, each one woven start to finish by a single pair of hands. Because it's handmade, we can weave to your commission: your colours, your fibres, your dimensions, a rug for a particular room or a cloth for a particular purpose, with the honest small irregularities that tell you a human made it.",
+      "Alongside the weaving we repair and re-weave treasured textiles — a worn patch in an heirloom rug, a moth-eaten blanket, a length of cloth that deserves saving rather than discarding — and we teach. Our classes run from a first taste of the loom for absolute beginners through to advanced technique for keen weavers, in small groups in the studio. Whether you want to own something handwoven, save something you love, or learn to weave it yourself, this is a place where thread becomes something lasting."
+    ],
+    portrait: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Handwoven fabric with a rich pattern."
+  },
+  services: [
+    { name: "Handwoven rugs", description: "Floor rugs and runners woven by hand in natural fibres — hard-wearing, characterful and made to be walked on for generations. Ready-made in the studio or woven to your commission." },
+    { name: "Throws, blankets & cloth", description: "Woven throws, blankets, scarves and lengths of cloth in wool, linen, cotton and silk, hand-dyed and hand-finished — the warmth and weight that only real woven cloth carries." },
+    { name: "Bespoke commissions", description: "Your colours, fibres and dimensions, woven to purpose — a rug for a particular room, a throw to match a scheme, a cloth for a maker or designer. Designed with you and woven by hand." },
+    { name: "Repair & re-weaving", description: "Worn patches, moth damage and frayed edges in rugs, blankets and heirloom textiles carefully repaired or re-woven, so a loved and lived-with piece is saved rather than discarded." },
+    { name: "Weaving classes", description: "Small-group classes from a first-taster on the loom for complete beginners through to advanced technique for keen weavers — learn to dress a loom, throw a shuttle and finish your own cloth." },
+    { name: "Loom hire & studio time", description: "For weavers without a loom of their own, hire studio time on our floor looms by the session, with guidance on hand — a way to keep weaving between projects or before you buy your own." }
+  ],
+  why: [
+    { title: "Woven a pick at a time.", body: "Every rug, throw and cloth is woven by hand on a floor loom, one pass of the shuttle at a time, by a single weaver from first thread to finished piece. Slow, yes — and built to last a lifetime." },
+    { title: "Natural fibres, hand-dyed.", body: "We work only in wool, linen, cotton and silk, much of it dyed by hand, because natural fibre drapes, wears and ages in a way synthetics never will. Real materials make real cloth." },
+    { title: "We save what you love.", body: "A worn heirloom rug or a moth-holed blanket isn't rubbish; it's a repair. We re-weave and mend treasured textiles so the things you've lived with can be lived with for years more." }
+  ],
+  how: [
+    { step: "01", title: "Choose or commission", body: "Buy a piece woven in the studio, or commission your own — a rug for a room, a throw for a scheme, a cloth for a purpose. We start from what it's for, where it'll live and the colours you love." },
+    { step: "02", title: "Fibres & design", body: "We choose the fibres, the colours (hand-dyeing where you want a particular shade), the weave structure and the dimensions with you, and sample it so you can see and feel it before it's woven." },
+    { step: "03", title: "Woven by hand", body: "Then to the loom: dressing the warp, weaving the weft pick by pick, and finishing off the loom by hand. It takes days to weeks depending on the piece — the slow part, and the whole point." },
+    { step: "04", title: "Lived with, and mended", body: "Take home something woven to be used, not just admired — and bring it back whenever it needs a repair. A handwoven piece, cared for, outlasts everyone who first chose it." }
+  ],
+  testimonials: [
+    { quote: "We commissioned a rug for our hallway in the exact blues of the moor behind our house, and watching it grow on the loom over a fortnight was as special as receiving it. Three years of muddy boots later it's worn beautifully rather than badly. It will outlast us, and I love that. Genuinely special makers.", name: "The Ellery family", context: "commissioned rug" },
+    { quote: "My grandmother's blanket had been half-eaten by moth and I'd given up on it. Warp & Weft re-wove the damaged panels so sympathetically that you have to hunt for the join, matching the old wool almost exactly. It's back on the bed where it belongs. I can't tell you what that meant to me.", name: "Rowan T.", context: "heirloom repair & re-weave" },
+    { quote: "I took the beginners' class on a whim and I'm now completely obsessed — I hire studio time most weekends. The teaching was patient, generous and hands-on from the very first pick, and there's a whole community of weavers here. It's the most absorbing, calming thing I've ever done. Life-changing, honestly.", name: "Devi S.", context: "weaving classes" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop", alt: "A rolled handwoven rug." },
+    { src: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop", alt: "Handwoven fabric with a rich pattern." },
+    { src: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop", alt: "Folded handwoven textiles stacked." },
+    { src: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop", alt: "A length of woven cloth." },
+    { src: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop", alt: "A rolled woven rug, close up." },
+    { src: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop", alt: "Stacked handwoven blankets." }
+  ],
+  faq: [
+    { q: "Why is a handwoven rug or throw more expensive than a shop-bought one?", a: "Because you are buying many days of skilled human work and genuine natural materials, not a machine-made length run off by the mile — and the difference is in every thread. A handweaver dresses the loom by threading the warp one end at a time (a job that can itself take a day or more), then weaves the whole piece by throwing the shuttle pick by pick, beating each row home by hand, before finishing it off the loom. A rug that takes a machine minutes takes us days or weeks. On top of that we work only in natural fibres — wool, linen, cotton, silk — often hand-dyed, which cost far more than the synthetics in cheap textiles but drape, wear, breathe and age incomparably better. What you get for the price is a piece with real substance and character, made to be used hard and last for generations, with the small honest irregularities that mark the human hand. It is the difference between something you replace and something you hand down." },
+    { q: "Can I commission a rug or cloth in my own colours and size?", a: "Yes — bespoke commissions are the heart of the studio and one of the real joys of buying handwoven rather than off a shelf. Because we weave each piece by hand from scratch, we can make it to your colours, your choice of fibres, your weave structure and your exact dimensions, whether that's a rug sized precisely to a particular room or hallway, a throw to sit with a specific scheme, or a length of cloth for a designer or maker. We'll talk through what the piece is for and where it'll live, help you choose fibres and colours (hand-dyeing yarn where you need a particular shade we can't buy), and weave a small sample so you can see and feel the actual cloth — colour, weight, texture and drape — before we commit the full piece to the loom. From there it's woven by hand, which takes days to weeks depending on size and complexity. The result is genuinely yours: made to your brief, by hand, and unrepeatable. Tell us what you have in mind and we'll design it with you." },
+    { q: "Can you repair or re-weave a damaged or moth-eaten textile?", a: "Very often, yes, and it's some of the most satisfying work we do — saving a loved textile is always better than discarding it. We repair and re-weave worn patches, frayed edges, moth damage and holes in handwoven and quality textiles: rugs, blankets, throws and heirloom pieces. Depending on the damage and the piece, that might mean carefully darning or patching in matching yarn, or actually re-weaving a damaged section on the loom to blend with the original — and where we can, we match the old fibre and colour closely enough that the repair is hard to find. We'll always assess honestly first: some textiles are beyond economic repair, or are better conserved as they are than heavily reworked, and we'll tell you so rather than take on work that isn't worth it. But a great many pieces that people assume are ruined can be brought back into use. Bring it in or send us photographs of the whole piece and the damage, and we'll tell you honestly what's possible." },
+    { q: "I've never woven before — are the classes really for beginners?", a: "Absolutely — genuine beginners are exactly who our first-taster and introductory classes are for, and no experience whatsoever is needed. Weaving looks intimidating from the outside, all those threads and moving parts, but the basics are wonderfully approachable with someone beside you, and most people are weaving actual cloth within their first session and leaving with something they made themselves. We keep classes small so you get real hands-on attention, and we start at the very beginning: how a loom works, dressing it with the warp, throwing the shuttle, beating and building the weft, and finishing your cloth. From that first taste you can go as far as you like — we run progressively more advanced classes on colour, pattern, structure and finer technique for those who catch the bug (and many do). It's absorbing, meditative and deeply satisfying, a proper antidote to screens, and there's a warm community of weavers here to fall in with. Come and throw a shuttle; we think you'll be hooked." },
+    { q: "What can I do if I want to keep weaving but don't own a loom?", a: "Hire studio time on our looms — it's a service we offer precisely because a good floor loom is a big and expensive thing to own and house, and we don't want that to stop keen weavers from weaving. Once you've learned the basics with us (through a class, or if you're already experienced), you can book sessions to work on our floor looms in the studio, with guidance and help on hand as much or as little as you need, whether you're working through a project, practising a new technique, or simply weaving for the pleasure and calm of it. It's a lovely way to keep the craft going between projects, to weave something larger than a home setup would allow, or to be sure you truly love it before investing in a loom of your own. Studio-time weavers become part of the community here, and much learning and friendship happens over adjacent looms. Ask us about session availability and rates; we'll help you find a rhythm that fits." },
+    { q: "Are your pieces hard-wearing, and how do I care for handwoven textiles?", a: "Yes — handwoven pieces in natural fibre are typically far more hard-wearing than people expect, which is part of why we make them; a well-woven wool rug is built to be walked on daily for decades, and a good throw or blanket only gets better with age and use. Care is mostly common sense and gentleness. Rugs benefit from regular gentle vacuuming (without a fierce beater bar), rotating occasionally so they wear evenly, and prompt, careful attention to spills rather than harsh scrubbing. Throws, blankets and scarves are best hand-washed or dry-cleaned as the fibre dictates — we give specific care notes with every piece and are always happy to advise. Wool naturally resists dirt and is a little self-cleaning, but does need protecting from moth when stored: keep pieces clean, aired and, for long storage, protected. And crucially — when something does eventually wear or suffer damage, don't discard it; bring it back to us. A handwoven piece is made to be repaired and to last, and we'll help you keep yours in use for a very long time indeed." }
+  ],
+  area: { places: ["Hebden Bridge", "Todmorden", "Halifax", "Calderdale", "West Yorkshire", "Commissions nationwide"] },
+  credentials: [
+    { label: "Since 2008", detail: "Handweaving in an old Calder Valley mill" },
+    { label: "Natural fibres", detail: "Wool, linen, cotton & silk, much hand-dyed" },
+    { label: "Woven by hand", detail: "Each piece, start to finish, one weaver" },
+    { label: "Repair & teach", detail: "We re-weave heirlooms and teach the craft" }
+  ],
+  location: { name: "Warp & Weft", addressStreet: "The Weaving Shed, Bridge Mill", addressLocality: "Hebden Bridge", addressRegion: "West Yorkshire", addressPostcode: "HX7 8EX", addressCountry: "United Kingdom" },
+  cta: { heading: "Own something woven by hand. Or learn to weave it yourself.", body: "Handwoven rugs, throws and cloth, bespoke commissions, tender repair of treasured textiles, and classes from your first shuttle onwards — in an old weaving shed in Hebden Bridge. Come and watch the loom.", primary: { label: "Commission or book a class", href: "#book" }, secondary: { label: "01422 555 176", href: "tel:+441422555176" } },
+  messaging: { whatsapp: "https://wa.me/441422555176", messenger: "https://m.me/warpandweft" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#241a16; --wool:#efe7d9; --madder:#b04a34; --ochre:#c99340; --indigo:#3c5a80;
+    --ink:#241a16; --mid:#736a60; --mid-d:#b3a999; --rule:rgba(36,26,22,0.16); --rule-d:rgba(239,231,217,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--wool);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--ochre);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ochre);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--madder);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--madder);color:var(--wool);} .btn-primary:hover{background:var(--ochre);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(239,231,217,0.4);color:var(--wool);} .btn-ghost:hover{background:var(--wool);color:var(--void);border-color:var(--wool);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(239,231,217,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(36,26,22,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(239,231,217,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--madder);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(42px,7vw,104px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--indigo);color:transparent;}
+  .hero-headline .em{color:var(--madder);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--ochre);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(36,26,22,0.82);font-weight:700;}
+
+  .about{background:var(--wool);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--madder);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#443930;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(239,231,217,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(239,231,217,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(176,74,52,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--ochre);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--wool);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--madder);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#443930;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(239,231,217,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--ochre);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--madder);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(239,231,217,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--madder);color:var(--wool);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(239,231,217,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(239,231,217,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--ochre);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(239,231,217,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(239,231,217,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ochre);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--wool);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#443930;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(239,231,217,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(150deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--madder);color:var(--wool);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--wool);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(42px,6.5vw,108px);line-height:0.9;margin:14px auto 18px;max-width:17ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--wool);color:transparent;}
+  .cta-band p{color:rgba(239,231,217,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--wool);color:var(--madder);} .cta-band .btn-primary:hover{background:var(--ochre);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(239,231,217,0.6);color:var(--wool);} .cta-band .btn-ghost:hover{background:var(--wool);color:var(--madder);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(239,231,217,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ochre);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(239,231,217,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--madder);color:var(--wool);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(176,74,52,0.4);}
+  .msg-fab a:hover{background:var(--wool);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Warp & Weft","description":"Handweaving studio in Hebden Bridge — handwoven rugs, throws and cloth made on the loom, commissions, repairs and re-weaving, and beginners' to advanced weaving classes.","url":"https://warpandweft.co.uk/","telephone":"+441422555176","email":"studio@warpandweft.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Weaving Shed, Bridge Mill","addressLocality":"Hebden Bridge","addressRegion":"West Yorkshire","postalCode":"HX7 8EX","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.7420,"longitude":-2.0130},"areaServed":["Hebden Bridge","Todmorden","Halifax","Calderdale"],"image":["https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600"],"foundingDate":"2008"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is a handwoven rug more expensive than shop-bought?","acceptedAnswer":{"@type":"Answer","text":"You're buying days of skilled handwork and natural materials, not a machine-made length. We dress the loom thread by thread, then weave the whole piece pick by pick and finish it by hand. We work only in wool, linen, cotton and silk, often hand-dyed. The result has real substance and character, made to be used hard and handed down — the difference between something you replace and something you keep."}},
+{"@type":"Question","name":"Can I commission a rug or cloth in my own colours and size?","acceptedAnswer":{"@type":"Answer","text":"Yes — bespoke commissions are the heart of the studio. We weave to your colours, fibres, weave structure and exact dimensions, hand-dyeing yarn where needed, and weave a sample so you can see and feel the cloth before we commit the full piece. It's woven by hand over days to weeks, and it's genuinely yours — made to your brief and unrepeatable."}},
+{"@type":"Question","name":"Can you repair or re-weave a damaged or moth-eaten textile?","acceptedAnswer":{"@type":"Answer","text":"Very often, yes. We repair and re-weave worn patches, frayed edges, moth damage and holes in rugs, blankets, throws and heirlooms — darning or patching in matching yarn, or re-weaving a section on the loom to blend with the original. We assess honestly first and say if a piece is beyond economic repair. Bring it in or send photos of the whole piece and the damage."}},
+{"@type":"Question","name":"I've never woven — are the classes really for beginners?","acceptedAnswer":{"@type":"Answer","text":"Absolutely — beginners are exactly who our taster and introductory classes are for, no experience needed. Most people are weaving actual cloth within their first session. We keep classes small for hands-on attention and start at the beginning: how a loom works, dressing the warp, throwing the shuttle, building the weft, finishing your cloth. More advanced classes follow for those who catch the bug."}},
+{"@type":"Question","name":"Can I keep weaving if I don't own a loom?","acceptedAnswer":{"@type":"Answer","text":"Yes — hire studio time on our floor looms by the session, with guidance on hand. It's ideal for weaving between projects, working on something larger than a home setup allows, or making sure you love it before buying a loom. Studio-time weavers become part of the community here. Ask us about session availability and rates."}},
+{"@type":"Question","name":"Are your pieces hard-wearing, and how do I care for them?","acceptedAnswer":{"@type":"Answer","text":"Very — a well-woven wool rug is built to be walked on for decades and throws improve with age. Vacuum rugs gently, rotate them, and attend to spills carefully; hand-wash or dry-clean throws as the fibre dictates (we give care notes with every piece). Protect wool from moth in storage. And when something wears, bring it back — handwoven pieces are made to be repaired and last."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Warp <span>&amp;</span> Weft</a>
+    <nav class="nav-links">
+      <a href="#about">The studio</a><a href="#services">What we weave</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Handweaving studio · rugs · cloth · classes · Hebden Bridge</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Thread over thread over <span class="out">thread,</span> until it becomes a thing you <span class="em">keep.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1600166898405-da9535204843?w=2000&q=85&auto=format&fit=crop"
+             alt="A rolled handwoven rug." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A handweaving studio in Hebden Bridge, weaving rugs, throws and cloth on the loom the slow way — one pick at a time, in natural fibres, dyed and finished by hand. We weave to commission, repair and re-weave treasured textiles, and teach the craft from your first shuttle to your own finished cloth. Made on the loom, to be handed down.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission or book a class</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we weave</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the loom since 2008</span>
+    <span>Natural fibres, much of it hand-dyed</span>
+    <span>Each piece woven by one pair of hands</span>
+    <span>Repairs, re-weaving &amp; classes</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 01 / THE STUDIO</span><span>A YARD THAT LASTS A CENTURY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A machine can weave a mile of cloth in an hour. We'd rather weave a yard that lasts <em>a century.</em></h2>
+        <p>Warp &amp; Weft is a handweaving studio in the old mill town of Hebden Bridge, where cloth has been made for centuries. We weave on floor looms the traditional way — dressing the loom with the warp thread by painstaking thread, then throwing the weft one pick at a time — because handwoven cloth has a life, a drape and a durability that no machine-made length can touch. It is slow, meditative, occasionally maddening work, and we wouldn't swap it for anything.</p>
+        <p>We founded the studio in 2008 in a former weaving shed, working only in natural fibres — wool, linen, cotton, silk — much of it dyed by hand, and we make rugs, throws, blankets, scarves and lengths of cloth, each one woven start to finish by a single pair of hands. Because it's handmade, we can weave to your commission: your colours, your fibres, your dimensions, a rug for a particular room or a cloth for a particular purpose, with the honest small irregularities that tell you a human made it.</p>
+        <p>Alongside the weaving we repair and re-weave treasured textiles — a worn patch in an heirloom rug, a moth-eaten blanket, a length of cloth that deserves saving rather than discarding — and we teach. Our classes run from a first taste of the loom for absolute beginners through to advanced technique for keen weavers, in small groups in the studio. Whether you want to own something handwoven, save something you love, or learn to weave it yourself, this is a place where thread becomes something lasting.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1200&q=85&auto=format&fit=crop"
+           alt="Handwoven fabric with a rich pattern." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 02 / WHAT WE WEAVE</span><span>RUGS · CLOTH · REPAIR · TEACH</span></div>
+    <h2 class="h2">What we weave.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Handwoven rugs</h3><p>Floor rugs and runners woven by hand in natural fibres — hard-wearing, characterful and made to be walked on for generations. Ready-made in the studio or woven to your commission.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Throws, blankets &amp; cloth</h3><p>Woven throws, blankets, scarves and lengths of cloth in wool, linen, cotton and silk, hand-dyed and hand-finished — the warmth and weight that only real woven cloth carries.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Bespoke commissions</h3><p>Your colours, fibres and dimensions, woven to purpose — a rug for a particular room, a throw to match a scheme, a cloth for a maker or designer. Designed with you and woven by hand.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Repair &amp; re-weaving</h3><p>Worn patches, moth damage and frayed edges in rugs, blankets and heirloom textiles carefully repaired or re-woven, so a loved and lived-with piece is saved rather than discarded.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Weaving classes</h3><p>Small-group classes from a first-taster on the loom for complete beginners through to advanced technique for keen weavers — learn to dress a loom, throw a shuttle and finish your own cloth.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Loom hire &amp; studio time</h3><p>For weavers without a loom of their own, hire studio time on our floor looms by the session, with guidance on hand — a way to keep weaving between projects or before you buy your own.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 03 / THE DIFFERENCE</span><span>WHY HANDWOVEN</span></div>
+    <h2 class="h2">Why handwoven.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Woven a pick at a time.</h3><p>Every rug, throw and cloth is woven by hand on a floor loom, one pass of the shuttle at a time, by a single weaver from first thread to finished piece. Slow, yes — and built to last a lifetime.</p></div>
+      <div><span class="no">02 / 03</span><h3>Natural fibres, hand-dyed.</h3><p>We work only in wool, linen, cotton and silk, much of it dyed by hand, because natural fibre drapes, wears and ages in a way synthetics never will. Real materials make real cloth.</p></div>
+      <div><span class="no">03 / 03</span><h3>We save what you love.</h3><p>A worn heirloom rug or a moth-holed blanket isn't rubbish; it's a repair. We re-weave and mend treasured textiles so the things you've lived with can be lived with for years more.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 04 / HOW IT GOES</span><span>CHOOSE → DESIGN → WEAVE → LIVE WITH</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Choose or commission</h3><p>Buy a piece woven in the studio, or commission your own — a rug for a room, a throw for a scheme, a cloth for a purpose. We start from what it's for, where it'll live and the colours you love.</p></li>
+      <li><span class="step">STEP 02</span><h3>Fibres &amp; design</h3><p>We choose the fibres, the colours (hand-dyeing where you want a particular shade), the weave structure and the dimensions with you, and sample it so you can see and feel it before it's woven.</p></li>
+      <li><span class="step">STEP 03</span><h3>Woven by hand</h3><p>Then to the loom: dressing the warp, weaving the weft pick by pick, and finishing off the loom by hand. It takes days to weeks depending on the piece — the slow part, and the whole point.</p></li>
+      <li><span class="step">STEP 04</span><h3>Lived with, and mended</h3><p>Take home something woven to be used, not just admired — and bring it back whenever it needs a repair. A handwoven piece, cared for, outlasts everyone who first chose it.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 05 / FROM THE LOOM</span><span>WHAT THEY KEPT</span></div>
+    <blockquote class="t-quote">“It will outlast us, and I love that. Genuinely <em>special makers.</em>”</blockquote>
+    <div class="t-attr">The Ellery family — commissioned rug</div>
+    <div class="t-sub">
+      <figure><blockquote>“My grandmother's blanket had been half-eaten by moth and I'd given up on it. Warp &amp; Weft re-wove the damaged panels so sympathetically that you have to hunt for the join, matching the old wool almost exactly. It's back on the bed where it belongs. I can't tell you what that meant to me.”</blockquote><figcaption>Rowan T. — heirloom repair &amp; re-weave</figcaption></figure>
+      <figure><blockquote>“I took the beginners' class on a whim and I'm now completely obsessed — I hire studio time most weekends. The teaching was patient, generous and hands-on from the very first pick, and there's a whole community of weavers here. It's the most absorbing, calming thing I've ever done. Life-changing, honestly.”</blockquote><figcaption>Devi S. — weaving classes</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--wool);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>PICK 06 / OFF THE LOOM</span><span>WARP, WEFT &amp; WOOL</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop" alt="A rolled handwoven rug." /><figcaption>THE RUG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop" alt="Handwoven fabric with a rich pattern." /><figcaption>THE WEAVE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop" alt="Folded handwoven textiles stacked." /><figcaption>THE STACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop" alt="A length of woven cloth." /><figcaption>THE CLOTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop" alt="A rolled woven rug, close up." /><figcaption>THE PILE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop" alt="Stacked handwoven blankets." /><figcaption>THE THROWS</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 07 / BEFORE YOU COMMISSION</span><span>MAKING, MENDING & LEARNING</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you commission.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441422555176" style="color:var(--ochre);font-weight:700;">01422 555 176</a>, or bring the moth-holed blanket you'd given up on. We love a rescue.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is a handwoven rug or throw more expensive than a shop-bought one?</summary><p>Because you are buying many days of skilled human work and genuine natural materials, not a machine-made length run off by the mile — and the difference is in every thread. A handweaver dresses the loom by threading the warp one end at a time (a job that can itself take a day or more), then weaves the whole piece by throwing the shuttle pick by pick, beating each row home by hand, before finishing it off the loom. A rug that takes a machine minutes takes us days or weeks. On top of that we work only in natural fibres — wool, linen, cotton, silk — often hand-dyed, which cost far more than the synthetics in cheap textiles but drape, wear, breathe and age incomparably better. What you get for the price is a piece with real substance and character, made to be used hard and last for generations, with the small honest irregularities that mark the human hand. It is the difference between something you replace and something you hand down.</p></details>
+        <details><summary>Can I commission a rug or cloth in my own colours and size?</summary><p>Yes — bespoke commissions are the heart of the studio and one of the real joys of buying handwoven rather than off a shelf. Because we weave each piece by hand from scratch, we can make it to your colours, your choice of fibres, your weave structure and your exact dimensions, whether that's a rug sized precisely to a particular room or hallway, a throw to sit with a specific scheme, or a length of cloth for a designer or maker. We'll talk through what the piece is for and where it'll live, help you choose fibres and colours (hand-dyeing yarn where you need a particular shade we can't buy), and weave a small sample so you can see and feel the actual cloth — colour, weight, texture and drape — before we commit the full piece to the loom. From there it's woven by hand, which takes days to weeks depending on size and complexity. The result is genuinely yours: made to your brief, by hand, and unrepeatable. Tell us what you have in mind and we'll design it with you.</p></details>
+        <details><summary>Can you repair or re-weave a damaged or moth-eaten textile?</summary><p>Very often, yes, and it's some of the most satisfying work we do — saving a loved textile is always better than discarding it. We repair and re-weave worn patches, frayed edges, moth damage and holes in handwoven and quality textiles: rugs, blankets, throws and heirloom pieces. Depending on the damage and the piece, that might mean carefully darning or patching in matching yarn, or actually re-weaving a damaged section on the loom to blend with the original — and where we can, we match the old fibre and colour closely enough that the repair is hard to find. We'll always assess honestly first: some textiles are beyond economic repair, or are better conserved as they are than heavily reworked, and we'll tell you so rather than take on work that isn't worth it. But a great many pieces that people assume are ruined can be brought back into use. Bring it in or send us photographs of the whole piece and the damage, and we'll tell you honestly what's possible.</p></details>
+        <details><summary>I've never woven before — are the classes really for beginners?</summary><p>Absolutely — genuine beginners are exactly who our first-taster and introductory classes are for, and no experience whatsoever is needed. Weaving looks intimidating from the outside, all those threads and moving parts, but the basics are wonderfully approachable with someone beside you, and most people are weaving actual cloth within their first session and leaving with something they made themselves. We keep classes small so you get real hands-on attention, and we start at the very beginning: how a loom works, dressing it with the warp, throwing the shuttle, beating and building the weft, and finishing your cloth. From that first taste you can go as far as you like — we run progressively more advanced classes on colour, pattern, structure and finer technique for those who catch the bug (and many do). It's absorbing, meditative and deeply satisfying, a proper antidote to screens, and there's a warm community of weavers here to fall in with. Come and throw a shuttle; we think you'll be hooked.</p></details>
+        <details><summary>What can I do if I want to keep weaving but don't own a loom?</summary><p>Hire studio time on our looms — it's a service we offer precisely because a good floor loom is a big and expensive thing to own and house, and we don't want that to stop keen weavers from weaving. Once you've learned the basics with us (through a class, or if you're already experienced), you can book sessions to work on our floor looms in the studio, with guidance and help on hand as much or as little as you need, whether you're working through a project, practising a new technique, or simply weaving for the pleasure and calm of it. It's a lovely way to keep the craft going between projects, to weave something larger than a home setup would allow, or to be sure you truly love it before investing in a loom of your own. Studio-time weavers become part of the community here, and much learning and friendship happens over adjacent looms. Ask us about session availability and rates; we'll help you find a rhythm that fits.</p></details>
+        <details><summary>Are your pieces hard-wearing, and how do I care for handwoven textiles?</summary><p>Yes — handwoven pieces in natural fibre are typically far more hard-wearing than people expect, which is part of why we make them; a well-woven wool rug is built to be walked on daily for decades, and a good throw or blanket only gets better with age and use. Care is mostly common sense and gentleness. Rugs benefit from regular gentle vacuuming (without a fierce beater bar), rotating occasionally so they wear evenly, and prompt, careful attention to spills rather than harsh scrubbing. Throws, blankets and scarves are best hand-washed or dry-cleaned as the fibre dictates — we give specific care notes with every piece and are always happy to advise. Wool naturally resists dirt and is a little self-cleaning, but does need protecting from moth when stored: keep pieces clean, aired and, for long storage, protected. And crucially — when something does eventually wear or suffer damage, don't discard it; bring it back to us. A handwoven piece is made to be repaired and to last, and we'll help you keep yours in use for a very long time indeed.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 08 / WEAVERS & CLIENTS FROM</span><span>CALDERDALE & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Hebden Bridge</li><li>Todmorden</li><li>Halifax</li><li>Calderdale</li><li>West Yorkshire</li><li>Commissions nationwide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2008</div><div class="detail">Handweaving in an old Calder Valley mill</div></div>
+      <div><div class="label">Natural fibres</div><div class="detail">Wool, linen, cotton &amp; silk, much hand-dyed</div></div>
+      <div><div class="label">Woven by hand</div><div class="detail">Each piece, start to finish, one weaver</div></div>
+      <div><div class="label">Repair &amp; teach</div><div class="detail">We re-weave heirlooms and teach the craft</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PICK 10 / THE STUDIO</span><span>BRIDGE MILL, HEBDEN BRIDGE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Warp &amp; Weft</strong><br />
+          The Weaving Shed, Bridge Mill<br />
+          Hebden Bridge HX7 8EX<br /><br />
+          <a href="tel:+441422555176" data-bind="business.phoneDisplay">01422 555 176</a><br />
+          <a href="mailto:studio@warpandweft.co.uk" data-bind="business.email">studio@warpandweft.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>THU – SAT</span><span>10 – 5</span></div>
+          <div class="row"><span>CLASSES</span><span>EVENINGS &amp; WEEKENDS</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The studio is in the old weaving shed at Bridge Mill by the packhorse bridge — come and watch the looms, and bring a textile for us to look at.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Warp & Weft, Hebden Bridge" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.0220%2C53.7380%2C-2.0040%2C53.7460&layer=mapnik&marker=53.7420%2C-2.0130"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">PICK 11 / COMMISSION</div>
+    <h2 data-bind="cta.heading">Own something woven by hand. Or learn to <em>weave it yourself.</em></h2>
+    <p data-bind="cta.body">Handwoven rugs, throws and cloth, bespoke commissions, tender repair of treasured textiles, and classes from your first shuttle onwards — in an old weaving shed in Hebden Bridge. Come and watch the loom.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission or book a class</a>
+      <a class="btn btn-ghost" href="tel:+441422555176" data-bind="cta.secondary.label">01422 555 176</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441422555176" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Warp <span style="color:var(--madder);">&amp;</span> Weft</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A handweaving studio in Hebden Bridge — rugs, throws and cloth woven by hand in natural fibre, since 2008.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          The Weaving Shed, Bridge Mill<br />Hebden Bridge HX7 8EX<br />
+          <a href="tel:+441422555176">01422 555 176</a><br />
+          <a href="mailto:studio@warpandweft.co.uk">studio@warpandweft.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we weave</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> WARP &amp; WEFT</span>
+      <span>MADE ON THE LOOM · TO BE HANDED DOWN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

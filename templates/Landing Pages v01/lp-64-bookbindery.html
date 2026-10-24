@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signature &amp; Spine — bookbinder &amp; restorer in York</title>
+<meta name="description" content="Signature &amp; Spine is a bookbindery in York — hand-bound journals and editions, book restoration, and the rescue of the family Bible whose spine finally gave up. Sewn, not glued." />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Sohne:wght@400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Signature & Spine", phone: "+44 1904 623 118", phoneDisplay: "01904 623 118", email: "bench@signatureandspine.co.uk", foundedYear: 2011 },
+  hero: {
+    kicker: "Bookbinder · restoration · sewn not glued · Fossgate, York",
+    headline: "Sewn by hand to open flat and outlive us both.",
+    lede: "Hand-bound journals and editions, and the careful rescue of books that matter — the split family Bible, the waterlogged first edition, the dissertation that deserves hard covers. Sewn through the fold, never perfect-bound with glue that cracks. A book should open flat and last a century.",
+    primaryCta: { label: "Bring a book in", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Hand-bound books stacked on a bindery bench."
+  },
+  trust: { years: "At the sewing frame since 2011" },
+  about: {
+    heading: "The fold is the whole secret.",
+    paragraphs: [
+      "A book that lasts is sewn through the fold of its pages — gathered into signatures, stitched onto tapes, rounded, backed and cased by hand. It's how books were made for five hundred years and why medieval manuscripts still open. The glued 'perfect binding' on a modern paperback is neither perfect nor binding; it's a countdown to a loose page.",
+      "Signature & Spine works the old way at an English sewing frame in a first-floor workshop on Fossgate. We bind new — journals, guest books, editions, PhD theses that finally deserve boards — and we restore old, from a cracked hinge to a full rebind of a book that's been loved to pieces.",
+      "Restoration is a conversation about how far to go. Sometimes the right answer is an invisible repair; sometimes it's leaving the honest wear of a hundred hands and just making it safe to hold. We'll tell you which, and why, before we touch it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Sewing signatures at a bookbinding frame."
+  },
+  services: [
+    { name: "Hand-bound journals", description: "Sewn to open completely flat, in cloth or leather, with paper chosen to take your pen. Blank, lined or dotted, plain or foil-stamped with a name." },
+    { name: "Book restoration", description: "Cracked hinges, detached boards, torn spines, foxed pages — assessed honestly and repaired to last. The family Bible is our most common patient." },
+    { name: "Rebinding", description: "A cherished paperback or a fallen-apart favourite given proper sewn boards. Your book, made permanent, in a cloth or leather you choose." },
+    { name: "Editions & theses", description: "Short-run binding for artists, poets and presses, and hard-bound PhD theses to university spec — with a copy for you that isn't destined for a shelf in a basement." },
+    { name: "Boxes & portfolios", description: "Clamshell boxes, slipcases and portfolios to protect what matters — a manuscript, a set of prints, the letters you can't throw away and can't leave loose." },
+    { name: "Binding classes", description: "Evening and weekend courses at the frame — sew your first signatures, case in your first book, and never look at a paperback the same way again." }
+  ],
+  why: [
+    { title: "Sewn, never glued.", body: "Every binding is stitched through the fold onto tapes, the way a book survives centuries. Glue-only 'perfect binding' is a slow goodbye; we don't do it." },
+    { title: "Restoration you can trust.", body: "We assess honestly and repair reversibly, using conservation-grade materials. Nothing we do can't be undone by the next binder in fifty years' time." },
+    { title: "It opens flat.", body: "A journal you have to hold down isn't finished. Ours lie open on their own, because a book you fight isn't a book you use. The engineering is the point." }
+  ],
+  how: [
+    { step: "01", title: "Bring it in", body: "The book, the brief, the story. Whether it's a rebind, a restoration or a new commission, we start by understanding what it needs to be." },
+    { step: "02", title: "Assess & quote", body: "For repairs, an honest look and a written quote — including when the right answer is 'less than you think'. For new work, we choose cloth, leather and paper together." },
+    { step: "03", title: "On the bench", body: "Sewn, rounded, backed, cased and tooled by hand over days or weeks. Delicate restorations get photographed as we go." },
+    { step: "04", title: "Home, made to last", body: "Collected in a protective wrap, with a note on how to keep it well. Restorations come back safe to hold and open; new work comes back to be filled." }
+  ],
+  testimonials: [
+    { quote: "Our family Bible had shed its spine and half its signatures. They rebuilt it so carefully that my mother cried when she saw it, then opened it flat on the table for the first time in her life.", name: "Ruth A.", context: "family Bible restoration" },
+    { quote: "I had my late father's field notebooks bound into one volume. The way it opens flat, in his handwriting, cover to cover — I can't explain what that's worth. More than they charged, certainly.", name: "Tom H.", context: "bound notebooks commission" },
+    { quote: "Did the two-day binding course as a birthday gift to myself and came away having made a real book with my own hands. I've since bound three more at home. It's a gateway craft; you've been warned.", name: "Ellie P.", context: "binding course graduate" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=1600&q=85&auto=format&fit=crop", alt: "Hand-bound books stacked." },
+    { src: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1600&q=85&auto=format&fit=crop", alt: "Sewing at the frame." },
+    { src: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1600&q=85&auto=format&fit=crop", alt: "An open book on the bench." },
+    { src: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=1600&q=85&auto=format&fit=crop", alt: "Leather-bound spines on a shelf." },
+    { src: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&q=85&auto=format&fit=crop", alt: "Stacked pages ready to sew." },
+    { src: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1600&q=85&auto=format&fit=crop", alt: "A shelf of restored volumes." }
+  ],
+  faq: [
+    { q: "Can you save a book that's fallen completely apart?", a: "Usually, yes — a bag of loose pages and detached boards is a rebind, not a lost cause. Bring us everything, including the crumbs; the more original material survives, the more of the book's history we can keep. We'll tell you honestly if it's beyond sensible repair, but that's rare." },
+    { q: "What's the difference between restoration and rebinding?", a: "Restoration keeps as much of the original as possible — repairing hinges, reattaching boards, mending pages — so the book stays itself. Rebinding gives a book entirely new covers and structure, which suits a much-loved paperback but not a valuable antique. We'll advise which your book wants; the wrong choice can cost value." },
+    { q: "Will restoring an old book ruin its value?", a: "Bad restoration can; ours is conservation-minded, reversible, and honest about wear. For anything potentially valuable we discuss the options before touching it, and sometimes recommend doing less rather than more. If it's a serious antiquarian item, we'll say so and point you to specialist advice." },
+    { q: "How long does a commission take?", a: "A hand-bound journal, a couple of weeks. A full restoration, longer — it depends what the book needs and it can't be rushed without cutting corners we won't cut. Theses to a deadline: tell us the date early and we'll plan around it. We'd rather be honest about time than fast and sorry." },
+    { q: "Do the journals really open flat?", a: "Completely flat, every page, because they're sewn through the fold rather than glued at the spine. It's the whole reason to have a book hand-bound — you can write across the gutter, lay it open on a desk, and it stays put. Come in and open one; it's the fastest way to understand the difference." },
+    { q: "Can I learn to do this myself?", a: "Yes — the evening and weekend courses take you from folded paper to a finished, cased book at the frame. No experience needed, all tools and materials provided. Fair warning: most people leave wanting a bone folder of their own, and it only escalates from there." }
+  ],
+  area: { places: ["York", "Harrogate", "Selby", "Malton", "Tadcaster", "Leeds"] },
+  credentials: [
+    { label: "Method", detail: "Sewn on tapes at an English frame — not glued" },
+    { label: "Conservation", detail: "Reversible repairs, conservation-grade materials" },
+    { label: "Bench", detail: "New binding, restoration & boxes in-house" },
+    { label: "Teaching", detail: "Courses from folded paper to cased book" }
+  ],
+  location: { name: "Signature & Spine", addressStreet: "First Floor, 22 Fossgate", addressLocality: "York", addressRegion: "North Yorkshire", addressPostcode: "YO1 9TA", addressCountry: "United Kingdom" },
+  cta: { heading: "Bring us the book that's falling apart.", body: "A rebind, a restoration, or a new journal sewn to open flat. Assessments are free and honest.", primary: { label: "Bring a book in", href: "#book" }, secondary: { label: "01904 623 118", href: "tel:+441904623118" } },
+  messaging: { whatsapp: "https://wa.me/441904623118", messenger: "https://m.me/signatureandspine" }
+};
+</script>
+
+<style>
+  :root {
+    --vellum:#efe8da; --board:#2a2622; --forest:#2f4a3a; --foxed:#b5462f; --gilt:#a5883f;
+    --ink:#221f1b; --mid:#726a5c; --mid-d:#a89e8d; --rule:rgba(34,31,27,0.15); --rule-d:rgba(239,232,218,0.2);
+    --disp:"Spectral",serif; --sans:"Manrope",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--vellum);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--foxed);}
+  .wrap{width:min(1200px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--forest);}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(32px,4.6vw,58px);line-height:1.04;margin:0 0 0.5em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--forest);}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13.5px;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--forest);color:var(--vellum);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--vellum);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--board);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(239,232,218,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--board);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:21px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm em{font-style:italic;color:var(--forest);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — spine-stack: photo with sewn-signature tag */
+  .hero{padding:clamp(50px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(38px,5.4vw,78px);line-height:1;letter-spacing:-0.02em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--forest);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .hero-photo::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;background:repeating-linear-gradient(var(--board) 0 6px,transparent 6px 20px);}
+  .sig-tag{position:absolute;bottom:20px;right:-14px;background:var(--vellum);border:1.5px solid var(--board);padding:14px 17px;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;line-height:1.8;box-shadow:0 12px 30px rgba(34,31,27,0.18);}
+  .sig-tag .hd{color:var(--foxed);letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .sig-tag{right:8px;}}
+
+  .trust{padding:0;background:var(--board);color:var(--vellum);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(239,232,218,0.85);}
+
+  .about{background:var(--board);color:var(--vellum);}
+  .about .h2{color:var(--vellum);}
+  .about .h2 em{color:var(--gilt);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.76;margin:0 0 1em;color:rgba(239,232,218,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--board);}
+  .svc-row{display:grid;grid-template-columns:100px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(47,74,58,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--foxed);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(21px,2.2vw,28px);margin:0;line-height:1.12;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--forest);color:var(--vellum);}
+  .why .idx-head{border-color:rgba(239,232,218,0.4);color:rgba(239,232,218,0.7);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--gilt);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:23px;margin:0 0 10px;line-height:1.14;}
+  .why-grid p{color:rgba(239,232,218,0.85);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--board);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--foxed);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e5ddcd;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(23px,3vw,40px);line-height:1.2;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--board);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;border-top:1px solid var(--rule);padding-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--board);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--foxed);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--board);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--board);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--foxed);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:16px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--board);color:var(--vellum);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(239,232,218,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(239,232,218,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(239,232,218,0.7);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--board);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.35) sepia(0.15);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--forest);color:var(--vellum);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--gilt);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(36px,5.4vw,78px);line-height:1;margin:16px auto 18px;max-width:17ch;letter-spacing:-0.01em;}
+  .cta-band h2 em{font-style:italic;color:var(--gilt);}
+  .cta-band p{color:rgba(239,232,218,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--vellum);color:var(--forest);}
+  .cta-band .btn-primary:hover{background:var(--gilt);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(239,232,218,0.6);color:var(--vellum);}
+  .cta-band .btn-ghost:hover{background:var(--vellum);color:var(--forest);}
+
+  footer{background:var(--vellum);border-top:1.5px solid var(--board);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--foxed);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--forest);color:var(--vellum);padding:13px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(47,74,58,0.35);}
+  .msg-fab a:hover{background:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Signature & Spine","description":"Bookbinder and restorer in York — hand-bound journals and editions, book restoration and rebinding, sewn not glued.","url":"https://signatureandspine.co.uk/","telephone":"+441904623118","email":"bench@signatureandspine.co.uk","address":{"@type":"PostalAddress","streetAddress":"First Floor, 22 Fossgate","addressLocality":"York","addressRegion":"North Yorkshire","postalCode":"YO1 9TA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.9580,"longitude":-1.0790},"areaServed":["York","Harrogate","Selby","Leeds"],"image":["https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=1600"],"foundingDate":"2011"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can you save a book that's fallen completely apart?","acceptedAnswer":{"@type":"Answer","text":"Usually — a bag of loose pages and detached boards is a rebind, not a lost cause. Bring everything, including the crumbs."}},
+{"@type":"Question","name":"What's the difference between restoration and rebinding?","acceptedAnswer":{"@type":"Answer","text":"Restoration keeps as much of the original as possible; rebinding gives new covers and structure. We advise which your book wants."}},
+{"@type":"Question","name":"Will restoring an old book ruin its value?","acceptedAnswer":{"@type":"Answer","text":"Ours is conservation-minded, reversible and honest about wear. For valuable items we discuss options before touching it."}},
+{"@type":"Question","name":"How long does a commission take?","acceptedAnswer":{"@type":"Answer","text":"A journal, a couple of weeks; a full restoration, longer. Tell us a deadline early and we'll plan around it."}},
+{"@type":"Question","name":"Do the journals really open flat?","acceptedAnswer":{"@type":"Answer","text":"Completely flat, every page, because they're sewn through the fold rather than glued at the spine."}},
+{"@type":"Question","name":"Can I learn to do this myself?","acceptedAnswer":{"@type":"Answer","text":"Yes — evening and weekend courses take you from folded paper to a finished cased book. No experience needed."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Signature <em>&amp;</em> Spine</a>
+    <nav class="nav-links">
+      <a href="#about">The bindery</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Bring a book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v53">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Bookbinder · restoration · sewn not glued · Fossgate, York</div>
+      <h1 data-comment-anchor="hero-headline">Sewn by hand to open flat and <em>outlive us both.</em></h1>
+      <p class="lede" data-bind="hero.lede">Hand-bound journals and editions, and the careful rescue of books that matter — the split family Bible, the waterlogged first edition, the dissertation that deserves hard covers. Sewn through the fold, never perfect-bound with glue that cracks. A book should open flat and last a century.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Bring a book in</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=2000&q=85&auto=format&fit=crop"
+           alt="Hand-bound books stacked on a bindery bench." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="sig-tag">
+        <div class="hd">SEWN ON 5 TAPES</div>
+        SIGNATURES · 16<br />BOARDS · CLOTH-CASED<br />OPENS FLAT
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the sewing frame since 2011</span>
+    <span>Sewn, never glued</span>
+    <span>Conservation-grade repairs</span>
+    <span>Opens flat, every page</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v19">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 01 / THE BINDERY</span><span>THE FOLD IS THE SECRET</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&q=85&auto=format&fit=crop"
+           alt="Sewing signatures at a bookbinding frame." />
+      <div class="about-prose">
+        <h2 class="h2">The fold is <em>the whole secret.</em></h2>
+        <p>A book that lasts is sewn through the fold of its pages — gathered into signatures, stitched onto tapes, rounded, backed and cased by hand. It's how books were made for five hundred years and why medieval manuscripts still open. The glued "perfect binding" on a modern paperback is neither perfect nor binding; it's a countdown to a loose page.</p>
+        <p>Signature &amp; Spine works the old way at an English sewing frame in a first-floor workshop on Fossgate. We bind new — journals, guest books, editions, PhD theses that finally deserve boards — and we restore old, from a cracked hinge to a full rebind of a book that's been loved to pieces.</p>
+        <p>Restoration is a conversation about how far to go. Sometimes the right answer is an invisible repair; sometimes it's leaving the honest wear of a hundred hands and just making it safe to hold. We'll tell you which, and why, before we touch it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v46">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 02 / THE BENCH</span><span>WHAT COMES OFF IT</span></div>
+    <h2 class="h2">On the bench.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Sig. 01</span><h3>Hand-bound journals</h3><p>Sewn to open completely flat, in cloth or leather, with paper chosen to take your pen. Blank, lined or dotted, plain or foil-stamped with a name.</p></div>
+      <div class="svc-row"><span class="no">Sig. 02</span><h3>Book restoration</h3><p>Cracked hinges, detached boards, torn spines, foxed pages — assessed honestly and repaired to last. The family Bible is our most common patient.</p></div>
+      <div class="svc-row"><span class="no">Sig. 03</span><h3>Rebinding</h3><p>A cherished paperback or a fallen-apart favourite given proper sewn boards. Your book, made permanent, in a cloth or leather you choose.</p></div>
+      <div class="svc-row"><span class="no">Sig. 04</span><h3>Editions &amp; theses</h3><p>Short-run binding for artists, poets and presses, and hard-bound PhD theses to university spec — with a copy for you that isn't destined for a basement shelf.</p></div>
+      <div class="svc-row"><span class="no">Sig. 05</span><h3>Boxes &amp; portfolios</h3><p>Clamshell boxes, slipcases and portfolios to protect what matters — a manuscript, a set of prints, the letters you can't throw away and can't leave loose.</p></div>
+      <div class="svc-row"><span class="no">Sig. 06</span><h3>Binding classes</h3><p>Evening and weekend courses at the frame — sew your first signatures, case in your first book, and never look at a paperback the same way again.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v18">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 03 / THE METHOD</span><span>FIVE CENTURIES SAY SO</span></div>
+    <h2 class="h2">Why sewn beats glued.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Sewn, never glued.</h3><p>Every binding is stitched through the fold onto tapes, the way a book survives centuries. Glue-only "perfect binding" is a slow goodbye; we don't do it.</p></div>
+      <div><span class="no">02 / 03</span><h3>Restoration you can trust.</h3><p>We assess honestly and repair reversibly, using conservation-grade materials. Nothing we do can't be undone by the next binder in fifty years' time.</p></div>
+      <div><span class="no">03 / 03</span><h3>It opens flat.</h3><p>A journal you have to hold down isn't finished. Ours lie open on their own, because a book you fight isn't a book you use. The engineering is the point.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 04 / THE PROCESS</span><span>IN → ASSESS → BENCH → HOME</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Bring it in</h3><p>The book, the brief, the story. Whether it's a rebind, a restoration or a new commission, we start by understanding what it needs to be.</p></li>
+      <li><span class="step">Step 02</span><h3>Assess &amp; quote</h3><p>For repairs, an honest look and a written quote — including when the right answer is "less than you think". For new work, we choose cloth, leather and paper together.</p></li>
+      <li><span class="step">Step 03</span><h3>On the bench</h3><p>Sewn, rounded, backed, cased and tooled by hand over days or weeks. Delicate restorations get photographed as we go.</p></li>
+      <li><span class="step">Step 04</span><h3>Home, made to last</h3><p>Collected in a protective wrap, with a note on how to keep it well. Restorations come back safe to hold; new work comes back to be filled.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v18">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 05 / CLIENTS</span><span>COLLECTED AT HANDOVER</span></div>
+    <blockquote class="t-quote">“My mother cried when she saw it, then opened it flat on the table for the first time in her life.”</blockquote>
+    <div class="t-attr">Ruth A. — family Bible restoration</div>
+    <div class="t-sub">
+      <figure><blockquote>“I had my late father's field notebooks bound into one volume. The way it opens flat, in his handwriting, cover to cover — I can't explain what that's worth. More than they charged, certainly.”</blockquote><figcaption>Tom H. — bound notebooks commission</figcaption></figure>
+      <figure><blockquote>“Did the two-day binding course as a birthday gift to myself and came away having made a real book with my own hands. It's a gateway craft; you've been warned.”</blockquote><figcaption>Ellie P. — binding course graduate</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v46">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 06 / THE WORKSHOP</span><span>FRAME, BOARDS, SPINES</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=1600&q=85&auto=format&fit=crop" alt="Hand-bound books stacked." /><figcaption>BOUND &amp; STACKED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1600&q=85&auto=format&fit=crop" alt="Sewing at the frame." /><figcaption>AT THE SEWING FRAME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1600&q=85&auto=format&fit=crop" alt="An open book on the bench." /><figcaption>OPENS FLAT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=1600&q=85&auto=format&fit=crop" alt="Leather-bound spines on a shelf." /><figcaption>TOOLED SPINES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&q=85&auto=format&fit=crop" alt="Stacked pages ready to sew." /><figcaption>SIGNATURES, GATHERED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1600&q=85&auto=format&fit=crop" alt="A shelf of restored volumes." /><figcaption>RESTORED &amp; RETURNED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 07 / ASKED AT THE BENCH</span><span>BOOK IN HAND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the bench.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441904623118" style="color:var(--foxed);">01904 623 118</a>. If we're mid-sew we'll call back once the signature's off the frame.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Can you save a book that's fallen completely apart?</summary><p>Usually, yes — a bag of loose pages and detached boards is a rebind, not a lost cause. Bring us everything, including the crumbs; the more original material survives, the more of the book's history we can keep. We'll tell you honestly if it's beyond sensible repair, but that's rare.</p></details>
+        <details><summary>What's the difference between restoration and rebinding?</summary><p>Restoration keeps as much of the original as possible — repairing hinges, reattaching boards, mending pages — so the book stays itself. Rebinding gives a book entirely new covers and structure, which suits a much-loved paperback but not a valuable antique. We'll advise which your book wants; the wrong choice can cost value.</p></details>
+        <details><summary>Will restoring an old book ruin its value?</summary><p>Bad restoration can; ours is conservation-minded, reversible, and honest about wear. For anything potentially valuable we discuss the options before touching it, and sometimes recommend doing less rather than more. If it's a serious antiquarian item, we'll say so and point you to specialist advice.</p></details>
+        <details><summary>How long does a commission take?</summary><p>A hand-bound journal, a couple of weeks. A full restoration, longer — it depends what the book needs and it can't be rushed without cutting corners we won't cut. Theses to a deadline: tell us the date early and we'll plan around it. We'd rather be honest about time than fast and sorry.</p></details>
+        <details><summary>Do the journals really open flat?</summary><p>Completely flat, every page, because they're sewn through the fold rather than glued at the spine. It's the whole reason to have a book hand-bound — you can write across the gutter, lay it open on a desk, and it stays put. Come in and open one; it's the fastest way to understand the difference.</p></details>
+        <details><summary>Can I learn to do this myself?</summary><p>Yes — the evening and weekend courses take you from folded paper to a finished, cased book at the frame. No experience needed, all tools and materials provided. Fair warning: most people leave wanting a bone folder of their own, and it only escalates from there.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 08 / BOOKS ARRIVE FROM</span><span>YORK &amp; ACROSS YORKSHIRE</span></div>
+    <ul class="area-list">
+      <li>York</li><li>Harrogate</li><li>Selby</li><li>Malton</li><li>Tadcaster</li><li>Leeds</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Method</div><div class="detail">Sewn on tapes at an English frame — not glued</div></div>
+      <div><div class="label">Conservation</div><div class="detail">Reversible repairs, conservation-grade materials</div></div>
+      <div><div class="label">Bench</div><div class="detail">New binding, restoration &amp; boxes in-house</div></div>
+      <div><div class="label">Teaching</div><div class="detail">Courses from folded paper to cased book</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>QUIRE 10 / FIND US</span><span>22 FOSSGATE, FIRST FLOOR</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Signature &amp; Spine</strong><br />
+          First Floor, 22 Fossgate<br />
+          York YO1 9TA<br /><br />
+          <a href="tel:+441904623118" data-bind="business.phoneDisplay">01904 623 118</a><br />
+          <a href="mailto:bench@signatureandspine.co.uk" data-bind="business.email">bench@signatureandspine.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>DROP-OFFS</span><span>ANYTIME WE'RE OPEN</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Up the stairs beside the print shop on Fossgate — follow the smell of paste and leather.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Signature &amp; Spine, Fossgate, York" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.0880%2C53.9540%2C-1.0700%2C53.9620&layer=mapnik&marker=53.9580%2C-1.0790"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v21">
+  <div class="wrap">
+    <div class="kick">QUIRE 11 / VISIT</div>
+    <h2 data-bind="cta.heading">Bring us the book that's <em>falling apart.</em></h2>
+    <p data-bind="cta.body">A rebind, a restoration, or a new journal sewn to open flat. Assessments are free and honest.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Bring a book in</a>
+      <a class="btn btn-ghost" href="tel:+441904623118" data-bind="cta.secondary.label">01904 623 118</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441904623118" data-bind="messaging.whatsapp" aria-label="Message the bindery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Signature <em style="color:var(--forest);">&amp;</em> Spine</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A bookbinder and restorer on Fossgate, York. At the sewing frame since 2011.</p>
+      </div>
+      <div>
+        <h4>The bindery</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          First Floor, 22 Fossgate<br />York YO1 9TA<br />
+          <a href="tel:+441904623118">01904 623 118</a><br />
+          <a href="mailto:bench@signatureandspine.co.uk">bench@signatureandspine.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The bindery</a><a href="#location">Find us</a><a href="#book">Bring a book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SIGNATURE &amp; SPINE LTD</span>
+      <span>SEWN NOT GLUED · OPENS FLAT</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

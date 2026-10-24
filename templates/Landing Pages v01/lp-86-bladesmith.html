@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quench & Temper — bladesmith and custom knife maker in the Peak District</title>
+<meta name="description" content="Quench & Temper is a bladesmith and custom knife maker in the Peak District — hand-forged kitchen and outdoor knives in carbon and stainless steel, made one at a time, plus sharpening and restoration for life." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Quench & Temper", phone: "+44 1433 690 210", phoneDisplay: "01433 690 210", email: "forge@quenchandtemper.co.uk", foundedYear: 2013 },
+  hero: {
+    kicker: "Bladesmith & custom knife maker · one at a time · Peak District",
+    headline: "One smith. One fire. One blade at a time.",
+    lede: "A working forge in the Peak District making knives the slow way — drawn out under the hammer, ground by eye, heat-treated by colour and hardened in oil. No production line, no laser-cut blanks bought in and badged. Every blade is forged, tested and signed by the same pair of hands, and built to outlast the person who buys it.",
+    primaryCta: { label: "Commission a blade", href: "#book" },
+    secondaryCta: { label: "What comes off the anvil", href: "#services" },
+    image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A glowing blade being forged at the anvil."
+  },
+  trust: { years: "At the anvil since 2013" },
+  about: {
+    heading: "A good knife is a tool you'll hand down, not throw away.",
+    paragraphs: [
+      "Quench & Temper is one smith and one fire in a stone workshop on the edge of the Peak District. I started forging in 2013 because I was tired of knives designed to be replaced — stamped out by the thousand, glued together, dull in a month and landfill in a year. A knife should be the opposite of that: made once, properly, and kept sharp for a lifetime.",
+      "Every blade starts as a bar of steel and is drawn out under the hammer, not ground down from a bought-in blank. I forge in high-carbon and stainless steels chosen for the job, normalise and harden by eye and by colour, temper for the right balance of hardness and toughness, then grind and hand-finish the bevels. The handle is fitted to the tang and shaped to the hand, in stabilised timber, horn or micarta.",
+      "You can commission a blade to your grip and your kitchen, buy one of the ready pieces from the rack, or bring an old favourite back to life. And whatever leaves here comes with a standing offer: bring it back whenever it needs it and I'll re-sharpen it for as long as I'm at the anvil. A knife made by hand deserves to be kept by hand."
+    ],
+    portrait: "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A bladesmith working steel at the forge."
+  },
+  services: [
+    { name: "Commissioned kitchen knives", description: "Chef's knives, santokus, paring and bread knives forged to your hand and your board. We talk steel, length, weight and balance, then I build the one knife you'll reach for every day." },
+    { name: "Outdoor & bushcraft blades", description: "Full-tang fixed blades for camp, field and bench — tough carbon steel, a grind that holds an edge, and a handle that grips wet or cold. Sheathed in hand-stitched leather." },
+    { name: "Chef's roll & sets", description: "Matched sets for cooks who've earned them — a working roll of knives forged as a family, balanced to each other, with the maker's mark and your name if you want it." },
+    { name: "Sharpening for life", description: "Anything I've forged comes back for sharpening free, for as long as I'm at the anvil. Other makers' knives welcome too — brought back to a proper edge on stones, not a grinder." },
+    { name: "Restoration & re-handling", description: "An old carbon blade with a loose or split handle isn't finished. I re-handle, re-profile and bring pitted steel back — keeping the knife that already fits your hand." },
+    { name: "Forging days & gift blades", description: "Spend a day at the forge and make your own blade under guidance, or commission a gift piece — a wedding knife, a chef's leaving present — engraved and boxed." }
+  ],
+  why: [
+    { title: "Forged, not ground from a blank.", body: "The steel is drawn out under the hammer, which aligns the grain and lets me put mass exactly where the blade needs it. A ground-down blank is quicker; it is not the same knife." },
+    { title: "Heat-treated by eye.", body: "Hardness is everything in a blade, and I read it by colour and by the steel itself — normalise, harden, quench, temper — so each knife holds an edge and won't chip or bend." },
+    { title: "Sharp for a lifetime.", body: "A hand-forged knife isn't a one-time purchase, it's a relationship. Bring it back whenever it dulls and I'll put the edge back on, for as long as I'm working." }
+  ],
+  how: [
+    { step: "01", title: "Talk it through", body: "Tell me what you cook or what you carry, how big your hand is, what you've hated about past knives. We settle on steel, shape, length and handle before a hammer falls." },
+    { step: "02", title: "Forged to shape", body: "I draw the blade out under the hammer, forge the bevels, then normalise, harden and temper the steel — the slow heat-treating that decides whether a knife is any good." },
+    { step: "03", title: "Ground & handled", body: "The bevels are ground and hand-finished, the handle fitted to the tang and shaped to your grip in your chosen material, then the whole knife is polished and sharpened." },
+    { step: "04", title: "Tested & signed", body: "Every blade is edge-tested, balanced in the hand and stamped with the maker's mark before it goes in its sheath or roll — and it comes back to me for sharpening, always." }
+  ],
+  testimonials: [
+    { quote: "I've cooked professionally for fifteen years and this is the first knife that feels like it was made for my hand — because it was. He measured my grip, asked how I cut, and forged the balance point exactly where I hold it. I'll never buy off a shelf again.", name: "Danny K.", context: "head chef, commissioned chef's knife" },
+    { quote: "My grandfather's carbon knife had a cracked handle and I thought it was done. He re-handled it in stabilised walnut, brought the blade back, and now it's the sharpest thing in my kitchen again. Handed back a family heirloom, basically.", name: "Priya M.", context: "restoration" },
+    { quote: "Did a forging day for my fortieth and made my own bushcraft blade start to finish. Hard graft, unbelievable feeling hammering hot steel, and I use that knife every single time I'm out. Best gift anyone's ever given me, and I gave it to myself.", name: "Tom R.", context: "forging day" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1600&q=85&auto=format&fit=crop", alt: "A glowing blade at the anvil." },
+    { src: "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1600&q=85&auto=format&fit=crop", alt: "Working steel at the forge." },
+    { src: "https://images.unsplash.com/photo-1593618998160-e34014e67546?w=1600&q=85&auto=format&fit=crop", alt: "A blade on the sharpening stone." },
+    { src: "https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1600&q=85&auto=format&fit=crop", alt: "A finished chef's knife." },
+    { src: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1600&q=85&auto=format&fit=crop", alt: "Steel tools on the bench." },
+    { src: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=1600&q=85&auto=format&fit=crop", alt: "Sparks flying at the grinder." }
+  ],
+  faq: [
+    { q: "What's the difference between carbon and stainless steel?", a: "High-carbon steel takes and holds a keener edge and is easier to sharpen to a razor, which is why many chefs and blade lovers prefer it — but it will rust and patina if you leave it wet, so it needs a wipe-down and the odd bit of oil. Stainless steel is far more forgiving of neglect and won't stain, at the cost of being a touch harder to bring to the very finest edge. Neither is 'better'; it depends on how much care you'll give it. I'll talk you through it honestly and forge whichever suits how you actually live — there's no point making you a high-maintenance blade if you'll leave it in the sink." },
+    { q: "How long does a commission take, and what does it cost?", a: "A single commissioned knife typically takes several weeks to a few months depending on the queue and the complexity — I'm one person and one fire, so I don't rush heat-treating for anybody. Cost depends on the steel, the size, the handle material and any engraving; a straightforward kitchen knife starts lower, a large set or an exotic-handled piece more. I'll give you a clear quote before anything starts and a realistic timeline, and I'd always rather take longer and get it right than hand you something I'm not proud to sign." },
+    { q: "Can I really bring it back for sharpening forever?", a: "Yes, and I mean it — anything that leaves this forge comes back for sharpening free of charge for as long as I'm at the anvil. A hand-forged knife is meant to be used hard, and a used knife dulls; that's not a fault, it's a knife doing its job. Bring it in, leave it a few days, collect it sharp. I sharpen on stones by hand, not a powered grinder that eats the blade, so your knife keeps its life instead of losing millimetres every visit. I'll also happily sharpen knives from other makers." },
+    { q: "How do I look after a hand-forged knife?", a: "Wash it by hand and dry it straight away — never the dishwasher, which will wreck the edge and the handle. Keep carbon steel wiped dry and give it a wipe of food-safe oil now and then; a little patina is normal and actually protects the steel, so don't panic when it darkens. Cut on wood or plastic, never glass, stone or a steel board, which will destroy the edge in seconds. Store it in the sheath, a block or on a magnetic strip rather than loose in a drawer. Do that and bring it back when it dulls, and it'll outlive all of us." },
+    { q: "Do you sell ready-made knives, or only commissions?", a: "Both. There's usually a rack of finished pieces you can handle and buy on the day — kitchen knives, outdoor blades and the odd one-off I made to try a steel or a shape — which is the fastest way to own one and a good way to feel the work before you commission. If nothing on the rack is quite right, we commission to your grip and your needs. Ready pieces come with the same sharpening-for-life offer as commissions, so you're not getting a lesser knife by buying off the rack." },
+    { q: "Can I commission a knife as a gift?", a: "Gladly, and they make extraordinary gifts — a chef's knife for someone who cooks, a bushcraft blade for someone who's outdoors, a wedding or anniversary piece engraved with a date or name. If you're not sure of the exact spec, a gift voucher lets the recipient design their own with me, which many people prefer for something this personal. I can engrave, box and, for a forging-day gift, put them at the anvil to make it themselves. Just give me a realistic lead time before the occasion — good steel can't be hurried." }
+  ],
+  area: { places: ["Hathersage", "Sheffield", "Bakewell", "Buxton", "Chesterfield", "Matlock"] },
+  credentials: [
+    { label: "Forged", detail: "Drawn out under the hammer, not ground from blanks" },
+    { label: "Heat-treated", detail: "Hardened & tempered by eye and colour" },
+    { label: "Signed", detail: "Every blade tested and stamped by one smith" },
+    { label: "For life", detail: "Free sharpening for as long as the forge runs" }
+  ],
+  location: { name: "Quench & Temper", addressStreet: "The Old Smithy, Station Road", addressLocality: "Hathersage", addressRegion: "Derbyshire", addressPostcode: "S32 1DD", addressCountry: "United Kingdom" },
+  cta: { heading: "Commission the last knife you'll need.", body: "Tell me your hand, your kitchen or your kit, and I'll forge you one blade — tested, signed, and sharp for the rest of your life. Or take one off the rack today and put it to work tonight.", primary: { label: "Commission a blade", href: "#book" }, secondary: { label: "01433 690 210", href: "tel:+441433690210" } },
+  messaging: { whatsapp: "https://wa.me/441433690210", messenger: "https://m.me/quenchandtemper" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#111010; --ash:#e7e3dd; --ember:#d3541f; --steel:#8a9299; --gold:#c8962a;
+    --ink:#111010; --mid:#7b7268; --mid-d:#9a9186; --rule:rgba(17,16,16,0.16); --rule-d:rgba(231,227,221,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--ash);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--ember);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ember);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--ember);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--ember);color:var(--void);} .btn-primary:hover{background:var(--ash);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(231,227,221,0.4);color:var(--ash);} .btn-ghost:hover{background:var(--ash);color:var(--void);border-color:var(--ash);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid rgba(231,227,221,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(17,16,16,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(231,227,221,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--ember);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(58px,11vw,168px);line-height:0.86;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--steel);color:transparent;display:block;}
+  .hero-headline .em{color:var(--ember);display:block;}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--ember);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(17,16,16,0.82);font-weight:700;}
+
+  .about{background:var(--ash);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--ember);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#4c453d;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(231,227,221,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(231,227,221,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(211,84,31,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ash);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--ember);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#4c453d;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(231,227,221,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--ember);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(231,227,221,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ember);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(231,227,221,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(231,227,221,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--ember);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(231,227,221,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(231,227,221,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ash);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#4c453d;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(231,227,221,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(180deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ember);color:var(--void);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--void);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(46px,7.5vw,124px);line-height:0.9;margin:14px auto 18px;max-width:15ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--void);color:transparent;}
+  .cta-band p{color:rgba(17,16,16,0.82);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--void);color:var(--ash);} .cta-band .btn-primary:hover{background:var(--ash);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(17,16,16,0.5);color:var(--void);} .cta-band .btn-ghost:hover{background:var(--void);color:var(--ash);border-color:var(--void);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(231,227,221,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(231,227,221,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ember);color:var(--void);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(211,84,31,0.45);}
+  .msg-fab a:hover{background:var(--ash);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Quench & Temper","description":"Bladesmith and custom knife maker in the Peak District — hand-forged kitchen and outdoor knives in carbon and stainless steel, made one at a time, plus sharpening and restoration for life.","url":"https://quenchandtemper.co.uk/","telephone":"+441433690210","email":"forge@quenchandtemper.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Old Smithy, Station Road","addressLocality":"Hathersage","addressRegion":"Derbyshire","postalCode":"S32 1DD","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.3280,"longitude":-1.6500},"areaServed":["Hathersage","Sheffield","Bakewell","Buxton"],"image":["https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1600"],"foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between carbon and stainless steel?","acceptedAnswer":{"@type":"Answer","text":"Carbon steel takes and holds a keener edge and sharpens easily, but will rust and patina if left wet, so it needs a wipe and occasional oil. Stainless is more forgiving and won't stain, at the cost of being slightly harder to bring to the finest edge. I'll forge whichever suits how you'll actually care for it."}},
+{"@type":"Question","name":"How long does a commission take and what does it cost?","acceptedAnswer":{"@type":"Answer","text":"A single knife takes several weeks to a few months depending on queue and complexity — I won't rush heat-treating. Cost depends on steel, size, handle and engraving. I give a clear quote and timeline before starting."}},
+{"@type":"Question","name":"Can I bring it back for sharpening forever?","acceptedAnswer":{"@type":"Answer","text":"Yes — anything I forge comes back for free sharpening for as long as I'm at the anvil, done by hand on stones rather than a grinder that eats the blade. I'll sharpen other makers' knives too."}},
+{"@type":"Question","name":"How do I look after a hand-forged knife?","acceptedAnswer":{"@type":"Answer","text":"Hand-wash and dry immediately, never the dishwasher. Wipe carbon steel dry and oil it occasionally; a little patina protects it. Cut on wood or plastic, never glass or steel. Store sheathed or on a strip, and bring it back when it dulls."}},
+{"@type":"Question","name":"Do you sell ready-made knives?","acceptedAnswer":{"@type":"Answer","text":"Yes — there's usually a rack of finished kitchen and outdoor knives to handle and buy on the day, with the same sharpening-for-life offer as commissions. If nothing suits, we commission to your grip."}},
+{"@type":"Question","name":"Can I commission a knife as a gift?","acceptedAnswer":{"@type":"Answer","text":"Gladly — chef's knives, bushcraft blades, engraved wedding or anniversary pieces. A voucher lets the recipient design their own with me. I can engrave, box, or put them at the anvil for a forging day. Give a realistic lead time."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Quench <span>&amp;</span> Temper</a>
+    <nav class="nav-links">
+      <a href="#about">The forge</a><a href="#services">The work</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v72">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Bladesmith &amp; custom knife maker · one at a time · Peak District</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      <span class="out">One smith.</span>
+      <span class="out">One fire.</span>
+      <span class="em">One blade.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=2000&q=85&auto=format&fit=crop"
+             alt="A glowing blade being forged at the anvil." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A working forge in the Peak District making knives the slow way — drawn out under the hammer, ground by eye, heat-treated by colour and hardened in oil. No production line, no laser-cut blanks bought in and badged. Every blade is forged, tested and signed by the same pair of hands, and built to outlast the person who buys it.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission a blade</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What comes off the anvil</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the anvil since 2013</span>
+    <span>Forged, not ground from blanks</span>
+    <span>Heat-treated by eye</span>
+    <span>Sharpening for life</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v38">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 01 / THE FORGE</span><span>ONE SMITH, ONE FIRE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A good knife is a tool you'll <em>hand down,</em> not throw away.</h2>
+        <p>Quench &amp; Temper is one smith and one fire in a stone workshop on the edge of the Peak District. I started forging in 2013 because I was tired of knives designed to be replaced — stamped out by the thousand, glued together, dull in a month and landfill in a year. A knife should be the opposite of that: made once, properly, and kept sharp for a lifetime.</p>
+        <p>Every blade starts as a bar of steel and is drawn out under the hammer, not ground down from a bought-in blank. I forge in high-carbon and stainless steels chosen for the job, normalise and harden by eye and by colour, temper for the right balance of hardness and toughness, then grind and hand-finish the bevels. The handle is fitted to the tang and shaped to the hand, in stabilised timber, horn or micarta.</p>
+        <p>You can commission a blade to your grip and your kitchen, buy one of the ready pieces from the rack, or bring an old favourite back to life. And whatever leaves here comes with a standing offer: bring it back whenever it needs it and I'll re-sharpen it for as long as I'm at the anvil. A knife made by hand deserves to be kept by hand.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1200&q=85&auto=format&fit=crop"
+           alt="A bladesmith working steel at the forge." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v65" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 02 / THE WORK</span><span>OFF THE ANVIL</span></div>
+    <h2 class="h2">What comes off the anvil.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Commissioned kitchen knives</h3><p>Chef's knives, santokus, paring and bread knives forged to your hand and your board. We talk steel, length, weight and balance, then I build the one knife you'll reach for every day.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Outdoor &amp; bushcraft blades</h3><p>Full-tang fixed blades for camp, field and bench — tough carbon steel, a grind that holds an edge, and a handle that grips wet or cold. Sheathed in hand-stitched leather.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Chef's roll &amp; sets</h3><p>Matched sets for cooks who've earned them — a working roll of knives forged as a family, balanced to each other, with the maker's mark and your name if you want it.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Sharpening for life</h3><p>Anything I've forged comes back for sharpening free, for as long as I'm at the anvil. Other makers' knives welcome too — brought back to a proper edge on stones, not a grinder.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Restoration &amp; re-handling</h3><p>An old carbon blade with a loose or split handle isn't finished. I re-handle, re-profile and bring pitted steel back — keeping the knife that already fits your hand.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Forging days &amp; gift blades</h3><p>Spend a day at the forge and make your own blade under guidance, or commission a gift piece — a wedding knife, a chef's leaving present — engraved and boxed.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v37">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 03 / THE DIFFERENCE</span><span>WHY IT HOLDS AN EDGE</span></div>
+    <h2 class="h2">Why it holds an edge.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Forged, not ground from a blank.</h3><p>The steel is drawn out under the hammer, which aligns the grain and lets me put mass exactly where the blade needs it. A ground-down blank is quicker; it is not the same knife.</p></div>
+      <div><span class="no">02 / 03</span><h3>Heat-treated by eye.</h3><p>Hardness is everything in a blade, and I read it by colour and by the steel itself — normalise, harden, quench, temper — so each knife holds an edge and won't chip or bend.</p></div>
+      <div><span class="no">03 / 03</span><h3>Sharp for a lifetime.</h3><p>A hand-forged knife isn't a one-time purchase, it's a relationship. Bring it back whenever it dulls and I'll put the edge back on, for as long as I'm working.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 04 / HOW IT'S MADE</span><span>TALK → FORGE → GRIND → SIGN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Talk it through</h3><p>Tell me what you cook or what you carry, how big your hand is, what you've hated about past knives. We settle on steel, shape, length and handle before a hammer falls.</p></li>
+      <li><span class="step">STEP 02</span><h3>Forged to shape</h3><p>I draw the blade out under the hammer, forge the bevels, then normalise, harden and temper the steel — the slow heat-treating that decides whether a knife is any good.</p></li>
+      <li><span class="step">STEP 03</span><h3>Ground &amp; handled</h3><p>The bevels are ground and hand-finished, the handle fitted to the tang and shaped to your grip in your chosen material, then the whole knife is polished and sharpened.</p></li>
+      <li><span class="step">STEP 04</span><h3>Tested &amp; signed</h3><p>Every blade is edge-tested, balanced in the hand and stamped with the maker's mark before it goes in its sheath or roll — and it comes back to me for sharpening, always.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v37">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 05 / FROM THE BENCH</span><span>WHAT THEY CARRY</span></div>
+    <blockquote class="t-quote">“First knife that feels like it was made for my hand — <em>because it was.</em>”</blockquote>
+    <div class="t-attr">Danny K. — head chef, commissioned chef's knife</div>
+    <div class="t-sub">
+      <figure><blockquote>“My grandfather's carbon knife had a cracked handle and I thought it was done. He re-handled it in stabilised walnut, brought the blade back, and now it's the sharpest thing in my kitchen again. Handed back a family heirloom, basically.”</blockquote><figcaption>Priya M. — restoration</figcaption></figure>
+      <figure><blockquote>“Did a forging day for my fortieth and made my own bushcraft blade start to finish. Hard graft, unbelievable feeling hammering hot steel, and I use that knife every single time I'm out. Best gift anyone's ever given me, and I gave it to myself.”</blockquote><figcaption>Tom R. — forging day</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v65" class="about" style="background:var(--ash);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>HEAT 06 / THE WORK</span><span>FIRE &amp; STEEL</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1600&q=85&auto=format&fit=crop" alt="A glowing blade at the anvil." /><figcaption>AT THE ANVIL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1600&q=85&auto=format&fit=crop" alt="Working steel at the forge." /><figcaption>DRAWN OUT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1593618998160-e34014e67546?w=1600&q=85&auto=format&fit=crop" alt="A blade on the sharpening stone." /><figcaption>THE EDGE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1600&q=85&auto=format&fit=crop" alt="A finished chef's knife." /><figcaption>FINISHED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1600&q=85&auto=format&fit=crop" alt="Steel tools on the bench." /><figcaption>THE BENCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=1600&q=85&auto=format&fit=crop" alt="Sparks flying at the grinder." /><figcaption>GROUND BY EYE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 07 / ASKED AT THE FORGE</span><span>BEFORE YOU COMMISSION</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the forge.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441433690210" style="color:var(--ember);font-weight:700;">01433 690 210</a>. If the hammer's going I'll call you back once the steel's cold.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between carbon and stainless steel?</summary><p>High-carbon steel takes and holds a keener edge and is easier to sharpen to a razor, which is why many chefs and blade lovers prefer it — but it will rust and patina if you leave it wet, so it needs a wipe-down and the odd bit of oil. Stainless steel is far more forgiving of neglect and won't stain, at the cost of being a touch harder to bring to the very finest edge. Neither is "better"; it depends on how much care you'll give it. I'll talk you through it honestly and forge whichever suits how you actually live — there's no point making you a high-maintenance blade if you'll leave it in the sink.</p></details>
+        <details><summary>How long does a commission take, and what does it cost?</summary><p>A single commissioned knife typically takes several weeks to a few months depending on the queue and the complexity — I'm one person and one fire, so I don't rush heat-treating for anybody. Cost depends on the steel, the size, the handle material and any engraving; a straightforward kitchen knife starts lower, a large set or an exotic-handled piece more. I'll give you a clear quote before anything starts and a realistic timeline, and I'd always rather take longer and get it right than hand you something I'm not proud to sign.</p></details>
+        <details><summary>Can I really bring it back for sharpening forever?</summary><p>Yes, and I mean it — anything that leaves this forge comes back for sharpening free of charge for as long as I'm at the anvil. A hand-forged knife is meant to be used hard, and a used knife dulls; that's not a fault, it's a knife doing its job. Bring it in, leave it a few days, collect it sharp. I sharpen on stones by hand, not a powered grinder that eats the blade, so your knife keeps its life instead of losing millimetres every visit. I'll also happily sharpen knives from other makers.</p></details>
+        <details><summary>How do I look after a hand-forged knife?</summary><p>Wash it by hand and dry it straight away — never the dishwasher, which will wreck the edge and the handle. Keep carbon steel wiped dry and give it a wipe of food-safe oil now and then; a little patina is normal and actually protects the steel, so don't panic when it darkens. Cut on wood or plastic, never glass, stone or a steel board, which will destroy the edge in seconds. Store it in the sheath, a block or on a magnetic strip rather than loose in a drawer. Do that and bring it back when it dulls, and it'll outlive all of us.</p></details>
+        <details><summary>Do you sell ready-made knives, or only commissions?</summary><p>Both. There's usually a rack of finished pieces you can handle and buy on the day — kitchen knives, outdoor blades and the odd one-off I made to try a steel or a shape — which is the fastest way to own one and a good way to feel the work before you commission. If nothing on the rack is quite right, we commission to your grip and your needs. Ready pieces come with the same sharpening-for-life offer as commissions, so you're not getting a lesser knife by buying off the rack.</p></details>
+        <details><summary>Can I commission a knife as a gift?</summary><p>Gladly, and they make extraordinary gifts — a chef's knife for someone who cooks, a bushcraft blade for someone who's outdoors, a wedding or anniversary piece engraved with a date or name. If you're not sure of the exact spec, a gift voucher lets the recipient design their own with me, which many people prefer for something this personal. I can engrave, box and, for a forging-day gift, put them at the anvil to make it themselves. Just give me a realistic lead time before the occasion — good steel can't be hurried.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 08 / COMMISSIONS FROM</span><span>ACROSS THE PEAK & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Hathersage</li><li>Sheffield</li><li>Bakewell</li><li>Buxton</li><li>Chesterfield</li><li>Matlock</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v12" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 09 / THE ESSENTIALS</span><span>HOW EACH BLADE IS MADE</span></div>
+    <div class="creds">
+      <div><div class="label">Forged</div><div class="detail">Drawn out under the hammer, not ground from blanks</div></div>
+      <div><div class="label">Heat-treated</div><div class="detail">Hardened &amp; tempered by eye and colour</div></div>
+      <div><div class="label">Signed</div><div class="detail">Every blade tested and stamped by one smith</div></div>
+      <div><div class="label">For life</div><div class="detail">Free sharpening for as long as the forge runs</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>HEAT 10 / FIND THE FORGE</span><span>THE OLD SMITHY, HATHERSAGE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Quench &amp; Temper</strong><br />
+          The Old Smithy, Station Road<br />
+          Hathersage S32 1DD<br /><br />
+          <a href="tel:+441433690210" data-bind="business.phoneDisplay">01433 690 210</a><br />
+          <a href="mailto:forge@quenchandtemper.co.uk" data-bind="business.email">forge@quenchandtemper.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>WORKSHOP VISITS</span><span>BY APPOINTMENT</span></div>
+          <div class="row"><span>FORGING DAYS</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">Live hours and forging-day dates on our Google Business Profile. The forge is behind the old station in Hathersage — listen for the hammer and follow the smoke.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Quench & Temper, Hathersage" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.6590%2C53.3240%2C-1.6410%2C53.3320&layer=mapnik&marker=53.3280%2C-1.6500"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v40">
+  <div class="wrap">
+    <div class="kick">HEAT 11 / COMMISSION</div>
+    <h2 data-bind="cta.heading">Commission the <em>last knife</em> you'll need.</h2>
+    <p data-bind="cta.body">Tell me your hand, your kitchen or your kit, and I'll forge you one blade — tested, signed, and sharp for the rest of your life. Or take one off the rack today and put it to work tonight.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission a blade</a>
+      <a class="btn btn-ghost" href="tel:+441433690210" data-bind="cta.secondary.label">01433 690 210</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441433690210" data-bind="messaging.whatsapp" aria-label="Message the forge">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Quench <span style="color:var(--ember);">&amp;</span> Temper</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A one-smith forge making knives by hand in the Peak District. At the anvil since 2013.</p>
+      </div>
+      <div>
+        <h4>The forge</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          The Old Smithy, Station Road<br />Hathersage S32 1DD<br />
+          <a href="tel:+441433690210">01433 690 210</a><br />
+          <a href="mailto:forge@quenchandtemper.co.uk">forge@quenchandtemper.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The work</a><a href="#about">The forge</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> QUENCH &amp; TEMPER</span>
+      <span>FORGED BY HAND IN THE PEAK DISTRICT</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>
