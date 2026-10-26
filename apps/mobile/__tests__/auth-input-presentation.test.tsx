@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, type ViewStyle } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
-import { fireEvent, renderAsync, within } from '@testing-library/react-native';
+import { fireEvent, renderAsync, waitFor, within } from '@testing-library/react-native';
 import LoginScreen from '../app/(auth)/login';
 
 const mockReplace = jest.fn();
@@ -78,5 +78,24 @@ describe('auth input presentation', () => {
     fireEvent.press(screen.getByRole('link', { name: 'Back to welcome' }));
     expect(mockReplace).toHaveBeenCalledWith({ pathname: '/', params: { welcome: '1' } });
     expect(mockSignIn.create).not.toHaveBeenCalled();
+  });
+
+  it('submits the edited password after showing and hiding it repeatedly', async () => {
+    mockSignIn.create.mockResolvedValueOnce({ status: 'complete', createdSessionId: 'test-session' });
+    const screen = await renderAsync(<LoginScreen />);
+    fireEvent.changeText(screen.getByLabelText('Email'), 'juan@example.com');
+    fireEvent.changeText(screen.getByLabelText('Password'), 'initial-password');
+    fireEvent.press(screen.getByRole('button', { name: 'Show password' }));
+    fireEvent.changeText(screen.getByLabelText('Password'), 'edited-password');
+    fireEvent.press(screen.getByRole('button', { name: 'Hide password' }));
+    expect(screen.getByLabelText('Password').props.value).toBe('edited-password');
+    fireEvent.press(screen.getByRole('button', { name: 'Show password' }));
+    fireEvent.changeText(screen.getByLabelText('Password'), '');
+    fireEvent.changeText(screen.getByLabelText('Password'), 'replacement-password');
+    fireEvent.press(screen.getByRole('button', { name: 'Hide password' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(mockSignIn.create).toHaveBeenCalledWith({
+      identifier: 'juan@example.com', password: 'replacement-password',
+    }));
   });
 });

@@ -1,5 +1,5 @@
-import React, { forwardRef, useState } from 'react';
-import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import React, { forwardRef, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { Platform, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, shadow, space } from '../../theme/v2';
 import { Text } from './Text';
@@ -28,10 +28,38 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
  * Label 16, value 18 (Rule #1: nothing under 16). Forwards the ref to the TextInput.
  */
 export const Field = forwardRef<TextInput, FieldProps>(function Field(
-  { label, variant = 'card', labelRight, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, editable = true, accessibilityLabel, ...input },
+  { label, variant = 'card', labelRight, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, onSelectionChange, editable = true, accessibilityLabel, ...input },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef<TextInput | null>(null);
+  const selectionRef = useRef<TextInputProps['selection']>(undefined);
+  // UIKit can clear a live field when secureTextEntry changes. A fresh iOS
+  // input starts in the desired mode with the controlled password intact.
+  const secureMode = Platform.OS === 'ios' && typeof input.value === 'string' && input.secureTextEntry !== undefined
+    ? input.secureTextEntry ? 'secure' : 'visible'
+    : 'default';
+  const previousMode = useRef(secureMode);
+  const attachInput = useCallback((node: TextInput | null) => {
+    inputRef.current = node;
+    if (typeof ref === 'function') ref(node);
+    else if (ref) ref.current = node;
+  }, [ref]);
+
+  useLayoutEffect(() => {
+    const changed = previousMode.current !== secureMode;
+    previousMode.current = secureMode;
+    if (!changed || secureMode === 'default' || !focused || !editable) return;
+    const node = inputRef.current;
+    if (!node) return;
+    node.focus();
+    const length = input.value?.length ?? 0;
+    const selection = input.selection ?? selectionRef.current;
+    const start = Math.min(selection?.start ?? length, length);
+    const end = Math.min(selection?.end ?? start, length);
+    // Restore once; a persistent selection prop would interfere with typing.
+    node.setSelection(start, end);
+  }, [secureMode, focused, editable, input.value, input.selection]);
   const outlined = variant === 'outlined';
   return (
     <View style={containerStyle}>
@@ -62,19 +90,27 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
               </Text>
             ) : null}
             <TextInput
-              ref={ref}
+              key={secureMode}
+              ref={attachInput}
               {...input}
               editable={editable}
               accessibilityLabel={accessibilityLabel ?? label}
               placeholderTextColor={colors.ink3}
               selectionColor={colors.ink}
               onFocus={(e) => {
+                if (previousMode.current !== secureMode) return;
                 setFocused(true);
                 onFocus?.(e);
               }}
               onBlur={(e) => {
+                if (previousMode.current !== secureMode) return;
                 setFocused(false);
                 onBlur?.(e);
+              }}
+              onSelectionChange={(e) => {
+                if (previousMode.current !== secureMode) return;
+                selectionRef.current = e.nativeEvent.selection;
+                onSelectionChange?.(e);
               }}
               style={styles.input}
             />
