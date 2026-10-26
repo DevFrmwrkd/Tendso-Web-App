@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { usePushNotifications } from '../../../hooks/usePushNotifications';
@@ -21,5 +22,13 @@ export default function NativeAdminLayout() {
   if (session.isOffline) return <AdminLoading message="Connect to the internet to use admin tools." />;
   if (!session.isAuthenticated) return <Redirect href="/(auth)/login" />;
   if (!canUseAdminTools(session)) return <Redirect href={accountHome(session.account)} />;
-  return <AdminQueryBoundary key={session.account!._id}><Stack screenOptions={{ headerShown: false }} /></AdminQueryBoundary>;
+  return <AdminQueryBoundary key={session.account!._id}>
+    {/* Main sections switch in place. Only opening a detail is a native push. */}
+    <Stack screenOptions={{ headerShown: false, animation: 'none', gestureEnabled: false }}>
+      <Stack.Screen name="submissions/[id]" options={{
+        animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right',
+        gestureEnabled: true,
+      }} />
+    </Stack>
+  </AdminQueryBoundary>;
 }

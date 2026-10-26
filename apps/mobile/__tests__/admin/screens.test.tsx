@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Keyboard, Platform, ScrollView, type KeyboardEvent, type KeyboardEventName } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import NativeAdminLayout from '../../app/(app)/admin/_layout';
 import Overview from '../../app/(app)/admin';
@@ -25,12 +25,16 @@ jest.mock('../../services/links', () => ({ SITE_URL: 'https://www.tendso.com', o
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('expo-router', () => {
   const create = require('react').createElement;
-  const { Text } = require('react-native');
+  const { Text, View } = require('react-native');
+  const Stack = Object.assign(
+    ({ children, screenOptions }: { children?: React.ReactNode; screenOptions?: unknown }) => create(View, { testID: 'admin-stack', screenOptions }, children),
+    { Screen: ({ name, options }: { name: string; options?: unknown }) => create(View, { testID: `admin-stack-screen-${name}`, options }) },
+  );
   return {
     useRouter: () => mockRouter,
     useLocalSearchParams: () => ({ id: 'submission-1' }),
     Redirect: ({ href }: { href: string }) => create(Text, { testID: 'redirect' }, href),
-    Stack: () => create(Text, { testID: 'admin-stack' }, 'Admin stack'),
+    Stack,
   };
 });
 jest.mock('convex/react', () => ({
@@ -57,9 +61,29 @@ function acceptAlert() {
   return buttons[1].onPress();
 }
 
+function watchKeyboard(initiallyVisible = false) {
+  const subscriptions: { event: KeyboardEventName; listener: (event: KeyboardEvent) => void; remove: jest.Mock; active: boolean }[] = [];
+  jest.spyOn(Keyboard, 'isVisible').mockReturnValue(initiallyVisible);
+  jest.spyOn(Keyboard, 'scheduleLayoutAnimation').mockImplementation(() => {});
+  jest.spyOn(Keyboard, 'addListener').mockImplementation((event, listener) => {
+    const subscription = { event, listener, active: true, remove: jest.fn() };
+    subscription.remove.mockImplementation(() => { subscription.active = false; });
+    subscriptions.push(subscription);
+    return subscription as ReturnType<typeof Keyboard.addListener>;
+  });
+  const event: KeyboardEvent = { duration: 250, easing: 'keyboard', endCoordinates: { screenX: 0, screenY: 544, width: 390, height: 300 } };
+  return {
+    subscriptions,
+    emit: (name: KeyboardEventName) => act(() => {
+      subscriptions.filter(subscription => subscription.active && subscription.event === name).forEach(subscription => subscription.listener(event));
+    }),
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  jest.spyOn(Keyboard, 'isVisible').mockReturnValue(false);
   mockSession = ready();
   mockData = {
     'admin:getDashboardStats': { pendingReview: 1, totalCreators: 2, activeCreators: 1, totalSubmissions: 3 },
@@ -122,6 +146,17 @@ describe('private query gating', () => {
 });
 
 describe('native admin navigation', () => {
+  it.each(['ios', 'android'] as const)('changes sections without stack animation and keeps normal submission navigation on %s', platform => {
+    jest.replaceProperty(Platform, 'OS', platform);
+    const screen = render(<NativeAdminLayout />);
+    expect(screen.getByTestId('admin-stack').props.screenOptions).toEqual(expect.objectContaining({
+      headerShown: false, animation: 'none', gestureEnabled: false,
+    }));
+    expect(screen.getByTestId('admin-stack-screen-submissions/[id]').props.options).toEqual(expect.objectContaining({
+      animation: platform === 'ios' ? 'default' : 'slide_from_right', gestureEnabled: true,
+    }));
+  });
+
   it('opens the review queue from the overview primary action', () => {
     const screen = render(<Overview />);
     fireEvent.press(screen.getByLabelText('Open reviews'));
@@ -172,6 +207,80 @@ describe('native admin navigation', () => {
     fireEvent.press(detail.getByLabelText('Back to reviews'));
     expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/admin/reviews');
     expect(mockMutation).not.toHaveBeenCalled();
+  });
+});
+
+describe('native admin keyboard', () => {
+  it.each([
+    { platform: 'ios', show: 'keyboardWillShow', hide: 'keyboardWillHide', dismissMode: 'interactive' },
+    { platform: 'android', show: 'keyboardDidShow', hide: 'keyboardDidHide', dismissMode: 'on-drag' },
+  ] as const)('gives the form space on $platform and restores navigation without losing search', ({ platform, show, hide, dismissMode }) => {
+    jest.replaceProperty(Platform, 'OS', platform);
+    const keyboard = watchKeyboard();
+    const screen = render(<Accounts />);
+    const searchLabel = 'Search name, email, mobile or handle';
+    fireEvent.changeText(screen.getByLabelText(searchLabel), 'Ana');
+    expect(screen.getByLabelText('Accounts tab').props.accessibilityState.selected).toBe(true);
+    keyboard.emit(show);
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) expect(screen.queryByLabelText(`${label} tab`)).toBeNull();
+    expect(screen.getByLabelText(searchLabel).props.value).toBe('Ana');
+    const scrollView = screen.UNSAFE_getByType(ScrollView);
+    expect(scrollView.props.automaticallyAdjustKeyboardInsets).toBe(true);
+    expect(scrollView.props.keyboardDismissMode).toBe(dismissMode);
+    keyboard.emit(hide);
+    expect(screen.getByLabelText('Accounts tab').props.accessibilityState.selected).toBe(true);
+    expect(screen.getByLabelText(searchLabel).props.value).toBe('Ana');
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+
+  it('keeps rejection validation and its draft through did-show and did-hide events', () => {
+    const keyboard = watchKeyboard();
+    mockData['submissions:getByIdWithCreator'] = { ...submission, giveawayApplication: true };
+    const screen = render(<Submission />);
+    keyboard.emit('keyboardDidShow');
+    expect(screen.queryByLabelText('Reviews tab')).toBeNull();
+    expect(screen.getByLabelText('Reject submission').props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(screen.getByLabelText('Reject submission'));
+    expect(Alert.alert).not.toHaveBeenCalled();
+    fireEvent.changeText(screen.getByLabelText('Rejection reason'), 'Poster missing');
+    expect(screen.getByLabelText('Reject submission').props.accessibilityState.disabled).toBe(false);
+    keyboard.emit('keyboardDidHide');
+    expect(screen.getByLabelText('Reviews tab').props.accessibilityState.selected).toBe(true);
+    expect(screen.getByLabelText('Rejection reason').props.value).toBe('Poster missing');
+    expect(screen.getByLabelText('Reject submission').props.accessibilityState.disabled).toBe(false);
+    expect(mockMutation).not.toHaveBeenCalled();
+  });
+
+  it('starts with navigation hidden when mounted with the keyboard already open', () => {
+    const keyboard = watchKeyboard(true);
+    const screen = render(<Accounts />);
+    expect(screen.getByLabelText('Search name, email, mobile or handle')).toBeTruthy();
+    expect(screen.queryByLabelText('Accounts tab')).toBeNull();
+    keyboard.emit('keyboardDidHide');
+    expect(screen.getByLabelText('Accounts tab').props.accessibilityState.selected).toBe(true);
+  });
+
+  it('removes its keyboard subscriptions on unmount', () => {
+    const keyboard = watchKeyboard();
+    const screen = render(<Accounts />);
+    expect(keyboard.subscriptions.length).toBeGreaterThan(0);
+    screen.unmount();
+    keyboard.subscriptions.forEach(subscription => expect(subscription.remove).toHaveBeenCalledTimes(1));
+  });
+
+  it('dismisses a single-line search with Done and leaves multiline rejection input available for new lines', () => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
+    const accounts = render(<Accounts />);
+    const search = accounts.getByLabelText('Search name, email, mobile or handle');
+    expect(search.props.returnKeyType).toBe('done');
+    fireEvent(search, 'submitEditing');
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    accounts.unmount();
+    const detail = render(<Submission />);
+    const rejection = detail.getByLabelText('Rejection reason');
+    expect(rejection.props.multiline).toBe(true);
+    expect(rejection.props.onSubmitEditing).toBeUndefined();
   });
 });
 

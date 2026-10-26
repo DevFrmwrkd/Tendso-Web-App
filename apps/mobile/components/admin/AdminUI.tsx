@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Keyboard, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, type KeyboardEvent } from 'react-native';
 import type { Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -68,6 +68,7 @@ export function AdminField({ label, value, onChangeText, maxLength = 500, multil
 }) {
   return <View style={{ gap: space.sm }}><Text variant="label" tone="muted">{label}</Text><TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText}
     maxLength={maxLength} multiline={multiline} placeholderTextColor={colors.ink3} selectionColor={colors.ink}
+    returnKeyType={multiline ? 'default' : 'done'} onSubmitEditing={multiline ? undefined : Keyboard.dismiss}
     autoCorrect={false} textAlignVertical={multiline ? 'top' : 'center'} style={[styles.input, multiline && { minHeight: 112 }]} /></View>;
 }
 export function AdminTabs<T extends string>({ items, value, onChange }: { items: { value: T; label: string }[]; value: T; onChange: (value: T) => void }) {
@@ -98,10 +99,36 @@ const NAV_ITEMS: TabBarItem[] = [
 const NAV_ROUTES: Record<AdminSection, Href> = {
   overview: '/(app)/admin', reviews: '/(app)/admin/reviews', accounts: '/(app)/admin/accounts', payouts: '/(app)/admin/payouts',
 };
+
+function useAdminKeyboardVisible() {
+  const [visible, setVisible] = useState(() => Keyboard.isVisible());
+  useEffect(() => {
+    // Did events handle Android and a screen mounted midway through an iOS
+    // keyboard transition. Will events keep the iOS bar in sync with the keyboard.
+    const subscriptions = [
+      Keyboard.addListener('keyboardDidShow', () => setVisible(true)),
+      Keyboard.addListener('keyboardDidHide', () => setVisible(false)),
+    ];
+    if (Platform.OS === 'ios') {
+      const update = (show: boolean) => (event: KeyboardEvent) => {
+        Keyboard.scheduleLayoutAnimation(event);
+        setVisible(show);
+      };
+      subscriptions.push(
+        Keyboard.addListener('keyboardWillShow', update(true)),
+        Keyboard.addListener('keyboardWillHide', update(false)),
+      );
+    }
+    return () => subscriptions.forEach(subscription => subscription.remove());
+  }, []);
+  return visible;
+}
+
 export function AdminScreen({ title, subtitle, children, home = false, section = 'overview', backHref, backLabel = 'Back to admin overview' }: {
   title: string; subtitle?: string; children: React.ReactNode; home?: boolean; section?: AdminSection; backHref?: Href; backLabel?: string;
 }) {
   const router = useGuardedRouter();
+  const keyboardVisible = useAdminKeyboardVisible();
   const showBack = !!backHref || (!home && section === 'overview');
   // The admin-only account switcher above the navigator owns the top safe area.
   // V2TabBar owns the bottom inset; the scrolling body needs neither twice.
@@ -112,7 +139,7 @@ export function AdminScreen({ title, subtitle, children, home = false, section =
       </LinearGradient></Defs>
       <Rect x="0" y="0" width="100%" height="100%" fill="url(#admin-bg)" />
     </Svg>
-    <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'} automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
       {showBack ? <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={() => router.replace(backHref ?? NAV_ROUTES.overview)} style={[styles.back, shadow.soft]}>
         <Ionicons name="arrow-back" size={22} color={colors.ink} />
       </Pressable> : null}
@@ -125,8 +152,8 @@ export function AdminScreen({ title, subtitle, children, home = false, section =
       </View>
       {children}
     </ScrollView>
-    <V2TabBar items={NAV_ITEMS} state={{ index: NAV_ITEMS.findIndex(item => item.routeName === section), routes: NAV_ITEMS.map(item => ({ name: item.routeName })) }}
-      navigation={{ navigate: name => router.replace(NAV_ROUTES[name as AdminSection]) }} />
+    {keyboardVisible ? null : <V2TabBar items={NAV_ITEMS} state={{ index: NAV_ITEMS.findIndex(item => item.routeName === section), routes: NAV_ITEMS.map(item => ({ name: item.routeName })) }}
+      navigation={{ navigate: name => router.replace(NAV_ROUTES[name as AdminSection]) }} />}
   </View>;
 }
 
