@@ -19,7 +19,7 @@ const mockMarkLessonDone = jest.fn();
 // distinct identities so a wrong lesson image or repeated example fails.
 jest.mock('../assets/training/overview.jpg', () => ({ uri: 'training-classroom', width: 1024, height: 688 }));
 jest.mock('../assets/training/lesson-1.jpg', () => ({ uri: 'lesson-lighting', width: 896, height: 1120 }));
-jest.mock('../assets/training/lesson-2.jpg', () => ({ uri: 'lesson-audio', width: 1120, height: 896 }));
+jest.mock('../assets/training/lesson-2-recording-v1.jpg', () => ({ uri: 'lesson-audio-recording', width: 1402, height: 1122 }));
 jest.mock('../assets/training/lesson-4.jpg', () => ({ uri: 'lesson-interview', width: 1120, height: 896 }));
 jest.mock('../assets/training/forge-owner-portrait-v1.jpg', () => ({ uri: 'forge-portrait', width: 880, height: 1168 }));
 jest.mock('../assets/training/forge-owner-banner-v1.jpg', () => ({ uri: 'forge-owner-banner', width: 1100, height: 1366 }));
@@ -162,7 +162,7 @@ describe('Training lessons', () => {
         if (!lesson.examples) {
           fireEvent(photoFrame(image), 'layout', { nativeEvent: { layout: { width: 353, height: 190 } } });
           const style = StyleSheet.flatten(image.props.style);
-          const [hair, chin] = [[140, 450], [150, 370], [260, 600], [140, 340]][index];
+          const [hair, chin] = [[140, 450], [185, 475], [260, 600], [140, 340]][index];
           const sourceHeight = Image.resolveAssetSource(photo.photo).height;
           const scale = style.height / sourceHeight;
           expect(style.top + hair * scale).toBeGreaterThanOrEqual(0);
@@ -184,7 +184,7 @@ describe('Training lessons', () => {
     mockParams = { lesson: '1' };
     const screen = render(<TrainingLessonsScreen />);
     const audioSource = screen.getByLabelText(TRAINING_LESSONS[1].photoDescription).props.source;
-    expect(audioSource).toEqual(expect.objectContaining({ uri: 'lesson-audio' }));
+    expect(audioSource).toEqual(expect.objectContaining({ uri: 'lesson-audio-recording' }));
     next(screen);
     await waitFor(() => expect(screen.getByText('Photos that sell')).toBeTruthy());
     expect(screen.queryByLabelText(TRAINING_LESSONS[1].photoDescription)).toBeNull();

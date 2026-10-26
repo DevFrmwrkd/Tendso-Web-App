@@ -42,7 +42,7 @@ describe('cover image layout', () => {
 // a centered cover crop cutting off a head even when the frame itself is full.
 const lessonFaces = [
   { id: 1, width: 896, height: 1120, hair: 140, chin: 450 },
-  { id: 2, width: 1120, height: 896, hair: 150, chin: 370 },
+  { id: 2, width: 1402, height: 1122, hair: 185, chin: 475 },
   { id: 3, width: 1100, height: 1366, hair: 260, chin: 600 },
   { id: 4, width: 1120, height: 896, hair: 140, chin: 340 },
 ];
@@ -56,6 +56,14 @@ describe('training subject framing', () => {
       const scale = layout.height / subject.height;
       expect(layout.top + subject.hair * scale).toBeGreaterThanOrEqual(0);
       expect(layout.top + subject.chin * scale).toBeLessThanOrEqual(frame.height);
+      if (subject.id === 2) {
+        // Keep the lit phone, including its recording timer and stop control,
+        // visible alongside the speaker at every tested banner width.
+        expect(layout.left + 890 * scale).toBeGreaterThanOrEqual(0);
+        expect(layout.left + 1000 * scale).toBeLessThanOrEqual(frame.width);
+        expect(layout.top + 280 * scale).toBeGreaterThanOrEqual(0);
+        expect(layout.top + 520 * scale).toBeLessThanOrEqual(frame.height);
+      }
     }
   });
 

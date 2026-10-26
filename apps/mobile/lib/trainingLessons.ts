@@ -56,9 +56,9 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     title: 'Clear audio',
     minutes: 2,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/lesson-2.jpg'),
+    photo: require('../assets/training/lesson-2-recording-v1.jpg'),
     cropPosition: { x: 0.5, y: 0.28 },
-    photoDescription: 'A field agent holding a phone close to a mechanic while recording him.',
+    photoDescription: 'A field agent recording a mechanic, with a live camera preview and red recording controls visible on the phone.',
     line: 'Bad sound ruins the video. Test it first.',
     dos: [
       { title: 'Test first', text: 'Record a short clip and play it back.' },
