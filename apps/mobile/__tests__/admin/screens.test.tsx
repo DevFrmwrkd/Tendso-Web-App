@@ -15,8 +15,11 @@ const mockMutation = jest.fn();
 const mockAction = jest.fn();
 const mockOpen = jest.fn();
 const mockSignOut = jest.fn();
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), navigate: jest.fn() };
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: mockSignOut }) }));
+jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('../../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockSession }));
+jest.mock('../../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../../hooks/usePushNotifications', () => ({ usePushNotifications: jest.fn() }));
 jest.mock('../../services/links', () => ({ SITE_URL: 'https://www.tendso.com', openExternalUrl: (...args: unknown[]) => mockOpen(...args) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
@@ -24,7 +27,7 @@ jest.mock('expo-router', () => {
   const create = require('react').createElement;
   const { Text } = require('react-native');
   return {
-    useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+    useRouter: () => mockRouter,
     useLocalSearchParams: () => ({ id: 'submission-1' }),
     Redirect: ({ href }: { href: string }) => create(Text, { testID: 'redirect' }, href),
     Stack: () => create(Text, { testID: 'admin-stack' }, 'Admin stack'),
@@ -118,6 +121,60 @@ describe('private query gating', () => {
   });
 });
 
+describe('native admin navigation', () => {
+  it('opens the review queue from the overview primary action', () => {
+    const screen = render(<Overview />);
+    fireEvent.press(screen.getByLabelText('Open reviews'));
+    expect(mockRouter.push).toHaveBeenCalledWith('/(app)/admin/reviews');
+    expect(mockMutation).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { Screen: Overview, selected: 'Overview' },
+    { Screen: Reviews, selected: 'Reviews' },
+    { Screen: Accounts, selected: 'Accounts' },
+    { Screen: Payouts, selected: 'Payouts' },
+  ])('marks only $selected as the current section and ignores its repeated press', ({ Screen, selected }) => {
+    const screen = render(<Screen />);
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) {
+      expect(screen.getByLabelText(`${label} tab`).props.accessibilityState.selected).toBe(label === selected);
+    }
+    fireEvent.press(screen.getByLabelText(`${selected} tab`));
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'Reviews', route: '/(app)/admin/reviews' },
+    { label: 'Accounts', route: '/(app)/admin/accounts' },
+    { label: 'Payouts', route: '/(app)/admin/payouts' },
+  ])('replaces the current section with $label without growing the back stack', ({ label, route }) => {
+    const screen = render(<Overview />);
+    fireEvent.press(screen.getByLabelText(`${label} tab`));
+    expect(mockRouter.replace).toHaveBeenCalledWith(route);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+
+  it('opens the selected submission and returns to its reviews section', () => {
+    mockQuery.mockImplementation((name, args) => {
+      if (args === 'skip') return undefined;
+      if (name === 'submissions:getByStatus') return args.status === 'submitted' ? [submission] : [];
+      return mockData[name];
+    });
+    const reviews = render(<Reviews />);
+    fireEvent.press(reviews.getByLabelText(`Review ${submission.businessName}`));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/admin/submissions/[id]', params: { id: 'submission-1' } });
+    reviews.unmount();
+    const detail = render(<Submission />);
+    expect(detail.getByLabelText('Reviews tab').props.accessibilityState.selected).toBe(true);
+    fireEvent.press(detail.getByLabelText('Back to reviews'));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/admin/reviews');
+    expect(mockMutation).not.toHaveBeenCalled();
+  });
+});
+
 describe('native admin actions', () => {
   it('confirms submission approval and binds actor to live Clerk identity', async () => {
     const screen = render(<Submission />);
@@ -178,14 +235,14 @@ describe('native admin actions', () => {
   });
   it('approves creators with their creators id and no supplied actor', async () => {
     const screen = render(<Reviews />);
-    fireEvent.press(screen.getByLabelText('Creator verification'));
+    fireEvent.press(screen.getByLabelText('Field agents'));
     fireEvent.press(screen.getByLabelText('Approve Ana Reyes'));
     act(() => { acceptAlert(); });
     await waitFor(() => expect(mockMutation).toHaveBeenCalledWith('creators:approveCreator', { id: 'creator-1' }));
   });
   it('rejects a creator with their own trimmed reason', async () => {
     const screen = render(<Reviews />);
-    fireEvent.press(screen.getByLabelText('Creator verification'));
+    fireEvent.press(screen.getByLabelText('Field agents'));
     fireEvent.changeText(screen.getByLabelText('Rejection reason for Ana Reyes (optional)'), '  Please confirm your name  ');
     fireEvent.press(screen.getByLabelText('Reject Ana Reyes'));
     act(() => { acceptAlert(); });
@@ -193,7 +250,7 @@ describe('native admin actions', () => {
   });
   it('keeps affiliate suspension on the same account type', async () => {
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     expect(mockQuery).toHaveBeenCalledWith('affiliates:list', {});
     fireEvent.press(screen.getByLabelText('Suspend Bea Reyes'));
     act(() => { acceptAlert(); });
@@ -203,7 +260,7 @@ describe('native admin actions', () => {
   it('lists pending affiliates first and confirms approval with only their id and active status', async () => {
     mockData['affiliates:list'] = [affiliate, { ...affiliate, _id: 'pending-affiliate', firstName: 'Pending', status: 'pending' }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     expect(screen.getByText('Awaiting approval')).toBeTruthy();
     const labels = screen.getAllByRole('button').map(button => button.props.accessibilityLabel);
     expect(labels.indexOf('Approve Pending Reyes')).toBeLessThan(labels.indexOf('Suspend Bea Reyes'));
@@ -224,7 +281,7 @@ describe('native admin actions', () => {
   ])('does not approve after live admin permission or identity changes %#', change => {
     mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
     mockSession = { ...ready(), ...change };
     screen.rerender(<Accounts />);
@@ -234,7 +291,7 @@ describe('native admin actions', () => {
   it('does not approve a target whose status changed while confirmation was open', () => {
     mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
     mockData['affiliates:list'] = [{ ...affiliate, status: 'suspended' }];
     screen.rerender(<Accounts />);
@@ -245,9 +302,9 @@ describe('native admin actions', () => {
   it('invalidates approval when leaving the affiliate account list', () => {
     mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
-    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
     fireEvent.press(screen.getByLabelText('Creators'));
+    fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
+    fireEvent.press(screen.getByLabelText('Field agents'));
     act(() => { acceptAlert(); });
     expect(mockMutation).not.toHaveBeenCalled();
   });
@@ -255,7 +312,7 @@ describe('native admin actions', () => {
     mockData['affiliates:list'] = [{ ...affiliate, status: 'pending' }];
     mockMutation.mockRejectedValueOnce(new Error('Approval failed'));
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     fireEvent.press(screen.getByLabelText('Approve Bea Reyes'));
     act(() => { acceptAlert(); });
     expect(await screen.findByText('Approval failed')).toBeTruthy();
@@ -264,7 +321,7 @@ describe('native admin actions', () => {
   it.each([undefined, 'reviewing', 'rejected'])('shows unknown affiliate status %s without status actions', status => {
     mockData['affiliates:list'] = [{ ...affiliate, status }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     expect(screen.getByText(affiliate.email)).toBeTruthy();
     for (const verb of ['Approve', 'Suspend', 'Reactivate']) {
       expect(screen.queryByLabelText(`${verb} Bea Reyes`)).toBeNull();
@@ -280,7 +337,7 @@ describe('native admin actions', () => {
   it('reactivates a suspended affiliate without changing role or certification', async () => {
     mockData['affiliates:list'] = [{ ...affiliate, status: 'suspended' }];
     const screen = render(<Accounts />);
-    fireEvent.press(screen.getByLabelText('Affiliates'));
+    fireEvent.press(screen.getByLabelText('Creators'));
     fireEvent.press(screen.getByLabelText('Reactivate Bea Reyes'));
     act(() => { acceptAlert(); });
     await waitFor(() => expect(mockMutation).toHaveBeenCalledWith('creators:updateStatus', { id: 'affiliate-1', status: 'active' }));

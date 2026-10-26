@@ -55,10 +55,10 @@ export function AccountViewSwitcher() {
 
 const styles = StyleSheet.create({
   wrap: { paddingHorizontal: space.gutter, paddingBottom: space.md, backgroundColor: colors.bg },
-  row: { flexDirection: 'row', gap: space.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   pill: {
-    minHeight: hit.min - 8,
-    paddingHorizontal: space.lg,
+    minHeight: hit.min,
+    paddingHorizontal: space.md,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import type { Href } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, radius } from '../../theme/tokens';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { backgroundGradient, colors, fonts, hit, radius, shadow, space } from '../../theme/v2';
+import { Chip } from '../v2/Chip';
+import { EmptyState } from '../v2/EmptyState';
+import { ListRow } from '../v2/ListRow';
+import { TendsoMark } from '../v2/TendsoMark';
+import { Text } from '../v2/Text';
+import { V2TabBar, type TabBarItem } from '../v2/TabBar';
 import { openExternalUrl, SITE_URL } from '../../services/links';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 
@@ -11,54 +18,116 @@ export const fullName = (person: { firstName?: string | null; lastName?: string 
   [person.firstName, person.lastName].filter(Boolean).join(' ') || person.email || 'Unnamed account';
 export const date = (value?: number | null) => value ? new Date(value).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
-export function AdminButton({ label, onPress, disabled = false, busy = false, danger = false }: {
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
+type AdminSection = 'overview' | 'reviews' | 'accounts' | 'payouts';
+
+export function AdminButton({ label, onPress, disabled = false, busy = false, danger = false, variant = 'primary', icon }: {
   label: string; onPress: () => void | Promise<void>; disabled?: boolean; busy?: boolean; danger?: boolean;
+  variant?: 'primary' | 'secondary' | 'ghost'; icon?: IconName;
 }) {
+  const foreground = danger ? variant === 'primary' ? colors.onDark : colors.danger : colors.ink;
   return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: disabled || busy, busy }}
-    disabled={disabled || busy} onPress={onPress} cssInterop={false} style={({ pressed }) => [styles.button, danger && styles.dangerButton, (disabled || busy) && { opacity: .45 }, pressed && { opacity: .75 }]}>
-    {busy ? <ActivityIndicator color={colors.paper3} /> : <Text style={styles.buttonText}>{label}</Text>}
+    disabled={disabled || busy} onPress={onPress} cssInterop={false} style={({ pressed }) => [
+      styles.button, variant === 'secondary' && styles.secondaryButton, variant === 'ghost' && styles.ghostButton,
+      danger && (variant === 'primary' ? styles.dangerButton : styles.dangerSoftButton),
+      (disabled || busy) && { opacity: .45 }, pressed && { opacity: .75 },
+    ]}>
+    {busy ? <ActivityIndicator color={foreground} /> : <>
+      {icon ? <Ionicons name={icon} size={22} color={foreground} /> : null}
+      <Text variant="button" align="center" style={[styles.buttonText, { color: foreground }]}>{label}</Text>
+    </>}
   </Pressable>;
 }
 
 export function AdminText({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) {
-  return <Text selectable style={[styles.text, muted && { color: colors.ink3 }]}>{children}</Text>;
+  return <Text selectable variant="body" tone={muted ? 'muted' : 'ink2'}>{children}</Text>;
 }
-export function AdminCard({ title, children }: { title?: string; children: React.ReactNode }) {
-  return <View style={styles.card}>{title && <Text style={styles.cardTitle}>{title}</Text>}{children}</View>;
+export function AdminCard({ title, subtitle, right, children }: { title?: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
+  return <View style={[styles.card, shadow.soft]}>
+    {title || subtitle || right ? <View style={styles.cardHeading}>
+      <View style={styles.cardHeadingText}>
+        {title ? <Text variant="heading" accessibilityRole="header">{title}</Text> : null}
+        {subtitle ? <AdminText muted>{subtitle}</AdminText> : null}
+      </View>
+      {right}
+    </View> : null}
+    {children}
+  </View>;
 }
 export function AdminLoading({ message = 'Loading admin data…' }: { message?: string }) {
-  return <View style={styles.loading}><ActivityIndicator accessibilityLabel="Loading admin data" color={colors.ink} /><AdminText>{message}</AdminText></View>;
+  return <View style={styles.loading}><View style={styles.loadingIcon}><ActivityIndicator accessibilityLabel="Loading admin data" color={colors.ink} /></View><AdminText>{message}</AdminText></View>;
 }
 export function AdminNotice({ children, error = false }: { children: React.ReactNode; error?: boolean }) {
-  return <Text accessibilityRole={error ? 'alert' : undefined} accessibilityLiveRegion="polite" style={[styles.notice, error && { backgroundColor: colors.dangerBg, color: colors.danger }]}>{children}</Text>;
+  return <View style={[styles.notice, error && { backgroundColor: colors.dangerBg }]}>
+    <Ionicons name={error ? 'alert-circle-outline' : 'information-circle-outline'} size={22} color={error ? colors.danger : colors.ink} />
+    <Text variant="label" weight="medium" tone={error ? 'danger' : 'ink2'} accessibilityRole={error ? 'alert' : undefined} accessibilityLiveRegion="polite" style={styles.flex}>{children}</Text>
+  </View>;
 }
 export function AdminField({ label, value, onChangeText, maxLength = 500, multiline = false }: {
   label: string; value: string; onChangeText: (value: string) => void; maxLength?: number; multiline?: boolean;
 }) {
-  return <View style={{ gap: 8 }}><AdminText>{label}</AdminText><TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText}
-    maxLength={maxLength} multiline={multiline} textAlignVertical={multiline ? 'top' : 'center'} style={[styles.input, multiline && { minHeight: 100 }]} /></View>;
+  return <View style={{ gap: space.sm }}><Text variant="label" tone="muted">{label}</Text><TextInput accessibilityLabel={label} value={value} onChangeText={onChangeText}
+    maxLength={maxLength} multiline={multiline} placeholderTextColor={colors.ink3} selectionColor={colors.ink}
+    autoCorrect={false} textAlignVertical={multiline ? 'top' : 'center'} style={[styles.input, multiline && { minHeight: 112 }]} /></View>;
 }
 export function AdminTabs<T extends string>({ items, value, onChange }: { items: { value: T; label: string }[]; value: T; onChange: (value: T) => void }) {
   return <View style={styles.tabs}>{items.map(item => <Pressable key={item.value} accessibilityRole="tab" accessibilityLabel={item.label}
-    accessibilityState={{ selected: item.value === value }} onPress={() => onChange(item.value)} style={[styles.tab, item.value === value && { backgroundColor: colors.ink }]}>
-    <Text style={[styles.tabText, item.value === value && { color: colors.paper3 }]}>{item.label}</Text>
+    accessibilityState={{ selected: item.value === value }} onPress={() => onChange(item.value)} style={[styles.tab, item.value === value && styles.tabOn]}>
+    <Text variant="label" align="center" weight={item.value === value ? 'bold' : 'semibold'} tone={item.value === value ? 'ink' : 'muted'}>{item.label}</Text>
   </Pressable>)}</View>;
 }
-export function AdminLink({ label, href }: { label: string; href: Href }) {
+export function AdminLink({ label, href, subtitle, icon = 'arrow-forward-outline', badge }: { label: string; href: Href; subtitle?: string; icon?: IconName; badge?: string }) {
   const router = useGuardedRouter();
-  return <AdminButton label={label} onPress={() => router.push(href)} />;
+  return <ListRow title={label} titleNumberOfLines={2} subtitle={subtitle} icon={icon} accessibilityLabel={label}
+    trailing={badge ? <Chip label={badge} tone="muted" /> : undefined} onPress={() => router.push(href)} />;
 }
 export function WebAdminLink({ path = '', label = 'Open web admin' }: { path?: string; label?: string }) {
   // Callers provide fixed admin routes or an encoded Convex id, never an external host.
-  return <AdminButton label={label} onPress={() => openExternalUrl(`${SITE_URL}/admin${path}`)} />;
+  return <AdminButton label={label} icon="open-outline" variant="secondary" onPress={() => openExternalUrl(`${SITE_URL}/admin${path}`)} />;
 }
-export function AdminScreen({ title, children, home = false }: { title: string; children: React.ReactNode; home?: boolean }) {
+export function AdminEmptyState(props: { title: string; body?: string; icon?: IconName }) {
+  return <View style={[styles.card, shadow.soft]}><EmptyState {...props} /></View>;
+}
+
+const NAV_ITEMS: TabBarItem[] = [
+  { routeName: 'overview', label: 'Overview', icon: 'grid-outline', activeIcon: 'grid' },
+  { routeName: 'reviews', label: 'Reviews', icon: 'checkmark-circle-outline', activeIcon: 'checkmark-circle' },
+  { routeName: 'accounts', label: 'Accounts', icon: 'people-outline', activeIcon: 'people' },
+  { routeName: 'payouts', label: 'Payouts', icon: 'wallet-outline', activeIcon: 'wallet' },
+];
+const NAV_ROUTES: Record<AdminSection, Href> = {
+  overview: '/(app)/admin', reviews: '/(app)/admin/reviews', accounts: '/(app)/admin/accounts', payouts: '/(app)/admin/payouts',
+};
+export function AdminScreen({ title, subtitle, children, home = false, section = 'overview', backHref, backLabel = 'Back to admin overview' }: {
+  title: string; subtitle?: string; children: React.ReactNode; home?: boolean; section?: AdminSection; backHref?: Href; backLabel?: string;
+}) {
   const router = useGuardedRouter();
-  const insets = useSafeAreaInsets();
-  return <ScrollView style={styles.screen} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 32, gap: 16 }} keyboardShouldPersistTaps="handled">
-    {!home && <Pressable accessibilityRole="button" accessibilityLabel="Back to admin overview" onPress={() => router.replace('/(app)/admin')} style={{ paddingVertical: 12 }}><Text style={styles.link}>← Admin overview</Text></Pressable>}
-    <Text style={styles.eyebrow}>Tendso · Admin</Text><Text accessibilityRole="header" style={styles.title}>{title}</Text>{children}
-  </ScrollView>;
+  const showBack = !!backHref || (!home && section === 'overview');
+  // The admin-only account switcher above the navigator owns the top safe area.
+  // V2TabBar owns the bottom inset; the scrolling body needs neither twice.
+  return <View style={styles.screen}>
+    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none" preserveAspectRatio="none">
+      <Defs><LinearGradient id="admin-bg" x1={backgroundGradient.start.x} y1={backgroundGradient.start.y} x2={backgroundGradient.end.x} y2={backgroundGradient.end.y}>
+        {backgroundGradient.colors.map((color, i) => <Stop key={color} offset={backgroundGradient.locations[i]} stopColor={color} />)}
+      </LinearGradient></Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#admin-bg)" />
+    </Svg>
+    <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
+      {showBack ? <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={() => router.replace(backHref ?? NAV_ROUTES.overview)} style={[styles.back, shadow.soft]}>
+        <Ionicons name="arrow-back" size={22} color={colors.ink} />
+      </Pressable> : null}
+      <View style={styles.heading}>
+        <View style={styles.cardHeadingText}>
+          <Text variant="display" accessibilityRole="header">{title}</Text>
+          {subtitle ? <AdminText>{subtitle}</AdminText> : null}
+        </View>
+        <TendsoMark size={44} />
+      </View>
+      {children}
+    </ScrollView>
+    <V2TabBar items={NAV_ITEMS} state={{ index: NAV_ITEMS.findIndex(item => item.routeName === section), routes: NAV_ITEMS.map(item => ({ name: item.routeName })) }}
+      navigation={{ navigate: name => router.replace(NAV_ROUTES[name as AdminSection]) }} />
+  </View>;
 }
 
 /** Re-check the current live permission when a native confirmation is accepted. */
@@ -96,20 +165,25 @@ export function ActionFeedback({ error, notice }: { error: string | null; notice
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper },
-  title: { fontFamily: fonts.serif, fontSize: 38, lineHeight: 42, color: colors.ink },
-  eyebrow: { fontFamily: fonts.monoMed, fontSize: 11, color: colors.ink3, textTransform: 'uppercase', letterSpacing: 1.4 },
-  card: { borderWidth: 1, borderColor: colors.rule, backgroundColor: colors.paper3, borderRadius: radius.md, padding: 18, gap: 12 },
-  cardTitle: { fontFamily: fonts.sansBold, fontSize: 18, color: colors.ink },
-  text: { fontFamily: fonts.sans, fontSize: 15, lineHeight: 22, color: colors.ink2 },
-  button: { minHeight: 48, justifyContent: 'center', alignItems: 'center', padding: 12, borderRadius: radius.sm, backgroundColor: colors.ink },
-  buttonText: { fontFamily: fonts.sansMed, fontSize: 14, color: colors.paper3, textAlign: 'center' },
+  flex: { flex: 1 },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  content: { paddingHorizontal: space.gutter, paddingTop: space.xl, paddingBottom: space.xxl, gap: space.lg },
+  heading: { flexDirection: 'row', alignItems: 'flex-start', gap: space.lg, marginBottom: space.sm },
+  card: { backgroundColor: colors.card, borderRadius: radius.cardLg, padding: space.lg, gap: space.lg },
+  cardHeading: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md },
+  cardHeadingText: { flex: 1, minWidth: 0, gap: space.sm },
+  button: { minHeight: hit.primary, flexDirection: 'row', gap: space.sm, justifyContent: 'center', alignItems: 'center', paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.pill, backgroundColor: colors.accent, borderWidth: 1, borderColor: 'transparent' },
+  buttonText: { flexShrink: 1 },
+  secondaryButton: { backgroundColor: colors.card, borderColor: colors.ruleStrong },
+  ghostButton: { backgroundColor: colors.bg2 },
   dangerButton: { backgroundColor: colors.danger },
-  loading: { flex: 1, padding: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper, gap: 16 },
-  notice: { backgroundColor: colors.accentBg, color: colors.accentInk, padding: 14, borderRadius: radius.sm, fontFamily: fonts.sans, fontSize: 14, lineHeight: 21 },
-  input: { backgroundColor: colors.paper3, borderColor: colors.ruleStrong, borderWidth: 1, borderRadius: radius.sm, padding: 14, fontFamily: fonts.sans, fontSize: 15, color: colors.ink },
-  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tab: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.pill, borderColor: colors.ruleStrong, borderWidth: 1 },
-  tabText: { fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink },
-  link: { fontFamily: fonts.sansMed, color: colors.business, fontSize: 15 },
+  dangerSoftButton: { backgroundColor: colors.dangerBg, borderColor: 'transparent' },
+  loading: { flex: 1, padding: space.xl, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg, gap: space.lg },
+  loadingIcon: { width: 56, height: 56, borderRadius: radius.pill, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  notice: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, backgroundColor: colors.accentSoft, padding: space.lg, borderRadius: radius.card },
+  input: { minHeight: 60, backgroundColor: colors.card, borderColor: colors.ruleStrong, borderWidth: 1, borderRadius: radius.field, padding: space.lg, fontFamily: fonts.medium, fontSize: 18, lineHeight: 26, color: colors.ink },
+  tabs: { flexDirection: 'row', padding: space.xs, gap: space.xs, backgroundColor: colors.bg2, borderRadius: radius.card },
+  tab: { flex: 1, minHeight: hit.min, justifyContent: 'center', paddingHorizontal: space.sm, paddingVertical: space.sm, borderRadius: radius.card - space.xs },
+  tabOn: { backgroundColor: colors.card, ...shadow.soft },
+  back: { width: hit.icon, height: hit.icon, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
 });
