@@ -9,6 +9,8 @@ export interface ListRowProps {
   /** Allow longer titles to wrap in lists such as training lessons. */
   titleNumberOfLines?: number;
   subtitle?: string;
+  /** Defaults to two lines; use 0 for status copy that must wrap fully. */
+  subtitleNumberOfLines?: number;
   /** Ionicons glyph shown in a tinted 48pt circle. Ignored when `leading` is passed. */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   /** Custom leading node (avatar, thumbnail). */
@@ -28,6 +30,7 @@ export function ListRow({
   title,
   titleNumberOfLines = 1,
   subtitle,
+  subtitleNumberOfLines = 2,
   icon,
   leading,
   trailing,
@@ -49,7 +52,7 @@ export function ListRow({
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="label" weight="medium" tone="muted" numberOfLines={2}>
+          <Text variant="label" weight="medium" tone="muted" numberOfLines={subtitleNumberOfLines}>
             {subtitle}
           </Text>
         ) : null}

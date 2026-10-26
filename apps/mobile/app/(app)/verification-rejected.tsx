@@ -7,7 +7,7 @@ import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Avatar, Button, Card, CheckRow, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { Avatar, Button, Card, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
 const SUPPORT_EMAIL = 'support@negosyo-digital.com';
@@ -190,9 +190,19 @@ export default function VerificationRejectedScreen() {
             style={[styles.editRow, shadow.soft]}
           />
         ) : null}
-        {creator?.quizPassedAt
-          ? <CheckRow title="Certification quiz" subtitle="Passed. You don't need to take it again." state="ok" />
-          : <CheckRow title="Certification quiz" subtitle="Complete certification before submitting for review." state="todo" />}
+        <ListRow
+          title="Certification quiz"
+          subtitleNumberOfLines={0}
+          subtitle={creator?.quizPassedAt
+            ? "Passed. You don't need to take it again."
+            : 'Complete certification before submitting for review.'}
+          leading={
+            <View style={[styles.quizCircle, creator?.quizPassedAt ? styles.quizPassed : null]}>
+              {creator?.quizPassedAt ? <Ionicons name="checkmark" size={22} color={colors.onAccent} /> : null}
+            </View>
+          }
+          style={[styles.editRow, shadow.soft]}
+        />
       </View>
     </ScreenShell>
   );
@@ -224,6 +234,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checks: { gap: space.sm, marginTop: space.lg },
+  quizCircle: {
+    width: hit.icon,
+    height: hit.icon,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    borderColor: colors.ruleStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quizPassed: { backgroundColor: colors.accent, borderColor: colors.accent },
   editRow: {
     paddingHorizontal: space.lg,
     backgroundColor: colors.card,
