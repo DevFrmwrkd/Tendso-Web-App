@@ -44,7 +44,7 @@ const lessonFaces = [
   { id: 1, width: 1402, height: 1122, hair: 185, chin: 550 },
   { id: 2, width: 1402, height: 1122, hair: 185, chin: 475 },
   { id: 3, width: 1100, height: 1366, hair: 260, chin: 600 },
-  { id: 4, width: 1120, height: 896, hair: 140, chin: 340 },
+  { id: 4, width: 1402, height: 1122, hair: 170, chin: 480 },
 ];
 
 describe('training subject framing', () => {
@@ -76,6 +76,14 @@ describe('training subject framing', () => {
         expect(layout.left + 1000 * scale).toBeLessThanOrEqual(frame.width);
         expect(layout.top + 280 * scale).toBeGreaterThanOrEqual(0);
         expect(layout.top + 520 * scale).toBeLessThanOrEqual(frame.height);
+      }
+      if (subject.id === 4) {
+        // The interview phone must retain its live preview, red timer, and
+        // stop control alongside the owner's complete face.
+        expect(layout.left + 920 * scale).toBeGreaterThanOrEqual(0);
+        expect(layout.left + 1000 * scale).toBeLessThanOrEqual(frame.width);
+        expect(layout.top + 280 * scale).toBeGreaterThanOrEqual(0);
+        expect(layout.top + 455 * scale).toBeLessThanOrEqual(frame.height);
       }
     }
   });

@@ -92,9 +92,9 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     title: 'Get the owner talking',
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/lesson-4.jpg'),
+    photo: require('../assets/training/lesson-4-recording-v1.jpg'),
     cropPosition: { x: 0.5, y: 0.25 },
-    photoDescription: 'A barber talking to a field agent who records him at eye level.',
+    photoDescription: 'A barber talking to a field agent, with the barber’s live preview, a red recording indicator and stop control visible on the phone.',
     line: 'Their own words become the site. Relax them first.',
     dos: [
       { title: 'Warm up', text: 'Chat for 2 minutes before you press record.' },
@@ -134,7 +134,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
         photo: require('../assets/training/forge-haircut-v1.jpg'),
       },
     ],
-    line: 'Three photos are needed before you get paid.',
+    line: 'Include an owner portrait, the shop front, and a shot of the work they do.',
     dos: [
       { title: 'The portrait', text: 'A clear, well-lit headshot of the owner.' },
       { title: 'The location', text: 'A wide shot of the shop front and signage.' },

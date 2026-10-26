@@ -1,5 +1,21 @@
 # Training photo edits
 
+## Get the owner talking: active recording
+
+`lesson-4-recording-v1.jpg` is an AI-generated edit of `lesson-4.jpg`, made with the built-in `image_gen` tool using `precise-object-edit`. The phone now shows a live preview of the barber, a red recording indicator and timer, and a stop control. The original asset is retained.
+
+The generated image was 1402 × 1122 pixels and was encoded as JPEG at quality 90 for mobile delivery. The compact banner keeps `{ x: 0.5, y: 0.25 }` so the barber's face and active phone screen remain visible.
+
+Final prompt:
+
+```text
+Use case: precise-object-edit.
+Edit target: the supplied "Get the owner talking" training photo, not a new scene.
+Primary request: change ONLY the black, unlit smartphone display held upright by the field agent on the right. Make the phone visibly on and actively recording the barber on the left. Show a believable bright live camera preview of that same barber leaning on the chair and gesturing, a small red recording indicator with elapsed timer "00:18" near the top of the screen, and a red square stop control near the bottom. Keep the existing phone size and perspective; the recording interface must fit inside its screen glass, with natural daylight reflections, and be legible as an active screen even when viewed in a small mobile banner.
+Preserve the rest of the photograph: the exact two people, their facial identities, hair, clothing, barber's towel, hands/fingers, gestures, phone orientation and grip, chair, mirrors, fan, barbershop interior, daylight, camera angle, positions and composition. Change only the phone's visible screen; preserve hand occlusion. No extra hands/fingers or phones, no altered faces, no new foreground objects, no captions/logos/watermarks and no glow outside the phone.
+Photorealistic and natural. Keep the same 5:4 landscape composition and framing, approximately 1400 by 1120 pixels. Do not crop or expand the scene. Opaque background.
+```
+
 ## Clear audio: phone recording
 
 `lesson-2-recording-v1.jpg` is an AI-generated edit of `lesson-2.jpg`, made with the built-in `image_gen` tool using `precise-object-edit`. The edit turns the blank phone display into a live recording preview with a red timer and stop control. It keeps the original scene and subject arrangement. The original asset is retained.

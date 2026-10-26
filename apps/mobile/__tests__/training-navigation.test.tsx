@@ -20,7 +20,7 @@ const mockMarkLessonDone = jest.fn();
 jest.mock('../assets/training/overview.jpg', () => ({ uri: 'training-classroom', width: 1024, height: 688 }));
 jest.mock('../assets/training/lesson-1-lighting-v1.jpg', () => ({ uri: 'lesson-good-lighting', width: 1402, height: 1122 }));
 jest.mock('../assets/training/lesson-2-recording-v1.jpg', () => ({ uri: 'lesson-audio-recording', width: 1402, height: 1122 }));
-jest.mock('../assets/training/lesson-4.jpg', () => ({ uri: 'lesson-interview', width: 1120, height: 896 }));
+jest.mock('../assets/training/lesson-4-recording-v1.jpg', () => ({ uri: 'lesson-interview-recording', width: 1402, height: 1122 }));
 jest.mock('../assets/training/forge-owner-portrait-v1.jpg', () => ({ uri: 'forge-portrait', width: 880, height: 1168 }));
 jest.mock('../assets/training/forge-owner-banner-v1.jpg', () => ({ uri: 'forge-owner-banner', width: 1100, height: 1366 }));
 jest.mock('../assets/training/forge-shop-front-v1.jpg', () => ({ uri: 'forge-shop-front', width: 880, height: 1168 }));
@@ -146,6 +146,9 @@ describe('Training lessons', () => {
       const screen = render(<TrainingLessonsScreen />);
       const photos = lesson.examples ?? [{ title: lesson.title, photo: lesson.photo, description: lesson.photoDescription }];
       expect(screen.UNSAFE_getAllByType(Image)).toHaveLength(photos.length);
+      if (lesson.id === 4) {
+        expect(Image.resolveAssetSource(photos[0].photo)?.uri).toBe('lesson-interview-recording');
+      }
       if (lesson.id === 5) {
         expect(photos.map((photo) => photo.title)).toEqual(['Portrait', 'Shop front', 'Craft']);
         const imageUris = photos.map((photo) => Image.resolveAssetSource(photo.photo)?.uri);
@@ -162,7 +165,7 @@ describe('Training lessons', () => {
         if (!lesson.examples) {
           fireEvent(photoFrame(image), 'layout', { nativeEvent: { layout: { width: 353, height: 190 } } });
           const style = StyleSheet.flatten(image.props.style);
-          const [hair, chin] = [[185, 550], [185, 475], [260, 600], [140, 340]][index];
+          const [hair, chin] = [[185, 550], [185, 475], [260, 600], [170, 480]][index];
           const sourceHeight = Image.resolveAssetSource(photo.photo).height;
           const scale = style.height / sourceHeight;
           expect(style.top + hair * scale).toBeGreaterThanOrEqual(0);

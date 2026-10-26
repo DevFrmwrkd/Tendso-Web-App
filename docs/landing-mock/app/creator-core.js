@@ -229,7 +229,7 @@
       ['map-pin', 'End with hours, address and a landmark.'],
     ];
     return app(`<div class="cc-main" style="gap:16px;bottom:104px;overflow-y:auto;padding-bottom:16px">${step(4, 5)}
-        <img src="${PE}03-barber.jpg" alt="An agent interviews a barber" style="width:100%;height:190px;object-fit:cover;object-position:50% 25%;border-radius:24px;display:block;flex:none">
+        <img src="${PE}03-barber-recording-v1.jpg" alt="An agent interviews a barber with a live recording preview visible on the phone" style="width:100%;height:190px;object-fit:cover;object-position:50% 25%;border-radius:24px;display:block;flex:none">
         <div><span class="cc-sm">Lesson 4 · 3 min</span><h2 class="cc-h" style="margin-top:4px">Get the owner talking</h2>
           <p class="cc-sub" style="margin-top:6px;color:var(--a-ink2)">Their own words become the site. The best lines come after a pause.</p></div>
         <div class="cc-col" style="gap:8px">${tips.map(([i, t]) => `<div class="a-check"><span class="cc-ic" style="width:36px;height:36px;border-radius:12px">${ic(i, 17)}</span><span style="font-size:14.5px;line-height:19px">${t}</span></div>`).join('')}</div>
