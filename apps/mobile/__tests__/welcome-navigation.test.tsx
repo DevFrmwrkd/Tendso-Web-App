@@ -64,7 +64,7 @@ describe('Welcome choice navigation', () => {
   it('shows the choices on the first signed-out launch', async () => {
     const screen = render(<Index />);
     await waitFor(() => expect(screen.getByText('I have a business')).toBeTruthy());
-    expect(screen.getByText('I want to earn as a field agent')).toBeTruthy();
+    expect(screen.getByText('I want to earn')).toBeTruthy();
     expect(screen.queryByTestId('redirect')).toBeNull();
   });
 
@@ -85,7 +85,7 @@ describe('Welcome choice navigation', () => {
     mockParams = { welcome: '1' };
     const screen = render(<Index />);
     await waitFor(() => expect(screen.getByText('I have a business')).toBeTruthy());
-    expect(screen.getByText('I want to earn as a field agent')).toBeTruthy();
+    expect(screen.getByText('I want to earn')).toBeTruthy();
     expect(screen.queryByTestId('redirect')).toBeNull();
     expect(await AsyncStorage.getItem('ndm_has_seen_onboarding')).toBe('true');
     expect(mockSetOwnerIntent).not.toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe('Welcome choice navigation', () => {
     screen.rerender(<Index />);
     expect(screen.getByText('Get started')).toBeTruthy();
     expect(screen.queryByText('I have a business')).toBeNull();
-    expect(screen.queryByText('I want to earn as a field agent')).toBeNull();
+    expect(screen.queryByText('I want to earn')).toBeNull();
   });
 
   it('keeps the earning choice connected to its signup route and clears owner intent', async () => {
@@ -137,8 +137,8 @@ describe('Welcome choice navigation', () => {
     mockOwnerBefore = true;
     mockParams = { welcome: '1' };
     const screen = render(<Index />);
-    await waitFor(() => expect(screen.getByText('I want to earn as a field agent')).toBeTruthy());
-    fireEvent.press(screen.getByText('I want to earn as a field agent'));
+    await waitFor(() => expect(screen.getByText('I want to earn')).toBeTruthy());
+    fireEvent.press(screen.getByText('I want to earn'));
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(auth)/signup'));
     expect(mockSetOwnerIntent).toHaveBeenCalledWith(false);
     expect(await AsyncStorage.getItem('ndm_has_seen_onboarding')).toBe('true');
@@ -164,7 +164,7 @@ describe('Welcome choice navigation', () => {
     expect(screen.getByText('Made from your phone.')).toBeTruthy();
     expect(screen.getByText('I already have an account')).toBeTruthy();
     expect(screen.queryByText('I have a business')).toBeNull();
-    expect(screen.queryByText('I want to earn as a field agent')).toBeNull();
+    expect(screen.queryByText('I want to earn')).toBeNull();
     expect(screen.queryByTestId('redirect')).toBeNull();
   });
 
@@ -200,7 +200,7 @@ describe('Welcome choice navigation', () => {
     mockParams = { welcome: '1' };
     screen.rerender(<Index />);
     expect(screen.getByText('I have a business')).toBeTruthy();
-    expect(screen.getByText('I want to earn as a field agent')).toBeTruthy();
+    expect(screen.getByText('I want to earn')).toBeTruthy();
     expect(screen.queryByText('Get started')).toBeNull();
   });
 });

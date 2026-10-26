@@ -72,7 +72,7 @@ Shared shell for sub-pages: nav, footer, store buttons in `pages/business.js` (`
 
 | # | Row | Screen (function) | Role | What it shows / primary action |
 |---|---|---|---|---|
-| 1.1 | Join | Welcome choice (`welcome`) | Both | "Your shop online. Pay once, own it." Two doors: **I have a business** / **I want to earn as a field agent**; Log in. (The only role chooser in the mock.) |
+| 1.1 | Join | Welcome choice (`welcome`) | Both | "Your shop online. Pay once, own it." Two doors: **I have a business** / **I want to earn**; Log in. Earning signup then offers Field agent or Creator. |
 | 1.2 | Join | Where do you work (`qCity`) | Creator | 12 city chips + "Use my location"; decides which shops the map shows / **Continue** |
 | 1.3 | Join | How did you hear (`qHeard`) | Creator | 5 source options + optional referral code field / **Continue** |
 | 1.4 | Join | Agent profile (`profile`) | Creator | Photo, full name, mobile, Wise email for payouts / **Send for review** |

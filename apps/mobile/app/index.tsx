@@ -1,7 +1,7 @@
 /**
  * First launch: the welcome choice (design v2, mock js/screens.js `welcome`).
  * "I have a business" → the business welcome, then email-code sign-up/sign-in.
- * "I want to earn as a field agent" → the existing field-agent sign-up.
+ * "I want to earn" → sign-up with Field agent and Creator account choices.
  * Signed-in people skip this; returning signed-out people go to their sign-in.
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -138,7 +138,7 @@ export default function Index() {
           {businessWelcome ? <Button title="Get started" onPress={() => startBusiness('signup')} /> : (
             <>
               <Button title="I have a business" variant="ghost" onPress={business} />
-              <Button title="I want to earn as a field agent" onPress={earn} />
+              <Button title="I want to earn" onPress={earn} />
             </>
           )}
         </View>

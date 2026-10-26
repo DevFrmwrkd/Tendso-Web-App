@@ -112,7 +112,7 @@
         <h2 class="cc-h cc-h--lg">Your shop online.<br>Pay once, own it.</h2>
         <p class="cc-sub">Or help shops near you get online, and earn for every site.</p>
       </div>
-      <div class="cc-foot">${door('I have a business', 'ghost')}${door('I want to earn as a field agent')}
+      <div class="cc-foot">${door('I have a business', 'ghost')}${door('I want to earn')}
         <p class="cc-sm" style="text-align:center;font-size:13px">Already have an account? <span class="cc-link">Log in</span></p></div>`, 'is-white');
   }
 
