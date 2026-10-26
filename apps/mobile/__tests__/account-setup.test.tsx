@@ -134,6 +134,36 @@ it('resumes the affiliate choice and sends no incoming referral field', async ()
   expect(await loadPendingSignupProfile(mockIdentity)).toBeNull();
 });
 
+it('chooses an affiliate after signup while keeping the collected name and mobile', async () => {
+  mockAuthenticated = true;
+  await savePendingSignupProfile(normalizeSignupProfile({
+    firstName: 'Juan', lastName: 'Dela Cruz', phone: '09171234567',
+  }), mockIdentity);
+  const screen = render(<AccountSetupScreen />);
+  await waitFor(() => expect(screen.getByLabelText('Name').props.value).toBe('Juan'));
+  expect(screen.getByLabelText('Last name').props.value).toBe('Dela Cruz');
+  expect(screen.getByLabelText('Mobile number').props.value).toBe('09171234567');
+  expect(mockCreateCreator).not.toHaveBeenCalled();
+  expect(mockCreateAffiliate).not.toHaveBeenCalled();
+
+  fireEvent.press(screen.getByLabelText(/^Creator,/));
+  expect(screen.getByLabelText('Name').props.value).toBe('Juan');
+  expect(screen.getByLabelText('Mobile number').props.value).toBe('09171234567');
+  expect(screen.getByLabelText('Page handle').props.value).toBe('');
+  fireEvent.press(screen.getByLabelText('Create creator account'));
+  expect(mockCreateAffiliate).not.toHaveBeenCalled();
+
+  fireEvent.changeText(screen.getByLabelText('Page handle'), 'Juan-Shop');
+  fireEvent.press(screen.getByLabelText('Create creator account'));
+  await waitFor(() => expect(mockCreateAffiliate).toHaveBeenCalledWith({
+    email: mockIdentity.email, firstName: 'Juan', lastName: 'Dela Cruz',
+    phone: '09171234567', handle: 'juan-shop',
+  }));
+  expect(mockCreateCreator).not.toHaveBeenCalled();
+  await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(affiliate-tabs)'));
+  expect(await loadPendingSignupProfile(mockIdentity)).toBeNull();
+});
+
 it('keeps the entered affiliate details after a server uniqueness error', async () => {
   mockAuthenticated = true;
   mockCreateAffiliate.mockRejectedValueOnce({ data: 'That page handle is already taken.' });

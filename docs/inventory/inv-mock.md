@@ -72,7 +72,7 @@ Shared shell for sub-pages: nav, footer, store buttons in `pages/business.js` (`
 
 | # | Row | Screen (function) | Role | What it shows / primary action |
 |---|---|---|---|---|
-| 1.1 | Join | Welcome choice (`welcome`) | Both | "Your shop online. Pay once, own it." Two doors: **I have a business** / **I want to earn**; Log in. Earning signup then offers Field agent or Creator. |
+| 1.1 | Join | Welcome choice (`welcome`) | Both | "Your shop online. Pay once, own it." Two doors: **I have a business** / **I want to earn**; Log in. After earning signup, account setup asks Field agent or Creator once. |
 | 1.2 | Join | Where do you work (`qCity`) | Creator | 12 city chips + "Use my location"; decides which shops the map shows / **Continue** |
 | 1.3 | Join | How did you hear (`qHeard`) | Creator | 5 source options + optional referral code field / **Continue** |
 | 1.4 | Join | Agent profile (`profile`) | Creator | Photo, full name, mobile, Wise email for payouts / **Send for review** |
@@ -100,7 +100,7 @@ Shared shell for sub-pages: nav, footer, store buttons in `pages/business.js` (`
 | # | Row | Screen (function) | Role | What it shows / primary action |
 |---|---|---|---|---|
 | 1 | Sign in | Sign in (`login`) | Both | Email + password, Apple + Google pill pair / **Sign in**; Make an account |
-| 2 | Sign in | Sign up (`signup`) | Both | Account type option rows (Creator selected / Affiliate), first/last name, email, mobile (optional), password / **Create account** |
+| 2 | Sign in | Sign up (`signup`) | Both | First name, optional last name, email, optional mobile, password / **Create account**. The account-type choice happens once in authenticated account setup. |
 | 3 | Sign in | Forgot password (`forgot`) | Both | Email step then 6-digit code step (faded) / **Send code** |
 | 4 | Earn | Earn home (`earnHome`) | Creator | "You earned in October ₱12,400", 6-month bars, price slider ₱999–₱4,999 (you keep ₱1,500, shop saves ₱2,000), latest paid sites / **Cash out** |
 | 5 | Earn | Cash out (`cashOut`) | Creator | Amount with quick picks, saved Wise email, confirm / **Send to Wise** |

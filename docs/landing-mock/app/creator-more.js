@@ -62,14 +62,9 @@
     ${topBar('')}
     <div class="cm-body cm-auth" style="top:106px;padding-top:6px">
       <h1 class="a-display a-display--lg">Make your account</h1>
-      <p class="cm-sub" style="margin-bottom:18px">Two minutes, one form.</p>
-      <div class="cm-col" style="gap:10px;margin-bottom:8px">
-        <div class="a-opt is-on"><span class="cm-opt-ic">${I('camera')}</span><span style="flex:1">Creator<span class="cm-opt-sub">Visit shops, take photos, interview</span></span><span class="a-tick">${I('check')}</span></div>
-        <div class="a-opt"><span class="cm-opt-ic">${I('link')}</span><span style="flex:1">Affiliate<span class="cm-opt-sub">Share my link with shop owners</span></span></div>
-      </div>
-      <p class="cm-small" style="margin-bottom:16px">One login, one account type.</p>
+      <p class="cm-sub" style="margin-bottom:18px">Choose how you'll earn after verifying your email.</p>
       <div class="cm-col" style="gap:12px">
-        <div class="cm-split">${fl('First name', field('', ME.first))}${fl('Last name', field('', ME.last))}</div>
+        <div class="cm-split">${fl('First name', field('', ME.first))}${fl('Last name (optional)', field('', ME.last))}</div>
         ${fl('Email', field('mail', ME.email))}
         ${fl('Mobile', `<div style="display:flex;gap:8px"><span class="cm-cc">+63</span><div class="a-field" style="flex:1">${I('phone')}<span>917 482 3310</span></div></div>`, '<span class="a-label">Optional</span>')}
         ${fl('Password', field('lock', 'At least 8 characters', { ph: true, focus: true, right: I('eye-off', 'cm-ink3') }))}
@@ -434,7 +429,7 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
   const ROWS = [
     { name: 'Sign in', screens: [
       [login, 'Sign in', 'apps/mobile/app/(auth)/login.tsx', 'Email first, then Apple and Google as a matched pill pair.'],
-      [signup, 'Sign up', 'apps/mobile/app/(auth)/signup.tsx', 'Account type as Round 2 option rows (Creator selected), then one short form.'],
+      [signup, 'Sign up', 'apps/mobile/app/(auth)/signup.tsx', 'One identity form. Choose Field agent or Creator once in account setup after verification.'],
       [forgot, 'Forgot password', 'apps/mobile/app/(auth)/forgot-password.tsx', 'Email step; the 6-digit code step follows (shown faded).'],
     ] },
     { name: 'Earn', screens: [

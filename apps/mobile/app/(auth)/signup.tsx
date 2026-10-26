@@ -10,11 +10,9 @@ import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import {
   activateSignupSession, normalizeSignupProfile, savePendingSignupProfile, signupProfileErrors,
 } from '../../services/signupProfile';
-import type { SignupAccountType } from '../../services/signupProfile';
 import { openExternalUrl, TERMS_URL, PRIVACY_URL } from '../../services/links';
 import { Banner, Button, Field, ScreenShell, SectionLabel, Text } from '../../components/v2';
 import {
-  AccountTypeOption,
   AuthLink,
   CodeBoxes,
   GooglePill,
@@ -47,8 +45,6 @@ export default function SignupScreen() {
   const { startAppleAuth } = useAppleAuth();
   const router = useGuardedRouter();
 
-  const [accountType, setAccountType] = useState<SignupAccountType>('creator');
-  const [handle, setHandle] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -66,7 +62,9 @@ export default function SignupScreen() {
   const [error, setError] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const profile = normalizeSignupProfile({ accountType, firstName, lastName, phone, handle });
+  // Account setup asks how to earn after authentication. Keep the identity
+  // details here without collecting an account choice or affiliate page twice.
+  const profile = normalizeSignupProfile({ firstName, lastName, phone });
 
   // Per-field validation errors (shown inline under each input)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -93,7 +91,6 @@ export default function SignupScreen() {
     // Per-field inline validation
     const errors: Record<string, string> = {};
     if (!firstName.trim()) errors.firstName = 'First name is required';
-    if (accountType === 'creator' && !lastName.trim()) errors.lastName = 'Last name is required';
     Object.assign(errors, signupProfileErrors(profile));
     if (!email.trim()) errors.email = 'Email is required';
     else if (!EMAIL_REGEX.test(email.trim())) errors.email = 'Invalid email address';
@@ -289,7 +286,6 @@ export default function SignupScreen() {
 
   const handleTikTokSubmitProfile = async () => {
     if (!ttFirstName.trim() || ttFirstName.trim().length < 2) { setTtError('First name is required (min 2 characters)'); return; }
-    if (accountType === 'creator' && ttLastName.trim().length < 2) { setTtError('Last name is required (min 2 characters)'); return; }
     if (!ttEmail.trim() || !EMAIL_REGEX.test(ttEmail.trim())) { setTtError('Please enter a valid email address'); return; }
     if (ttPhone.trim() && !PHONE_REGEX.test(ttPhone.replace(/\s/g, ''))) { setTtError('Please enter a valid PH phone number'); return; }
 
@@ -422,32 +418,7 @@ export default function SignupScreen() {
   // ── Signup form ────────────────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScreenShell title="Make your account" subtitle="Two minutes, one form." onBack={() => router.replace({ pathname: '/', params: { welcome: '1' } })}>
-        <View style={styles.section} accessibilityLabel="Choose an account type">
-          <SectionLabel>Account type</SectionLabel>
-          <AccountTypeOption
-            title="Field agent"
-            subtitle="Visit shops, take photos, interview"
-            icon="camera-outline"
-            selected={accountType === 'creator'}
-            disabled={busy}
-            accessibilityLabel="Field agent account"
-            onPress={() => { setAccountType('creator'); setFieldErrors({}); setError(''); }}
-          />
-          <AccountTypeOption
-            title="Creator"
-            subtitle="Share my link with shop owners"
-            icon="link-outline"
-            selected={accountType === 'affiliate'}
-            disabled={busy}
-            accessibilityLabel="Creator account"
-            onPress={() => { setAccountType('affiliate'); setFieldErrors({}); setError(''); }}
-          />
-          <Text variant="label" weight="medium" tone="muted" style={styles.note}>
-            One login, one account type. Use another email for a second account.
-          </Text>
-        </View>
-
+      <ScreenShell title="Make your account" subtitle="Choose how you'll earn after verifying your email." onBack={() => router.replace({ pathname: '/', params: { welcome: '1' } })}>
         {error ? <Banner tone="danger" body={error} style={styles.banner} /> : null}
 
         <View style={styles.section}>
@@ -466,8 +437,8 @@ export default function SignupScreen() {
             />
             <Field
               containerStyle={styles.half}
-              label="Last name"
-              placeholder={accountType === 'affiliate' ? 'Optional' : 'Dela Cruz'}
+              label="Last name (optional)"
+              placeholder="Dela Cruz"
               value={lastName}
               onChangeText={(t: string) => { setLastName(t); clearFieldError('lastName'); }}
               autoCapitalize="words"
@@ -504,27 +475,9 @@ export default function SignupScreen() {
             editable={!loading}
             accessibilityLabel="Mobile Number"
             error={fieldErrors.phone}
-            helper={accountType === 'affiliate' ? 'Required' : 'Optional'}
+            helper="Optional"
           />
         </View>
-
-        {accountType === 'affiliate' ? (
-          <View style={styles.section}>
-            <SectionLabel>Your page</SectionLabel>
-            <Field
-              label="Page handle"
-              placeholder="your-page"
-              value={handle}
-              onChangeText={(value: string) => setHandle(value.toLowerCase())}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-              accessibilityLabel="Page handle"
-              error={fieldErrors.handle}
-              helper={`After admin approval, your page will be tendso.com/a/${handle || 'your-page'}`}
-            />
-          </View>
-        ) : null}
 
         <View style={styles.section}>
           <SectionLabel>Password</SectionLabel>
@@ -634,7 +587,7 @@ export default function SignupScreen() {
         onChangeCode={setTtCode}
         loading={ttLoading}
         error={ttError}
-        lastNameOptional={accountType === 'affiliate'}
+        lastNameOptional
         onSubmitProfile={handleTikTokSubmitProfile}
         onVerify={handleTikTokVerifyEmail}
         onBackToProfile={() => {
@@ -652,7 +605,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   banner: { marginBottom: space.lg },
   section: { gap: space.md, marginBottom: space.xl },
-  note: { paddingHorizontal: space.xs },
   split: { flexDirection: 'row', gap: space.md, alignItems: 'flex-start' },
   half: { flex: 1, minWidth: 0 },
   resend: { marginTop: space.lg },

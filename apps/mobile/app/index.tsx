@@ -1,7 +1,7 @@
 /**
  * First launch: the welcome choice (design v2, mock js/screens.js `welcome`).
  * "I have a business" → the business welcome, then email-code sign-up/sign-in.
- * "I want to earn" → sign-up with Field agent and Creator account choices.
+ * "I want to earn" → sign-up, then choose Field agent or Creator in account setup.
  * Signed-in people skip this; returning signed-out people go to their sign-in.
  */
 import React, { useEffect, useRef, useState } from 'react';

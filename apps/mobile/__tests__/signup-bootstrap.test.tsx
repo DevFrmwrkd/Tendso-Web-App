@@ -47,9 +47,9 @@ beforeEach(async () => {
 });
 afterEach(() => expect(mockBackendMutation).not.toHaveBeenCalled());
 
-function fillEmailForm(screen: ReturnType<typeof render>) {
+function fillEmailForm(screen: ReturnType<typeof render>, lastName = 'Cruz') {
   fireEvent.changeText(screen.getByLabelText('First Name'), 'Juan');
-  fireEvent.changeText(screen.getByLabelText('Last Name'), 'Cruz');
+  fireEvent.changeText(screen.getByLabelText('Last Name'), lastName);
   fireEvent.changeText(screen.getByLabelText('Email'), identity.email);
   fireEvent.changeText(screen.getByLabelText('Mobile Number'), '09171234567');
   fireEvent.changeText(screen.getByLabelText('Password'), 'example-password');
@@ -65,42 +65,47 @@ async function verifyEmail(screen: ReturnType<typeof render>) {
   await waitFor(() => expect(mockSetActive).toHaveBeenCalledWith({ session: identity.sessionId }));
 }
 
-it('email verification saves the creator phone without asking for a referral before onboarding', async () => {
+it('email signup saves identity details without asking for an account type, handle, or referral', async () => {
   let profileAtActivation: Awaited<ReturnType<typeof loadPendingSignupProfile>> = null;
   mockSetActive.mockImplementation(async () => {
     profileAtActivation = await loadPendingSignupProfile(identity);
   });
   const screen = render(<SignupScreen />);
   fillEmailForm(screen);
+  expect(screen.queryByLabelText('Field agent account')).toBeNull();
+  expect(screen.queryByLabelText('Creator account')).toBeNull();
+  expect(screen.queryByLabelText('Page handle')).toBeNull();
   expect(screen.queryByLabelText(/referral code/i)).toBeNull();
   await verifyEmail(screen);
-  expect(profileAtActivation).toMatchObject({ accountType: 'creator', phone: '09171234567', referredByCode: '' });
+  expect(profileAtActivation).toMatchObject({ firstName: 'Juan', lastName: 'Cruz', phone: '09171234567', handle: '', referredByCode: '' });
 });
 
-it('email affiliate signup persists the lowercase handle and omits an incoming referral', async () => {
+it('email signup accepts an optional last name before the account type is chosen', async () => {
   const screen = render(<SignupScreen />);
-  fireEvent.press(screen.getByLabelText('Creator account'));
-  fillEmailForm(screen);
-  fireEvent.changeText(screen.getByLabelText('Page handle'), 'Juan-Shop');
-  expect(screen.queryByLabelText('Referral Code')).toBeNull();
+  fillEmailForm(screen, '');
   await verifyEmail(screen);
-  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'affiliate', handle: 'juan-shop', phone: '09171234567', referredByCode: '' });
+  expect(mockSignUp.create).toHaveBeenCalledWith({
+    firstName: 'Juan', lastName: '', emailAddress: identity.email, password: 'example-password',
+  });
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({
+    firstName: 'Juan', lastName: '', phone: '09171234567', handle: '', referredByCode: '',
+  });
 });
 
-it('Google signup preserves the chosen affiliate profile without a pre-auth backend call', async () => {
+it('Google signup preserves identity details for the later account choice without a pre-auth backend call', async () => {
   mockSSO.mockResolvedValue({ createdSessionId: identity.sessionId, setActive: mockSetActive,
     signUp: { createdUserId: identity.clerkId, emailAddress: identity.email, firstName: 'Google Alex', lastName: 'Cruz' } });
   const screen = render(<SignupScreen />);
-  fireEvent.press(screen.getByLabelText('Creator account'));
   fireEvent.changeText(screen.getByLabelText('Mobile Number'), '09171234567');
-  fireEvent.changeText(screen.getByLabelText('Page handle'), 'google-shop');
   fireEvent.press(screen.getByLabelText('Accept Terms of Service'));
   fireEvent.press(screen.getByLabelText('Continue with Google'));
   await waitFor(() => expect(mockSetActive).toHaveBeenCalled());
-  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'affiliate', firstName: 'Google Alex', handle: 'google-shop', phone: '09171234567' });
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({
+    firstName: 'Google Alex', lastName: 'Cruz', phone: '09171234567', handle: '', referredByCode: '',
+  });
 });
 
-it('Apple signup keeps its one-time name without asking for a referral before onboarding', async () => {
+it('Apple signup keeps its one-time name for the later account choice without asking for a referral', async () => {
   mockApple.mockResolvedValue({ createdSessionId: identity.sessionId, setActive: mockSetActive, isNewUser: true,
     firstName: 'Apple Alex', lastName: 'Cruz', email: identity.email, signUp: { createdUserId: identity.clerkId } });
   const screen = render(<SignupScreen />);
@@ -110,5 +115,7 @@ it('Apple signup keeps its one-time name without asking for a referral before on
   await waitFor(() => expect(screen.UNSAFE_getByType('MockAppleButton')).toBeTruthy());
   fireEvent.press(screen.UNSAFE_getByType('MockAppleButton'));
   await waitFor(() => expect(mockSetActive).toHaveBeenCalled());
-  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'creator', firstName: 'Apple Alex', phone: '09171234567', referredByCode: '' });
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({
+    firstName: 'Apple Alex', lastName: 'Cruz', phone: '09171234567', handle: '', referredByCode: '',
+  });
 });
