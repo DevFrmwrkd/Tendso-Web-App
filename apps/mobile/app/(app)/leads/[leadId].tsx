@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Pressable,
@@ -15,12 +15,14 @@ import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useNetwork } from '../../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import type { Id } from '@tendso/convex-client';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
 import {
   Avatar,
+  Banner,
   Button,
   Card,
   Chip,
@@ -31,13 +33,18 @@ import {
   ScreenShell,
   SectionLabel,
   Text,
-  leadStatus,
   submissionStatus,
 } from '../../../components/v2';
 
-// Real backend statuses, in pipeline order. The words come from leadStatus():
-// New, Contacted, Visiting (qualified), Live (converted), Lost.
-const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'converted', 'lost'] as const;
+// CRM qualification/conversion do not prove a visit or a published website.
+const STATUS_OPTIONS = [
+  { key: 'new', label: 'New', tone: 'info' },
+  { key: 'contacted', label: 'Contacted', tone: 'warn' },
+  { key: 'qualified', label: 'Qualified', tone: 'warn' },
+  { key: 'converted', label: 'Converted', tone: 'ok' },
+  { key: 'lost', label: 'Lost', tone: 'muted' },
+] as const;
+type LeadStatus = typeof STATUS_OPTIONS[number]['key'];
 
 function timeAgo(ts: number): string {
   const seconds = Math.floor((Date.now() - ts) / 1000);
@@ -52,27 +59,21 @@ export default function LeadDetailScreen() {
   const router = useGuardedRouter();
   const { leadId } = useLocalSearchParams<{ leadId: string }>();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
+  const { isConnected } = useNetwork();
 
   const creator = useQuery(
     api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip',
+    user && isAuthenticated ? { clerkId: user.id } : 'skip',
   );
 
   const data = useQuery(
     api.leads.getDetailForMobileCRM,
-    leadId ? { id: leadId as Id<'leads'> } : 'skip',
+    leadId && isAuthenticated ? { id: leadId as Id<'leads'> } : 'skip',
   );
 
-  // businessName + scraped location (address/coords/placeId) live on the
-  // already-deployed list query, NOT on getDetailForMobileCRM. Read them from
-  // there so this screen needs ZERO Convex change — the backend is shared and
-  // deployed from the web repo. This query is already cached/reactive when you
-  // arrive from the leads list.
-  // Gated on Convex auth: listForMobileCRM calls requireAuth(), which THROWS
-  // "Not authenticated" if the query runs before Clerk's token is attached to
-  // the Convex client (or after it expires). An unguarded call surfaces as a
-  // generic "Server Error" and trips the app error boundary.
-  const { isAuthenticated } = useConvexAuth();
+  // The cached list also supplies location/prefill fields on older deployments.
+  // Keep every CRM query behind Convex auth while Clerk attaches its token.
   const crm = useQuery(
     api.leads.listForMobileCRM,
     isAuthenticated ? { statusFilter: 'all' } : 'skip',
@@ -80,26 +81,66 @@ export default function LeadDetailScreen() {
 
   const updateStatus = useMutation(api.leads.updateStatus);
   const addNote = useMutation(api.leadNotes.create);
+  const visitCommunityFind = useMutation(api.leads.visitCommunityFind);
 
   const [noteContent, setNoteContent] = useState('');
   const [postingNote, setPostingNote] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [startingCapture, setStartingCapture] = useState(false);
+  const [, refreshClaim] = useState(0);
+  const noteInFlight = useRef(false);
+  const statusInFlight = useRef(false);
+  const captureInFlight = useRef(false);
+  const mounted = useRef(true);
+  const currentRoute = useRef({ userId: user?.id, leadId, isAuthenticated });
+  currentRoute.current = { userId: user?.id, leadId, isAuthenticated };
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  const claimExpiresAt = data?.claimExpiresAt;
+  useEffect(() => {
+    if (typeof claimExpiresAt !== 'number' || !Number.isFinite(claimExpiresAt)) return;
+    const remaining = claimExpiresAt - Date.now();
+    if (remaining < 0) return;
+    const timer = setTimeout(() => refreshClaim((value) => value + 1), remaining + 1);
+    return () => clearTimeout(timer);
+  }, [claimExpiresAt]);
+
+  const goBack = useCallback(() => {
+    if (router.canGoBack?.()) router.back();
+    else router.replace('/(app)/(tabs)/finds');
+  }, [router]);
 
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        router.replace('/(app)/leads');
+        goBack();
         return true;
       };
       const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => sub.remove();
-    }, [router]),
+    }, [goBack]),
   );
 
-  const goBack = () => router.replace('/(app)/leads');
+  if (data === undefined && isConnected === false) {
+    return (
+      <ScreenShell onBack={goBack}>
+        <EmptyState
+          icon="cloud-offline-outline"
+          title="Reconnect to load this shop"
+          body="Your saved drafts are still available. Connect to see the latest shop details."
+          actionLabel="Back to leads"
+          onAction={goBack}
+        />
+      </ScreenShell>
+    );
+  }
 
   if (data === undefined) {
-    return <Loading />;
+    return <ScreenShell onBack={goBack}><Loading fill={false} /></ScreenShell>;
   }
 
   if (data === null) {
@@ -116,7 +157,10 @@ export default function LeadDetailScreen() {
     );
   }
 
-  const { lead, business, interviewers, notes, submittedBy, isMine, adminContent } = data as any;
+  const detail = data as any;
+  const { lead, business, interviewers, notes, submittedBy, isMine, adminContent } = detail;
+  const canManageStatus = detail.canUpdateStatus ?? isMine;
+  const canMarkConverted = detail.canMarkConverted !== false;
   const crmLead: any =
     crm?.leads?.find((l: any) => String(l._id) === String(lead._id)) ?? null;
 
@@ -126,13 +170,26 @@ export default function LeadDetailScreen() {
 
   const handleCall = () => {
     if (!phone) return;
-    Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
+    void Linking.openURL(`tel:${phone.replace(/\s/g, '')}`).catch(() => {
+      Alert.alert('Could not open the phone app', 'You can call the number shown on this page.');
+    });
+  };
+  const handleMessage = () => {
+    if (!phone) return;
+    void Linking.openURL(`sms:${phone.replace(/\s/g, '')}`).catch(() => {
+      Alert.alert('Could not open messages', 'You can message the number shown on this page.');
+    });
   };
   const handleEmail = () => {
     if (!email) return;
-    Linking.openURL(`mailto:${email}`);
+    void Linking.openURL(`mailto:${email}`).catch(() => {
+      Alert.alert('Could not open email', 'You can use the email address shown on this page.');
+    });
   };
   const isProspect = lead.source === 'outscraper';
+  const isCommunityFind = lead.source === 'community';
+  const activeClaim = detail.claimedBy && detail.claimExpiresAt > Date.now() ? detail.claimedBy : null;
+  const claimedByAnotherAgent = !!activeClaim && !activeClaim.isMine;
 
   /**
    * Open step 1 with this business already filled in.
@@ -141,18 +198,36 @@ export default function LeadDetailScreen() {
    * or the raw scraped category, and mapCategoryToBusinessType handles both —
    * "Law Office" and "Personal injury attorney" both land on "Law Office".
    */
-  const startInterview = () => {
-    router.push({
-      pathname: '/(app)/submit/info',
-      params: {
-        prospectLeadId: String(lead._id),
-        businessName: crmLead?.businessName ?? lead.name ?? '',
-        phone: crmLead?.phone ?? lead.phone ?? '',
-        address: crmLead?.businessAddress ?? '',
-        city: crmLead?.businessCity ?? '',
-        category: crmLead?.businessType ?? '',
-      },
-    } as any);
+  const startInterview = async () => {
+    if (!isAuthenticated || isConnected === false || crm === undefined || claimedByAnotherAgent || captureInFlight.current) return;
+    captureInFlight.current = true;
+    setStartingCapture(true);
+    const captureActor = { userId: user?.id, leadId };
+    try {
+      if (isCommunityFind) await visitCommunityFind({ leadId: lead._id });
+      if (!mounted.current || !currentRoute.current.isAuthenticated
+        || currentRoute.current.userId !== captureActor.userId
+        || currentRoute.current.leadId !== captureActor.leadId) return;
+      router.push({
+        pathname: '/(app)/submit/info',
+        params: {
+          prospectLeadId: String(lead._id),
+          businessName: lead.businessName ?? (crmLead?.businessName === '(business unavailable)' ? null : crmLead?.businessName) ?? lead.name ?? '',
+          phone: crmLead?.phone ?? lead.phone ?? '',
+          address: lead.businessAddress ?? crmLead?.businessAddress ?? '',
+          city: lead.businessCity ?? crmLead?.businessCity ?? '',
+          category: lead.businessCategory ?? crmLead?.businessType ?? '',
+        },
+      } as any);
+    } catch (err: any) {
+      if (mounted.current && currentRoute.current.userId === captureActor.userId
+        && currentRoute.current.leadId === captureActor.leadId) {
+        Alert.alert('Could not start the capture', err?.message || 'Please try again.');
+      }
+    } finally {
+      captureInFlight.current = false;
+      if (mounted.current) setStartingCapture(false);
+    }
   };
   // Maps target: prefer the submission address, else the scraped lead's own
   // location — coords + place id (most precise), then address, then name + city.
@@ -162,17 +237,15 @@ export default function LeadDetailScreen() {
         address: `${business.address}${business.city ? `, ${business.city}` : ''}`,
       }
     : {
-        latitude: crmLead?.businessLatitude ?? null,
-        longitude: crmLead?.businessLongitude ?? null,
+        latitude: detail.businessLatitude ?? crmLead?.businessLatitude ?? null,
+        longitude: detail.businessLongitude ?? crmLead?.businessLongitude ?? null,
         placeId: crmLead?.businessGooglePlaceId ?? null,
-        address: crmLead?.businessAddress
-          ? `${crmLead.businessAddress}${crmLead.businessCity ? `, ${crmLead.businessCity}` : ''}`
+        address: (lead.businessAddress ?? crmLead?.businessAddress)
+          ? `${lead.businessAddress ?? crmLead.businessAddress}${(lead.businessCity ?? crmLead?.businessCity) ? `, ${lead.businessCity ?? crmLead.businessCity}` : ''}`
           : null,
         label:
-          crmLead?.businessName && crmLead.businessName !== '(business unavailable)'
-            ? crmLead.businessCity
-              ? `${crmLead.businessName} ${crmLead.businessCity}`
-              : crmLead.businessName
+          (lead.businessName ?? crmLead?.businessName) && (lead.businessName ?? crmLead?.businessName) !== '(business unavailable)'
+            ? `${lead.businessName ?? crmLead.businessName}${(lead.businessCity ?? crmLead?.businessCity) ? ` ${lead.businessCity ?? crmLead.businessCity}` : ''}`
             : null,
       };
   const hasDirections = canOpenDirections(mapsTarget);
@@ -180,21 +253,26 @@ export default function LeadDetailScreen() {
     void openDirections(mapsTarget);
   };
 
-  const handleStatusChange = async (newStatus: typeof STATUS_OPTIONS[number]) => {
-    if (newStatus === lead.status) return;
+  const canUpdate = isAuthenticated && isConnected !== false;
+  const handleStatusChange = async (newStatus: LeadStatus) => {
+    if (newStatus === lead.status || !canManageStatus || !canUpdate || statusInFlight.current
+      || (newStatus === 'converted' && !canMarkConverted)) return;
+    statusInFlight.current = true;
     setUpdatingStatus(true);
     try {
       await updateStatus({ id: lead._id, status: newStatus });
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not update status');
     } finally {
+      statusInFlight.current = false;
       setUpdatingStatus(false);
     }
   };
 
   const handleAddNote = async () => {
     const content = noteContent.trim();
-    if (!content || !creator?._id) return;
+    if (!content || !creator?._id || !canUpdate || noteInFlight.current) return;
+    noteInFlight.current = true;
     setPostingNote(true);
     try {
       await addNote({ leadId: lead._id, creatorId: creator._id, content });
@@ -202,49 +280,69 @@ export default function LeadDetailScreen() {
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Could not save note');
     } finally {
+      noteInFlight.current = false;
       setPostingNote(false);
     }
   };
 
-  const shopName: string = lead.name || crmLead?.businessName || 'Shop';
+  const listedBusinessName = crmLead?.businessName === '(business unavailable)' ? null : crmLead?.businessName;
+  const shopName: string = business?.businessName || lead.businessName || listedBusinessName || lead.name || 'Shop';
   const address: string | null = business?.address
     ? `${business.address}${business.city ? `, ${business.city}` : ''}`
-    : crmLead?.businessAddress
-      ? `${crmLead.businessAddress}${crmLead.businessCity ? `, ${crmLead.businessCity}` : ''}`
+    : (lead.businessAddress ?? crmLead?.businessAddress)
+      ? `${lead.businessAddress ?? crmLead.businessAddress}${(lead.businessCity ?? crmLead?.businessCity) ? `, ${lead.businessCity ?? crmLead.businessCity}` : ''}`
       : null;
-  const heroUri: string | null = adminContent?.previewImageUrl || business?.photos?.[0] || null;
-  const status = leadStatus(lead.status);
-  const ownerName: string = business?.ownerName || lead.name || crmLead?.businessName || '?';
-  const roleLabel = business ? 'Owner' : isProspect ? 'Business' : 'Customer';
-  const canSave = noteContent.trim().length > 0 && !postingNote;
+  const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl || business?.photos?.[0] || null;
+  const status = STATUS_OPTIONS.find((option) => option.key === lead.status)
+    ?? { label: 'Status unavailable', tone: 'muted' as const };
+  const hasLiveWebsite = typeof detail.hasLiveWebsite === 'boolean' ? detail.hasLiveWebsite
+    : !!business?.websiteUrl && ['deployed', 'paid', 'completed'].includes(business.status);
+  const heroLabel = hasLiveWebsite ? 'Live' : detail.needsWebsite === true ? 'Needs a site' : status.label;
+  const ownerName: string = business?.ownerName || (!isProspect && !isCommunityFind ? lead.name : null) || 'Business contact';
+  const roleLabel = business?.ownerName ? 'Owner' : 'Contact';
+  const canSave = noteContent.trim().length > 0 && !postingNote && !!creator?._id && canUpdate;
   const hasContact = !!(phone || email || hasDirections);
-  const needsInterview = isProspect && !business;
+  const needsInterview = (isProspect || isCommunityFind) && !business && !hasLiveWebsite && lead.status !== 'lost'
+    && !(isCommunityFind && lead.status === 'converted');
+  const spotter = detail.spottedBy ?? submittedBy;
+  const sourceLabel = isCommunityFind ? 'Community find' : isProspect ? 'Discovered shop'
+    : lead.source === 'qr_code' ? 'QR code inquiry'
+      : lead.source === 'website' ? 'Website inquiry' : 'Direct inquiry';
 
   return (
     <ScreenShell
       onBack={goBack}
       footer={
         needsInterview ? (
-          // Only for a scraped prospect nobody has interviewed yet: once `business`
+          // Only for a find nobody has interviewed yet: once `business`
           // exists there is a submission, and re-interviewing would file a second,
           // unlinked entry. lead._id is a `leads` id, which is exactly what
           // prospectLeadId wants, so the interview attaches to THIS record and the
           // scraped details ride along as params.
-          <Button title="I'll interview this" onPress={startInterview} />
+          <Button
+            title="Start the capture"
+            onPress={startInterview}
+            loading={startingCapture}
+            disabled={!canUpdate || crm === undefined || claimedByAnotherAgent || startingCapture}
+          />
         ) : undefined
       }
       contentStyle={styles.body}
     >
+      {isConnected === false ? (
+        <Banner tone="warn" icon="cloud-offline-outline" title="You're offline" body="Reconnect to save notes or change this shop's status." />
+      ) : null}
       {/* Hero: photo, or a tinted tile, with the status chip */}
       <View style={styles.hero}>
         {heroUri ? (
           <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" accessibilityLabel={`${shopName} photo`} />
         ) : (
           <View style={styles.heroTile}>
-            <Ionicons name="storefront-outline" size={64} color={colors.ink} />
+            <Ionicons name="storefront-outline" size={56} color={colors.ink2} />
+            <Text variant="label" tone="muted" weight="medium">Shop photo not added</Text>
           </View>
         )}
-        <Chip label={status.label} tone={status.tone} style={styles.heroChip} />
+        <Chip label={heroLabel} tone={hasLiveWebsite || detail.needsWebsite === true ? 'ok' : status.tone} style={styles.heroChip} />
       </View>
 
       {/* Name + address */}
@@ -258,64 +356,74 @@ export default function LeadDetailScreen() {
           </Text>
         ) : null}
         <Text variant="label" tone="muted" weight="medium">
-          {`${isProspect ? 'Found nearby' : `Inquired via ${lead.source}`} · ${timeAgo(lead.createdAt)}`}
+          {`${sourceLabel} · ${timeAgo(lead.createdAt)}`}
         </Text>
       </View>
 
-      {/* Who spotted it */}
-      {submittedBy ? (
-        <Card style={styles.row}>
-          <Avatar uri={submittedBy.profileImage} name={submittedBy.displayName ?? '?'} size={44} />
-          <View style={styles.flex1}>
-            <Text variant="body" weight="bold" numberOfLines={1}>
-              {submittedBy.displayName}
-            </Text>
-            <Text variant="label" tone="muted" weight="medium">
-              Spotted this shop
-            </Text>
-          </View>
-          {isMine ? <Chip label="You" tone="ok" /> : null}
-        </Card>
+      {activeClaim ? (
+        <Banner
+          tone={activeClaim.isMine ? 'ok' : 'neutral'}
+          icon="flag-outline"
+          title={activeClaim.isMine ? 'Reserved for your visit' : `Reserved by ${activeClaim.displayName}`}
+          body={activeClaim.isMine ? 'Start the capture when you are ready at the shop.' : 'Another field agent is visiting this shop. You can still read its notes.'}
+        />
       ) : null}
 
-      {/* Contact: owner, phone, round message + call */}
+      {/* Contact actions stay on a separate row so names remain readable. */}
       <Card style={styles.contactCard}>
         <View style={styles.row}>
           <Avatar name={ownerName} size={48} />
           <View style={styles.flex1}>
-            <Text variant="body" weight="bold" numberOfLines={1}>
+            <Text variant="body" weight="bold">
               {ownerName}
             </Text>
-            <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
-              {phone ? `${roleLabel} · ${phone}` : `${roleLabel} · no phone yet`}
+            <Text variant="label" tone="muted" weight="medium">
+              {phone ? `${roleLabel} · ${phone}` : 'Phone not added'}
             </Text>
             {email ? (
-              <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+              <Text variant="label" tone="muted" weight="medium">
                 {email}
               </Text>
             ) : null}
           </View>
-          {email ? (
-            <Pressable
-              onPress={handleEmail}
-              accessibilityRole="button"
-              accessibilityLabel="Email"
-              style={styles.roundSoft}
-            >
-              <Ionicons name="mail-outline" size={22} color={colors.ink} />
-            </Pressable>
-          ) : null}
-          {phone ? (
-            <Pressable
-              onPress={handleCall}
-              accessibilityRole="button"
-              accessibilityLabel="Call"
-              style={styles.roundInk}
-            >
-              <Ionicons name="call" size={22} color={colors.onDark} />
-            </Pressable>
-          ) : null}
         </View>
+        {phone || email ? (
+          <View style={styles.contactActions}>
+            {phone ? (
+              <>
+                <Pressable
+                  onPress={handleMessage}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Message ${ownerName}`}
+                  style={styles.contactAction}
+                >
+                  <View style={styles.roundSoft}><Ionicons name="chatbubble-outline" size={22} color={colors.ink} /></View>
+                  <Text variant="label" weight="semibold">Message</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleCall}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Call ${ownerName}`}
+                  style={styles.contactAction}
+                >
+                  <View style={styles.roundInk}><Ionicons name="call" size={22} color={colors.onDark} /></View>
+                  <Text variant="label" weight="semibold">Call</Text>
+                </Pressable>
+              </>
+            ) : null}
+            {email ? (
+              <Pressable
+                onPress={handleEmail}
+                accessibilityRole="button"
+                accessibilityLabel={`Email ${ownerName}`}
+                style={styles.contactAction}
+              >
+                <View style={styles.roundSoft}><Ionicons name="mail-outline" size={22} color={colors.ink} /></View>
+                <Text variant="label" weight="semibold">Email</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
         {hasDirections ? (
           <Button
             title="Directions"
@@ -326,12 +434,124 @@ export default function LeadDetailScreen() {
             accessibilityLabel="Show directions"
           />
         ) : null}
+        {!business && (detail.websiteUrl || detail.businessWebsite) ? (
+          <Button
+            title={hasLiveWebsite ? 'View website' : 'View existing website'}
+            variant="ghost"
+            size="md"
+            icon="globe-outline"
+            onPress={() => void openExternalUrl(detail.websiteUrl || detail.businessWebsite)}
+          />
+        ) : null}
         {!hasContact ? (
           <Text variant="label" tone="muted" weight="medium">
             No contact info yet.
           </Text>
         ) : null}
       </Card>
+
+      {/* Notes and their actual timestamps, without invented author metadata. */}
+      <View style={styles.section}>
+        <SectionLabel>{`Notes (${notes.length})`}</SectionLabel>
+        <Field
+          label="Add a note"
+          icon="create-outline"
+          value={noteContent}
+          onChangeText={setNoteContent}
+          placeholder="Best time to visit, who to ask for"
+          multiline
+          editable={canUpdate && !postingNote}
+          accessibilityLabel="Add a note about this lead"
+          right={
+            <Pressable
+              onPress={handleAddNote}
+              disabled={!canSave}
+              accessibilityRole="button"
+              accessibilityLabel="Save note"
+              accessibilityState={{ disabled: !canSave, busy: postingNote }}
+              style={[styles.send, canSave ? styles.sendOn : null]}
+            >
+              {postingNote ? (
+                <ActivityIndicator size="small" color={colors.onDark} />
+              ) : (
+                <Ionicons name="arrow-up" size={22} color={canSave ? colors.onDark : colors.ink3} />
+              )}
+            </Pressable>
+          }
+        />
+        {notes.length === 0 ? (
+          <Text variant="label" tone="muted" weight="medium">
+            No notes yet.
+          </Text>
+        ) : (
+          <Card style={styles.timeline}>
+            {notes.map((note: any, i: number) => (
+              <View key={note._id} style={styles.tlRow}>
+                <View style={styles.tlRail}>
+                  <View style={styles.tlDot} />
+                  {i < notes.length - 1 ? <View style={styles.tlLine} /> : null}
+                </View>
+                <View style={[styles.tlBody, i < notes.length - 1 ? styles.tlGap : null]}>
+                  <Text variant="body" tone="ink2">
+                    {note.content}
+                  </Text>
+                  <Text variant="label" tone="muted" weight="medium">
+                    {timeAgo(note.createdAt)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </Card>
+        )}
+      </View>
+
+      {/* Status */}
+      <View style={styles.section}>
+        <View style={styles.between}>
+          <SectionLabel>Status</SectionLabel>
+          {updatingStatus ? <ActivityIndicator size="small" color={colors.ink} accessibilityLabel="Updating status" /> : null}
+        </View>
+        <View style={styles.pills}>
+          {STATUS_OPTIONS.map(({ key, label }) => {
+            const isActive = key === lead.status;
+            const disabled = updatingStatus || !canManageStatus || !canUpdate || (key === 'converted' && !canMarkConverted);
+            return (
+              <Pill
+                key={key}
+                label={label}
+                selected={isActive}
+                onPress={disabled ? undefined : () => handleStatusChange(key)}
+                accessibilityLabel={`Set status to ${label}`}
+                style={[
+                  !isActive ? styles.pillOff : null,
+                  disabled && !isActive ? styles.dim : null,
+                ]}
+              />
+            );
+          })}
+        </View>
+        {!canManageStatus ? (
+          <Text variant="label" tone="muted" weight="medium">
+            {isCommunityFind ? 'Status is managed by the field agent visiting this shop.' : 'Only the agent who submitted this lead can change this.'}
+          </Text>
+        ) : null}
+        {!canMarkConverted ? (
+          <Text variant="label" tone="muted" weight="medium">Converted is set when the capture is submitted.</Text>
+        ) : null}
+      </View>
+
+      {spotter ? (
+        <Card style={styles.row}>
+          <Avatar uri={spotter.profileImage} name={spotter.displayName ?? '?'} size={48} />
+          <View style={styles.flex1}>
+            <Text variant="body" weight="bold">{spotter.displayName}</Text>
+            <Text variant="label" tone="muted" weight="medium">
+              {isProspect || isCommunityFind ? 'Spotted this shop' : 'Submitted the shop'}
+            </Text>
+          </View>
+          {String(spotter.creatorId) === String(creator?._id) ? <Chip label="You" tone="ok" /> : null}
+        </Card>
+      ) : null}
 
       {/* The shop on the submission, if it has been interviewed */}
       {business ? (
@@ -387,90 +607,6 @@ export default function LeadDetailScreen() {
         </Card>
       ) : null}
 
-      {/* Status */}
-      <View style={styles.section}>
-        <SectionLabel>Status</SectionLabel>
-        <View style={styles.pills}>
-          {STATUS_OPTIONS.map((key) => {
-            const label = leadStatus(key).label;
-            const isActive = key === lead.status;
-            const disabled = updatingStatus || !isMine;
-            return (
-              <Pill
-                key={key}
-                label={label}
-                selected={isActive}
-                onPress={disabled ? undefined : () => handleStatusChange(key)}
-                accessibilityLabel={`Set status to ${label}`}
-                style={[
-                  !isActive ? styles.pillOff : null,
-                  disabled && !isActive ? styles.dim : null,
-                ]}
-              />
-            );
-          })}
-        </View>
-        {!isMine ? (
-          <Text variant="label" tone="muted" weight="medium">
-            Only the agent who spotted it can change this.
-          </Text>
-        ) : null}
-      </View>
-
-      {/* Notes: add one, then the timeline */}
-      <View style={styles.section}>
-        <SectionLabel>{`Notes (${notes.length})`}</SectionLabel>
-        <Field
-          label="Add a note"
-          icon="create-outline"
-          value={noteContent}
-          onChangeText={setNoteContent}
-          placeholder="Best time to visit, who to ask for"
-          multiline
-          accessibilityLabel="Add a note about this lead"
-          right={
-            <Pressable
-              onPress={handleAddNote}
-              disabled={!canSave}
-              accessibilityRole="button"
-              accessibilityLabel="Save note"
-              accessibilityState={{ disabled: !canSave, busy: postingNote }}
-              style={[styles.send, canSave ? styles.sendOn : null]}
-            >
-              {postingNote ? (
-                <ActivityIndicator size="small" color={colors.onDark} />
-              ) : (
-                <Ionicons name="arrow-up" size={22} color={canSave ? colors.onDark : colors.ink3} />
-              )}
-            </Pressable>
-          }
-        />
-        {notes.length === 0 ? (
-          <Text variant="label" tone="muted" weight="medium">
-            No notes yet.
-          </Text>
-        ) : (
-          <Card style={styles.timeline}>
-            {notes.map((note: any, i: number) => (
-              <View key={note._id} style={styles.tlRow}>
-                <View style={styles.tlRail}>
-                  <View style={styles.tlDot} />
-                  {i < notes.length - 1 ? <View style={styles.tlLine} /> : null}
-                </View>
-                <View style={[styles.tlBody, i < notes.length - 1 ? styles.tlGap : null]}>
-                  <Text variant="body" tone="ink2">
-                    {note.content}
-                  </Text>
-                  <Text variant="label" tone="muted" weight="medium">
-                    {timeAgo(note.createdAt)}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </Card>
-        )}
-      </View>
-
       {/* Everyone who interviewed this shop */}
       <Card style={styles.stack}>
         <View style={styles.between}>
@@ -515,17 +651,19 @@ const styles = StyleSheet.create({
   flex1: { flex: 1, minWidth: 0 },
   body: { gap: space.lg, paddingTop: space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
+  between: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   stack: { gap: space.md },
   section: { gap: space.sm },
 
   hero: { height: 196, borderRadius: radius.cardLg, overflow: 'hidden', backgroundColor: colors.accentSoft },
   heroImg: { width: '100%', height: '100%' },
-  heroTile: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentSoft },
+  heroTile: { flex: 1, gap: space.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentSoft },
   heroChip: { position: 'absolute', top: space.md, left: space.md },
   nameBlock: { gap: space.xs },
 
   contactCard: { gap: space.md },
+  contactActions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
+  contactAction: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 48 },
   roundSoft: {
     width: 48,
     height: 48,
@@ -551,8 +689,8 @@ const styles = StyleSheet.create({
   dim: { opacity: 0.5 },
 
   send: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: radius.pill,
     backgroundColor: colors.bg2,
     alignItems: 'center',

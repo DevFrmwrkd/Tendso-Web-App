@@ -1,0 +1,390 @@
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator, Image, Linking, Modal, Platform, Pressable, ScrollView,
+  StyleSheet, View, useWindowDimensions,
+} from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE, type MapViewProps, type Region } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useConvexAuth, useMutation, useQuery } from 'convex/react';
+import { api, type Id } from '@tendso/convex-client';
+import { commissionFor } from '@tendso/shared/pricing';
+import { Ionicons } from '@expo/vector-icons';
+import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { useWorkAreaLocation } from '../../hooks/useWorkAreaLocation';
+import { useMobileAccount } from '../../hooks/useMobileAccount';
+import { useNetwork } from '../../providers/NetworkProvider';
+import { openDirections } from '../../services/links';
+import { mapSearchArea, type WorkAreaAccount } from '../../services/workArea';
+import {
+  mergeMapShops, publicImage, shopPrefill, shopStatus, type CommunityFind,
+  type FieldAgentShop, type MapProspect,
+} from '../../services/fieldAgentMap';
+import { Avatar, Banner, Button, Text, TextLink, formatPeso } from '../v2';
+import { colors, radius, shadow, space } from '../../theme/v2';
+
+interface MapCreator extends WorkAreaAccount {
+  _id: string;
+  clerkId?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImage?: string;
+  certifiedAt?: number;
+}
+
+export interface FieldAgentMapProps {
+  creator: MapCreator;
+  userImage?: string | null;
+  monthlyEarnings?: number;
+  unreadCount: number;
+  topNotice?: ReactNode;
+}
+
+const FALLBACK_REGION: Region = {
+  latitude: 14.5995, longitude: 120.9842, latitudeDelta: 0.5, longitudeDelta: 0.5,
+};
+const QUIET_MAP: NonNullable<MapViewProps['customMapStyle']> = [
+  { elementType: 'geometry', stylers: [{ color: '#E9E9E3' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#6B6A63' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#D3DCE3' }] },
+];
+const KIND_ICONS: Record<FieldAgentShop['kind'], React.ComponentProps<typeof Ionicons>['name']> = {
+  food: 'restaurant-outline', sari_sari: 'storefront-outline', beauty: 'cut-outline',
+  repair: 'construct-outline', other: 'business-outline',
+};
+
+/** Section 03: the map is home; the Finds tab remains a second view of real shops. */
+export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount, topNotice }: FieldAgentMapProps) {
+  const router = useGuardedRouter();
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const { isAuthenticated } = useConvexAuth();
+  const { isConnected } = useNetwork();
+  const { isAdmin } = useMobileAccount();
+  const location = useWorkAreaLocation();
+  const savedArea = useMemo(() => mapSearchArea(creator), [creator.workCity, creator.workLatitude, creator.workLongitude, creator.workLocationSource]);
+  const [areaMode, setAreaMode] = useState<'saved' | 'device'>('saved');
+  const area = areaMode === 'saved' && savedArea ? savedArea : location.area;
+  const [areaMenu, setAreaMenu] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'needs' | 'mine'>('all');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [visitingId, setVisitingId] = useState<string | null>(null);
+  const [pendingShops, setPendingShops] = useState<Array<FieldAgentShop & { actorKey: string }>>([]);
+  const [clockVersion, setClockVersion] = useState(0);
+  const map = useRef<MapView | null>(null);
+  const mounted = useRef(true);
+  const busy = useRef(false);
+  const actorKey = `${creator._id}:${isAuthenticated}`;
+  const actor = useRef(actorKey);
+  actor.current = actorKey;
+  const canAct = isAuthenticated && isConnected !== false && !!creator.certifiedAt;
+
+  const crm = useQuery(api.leads.listForMobileCRM, isAuthenticated ? { statusFilter: 'all' } : 'skip');
+  const prospects = useQuery(api.prospects.searchNearby, isAuthenticated && area
+    ? { lat: area.latitude, lng: area.longitude, radiusKm: 5, limit: 100 } : 'skip');
+  const reservations = useQuery(api.prospects.listMyReservations, isAuthenticated ? {} : 'skip');
+  const pricing = useQuery(api.submissions.getPricingContext,
+    isAuthenticated ? { creatorId: creator._id as Id<'creators'> } : 'skip');
+  const reserve = useMutation(api.prospects.reserve);
+  const visit = useMutation(api.leads.visitCommunityFind);
+
+  const shops = useMemo(() => {
+    const merged = mergeMapShops((prospects ?? []) as MapProspect[], (reservations ?? []) as MapProspect[],
+      (crm?.leads ?? []) as CommunityFind[], area);
+    // Keep a successful reservation visible during the two live-query updates.
+    for (const pending of pendingShops) {
+      if (pending.actorKey === actorKey && !merged.some((shop) => shop.id === pending.id && shop.source === pending.source)
+        && pending.claimExpiresAt != null && pending.claimExpiresAt > Date.now()
+        && (!area || (pending.distanceKm != null && pending.distanceKm <= 5))) merged.push(pending);
+    }
+    return merged;
+  }, [prospects, reservations, crm?.leads, area, pendingShops, clockVersion, actorKey]);
+  const visibleShops = shops.filter((shop) => filter === 'mine' ? shop.isMine
+    : filter === 'needs' ? shop.needsWebsite === true && !shop.hasLiveWebsite : true);
+  const selected = shops.find((shop) => `${shop.source}:${shop.id}` === selectedId) ?? null;
+  const needsCount = shops.filter((shop) => shop.needsWebsite === true && !shop.hasLiveWebsite).length;
+  const mineCount = shops.filter((shop) => shop.isMine).length;
+  const loading = location.isLoading || (isAuthenticated && (crm === undefined || (area && prospects === undefined)));
+  const topInset = isAdmin ? space.sm : insets.top + space.sm;
+
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    setSelectedId(null); setPendingShops([]); setError(null); setVisitingId(null); busy.current = false;
+  }, [creator._id]);
+  useEffect(() => {
+    setPendingShops([]); setSelectedId(null);
+    if (area) map.current?.animateToRegion({ ...area, latitudeDelta: 0.055, longitudeDelta: 0.055 }, 350);
+  }, [area?.latitude, area?.longitude]);
+  useEffect(() => {
+    const expiries = shops.map((shop) => shop.claimExpiresAt).filter((expiry): expiry is number => expiry != null && expiry > Date.now());
+    if (!expiries.length) return;
+    const timer = setTimeout(() => setClockVersion((value) => value + 1), Math.min(...expiries) - Date.now() + 50);
+    return () => clearTimeout(timer);
+  }, [shops]);
+  useEffect(() => {
+    if (!pendingShops.length) return;
+    const remaining = pendingShops.filter((pending) => pending.source === 'pool'
+      ? !(reservations ?? []).some((item) => String(item._id) === pending.id)
+      : !(crm?.leads ?? []).some((item: CommunityFind) => String(item._id) === pending.id && item.claimedBy?.isMine));
+    if (remaining.length !== pendingShops.length) setPendingShops(remaining);
+  }, [pendingShops, reservations, crm?.leads]);
+
+  const focus = (shop: FieldAgentShop) => {
+    setSelectedId(`${shop.source}:${shop.id}`); setError(null);
+    map.current?.animateToRegion({ latitude: shop.latitude - 0.0035, longitude: shop.longitude,
+      latitudeDelta: 0.018, longitudeDelta: 0.018 }, 350);
+  };
+  const startInterview = (shop: FieldAgentShop) => {
+    if (!canAct || !shop.canInterview || busy.current) return;
+    router.push({ pathname: '/(app)/submit/info', params: shopPrefill(shop) } as never);
+  };
+  const markVisiting = async (shop: FieldAgentShop) => {
+    if (!canAct || !shop.canVisit || busy.current) return;
+    busy.current = true; setVisitingId(shop.id); setError(null);
+    const initiatingActor = actor.current;
+    try {
+      const expires = shop.source === 'pool'
+        ? (await reserve({ prospectId: shop.id as Id<'prospects'> }), Date.now() + 24 * 60 * 60 * 1000)
+        : (await visit({ leadId: shop.id as Id<'leads'> })).claimExpiresAt;
+      if (!mounted.current || actor.current !== initiatingActor) return;
+      setPendingShops((previous) => [...previous.filter((item) => item.id !== shop.id),
+        { ...shop, actorKey: initiatingActor, isMine: true, canVisit: false, canInterview: true, claimExpiresAt: expires }]);
+    } catch (cause) {
+      if (mounted.current && actor.current === initiatingActor)
+        setError(cause instanceof Error ? cause.message.replace(/^.*?Uncaught Error: /, '') : 'Could not reserve this shop. Please try again.');
+    } finally {
+      if (mounted.current && actor.current === initiatingActor) { busy.current = false; setVisitingId(null); }
+    }
+  };
+  const chooseDevice = () => {
+    setAreaMenu(false); setAreaMode('device'); setSelectedId(null);
+    void location.requestCurrentLocation();
+  };
+  const selectFilter = (next: typeof filter) => { setFilter(filter === next ? 'all' : next); setSelectedId(null); };
+
+  return (
+    <View style={styles.root}>
+      <MapView
+        ref={(instance) => { map.current = instance; }} style={StyleSheet.absoluteFill}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+        initialRegion={area ? { ...area, latitudeDelta: 0.055, longitudeDelta: 0.055 } : FALLBACK_REGION}
+        customMapStyle={QUIET_MAP} mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+        userInterfaceStyle="light" showsPointsOfInterest={false} showsBuildings={false}
+        showsCompass={false} toolbarEnabled={false} showsMyLocationButton={false}
+        showsUserLocation={!!location.currentLocation} onPress={() => setSelectedId(null)}
+      >
+        {visibleShops.map((shop) => <PhotoPin key={`${shop.source}:${shop.id}`} shop={shop}
+          selected={selectedId === `${shop.source}:${shop.id}`} onPress={() => focus(shop)} />)}
+      </MapView>
+
+      <View style={[styles.chrome, { top: topInset }]} pointerEvents="box-none">
+        <View style={styles.topRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Open my profile" onPress={() => router.push('/(app)/(tabs)/profile')} style={styles.profileHit}>
+            <Avatar uri={publicImage(creator.profileImage) || userImage} name={creator.firstName} size={48} ring />
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={monthlyEarnings == null ? 'Open earnings' : `${formatPeso(monthlyEarnings)} earned this month. Open earnings`}
+            onPress={() => router.push('/(app)/(tabs)/wallet')} style={[styles.earnings, shadow.soft]}>
+            <Text variant="bodyLg" weight="bold">{monthlyEarnings == null ? '—' : formatPeso(monthlyEarnings)}</Text>
+            <Text variant="label" tone="muted">this month</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+            onPress={() => router.push('/(app)/notifications')} style={[styles.round, shadow.soft]}>
+            <Ionicons name="notifications-outline" size={23} color={colors.ink} />
+            {unreadCount > 0 ? <View style={styles.notificationDot} /> : null}
+          </Pressable>
+        </View>
+        <View style={styles.filters}>
+          <FilterPill label={`Needs a site · ${needsCount}`} on={filter === 'needs'} dashed onPress={() => selectFilter('needs')} />
+          <FilterPill label={`Yours · ${mineCount}`} on={filter === 'mine'} onPress={() => selectFilter('mine')} />
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Map area: ${area?.label ?? 'Choose an area'}. Change area`}
+          onPress={() => setAreaMenu(true)} style={[styles.area, shadow.soft]}>
+          <Ionicons name="location-outline" size={19} color={colors.ink} />
+          <Text variant="label" numberOfLines={1} style={styles.flex}>{area?.source === 'work' ? `Near ${area.label}` : area ? 'Near my location' : 'Choose map area'}</Text>
+          {location.isLocating ? <ActivityIndicator size="small" color={colors.ink} /> : <Ionicons name="chevron-down" size={17} color={colors.ink} />}
+        </Pressable>
+        {topNotice}
+        {areaMode === 'device' && (location.permissionStatus === 'denied' || location.permissionStatus === 'unavailable')
+          ? <Banner tone="warn" body={savedArea ? `Current location is unavailable. Showing ${savedArea.label}.` : 'Current location is unavailable. You can still browse the shop list.'} /> : null}
+        {isConnected === false ? <Banner tone="warn" body="You’re offline. Reconnect to visit a shop." /> : null}
+      </View>
+
+      <View style={[styles.sheet, { maxHeight: Math.max(230, height * 0.58) }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel={selected ? 'Close shop details' : 'Show all nearby shops'}
+          onPress={() => { setSelectedId(null); setFilter('all'); }} style={styles.grabHit}>
+          <View style={styles.grab} />
+        </Pressable>
+        {selected ? (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detail}>
+            <View style={styles.detailTop}>
+              <ShopPhoto shop={selected} width={110} height={140} />
+              <View style={styles.detailText}>
+                <Text variant="heading" numberOfLines={3}>{selected.name}</Text>
+                <Text variant="label" tone="muted">{selected.distanceLabel}</Text>
+                <Text variant="label">{shopStatus(selected)}</Text>
+                {selected.spottedBy ? <View style={styles.attribution}>
+                  <Avatar uri={selected.spottedBy.profileImage} name={selected.spottedBy.displayName} size={24} />
+                  <Text variant="label" tone="muted" style={styles.flex}>Spotted by {selected.spottedBy.displayName}</Text>
+                </View> : <Text variant="label" tone="muted">{selected.source === 'pool' ? 'From the shop directory' : 'From the community'}</Text>}
+              </View>
+            </View>
+            {selected.address ? <View style={styles.address}>
+              <Ionicons name="location-outline" size={20} color={colors.ink3Text} />
+              <Text variant="label" tone="muted" style={styles.flex}>{[selected.address, selected.city].filter(Boolean).join(', ')}</Text>
+            </View> : null}
+            {selected.canVisit || selected.canInterview ? <View style={styles.priceCard}>
+              <View style={styles.cashIcon}><Ionicons name="cash-outline" size={23} color={colors.ink} /></View>
+              <View style={styles.flex}>
+                <Text variant="body" weight="bold">{pricing ? `Earn up to ${formatPeso(commissionFor(pricing.priceCeiling))}` : 'Earn from every paid site'}</Text>
+                <Text variant="label" tone="muted">{pricing
+                  ? `${pricing.unlocked ? `Set the price, ${formatPeso(pricing.basePrice)}–${formatPeso(pricing.priceCeiling)}.` : `Site price: ${formatPeso(pricing.basePrice)}.`} You keep half when the owner pays.`
+                  : 'Your commission is half the site price, paid after the owner pays.'}</Text>
+              </View>
+            </View> : null}
+            {selected.isMine && selected.claimExpiresAt ? <Text variant="label" tone="muted">Reserved for you until {new Date(selected.claimExpiresAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.</Text> : null}
+            {selected.claimedBy && !selected.claimedBy.isMine ? <Text variant="label" tone="muted">{selected.claimedBy.displayName} is visiting this shop.</Text> : null}
+            {error ? <Banner tone="danger" body={error} /> : null}
+            <View style={styles.actions}>
+              {selected.canInterview ? <Button title="Start interview" size="md" style={styles.flex} disabled={!canAct || visitingId != null} onPress={() => startInterview(selected)} />
+                : selected.canVisit ? <Button title="I’m visiting" size="md" style={styles.flex} loading={visitingId === selected.id}
+                  disabled={!canAct || visitingId != null} onPress={() => { void markVisiting(selected); }} />
+                  : selected.source !== 'pool' ? <Button title="View shop" size="md" style={styles.flex} onPress={() => router.push(`/(app)/leads/${selected.id}` as never)} /> : null}
+              <Button title="Route" variant="ghost" size="md" fullWidth={false} icon="navigate-outline"
+                onPress={() => { void openDirections({ latitude: selected.latitude, longitude: selected.longitude, label: selected.name, address: selected.address, placeId: selected.googlePlaceId }); }} />
+            </View>
+          </ScrollView>
+        ) : (
+          <>
+            <View style={styles.sheetHead}>
+              <Text variant="bodyLg" weight="bold" style={styles.flex}>{filter === 'mine' ? 'Your shops' : filter === 'needs' ? 'Shops needing a site' : 'Shops near you'}</Text>
+              <TextLink label="See list" onPress={() => router.push('/(app)/(tabs)/finds' as never)} />
+            </View>
+            {loading ? <View style={styles.empty}><ActivityIndicator color={colors.ink} /><Text variant="label" tone="muted">Finding nearby shops…</Text></View>
+              : visibleShops.length === 0 ? <View style={styles.empty}>
+                <Text variant="body" weight="bold">{filter === 'mine' ? 'No shops reserved yet' : 'No shops here yet'}</Text>
+                <Text variant="label" tone="muted">{filter === 'mine' ? 'Choose a shop and tap I’m visiting.' : 'Spot a local shop to help the community find it.'}</Text>
+                <TextLink label="Spot a shop" onPress={() => router.push('/(app)/leads/spot' as never)} />
+              </View>
+                : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+                  {visibleShops.slice(0, 30).map((shop) => <Pressable key={`${shop.source}:${shop.id}`} onPress={() => focus(shop)}
+                    accessibilityRole="button" accessibilityLabel={`${shop.name}, ${shop.distanceLabel}, ${shopStatus(shop)}`}
+                    style={[styles.shopCard, shadow.soft]}>
+                    <ShopPhoto shop={shop} width={184} height={100} />
+                    <Text variant="body" weight="bold" numberOfLines={1} style={styles.cardName}>{shop.name}</Text>
+                    <Text variant="label" tone="muted" numberOfLines={1}>{shop.distanceLabel}</Text>
+                    <Text variant="label" numberOfLines={1}>{shopStatus(shop)}</Text>
+                  </Pressable>)}
+                </ScrollView>}
+          </>
+        )}
+      </View>
+
+      <Modal visible={areaMenu} transparent animationType="fade" onRequestClose={() => setAreaMenu(false)}>
+        <View style={styles.modalRoot}>
+          <Pressable style={StyleSheet.absoluteFill} accessibilityLabel="Close area selector" onPress={() => setAreaMenu(false)} />
+          <View style={[styles.areaMenu, { paddingBottom: Math.max(insets.bottom, space.xl) }]} accessibilityViewIsModal>
+            <Text variant="heading">Choose map area</Text>
+            {savedArea ? <Button title={`Near ${savedArea.label}`} variant="ghost" icon="location-outline" onPress={() => { setAreaMode('saved'); setSelectedId(null); setAreaMenu(false); }} /> : null}
+            <Button title="Use my current location" icon="locate-outline" onPress={chooseDevice} />
+            {location.permissionStatus === 'denied' ? <TextLink label="Open location settings" onPress={() => { setAreaMenu(false); void Linking.openSettings(); }} /> : null}
+            {location.permissionStatus === 'unavailable' ? <Text variant="label" tone="muted">Current location is unavailable. Try again or use your saved work area.</Text> : null}
+            <TextLink label="Cancel" onPress={() => setAreaMenu(false)} />
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+function ShopPhoto({ shop, width, height }: { shop: FieldAgentShop; width: number; height: number }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [shop.photoUrl]);
+  return <View style={[styles.photo, { width, height }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    {shop.photoUrl && !failed ? <Image source={{ uri: shop.photoUrl }} style={{ width, height }} resizeMode="cover" onError={() => setFailed(true)} />
+      : <Ionicons name={KIND_ICONS[shop.kind]} size={34} color={colors.ink3Text} />}
+  </View>;
+}
+
+function PhotoPin({ shop, selected, onPress }: { shop: FieldAgentShop; selected: boolean; onPress: () => void }) {
+  const [tracking, setTracking] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setFailed(false); setLoaded(false); }, [shop.photoUrl]);
+  useEffect(() => {
+    setTracking(true);
+    const timer = setTimeout(() => setTracking(false), 800);
+    return () => clearTimeout(timer);
+  }, [shop.photoUrl, selected, shop.isMine, failed, loaded]);
+  const size = selected ? 60 : 48;
+  return <Marker coordinate={{ latitude: shop.latitude, longitude: shop.longitude }}
+    onPress={(event) => { event.stopPropagation(); onPress(); }}
+    anchor={{ x: 0.5, y: selected ? 0.3 : 0.5 }} tracksViewChanges={tracking} zIndex={selected ? 3 : 2}
+    accessibilityLabel={`${shop.name}, ${shopStatus(shop)}`}>
+    <View style={styles.marker}>
+      <View style={[styles.pin, { width: size, height: size, borderRadius: size / 2 },
+        selected ? styles.pinSelected : shop.isMine || shop.hasLiveWebsite ? styles.pinYours : shop.needsWebsite === true ? styles.pinNeed : styles.pinUnknown]}>
+        <View style={[styles.pinPhoto, { width: size - 10, height: size - 10, borderRadius: (size - 10) / 2 }]}>
+          {shop.photoUrl && !failed ? <Image source={{ uri: shop.photoUrl }} style={{ width: size - 10, height: size - 10 }}
+            onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+            : <Ionicons name={KIND_ICONS[shop.kind]} size={selected ? 25 : 21} color={colors.ink} />}
+        </View>
+      </View>
+      {selected ? <View style={styles.pinLabel}><Text variant="label" tone="onDark" numberOfLines={1}>{shop.name}</Text></View> : null}
+    </View>
+  </Marker>;
+}
+
+function FilterPill({ label, on, dashed, onPress }: { label: string; on: boolean; dashed?: boolean; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: on }} onPress={onPress}
+    style={[styles.filter, shadow.soft, on ? styles.filterOn : null]}>
+    <View style={[styles.filterDot, dashed ? styles.filterDashed : styles.filterMine,
+      dashed && on ? { borderColor: colors.onDark } : null]} />
+    <Text variant="label" tone={on ? 'onDark' : 'ink'}>{label}</Text>
+  </Pressable>;
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#E9E9E3' }, flex: { flex: 1, minWidth: 0 },
+  chrome: { position: 'absolute', left: space.lg, right: space.lg, gap: space.sm },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  profileHit: { minHeight: 48, minWidth: 48 },
+  earnings: { flex: 1, backgroundColor: colors.card, minHeight: 52, paddingHorizontal: space.lg,
+    paddingVertical: space.xs, borderRadius: radius.pill, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs },
+  round: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  notificationDot: { position: 'absolute', right: 10, top: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.ink, borderWidth: 1, borderColor: colors.card },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  filter: { minHeight: 48, paddingHorizontal: space.md, flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderRadius: radius.pill },
+  filterOn: { backgroundColor: colors.ink },
+  filterDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: colors.ink },
+  filterDashed: { borderStyle: 'dashed' }, filterMine: { backgroundColor: colors.accent },
+  area: { minHeight: 48, maxWidth: '90%', alignSelf: 'flex-start', paddingHorizontal: space.md,
+    flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderRadius: radius.pill },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    shadowColor: colors.ink, shadowOffset: { width: 0, height: -6 }, shadowRadius: 16, shadowOpacity: 0.12, elevation: 8 },
+  grabHit: { height: 28, alignItems: 'center', justifyContent: 'center' }, grab: { height: 5, width: 40, borderRadius: 3, backgroundColor: colors.ruleStrong },
+  sheetHead: { paddingHorizontal: space.lg, paddingBottom: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  carousel: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
+  shopCard: { width: 200, borderRadius: radius.card, backgroundColor: colors.card, padding: space.sm, gap: space.xs },
+  cardName: { marginTop: space.xs }, photo: { overflow: 'hidden', borderRadius: 16, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
+  empty: { paddingHorizontal: space.xl, paddingBottom: space.xl, gap: space.sm },
+  detail: { paddingHorizontal: space.lg, paddingBottom: space.lg, gap: space.md },
+  detailTop: { flexDirection: 'row', gap: space.md }, detailText: { flex: 1, gap: space.xs, minWidth: 0 },
+  attribution: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  address: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  priceCard: { backgroundColor: colors.card, borderRadius: radius.card, padding: space.md, flexDirection: 'row', alignItems: 'center', gap: space.md },
+  cashIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
+  marker: { alignItems: 'center', padding: 4 },
+  pin: { alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: colors.card },
+  pinSelected: { borderWidth: 4, borderColor: colors.ink }, pinYours: { borderWidth: 4, borderColor: colors.accent },
+  pinNeed: { borderColor: colors.ink, borderStyle: 'dashed' }, pinUnknown: { borderColor: colors.ruleStrong },
+  pinPhoto: { overflow: 'hidden', backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  pinLabel: { marginTop: 4, maxWidth: 220, backgroundColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.xs },
+  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
+  areaMenu: { padding: space.xl, gap: space.md, backgroundColor: colors.bg, borderTopLeftRadius: radius.tile, borderTopRightRadius: radius.tile },
+});

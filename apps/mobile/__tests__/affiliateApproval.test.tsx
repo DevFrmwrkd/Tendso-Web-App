@@ -7,18 +7,22 @@ import { AffiliateAccess } from '../components/affiliate/Screen';
 
 let mockSegments = ['(app)', '(affiliate-tabs)'];
 let mockAccount: Record<string, unknown>;
+let mockClerkSubject = 'affiliate-user';
+let mockSignedIn = true;
+let mockNetworkConnected = true;
+let mockSpotDraft = false;
 const mockSignOut = jest.fn();
 const mockQuery = jest.fn();
 const mockLastActive = jest.fn();
 const mockOfflineSync = jest.fn();
 jest.mock('../lib/v2/ownerIntake', () => ({ hasOwnerIntent: jest.fn(async () => true) }));
 jest.mock('@clerk/clerk-expo', () => ({
-  useAuth: () => ({ isSignedIn: true, isLoaded: true, userId: 'affiliate-user' }),
+  useAuth: () => ({ isSignedIn: mockSignedIn, isLoaded: true, userId: mockClerkSubject }),
   useClerk: () => ({ signOut: mockSignOut }),
 }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
-jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: true }) }));
+jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockNetworkConnected }) }));
 jest.mock('../hooks/useOfflineSync', () => ({ useOfflineSync: (...args: unknown[]) => mockOfflineSync(...args) }));
 jest.mock('../services/signupProfile', () => ({ clearPendingSignupProfiles: jest.fn(async () => {}) }));
 jest.mock('../components/AccountViewSwitcher', () => ({
@@ -37,8 +41,11 @@ jest.mock('expo-router', () => {
   const create = require('react').createElement;
   const NativeText = require('react-native').Text;
   function Stack() {
+    const [draft, setDraft] = require('react').useState('');
     require('convex/react').useQuery('protected-screen-query', {});
-    return create(NativeText, { testID: 'protected-navigation' }, 'Private screens');
+    return create(require('react-native').View, null,
+      create(NativeText, { testID: 'protected-navigation' }, 'Private screens'),
+      mockSpotDraft ? create(require('react-native').TextInput, { testID: 'spot-draft', value: draft, onChangeText: setDraft }) : null);
   }
   Stack.Screen = () => null;
   return { Stack, useSegments: () => mockSegments,
@@ -66,6 +73,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockAccount = ready();
   mockSegments = ['(app)', '(affiliate-tabs)'];
+  mockClerkSubject = 'affiliate-user';
+  mockSignedIn = true;
+  mockNetworkConnected = true;
+  mockSpotDraft = false;
   mockSignOut.mockResolvedValue(undefined);
   mockLastActive.mockResolvedValue(undefined);
 });
@@ -236,5 +247,85 @@ describe('field-agent onboarding root navigation', () => {
     const screen = await mountApp();
     expect(screen.queryByTestId('redirect')).toBeNull();
     expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+  });
+});
+
+describe('Spot draft reconnect boundary', () => {
+  const approvedAgent = () => ({ ...ready(), role: 'creator', view: 'creator',
+    account: { _id: 'approved-agent', clerkId: mockClerkSubject, role: 'creator', status: 'active', firstName: 'Pablo', certifiedAt: 100 } });
+
+  it('keeps an already-open same-subject Spot subtree mounted through offline and account reconnection', async () => {
+    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+    mockAccount = approvedAgent();
+    const approved = mockAccount;
+    const screen = await mountApp();
+    fireEvent.changeText(screen.getByTestId('spot-draft'), 'Nena Store and its selected photo');
+    mockNetworkConnected = false;
+    mockAccount = { ...approved, account: undefined, isOffline: true, isAuthenticated: false };
+    screen.rerender(<AppLayout />);
+    expect(screen.getByTestId('spot-draft').props.value).toBe('Nena Store and its selected photo');
+    mockNetworkConnected = true;
+    mockAccount = { ...approved, account: undefined, role: null, isLoading: true, isAuthenticated: false };
+    screen.rerender(<AppLayout />);
+    expect(screen.queryByLabelText('Loading account')).toBeNull();
+    expect(screen.getByTestId('spot-draft').props.value).toBe('Nena Store and its selected photo');
+    mockAccount = approved;
+    screen.rerender(<AppLayout />);
+    expect(screen.getByTestId('spot-draft').props.value).toBe('Nena Store and its selected photo');
+  });
+
+  it('keeps a cold Spot deep link behind account hydration', async () => {
+    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+    mockAccount = { ...approvedAgent(), account: undefined, role: null, isLoading: true, isAuthenticated: false };
+    const screen = await mountApp();
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
+    expect(screen.queryByTestId('spot-draft')).toBeNull();
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
+  it('unmounts the old Spot subtree when the Clerk subject changes before its account is resolved', async () => {
+    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+    mockAccount = approvedAgent();
+    const screen = await mountApp();
+    fireEvent.changeText(screen.getByTestId('spot-draft'), 'Private actor-one draft');
+    mockClerkSubject = 'second-clerk-user';
+    mockAccount = { ...approvedAgent(), account: undefined, role: null, isLoading: true, isAuthenticated: false };
+    screen.rerender(<AppLayout />);
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
+    expect(screen.queryByTestId('spot-draft')).toBeNull();
+    mockAccount = { ...approvedAgent(), account: { ...(approvedAgent().account), _id: 'second-agent' } };
+    screen.rerender(<AppLayout />);
+    expect(screen.getByTestId('spot-draft').props.value).toBe('');
+  });
+
+  it.each(['blocked', 'revoked', 'missing', 'preview'])('does not retain the Spot subtree after an explicit %s result', async change => {
+    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+    mockAccount = approvedAgent();
+    const screen = await mountApp();
+    fireEvent.changeText(screen.getByTestId('spot-draft'), 'A draft');
+    mockAccount = { ...approvedAgent(), isLoading: true,
+      ...(change === 'blocked' ? { isBlocked: true } : {}),
+      ...(change === 'revoked' ? { account: { ...approvedAgent().account, certifiedAt: undefined } } : {}),
+      ...(change === 'missing' ? { account: null } : {}),
+      ...(change === 'preview' ? { isPreview: true } : {}),
+    };
+    screen.rerender(<AppLayout />);
+    expect(screen.queryByTestId('spot-draft')).toBeNull();
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
+  });
+
+  it('discards retention after leaving Spot and keeps other account loading behavior', async () => {
+    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+    mockAccount = approvedAgent();
+    const screen = await mountApp();
+    mockSegments = ['(app)', '(tabs)', 'finds'];
+    mockAccount = { ...approvedAgent(), account: undefined, role: null, isLoading: true };
+    screen.rerender(<AppLayout />);
+    expect(screen.queryByTestId('spot-draft')).toBeNull();
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
+    mockSegments = ['(app)', 'leads', 'spot'];
+    screen.rerender(<AppLayout />);
+    expect(screen.queryByTestId('spot-draft')).toBeNull();
+    expect(screen.getByLabelText('Loading account')).toBeTruthy();
   });
 });

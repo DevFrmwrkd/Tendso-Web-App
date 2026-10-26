@@ -220,6 +220,12 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
     }
     workItems.push(
       {
+        icon: 'stats-chart-outline',
+        label: 'Dashboard',
+        sublabel: 'Your sites and recent activity',
+        onPress: () => router.push('/(app)/(tabs)/dashboard' as any),
+      },
+      {
         icon: 'storefront-outline',
         label: 'Your submissions',
         onPress: () => router.push('/(app)/submissions' as any),

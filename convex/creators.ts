@@ -568,7 +568,8 @@ export const markQuizPassed = mutation({
 /**
  * Admin-only: approve a creator that has passed the quiz.
  * Sets certifiedAt and schedules a "certification" notification.
- * Idempotent: returns silently if the creator is already certified.
+ * Idempotent: an already-certified creator only has stale rejection metadata
+ * cleared; their certification timestamp and notification remain unchanged.
  */
 export const approveCreator = mutation({
     args: { id: v.id('creators') },
@@ -578,10 +579,22 @@ export const approveCreator = mutation({
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
         if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be approved');
-        if (creator.certifiedAt) return;
+        if (creator.certifiedAt) {
+            if (creator.rejectedAt !== undefined || creator.rejectionReason !== undefined || creator.rejectedBy !== undefined) {
+                await ctx.db.patch(args.id, {
+                    rejectedAt: undefined,
+                    rejectionReason: undefined,
+                    rejectedBy: undefined,
+                });
+            }
+            return;
+        }
 
         await ctx.db.patch(args.id, {
             certifiedAt: Date.now(),
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+            rejectedBy: undefined,
             lastActiveAt: Date.now(),
         });
         await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {

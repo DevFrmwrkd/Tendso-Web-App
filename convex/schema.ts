@@ -727,7 +727,7 @@ export default defineSchema({
         submissionId: v.optional(v.id('submissions')), // Optional — standalone leads don't need a submission
         creatorId: v.optional(v.id('creators')),        // Optional — auto-filled from submission if linked
         businessOwnerId: v.optional(v.string()),
-        source: v.string(), // "website" | "qr_code" | "direct" | "outscraper"
+        source: v.string(), // "website" | "qr_code" | "direct" | "outscraper" | "community"
         // name + phone are optional — Outscraper-scraped prospect businesses
         // use businessName + (optional) businessPhone instead. Existing
         // customer leads continue to populate these as before.
@@ -761,6 +761,20 @@ export default defineSchema({
         // Auto-cleared by the releaseStaleClaimsInternal cron after 24h.
         claimedByCreatorId: v.optional(v.id('creators')),
         claimedAt: v.optional(v.number()),
+        // Community finds keep the original spotter even when an interview
+        // later attributes creatorId to the field agent who captured it.
+        spottedByCreatorId: v.optional(v.id('creators')),
+        spottedAt: v.optional(v.number()),
+        communityPhotoUrl: v.optional(v.string()),
+        communityKind: v.optional(v.union(
+            v.literal('food'), v.literal('sari_sari'), v.literal('beauty'),
+            v.literal('repair'), v.literal('other'),
+        )),
+        needsWebsite: v.optional(v.boolean()),
+        requestId: v.optional(v.string()),
+        // Community visits are exclusive for 24h. Legacy Outscraper claims
+        // retain their existing informational behavior.
+        claimExpiresAt: v.optional(v.number()),
 
         // ==================== PROSPECT POOL MIGRATION (2026-06-01 — P0 schema only) ====================
         // Set by migration.backfillProspects when an Outscraper-source lead
@@ -775,7 +789,8 @@ export default defineSchema({
         // Outscraper dedup index — scrapeNearby checks this before inserting
         // so re-scraping the same area doesn't create duplicate leads.
         .index('by_place_id', ['businessGooglePlaceId'])
-        .index('by_claimed_creator', ['claimedByCreatorId']),
+        .index('by_claimed_creator', ['claimedByCreatorId'])
+        .index('by_spotter_request', ['spottedByCreatorId', 'requestId']),
 
     // ==================== PROSPECT POOL (2026-06-01 — P0 schema only) ====================
     // New global inventory of businesses, scraped ONCE and shared across

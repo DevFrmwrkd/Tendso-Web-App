@@ -67,6 +67,7 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_availability from "../lib/availability.js";
 import type * as lib_calendarCalls from "../lib/calendarCalls.js";
 import type * as lib_cloudflare from "../lib/cloudflare.js";
+import type * as lib_communityFinds from "../lib/communityFinds.js";
 import type * as lib_creatorRecruits from "../lib/creatorRecruits.js";
 import type * as lib_encryption from "../lib/encryption.js";
 import type * as lib_enhancedImages from "../lib/enhancedImages.js";
@@ -182,6 +183,7 @@ declare const fullApi: ApiFromModules<{
   "lib/availability": typeof lib_availability;
   "lib/calendarCalls": typeof lib_calendarCalls;
   "lib/cloudflare": typeof lib_cloudflare;
+  "lib/communityFinds": typeof lib_communityFinds;
   "lib/creatorRecruits": typeof lib_creatorRecruits;
   "lib/encryption": typeof lib_encryption;
   "lib/enhancedImages": typeof lib_enhancedImages;

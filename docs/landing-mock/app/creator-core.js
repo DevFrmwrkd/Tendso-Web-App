@@ -473,11 +473,11 @@
       ['2.3', P + 'certification-quiz.tsx', 'Tendso asks one question; answer B is picked. Pass with 4 of 5.', quiz],
     ] },
     { n: '03', title: 'Find shops', note: 'The map and the finds feed are home', steps: [
-      ['3.1', P + 'leads/nearby.tsx + leads/discover.tsx', 'Home. Dashed ring = needs a site, accent ring = yours. This month’s earnings sit on the map.', mapHome],
-      ['3.2', P + 'leads/discover.tsx · selected', 'Tap a pin: who spotted it, what it can earn, then I’m visiting or Route.', shopSheet],
-      ['3.3', P + 'leads/index.tsx', 'Every shop the team has spotted, as photos. Spot a shop is always one tap away.', finds],
-      ['3.4', NEW, 'Spot a shop in ten seconds: photo, name, kind, needs a site.', spot],
-      ['3.5', P + 'leads/[leadId].tsx', 'One lead: owner, phone, notes, and the status New → Contacted → Visiting → Live.', leadDetail],
+      ['3.1', P + '(tabs)/index.tsx · FieldAgentMap', 'Map home. Real shop photos, needs-site and yours filters, saved work area or GPS, and actual earnings this month.', mapHome],
+      ['3.2', 'components/field-agent/FieldAgentMap.tsx · selected', 'Tap a pin for the original spotter, actual website status, exclusive visit reservation, capture handoff and native Route.', shopSheet],
+      ['3.3', P + '(tabs)/finds.tsx', 'Shared shops as a photo feed with search and nearby/category/site filters. Spot a shop is always one tap away; legacy CRM tools remain available.', finds],
+      ['3.4', P + 'leads/spot.tsx', 'Save a real team find: photo, name, kind, needs-site choice and an exact shop pin. Certified field agents only; retries preserve one find.', spot],
+      ['3.5', P + 'leads/[leadId].tsx', 'Shop photo, contact actions, notes, original spotter and permitted CRM statuses. Visiting is a reservation; Live requires an actual live URL.', leadDetail],
     ] },
     { n: '04', title: 'Capture', note: 'Info, 10 photo tasks, 10 questions on camera, review, sent', steps: [
       ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile, address.', info],

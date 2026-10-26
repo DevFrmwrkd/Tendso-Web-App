@@ -7,6 +7,7 @@ import { Text } from './Text';
 export interface ChoiceChipProps {
   label: string;
   selected?: boolean;
+  disabled?: boolean;
   onPress?: () => void;
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   style?: StyleProp<ViewStyle>;
@@ -16,15 +17,16 @@ export interface ChoiceChipProps {
  * Wrapping answer chip (mock `.cc-chip`): 48pt tall white pill, 2pt ink border and a small
  * accent check when chosen. Put them in a `flexDirection: 'row', flexWrap: 'wrap', gap: 8` View.
  */
-export function ChoiceChip({ label, selected, onPress, icon, style }: ChoiceChipProps) {
+export function ChoiceChip({ label, selected, disabled, onPress, icon, style }: ChoiceChipProps) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ selected: !!selected }}
+      accessibilityState={{ selected: !!selected, disabled: !!disabled }}
       cssInterop={false}
-      style={({ pressed }) => [styles.chip, shadow.soft, selected ? styles.on : null, pressed ? { opacity: 0.85 } : null, style]}
+      style={({ pressed }) => [styles.chip, shadow.soft, selected ? styles.on : null, disabled ? { opacity: 0.5 } : pressed ? { opacity: 0.85 } : null, style]}
     >
       {selected ? (
         <View style={styles.check}>

@@ -1,19 +1,17 @@
 import { Tabs, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Keyboard } from 'react-native';
 import { V2TabBar, type TabBarItem } from '../../../components/v2';
 import { useGuardedPress } from '../../../hooks/useGuardedPress';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 
 /**
- * Field-agent tabs (design v2): Home · Learn · [Submit] · Earn · Me.
- *
- * The creator board draws Map · Finds · Submit · Earn · Me. We keep Home and Learn as their own tabs
- * because Home carries the certification gate, the balance and submission summary, the activity feed and
- * push registration, and Learn is the whole Help Center / Field Wiki stack (notification deep links point
- * into it). Nothing is lost; Earn is the old Wallet and Me is the old Profile.
+ * Field-agent workspace: Map · Finds · [Submit] · Earn · Me.
+ * Dashboard and Learn remain reachable from Me and existing deep links.
  */
 const ITEMS: TabBarItem[] = [
-  { routeName: 'index', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  { routeName: 'knowledge', label: 'Learn', icon: 'book-outline', activeIcon: 'book' },
+  { routeName: 'index', label: 'Map', icon: 'map-outline', activeIcon: 'map' },
+  { routeName: 'finds', label: 'Finds', icon: 'grid-outline', activeIcon: 'grid' },
   { routeName: 'wallet', label: 'Earn', icon: 'wallet-outline', activeIcon: 'wallet' },
   { routeName: 'profile', label: 'Me', icon: 'person-outline', activeIcon: 'person' },
 ];
@@ -23,6 +21,13 @@ function CustomTabBar({ state, navigation }: any) {
   const router = useRouter();
   // Only the SUBMIT push needs a spam guard (it stacks a new screen). Tab switching is idempotent.
   const goSubmit = useGuardedPress(() => router.push('/(app)/submit/info' as any));
+  const [keyboardVisible, setKeyboardVisible] = useState(Keyboard.isVisible());
+  useEffect(() => {
+    const shown = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hidden = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { shown.remove(); hidden.remove(); };
+  }, []);
+  if (keyboardVisible) return null;
 
   return (
     <V2TabBar
@@ -43,11 +48,13 @@ function CustomTabBar({ state, navigation }: any) {
 
 export default function TabsLayout() {
   return (
-    <Tabs tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
+    <Tabs backBehavior="history" tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="knowledge" />
+      <Tabs.Screen name="finds" />
       <Tabs.Screen name="wallet" />
       <Tabs.Screen name="profile" />
+      <Tabs.Screen name="knowledge" options={{ href: null }} />
+      <Tabs.Screen name="dashboard" options={{ href: null }} />
     </Tabs>
   );
 }
