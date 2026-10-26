@@ -40,7 +40,8 @@ export default function NativeSubmissionReview() {
   const [reason, setReason] = useState('');
   const canReview = submission?.status === 'submitted' || submission?.status === 'in_review';
   const action = useAdminAction(allowed && canReview, `${session.account?.clerkId}:${submissionId}`);
-  if (!allowed || (submissionId && submission === undefined)) return <AdminLoading />;
+  if (!allowed) return <AdminLoading />;
+  if (submissionId && submission === undefined) return <AdminScreen title="Submission review" section="reviews" backHref="/(app)/admin/reviews" backLabel="Back to reviews"><AdminLoading inline /></AdminScreen>;
   if (!submission) return <AdminScreen title="Submission unavailable" section="reviews" backHref="/(app)/admin/reviews" backLabel="Back to reviews"><AdminEmptyState icon="document-outline" title="This submission could not be found" body="Return to Reviews to check the current queue." /></AdminScreen>;
   const status = submissionStatus(submission.status);
   const creatorName = submission.creator ? fullName(submission.creator) : undefined;

@@ -33,7 +33,7 @@ export default function NativeAdminReviews() {
     </View>
     {tab === 'submissions' ? <>
       <AdminNotice>Check business details, photos and interview before approving. Publishing and Give free remain in web admin.</AdminNotice>
-      {rows === undefined ? <AdminLoading /> : !rows.length ? <AdminEmptyState icon="checkmark-done-outline" title="You’re all caught up" body="New business submissions will appear here when they are ready for review." /> : rows.map(row => <AdminCard key={row._id} title={row.businessName} subtitle={[row.businessType, row.city].filter(Boolean).join(' · ')}>
+      {rows === undefined ? <AdminLoading inline /> : !rows.length ? <AdminEmptyState icon="checkmark-done-outline" title="You’re all caught up" body="New business submissions will appear here when they are ready for review." /> : rows.map(row => <AdminCard key={row._id} title={row.businessName} subtitle={[row.businessType, row.city].filter(Boolean).join(' · ')}>
         <View style={styles.statusRow}>
           <Chip label={row.status === 'in_review' ? 'In review' : 'Submitted'} tone={row.status === 'in_review' ? 'info' : 'warn'} />
           {row.giveawayApplication && <Chip label="OTR giveaway" tone="muted" />}
@@ -44,7 +44,7 @@ export default function NativeAdminReviews() {
         <AdminLink label={`Review ${row.businessName}`} subtitle="Details, photos and interview" icon="arrow-forward-outline" href={{ pathname: '/(app)/admin/submissions/[id]', params: { id: row._id } }} />
       </AdminCard>)}
     </> : <>
-      {creators === undefined ? <AdminLoading /> : !creators.length ? <AdminEmptyState icon="people-outline" title="No profiles waiting" body="Field agents appear here after passing their quiz and submitting their profile for review." /> : creators.map(person => <CreatorReview key={person._id} person={person} allowed={allowed} actor={session.account?.clerkId} />)}
+      {creators === undefined ? <AdminLoading inline /> : !creators.length ? <AdminEmptyState icon="people-outline" title="No profiles waiting" body="Field agents appear here after passing their quiz and submitting their profile for review." /> : creators.map(person => <CreatorReview key={person._id} person={person} allowed={allowed} actor={session.account?.clerkId} />)}
       <WebAdminLink path="/creators" label="More creator details in web admin" />
     </>}
   </AdminScreen>;

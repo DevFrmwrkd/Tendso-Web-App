@@ -30,7 +30,7 @@ export default function NativeAdminAccounts() {
         onChange={setTab}
       />
       <AdminField label="Search name, email, mobile or handle" value={search} onChangeText={setSearch} maxLength={150} />
-      {rows === undefined ? <AdminLoading /> : (
+      {rows === undefined ? <AdminLoading inline /> : (
         <>
           <View style={styles.listHeader}>
             <Text variant="heading" style={styles.listTitle}>{q ? 'Search results' : tab === 'affiliate' ? 'Creators' : 'Field agents'}</Text>

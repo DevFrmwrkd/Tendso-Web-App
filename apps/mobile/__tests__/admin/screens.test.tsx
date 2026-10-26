@@ -210,6 +210,73 @@ describe('native admin navigation', () => {
   });
 });
 
+describe('native admin loading', () => {
+  it('keeps Overview selected and lets an authorized admin change sections while its data loads', () => {
+    mockData['admin:getDashboardStats'] = undefined;
+    const screen = render(<Overview />);
+    expect(screen.getByLabelText('Loading admin data')).toBeTruthy();
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) {
+      expect(screen.getByLabelText(`${label} tab`).props.accessibilityState.selected).toBe(label === 'Overview');
+    }
+    fireEvent.press(screen.getByLabelText('Accounts tab'));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/admin/accounts');
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+
+  it('replaces loading with real metrics without showing an invented zero or removing navigation', () => {
+    mockData['admin:getDashboardStats'] = undefined;
+    const screen = render(<Overview />);
+    expect(screen.getByLabelText('Loading admin data')).toBeTruthy();
+    expect(screen.queryByText('0')).toBeNull();
+    expect(screen.queryByText('Total submissions')).toBeNull();
+    expect(screen.queryByText('submissions waiting for review')).toBeNull();
+    mockData['admin:getDashboardStats'] = { pendingReview: 0, totalCreators: 84, activeCreators: 62, totalSubmissions: 135 };
+    screen.rerender(<Overview />);
+    expect(screen.queryByLabelText('Loading admin data')).toBeNull();
+    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByText('135')).toBeTruthy();
+    expect(screen.getByText('84')).toBeTruthy();
+    expect(screen.getByText('62 active')).toBeTruthy();
+    expect(screen.getByText('Total submissions')).toBeTruthy();
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) {
+      expect(screen.getByLabelText(`${label} tab`).props.accessibilityState.selected).toBe(label === 'Overview');
+    }
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { Screen: Reviews, selected: 'Reviews' },
+    { Screen: Accounts, selected: 'Accounts' },
+    { Screen: Payouts, selected: 'Payouts' },
+    { Screen: Submission, selected: 'Reviews' },
+  ])('retains all navigation while $selected content is loading', ({ Screen, selected }) => {
+    mockQuery.mockReturnValue(undefined);
+    const screen = render(<Screen />);
+    expect(screen.getByLabelText('Loading admin data')).toBeTruthy();
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) {
+      expect(screen.getByLabelText(`${label} tab`).props.accessibilityState.selected).toBe(label === selected);
+    }
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+
+  it('keeps navigation and private data unavailable until the admin session is verified', () => {
+    mockSession = { ...ready(), account: undefined, isLoading: true };
+    const screen = render(<Overview />);
+    expect(screen.getByLabelText('Loading admin data')).toBeTruthy();
+    for (const label of ['Overview', 'Reviews', 'Accounts', 'Payouts']) {
+      expect(screen.queryByLabelText(`${label} tab`)).toBeNull();
+    }
+    expect(mockQuery).toHaveBeenCalledWith('admin:getDashboardStats', 'skip');
+    expect(screen.queryByText('Total submissions')).toBeNull();
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(mockAction).not.toHaveBeenCalled();
+  });
+});
+
 describe('native admin keyboard', () => {
   it.each([
     { platform: 'ios', show: 'keyboardWillShow', hide: 'keyboardWillHide', dismissMode: 'interactive' },

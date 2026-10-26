@@ -54,8 +54,8 @@ export function AdminCard({ title, subtitle, right, children }: { title?: string
     {children}
   </View>;
 }
-export function AdminLoading({ message = 'Loading admin data…' }: { message?: string }) {
-  return <View style={styles.loading}><View style={styles.loadingIcon}><ActivityIndicator accessibilityLabel="Loading admin data" color={colors.ink} /></View><AdminText>{message}</AdminText></View>;
+export function AdminLoading({ message = 'Loading admin data…', inline = false }: { message?: string; inline?: boolean }) {
+  return <View style={[styles.loading, inline && styles.inlineLoading]}><View style={styles.loadingIcon}><ActivityIndicator accessibilityLabel="Loading admin data" color={colors.ink} /></View><AdminText>{message}</AdminText></View>;
 }
 export function AdminNotice({ children, error = false }: { children: React.ReactNode; error?: boolean }) {
   return <View style={[styles.notice, error && { backgroundColor: colors.dangerBg }]}>
@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
   dangerButton: { backgroundColor: colors.danger },
   dangerSoftButton: { backgroundColor: colors.dangerBg, borderColor: 'transparent' },
   loading: { flex: 1, padding: space.xl, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg, gap: space.lg },
+  inlineLoading: { flex: 0, minHeight: 160, borderRadius: radius.cardLg, backgroundColor: colors.card },
   loadingIcon: { width: 56, height: 56, borderRadius: radius.pill, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
   notice: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, backgroundColor: colors.accentSoft, padding: space.lg, borderRadius: radius.card },
   input: { minHeight: 60, backgroundColor: colors.card, borderColor: colors.ruleStrong, borderWidth: 1, borderRadius: radius.field, padding: space.lg, fontFamily: fonts.medium, fontSize: 18, lineHeight: 26, color: colors.ink },

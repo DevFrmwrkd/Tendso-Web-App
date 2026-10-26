@@ -23,7 +23,7 @@ export default function NativeAdminPayouts() {
       <AdminNotice>Transfers need funding in Wise. Use web admin to review funding before paying. Checking Wise reads its latest status and reconciles the ledger; it does not send another transfer.</AdminNotice>
       <AdminTabs<'open' | 'all'> items={[{ value: 'open', label: 'Needs attention' }, { value: 'all', label: 'All' }]} value={tab} onChange={setTab} />
       <ActionFeedback {...action} />
-      {visible === undefined ? <AdminLoading /> : (
+      {visible === undefined ? <AdminLoading inline /> : (
         <>
           <View style={styles.listHeader}>
             <Text variant="heading" style={styles.listTitle}>{tab === 'open' ? 'Needs attention' : 'All withdrawals'}</Text>

@@ -19,8 +19,9 @@ export default function NativeAdminOverview() {
   const { signOut } = useClerk();
   const action = useAdminAction(allowed, session.account?.clerkId);
   const stats = useQuery(api.admin.getDashboardStats, allowed ? {} : 'skip');
-  if (!allowed || stats === undefined) return <AdminLoading />;
+  if (!allowed) return <AdminLoading />;
   return <AdminScreen title="Overview" subtitle="Reviews, people and payments." section="overview" home>
+    {stats === undefined ? <AdminLoading inline /> : <>
     <View style={[styles.reviewCard, shadow.soft]}>
       <View style={styles.reviewHeading}>
         <Text variant="label" tone="muted">Business submissions</Text>
@@ -43,6 +44,7 @@ export default function NativeAdminOverview() {
         <Text variant="label" tone="muted">{stats.activeCreators.toLocaleString('en-PH')} active</Text>
       </View>
     </View>
+    </>}
     <AdminCard title="Manage">
       <AdminLink label="Accounts" subtitle="Field agents and creators" icon="people-outline" href="/(app)/admin/accounts" />
       <View style={styles.rule} />
