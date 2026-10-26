@@ -88,7 +88,7 @@ export function WaitingBody({
                 </QuietBoundary>
 
                 <p className="t-meta">
-                    Approve lets {first} into the app to start submitting. Reject shows your reason on their screen; they can retake the quiz or contact support.
+                    Approve lets {first} into the app to start submitting. Reject shows your reason on their screen; they can fix their profile and resend it without retaking the quiz, or contact support.
                 </p>
             </div>
 

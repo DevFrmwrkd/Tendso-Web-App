@@ -74,6 +74,9 @@ export default defineSchema({
         wiseEmail: v.optional(v.string()),
         certifiedAt: v.optional(v.number()),     // Timestamp when admin APPROVED the creator
         quizPassedAt: v.optional(v.number()),    // Timestamp when creator passed onboarding quiz (awaiting admin approval)
+        // Latest corrected profile submitted for review. The original quiz pass
+        // stays intact; legacy first reviews use quizPassedAt as their episode.
+        reviewSubmittedAt: v.optional(v.number()),
         rejectedAt: v.optional(v.number()),      // Timestamp when admin REJECTED the creator (mutex with certifiedAt)
         rejectionReason: v.optional(v.string()), // Optional reason shown to creator on /verification-rejected (max 500 chars enforced in mutation)
         rejectedBy: v.optional(v.string()),      // Clerk ID of admin who rejected
@@ -1562,11 +1565,11 @@ export default defineSchema({
     // reads reactions and drives creators.approveCreatorInternal / rejectCreatorInternal.
     approvalRequests: defineTable({
         creatorId: v.id('creators'),
-        // The creator's quizPassedAt at post time — the "pending episode" key.
-        // Dedup is per-episode: a retired (expired/error/denied) row blocks
-        // re-posting the SAME episode, but a re-certification gives the creator a
-        // fresh quizPassedAt (no matching row) so it posts again.
+        // The actual quiz pass is preserved when a profile is corrected.
         quizPassedAt: v.number(),
+        // Optional for existing posts: reviewSubmittedAt ?? quizPassedAt is the
+        // episode key, so each corrected profile gets its own review request.
+        reviewSubmittedAt: v.optional(v.number()),
         status: v.union(
             v.literal('pending'), // posted to Discord, awaiting a reaction
             v.literal('approved'), // ✅ → creator certified

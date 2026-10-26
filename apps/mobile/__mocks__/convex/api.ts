@@ -2,7 +2,12 @@
 // Provides typed stubs so tests can reference api.* without a real Convex build.
 
 const known: Record<string, Record<string, string>> = {
-  creators: { getByClerkId: "creators:getByClerkId", update: "creators:update" },
+  creators: {
+    getByClerkId: "creators:getByClerkId",
+    update: "creators:update",
+    resubmitProfileForReview: "creators:resubmitProfileForReview",
+    requestRecertification: "creators:requestRecertification",
+  },
   withdrawals: {
     create: "withdrawals:create",
     getByCreator: "withdrawals:getByCreator",

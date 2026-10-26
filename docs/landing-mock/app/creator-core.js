@@ -186,10 +186,9 @@
             <p class="cc-sm" style="margin-top:3px;font-weight:500;color:var(--a-ink2);font-size:13px;line-height:18px">Take a new one facing a window, without sunglasses. Reviewed 3h ago.</p></div>
         </div>
         <div class="cc-col" style="gap:8px">
-          ${chk('Full name', 'Mika Santos', 'is-ok')}
-          ${chk('Mobile', '+63 917 555 0142', 'is-ok')}
-          ${chk('Wise email', 'mika.santos@gmail.com', 'is-ok')}
-          ${chk('Profile photo', 'Needs a new photo', 'is-bad', 'Fix')}
+          ${chk('Full name', 'Mika Santos', '', 'Edit')}
+          ${chk('Mobile', '+63 917 555 0142', '', 'Edit')}
+          ${chk('Certification quiz', 'Passed. You don’t need to take it again.', 'is-ok')}
         </div>
       </div>
       <div class="cc-foot">${door('Fix and resend')}${door('Ask the team', 'ghost')}</div>`);

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, BackHandler, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useUser, useClerk } from '@clerk/clerk-expo';
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
@@ -25,16 +25,14 @@ export default function VerificationRejectedScreen() {
   const router = useGuardedRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const [retrying, setRetrying] = useState(false);
+  const [finishingCertification, setFinishingCertification] = useState(false);
 
   const creator = useQuery(
     api.creators.getByClerkId,
     user ? { clerkId: user.id } : 'skip'
   );
   const requestRecertification = useMutation(api.creators.requestRecertification);
-
-  // Block hardware back — this is a locked screen until the field agent
-  // either retakes the quiz or signs out.
+  // Back must not bypass review. The profile editor is opened explicitly below.
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => true;
@@ -47,40 +45,35 @@ export default function VerificationRejectedScreen() {
   // auto-route away.
   useEffect(() => {
     if (!creator) return;
-    if ((creator as any).certifiedAt) {
-      AsyncStorage.removeItem('ndm_just_quiz_passed');
+    if (creator.certifiedAt) {
+      void AsyncStorage.removeItem('ndm_just_quiz_passed').catch(() => {});
       router.replace('/(app)/(tabs)/' as any);
-    } else if (!(creator as any).rejectedAt) {
-      // Rejection cleared (e.g., creator successfully called requestRecertification
-      // from another device). Send them back to training.
-      router.replace('/(app)/training' as any);
+    } else if (!creator.rejectedAt) {
+      // A corrected profile returns to review with its original quiz pass.
+      // Older app versions can still explicitly reset their certification.
+      router.replace(creator.quizPassedAt ? '/(app)/pending-review' : '/(app)/training');
     }
   }, [creator, router]);
 
-  const handleTryAgain = async () => {
-    if (!creator?._id) return;
-    Alert.alert(
-      'Retake the quiz?',
-      'This will clear your previous quiz pass and let you take the certification quiz again. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Retake quiz',
-          style: 'default',
-          onPress: async () => {
-            setRetrying(true);
-            try {
-              await requestRecertification({ id: creator._id });
-              await AsyncStorage.removeItem('ndm_just_quiz_passed');
-              router.replace('/(app)/training' as any);
-            } catch (err: any) {
-              Alert.alert('Error', err?.message || 'Could not start retake. Please try again.');
-              setRetrying(false);
-            }
-          },
-        },
-      ]
-    );
+  const handleFixProfile = () => {
+    router.push(creator?.quizPassedAt
+      ? { pathname: '/(app)/edit-profile', params: { review: '1' } }
+      : '/(app)/edit-profile');
+  };
+
+  // Legacy rejected records can lack a quiz pass. Keep that exceptional path
+  // explicit; a passed quiz never uses the reset endpoint.
+  const handleFinishCertification = async () => {
+    if (!creator?._id || creator.quizPassedAt || finishingCertification) return;
+    setFinishingCertification(true);
+    try {
+      await requestRecertification({ id: creator._id });
+      router.replace('/(app)/training');
+    } catch (err: any) {
+      Alert.alert('Could not continue', err?.message || 'Please try again.');
+    } finally {
+      setFinishingCertification(false);
+    }
   };
 
   const handleContactSupport = () => {
@@ -138,11 +131,11 @@ export default function VerificationRejectedScreen() {
       footer={
         <>
           <Button
-            title={retrying ? 'Resetting…' : 'Fix and resend'}
-            loading={retrying}
-            disabled={retrying}
-            onPress={handleTryAgain}
-            accessibilityLabel="Retake the certification quiz"
+            title={creator?.quizPassedAt ? 'Fix and resend' : 'Finish certification'}
+            onPress={creator?.quizPassedAt ? handleFixProfile : handleFinishCertification}
+            loading={finishingCertification}
+            disabled={finishingCertification}
+            accessibilityLabel={creator?.quizPassedAt ? 'Fix and resend' : 'Finish certification'}
           />
           <Button
             title="Ask the team"
@@ -169,9 +162,11 @@ export default function VerificationRejectedScreen() {
         </View>
       </Card>
       <View style={styles.checks}>
-        {fullName ? <CheckRow title="Full name" subtitle={fullName} state="ok" /> : null}
-        {phone ? <CheckRow title="Mobile" subtitle={phone} state="ok" /> : null}
-        <CheckRow title="Certification quiz" subtitle="Take it again. It is free." state="bad" right="Fix" />
+        {fullName ? <CheckRow title="Full name" subtitle={fullName} state="todo" right="Edit" onPress={handleFixProfile} /> : null}
+        {phone ? <CheckRow title="Mobile" subtitle={phone} state="todo" right="Edit" onPress={handleFixProfile} /> : null}
+        {creator?.quizPassedAt
+          ? <CheckRow title="Certification quiz" subtitle="Passed. You don't need to take it again." state="ok" />
+          : <CheckRow title="Certification quiz" subtitle="Complete certification before submitting for review." state="todo" />}
       </View>
     </ScreenShell>
   );

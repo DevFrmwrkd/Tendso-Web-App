@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Pressable,
@@ -11,18 +11,24 @@ import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { useLocalSearchParams } from 'expo-router';
 import { useDeleteAccount } from '../../hooks/useDeleteAccount';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { colors, radius, shadow, space } from '../../theme/v2';
 import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text, TextLink } from '../../components/v2';
+import { isCreatorAccount } from '../../../../lib/accounts';
+
+const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
 export default function EditProfileScreen() {
   const router = useGuardedRouter();
+  const { review } = useLocalSearchParams<{ review?: string }>();
   const { user, isLoaded } = useUser();
   const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
   const updateCreator = useMutation(api.creators.update);
+  const resubmitProfileForReview = useMutation(api.creators.resubmitProfileForReview);
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
 
   const creator = useQuery(
@@ -37,10 +43,24 @@ export default function EditProfileScreen() {
   const [loading,   setLoading]             = useState(false);
   const [error,     setError]               = useState('');
   const [success,   setSuccess]             = useState(false);
+  const initializedId = useRef<string | null>(null);
+  const saving = useRef(false);
+  const reviewing = review === '1' && isCreatorAccount(creator);
+
+  useEffect(() => {
+    if (!reviewing || !creator) return;
+    if (creator.certifiedAt) router.replace('/(app)/(tabs)/');
+    else if (creator.rejectedAt && !creator.quizPassedAt) router.replace('/(app)/verification-rejected');
+    else if (!creator.rejectedAt) {
+      router.replace(creator.quizPassedAt ? '/(app)/pending-review' : '/(app)/training');
+    }
+  }, [reviewing, creator, router]);
 
   // Pre-fill from loaded creator
   useEffect(() => {
-    if (creator) {
+    // Live last-active/status updates must not overwrite an unsaved correction.
+    if (creator && initializedId.current !== creator._id) {
+      initializedId.current = creator._id;
       setFirstName(creator.firstName  ?? '');
       setLastName(creator.lastName   ?? '');
       setPhone(creator.phone        ?? '');
@@ -95,16 +115,22 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
-    if (!user || !creator?._id) return;
+    if (!user || !creator?._id || saving.current) return;
 
     const trimFirst = firstName.trim();
     const trimLast  = lastName.trim();
+    const trimPhone = phone.trim();
 
     if (!trimFirst) {
       setError('First name is required.');
       return;
     }
+    if (reviewing && trimPhone && !PHONE_REGEX.test(trimPhone)) {
+      setError('Please enter a valid PH mobile number, or leave it blank.');
+      return;
+    }
 
+    saving.current = true;
     setLoading(true);
     setError('');
 
@@ -135,17 +161,29 @@ export default function EditProfileScreen() {
         profileImageUrl = publicUrl;
       }
 
-      // Update Clerk profile
-      await user.update({ firstName: trimFirst, lastName: trimLast || undefined });
-
-      // Update Convex creator record
-      await updateCreator({
+      const updates = {
         id: creator._id,
-        firstName: trimFirst || undefined,
-        lastName:  trimLast  || undefined,
-        phone:     phone.trim() || undefined,
+        firstName: trimFirst,
+        lastName: trimLast,
+        phone: trimPhone,
         ...(profileImageUrl ? { profileImage: profileImageUrl } : {}),
-      });
+      };
+      if (reviewing) {
+        // Profile corrections and re-entering review are one server transaction.
+        // A passed quiz is preserved; this does not grant certification.
+        await resubmitProfileForReview(updates);
+      } else {
+        await updateCreator(updates);
+      }
+
+      // Convex is the profile displayed in the app. A Clerk sync failure must
+      // not make a successful resubmission look like it failed.
+      void user.update({ firstName: trimFirst, lastName: trimLast || '' }).catch(() => {});
+
+      if (reviewing) {
+        router.replace('/(app)/pending-review');
+        return;
+      }
 
       setSuccess(true);
       setTimeout(() => router.back(), 1200);
@@ -153,6 +191,7 @@ export default function EditProfileScreen() {
       console.error('Edit profile error:', err);
       setError(err?.errors?.[0]?.message ?? err?.message ?? 'Failed to update profile.');
     } finally {
+      saving.current = false;
       setLoading(false);
     }
   };
@@ -165,6 +204,7 @@ export default function EditProfileScreen() {
   if (creator === null) {
     return <Loading />;
   }
+  if (reviewing && !creator.quizPassedAt) return <Loading />;
 
   // Avatar: local picked URI > existing profile image > initial letter
   const avatarUri     = profileImageUri ?? creator.profileImage ?? null;
@@ -176,21 +216,23 @@ export default function EditProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScreenShell
-        title="Edit profile"
+        title={reviewing ? 'Fix your profile' : 'Edit profile'}
+        subtitle={reviewing ? "Update your details and send them for review. Your quiz pass is saved." : undefined}
         onBack={() => router.back()}
         contentStyle={styles.content}
         footer={
           <Button
-            title={success ? 'Saved' : 'Save changes'}
+            title={reviewing ? 'Resubmit for review' : success ? 'Saved' : 'Save changes'}
             onPress={handleSave}
             loading={loading}
             disabled={loading || success}
-            accessibilityLabel="Save changes"
+            accessibilityLabel={reviewing ? 'Resubmit for review' : 'Save changes'}
           />
         }
       >
         {success ? <Banner tone="ok" title="Profile updated" /> : null}
         {error ? <Banner tone="danger" body={error} /> : null}
+        {reviewing && creator.rejectionReason ? <Banner tone="warn" title="What needs fixing" body={creator.rejectionReason} /> : null}
 
         {/* Avatar picker */}
         <View style={styles.avatarBlock}>
@@ -234,7 +276,7 @@ export default function EditProfileScreen() {
           icon="call-outline"
           placeholder="e.g. 09171234567"
           value={phone}
-          onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
+          onChangeText={(v) => setPhone(v.replace(/[^0-9+]/g, ''))}
           keyboardType="number-pad"
           maxLength={15}
           editable={!loading}
