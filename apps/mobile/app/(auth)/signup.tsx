@@ -437,13 +437,14 @@ export default function SignupScreen() {
             />
             <Field
               containerStyle={styles.half}
-              label="Last name (optional)"
-              placeholder="Dela Cruz"
+              label="Last name"
+              placeholder="Optional"
               value={lastName}
               onChangeText={(t: string) => { setLastName(t); clearFieldError('lastName'); }}
               autoCapitalize="words"
               editable={!loading}
               accessibilityLabel="Last Name"
+              accessibilityHint="Optional"
               error={fieldErrors.lastName}
             />
           </View>
@@ -465,7 +466,7 @@ export default function SignupScreen() {
             error={fieldErrors.email}
           />
           <Field
-            label="Mobile"
+            label="Mobile (optional)"
             prefix="+63"
             placeholder="912 345 6789"
             value={phone}
@@ -475,7 +476,6 @@ export default function SignupScreen() {
             editable={!loading}
             accessibilityLabel="Mobile Number"
             error={fieldErrors.phone}
-            helper="Optional"
           />
         </View>
 
