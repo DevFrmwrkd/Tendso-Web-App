@@ -9,7 +9,7 @@ import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { useNetwork } from '../../providers/NetworkProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
-import { accountRouteRedirect, affiliateNeedsApproval } from '../../services/accountAccess';
+import { accountRouteRedirect, affiliateNeedsApproval, fieldAgentNeedsOnboarding } from '../../services/accountAccess';
 import { clearPendingSignupProfiles } from '../../services/signupProfile';
 import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
 import { PendingAffiliateApproval } from '../../components/affiliate/PendingApproval';
@@ -118,6 +118,12 @@ export default function AppLayout() {
   if (affiliateNeedsApproval(mobileAccount.account)) return <PendingAffiliateApproval />;
 
   const route = (segments as string[])[1];
+  // Persisted progress protects this flow across restarts and deep links. Older
+  // accounts have no required flag; admin previews and offline drafts keep working.
+  if (!mobileAccount.isOffline && !mobileAccount.isPreview && fieldAgentNeedsOnboarding(mobileAccount.account)
+    && route !== 'agent-onboarding') {
+    return <Redirect href={'/(app)/agent-onboarding' as never} />;
+  }
   if (!mobileAccount.isOffline && mobileAccount.account === null) {
     if (route !== 'account-setup') return <Redirect href={'/(app)/account-setup' as never} />;
   } else {
@@ -146,6 +152,7 @@ export default function AppLayout() {
       {/* Reached via <Redirect> for a social sign-up missing a name. Disable the
           edge-swipe so it can't be dismissed without entering one. */}
       <Stack.Screen name="complete-profile" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="agent-onboarding" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/info" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/photos" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/interview" options={{ gestureEnabled: false }} />

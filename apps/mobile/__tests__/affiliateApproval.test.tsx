@@ -184,3 +184,57 @@ describe('owner intent cannot override authenticated roles', () => {
     expect(screen.getByLabelText('Loading account')).toBeTruthy();
   });
 });
+
+describe('field-agent onboarding root navigation', () => {
+  const agentState = (required: boolean | undefined = true) => ({ ...ready(), role: 'creator', view: 'creator',
+    account: { ...affiliate, role: 'creator', status: 'active', fieldAgentOnboardingRequired: required } });
+
+  it.each(['(tabs)', 'training', 'certification-quiz', 'submit', 'leads', 'referrals'])(
+    'resumes unfinished agent questions before mounting %s', async route => {
+      mockSegments = ['(app)', route];
+      mockAccount = agentState();
+      const screen = await mountApp();
+      expect(screen.getByTestId('redirect')).toHaveTextContent('/(app)/agent-onboarding');
+      expect(screen.queryByTestId('protected-navigation')).toBeNull();
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+  it('mounts the questions route and releases other routes after completion', async () => {
+    mockSegments = ['(app)', 'agent-onboarding'];
+    mockAccount = agentState();
+    const screen = await mountApp();
+    expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+    mockSegments = ['(app)', '(tabs)'];
+    mockAccount = agentState(false);
+    screen.rerender(<AppLayout />);
+    expect(screen.queryByTestId('redirect')).toBeNull();
+    expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+  });
+
+  it.each([undefined, false])('keeps existing agents without a required flag on their existing flow (%s)', async required => {
+    mockSegments = ['(app)', '(tabs)'];
+    mockAccount = agentState(required);
+    // Explicit undefined differs from the factory default argument above.
+    (mockAccount.account as Record<string, unknown>).fieldAgentOnboardingRequired = required;
+    const screen = await mountApp();
+    expect(screen.queryByTestId('redirect')).toBeNull();
+    expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+  });
+
+  it('does not interrupt offline field-agent drafts', async () => {
+    mockSegments = ['(app)', 'submit'];
+    mockAccount = { ...agentState(), isOffline: true };
+    const screen = await mountApp();
+    expect(screen.queryByTestId('redirect')).toBeNull();
+    expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+  });
+
+  it('keeps admin field-agent previews outside the onboarding gate', async () => {
+    mockSegments = ['(app)', '(tabs)'];
+    mockAccount = { ...agentState(), role: 'admin', isAdmin: true, isPreview: true,
+      account: { ...(agentState().account), role: 'admin' } };
+    const screen = await mountApp();
+    expect(screen.queryByTestId('redirect')).toBeNull();
+    expect(screen.getByTestId('protected-navigation')).toBeTruthy();
+  });
+});

@@ -82,6 +82,17 @@ export default defineSchema({
         // Admin-only extras (kept as optional, mobile doesn't have these)
         referredBy: v.optional(v.id('creators')),
         referredByName: v.optional(v.string()),
+        // Mobile field-agent onboarding. Optional for existing rows and clients.
+        workCity: v.optional(v.string()),
+        workLatitude: v.optional(v.number()),
+        workLongitude: v.optional(v.number()),
+        workLocationSource: v.optional(v.union(v.literal('city'), v.literal('device'))),
+        discoverySource: v.optional(v.union(
+            v.literal('friend'), v.literal('facebook'), v.literal('tiktok'),
+            v.literal('shop_website'), v.literal('job_post'),
+        )),
+        fieldAgentOnboardingRequired: v.optional(v.boolean()),
+        fieldAgentOnboardingCompletedAt: v.optional(v.number()),
         payoutMethod: v.optional(v.string()),
         payoutDetails: v.optional(v.string()),
         // Affiliate-only page settings. Optional because the mobile app shares

@@ -6,6 +6,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { normalizePhone } from './lib/phone';
 import { requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
+import { isValidWorkCoordinates } from '../lib/fieldAgentOnboarding';
 
 // Admin-curated lead-content image upload constraints
 const PREVIEW_IMAGE_MAX_BYTES = 2_000_000; // 2MB cap
@@ -377,6 +378,13 @@ export const listForMobileCRM = query({
                 const submission = lead.submissionId
                     ? (submissionCache.get(String(lead.submissionId)) ?? null)
                     : null;
+                // Keep each point together: a partial lead must not borrow a
+                // longitude from another position. Stored submission coordinates
+                // let the mobile map work without asking for GPS just to geocode.
+                const coordinates = isValidWorkCoordinates(lead.businessLatitude, lead.businessLongitude)
+                    ? { lat: lead.businessLatitude, lng: lead.businessLongitude }
+                    : isValidWorkCoordinates(submission?.coordinates?.lat, submission?.coordinates?.lng)
+                        ? submission.coordinates : null;
 
                 let creatorRecord: any = null;
                 if (lead.creatorId) {
@@ -429,8 +437,8 @@ export const listForMobileCRM = query({
                     // "Show direction" fallback CTA for phoneless leads.
                     // These already exist on the leads table schema — the
                     // query just wasn't returning them.
-                    businessLatitude: lead.businessLatitude ?? null,
-                    businessLongitude: lead.businessLongitude ?? null,
+                    businessLatitude: coordinates?.lat ?? null,
+                    businessLongitude: coordinates?.lng ?? null,
                     businessGooglePlaceId: lead.businessGooglePlaceId ?? null,
                     ownerName: submission?.ownerName ?? null,
                     ownerPhone: submission?.ownerPhone ?? null,

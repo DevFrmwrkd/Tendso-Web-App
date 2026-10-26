@@ -285,6 +285,7 @@ export const create = mutation({
             submissionCount: 0,
             status: 'active',
             role: 'creator',
+            fieldAgentOnboardingRequired: true,
             createdAt: Date.now(),
         });
 

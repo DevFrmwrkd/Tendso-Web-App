@@ -43,6 +43,7 @@ import type * as drive from "../drive.js";
 import type * as driveHelpers from "../driveHelpers.js";
 import type * as earnings from "../earnings.js";
 import type * as escalations from "../escalations.js";
+import type * as fieldAgentOnboarding from "../fieldAgentOnboarding.js";
 import type * as files from "../files.js";
 import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
@@ -157,6 +158,7 @@ declare const fullApi: ApiFromModules<{
   driveHelpers: typeof driveHelpers;
   earnings: typeof earnings;
   escalations: typeof escalations;
+  fieldAgentOnboarding: typeof fieldAgentOnboarding;
   files: typeof files;
   followUp: typeof followUp;
   generatedWebsites: typeof generatedWebsites;

@@ -15,12 +15,14 @@ import { useQuery, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useWorkAreaLocation } from '../../../hooks/useWorkAreaLocation';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapViewProps, type Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import { Avatar, Banner, Button, Chip, Loading, Text, TextLink, leadStatus } from '../../../components/v2';
 import { openDirections } from '../../../services/links';
+import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
 
 type GeocodedLead = {
   leadId: string;
@@ -37,6 +39,7 @@ type GeocodedLead = {
   latitude: number;
   longitude: number;
   distanceKm: number | null;
+  distanceLabel: string;
 };
 
 // Manila as a sensible fallback when GPS is unavailable
@@ -74,13 +77,6 @@ function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: 
   const sinDLon = Math.sin(dLon / 2);
   const v = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(v)));
-}
-
-function formatDistance(km: number | null): string {
-  if (km == null) return '—';
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
 }
 
 function fullAddress(lead: { businessAddress: string | null; businessCity: string | null }): string | null {
@@ -172,7 +168,7 @@ function ShopPin({
     );
   }
 
-  const label = `${lead.businessName}${lead.distanceKm != null ? ` · ${formatDistance(lead.distanceKm)}` : ''}`;
+  const label = `${lead.businessName}${lead.distanceKm != null ? ` · ${lead.distanceLabel}` : ''}`;
 
   return (
     <Marker
@@ -241,8 +237,7 @@ export default function NearbyLeadsScreen() {
     isAuthenticated ? { statusFilter: 'all' } : 'skip',
   );
 
-  const [permissionStatus, setPermissionStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const { area, currentLocation, permissionStatus, requestCurrentLocation, isLocating, isLoading: locationLoading } = useWorkAreaLocation();
   const [geocoded, setGeocoded] = useState<GeocodedLead[]>([]);
   const [geocodingProgress, setGeocodingProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
@@ -258,29 +253,6 @@ export default function NearbyLeadsScreen() {
       return () => sub.remove();
     }, [router]),
   );
-
-  // Step 1: ask for location permission, get current GPS once
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setPermissionStatus('requesting');
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (cancelled) return;
-        if (status !== 'granted') {
-          setPermissionStatus('denied');
-          return;
-        }
-        setPermissionStatus('granted');
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (cancelled) return;
-        setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-      } catch (err) {
-        if (!cancelled) setPermissionStatus('denied');
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   // Step 2: geocode every lead's address (cached per-render keyed by lead ids)
   const leadsWithAddresses = useMemo(() => {
@@ -299,8 +271,10 @@ export default function NearbyLeadsScreen() {
         submitterName: l.submittedBy?.displayName ?? null,
         submitterImage: l.submittedBy?.profileImage ?? null,
         addressString: fullAddress({ businessAddress: l.businessAddress, businessCity: l.businessCity }),
+        coordinate: validMapCoordinate({ latitude: l.businessLatitude, longitude: l.businessLongitude })
+          ? { latitude: l.businessLatitude, longitude: l.businessLongitude } : null,
       }))
-      .filter((l) => !!l.addressString) as Array<{
+      .filter((l) => !!l.addressString || !!l.coordinate) as Array<{
         leadId: string;
         businessName: string;
         businessAddress: string | null;
@@ -312,7 +286,8 @@ export default function NearbyLeadsScreen() {
         photoUrl: string | null;
         submitterName: string | null;
         submitterImage: string | null;
-        addressString: string;
+        addressString: string | null;
+        coordinate: { latitude: number; longitude: number } | null;
       }>;
   }, [data?.leads]);
 
@@ -331,11 +306,11 @@ export default function NearbyLeadsScreen() {
       for (const l of leadsWithAddresses) {
         if (cancelled) return;
         try {
-          const matches = await Location.geocodeAsync(l.addressString);
+          const matches = l.coordinate ? [l.coordinate] : await Location.geocodeAsync(l.addressString!);
           if (matches && matches[0]) {
             const m = matches[0];
-            const distanceKm = userLocation
-              ? haversineKm(userLocation, { latitude: m.latitude, longitude: m.longitude })
+            const distanceKm = area
+              ? haversineKm(area, { latitude: m.latitude, longitude: m.longitude })
               : null;
             results.push({
               leadId: l.leadId,
@@ -352,6 +327,7 @@ export default function NearbyLeadsScreen() {
               latitude: m.latitude,
               longitude: m.longitude,
               distanceKm,
+              distanceLabel: mapDistanceLabel(distanceKm, area),
             });
           }
         } catch (err) {
@@ -371,21 +347,21 @@ export default function NearbyLeadsScreen() {
     })();
 
     return () => { cancelled = true; };
-  }, [leadsWithAddresses, userLocation]);
+  }, [leadsWithAddresses, area]);
 
-  // Center map on user once GPS comes in
+  // Center only when the work area or an explicitly requested GPS fix changes.
   useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+    if (!mapRef.current || !area) return;
     mapRef.current.animateToRegion(
       {
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
+        latitude: area.latitude,
+        longitude: area.longitude,
         latitudeDelta: 0.08,
         longitudeDelta: 0.08,
       },
       400,
     );
-  }, [userLocation]);
+  }, [area]);
 
   const openInExternalMaps = (lead: GeocodedLead) => {
     void openDirections({
@@ -405,16 +381,18 @@ export default function NearbyLeadsScreen() {
     );
   };
 
-  const initialRegion: Region = userLocation
-    ? { latitude: userLocation.latitude, longitude: userLocation.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
+  const initialRegion: Region = area
+    ? { latitude: area.latitude, longitude: area.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
     : FALLBACK_REGION;
 
   const activeLead = activeLeadId ? geocoded.find((l) => l.leadId === activeLeadId) ?? null : null;
-  const isLoading = data === undefined || permissionStatus === 'requesting';
+  const isLoading = data === undefined || locationLoading;
   const plotting = geocodingProgress.total > 0 && geocodingProgress.done < geocodingProgress.total;
 
   const headline =
-    permissionStatus === 'denied'
+    area?.source === 'work'
+      ? `Near ${area.label}`
+      : permissionStatus === 'denied'
       ? 'Location is off'
       : isLoading
         ? 'Finding you…'
@@ -439,7 +417,7 @@ export default function NearbyLeadsScreen() {
           showsCompass={false}
           toolbarEnabled={false}
         >
-          {permissionStatus === 'granted' && userLocation ? <MeDot coordinate={userLocation} /> : null}
+          {currentLocation ? <MeDot coordinate={currentLocation} /> : null}
           {geocoded.map((lead) => (
             <ShopPin
               key={lead.leadId}
@@ -485,7 +463,18 @@ export default function NearbyLeadsScreen() {
               Turn on location
             </Text>
           </Pressable>
-        ) : null}
+        ) : (
+          <Pressable
+            onPress={() => { void requestCurrentLocation(); }}
+            disabled={isLocating}
+            accessibilityRole="button"
+            accessibilityLabel="Use my current location"
+            style={[styles.floatBtn, shadow.soft]}
+          >
+            {isLocating ? <ActivityIndicator size="small" color={colors.ink} /> : <Ionicons name="locate-outline" size={22} color={colors.ink} />}
+            <Text variant="label" weight="bold">Use my location</Text>
+          </Pressable>
+        )}
 
         {plotting ? (
           <View style={[styles.floatBtn, shadow.soft]} accessibilityLiveRegion="polite">
@@ -513,7 +502,7 @@ export default function NearbyLeadsScreen() {
           <>
             <View style={styles.sheetHead}>
               <Text variant="bodyLg" weight="bold">
-                {permissionStatus === 'granted' ? 'Nearest first' : 'All on the map'}
+                {area?.source === 'work' ? `Near ${area.label}` : currentLocation ? 'Nearest first' : 'All on the map'}
               </Text>
               {geocoded.length > 0 ? (
                 <Text variant="label" tone="muted">
@@ -540,7 +529,7 @@ export default function NearbyLeadsScreen() {
                       key={lead.leadId}
                       onPress={() => selectLead(lead)}
                       accessibilityRole="button"
-                      accessibilityLabel={`${lead.businessName}, ${formatDistance(lead.distanceKm)} away`}
+                      accessibilityLabel={`${lead.businessName}, ${lead.distanceLabel}`}
                       cssInterop={false}
                       style={({ pressed }) => [styles.scard, shadow.soft, pressed ? { opacity: 0.85 } : null]}
                     >
@@ -549,7 +538,7 @@ export default function NearbyLeadsScreen() {
                         {lead.businessName}
                       </Text>
                       <Text variant="label" weight="medium" tone="muted" numberOfLines={1} style={styles.scardMeta}>
-                        {formatDistance(lead.distanceKm)} · {st ? 'Live' : 'Needs a site'}
+                        {lead.distanceLabel} · {st ? 'Live' : 'Needs a site'}
                       </Text>
                     </Pressable>
                   );
@@ -584,7 +573,7 @@ function ActiveShop({
             {lead.businessName}
           </Text>
           <Text variant="label" weight="semibold" tone="muted" numberOfLines={2}>
-            {formatDistance(lead.distanceKm)}
+            {lead.distanceLabel}
             {fullAddress(lead) ? ` · ${fullAddress(lead)}` : ''}
           </Text>
           <View style={styles.chipRow}>

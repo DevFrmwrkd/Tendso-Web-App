@@ -14,11 +14,12 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useWorkAreaLocation } from '../../../hooks/useWorkAreaLocation';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections } from '../../../services/links';
+import { mapDistanceLabel } from '../../../services/workArea';
 import {
   Banner,
   Button,
@@ -91,13 +92,6 @@ function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: 
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(v)));
 }
 
-function formatDistance(km: number | null): string {
-  if (km == null) return '—';
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
-}
-
 type PinnedBiz = {
   leadId: string;
   /**
@@ -119,6 +113,7 @@ type PinnedBiz = {
   longitude: number;
   category: CategoryKey;
   distanceKm: number | null;
+  distanceLabel: string;
   scrapedAt: number;
 };
 
@@ -152,8 +147,7 @@ export default function DiscoverLeadsScreen() {
     directBusinesses.length > 0 ? "skip" : ({} as any),
   );
 
-  const [permissionStatus, setPermissionStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const { area, currentLocation, permissionStatus, requestCurrentLocation, isLocating, isLoading: locationLoading } = useWorkAreaLocation();
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
   const [view, setView] = useState<'map' | 'list'>('map');
   // Pool rows you reserved this visit. The search hides reserved rows, so we remember them
@@ -176,10 +170,10 @@ export default function DiscoverLeadsScreen() {
   // Function references and result types come from the canonical backend.
   const poolProspects = useQuery(
     api.prospects.searchNearby,
-    userLocation
+    area
       ? {
-          lat: userLocation.latitude,
-          lng: userLocation.longitude,
+          lat: area.latitude,
+          lng: area.longitude,
           radiusKm,
           limit: 100,
         }
@@ -202,28 +196,6 @@ export default function DiscoverLeadsScreen() {
       return () => sub.remove();
     }, [router]),
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setPermissionStatus('requesting');
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (cancelled) return;
-        if (status !== 'granted') {
-          setPermissionStatus('denied');
-          return;
-        }
-        setPermissionStatus('granted');
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (cancelled) return;
-        setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-      } catch (err) {
-        if (!cancelled) setPermissionStatus('denied');
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   // Diagnostic snapshot — surfaces in the empty state so we can tell at a
   // glance whether the issue is upstream (Outscraper) or downstream (mobile).
@@ -271,7 +243,7 @@ export default function DiscoverLeadsScreen() {
     // Primary path: businesses passed directly from the scrape modal.
     // Render pins from these immediately, no DB query needed.
     if (directBusinesses.length > 0) {
-      return directBusinesses
+      const directPins = directBusinesses
         .filter((b: any) =>
           typeof b.businessLatitude === 'number' &&
           typeof b.businessLongitude === 'number',
@@ -290,22 +262,27 @@ export default function DiscoverLeadsScreen() {
           latitude: b.businessLatitude as number,
           longitude: b.businessLongitude as number,
           category: categorize(b.businessCategory),
-          distanceKm: userLocation
-            ? haversineKm(userLocation, { latitude: b.businessLatitude, longitude: b.businessLongitude })
+          distanceKm: area
+            ? haversineKm(area, { latitude: b.businessLatitude, longitude: b.businessLongitude })
             : null,
+          distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: b.businessLatitude, longitude: b.businessLongitude }) : null, area),
           scrapedAt: Date.now(),
         }))
         // Hard distance filter — the scrape can surface businesses beyond the
         // requested radius (Outscraper relevance ranking + Places returning
         // 20 nearest regardless of radius hint). Cap by the user's choice so
         // the header copy ("X businesses within Y km") is honest.
-        // Only filter when we know user location AND the radius is set.
+        // The saved work area or explicitly requested GPS fix sets the origin.
         .filter((b) => {
-          if (!userLocation) return true;
+          if (!area) return true;
           if (b.distanceKm == null) return true;
           return b.distanceKm <= radiusKm;
         })
         .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+      // An explicit GPS recenter can move outside the original scrape area.
+      // In that case show the prospect pool at the new center instead of
+      // keeping an empty direct-data branch over valid nearby pool results.
+      if (directPins.length > 0 || !currentLocation) return directPins;
     }
 
     // Fallback path: dual-read from pool prospects (preferred) + legacy
@@ -332,7 +309,8 @@ export default function DiscoverLeadsScreen() {
           latitude: p.latitude,
           longitude: p.longitude,
           category: categorize(p.category),
-          distanceKm: userLocation ? haversineKm(userLocation, { latitude: p.latitude, longitude: p.longitude }) : null,
+          distanceKm: area ? haversineKm(area, { latitude: p.latitude, longitude: p.longitude }) : null,
+          distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: p.latitude, longitude: p.longitude }) : null, area),
           scrapedAt: p.scrapedAt ?? 0,
         });
       }
@@ -367,7 +345,8 @@ export default function DiscoverLeadsScreen() {
         latitude: l.businessLatitude,
         longitude: l.businessLongitude,
         category: categorize(l.businessCategory),
-        distanceKm: userLocation ? haversineKm(userLocation, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null,
+        distanceKm: area ? haversineKm(area, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null,
+        distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null, area),
         scrapedAt: l.scrapedAt ?? l.createdAt ?? 0,
       });
     }
@@ -377,25 +356,25 @@ export default function DiscoverLeadsScreen() {
       // branch above. We deliberately do NOT drop pool prospects whose
       // distance is null (no user location) so the map still shows them.
       .filter((b) => {
-        if (!userLocation) return true;
+        if (!area) return true;
         if (b.distanceKm == null) return true;
         return b.distanceKm <= radiusKm;
       })
       .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-  }, [directBusinesses, scrapedLeads, poolProspects, userLocation, radiusKm]);
+  }, [directBusinesses, scrapedLeads, poolProspects, area, currentLocation, radiusKm]);
 
   useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+    if (!mapRef.current || !area) return;
     mapRef.current.animateToRegion(
       {
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
+        latitude: area.latitude,
+        longitude: area.longitude,
         latitudeDelta: 0.08,
         longitudeDelta: 0.08,
       },
       400,
     );
-  }, [userLocation]);
+  }, [area]);
 
   const goToDirections = (biz: PinnedBiz) => {
     void openDirections({
@@ -478,15 +457,15 @@ export default function DiscoverLeadsScreen() {
     [reserveProspect],
   );
 
-  const initialRegion: Region = userLocation
-    ? { latitude: userLocation.latitude, longitude: userLocation.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
+  const initialRegion: Region = area
+    ? { latitude: area.latitude, longitude: area.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
     : FALLBACK_REGION;
 
   const activeLead = activeLeadId ? pinned.find((l) => l.leadId === activeLeadId) ?? null : null;
   // Loading only matters when we DON'T have direct data. If the scrape passed
   // businesses via URL params, we already have everything we need.
   const isLoading =
-    permissionStatus === 'requesting' ||
+    locationLoading ||
     (directBusinesses.length === 0 && scrapedLeads === undefined);
 
   const headerSub = useMemo(() => {
@@ -494,8 +473,8 @@ export default function DiscoverLeadsScreen() {
     if (pinned.length === 0) return 'No shops yet. Try a wider radius.';
     const cat = categoryQuery && categoryQuery !== 'businesses' ? ` ${categoryQuery}` : '';
     const radiusLabel = radiusKm < 1 ? `${Math.round(radiusKm * 1000)} m` : `${radiusKm} km`;
-    return `${pinned.length}${cat} shop${pinned.length === 1 ? '' : 's'} within ${radiusLabel}.`;
-  }, [isLoading, pinned.length, categoryQuery, radiusKm]);
+    return `${pinned.length}${cat} shop${pinned.length === 1 ? '' : 's'} within ${radiusLabel}${area?.source === 'work' ? ` of ${area.label}` : ''}.`;
+  }, [isLoading, pinned.length, categoryQuery, radiusKm, area]);
 
 
   const insets = useSafeAreaInsets();
@@ -534,17 +513,25 @@ export default function DiscoverLeadsScreen() {
         tone="warn"
         icon="location-outline"
         title="Location is off"
-        body="Turn it on to sort shops by distance."
+        body={area?.source === 'work' ? `Showing shops near ${area.label}. Turn location on to use your current position.` : 'Turn it on to sort shops by distance.'}
         action={<TextLink label="Open settings" align="left" onPress={() => Linking.openSettings()} />}
       />
-    ) : null;
+    ) : (
+      <View style={[styles.legendPill, shadow.soft]}>
+        <TextLink
+          label={isLocating ? 'Finding your location…' : 'Use my location'}
+          align="left"
+          onPress={() => { void requestCurrentLocation(); }}
+        />
+      </View>
+    );
 
   // ---- List view ----------------------------------------------------------
   if (view === 'list') {
     const ordered = activeLead ? [activeLead, ...pinned.filter((l) => l.leadId !== activeLead.leadId)] : pinned;
     return (
       <ScreenShell
-        title="Shops near you"
+        title={area?.source === 'work' ? `Shops near ${area.label}` : 'Shops near you'}
         subtitle={headerSub}
         onBack={goBack}
         headerRight={<ViewToggle label="Map" icon="map-outline" onPress={() => setView('map')} />}
@@ -573,7 +560,7 @@ export default function DiscoverLeadsScreen() {
                 <Pressable
                   onPress={() => focusBiz(biz)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${biz.businessName}, ${formatDistance(biz.distanceKm)} away`}
+                  accessibilityLabel={`${biz.businessName}, ${biz.distanceLabel}`}
                   accessibilityState={{ expanded: isActive }}
                   style={styles.listHead}
                 >
@@ -598,8 +585,8 @@ export default function DiscoverLeadsScreen() {
                     ) : null}
                   </View>
                   <View style={styles.listDist}>
-                    <Text variant="bodyLg" weight="bold">
-                      {formatDistance(biz.distanceKm)}
+                    <Text variant={area?.source === 'work' ? 'label' : 'bodyLg'} weight="bold">
+                      {biz.distanceLabel}
                     </Text>
                     {yours ? <Chip label="Yours" tone="ok" /> : null}
                   </View>
@@ -657,7 +644,7 @@ export default function DiscoverLeadsScreen() {
     ? 'Finding shops…'
     : pinned.length === 0
       ? 'No shops yet'
-      : `${pinned.length} shop${pinned.length === 1 ? '' : 's'} near you`;
+      : `${pinned.length} shop${pinned.length === 1 ? '' : 's'} near ${area?.label ?? 'you'}`;
 
   return (
     <View style={styles.root}>
@@ -673,7 +660,7 @@ export default function DiscoverLeadsScreen() {
           showsPointsOfInterest={false}
           style={StyleSheet.absoluteFill}
           initialRegion={initialRegion}
-          showsUserLocation={permissionStatus === 'granted'}
+          showsUserLocation={!!currentLocation}
           showsMyLocationButton={false}
           toolbarEnabled={false}
           onPress={() => setActiveLeadId(null)}
@@ -753,7 +740,7 @@ export default function DiscoverLeadsScreen() {
                   {activeLead.businessName}
                 </Text>
                 <Text variant="label" tone="muted" weight="medium" style={styles.sheetMeta}>
-                  {`${formatDistance(activeLead.distanceKm)} · ${CATEGORY_STYLES[activeLead.category].label}`}
+                  {`${activeLead.distanceLabel} · ${CATEGORY_STYLES[activeLead.category].label}`}
                 </Text>
               </View>
               <Chip label={isYours(activeLead) ? 'Yours' : 'Needs a site'} tone={isYours(activeLead) ? 'ok' : 'info'} />
@@ -831,7 +818,7 @@ export default function DiscoverLeadsScreen() {
         ) : !isLoading ? (
           <View>
             <Text variant="body" weight="bold" style={styles.peekTitle}>
-              Shops near you
+              {`Shops near ${area?.label ?? 'you'}`}
             </Text>
             <ScrollView
               horizontal
@@ -843,7 +830,7 @@ export default function DiscoverLeadsScreen() {
                   key={biz.leadId}
                   onPress={() => focusBiz(biz)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${biz.businessName}, ${formatDistance(biz.distanceKm)} away`}
+                  accessibilityLabel={`${biz.businessName}, ${biz.distanceLabel}`}
                   style={[styles.peekCard, shadow.soft]}
                 >
                   <View style={[styles.listIcon, isYours(biz) ? styles.listIconYours : null]}>
@@ -853,7 +840,7 @@ export default function DiscoverLeadsScreen() {
                     {biz.businessName}
                   </Text>
                   <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
-                    {`${formatDistance(biz.distanceKm)} · ${isYours(biz) ? 'Yours' : 'Needs a site'}`}
+                    {`${biz.distanceLabel} · ${isYours(biz) ? 'Yours' : 'Needs a site'}`}
                   </Text>
                 </Pressable>
               ))}
@@ -914,7 +901,7 @@ function ShopPin({ biz, selected, yours }: { biz: PinnedBiz; selected: boolean; 
       {selected ? (
         <View style={[styles.pinLabel, { height: PIN_LABEL_SPACE }]}>
           <Text variant="chip" tone="onDark" numberOfLines={1} style={styles.pinLabelText}>
-            {`${biz.businessName} · ${formatDistance(biz.distanceKm)}`}
+            {`${biz.businessName} · ${biz.distanceLabel}`}
           </Text>
         </View>
       ) : null}
@@ -1062,7 +1049,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listIconYours: { backgroundColor: colors.accent },
-  listDist: { alignItems: 'flex-end', gap: space.xs },
+  listDist: { alignItems: 'flex-end', gap: space.xs, maxWidth: 115, flexShrink: 1 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginTop: 2 },
   listActions: { gap: space.sm, marginTop: space.md },
 });

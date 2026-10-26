@@ -19,6 +19,7 @@ import { useQuery, useAction, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
@@ -39,6 +40,7 @@ import {
   leadStatus,
 } from '../../../components/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
+import { mapSearchArea, withLocationTimeout } from '../../../services/workArea';
 
 type StatusFilter = 'all' | 'reserved' | 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
 
@@ -75,6 +77,7 @@ function timeAgo(ts: number): string {
 
 export default function LeadsScreen() {
   const router = useGuardedRouter();
+  const { account } = useMobileAccount();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -97,9 +100,19 @@ export default function LeadsScreen() {
     setScraping(true);
     setScrapePhase('locating');
     try {
-      // Permission + GPS
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      // Start with the city chosen during onboarding. A phone location is only
+      // needed for older accounts or a custom city without mapped coordinates.
+      let searchArea = mapSearchArea(account);
+      if (!searchArea) {
+        const position = await withLocationTimeout((async () => {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') return null;
+          const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+        })());
+        searchArea = mapSearchArea(null, position);
+      }
+      if (!searchArea) {
         Alert.alert(
           'Location needed',
           'Please grant location permission so we can search businesses near your current position.',
@@ -108,14 +121,12 @@ export default function LeadsScreen() {
         setScrapePhase('idle');
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-
       setScrapePhase('searching');
       // Web's deployed outscraper.scrapeNearby uses Outscraper's query+location API,
       // not lat/lng directly. Convert: location = "lat,lng" coord string,
       // query = category (Outscraper requires a non-empty query, so fall back to "businesses").
       const result = await scrapeNearbyAction({
-        location: `${pos.coords.latitude},${pos.coords.longitude}`,
+        location: `${searchArea.latitude},${searchArea.longitude}`,
         query: scrapeCategory.trim() || 'businesses',
         radiusKm: scrapeRadiusKm,
         limit: 20,
@@ -169,7 +180,7 @@ export default function LeadsScreen() {
       setScraping(false);
       setScrapePhase('idle');
     }
-  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction, router]);
+  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction, router, account]);
 
   // When the user picks the Reserved chip we switch to a different data source —
   // reservations live in prospects (state="reserved"), not leads.

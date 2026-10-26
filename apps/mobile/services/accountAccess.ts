@@ -1,5 +1,5 @@
 export type MobileView = 'creator' | 'affiliate' | 'admin';
-export type MobileAccount = { role?: string; status?: string; isDeleted?: boolean };
+export type MobileAccount = { role?: string; status?: string; isDeleted?: boolean; fieldAgentOnboardingRequired?: boolean };
 
 export function accountRole(account: MobileAccount | null | undefined): MobileView | null {
   if (!account) return null;
@@ -14,6 +14,12 @@ export function accountBlocked(account: MobileAccount | null | undefined): boole
 
 export function affiliateNeedsApproval(account: MobileAccount | null | undefined): boolean {
   return !!account && account.role === 'affiliate' && account.status === 'pending' && !account.isDeleted;
+}
+
+/** Only newly created agents opt in; existing accounts keep their current flow. */
+export function fieldAgentNeedsOnboarding(account: MobileAccount | null | undefined): boolean {
+  return !!account && accountRole(account) === 'creator' && account.fieldAgentOnboardingRequired === true
+    && !accountBlocked(account);
 }
 
 export function mobileHome(view: MobileView | null): string {

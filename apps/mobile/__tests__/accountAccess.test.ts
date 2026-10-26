@@ -1,4 +1,4 @@
-import { accountRole, accountBlocked, affiliateNeedsApproval, mobileHome, accountRouteRedirect } from '../services/accountAccess';
+import { accountRole, accountBlocked, affiliateNeedsApproval, fieldAgentNeedsOnboarding, mobileHome, accountRouteRedirect } from '../services/accountAccess';
 
 describe('native account navigation', () => {
   it('keeps legacy creators and rejects unknown account types', () => {
@@ -9,7 +9,7 @@ describe('native account navigation', () => {
     expect(accountRole({ role: 'staff' })).toBeNull();
     expect(accountRole(null)).toBeNull();
   });
-  it.each(['(tabs)', 'submit', 'submissions', 'training', 'certification-quiz', 'pending-review', 'leads', 'admin', 'complete-profile'])(
+  it.each(['(tabs)', 'submit', 'submissions', 'training', 'certification-quiz', 'pending-review', 'leads', 'admin', 'complete-profile', 'agent-onboarding'])(
     'redirects affiliate deep link %s before creator/admin screens mount', route => {
       expect(accountRouteRedirect('affiliate', route)).toBe(mobileHome('affiliate'));
     });
@@ -42,6 +42,18 @@ describe('native account navigation', () => {
       { role: 'affiliate', status: 'suspended' }, { role: 'creator', status: 'pending' },
       { role: 'admin', status: 'pending' }, { role: 'affiliate', status: 'pending', isDeleted: true }]) {
       expect(affiliateNeedsApproval(account)).toBe(false);
+    }
+  });
+  it('asks the new onboarding questions only for opted-in field agents', () => {
+    expect(fieldAgentNeedsOnboarding({ role: 'creator', fieldAgentOnboardingRequired: true })).toBe(true);
+    expect(fieldAgentNeedsOnboarding({ fieldAgentOnboardingRequired: true })).toBe(true);
+    for (const account of [null, undefined, {}, { role: 'creator' },
+      { role: 'creator', fieldAgentOnboardingRequired: false },
+      { role: 'affiliate', fieldAgentOnboardingRequired: true },
+      { role: 'admin', fieldAgentOnboardingRequired: true },
+      { role: 'creator', fieldAgentOnboardingRequired: true, status: 'suspended' },
+      { role: 'creator', fieldAgentOnboardingRequired: true, isDeleted: true }]) {
+      expect(fieldAgentNeedsOnboarding(account)).toBe(false);
     }
   });
 });
