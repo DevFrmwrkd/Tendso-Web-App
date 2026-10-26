@@ -1,7 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Image, Modal, StyleSheet } from 'react-native';
 import TrainingScreen from '../app/(app)/training';
 import TrainingLessonsScreen from '../app/(app)/training-lessons';
+import { TrainingPhoto } from '../components/TrainingPhoto';
+import { TRAINING_LESSONS } from '../lib/trainingLessons';
 
 const mockRouter = {
   push: jest.fn(), replace: jest.fn(), back: jest.fn(), dismissTo: jest.fn(),
@@ -11,6 +14,16 @@ let mockParams: { lesson?: string } = {};
 let mockCompleted: number[] = [];
 const mockReadCompleted = jest.fn();
 const mockMarkLessonDone = jest.fn();
+
+// Expo's test asset transformer returns 1 for every JPG. Give these photos
+// distinct identities so a wrong lesson image or repeated example fails.
+jest.mock('../assets/training/overview.jpg', () => ({ uri: 'training-classroom', width: 1024, height: 688 }));
+jest.mock('../assets/training/lesson-1.jpg', () => ({ uri: 'lesson-lighting', width: 896, height: 1120 }));
+jest.mock('../assets/training/lesson-2.jpg', () => ({ uri: 'lesson-audio', width: 1120, height: 896 }));
+jest.mock('../assets/training/lesson-4.jpg', () => ({ uri: 'lesson-interview', width: 1120, height: 896 }));
+jest.mock('../assets/training/forge-owner-portrait-v1.jpg', () => ({ uri: 'forge-portrait', width: 880, height: 1168 }));
+jest.mock('../assets/training/forge-shop-front-v1.jpg', () => ({ uri: 'forge-shop-front', width: 880, height: 1168 }));
+jest.mock('../assets/training/forge-haircut-v1.jpg', () => ({ uri: 'forge-craft', width: 880, height: 1168 }));
 
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: 'agent_1' }) }));
@@ -50,6 +63,18 @@ function next(screen: ReturnType<typeof render>) {
 }
 
 describe('Training list', () => {
+  it('shows the full classroom photo without cropping the instructor into a short banner', async () => {
+    const screen = render(<TrainingScreen />);
+    await waitFor(() => expect(mockReadCompleted).toHaveBeenCalledWith('agent_1'));
+    const image = screen.getByLabelText('An instructor teaching a group of field agents.');
+    const style = StyleSheet.flatten(image.props.style);
+    expect(image.props.source).toEqual(expect.objectContaining({ uri: 'training-classroom' }));
+    expect(image.props.resizeMode).toBe('contain');
+    expect(style.aspectRatio).toBe(1024 / 688);
+    expect(style.height).toBeUndefined();
+    expect(mockMarkLessonDone).not.toHaveBeenCalled();
+  });
+
   it('opens each lesson directly as a button without recording completion', async () => {
     const screen = render(<TrainingScreen />);
     await waitFor(() => expect(mockReadCompleted).toHaveBeenCalledWith('agent_1'));
@@ -101,6 +126,50 @@ describe('Training list', () => {
 });
 
 describe('Training lessons', () => {
+  it.each(TRAINING_LESSONS.map((lesson, index) => [index, lesson] as const))(
+    'opens the full instructional image for lesson %s without completing it',
+    (index, lesson) => {
+      mockParams = { lesson: String(index) };
+      const screen = render(<TrainingLessonsScreen />);
+      const photos = lesson.examples ?? [{ title: lesson.title, photo: lesson.photo }];
+      expect(screen.getAllByRole('button', { name: /^View full image:/ })).toHaveLength(photos.length);
+      if (lesson.id === 5) {
+        expect(photos.map((photo) => photo.title)).toEqual(['Portrait', 'Shop front', 'Craft']);
+        const imageUris = photos.map((photo) => Image.resolveAssetSource(photo.photo)?.uri);
+        expect(imageUris).toEqual(['forge-portrait', 'forge-shop-front', 'forge-craft']);
+        expect(new Set(imageUris).size).toBe(3);
+        for (const photo of photos) expect(screen.getByText(photo.title)).toBeTruthy();
+      }
+
+      for (const photo of photos) {
+        fireEvent.press(screen.getByRole('button', { name: `View full image: ${photo.title}` }));
+        const fullImage = screen.getByLabelText(`Full image: ${photo.title}`);
+        expect(fullImage.props.source).toEqual(photo.photo);
+        expect(fullImage.props.resizeMode).toBe('contain');
+        fireEvent.press(screen.getByRole('button', { name: 'Close full image' }));
+        expect(screen.queryByLabelText(`Full image: ${photo.title}`)).toBeNull();
+      }
+      expect(mockMarkLessonDone).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps the image aligned with its lesson after advancing', async () => {
+    mockParams = { lesson: '1' };
+    const screen = render(<TrainingLessonsScreen />);
+    fireEvent.press(screen.getByRole('button', { name: 'View full image: Clear audio' }));
+    const audioSource = screen.getByLabelText('Full image: Clear audio').props.source;
+    expect(audioSource).toEqual(expect.objectContaining({ uri: 'lesson-audio' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Close full image' }));
+    next(screen);
+    await waitFor(() => expect(screen.getByText('Photos that sell')).toBeTruthy());
+    expect(screen.queryByLabelText('Full image: Clear audio')).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: 'View full image: Photos that sell' }));
+    const portraitSource = screen.getByLabelText('Full image: Photos that sell').props.source;
+    expect(portraitSource).toEqual(expect.objectContaining({ uri: 'forge-portrait' }));
+    expect(portraitSource).not.toEqual(audioSource);
+    expect(mockMarkLessonDone).toHaveBeenCalledWith('agent_1', 2);
+  });
+
   it.each([
     ['1', 'Clear audio'],
     ['4', 'The shots we need'],
@@ -175,5 +244,32 @@ describe('Training lessons', () => {
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/certification-quiz'));
     expect(mockMarkLessonDone).toHaveBeenCalledWith('agent_1', 5);
     expect(mockRouter.dismissTo).not.toHaveBeenCalled();
+  });
+});
+
+describe('Training photo framing', () => {
+  it.each([
+    ['portrait', 600, 800],
+    ['landscape', 1000, 600],
+  ] as const)('preserves a %s image in its original aspect ratio instead of clipping it to a banner', (_kind, width, height) => {
+    const screen = render(<TrainingPhoto source={{ uri: 'training-example', width, height }} label="Example" />);
+    const image = screen.UNSAFE_getByType(Image);
+    const style = StyleSheet.flatten(image.props.style);
+    expect(style.aspectRatio).toBe(width / height);
+    expect(style.height).toBeUndefined();
+    expect(image.props.resizeMode).toBe('contain');
+  });
+
+  it('dismisses the full image on Android Back without leaving or completing the lesson', () => {
+    mockParams = { lesson: '2' };
+    const screen = render(<TrainingLessonsScreen />);
+    fireEvent.press(screen.getByRole('button', { name: 'View full image: Photos that sell' }));
+    expect(screen.getByLabelText('Full image: Photos that sell')).toBeTruthy();
+    fireEvent(screen.UNSAFE_getByType(Modal), 'requestClose');
+    expect(screen.queryByLabelText('Full image: Photos that sell')).toBeNull();
+    expect(screen.getByText('Photos that sell')).toBeTruthy();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockMarkLessonDone).not.toHaveBeenCalled();
   });
 });

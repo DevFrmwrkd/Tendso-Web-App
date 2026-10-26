@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { TRAINING_LESSONS, markLessonDone, readCompletedLessons } from '../../lib/trainingLessons';
-import { radius, space } from '../../theme/v2';
+import { space } from '../../theme/v2';
+import { TrainingPhoto } from '../../components/TrainingPhoto';
 import { Button, CheckRow, ScreenShell, SectionLabel, Text } from '../../components/v2';
 
 export default function TrainingLessonsScreen() {
@@ -67,8 +68,6 @@ export default function TrainingLessonsScreen() {
       footer={<Button title={isLast ? 'Got it · finish lesson' : 'Got it · next lesson'} onPress={handleNext} loading={saving} disabled={saving} />}
       contentStyle={styles.body}
     >
-      <Image source={current.photo} style={styles.photo} resizeMode="cover" accessibilityIgnoresInvertColors />
-
       <View style={styles.head}>
         <Text variant="label" weight="semibold" tone="muted">
           Lesson {current.id} of {TRAINING_LESSONS.length} · {current.minutes} min
@@ -80,6 +79,20 @@ export default function TrainingLessonsScreen() {
           {current.line}
         </Text>
       </View>
+
+      {current.examples ? (
+        <View style={styles.examples}>
+          {current.examples.map((example) => (
+            <View key={example.id} style={styles.example}>
+              <TrainingPhoto source={example.photo} label={example.title} description={example.description} />
+              <Text variant="label" weight="bold">{example.title}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <TrainingPhoto source={current.photo} label={current.title} description={current.photoDescription} />
+      )}
+      <Text variant="label" weight="medium" tone="muted">Tap a photo to view it in full.</Text>
 
       <View style={styles.group}>
         <SectionLabel>Do</SectionLabel>
@@ -102,7 +115,8 @@ export default function TrainingLessonsScreen() {
 
 const styles = StyleSheet.create({
   body: { gap: space.lg, paddingTop: space.lg },
-  photo: { width: '100%', height: 190, borderRadius: radius.cardLg },
+  examples: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' },
+  example: { flex: 1, minWidth: 0, gap: space.sm },
   head: { gap: space.xs },
   group: { gap: space.sm },
 });

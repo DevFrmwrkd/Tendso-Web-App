@@ -10,11 +10,22 @@ export interface LessonPoint {
   text: string;
 }
 
+export interface TrainingPhotoExample {
+  id: string;
+  title: string;
+  description: string;
+  photo: ImageSourcePropType;
+}
+
 export interface TrainingLesson {
   id: number;
   title: string;
   minutes: number;
   photo: ImageSourcePropType;
+  /** Describes the bundled photo for screen readers and the full-image viewer. */
+  photoDescription: string;
+  /** Labeled photo examples, shown instead of the single lesson photo when provided. */
+  examples?: TrainingPhotoExample[];
   /** One line under the title. */
   line: string;
   dos: LessonPoint[];
@@ -28,6 +39,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-1.jpg'),
+    photoDescription: 'A shop owner and field agent beside a bright salon window.',
     line: 'Turn the owner toward the light so their face is bright.',
     dos: [
       { title: 'Face the light', text: 'Stand so the window or sun lights their face.' },
@@ -41,6 +53,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 2,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-2.jpg'),
+    photoDescription: 'A field agent holding a phone close to a mechanic while recording him.',
     line: 'Bad sound ruins the video. Test it first.',
     dos: [
       { title: 'Test first', text: 'Record a short clip and play it back.' },
@@ -53,7 +66,8 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     title: 'Photos that sell',
     minutes: 4,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/lesson-3.jpg'),
+    photo: require('../assets/training/forge-owner-portrait-v1.jpg'),
+    photoDescription: 'A centered, chest-up portrait of the Forge Barbers owner with his full head and shoulders visible.',
     line: 'Head and shoulders, centered, at eye level.',
     dos: [
       { title: 'Chest up', text: 'Keep the head and shoulders in the frame.' },
@@ -70,6 +84,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-4.jpg'),
+    photoDescription: 'A barber talking to a field agent who records him at eye level.',
     line: 'Their own words become the site. Relax them first.',
     dos: [
       { title: 'Warm up', text: 'Chat for 2 minutes before you press record.' },
@@ -83,7 +98,31 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     title: 'The shots we need',
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/lesson-5.jpg'),
+    photo: require('../assets/training/forge-owner-portrait-v1.jpg'),
+    photoDescription: 'A centered, chest-up portrait of the Forge Barbers owner with his full head and shoulders visible.',
+    examples: [
+      {
+        id: 'portrait',
+        title: 'Portrait',
+        description: 'A clear, chest-up portrait of the owner, with the full head and shoulders in frame.',
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        photo: require('../assets/training/forge-owner-portrait-v1.jpg'),
+      },
+      {
+        id: 'shop-front',
+        title: 'Shop front',
+        description: 'The Forge Barbers entrance and shop sign, photographed from across the street.',
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        photo: require('../assets/training/forge-shop-front-v1.jpg'),
+      },
+      {
+        id: 'craft',
+        title: 'Craft',
+        description: 'The Forge Barbers owner cutting a customer\'s hair, with his hands and tools visible.',
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        photo: require('../assets/training/forge-haircut-v1.jpg'),
+      },
+    ],
     line: 'Three photos are needed before you get paid.',
     dos: [
       { title: 'The portrait', text: 'A clear, well-lit headshot of the owner.' },
