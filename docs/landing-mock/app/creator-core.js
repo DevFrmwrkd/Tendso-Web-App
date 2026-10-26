@@ -203,7 +203,7 @@
     return app(`<div class="cc-main" style="gap:16px;bottom:104px;overflow-y:auto;padding-bottom:16px">
         <div class="cc-row2" style="height:44px;flex-shrink:0">${back()}<span class="cc-t" style="font-size:17px">Training</span></div>
         <div class="cc-card" style="padding:0;overflow:hidden;flex-shrink:0">
-          <div><img src="${PE}11-workshop.jpg" alt="Field agent training" style="width:100%;height:150px;object-fit:contain;object-position:center;background:#EFEFEA;display:block"></div>
+          <div><img src="${PE}11-workshop.jpg" alt="Field agent training" style="width:100%;height:150px;object-fit:cover;object-position:50% 15%;display:block"></div>
           <div style="padding:14px 16px 16px">
             <div class="cc-between"><span class="cc-t">Become a certified agent</span><span class="cc-t" style="font-size:14px">3 of 5</span></div>
             <div class="a-progress" style="margin-top:10px"><i style="width:60%"></i></div>
@@ -229,7 +229,7 @@
       ['map-pin', 'End with hours, address and a landmark.'],
     ];
     return app(`<div class="cc-main" style="gap:16px;bottom:104px;overflow-y:auto;padding-bottom:16px">${step(4, 5)}
-        <img src="${PE}03-barber.jpg" alt="An agent interviews a barber" style="width:100%;height:190px;object-fit:contain;object-position:center;background:#EFEFEA;border-radius:24px;display:block;flex:none">
+        <img src="${PE}03-barber.jpg" alt="An agent interviews a barber" style="width:100%;height:190px;object-fit:cover;object-position:50% 25%;border-radius:24px;display:block;flex:none">
         <div><span class="cc-sm">Lesson 4 · 3 min</span><h2 class="cc-h" style="margin-top:4px">Get the owner talking</h2>
           <p class="cc-sub" style="margin-top:6px;color:var(--a-ink2)">Their own words become the site. The best lines come after a pause.</p></div>
         <div class="cc-col" style="gap:8px">${tips.map(([i, t]) => `<div class="a-check"><span class="cc-ic" style="width:36px;height:36px;border-radius:12px">${ic(i, 17)}</span><span style="font-size:14.5px;line-height:19px">${t}</span></div>`).join('')}</div>
@@ -470,7 +470,7 @@
     ] },
     { n: '02', title: 'Learn', note: 'Five lessons, then the quiz', steps: [
       ['2.1', P + 'training.tsx + training-lessons.tsx', 'Open any lesson. Numbers show unfinished lessons; checks show completed ones. Continue opens the first unfinished lesson.', lessons],
-      ['2.2', P + 'training-lessons.tsx · open', 'Small static photos above the title, centered without cropping. Photos that sell shows an owner portrait; The shots we need shows Portrait, Shop front and Craft examples. Back returns to Training.', lesson],
+      ['2.2', P + 'training-lessons.tsx · open', 'Small static photos fill the banner above the title, with per-photo crops that keep faces visible. Photos that sell shows an owner portrait; The shots we need shows Portrait, Shop front and Craft examples. Back returns to Training.', lesson],
       ['2.3', P + 'certification-quiz.tsx', 'Tendso asks one question; answer B is picked. Pass with 4 of 5.', quiz],
     ] },
     { n: '03', title: 'Find shops', note: 'The map and the finds feed are home', steps: [

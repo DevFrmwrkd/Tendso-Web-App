@@ -72,13 +72,13 @@ export default function TrainingLessonsScreen() {
         <View style={styles.examples}>
           {current.examples.map((example) => (
             <View key={example.id} style={styles.example}>
-              <TrainingPhoto source={example.photo} label={example.title} description={example.description} height={140} />
+              <TrainingPhoto source={example.photo} label={example.title} description={example.description} height={140} cropPosition={example.cropPosition} />
               <Text variant="label" weight="bold">{example.title}</Text>
             </View>
           ))}
         </View>
       ) : (
-        <TrainingPhoto source={current.photo} label={current.title} description={current.photoDescription} />
+        <TrainingPhoto source={current.photo} label={current.title} description={current.photoDescription} cropPosition={current.cropPosition} />
       )}
 
       <View style={styles.head}>

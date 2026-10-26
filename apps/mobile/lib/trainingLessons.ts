@@ -1,5 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { ImageCropPosition } from './imageCrop';
 
 /**
  * The five training lessons, shared by the training overview and the lesson screen.
@@ -15,6 +16,7 @@ export interface TrainingPhotoExample {
   title: string;
   description: string;
   photo: ImageSourcePropType;
+  cropPosition?: ImageCropPosition;
 }
 
 export interface TrainingLesson {
@@ -22,6 +24,7 @@ export interface TrainingLesson {
   title: string;
   minutes: number;
   photo: ImageSourcePropType;
+  cropPosition?: ImageCropPosition;
   /** Describes the bundled photo for screen readers. */
   photoDescription: string;
   /** Labeled photo examples, shown instead of the single lesson photo when provided. */
@@ -39,6 +42,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-1.jpg'),
+    cropPosition: { x: 0.5, y: 0.15 },
     photoDescription: 'A shop owner and field agent beside a bright salon window.',
     line: 'Turn the owner toward the light so their face is bright.',
     dos: [
@@ -53,6 +57,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 2,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-2.jpg'),
+    cropPosition: { x: 0.5, y: 0.28 },
     photoDescription: 'A field agent holding a phone close to a mechanic while recording him.',
     line: 'Bad sound ruins the video. Test it first.',
     dos: [
@@ -66,8 +71,9 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     title: 'Photos that sell',
     minutes: 4,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/forge-owner-portrait-v1.jpg'),
-    photoDescription: 'A centered, chest-up portrait of the Forge Barbers owner with his full head and shoulders visible.',
+    photo: require('../assets/training/forge-owner-banner-v1.jpg'),
+    cropPosition: { x: 0.5, y: 0.27 },
+    photoDescription: 'An eye-level portrait of the Forge Barbers owner, centered with his head and shoulders visible.',
     line: 'Head and shoulders, centered, at eye level.',
     dos: [
       { title: 'Chest up', text: 'Keep the head and shoulders in the frame.' },
@@ -84,6 +90,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/lesson-4.jpg'),
+    cropPosition: { x: 0.5, y: 0.25 },
     photoDescription: 'A barber talking to a field agent who records him at eye level.',
     line: 'Their own words become the site. Relax them first.',
     dos: [
@@ -99,6 +106,7 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     photo: require('../assets/training/forge-owner-portrait-v1.jpg'),
+    cropPosition: { x: 0.5, y: 0.5 },
     photoDescription: 'A centered, chest-up portrait of the Forge Barbers owner with his full head and shoulders visible.',
     examples: [
       {

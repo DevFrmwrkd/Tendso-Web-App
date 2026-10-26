@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { TrainingPhoto } from '../../components/TrainingPhoto';
 import { TRAINING_LESSONS, readCompletedLessons } from '../../lib/trainingLessons';
 import { colors, radius, shadow, space } from '../../theme/v2';
 import { Button, Card, ListRow, ProgressBar, ScreenShell, Text } from '../../components/v2';
@@ -51,7 +52,7 @@ export default function TrainingIntroScreen() {
     >
       <Card style={styles.hero}>
         <View style={styles.heroClip}>
-          <Image source={OVERVIEW_PHOTO} style={styles.heroImg} resizeMode="contain" accessibilityLabel="An instructor teaching a group of field agents." accessibilityIgnoresInvertColors />
+          <TrainingPhoto source={OVERVIEW_PHOTO} label="Field agent training" description="An instructor teaching a group of field agents." height={150} cropPosition={{ x: 0.5, y: 0.15 }} style={styles.heroImg} />
           <View style={styles.heroBody}>
             <View style={styles.heroTop}>
               <Text variant="heading" style={styles.flex}>
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   hero: { padding: 0, borderRadius: radius.cardLg },
   heroClip: { overflow: 'hidden', borderRadius: radius.cardLg },
-  heroImg: { width: '100%', height: 150, backgroundColor: colors.bg2 },
+  heroImg: { borderRadius: 0 },
   heroBody: { padding: space.lg, gap: space.sm },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   list: { gap: space.sm, marginTop: space.lg },

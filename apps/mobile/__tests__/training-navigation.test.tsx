@@ -22,6 +22,7 @@ jest.mock('../assets/training/lesson-1.jpg', () => ({ uri: 'lesson-lighting', wi
 jest.mock('../assets/training/lesson-2.jpg', () => ({ uri: 'lesson-audio', width: 1120, height: 896 }));
 jest.mock('../assets/training/lesson-4.jpg', () => ({ uri: 'lesson-interview', width: 1120, height: 896 }));
 jest.mock('../assets/training/forge-owner-portrait-v1.jpg', () => ({ uri: 'forge-portrait', width: 880, height: 1168 }));
+jest.mock('../assets/training/forge-owner-banner-v1.jpg', () => ({ uri: 'forge-owner-banner', width: 1100, height: 1366 }));
 jest.mock('../assets/training/forge-shop-front-v1.jpg', () => ({ uri: 'forge-shop-front', width: 880, height: 1168 }));
 jest.mock('../assets/training/forge-haircut-v1.jpg', () => ({ uri: 'forge-craft', width: 880, height: 1168 }));
 
@@ -62,15 +63,28 @@ function next(screen: ReturnType<typeof render>) {
   fireEvent.press(screen.getByRole('button', { name: /Got it|Start the quiz|Finish/ }));
 }
 
+function photoFrame(image: ReturnType<ReturnType<typeof render>['getByLabelText']>) {
+  let frame = image.parent;
+  while (frame && typeof frame.props.onLayout !== 'function') frame = frame.parent;
+  if (!frame) throw new Error('The photo is missing its measured frame.');
+  return frame;
+}
+
 describe('Training list', () => {
-  it('keeps the classroom photo centered inside a compact banner without cropping the instructor', async () => {
+  it('fills the compact classroom banner while keeping the instructor visible', async () => {
     const screen = render(<TrainingScreen />);
     await waitFor(() => expect(mockReadCompleted).toHaveBeenCalledWith('agent_1'));
     const image = screen.getByLabelText('An instructor teaching a group of field agents.');
-    const style = StyleSheet.flatten(image.props.style);
     expect(image.props.source).toEqual(expect.objectContaining({ uri: 'training-classroom' }));
-    expect(image.props.resizeMode).toBe('contain');
-    expect(style.height).toBe(150);
+    expect(image.props.resizeMode).toBe('cover');
+    expect(StyleSheet.flatten(photoFrame(image).props.style).height).toBe(150);
+    fireEvent(photoFrame(image), 'layout', { nativeEvent: { layout: { width: 353, height: 150 } } });
+    const style = StyleSheet.flatten(image.props.style);
+    expect(style.width).toBeGreaterThanOrEqual(353);
+    expect(style.height).toBeGreaterThanOrEqual(150);
+    const scale = style.height / 688;
+    expect(style.top + 90 * scale).toBeGreaterThanOrEqual(0);
+    expect(style.top + 250 * scale).toBeLessThanOrEqual(150);
     expect(mockMarkLessonDone).not.toHaveBeenCalled();
   });
 
@@ -126,7 +140,7 @@ describe('Training list', () => {
 
 describe('Training lessons', () => {
   it.each(TRAINING_LESSONS.map((lesson, index) => [index, lesson] as const))(
-    'shows compact, noninteractive instructional photos above the title for lesson %s',
+    'shows cropped, noninteractive instructional photos above the title for lesson %s',
     (index, lesson) => {
       mockParams = { lesson: String(index) };
       const screen = render(<TrainingLessonsScreen />);
@@ -143,8 +157,17 @@ describe('Training lessons', () => {
       for (const photo of photos) {
         const image = screen.getByLabelText(photo.description);
         expect(image.props.source).toEqual(photo.photo);
-        expect(image.props.resizeMode).toBe('contain');
-        expect(StyleSheet.flatten(image.props.style).height).toBe(lesson.examples ? 140 : 190);
+        expect(image.props.resizeMode).toBe('cover');
+        expect(StyleSheet.flatten(photoFrame(image).props.style).height).toBe(lesson.examples ? 140 : 190);
+        if (!lesson.examples) {
+          fireEvent(photoFrame(image), 'layout', { nativeEvent: { layout: { width: 353, height: 190 } } });
+          const style = StyleSheet.flatten(image.props.style);
+          const [hair, chin] = [[140, 450], [150, 370], [260, 600], [140, 340]][index];
+          const sourceHeight = Image.resolveAssetSource(photo.photo).height;
+          const scale = style.height / sourceHeight;
+          expect(style.top + hair * scale).toBeGreaterThanOrEqual(0);
+          expect(style.top + chin * scale).toBeLessThanOrEqual(190);
+        }
       }
       const content = JSON.stringify(screen.toJSON());
       const photoPosition = content.indexOf(JSON.stringify(Image.resolveAssetSource(photos[0].photo)?.uri));
@@ -166,7 +189,7 @@ describe('Training lessons', () => {
     await waitFor(() => expect(screen.getByText('Photos that sell')).toBeTruthy());
     expect(screen.queryByLabelText(TRAINING_LESSONS[1].photoDescription)).toBeNull();
     const portraitSource = screen.getByLabelText(TRAINING_LESSONS[2].photoDescription).props.source;
-    expect(portraitSource).toEqual(expect.objectContaining({ uri: 'forge-portrait' }));
+    expect(portraitSource).toEqual(expect.objectContaining({ uri: 'forge-owner-banner' }));
     expect(portraitSource).not.toEqual(audioSource);
     expect(mockMarkLessonDone).toHaveBeenCalledWith('agent_1', 2);
   });
@@ -252,13 +275,19 @@ describe('Training photo framing', () => {
   it.each([
     ['portrait', 600, 800],
     ['landscape', 1000, 600],
-  ] as const)('fits a complete %s image inside a compact, static banner', (_kind, width, height) => {
-    const screen = render(<TrainingPhoto source={{ uri: 'training-example', width, height }} label="Example" />);
+  ] as const)('fills a static banner with a proportionate %s image and its chosen crop', (_kind, width, height) => {
+    const screen = render(<TrainingPhoto source={{ uri: 'training-example', width, height }} label="Example" cropPosition={{ x: 0.5, y: 0.15 }} />);
     const image = screen.UNSAFE_getByType(Image);
+    const frame = photoFrame(image);
+    expect(StyleSheet.flatten(frame.props.style).height).toBe(190);
+    expect(StyleSheet.flatten(frame.props.style).overflow).toBe('hidden');
+    fireEvent(frame, 'layout', { nativeEvent: { layout: { width: 353, height: 190 } } });
     const style = StyleSheet.flatten(image.props.style);
-    expect(style.height).toBe(190);
-    expect(style.width).toBe('100%');
-    expect(image.props.resizeMode).toBe('contain');
+    expect(style.width).toBeGreaterThanOrEqual(353);
+    expect(style.height).toBeGreaterThanOrEqual(190);
+    expect(style.width / style.height).toBeCloseTo(width / height);
+    expect(style.top).toBeCloseTo((190 - style.height) * 0.15);
+    expect(image.props.resizeMode).toBe('cover');
     expect(screen.getByRole('image', { name: 'Example' })).toBeTruthy();
     expect(screen.queryAllByRole('button')).toHaveLength(0);
     expect(screen.UNSAFE_queryAllByType(Modal)).toHaveLength(0);
@@ -274,8 +303,8 @@ describe('Training photo framing', () => {
       />,
     );
     const image = screen.getByRole('image', { name: 'The shop entrance and its readable sign.' });
-    expect(StyleSheet.flatten(image.props.style).height).toBe(140);
-    expect(image.props.resizeMode).toBe('contain');
+    expect(StyleSheet.flatten(photoFrame(image).props.style).height).toBe(140);
+    expect(image.props.resizeMode).toBe('cover');
     expect(screen.queryAllByRole('button')).toHaveLength(0);
   });
 });
