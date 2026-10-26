@@ -63,15 +63,14 @@ function next(screen: ReturnType<typeof render>) {
 }
 
 describe('Training list', () => {
-  it('shows the full classroom photo without cropping the instructor into a short banner', async () => {
+  it('keeps the classroom photo centered inside a compact banner without cropping the instructor', async () => {
     const screen = render(<TrainingScreen />);
     await waitFor(() => expect(mockReadCompleted).toHaveBeenCalledWith('agent_1'));
     const image = screen.getByLabelText('An instructor teaching a group of field agents.');
     const style = StyleSheet.flatten(image.props.style);
     expect(image.props.source).toEqual(expect.objectContaining({ uri: 'training-classroom' }));
     expect(image.props.resizeMode).toBe('contain');
-    expect(style.aspectRatio).toBe(1024 / 688);
-    expect(style.height).toBeUndefined();
+    expect(style.height).toBe(150);
     expect(mockMarkLessonDone).not.toHaveBeenCalled();
   });
 
@@ -127,12 +126,12 @@ describe('Training list', () => {
 
 describe('Training lessons', () => {
   it.each(TRAINING_LESSONS.map((lesson, index) => [index, lesson] as const))(
-    'opens the full instructional image for lesson %s without completing it',
+    'shows compact, noninteractive instructional photos above the title for lesson %s',
     (index, lesson) => {
       mockParams = { lesson: String(index) };
       const screen = render(<TrainingLessonsScreen />);
-      const photos = lesson.examples ?? [{ title: lesson.title, photo: lesson.photo }];
-      expect(screen.getAllByRole('button', { name: /^View full image:/ })).toHaveLength(photos.length);
+      const photos = lesson.examples ?? [{ title: lesson.title, photo: lesson.photo, description: lesson.photoDescription }];
+      expect(screen.UNSAFE_getAllByType(Image)).toHaveLength(photos.length);
       if (lesson.id === 5) {
         expect(photos.map((photo) => photo.title)).toEqual(['Portrait', 'Shop front', 'Craft']);
         const imageUris = photos.map((photo) => Image.resolveAssetSource(photo.photo)?.uri);
@@ -142,13 +141,18 @@ describe('Training lessons', () => {
       }
 
       for (const photo of photos) {
-        fireEvent.press(screen.getByRole('button', { name: `View full image: ${photo.title}` }));
-        const fullImage = screen.getByLabelText(`Full image: ${photo.title}`);
-        expect(fullImage.props.source).toEqual(photo.photo);
-        expect(fullImage.props.resizeMode).toBe('contain');
-        fireEvent.press(screen.getByRole('button', { name: 'Close full image' }));
-        expect(screen.queryByLabelText(`Full image: ${photo.title}`)).toBeNull();
+        const image = screen.getByLabelText(photo.description);
+        expect(image.props.source).toEqual(photo.photo);
+        expect(image.props.resizeMode).toBe('contain');
+        expect(StyleSheet.flatten(image.props.style).height).toBe(lesson.examples ? 140 : 190);
       }
+      const content = JSON.stringify(screen.toJSON());
+      const photoPosition = content.indexOf(JSON.stringify(Image.resolveAssetSource(photos[0].photo)?.uri));
+      expect(photoPosition).toBeGreaterThan(-1);
+      expect(photoPosition).toBeLessThan(content.indexOf(JSON.stringify(lesson.title)));
+      expect(screen.queryByRole('button', { name: /^View full image:/ })).toBeNull();
+      expect(screen.UNSAFE_queryAllByType(Modal)).toHaveLength(0);
+      expect(screen.queryByText('Tap a photo to view it in full.')).toBeNull();
       expect(mockMarkLessonDone).not.toHaveBeenCalled();
     },
   );
@@ -156,15 +160,12 @@ describe('Training lessons', () => {
   it('keeps the image aligned with its lesson after advancing', async () => {
     mockParams = { lesson: '1' };
     const screen = render(<TrainingLessonsScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'View full image: Clear audio' }));
-    const audioSource = screen.getByLabelText('Full image: Clear audio').props.source;
+    const audioSource = screen.getByLabelText(TRAINING_LESSONS[1].photoDescription).props.source;
     expect(audioSource).toEqual(expect.objectContaining({ uri: 'lesson-audio' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Close full image' }));
     next(screen);
     await waitFor(() => expect(screen.getByText('Photos that sell')).toBeTruthy());
-    expect(screen.queryByLabelText('Full image: Clear audio')).toBeNull();
-    fireEvent.press(screen.getByRole('button', { name: 'View full image: Photos that sell' }));
-    const portraitSource = screen.getByLabelText('Full image: Photos that sell').props.source;
+    expect(screen.queryByLabelText(TRAINING_LESSONS[1].photoDescription)).toBeNull();
+    const portraitSource = screen.getByLabelText(TRAINING_LESSONS[2].photoDescription).props.source;
     expect(portraitSource).toEqual(expect.objectContaining({ uri: 'forge-portrait' }));
     expect(portraitSource).not.toEqual(audioSource);
     expect(mockMarkLessonDone).toHaveBeenCalledWith('agent_1', 2);
@@ -251,25 +252,30 @@ describe('Training photo framing', () => {
   it.each([
     ['portrait', 600, 800],
     ['landscape', 1000, 600],
-  ] as const)('preserves a %s image in its original aspect ratio instead of clipping it to a banner', (_kind, width, height) => {
+  ] as const)('fits a complete %s image inside a compact, static banner', (_kind, width, height) => {
     const screen = render(<TrainingPhoto source={{ uri: 'training-example', width, height }} label="Example" />);
     const image = screen.UNSAFE_getByType(Image);
     const style = StyleSheet.flatten(image.props.style);
-    expect(style.aspectRatio).toBe(width / height);
-    expect(style.height).toBeUndefined();
+    expect(style.height).toBe(190);
+    expect(style.width).toBe('100%');
     expect(image.props.resizeMode).toBe('contain');
+    expect(screen.getByRole('image', { name: 'Example' })).toBeTruthy();
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.UNSAFE_queryAllByType(Modal)).toHaveLength(0);
   });
 
-  it('dismisses the full image on Android Back without leaving or completing the lesson', () => {
-    mockParams = { lesson: '2' };
-    const screen = render(<TrainingLessonsScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'View full image: Photos that sell' }));
-    expect(screen.getByLabelText('Full image: Photos that sell')).toBeTruthy();
-    fireEvent(screen.UNSAFE_getByType(Modal), 'requestClose');
-    expect(screen.queryByLabelText('Full image: Photos that sell')).toBeNull();
-    expect(screen.getByText('Photos that sell')).toBeTruthy();
-    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
-    expect(mockRouter.back).not.toHaveBeenCalled();
-    expect(mockMarkLessonDone).not.toHaveBeenCalled();
+  it('supports smaller example photos while keeping their descriptive accessibility label', () => {
+    const screen = render(
+      <TrainingPhoto
+        source={{ uri: 'training-example', width: 880, height: 1168 }}
+        label="Shop front"
+        description="The shop entrance and its readable sign."
+        height={140}
+      />,
+    );
+    const image = screen.getByRole('image', { name: 'The shop entrance and its readable sign.' });
+    expect(StyleSheet.flatten(image.props.style).height).toBe(140);
+    expect(image.props.resizeMode).toBe('contain');
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
   });
 });

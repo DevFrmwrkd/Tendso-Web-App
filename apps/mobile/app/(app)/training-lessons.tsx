@@ -68,6 +68,19 @@ export default function TrainingLessonsScreen() {
       footer={<Button title={isLast ? 'Got it · finish lesson' : 'Got it · next lesson'} onPress={handleNext} loading={saving} disabled={saving} />}
       contentStyle={styles.body}
     >
+      {current.examples ? (
+        <View style={styles.examples}>
+          {current.examples.map((example) => (
+            <View key={example.id} style={styles.example}>
+              <TrainingPhoto source={example.photo} label={example.title} description={example.description} height={140} />
+              <Text variant="label" weight="bold">{example.title}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <TrainingPhoto source={current.photo} label={current.title} description={current.photoDescription} />
+      )}
+
       <View style={styles.head}>
         <Text variant="label" weight="semibold" tone="muted">
           Lesson {current.id} of {TRAINING_LESSONS.length} · {current.minutes} min
@@ -79,20 +92,6 @@ export default function TrainingLessonsScreen() {
           {current.line}
         </Text>
       </View>
-
-      {current.examples ? (
-        <View style={styles.examples}>
-          {current.examples.map((example) => (
-            <View key={example.id} style={styles.example}>
-              <TrainingPhoto source={example.photo} label={example.title} description={example.description} />
-              <Text variant="label" weight="bold">{example.title}</Text>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <TrainingPhoto source={current.photo} label={current.title} description={current.photoDescription} />
-      )}
-      <Text variant="label" weight="medium" tone="muted">Tap a photo to view it in full.</Text>
 
       <View style={styles.group}>
         <SectionLabel>Do</SectionLabel>

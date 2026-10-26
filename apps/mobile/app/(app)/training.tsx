@@ -9,8 +9,6 @@ import { colors, radius, shadow, space } from '../../theme/v2';
 import { Button, Card, ListRow, ProgressBar, ScreenShell, Text } from '../../components/v2';
 
 const OVERVIEW_PHOTO = require('../../assets/training/overview.jpg'); // eslint-disable-line @typescript-eslint/no-require-imports
-const overviewAsset = Image.resolveAssetSource(OVERVIEW_PHOTO);
-const overviewAspectRatio = overviewAsset?.width > 0 && overviewAsset?.height > 0 ? overviewAsset.width / overviewAsset.height : 3 / 2;
 
 export default function TrainingIntroScreen() {
   const router = useGuardedRouter();
@@ -53,7 +51,7 @@ export default function TrainingIntroScreen() {
     >
       <Card style={styles.hero}>
         <View style={styles.heroClip}>
-          <Image source={OVERVIEW_PHOTO} style={[styles.heroImg, { aspectRatio: overviewAspectRatio }]} resizeMode="contain" accessibilityLabel="An instructor teaching a group of field agents." accessibilityIgnoresInvertColors />
+          <Image source={OVERVIEW_PHOTO} style={styles.heroImg} resizeMode="contain" accessibilityLabel="An instructor teaching a group of field agents." accessibilityIgnoresInvertColors />
           <View style={styles.heroBody}>
             <View style={styles.heroTop}>
               <Text variant="heading" style={styles.flex}>
@@ -103,7 +101,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   hero: { padding: 0, borderRadius: radius.cardLg },
   heroClip: { overflow: 'hidden', borderRadius: radius.cardLg },
-  heroImg: { width: '100%' },
+  heroImg: { width: '100%', height: 150, backgroundColor: colors.bg2 },
   heroBody: { padding: space.lg, gap: space.sm },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   list: { gap: space.sm, marginTop: space.lg },

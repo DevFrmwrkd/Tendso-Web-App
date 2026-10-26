@@ -22,7 +22,7 @@ export interface TrainingLesson {
   title: string;
   minutes: number;
   photo: ImageSourcePropType;
-  /** Describes the bundled photo for screen readers and the full-image viewer. */
+  /** Describes the bundled photo for screen readers. */
   photoDescription: string;
   /** Labeled photo examples, shown instead of the single lesson photo when provided. */
   examples?: TrainingPhotoExample[];
