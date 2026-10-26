@@ -58,14 +58,15 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
   const router = useGuardedRouter();
   const { signOut } = useClerk();
   const saveWorkArea = useMutation(api.fieldAgentOnboarding.saveWorkArea);
-  const complete = useMutation(api.fieldAgentOnboarding.complete);
-  const [step, setStep] = useState<1 | 2>(account.workCity ? 2 : 1);
+  const saveDiscovery = useMutation(api.fieldAgentOnboarding.saveDiscovery);
+  const [step, setStep] = useState<1 | 2>(account.discoverySource ? 2 : 1);
   const [city, setCity] = useState(account.workCity ?? '');
   const [otherCity, setOtherCity] = useState(!!account.workCity && !FIELD_AGENT_CITIES.some((place) => place.name === account.workCity));
   const [deviceArea, setDeviceArea] = useState<WorkArea | null>(account.workLocationSource === 'device'
     ? { city: account.workCity ?? '', latitude: account.workLatitude, longitude: account.workLongitude, source: 'device' } : null);
   const [discoverySource, setDiscoverySource] = useState<DiscoverySource | null>(account.discoverySource ?? null);
   const [referralCode, setReferralCode] = useState('');
+  const [savedReferralCode, setSavedReferralCode] = useState(account.referredByCode ?? '');
   const [busy, setBusy] = useState<'location' | 'save' | 'exit' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [locationNote, setLocationNote] = useState<string | null>(null);
@@ -81,6 +82,7 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
   const normalizedCity = validWorkCity(city);
   const validCity = normalizedCity.length >= 2 && normalizedCity.length <= 100;
   const disabled = busy !== null || offline;
+  const attachedReferralCode = account.referredByCode || savedReferralCode;
 
   async function run(action: 'location' | 'save' | 'exit', operation: (current: () => boolean) => Promise<void>) {
     if (inFlight.current || offline) return;
@@ -143,16 +145,20 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
   }
 
   function continueFlow() {
-    if (step === 1 && validCity) {
+    if (step === 1 && discoverySource) {
       void run('save', async (current) => {
-        await saveWorkArea(deviceArea && deviceArea.city === city
-          ? { ...deviceArea, city: normalizedCity } : { city: normalizedCity, source: 'city' });
-        if (current()) setStep(2);
+        const code = referralCode.trim().toUpperCase();
+        await saveDiscovery({ discoverySource, ...(!attachedReferralCode && code ? { referredByCode: code } : {}) });
+        if (current()) {
+          if (!attachedReferralCode && code) setSavedReferralCode(code);
+          setStep(2);
+        }
       });
-    } else if (step === 2 && discoverySource) {
+    } else if (step === 2 && validCity) {
       void run('save', async (current) => {
-        await complete({ discoverySource, ...(!account.referredByCode && referralCode.trim()
-          ? { referredByCode: referralCode.trim().toUpperCase() } : {}) });
+        const area = deviceArea && deviceArea.city === city
+          ? { ...deviceArea, city: normalizedCity } : { city: normalizedCity, source: 'city' as const };
+        await saveWorkArea({ ...area, finish: true });
         if (current()) router.replace('/(app)/(tabs)');
       });
     }
@@ -172,7 +178,7 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
         headerRight={<Text variant="label" tone="muted" accessibilityLabel={`Step ${step} of 2`}>{step} / 2</Text>}
         footer={(
           <>
-            <Button title="Continue" onPress={continueFlow} loading={busy === 'save'} disabled={disabled || (step === 1 ? !validCity : !discoverySource)} />
+            <Button title="Continue" onPress={continueFlow} loading={busy === 'save'} disabled={disabled || (step === 1 ? !discoverySource : !validCity)} />
             {step === 1 ? <TextLink label="Sign out" tone="muted" onPress={() => { void run('exit', async (current) => { await signOut(); if (current()) router.replace('/'); }); }} /> : null}
           </>
         )}
@@ -180,11 +186,11 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
       >
         <View style={styles.body}>
           <Bubble
-            question={step === 1 ? 'Where do you work?' : 'How did you hear about us?'}
-            hint={step === 1 ? 'We’ll show you shops near you first.' : 'Just so we know who to thank.'}
+            question={step === 1 ? 'How did you hear about us?' : 'Where do you work?'}
+            hint={step === 1 ? 'Just so we know who to thank.' : 'We’ll show you shops near you first.'}
           />
           {offline ? <Banner tone="warn" body="Connect to the internet to save your answers." /> : null}
-          {step === 1 ? (
+          {step === 2 ? (
             <>
               <View style={styles.cities} accessibilityLabel="Choose your work city">
                 {FIELD_AGENT_CITIES.map((place) => (
@@ -217,12 +223,12 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
                   <OptionRow key={source.value} title={source.label} icon={icons[source.value]} selected={discoverySource === source.value} onPress={() => { if (!disabled) { setDiscoverySource(source.value); setError(null); } }} disabled={disabled} />
                 ))}
               </View>
-              {account.referredByCode ? (
+              {attachedReferralCode ? (
                 <View style={styles.referral}>
                   <Ionicons name="gift-outline" size={24} color={colors.ink3} />
                   <View style={styles.locationText}>
                     <Text variant="label" tone="muted" weight="medium">Who sent you?</Text>
-                    <Text variant="label">{[account.referredByName, account.referredByCode].filter(Boolean).join(' · ')}</Text>
+                    <Text variant="label">{[account.referredByName, attachedReferralCode].filter(Boolean).join(' · ')}</Text>
                   </View>
                 </View>
               ) : (

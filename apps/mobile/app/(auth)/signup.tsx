@@ -56,7 +56,6 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [referredByCode, setReferredByCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -67,7 +66,7 @@ export default function SignupScreen() {
   const [error, setError] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const profile = normalizeSignupProfile({ accountType, firstName, lastName, phone, handle, referredByCode });
+  const profile = normalizeSignupProfile({ accountType, firstName, lastName, phone, handle });
 
   // Per-field validation errors (shown inline under each input)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -553,24 +552,6 @@ export default function SignupScreen() {
             error={fieldErrors.confirmPassword}
           />
         </View>
-
-        {accountType === 'creator' ? (
-          <View style={styles.section}>
-            <SectionLabel>Referral</SectionLabel>
-            <Field
-              label="Referral code"
-              icon="gift-outline"
-              placeholder="Enter code"
-              value={referredByCode}
-              onChangeText={(text) => setReferredByCode(text.toUpperCase())}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              editable={!loading}
-              accessibilityLabel="Referral Code"
-              helper="Optional"
-            />
-          </View>
-        ) : null}
 
         <View style={styles.section}>
           <TermsCheck

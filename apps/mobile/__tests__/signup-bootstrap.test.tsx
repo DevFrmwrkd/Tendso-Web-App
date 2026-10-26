@@ -65,16 +65,16 @@ async function verifyEmail(screen: ReturnType<typeof render>) {
   await waitFor(() => expect(mockSetActive).toHaveBeenCalledWith({ session: identity.sessionId }));
 }
 
-it('email verification saves creator phone and affiliate referral before activating the session', async () => {
+it('email verification saves the creator phone without asking for a referral before onboarding', async () => {
   let profileAtActivation: Awaited<ReturnType<typeof loadPendingSignupProfile>> = null;
   mockSetActive.mockImplementation(async () => {
     profileAtActivation = await loadPendingSignupProfile(identity);
   });
   const screen = render(<SignupScreen />);
   fillEmailForm(screen);
-  fireEvent.changeText(screen.getByLabelText('Referral Code'), 'aff123');
+  expect(screen.queryByLabelText(/referral code/i)).toBeNull();
   await verifyEmail(screen);
-  expect(profileAtActivation).toMatchObject({ accountType: 'creator', phone: '09171234567', referredByCode: 'AFF123' });
+  expect(profileAtActivation).toMatchObject({ accountType: 'creator', phone: '09171234567', referredByCode: '' });
 });
 
 it('email affiliate signup persists the lowercase handle and omits an incoming referral', async () => {
@@ -100,15 +100,15 @@ it('Google signup preserves the chosen affiliate profile without a pre-auth back
   expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'affiliate', firstName: 'Google Alex', handle: 'google-shop', phone: '09171234567' });
 });
 
-it('Apple signup keeps its one-time name and creator referral before activation', async () => {
+it('Apple signup keeps its one-time name without asking for a referral before onboarding', async () => {
   mockApple.mockResolvedValue({ createdSessionId: identity.sessionId, setActive: mockSetActive, isNewUser: true,
     firstName: 'Apple Alex', lastName: 'Cruz', email: identity.email, signUp: { createdUserId: identity.clerkId } });
   const screen = render(<SignupScreen />);
   fireEvent.changeText(screen.getByLabelText('Mobile Number'), '09171234567');
-  fireEvent.changeText(screen.getByLabelText('Referral Code'), 'aff123');
+  expect(screen.queryByLabelText(/referral code/i)).toBeNull();
   fireEvent.press(screen.getByLabelText('Accept Terms of Service'));
   await waitFor(() => expect(screen.UNSAFE_getByType('MockAppleButton')).toBeTruthy());
   fireEvent.press(screen.UNSAFE_getByType('MockAppleButton'));
   await waitFor(() => expect(mockSetActive).toHaveBeenCalled());
-  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'creator', firstName: 'Apple Alex', phone: '09171234567', referredByCode: 'AFF123' });
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'creator', firstName: 'Apple Alex', phone: '09171234567', referredByCode: '' });
 });

@@ -104,10 +104,13 @@ describe('field-agent onboarding access and progress', () => {
     it('requires authentication and infers the account from the caller instead of accepting a target id', async () => {
         const { t, id, agent } = await setup();
         await expect(t.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Marikina', source: 'city' })).rejects.toThrow('Not authenticated');
+        await expect(t.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend' })).rejects.toThrow('Not authenticated');
         await expect(t.mutation(api.fieldAgentOnboarding.complete, { discoverySource: 'friend' })).rejects.toThrow('Not authenticated');
+        await expect(t.withIdentity({ subject: 'owner' }).mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend' })).rejects.toThrow('Field-agent account');
         await expect(t.withIdentity({ subject: 'owner' }).mutation(api.fieldAgentOnboarding.complete, { discoverySource: 'friend' })).rejects.toThrow('Field-agent account');
         const otherId = await insertAgent(t, 'other');
         await expect(agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Pasig', source: 'city', creatorId: otherId } as never)).rejects.toThrow();
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend', creatorId: otherId } as never)).rejects.toThrow();
         expect((await t.run((ctx) => ctx.db.get(id)))?.workCity).toBeUndefined();
         expect((await t.run((ctx) => ctx.db.get(otherId)))?.workCity).toBeUndefined();
     });
@@ -119,10 +122,11 @@ describe('field-agent onboarding access and progress', () => {
         { role: 'creator', status: 'suspended' },
         { role: 'creator', status: 'deleted' },
         { role: 'creator', status: 'active', isDeleted: true },
-    ])('rejects both mutations for %j', async (fields) => {
+    ])('rejects all onboarding mutations for %j', async (fields) => {
         const { t, id, agent } = await setup();
         await t.run((ctx) => ctx.db.patch(id, { ...fields, workCity: 'Pasig' }));
         await expect(agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Pasig', source: 'city' })).rejects.toThrow();
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend' })).rejects.toThrow();
         await expect(agent.mutation(api.fieldAgentOnboarding.complete, { discoverySource: 'friend' })).rejects.toThrow();
         expect((await t.run((ctx) => ctx.db.get(id)))?.discoverySource).toBeUndefined();
     });
@@ -154,6 +158,159 @@ describe('field-agent onboarding access and progress', () => {
         expect(await t.withIdentity({ subject: 'legacy' }).mutation(api.creators.create, { clerkId: 'legacy', referralCode: 'LEGACY' })).toBe(oldId);
         expect(await t.run((ctx) => ctx.db.get(oldId))).toMatchObject({ certifiedAt: 123 });
         expect((await t.run((ctx) => ctx.db.get(oldId)))?.fieldAgentOnboardingRequired).toBeUndefined();
+    });
+});
+
+describe('discovery-first field-agent onboarding', () => {
+    it('saves discovery and an affiliate referral before the city, with idempotent retries and no early completion', async () => {
+        const { t, id, agent } = await setup();
+        const affiliateId = await insertAgent(t, 'affiliate', { role: 'affiliate', referralCode: 'MIKA30' });
+        expect(await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'friend', referredByCode: ' mika30 ',
+        })).toEqual({ saved: true });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
+            discoverySource: 'friend', referredBy: affiliateId, referredByCode: 'MIKA30',
+            recruitedByCreatorId: affiliateId, recruitedAt: NOW, fieldAgentOnboardingRequired: true,
+        });
+        const row = await t.run((ctx) => ctx.db.get(id));
+        expect(row?.workCity).toBeUndefined();
+        expect(row?.fieldAgentOnboardingCompletedAt).toBeUndefined();
+        vi.setSystemTime(NOW + 1000);
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend', referredByCode: 'MIKA30' });
+        await t.mutation(internal.referrals.createFromSignup, { referrerId: affiliateId, referredId: id, referralCode: 'MIKA30' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.recruitedAt).toBe(NOW);
+        expect(await t.run((ctx) => ctx.db.query('referrals').collect())).toEqual([]);
+        expect(await t.run((ctx) => ctx.db.query('earnings').collect())).toEqual([]);
+    });
+
+    it('resumes saved discovery and completes when the city is saved, retaining the server completion time on retry', async () => {
+        const { t, id, agent } = await setup();
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'tiktok' });
+        const resumed = t.withIdentity({ subject: 'agent' });
+        expect(await resumed.query(api.creators.getByClerkId, { clerkId: 'agent' })).toMatchObject({
+            discoverySource: 'tiktok', fieldAgentOnboardingRequired: true,
+        });
+        vi.setSystemTime(NOW + 1000);
+        const city = FIELD_AGENT_CITIES.find((item) => item.name === 'Baguio')!;
+        expect(await resumed.mutation(api.fieldAgentOnboarding.saveWorkArea, {
+            city: 'baguio', latitude: 1, longitude: 2, source: 'city', finish: true,
+        })).toEqual({ city: city.name, latitude: city.latitude, longitude: city.longitude, source: 'city' });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
+            workCity: 'Baguio', discoverySource: 'tiktok', fieldAgentOnboardingRequired: false,
+            fieldAgentOnboardingCompletedAt: NOW + 1000, status: 'active',
+        });
+        vi.setSystemTime(NOW + 2000);
+        await resumed.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Baguio', source: 'city', finish: true });
+        const row = await t.run((ctx) => ctx.db.get(id));
+        expect(row?.fieldAgentOnboardingCompletedAt).toBe(NOW + 1000);
+        expect(row?.certifiedAt).toBeUndefined();
+        expect(row?.quizPassedAt).toBeUndefined();
+        expect(row?.balance).toBeUndefined();
+    });
+
+    it('rejects completing at the city step before discovery without saving a partial work area', async () => {
+        const { t, id, agent } = await setup();
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveWorkArea, {
+            city: 'Marikina', source: 'city', finish: true,
+        })).rejects.toThrow('Save how you heard about us');
+        const row = await t.run((ctx) => ctx.db.get(id));
+        expect(row?.workCity).toBeUndefined();
+        expect(row?.workLatitude).toBeUndefined();
+        expect(row?.fieldAgentOnboardingRequired).toBe(true);
+        expect(row?.fieldAgentOnboardingCompletedAt).toBeUndefined();
+    });
+
+    it('rejects an invalid source and rolls back discovery when the referral is invalid', async () => {
+        const { t, id, agent } = await setup();
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'unknown' } as never)).rejects.toThrow();
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'friend', referredByCode: 'MISSING',
+        })).rejects.toThrow('Invalid referral code');
+        let row = await t.run((ctx) => ctx.db.get(id));
+        expect(row?.discoverySource).toBeUndefined();
+        expect(row?.referredBy).toBeUndefined();
+        expect(row?.fieldAgentOnboardingCompletedAt).toBeUndefined();
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'facebook' });
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'friend', referredByCode: 'MISSING',
+        })).rejects.toThrow('Invalid referral code');
+        row = await t.run((ctx) => ctx.db.get(id));
+        expect(row?.discoverySource).toBe('facebook');
+        expect(await t.run((ctx) => ctx.db.query('referrals').collect())).toEqual([]);
+    });
+
+    it('records a field-agent referral once, keeps existing attribution on source edits, and refuses replacement', async () => {
+        const { t, id, agent } = await setup();
+        const referrerId = await insertAgent(t, 'referrer', { firstName: 'Joy', referralCode: 'JOY' });
+        await insertAgent(t, 'other', { referralCode: 'OTHER' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend', referredByCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'facebook', referredByCode: 'joy' });
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'tiktok', referredByCode: 'OTHER',
+        })).rejects.toThrow('already been recorded');
+        expect(await t.run((ctx) => ctx.db.query('referrals').collect())).toEqual([
+            expect.objectContaining({ referrerId, referredId: id, referralCode: 'JOY', createdAt: NOW }),
+        ]);
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ discoverySource: 'facebook', referredByCode: 'JOY' });
+    });
+
+    it('keeps discovery and referral immutable after completion while accepting matching-code and blank retries', async () => {
+        const { t, id, agent } = await setup();
+        await insertAgent(t, 'referrer', { referralCode: 'JOY' });
+        await insertAgent(t, 'other', { referralCode: 'OTHER' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend', referredByCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Pasig', source: 'city', finish: true });
+        vi.setSystemTime(NOW + 1000);
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'facebook', referredByCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'tiktok' });
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'job_post', referredByCode: 'OTHER',
+        })).rejects.toThrow('already been recorded');
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
+            discoverySource: 'friend', referredByCode: 'JOY', fieldAgentOnboardingCompletedAt: NOW,
+        });
+        expect(await t.run((ctx) => ctx.db.query('referrals').collect())).toHaveLength(1);
+    });
+
+    it('refuses a newly supplied referral after completion without changing the saved source', async () => {
+        const { t, id, agent } = await setup();
+        await insertAgent(t, 'referrer', { referralCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'facebook' });
+        await agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Pasig', source: 'city', finish: true });
+        await expect(agent.mutation(api.fieldAgentOnboarding.saveDiscovery, {
+            discoverySource: 'friend', referredByCode: 'JOY',
+        })).rejects.toThrow('Onboarding is already complete');
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ discoverySource: 'facebook' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.referredBy).toBeUndefined();
+    });
+
+    it('resumes a city saved by an older client, then accepts discovery and the new final city save', async () => {
+        const { t, id, agent } = await setup();
+        await agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Antipolo', source: 'city' });
+        const resumed = t.withIdentity({ subject: 'agent' });
+        await resumed.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'shop_website' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.fieldAgentOnboardingRequired).toBe(true);
+        await resumed.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Antipolo', source: 'city', finish: true });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
+            workCity: 'Antipolo', discoverySource: 'shop_website', fieldAgentOnboardingRequired: false,
+        });
+    });
+
+    it('allows an older client to finish discovery-first progress through the original complete endpoint without duplicating attribution', async () => {
+        const { t, id, agent } = await setup();
+        await insertAgent(t, 'referrer', { referralCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveDiscovery, { discoverySource: 'friend', referredByCode: 'JOY' });
+        await agent.mutation(api.fieldAgentOnboarding.saveWorkArea, { city: 'Manila', source: 'city' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.fieldAgentOnboardingCompletedAt).toBeUndefined();
+        const resumed = t.withIdentity({ subject: 'agent' });
+        expect(await resumed.mutation(api.fieldAgentOnboarding.complete, {
+            discoverySource: 'friend', referredByCode: 'JOY',
+        })).toEqual({ completed: true });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
+            workCity: 'Manila', discoverySource: 'friend', fieldAgentOnboardingRequired: false,
+            fieldAgentOnboardingCompletedAt: NOW,
+        });
+        expect(await t.run((ctx) => ctx.db.query('referrals').collect())).toHaveLength(1);
     });
 });
 

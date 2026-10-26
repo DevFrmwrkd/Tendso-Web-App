@@ -60,12 +60,13 @@ export default function CompleteProfileScreen() {
   }
   if (!creator) return <Redirect href="/(app)/account-setup" />;
   if (!isCreatorAccount(creator)) return <Redirect href={signupAccountHome(creator.role)} />;
+  const showReferral = !creator.fieldAgentOnboardingCompletedAt && !creator.referredByCode && !creator.recruitedByCreatorId;
 
   const save = async () => {
     const first = firstName.trim();
     const last = lastName.trim();
     const rawPhone = phone.replace(/\s/g, '');
-    const code = referral.trim();
+    const code = showReferral ? referral.trim() : '';
 
     if (!first) {
       setError('Please enter your first name.');
@@ -158,7 +159,7 @@ export default function CompleteProfileScreen() {
             editable={!saving}
             accessibilityLabel="Phone number"
           />
-          <Field
+          {showReferral ? <Field
             label="Referral code (optional)"
             icon="gift-outline"
             placeholder="If you have one"
@@ -168,7 +169,7 @@ export default function CompleteProfileScreen() {
             autoCorrect={false}
             editable={!saving}
             accessibilityLabel="Referral code"
-          />
+          /> : null}
           <Field
             label="Email"
             icon="lock-closed-outline"

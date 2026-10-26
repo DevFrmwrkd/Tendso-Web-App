@@ -5,8 +5,13 @@ import type { MutationCtx } from './_generated/server';
 import { requireAuth } from './lib/auth';
 import { attachRecruit } from './lib/creatorRecruits';
 import { isCreatorAccount } from '../lib/accounts';
-import { normalizeWorkArea, normalizeWorkCity } from '../lib/fieldAgentOnboarding';
+import { FIELD_AGENT_DISCOVERY_SOURCES, normalizeWorkArea, normalizeWorkCity } from '../lib/fieldAgentOnboarding';
 import { earnsCreatorOverride } from '../lib/pricing';
+
+const discoverySourceValidator = v.union(
+    v.literal('friend'), v.literal('facebook'), v.literal('tiktok'),
+    v.literal('shop_website'), v.literal('job_post'),
+);
 
 async function requireFieldAgent(ctx: MutationCtx): Promise<Doc<'creators'>> {
     const identity = await requireAuth(ctx);
@@ -25,22 +30,31 @@ export const saveWorkArea = mutation({
         latitude: v.optional(v.number()),
         longitude: v.optional(v.number()),
         source: v.union(v.literal('city'), v.literal('device')),
+        // Older clients save the city before discovery and call complete separately.
+        finish: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const agent = await requireFieldAgent(ctx);
         const area = normalizeWorkArea(args);
+        if (args.finish && !FIELD_AGENT_DISCOVERY_SOURCES.some((source) => source === agent.discoverySource)) {
+            throw new Error('Save how you heard about us before continuing');
+        }
         await ctx.db.patch(agent._id, {
             workCity: area.city,
             workLatitude: area.latitude,
             workLongitude: area.longitude,
             workLocationSource: area.source,
+            ...(args.finish ? {
+                fieldAgentOnboardingRequired: false,
+                fieldAgentOnboardingCompletedAt: agent.fieldAgentOnboardingCompletedAt ?? Date.now(),
+            } : {}),
         });
         return area;
     },
 });
 
 /**
- * Apply only a previously unclaimed referral, in the same transaction as completion.
+ * Apply only a previously unclaimed referral, in the same transaction as discovery or completion.
  * Existing signup/link attribution always wins. No money is awarded by onboarding.
  */
 async function applyOnboardingReferral(ctx: MutationCtx, agent: Doc<'creators'>, rawCode?: string) {
@@ -92,12 +106,26 @@ async function applyOnboardingReferral(ctx: MutationCtx, agent: Doc<'creators'>,
     }
 }
 
+/** Persist the first step without requiring a city or completing onboarding. */
+export const saveDiscovery = mutation({
+    args: {
+        discoverySource: discoverySourceValidator,
+        referredByCode: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const agent = await requireFieldAgent(ctx);
+        await applyOnboardingReferral(ctx, agent, args.referredByCode);
+        // Completed answers and attribution remain fixed; matching-code retries are safe.
+        if (agent.fieldAgentOnboardingCompletedAt === undefined) {
+            await ctx.db.patch(agent._id, { discoverySource: args.discoverySource });
+        }
+        return { saved: true };
+    },
+});
+
 export const complete = mutation({
     args: {
-        discoverySource: v.union(
-            v.literal('friend'), v.literal('facebook'), v.literal('tiktok'),
-            v.literal('shop_website'), v.literal('job_post'),
-        ),
+        discoverySource: discoverySourceValidator,
         referredByCode: v.optional(v.string()),
     },
     handler: async (ctx, args) => {

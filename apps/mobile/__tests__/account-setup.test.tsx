@@ -16,7 +16,9 @@ jest.mock('@tendso/convex-client', () => ({ api: {
 let mockAuthenticated = false;
 let mockJwtSubject = 'user_alex';
 let mockIsOwner = false;
-let mockAccount: null | { _id: string; role?: string } = null;
+let mockAccount: null | {
+  _id: string; role?: string; fieldAgentOnboardingCompletedAt?: number; referredByCode?: string; recruitedByCreatorId?: string;
+} = null;
 const mockCreateCreator = jest.fn();
 const mockCreateAffiliate = jest.fn();
 const mockUpdate = jest.fn();
@@ -63,7 +65,7 @@ beforeEach(async () => {
   mockCreateAffiliate.mockResolvedValue('affiliate_alex');
 });
 
-it('waits for Convex authentication, then restores details without automatically creating an account', async () => {
+it('waits for Convex authentication and preserves a legacy referral without asking for it again', async () => {
   await savePendingSignupProfile(normalizeSignupProfile({ firstName: 'Pending Alex', phone: '09171234567', referredByCode: 'AFF123' }), mockIdentity);
   const screen = render(<AccountSetupScreen />);
   expect(mockQuery).toHaveBeenLastCalledWith('adminAccess:me', 'skip');
@@ -72,11 +74,23 @@ it('waits for Convex authentication, then restores details without automatically
   screen.rerender(<AccountSetupScreen />);
   await waitFor(() => expect(screen.getByLabelText('Name').props.value).toBe('Pending Alex'));
   expect(screen.getByLabelText('Mobile number').props.value).toBe('09171234567');
-  expect(screen.getByLabelText('Referral code').props.value).toBe('AFF123');
+  expect(screen.queryByLabelText(/referral code/i)).toBeNull();
   expect(mockCreateCreator).not.toHaveBeenCalled();
   fireEvent.press(screen.getByLabelText('Create field agent account'));
   await waitFor(() => expect(mockCreateCreator).toHaveBeenCalledWith(expect.objectContaining({
     clerkId: mockIdentity.clerkId, phone: '09171234567', referredByCode: 'AFF123',
+  })));
+  expect(mockCreateAffiliate).not.toHaveBeenCalled();
+});
+
+it('creates a new field-agent account without collecting a referral before onboarding', async () => {
+  mockAuthenticated = true;
+  const screen = render(<AccountSetupScreen />);
+  await waitFor(() => expect(screen.getByLabelText('Create field agent account')).toBeTruthy());
+  expect(screen.queryByLabelText(/referral code/i)).toBeNull();
+  fireEvent.press(screen.getByLabelText('Create field agent account'));
+  await waitFor(() => expect(mockCreateCreator).toHaveBeenCalledWith(expect.objectContaining({
+    clerkId: mockIdentity.clerkId, firstName: 'Alex', referredByCode: undefined,
   })));
   expect(mockCreateAffiliate).not.toHaveBeenCalled();
 });
@@ -153,4 +167,25 @@ it('keeps an affiliate out of the creator profile and referral form', () => {
   expect(screen.queryByLabelText('Referral code')).toBeNull();
   expect(mockReferral).not.toHaveBeenCalled();
   expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it.each([
+  { fieldAgentOnboardingCompletedAt: 123 },
+  { referredByCode: 'AFF123' },
+  { recruitedByCreatorId: 'creator_referrer' },
+])('does not ask for a referral again when completing an existing profile with %j', (referralState) => {
+  mockAuthenticated = true;
+  mockAccount = { _id: 'creator_alex', role: 'creator', ...referralState };
+  const screen = render(<CompleteProfileScreen />);
+  expect(screen.getByLabelText('First name')).toBeTruthy();
+  expect(screen.queryByLabelText(/referral code/i)).toBeNull();
+  expect(mockReferral).not.toHaveBeenCalled();
+});
+
+it('retains optional referral entry for a legacy field agent who has not completed the new questions', () => {
+  mockAuthenticated = true;
+  mockAccount = { _id: 'legacy_creator', role: 'creator' };
+  const screen = render(<CompleteProfileScreen />);
+  expect(screen.getByLabelText('Referral code')).toBeTruthy();
+  expect(mockReferral).not.toHaveBeenCalled();
 });

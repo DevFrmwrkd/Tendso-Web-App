@@ -152,9 +152,7 @@ export default function AccountSetupScreen() {
           onChangeText={(value: string) => change('handle', value.toLowerCase())} autoCapitalize="none" autoCorrect={false}
           editable={!saving} error={fieldErrors.handle}
           helper={`tendso.com/a/${profile.handle || 'your-page'} after approval. Lowercase letters, numbers, hyphens.`} />
-        : <Field label="Referral code (optional)" accessibilityLabel="Referral code" icon="gift-outline" value={profile.referredByCode}
-          onChangeText={(value: string) => change('referredByCode', value.toUpperCase())} autoCapitalize="characters"
-          autoCorrect={false} editable={!saving} />}
+        : null}
       </View>
       <Text variant="label" tone="muted" style={styles.note}>To use both, sign up with different emails.</Text>
       {error ? <Banner tone="danger" body={error} style={styles.note} /> : null}
