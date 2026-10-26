@@ -4,23 +4,23 @@ import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
-import { TRAINING_LESSONS, readLessonsDone } from '../../lib/trainingLessons';
-import { colors, radius, space } from '../../theme/v2';
-import { Button, Card, CheckRow, ProgressBar, ScreenShell, Text, type CheckState } from '../../components/v2';
+import { TRAINING_LESSONS, readCompletedLessons } from '../../lib/trainingLessons';
+import { colors, radius, shadow, space } from '../../theme/v2';
+import { Button, Card, ListRow, ProgressBar, ScreenShell, Text } from '../../components/v2';
 
 const OVERVIEW_PHOTO = require('../../assets/training/overview.jpg'); // eslint-disable-line @typescript-eslint/no-require-imports
 
 export default function TrainingIntroScreen() {
   const router = useGuardedRouter();
   const { userId } = useAuth();
-  const [done, setDone] = useState(0);
+  const [completed, setCompleted] = useState<number[]>([]);
 
   // Re-read on every focus so the bar is right after coming back from a lesson.
   useFocusEffect(
     useCallback(() => {
       let live = true;
-      void readLessonsDone(userId).then((n) => {
-        if (live) setDone(n);
+      void readCompletedLessons(userId).then((ids) => {
+        if (live) setCompleted(ids);
       });
       return () => {
         live = false;
@@ -29,16 +29,18 @@ export default function TrainingIntroScreen() {
   );
 
   const total = TRAINING_LESSONS.length;
-  const finished = done >= total;
+  const done = completed.length;
+  const nextIndex = TRAINING_LESSONS.findIndex((lesson) => !completed.includes(lesson.id));
+  const finished = nextIndex === -1;
 
   const openLesson = (index: number) => {
     router.push({ pathname: '/(app)/training-lessons', params: { lesson: String(index) } } as any);
   };
 
-  const primaryTitle = done === 0 ? 'Start training' : finished ? 'Take the quiz' : `Continue lesson ${done + 1}`;
+  const primaryTitle = done === 0 ? 'Start training' : finished ? 'Take the quiz' : `Continue lesson ${nextIndex + 1}`;
   const onPrimary = () => {
     if (finished) router.push('/(app)/certification-quiz' as any);
-    else openLesson(done);
+    else openLesson(nextIndex);
   };
 
   return (
@@ -69,15 +71,24 @@ export default function TrainingIntroScreen() {
 
       <View style={styles.list}>
         {TRAINING_LESSONS.map((lesson, i) => {
-          const state: CheckState = i < done ? 'ok' : i === done && !finished ? 'now' : 'todo';
+          const isComplete = completed.includes(lesson.id);
+          const isNext = i === nextIndex;
+          const status = isComplete ? 'Completed' : isNext ? 'Next' : 'Not completed';
           return (
-            <CheckRow
+            <ListRow
               key={lesson.id}
               title={lesson.title}
-              subtitle={`${lesson.minutes} min${state === 'now' ? ' · next' : ''}`}
-              state={state}
+              titleNumberOfLines={2}
+              subtitle={`${lesson.minutes} min${isComplete ? ' · Completed' : isNext ? ' · Next' : ''}`}
+              leading={(
+                <View style={[styles.lessonNumber, isComplete ? styles.lessonDone : null]}>
+                  {isComplete ? <Ionicons name="checkmark" size={22} color={colors.ink} /> : <Text variant="label" weight="bold">{lesson.id}</Text>}
+                </View>
+              )}
+              accessibilityLabel={`Lesson ${lesson.id}: ${lesson.title}, ${status.toLowerCase()}, ${lesson.minutes} minutes`}
+              accessibilityHint="Open lesson"
               onPress={() => openLesson(i)}
-              right={state === 'now' ? <Ionicons name="chevron-forward" size={22} color={colors.ink} /> : undefined}
+              style={[styles.lessonRow, isNext ? styles.nextLesson : null]}
             />
           );
         })}
@@ -94,4 +105,8 @@ const styles = StyleSheet.create({
   heroBody: { padding: space.lg, gap: space.sm },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   list: { gap: space.sm, marginTop: space.lg },
+  lessonRow: { backgroundColor: colors.card, paddingHorizontal: space.md, borderWidth: 2, borderColor: 'transparent', ...shadow.soft },
+  nextLesson: { borderColor: colors.ink },
+  lessonNumber: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg2 },
+  lessonDone: { backgroundColor: colors.accent },
 });

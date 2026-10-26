@@ -197,6 +197,9 @@
 
   // ======================= 2 · LEARN =======================
   function lessons() {
+    const lessonRow = (id, title, minutes, done = false, next = false) => `<div class="cc-card cc-row2" style="padding:12px;border:2px solid ${next ? 'var(--a-ink)' : 'transparent'}">
+      <span style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;background:${done ? 'var(--a-accent)' : '#EFEFEA'};font-weight:700">${done ? ic('check', 22) : id}</span>
+      <span class="cc-grow"><span class="cc-t">${title}</span><span class="cc-sm" style="display:block">${minutes} min${done ? ' · Completed' : next ? ' · Next' : ''}</span></span>${ic('chevron-right', 18)}</div>`;
     return app(`<div class="cc-main" style="gap:16px">
         <div class="cc-row2" style="height:44px">${back()}<span class="cc-t" style="font-size:17px">Training</span></div>
         <div class="cc-card" style="padding:0;overflow:hidden">
@@ -208,11 +211,11 @@
           </div>
         </div>
         <div class="cc-col" style="gap:8px">
-          ${chk('Light the shop', '3 min', 'is-done')}
-          ${chk('Clear audio', '2 min', 'is-done')}
-          ${chk('Photos that sell', '4 min', 'is-done')}
-          ${chk('Get the owner talking', '3 min · next', 'is-now', ic('chevron-right', 18))}
-          ${chk('The shots we need', '3 min')}
+          ${lessonRow(1, 'Light the shop', 3, true)}
+          ${lessonRow(2, 'Clear audio', 2, true)}
+          ${lessonRow(3, 'Photos that sell', 4, true)}
+          ${lessonRow(4, 'Get the owner talking', 3, false, true)}
+          ${lessonRow(5, 'The shots we need', 3)}
         </div>
       </div>
       <div class="cc-foot">${door('Continue lesson 4')}</div>`);
@@ -466,8 +469,8 @@
       ['1.6', P + 'verification-rejected.tsx', 'Kind and specific: what to fix, then one accent action to resend.', rejected],
     ] },
     { n: '02', title: 'Learn', note: 'Five lessons, then the quiz', steps: [
-      ['2.1', P + 'training.tsx + training-lessons.tsx', 'Lessons as a checklist with progress, 3 of 5 done. The next lesson is outlined.', lessons],
-      ['2.2', P + 'training-lessons.tsx · open', 'One short lesson: a photo, one line, four tips.', lesson],
+      ['2.1', P + 'training.tsx + training-lessons.tsx', 'Open any lesson. Numbers show unfinished lessons; checks show completed ones. Continue opens the first unfinished lesson.', lessons],
+      ['2.2', P + 'training-lessons.tsx · open', 'Back returns to Training. Got it completes only this lesson and advances. The quiz follows all five completed lessons.', lesson],
       ['2.3', P + 'certification-quiz.tsx', 'Tendso asks one question; answer B is picked. Pass with 4 of 5.', quiz],
     ] },
     { n: '03', title: 'Find shops', note: 'The map and the finds feed are home', steps: [

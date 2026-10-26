@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
-import { TRAINING_LESSONS, saveLessonsDone } from '../../lib/trainingLessons';
+import { TRAINING_LESSONS, markLessonDone, readCompletedLessons } from '../../lib/trainingLessons';
 import { radius, space } from '../../theme/v2';
 import { Button, CheckRow, ScreenShell, SectionLabel, Text } from '../../components/v2';
 
@@ -15,21 +15,46 @@ export default function TrainingLessonsScreen() {
   const last = TRAINING_LESSONS.length - 1;
   const parsed = parseInt(String(lesson ?? '0'), 10);
   const [index, setIndex] = useState(Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), last) : 0);
+  const [saving, setSaving] = useState(false);
+  const inFlight = useRef(false);
+  const active = useRef(true);
+
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
 
   const current = TRAINING_LESSONS[index];
   const isLast = index === last;
 
   const handleBack = () => {
-    if (index > 0) setIndex(index - 1);
-    else router.back();
+    active.current = false;
+    // Pop to the existing overview, or replace a directly opened lesson when
+    // there is no overview in history. Next never adds lesson history entries.
+    router.dismissTo('/(app)/training');
   };
 
   const handleNext = async () => {
-    await saveLessonsDone(userId, index + 1);
-    if (isLast) {
-      router.push('/(app)/certification-quiz' as any);
-    } else {
-      setIndex(index + 1);
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setSaving(true);
+    try {
+      await markLessonDone(userId, current.id);
+      if (!active.current) return;
+      if (isLast) {
+        const completed = await readCompletedLessons(userId);
+        if (!active.current) return;
+        if (TRAINING_LESSONS.every((lesson) => completed.includes(lesson.id))) {
+          router.replace('/(app)/certification-quiz');
+        } else {
+          handleBack();
+        }
+      } else {
+        setIndex(index + 1);
+      }
+    } finally {
+      inFlight.current = false;
+      if (active.current) setSaving(false);
     }
   };
 
@@ -39,7 +64,7 @@ export default function TrainingLessonsScreen() {
       key={current.id}
       onBack={handleBack}
       progress={(index + 1) / TRAINING_LESSONS.length}
-      footer={<Button title={isLast ? 'Start the quiz' : 'Got it · next lesson'} onPress={handleNext} />}
+      footer={<Button title={isLast ? 'Got it · finish lesson' : 'Got it · next lesson'} onPress={handleNext} loading={saving} disabled={saving} />}
       contentStyle={styles.body}
     >
       <Image source={current.photo} style={styles.photo} resizeMode="cover" accessibilityIgnoresInvertColors />

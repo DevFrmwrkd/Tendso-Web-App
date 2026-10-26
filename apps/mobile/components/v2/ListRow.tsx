@@ -6,6 +6,8 @@ import { Text } from './Text';
 
 export interface ListRowProps {
   title: string;
+  /** Allow longer titles to wrap in lists such as training lessons. */
+  titleNumberOfLines?: number;
   subtitle?: string;
   /** Ionicons glyph shown in a tinted 48pt circle. Ignored when `leading` is passed. */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
@@ -24,6 +26,7 @@ export interface ListRowProps {
 /** One list row: leading, title (+ one line), trailing. >= 64pt tall. At most ~4 per screen. */
 export function ListRow({
   title,
+  titleNumberOfLines = 1,
   subtitle,
   icon,
   leading,
@@ -42,7 +45,7 @@ export function ListRow({
         </View>
       ) : null)}
       <View style={styles.text}>
-        <Text variant="bodyLg" weight="semibold" numberOfLines={1}>
+        <Text variant="bodyLg" weight="semibold" numberOfLines={titleNumberOfLines}>
           {title}
         </Text>
         {subtitle ? (

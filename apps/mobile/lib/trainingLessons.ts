@@ -95,24 +95,87 @@ export const TRAINING_LESSONS: TrainingLesson[] = [
 ];
 
 const progressKey = (userId?: string | null) => `tendso.training.lessonsDone.${userId ?? 'anon'}`;
+const completedLessonsKey = (userId?: string | null) => `tendso.training.completedLessonIds.${userId ?? 'anon'}`;
+const progressWrites = new Map<string, Promise<void>>();
 
-/** How many lessons this person has finished (0 to 5). Never throws. */
-export async function readLessonsDone(userId?: string | null): Promise<number> {
+function validLessonId(id: unknown): id is number {
+  return typeof id === 'number' && Number.isInteger(id) && TRAINING_LESSONS.some((lesson) => lesson.id === id);
+}
+
+function legacyCount(raw: string | null): number {
+  const count = raw ? Number(raw) : 0;
+  return Number.isFinite(count) ? Math.min(Math.max(Math.floor(count), 0), TRAINING_LESSONS.length) : 0;
+}
+
+function parseCompletedLessons(raw: string | null): number[] {
   try {
-    const raw = await AsyncStorage.getItem(progressKey(userId));
-    const n = raw ? parseInt(raw, 10) : 0;
-    return Number.isFinite(n) ? Math.min(Math.max(n, 0), TRAINING_LESSONS.length) : 0;
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(validLessonId) : [];
   } catch {
-    return 0;
+    return [];
   }
 }
 
-/** Remember that `count` lessons are finished. Only ever moves forward. */
-export async function saveLessonsDone(userId: string | null | undefined, count: number): Promise<void> {
+async function readStoredProgress(userId?: string | null): Promise<{ completed: number[]; legacy: number }> {
+  const [savedIds, savedCount] = await Promise.all([
+    AsyncStorage.getItem(completedLessonsKey(userId)),
+    AsyncStorage.getItem(progressKey(userId)),
+  ]);
+  const legacy = legacyCount(savedCount);
+  const completed = new Set(parseCompletedLessons(savedIds));
+  for (let index = 0; index < legacy; index += 1) completed.add(TRAINING_LESSONS[index].id);
+  return { completed: [...completed].sort((a, b) => a - b), legacy };
+}
+
+/** Serialize read/merge/write operations so simultaneous completions cannot erase each other. */
+async function updateProgress(userId: string | null | undefined, update: () => Promise<void>): Promise<void> {
+  const key = completedLessonsKey(userId);
+  const previous = progressWrites.get(key) ?? Promise.resolve();
+  const write = previous.then(update).catch(() => {
+    // Progress is a convenience. Storage failure must not block the lesson screen.
+  });
+  progressWrites.set(key, write);
+  await write;
+  if (progressWrites.get(key) === write) progressWrites.delete(key);
+}
+
+/** Completed lesson IDs, including the first N lessons saved by older app versions. Never throws. */
+export async function readCompletedLessons(userId?: string | null): Promise<number[]> {
   try {
-    const current = await readLessonsDone(userId);
-    if (count > current) await AsyncStorage.setItem(progressKey(userId), String(count));
+    await progressWrites.get(completedLessonsKey(userId));
+    return (await readStoredProgress(userId)).completed;
   } catch {
-    // Progress is a convenience. Losing it only means the bar starts again.
+    return [];
   }
+}
+
+/** Finish just this lesson. Opening a later lesson must not complete the lessons before it. */
+export async function markLessonDone(userId: string | null | undefined, lessonId: number): Promise<void> {
+  if (!validLessonId(lessonId)) return;
+  await updateProgress(userId, async () => {
+    const { completed } = await readStoredProgress(userId);
+    if (completed.includes(lessonId)) return;
+    completed.push(lessonId);
+    await AsyncStorage.setItem(completedLessonsKey(userId), JSON.stringify(completed.sort((a, b) => a - b)));
+  });
+}
+
+/** How many individual lessons this person has finished (0 to 5). Never throws. */
+export async function readLessonsDone(userId?: string | null): Promise<number> {
+  return (await readCompletedLessons(userId)).length;
+}
+
+/** Compatibility for older callers: add the first `count` lessons without resetting other progress. */
+export async function saveLessonsDone(userId: string | null | undefined, count: number): Promise<void> {
+  if (!Number.isFinite(count) || count < 1) return;
+  const boundedCount = Math.min(Math.floor(count), TRAINING_LESSONS.length);
+  await updateProgress(userId, async () => {
+    const { completed, legacy } = await readStoredProgress(userId);
+    const merged = new Set(completed);
+    for (let index = 0; index < boundedCount; index += 1) merged.add(TRAINING_LESSONS[index].id);
+    if (merged.size > completed.length) {
+      await AsyncStorage.setItem(completedLessonsKey(userId), JSON.stringify([...merged].sort((a, b) => a - b)));
+    }
+    if (boundedCount > legacy) await AsyncStorage.setItem(progressKey(userId), String(boundedCount));
+  });
 }
