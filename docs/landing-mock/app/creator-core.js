@@ -118,7 +118,7 @@
 
   function qCity() {
     const cities = ['Marikina', 'Quezon City', 'Pasig', 'Manila', 'Antipolo', 'Makati', 'Taguig', 'Cebu City', 'Davao', 'Iloilo', 'Baguio'];
-    return app(`<div class="cc-main">${step(1, 3)}
+    return app(`<div class="cc-main">${step(1, 2)}
         <div style="padding-top:6px">${bubble('Where do you work?', 'We’ll show you shops near you first.')}</div>
         <div class="cc-chips" style="padding-top:4px">${cities.map((c) => `<span class="cc-chip ${c === 'Marikina' ? 'is-on' : ''}">${c === 'Marikina' ? `<i class="cc-chk">${ic('check', 12)}</i>` : ''}${c}</span>`).join('')}
           <span class="cc-chip cc-chip--ghost">${ic('plus', 16)}Other city</span></div>
@@ -135,7 +135,7 @@
       ['globe', 'A shop’s Tendso site'],
       ['briefcase', 'A job post'],
     ];
-    return app(`<div class="cc-main">${step(2, 3)}
+    return app(`<div class="cc-main">${step(2, 2)}
         <div style="padding-top:6px">${bubble('How did you hear about us?', 'Just so we know who to thank.')}</div>
         <div class="cc-col" style="gap:10px">${opts.map(([i, t, on]) => `<div class="a-opt ${on ? 'is-on' : ''}"><span class="cc-ic">${ic(i, 20)}</span><span class="cc-grow">${t}</span>${on ? tick() : ''}</div>`).join('')}</div>
         ${fld('Who sent you? (optional)', 'Joy Dizon · JOYD4K2', { icon: 'gift' })}
@@ -459,8 +459,8 @@
   const ROWS = [
     { n: '01', title: 'Join', note: 'Choose, two questions, profile, review', steps: [
       ['1.1', P + 'account-setup.tsx', 'Welcome choice. The field-agent pill is the creator account type; the business path goes to the owner app.', welcome],
-      ['1.2', NEW, 'One question per screen. City chips decide which shops the map shows first.', qCity],
-      ['1.3', NEW, 'How they heard about us; a referral code rides along (was a field in account-setup).', qHeard],
+      ['1.2', P + 'agent-onboarding.tsx · city', 'Step 1 of 2. City chips or optional GPS set the work area the map shows first. Saved for new field agents.', qCity],
+      ['1.3', P + 'agent-onboarding.tsx · discovery', 'Step 2 of 2. Save how they heard about Tendso and keep their existing referral, or validate an optional new code.', qHeard],
       ['1.4', P + 'complete-profile.tsx', 'Photo, name, mobile and the Wise email we pay to. Step 3 of 3.', profile],
       ['1.5', P + 'pending-review.tsx', 'A person checks every new agent within 24 hours. Sign out is the only exit.', pending],
       ['1.6', P + 'verification-rejected.tsx', 'Kind and specific: what to fix, then one accent action to resend.', rejected],
