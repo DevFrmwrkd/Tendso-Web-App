@@ -118,7 +118,7 @@
 .cc-s .a-check.is-now { box-shadow: 0 0 0 2px var(--a-ink), var(--a-shadow); }
 .cc-s .a-check.is-now i.c { border-color: var(--a-ink); }
 .cc-s .a-check.is-now i.c::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--a-ink); }
-.cc-s .a-check.cc-ok i.c { background: var(--a-accent); border-color: var(--a-ink); }
+.cc-s .a-check.cc-ok i.c { background: var(--a-accent); border-color: var(--a-accent); }
 .cc-s .a-check.is-bad i.c { background: var(--a-danger); border-color: var(--a-danger); }
 .cc-s .a-check.is-bad i.c svg { color: #fff; }
 .cc-s .a-check small { display: block; font: 500 12px/16px var(--a-sans); color: var(--a-ink3); text-decoration: none; margin-top: 1px; }

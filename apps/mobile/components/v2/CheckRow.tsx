@@ -25,7 +25,7 @@ export function CheckRow({ title, subtitle, state = 'todo', right, onPress, styl
   const done = state === 'done' || state === 'ok';
   const body = (
     <>
-      <View style={[styles.circle, done ? styles.circleDone : null, state === 'now' ? styles.circleNow : null, state === 'bad' ? styles.circleBad : null]}>
+      <View style={[styles.circle, done ? styles.circleDone : null, state === 'ok' ? styles.circleOk : null, state === 'now' ? styles.circleNow : null, state === 'bad' ? styles.circleBad : null]}>
         {done ? <Ionicons name="checkmark" size={14} color={colors.onAccent} /> : null}
         {state === 'bad' ? <Ionicons name="close" size={14} color="#FFFFFF" /> : null}
         {state === 'now' ? <View style={styles.dot} /> : null}
@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   circleDone: { backgroundColor: colors.accent, borderColor: colors.ink },
+  circleOk: { borderColor: colors.accent },
   circleNow: { borderColor: colors.ink },
   circleBad: { backgroundColor: colors.danger, borderColor: colors.danger },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.ink },
