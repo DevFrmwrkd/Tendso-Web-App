@@ -7,7 +7,7 @@ import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Avatar, Button, Card, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { Button, Card, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
 const SUPPORT_EMAIL = 'support@negosyo-digital.com';
@@ -113,14 +113,17 @@ export default function VerificationRejectedScreen() {
   const phone = (creator as any)?.phone as string | undefined;
   const rejectedAt = (creator as any)?.rejectedAt as number | undefined;
   const rejectionReason = (creator as any)?.rejectionReason as string | undefined;
-  const profileImage = (creator as any)?.profileImage as string | undefined;
-  const photo = profileImage && /^https?:\/\//.test(profileImage) ? profileImage : user?.imageUrl;
   const fullName = [firstName, lastName].filter(Boolean).join(' ');
+  const feedback = rejectionReason || 'Your profile needs an update. Ask the team which details to change.';
+  const nextStep = creator?.quizPassedAt
+    ? 'Edit your details, then resubmit for review.'
+    : 'Edit your details, then finish certification to request review.';
+  const reviewed = rejectedAt ? `Reviewed ${timeAgo(rejectedAt)}.` : '';
 
   return (
     <ScreenShell
-      title={firstName ? `Almost there, ${firstName}` : 'Almost there'}
-      subtitle="We couldn't approve your profile yet."
+      title="Update your profile"
+      subtitle="Your profile wasn't approved. Review the feedback below."
       headerRight={
         <Pressable
           onPress={handleSignOut}
@@ -150,20 +153,24 @@ export default function VerificationRejectedScreen() {
         </>
       }
     >
-      <Card style={styles.reason}>
-        <View>
-          <Avatar uri={photo} name={fullName} size={64} />
-          <View style={styles.cross}>
-            <Ionicons name="close" size={16} color="#FFFFFF" />
+      <Card
+        style={styles.reason}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={['Action required.', feedback, nextStep, reviewed].filter(Boolean).join(' ')}
+      >
+        <View style={styles.reasonHeader}>
+          <View style={styles.reasonIcon}>
+            <Ionicons name="alert-circle-outline" size={26} color={colors.danger} />
+          </View>
+          <View style={styles.reasonText}>
+            <Text variant="bodyLg" weight="bold">Action required</Text>
+            {reviewed ? <Text variant="label" tone="ink2" weight="medium">{reviewed}</Text> : null}
           </View>
         </View>
-        <View style={styles.reasonText}>
-          <Text variant="body" weight="bold">{rejectionReason || 'No reason was given'}</Text>
-          <Text variant="label" tone="muted" weight="medium">
-            {rejectionReason ? '' : 'Ask the team for details. '}
-            {rejectedAt ? `Reviewed ${timeAgo(rejectedAt)}.` : ''}
-          </Text>
-        </View>
+        <Text variant="body" weight="semibold">{feedback}</Text>
+        <Text variant="label" tone="ink2" weight="medium">{nextStep}</Text>
       </Card>
       <View style={styles.checks}>
         {fullName ? (
@@ -218,18 +225,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.card,
   },
-  reason: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  reason: {
+    gap: space.md,
+    backgroundColor: colors.dangerBg,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  reasonHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   reasonText: { flex: 1, gap: space.xs },
-  cross: {
-    position: 'absolute',
-    right: -4,
-    bottom: -2,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.danger,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+  reasonIcon: {
+    width: hit.icon,
+    height: hit.icon,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
