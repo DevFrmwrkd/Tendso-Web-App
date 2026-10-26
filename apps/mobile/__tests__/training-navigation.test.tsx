@@ -18,7 +18,7 @@ const mockMarkLessonDone = jest.fn();
 // Expo's test asset transformer returns 1 for every JPG. Give these photos
 // distinct identities so a wrong lesson image or repeated example fails.
 jest.mock('../assets/training/overview.jpg', () => ({ uri: 'training-classroom', width: 1024, height: 688 }));
-jest.mock('../assets/training/lesson-1.jpg', () => ({ uri: 'lesson-lighting', width: 896, height: 1120 }));
+jest.mock('../assets/training/lesson-1-lighting-v1.jpg', () => ({ uri: 'lesson-good-lighting', width: 1402, height: 1122 }));
 jest.mock('../assets/training/lesson-2-recording-v1.jpg', () => ({ uri: 'lesson-audio-recording', width: 1402, height: 1122 }));
 jest.mock('../assets/training/lesson-4.jpg', () => ({ uri: 'lesson-interview', width: 1120, height: 896 }));
 jest.mock('../assets/training/forge-owner-portrait-v1.jpg', () => ({ uri: 'forge-portrait', width: 880, height: 1168 }));
@@ -91,7 +91,7 @@ describe('Training list', () => {
   it('opens each lesson directly as a button without recording completion', async () => {
     const screen = render(<TrainingScreen />);
     await waitFor(() => expect(mockReadCompleted).toHaveBeenCalledWith('agent_1'));
-    const titles = ['Light the shop', 'Clear audio', 'Photos that sell', 'Get the owner talking', 'The shots we need'];
+    const titles = ['Good lighting', 'Clear audio', 'Photos that sell', 'Get the owner talking', 'The shots we need'];
     for (const [index, title] of titles.entries()) {
       fireEvent.press(screen.getByRole('button', { name: new RegExp(title) }));
       expect(mockRouter.push).toHaveBeenLastCalledWith({
@@ -108,7 +108,7 @@ describe('Training list', () => {
     await waitFor(() => expect(screen.getByText('2 of 5')).toBeTruthy());
     expect(screen.getByRole('button', { name: /Clear audio, completed,/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /The shots we need, completed,/i })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /Light the shop, completed,/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Good lighting, completed,/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /Photos that sell, completed,/i })).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Continue lesson 1' }));
     expect(mockRouter.push).toHaveBeenCalledWith({
@@ -162,7 +162,7 @@ describe('Training lessons', () => {
         if (!lesson.examples) {
           fireEvent(photoFrame(image), 'layout', { nativeEvent: { layout: { width: 353, height: 190 } } });
           const style = StyleSheet.flatten(image.props.style);
-          const [hair, chin] = [[140, 450], [185, 475], [260, 600], [140, 340]][index];
+          const [hair, chin] = [[185, 550], [185, 475], [260, 600], [140, 340]][index];
           const sourceHeight = Image.resolveAssetSource(photo.photo).height;
           const scale = style.height / sourceHeight;
           expect(style.top + hair * scale).toBeGreaterThanOrEqual(0);
@@ -216,7 +216,7 @@ describe('Training lessons', () => {
     expect(mockMarkLessonDone).toHaveBeenCalledTimes(1);
     expect(mockMarkLessonDone).toHaveBeenCalledWith('agent_1', 2);
     expect(mockCompleted).toEqual([2]);
-    expect(screen.queryByText('Light the shop')).toBeNull();
+    expect(screen.queryByText('Good lighting')).toBeNull();
     fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(mockRouter.dismissTo).toHaveBeenCalledWith('/(app)/training');
     expect(mockMarkLessonDone).toHaveBeenCalledTimes(1);

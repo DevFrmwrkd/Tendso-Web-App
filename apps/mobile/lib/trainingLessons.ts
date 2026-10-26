@@ -38,18 +38,21 @@ export interface TrainingLesson {
 export const TRAINING_LESSONS: TrainingLesson[] = [
   {
     id: 1,
-    title: 'Light the shop',
+    title: 'Good lighting',
     minutes: 3,
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    photo: require('../assets/training/lesson-1.jpg'),
+    photo: require('../assets/training/lesson-1-lighting-v1.jpg'),
     cropPosition: { x: 0.5, y: 0.15 },
-    photoDescription: 'A shop owner and field agent beside a bright salon window.',
-    line: 'Turn the owner toward the light so their face is bright.',
+    photoDescription: 'A field agent photographs a salon owner facing a window, with soft daylight lighting the front of the owner’s face.',
+    line: 'Face the owner toward a window or open doorway so their face is clearly lit.',
     dos: [
-      { title: 'Face the light', text: 'Stand so the window or sun lights their face.' },
-      { title: 'Golden hour', text: 'Outdoors, early morning or late afternoon looks best.' },
+      { title: 'Face the window', text: 'Have the owner face the window. Stand between them and the light, slightly to one side.' },
+      { title: 'Check before recording', text: 'Record a short clip and check that you can see their face clearly.' },
     ],
-    donts: [{ title: 'Window behind them', text: 'They turn into a dark shadow.' }],
+    donts: [
+      { title: 'Bright light behind them', text: 'A bright window behind the owner can make their face look dark.' },
+      { title: 'Harsh direct sun', text: 'Use soft window light or open shade so they do not squint.' },
+    ],
   },
   {
     id: 2,

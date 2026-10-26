@@ -41,7 +41,7 @@ describe('cover image layout', () => {
 // These source-pixel bounds identify faces in the bundled photos. They catch
 // a centered cover crop cutting off a head even when the frame itself is full.
 const lessonFaces = [
-  { id: 1, width: 896, height: 1120, hair: 140, chin: 450 },
+  { id: 1, width: 1402, height: 1122, hair: 185, chin: 550 },
   { id: 2, width: 1402, height: 1122, hair: 185, chin: 475 },
   { id: 3, width: 1100, height: 1366, hair: 260, chin: 600 },
   { id: 4, width: 1120, height: 896, hair: 140, chin: 340 },
@@ -56,6 +56,19 @@ describe('training subject framing', () => {
       const scale = layout.height / subject.height;
       expect(layout.top + subject.hair * scale).toBeGreaterThanOrEqual(0);
       expect(layout.top + subject.chin * scale).toBeLessThanOrEqual(frame.height);
+      if (subject.id === 1) {
+        // The photo teaches window light: retain both the camera phone and
+        // a bright window patch beside the owner's complete, well-lit face.
+        for (const region of [
+          { left: 620, right: 750, top: 315, bottom: 550 },
+          { left: 20, right: 150, top: 100, bottom: 550 },
+        ]) {
+          expect(layout.left + region.left * scale).toBeGreaterThanOrEqual(0);
+          expect(layout.left + region.right * scale).toBeLessThanOrEqual(frame.width);
+          expect(layout.top + region.top * scale).toBeGreaterThanOrEqual(0);
+          expect(layout.top + region.bottom * scale).toBeLessThanOrEqual(frame.height);
+        }
+      }
       if (subject.id === 2) {
         // Keep the lit phone, including its recording timer and stop control,
         // visible alongside the speaker at every tested banner width.

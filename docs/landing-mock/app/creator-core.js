@@ -211,7 +211,7 @@
           </div>
         </div>
         <div class="cc-col" style="gap:8px;flex-shrink:0">
-          ${lessonRow(1, 'Light the shop', 3, true)}
+          ${lessonRow(1, 'Good lighting', 3, true)}
           ${lessonRow(2, 'Clear audio', 2, true)}
           ${lessonRow(3, 'Photos that sell', 4, true)}
           ${lessonRow(4, 'Get the owner talking', 3, false, true)}
