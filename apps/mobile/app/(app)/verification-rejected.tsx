@@ -7,19 +7,11 @@ import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Button, Card, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { Button, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { ProfileReviewNotice } from '../../components/profile/ProfileReviewNotice';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
 const SUPPORT_EMAIL = 'support@negosyo-digital.com';
-
-function timeAgo(ts: number | null | undefined): string {
-  if (!ts) return '';
-  const seconds = Math.floor((Date.now() - ts) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}
 
 export default function VerificationRejectedScreen() {
   const router = useGuardedRouter();
@@ -114,11 +106,9 @@ export default function VerificationRejectedScreen() {
   const rejectedAt = (creator as any)?.rejectedAt as number | undefined;
   const rejectionReason = (creator as any)?.rejectionReason as string | undefined;
   const fullName = [firstName, lastName].filter(Boolean).join(' ');
-  const feedback = rejectionReason || 'Your profile needs an update. Ask the team which details to change.';
   const nextStep = creator?.quizPassedAt
     ? 'Edit your details, then resubmit for review.'
     : 'Edit your details, then finish certification to request review.';
-  const reviewed = rejectedAt ? `Reviewed ${timeAgo(rejectedAt)}.` : '';
 
   return (
     <ScreenShell
@@ -153,25 +143,11 @@ export default function VerificationRejectedScreen() {
         </>
       }
     >
-      <Card
-        style={styles.reason}
-        accessible
-        accessibilityRole="alert"
-        accessibilityLiveRegion="polite"
-        accessibilityLabel={['Action required.', feedback, nextStep, reviewed].filter(Boolean).join(' ')}
-      >
-        <View style={styles.reasonHeader}>
-          <View style={styles.reasonIcon}>
-            <Ionicons name="alert-circle-outline" size={26} color={colors.danger} />
-          </View>
-          <View style={styles.reasonText}>
-            <Text variant="bodyLg" weight="bold">Action required</Text>
-            {reviewed ? <Text variant="label" tone="ink2" weight="medium">{reviewed}</Text> : null}
-          </View>
-        </View>
-        <Text variant="body" weight="semibold">{feedback}</Text>
-        <Text variant="label" tone="ink2" weight="medium">{nextStep}</Text>
-      </Card>
+      <ProfileReviewNotice
+        reason={rejectionReason}
+        rejectedAt={rejectedAt}
+        instruction={nextStep}
+      />
       <View style={styles.checks}>
         {fullName ? (
           <ListRow
@@ -224,22 +200,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     borderRadius: radius.pill,
     backgroundColor: colors.card,
-  },
-  reason: {
-    gap: space.md,
-    backgroundColor: colors.dangerBg,
-    borderWidth: 1,
-    borderColor: colors.danger,
-  },
-  reasonHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  reasonText: { flex: 1, gap: space.xs },
-  reasonIcon: {
-    width: hit.icon,
-    height: hit.icon,
-    borderRadius: radius.pill,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   checks: { gap: space.sm, marginTop: space.lg },
   quizCircle: {

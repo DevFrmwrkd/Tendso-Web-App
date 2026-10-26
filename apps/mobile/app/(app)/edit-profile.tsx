@@ -21,6 +21,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { colors, radius, shadow, space } from '../../theme/v2';
 import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text } from '../../components/v2';
+import { ProfileReviewNotice } from '../../components/profile/ProfileReviewNotice';
 import { isCreatorAccount } from '../../../../lib/accounts';
 
 const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
@@ -260,7 +261,7 @@ export default function EditProfileScreen() {
   }
   if (reviewing && !creator.quizPassedAt) return <Loading />;
 
-  // Match the rejection screen's saved photo and Clerk fallback.
+  // Use the saved profile photo, with the Clerk avatar as a fallback.
   const savedPhoto = creator.profileImage && /^https?:\/\//.test(creator.profileImage)
     ? creator.profileImage
     : user?.imageUrl;
@@ -291,7 +292,13 @@ export default function EditProfileScreen() {
       >
         {success ? <Banner tone="ok" title="Profile updated" /> : null}
         {error ? <Banner tone="danger" body={error} /> : null}
-        {reviewing && creator.rejectionReason ? <Banner tone="warn" title="What needs fixing" body={creator.rejectionReason} /> : null}
+        {reviewing ? (
+          <ProfileReviewNotice
+            reason={creator.rejectionReason}
+            rejectedAt={creator.rejectedAt}
+            instruction="Update the details below, then tap Resubmit for review."
+          />
+        ) : null}
 
         {/* Avatar picker */}
         <Pressable
