@@ -1,4 +1,5 @@
 import React from 'react';
+import { Keyboard, ScrollView, TextInput, type KeyboardEvent, type KeyboardEventName } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import VerificationRejectedScreen from '../app/(app)/verification-rejected';
 import EditProfileScreen from '../app/(app)/edit-profile';
@@ -10,12 +11,14 @@ const mockRecertify = jest.fn();
 const mockUpdate = jest.fn();
 const mockClerkUpdate = jest.fn();
 const mockUnexpectedMutation = jest.fn();
-let mockParams: { review?: string };
+const mockRequestDelete = jest.fn();
+let mockDeleteState: { busy: boolean; canDelete: boolean };
+let mockParams: { review?: string; field?: string };
 let mockCreator: Record<string, unknown>;
 
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../hooks/useDeleteAccount', () => ({
-  useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }),
+  useDeleteAccount: () => ({ ...mockDeleteState, requestDelete: mockRequestDelete }),
 }));
 jest.mock('@clerk/clerk-expo', () => ({
   useUser: () => ({ isLoaded: true, user: {
@@ -71,9 +74,25 @@ function resubmit(screen: ReturnType<typeof render>) {
   fireEvent.press(screen.getByRole('button', { name: 'Resubmit for review' }));
 }
 
+function watchKeyboard() {
+  const subscriptions: { event: KeyboardEventName; listener: (event: KeyboardEvent) => void; remove: jest.Mock; active: boolean }[] = [];
+  jest.spyOn(Keyboard, 'isVisible').mockReturnValue(false);
+  jest.spyOn(Keyboard, 'addListener').mockImplementation((event, listener) => {
+    const subscription = { event, listener, active: true, remove: jest.fn() };
+    subscription.remove.mockImplementation(() => { subscription.active = false; });
+    subscriptions.push(subscription);
+    return subscription as ReturnType<typeof Keyboard.addListener>;
+  });
+  const event: KeyboardEvent = { duration: 250, easing: 'keyboard', endCoordinates: { screenX: 0, screenY: 544, width: 390, height: 300 } };
+  return (name: KeyboardEventName) => act(() => {
+    subscriptions.filter((subscription) => subscription.active && subscription.event === name).forEach((subscription) => subscription.listener(event));
+  });
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = { review: '1' };
+  mockDeleteState = { busy: false, canDelete: true };
   mockCreator = rejectedCreator();
   mockResubmit.mockReset().mockResolvedValue(undefined);
   mockRecertify.mockReset().mockResolvedValue(undefined);
@@ -90,7 +109,7 @@ it('opens profile corrections from rejection without resetting the passed quiz',
   const screen = render(<VerificationRejectedScreen />);
   expect(screen.getByText("Passed. You don't need to take it again.")).toBeTruthy();
   expect(screen.queryByText('Take it again. It is free.')).toBeNull();
-  fireEvent.press(screen.getByRole('button', { name: 'Fix and resend' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Edit profile' }));
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/edit-profile', params: { review: '1' } });
   expect(mockUnexpectedMutation).not.toHaveBeenCalled();
   expect(mockRecertify).not.toHaveBeenCalled();
@@ -102,7 +121,7 @@ it('uses an explicit certification path only for a legacy rejected account witho
   mockCreator = { ...mockCreator, quizPassedAt: undefined };
   const screen = render(<VerificationRejectedScreen />);
   expect(screen.getByText('Complete certification before submitting for review.')).toBeTruthy();
-  expect(screen.queryByRole('button', { name: 'Fix and resend' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Edit profile' })).toBeNull();
   fireEvent.press(screen.getByRole('button', { name: 'Finish certification' }));
   await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/training'));
   expect(mockRecertify).toHaveBeenCalledWith({ id: 'agent-1' });
@@ -112,8 +131,21 @@ it('uses an explicit certification path only for a legacy rejected account witho
 it('lets a legacy rejected agent correct their name without entering the passed-quiz review editor', () => {
   mockCreator = { ...mockCreator, quizPassedAt: undefined };
   const screen = render(<VerificationRejectedScreen />);
-  fireEvent.press(screen.getByRole('button', { name: 'Full name, Pablo Santos' }));
-  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/edit-profile');
+  fireEvent.press(screen.getByRole('button', { name: 'Edit full name' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/edit-profile', params: { field: 'name' } });
+  expect(mockRecertify).not.toHaveBeenCalled();
+  expect(mockResubmit).not.toHaveBeenCalled();
+});
+
+it.each([
+  ['Edit full name', 'name'],
+  ['Edit mobile', 'phone'],
+])('opens the %s correction without resetting the passed quiz', (label, field) => {
+  const screen = render(<VerificationRejectedScreen />);
+  fireEvent.press(screen.getByRole('button', { name: label }));
+  expect(mockRouter.push).toHaveBeenCalledWith({
+    pathname: '/(app)/edit-profile', params: { review: '1', field },
+  });
   expect(mockRecertify).not.toHaveBeenCalled();
   expect(mockResubmit).not.toHaveBeenCalled();
 });
@@ -122,7 +154,7 @@ it('guards a direct review-editor link when the rejected account has no passed q
   mockCreator = { ...mockCreator, quizPassedAt: undefined };
   const screen = render(<EditProfileScreen />);
   expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/verification-rejected');
-  expect(screen.queryByText('Update your details and send them for review. Your quiz pass is saved.')).toBeNull();
+  expect(screen.queryByText('Correct your details below. Your quiz pass stays saved.')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Resubmit for review' })).toBeNull();
   expect(mockResubmit).not.toHaveBeenCalled();
   expect(mockRecertify).not.toHaveBeenCalled();
@@ -144,6 +176,48 @@ it('prefills the rejected details and preserves corrections across live profile 
   mockCreator = { ...mockCreator, lastActiveAt: Date.now() };
   screen.rerender(<EditProfileScreen />);
   expect(screen.getByLabelText('First name').props.value).toBe('Pablo Miguel');
+});
+
+it.each([
+  ['name', 'First name', 'Phone number'],
+  ['phone', 'Phone number', 'First name'],
+])('focuses the requested %s field and reveals it again after the keyboard reduces the viewport', (field, selectedLabel, otherLabel) => {
+  jest.useFakeTimers();
+  mockParams = { review: '1', field };
+  const emitKeyboard = watchKeyboard();
+  const screen = render(<EditProfileScreen />);
+  // Keep the real Field and ScreenShell, replacing only their native methods.
+  const input = (label: string) => screen.UNSAFE_getAllByType(TextInput).find((node) => node.props.accessibilityLabel === label)!.instance;
+  const selected = input(selectedLabel);
+  const other = input(otherLabel);
+  selected.focus = jest.fn();
+  other.focus = jest.fn();
+  const scroll = screen.UNSAFE_getByType(ScrollView).instance;
+  scroll.scrollTo = jest.fn();
+  expect(selected.focus).not.toHaveBeenCalled();
+
+  fireEvent(screen.getByLabelText(selectedLabel), 'layout', { nativeEvent: { layout: { x: 0, y: 540, width: 342, height: 72 } } });
+  act(() => jest.advanceTimersByTime(20));
+  expect(selected.focus).toHaveBeenCalledTimes(1);
+  expect(other.focus).not.toHaveBeenCalled();
+  expect(scroll.scrollTo).toHaveBeenCalledTimes(1);
+  const firstReveal = scroll.scrollTo.mock.calls[0][0];
+  expect(firstReveal).toEqual({ y: expect.any(Number), animated: false });
+  expect(firstReveal.y).toBeGreaterThanOrEqual(0);
+  expect(firstReveal.y).toBeLessThan(540);
+
+  emitKeyboard('keyboardDidShow');
+  act(() => jest.advanceTimersByTime(20));
+  expect(scroll.scrollTo).toHaveBeenCalledTimes(2);
+  expect(scroll.scrollTo).toHaveBeenLastCalledWith(firstReveal);
+
+  // Later keyboard events and live data updates must not steal focus or scroll.
+  emitKeyboard('keyboardDidShow');
+  mockCreator = { ...mockCreator, lastActiveAt: 9999 };
+  screen.rerender(<EditProfileScreen />);
+  act(() => jest.advanceTimersByTime(20));
+  expect(selected.focus).toHaveBeenCalledTimes(1);
+  expect(scroll.scrollTo).toHaveBeenCalledTimes(2);
 });
 
 it('atomically resubmits corrected details and returns to review even if Clerk name sync fails', async () => {
@@ -203,11 +277,72 @@ it('deduplicates rapid resubmit presses until the server finishes', async () => 
   const pending = new Promise<void>((resolve) => { finish = resolve; });
   mockResubmit.mockReturnValueOnce(pending);
   const screen = render(<EditProfileScreen />);
-  const button = screen.UNSAFE_getByType(Button);
+  const button = screen.UNSAFE_getAllByType(Button).find((node) => node.props.title === 'Resubmit for review')!;
   // Both taps can reach the handler before React renders the disabled button.
   act(() => { button.props.onPress(); button.props.onPress(); });
   expect(mockResubmit).toHaveBeenCalledTimes(1);
   expect(mockRouter.replace).not.toHaveBeenCalled();
+  await act(async () => { finish(); await pending; });
+  expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/pending-review');
+});
+
+it('keeps account deletion separate from correcting and resubmitting a rejected profile', () => {
+  const screen = render(<EditProfileScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
+  expect(mockRequestDelete).toHaveBeenCalledTimes(1);
+  expect(mockResubmit).not.toHaveBeenCalled();
+  expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockRecertify).not.toHaveBeenCalled();
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it.each([
+  { busy: true, canDelete: true },
+  { busy: false, canDelete: false },
+])('blocks account deletion when the hook reports %j', (state) => {
+  mockDeleteState = state;
+  const screen = render(<EditProfileScreen />);
+  const button = screen.getByRole('button', { name: 'Delete my account' });
+  expect(button.props.accessibilityState.disabled).toBe(true);
+  fireEvent.press(button);
+  expect(mockRequestDelete).not.toHaveBeenCalled();
+});
+
+it('blocks profile resubmission while account deletion is in progress', () => {
+  mockDeleteState = { busy: true, canDelete: true };
+  const screen = render(<EditProfileScreen />);
+  const button = screen.getByRole('button', { name: 'Resubmit for review' });
+  expect(button.props.accessibilityState.disabled).toBe(true);
+  fireEvent.press(button);
+  expect(mockResubmit).not.toHaveBeenCalled();
+});
+
+it('blocks account deletion while the corrected profile is being resubmitted', async () => {
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  mockResubmit.mockReturnValueOnce(pending);
+  const screen = render(<EditProfileScreen />);
+  resubmit(screen);
+  expect(mockResubmit).toHaveBeenCalledTimes(1);
+  const deleteButton = screen.getByRole('button', { name: 'Delete my account' });
+  expect(deleteButton.props.accessibilityState.disabled).toBe(true);
+  fireEvent.press(deleteButton);
+  expect(mockRequestDelete).not.toHaveBeenCalled();
+  await act(async () => { finish(); await pending; });
+  expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/pending-review');
+});
+
+it('blocks a same-batch deletion callback before the save-disabled state has rendered', async () => {
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  mockResubmit.mockReturnValueOnce(pending);
+  const screen = render(<EditProfileScreen />);
+  const buttons = screen.UNSAFE_getAllByType(Button);
+  const save = buttons.find((node) => node.props.title === 'Resubmit for review')!;
+  const remove = buttons.find((node) => node.props.title === 'Delete my account')!;
+  act(() => { save.props.onPress(); remove.props.onPress(); });
+  expect(mockResubmit).toHaveBeenCalledTimes(1);
+  expect(mockRequestDelete).not.toHaveBeenCalled();
   await act(async () => { finish(); await pending; });
   expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/pending-review');
 });

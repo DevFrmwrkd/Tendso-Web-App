@@ -3,9 +3,12 @@ import {
   View,
   Pressable,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Alert,
   StyleSheet,
+  ScrollView,
+  TextInput,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
@@ -17,14 +20,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { colors, radius, shadow, space } from '../../theme/v2';
-import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text, TextLink } from '../../components/v2';
+import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text } from '../../components/v2';
 import { isCreatorAccount } from '../../../../lib/accounts';
 
 const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
 export default function EditProfileScreen() {
   const router = useGuardedRouter();
-  const { review } = useLocalSearchParams<{ review?: string }>();
+  const { review, field } = useLocalSearchParams<{ review?: string; field?: string }>();
   const { user, isLoaded } = useUser();
   const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
   const updateCreator = useMutation(api.creators.update);
@@ -45,6 +48,13 @@ export default function EditProfileScreen() {
   const [success,   setSuccess]             = useState(false);
   const initializedId = useRef<string | null>(null);
   const saving = useRef(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const firstNameRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const focusedTarget = useRef<string | null>(null);
+  const pendingKeyboardReveal = useRef<{ key: string; y: number } | null>(null);
+  const [fieldPositions, setFieldPositions] = useState<{ name?: number; phone?: number }>({});
+  const targetField = field === 'name' || field === 'phone' ? field : null;
   const reviewing = review === '1' && isCreatorAccount(creator);
 
   useEffect(() => {
@@ -67,7 +77,51 @@ export default function EditProfileScreen() {
     }
   }, [creator]);
 
+  useEffect(() => {
+    let frame: number | undefined;
+    const listener = Keyboard.addListener('keyboardDidShow', () => {
+      const pending = pendingKeyboardReveal.current;
+      pendingKeyboardReveal.current = null;
+      if (!pending) return;
+      // Focus opens the keyboard after the first scroll. Reveal again once
+      // KeyboardAvoidingView has reduced the space above the pinned action.
+      frame = requestAnimationFrame(() => {
+        if (focusedTarget.current === pending.key) {
+          scrollRef.current?.scrollTo({ y: pending.y, animated: false });
+        }
+      });
+    });
+    return () => {
+      listener.remove();
+      if (frame !== undefined) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // An Edit action opens the shared form at the chosen field, once per visit.
+  // Wait for layout and profile prefill before opening the keyboard.
+  useEffect(() => {
+    if (!isLoaded || !creator?._id || !targetField || loading || deleting) return;
+    const position = fieldPositions[targetField];
+    const key = `${creator._id}:${targetField}`;
+    if (position === undefined || focusedTarget.current === key) return;
+    const frame = requestAnimationFrame(() => {
+      const input = targetField === 'name' ? firstNameRef.current : phoneRef.current;
+      if (!input) return;
+      focusedTarget.current = key;
+      const y = Math.max(0, position - space.md);
+      pendingKeyboardReveal.current = Keyboard.isVisible() ? null : { key, y };
+      scrollRef.current?.scrollTo({ y, animated: false });
+      input.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isLoaded, creator?._id, targetField, fieldPositions, loading, deleting]);
+
+  const recordFieldPosition = (name: 'name' | 'phone', y: number) => {
+    setFieldPositions((positions) => positions[name] === y ? positions : { ...positions, [name]: y });
+  };
+
   const handlePickImage = async () => {
+    if (saving.current || loading || deleting) return;
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission Required', 'Please grant access to your photos to update your profile picture.');
@@ -115,7 +169,7 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
-    if (!user || !creator?._id || saving.current) return;
+    if (!user || !creator?._id || saving.current || deleting) return;
 
     const trimFirst = firstName.trim();
     const trimLast  = lastName.trim();
@@ -206,8 +260,12 @@ export default function EditProfileScreen() {
   }
   if (reviewing && !creator.quizPassedAt) return <Loading />;
 
-  // Avatar: local picked URI > existing profile image > initial letter
-  const avatarUri     = profileImageUri ?? creator.profileImage ?? null;
+  // Match the rejection screen's saved photo and Clerk fallback.
+  const savedPhoto = creator.profileImage && /^https?:\/\//.test(creator.profileImage)
+    ? creator.profileImage
+    : user?.imageUrl;
+  const avatarUri = profileImageUri ?? savedPhoto ?? null;
+  const fullName = [firstName, lastName].filter(Boolean).join(' ');
   const email         = creator.email || user?.primaryEmailAddress?.emailAddress || '';
 
   return (
@@ -217,15 +275,16 @@ export default function EditProfileScreen() {
     >
       <ScreenShell
         title={reviewing ? 'Fix your profile' : 'Edit profile'}
-        subtitle={reviewing ? "Update your details and send them for review. Your quiz pass is saved." : undefined}
+        subtitle={reviewing ? 'Correct your details below. Your quiz pass stays saved.' : undefined}
         onBack={() => router.back()}
         contentStyle={styles.content}
+        scrollRef={scrollRef}
         footer={
           <Button
             title={reviewing ? 'Resubmit for review' : success ? 'Saved' : 'Save changes'}
             onPress={handleSave}
             loading={loading}
-            disabled={loading || success}
+            disabled={loading || success || deleting}
             accessibilityLabel={reviewing ? 'Resubmit for review' : 'Save changes'}
           />
         }
@@ -235,70 +294,82 @@ export default function EditProfileScreen() {
         {reviewing && creator.rejectionReason ? <Banner tone="warn" title="What needs fixing" body={creator.rejectionReason} /> : null}
 
         {/* Avatar picker */}
-        <View style={styles.avatarBlock}>
-          <Pressable
-            onPress={handlePickImage}
-            disabled={loading}
-            accessibilityLabel="Change profile photo"
-            accessibilityRole="button"
-            style={styles.avatarPress}
-          >
-            <Avatar uri={avatarUri} name={firstName || undefined} size={96} />
-            <View style={[styles.camera, shadow.soft]}>
-              <Ionicons name="camera" size={18} color={colors.onAccent} />
-            </View>
-          </Pressable>
-          <Text variant="label" tone="muted" weight="medium">
-            Tap the photo to change it
-          </Text>
-        </View>
+        <Pressable
+          onPress={handlePickImage}
+          disabled={loading || deleting}
+          accessibilityLabel="Change profile photo"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loading || deleting }}
+          style={[styles.photoRow, shadow.soft]}
+        >
+          <Avatar uri={avatarUri} name={fullName || undefined} size={56} />
+          <View style={styles.rowBody}>
+            <Text variant="bodyLg" weight="semibold">Profile photo</Text>
+            <Text variant="label" tone="muted" weight="medium">Change photo</Text>
+          </View>
+          <View style={styles.camera}>
+            <Ionicons name="camera" size={18} color={colors.onAccent} />
+          </View>
+        </Pressable>
 
-        <Field
-          label="First name"
-          placeholder="First name"
-          value={firstName}
-          onChangeText={setFirstName}
-          autoCapitalize="words"
-          editable={!loading}
-          accessibilityLabel="First name"
-        />
+        <View onLayout={(event) => recordFieldPosition('name', event.nativeEvent.layout.y)}>
+          <Field
+            ref={firstNameRef}
+            label="First name"
+            placeholder="First name"
+            value={firstName}
+            onChangeText={setFirstName}
+            onBlur={() => { pendingKeyboardReveal.current = null; }}
+            autoCapitalize="words"
+            editable={!loading && !deleting}
+            accessibilityLabel="First name"
+          />
+        </View>
         <Field
           label="Last name"
           placeholder="Last name"
           value={lastName}
           onChangeText={setLastName}
           autoCapitalize="words"
-          editable={!loading}
+          editable={!loading && !deleting}
           accessibilityLabel="Last name"
         />
-        <Field
-          label="Mobile"
-          icon="call-outline"
-          placeholder="e.g. 09171234567"
-          value={phone}
-          onChangeText={(v) => setPhone(v.replace(/[^0-9+]/g, ''))}
-          keyboardType="number-pad"
-          maxLength={15}
-          editable={!loading}
-          accessibilityLabel="Phone number"
-        />
-        <Field
-          label="Email"
-          icon="mail-outline"
-          value={email}
-          editable={false}
-          helper="Can't change"
-          right={<Ionicons name="lock-closed" size={20} color={colors.ink3} />}
-          accessibilityLabel="Email"
-        />
+        <View onLayout={(event) => recordFieldPosition('phone', event.nativeEvent.layout.y)}>
+          <Field
+            ref={phoneRef}
+            label="Mobile"
+            icon="call-outline"
+            placeholder="e.g. 09171234567"
+            value={phone}
+            onChangeText={(v) => setPhone(v.replace(/[^0-9+]/g, ''))}
+            onBlur={() => { pendingKeyboardReveal.current = null; }}
+            keyboardType="number-pad"
+            maxLength={15}
+            editable={!loading && !deleting}
+            accessibilityLabel="Phone number"
+          />
+        </View>
+        <View style={styles.emailRow} accessible accessibilityLabel={`Email: ${email}. Can't change.`}>
+          <Ionicons name="mail-outline" size={22} color={colors.ink3} />
+          <View style={styles.rowBody}>
+            <Text variant="label" tone="muted">Email · Can't change</Text>
+            <Text variant="body" weight="medium">{email}</Text>
+          </View>
+          <Ionicons name="lock-closed-outline" size={18} color={colors.ink3} />
+        </View>
 
         {/* Delete account: intentionally buried at the bottom. The confirmation alerts explain what happens. */}
         <View style={styles.danger}>
-          <TextLink
-            label={deleting ? 'Deleting account…' : 'Delete my account'}
-            tone="danger"
+          <Button
+            title={deleting ? 'Deleting account…' : 'Delete my account'}
+            accessibilityLabel="Delete my account"
+            variant="danger"
+            size="md"
+            icon="trash-outline"
+            loading={deleting}
+            disabled={deleting || loading || !canDelete}
             onPress={() => {
-              if (deleting || loading || !canDelete) return;
+              if (saving.current || deleting || loading || !canDelete) return;
               requestDelete();
             }}
           />
@@ -311,20 +382,30 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { gap: space.md, paddingTop: space.lg, paddingBottom: space.xxl },
-  avatarBlock: { alignItems: 'center', gap: space.sm, marginBottom: space.sm },
-  avatarPress: { width: 96, height: 96 },
+  photoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.lg,
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+  },
+  rowBody: { flex: 1, minWidth: 0, gap: space.xs },
   camera: {
-    position: 'absolute',
-    right: -4,
-    bottom: -4,
     width: 36,
     height: 36,
     borderRadius: radius.pill,
     backgroundColor: colors.accent,
-    borderWidth: 3,
-    borderColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  danger: { marginTop: space.huge, alignItems: 'center' },
+  emailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    padding: space.lg,
+    borderRadius: radius.card,
+    backgroundColor: colors.bg2,
+  },
+  danger: { marginTop: space.xl },
 });

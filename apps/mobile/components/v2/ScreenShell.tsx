@@ -24,6 +24,8 @@ export interface ScreenShellProps {
   footer?: React.ReactNode;
   /** Scroll the body (default true). Use false for fixed one-question screens. */
   scroll?: boolean;
+  /** Optional body ref for bringing a specific form field into view. */
+  scrollRef?: React.Ref<ScrollView>;
   /** `dark` = camera / welcome look: ink background, light text, no gradient. */
   tone?: 'tinted' | 'dark';
   children?: React.ReactNode;
@@ -44,6 +46,7 @@ export function ScreenShell({
   progress,
   footer,
   scroll = true,
+  scrollRef,
   tone = 'tinted',
   children,
   contentStyle,
@@ -89,6 +92,7 @@ export function ScreenShell({
 
   const body = scroll ? (
     <ScrollView
+      ref={scrollRef}
       style={styles.flex}
       contentContainerStyle={[styles.body, contentStyle]}
       showsVerticalScrollIndicator={false}

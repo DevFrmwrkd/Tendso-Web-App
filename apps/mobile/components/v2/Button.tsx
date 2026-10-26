@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, hit, radius, shadow, space, type as typeScale } from '../../theme/v2';
 import { Text } from './Text';
 
-export type ButtonVariant = 'primary' | 'dark' | 'ghost';
+export type ButtonVariant = 'primary' | 'dark' | 'ghost' | 'danger';
 export type ButtonSize = 'lg' | 'md';
 
 export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -33,11 +33,12 @@ const palette: Record<ButtonVariant, { bg: string; fg: string; border: string }>
   primary: { bg: colors.accent, fg: colors.onAccent, border: colors.accent },
   dark: { bg: colors.ink, fg: colors.onDark, border: colors.ink },
   ghost: { bg: colors.bg2, fg: colors.ink, border: colors.bg2 },
+  danger: { bg: colors.card, fg: colors.danger, border: colors.danger },
 };
 
 /**
  * Pill button (mock `.door`): centred label, 18/700, >= 56pt tall.
- * Primary = accent fill, dark = ink fill, ghost = tinted fill.
+ * Primary = accent fill, dark = ink fill, ghost = tinted fill, danger = red outline.
  * Keep native press-state callbacks out of NativeWind's style interop: its v4
  * wrapper drops callback styles, including this button's background and size.
  */

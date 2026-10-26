@@ -7,7 +7,7 @@ import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Avatar, Button, Card, CheckRow, Loading, ScreenShell, Text } from '../../components/v2';
+import { Avatar, Button, Card, CheckRow, ListRow, Loading, ScreenShell, Text } from '../../components/v2';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
 const SUPPORT_EMAIL = 'support@negosyo-digital.com';
@@ -55,10 +55,14 @@ export default function VerificationRejectedScreen() {
     }
   }, [creator, router]);
 
-  const handleFixProfile = () => {
-    router.push(creator?.quizPassedAt
-      ? { pathname: '/(app)/edit-profile', params: { review: '1' } }
-      : '/(app)/edit-profile');
+  const handleFixProfile = (field?: 'name' | 'phone') => {
+    router.push({
+      pathname: '/(app)/edit-profile',
+      params: {
+        ...(creator?.quizPassedAt ? { review: '1' } : {}),
+        ...(field ? { field } : {}),
+      },
+    });
   };
 
   // Legacy rejected records can lack a quiz pass. Keep that exceptional path
@@ -110,7 +114,7 @@ export default function VerificationRejectedScreen() {
   const rejectedAt = (creator as any)?.rejectedAt as number | undefined;
   const rejectionReason = (creator as any)?.rejectionReason as string | undefined;
   const profileImage = (creator as any)?.profileImage as string | undefined;
-  const photo = profileImage && /^https?:/.test(profileImage) ? profileImage : user?.imageUrl;
+  const photo = profileImage && /^https?:\/\//.test(profileImage) ? profileImage : user?.imageUrl;
   const fullName = [firstName, lastName].filter(Boolean).join(' ');
 
   return (
@@ -131,11 +135,11 @@ export default function VerificationRejectedScreen() {
       footer={
         <>
           <Button
-            title={creator?.quizPassedAt ? 'Fix and resend' : 'Finish certification'}
-            onPress={creator?.quizPassedAt ? handleFixProfile : handleFinishCertification}
+            title={creator?.quizPassedAt ? 'Edit profile' : 'Finish certification'}
+            onPress={creator?.quizPassedAt ? () => handleFixProfile() : handleFinishCertification}
             loading={finishingCertification}
             disabled={finishingCertification}
-            accessibilityLabel={creator?.quizPassedAt ? 'Fix and resend' : 'Finish certification'}
+            accessibilityLabel={creator?.quizPassedAt ? 'Edit profile' : 'Finish certification'}
           />
           <Button
             title="Ask the team"
@@ -148,7 +152,7 @@ export default function VerificationRejectedScreen() {
     >
       <Card style={styles.reason}>
         <View>
-          <Avatar uri={photo} name={firstName} size={64} />
+          <Avatar uri={photo} name={fullName} size={64} />
           <View style={styles.cross}>
             <Ionicons name="close" size={16} color="#FFFFFF" />
           </View>
@@ -162,8 +166,30 @@ export default function VerificationRejectedScreen() {
         </View>
       </Card>
       <View style={styles.checks}>
-        {fullName ? <CheckRow title="Full name" subtitle={fullName} state="todo" right="Edit" onPress={handleFixProfile} /> : null}
-        {phone ? <CheckRow title="Mobile" subtitle={phone} state="todo" right="Edit" onPress={handleFixProfile} /> : null}
+        {fullName ? (
+          <ListRow
+            title="Full name"
+            subtitle={fullName}
+            icon="person-outline"
+            trailing={<Text variant="label" weight="bold" tone="muted">Edit</Text>}
+            onPress={() => handleFixProfile('name')}
+            accessibilityLabel="Edit full name"
+            accessibilityHint="Opens your profile at the name fields."
+            style={[styles.editRow, shadow.soft]}
+          />
+        ) : null}
+        {phone ? (
+          <ListRow
+            title="Mobile"
+            subtitle={phone}
+            icon="call-outline"
+            trailing={<Text variant="label" weight="bold" tone="muted">Edit</Text>}
+            onPress={() => handleFixProfile('phone')}
+            accessibilityLabel="Edit mobile"
+            accessibilityHint="Opens your profile at the mobile field."
+            style={[styles.editRow, shadow.soft]}
+          />
+        ) : null}
         {creator?.quizPassedAt
           ? <CheckRow title="Certification quiz" subtitle="Passed. You don't need to take it again." state="ok" />
           : <CheckRow title="Certification quiz" subtitle="Complete certification before submitting for review." state="todo" />}
@@ -198,4 +224,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checks: { gap: space.sm, marginTop: space.lg },
+  editRow: {
+    paddingHorizontal: space.lg,
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+  },
 });
