@@ -276,7 +276,7 @@ export default function CertificationQuizScreen() {
               <Text variant="body" tone="ink2" align="center">
                 Our team approves new agents within 24 hours. Then your certificate shows here and in your profile.
               </Text>
-              <Chip label="Waiting for approval" tone="warn" />
+              <Chip label="Waiting for approval" tone="warn" style={styles.waitBadge} />
             </Card>
           )}
         </Animated.View>
@@ -383,6 +383,7 @@ const styles = StyleSheet.create({
   scoreBar: { marginTop: space.sm },
   failNote: { marginTop: space.lg },
   waitCard: { alignItems: 'center', gap: space.md, paddingVertical: space.xl, borderRadius: radius.cardLg },
+  waitBadge: { alignSelf: 'center' },
   waitIcon: {
     width: 56,
     height: 56,
