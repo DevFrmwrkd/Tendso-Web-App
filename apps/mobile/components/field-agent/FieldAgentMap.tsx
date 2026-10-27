@@ -20,7 +20,7 @@ import {
   type FieldAgentShop, type MapProspect,
 } from '../../services/fieldAgentMap';
 import { Avatar, Banner, Button, Text, TextLink, formatPeso } from '../v2';
-import { colors, radius, shadow, space } from '../../theme/v2';
+import { colors, radius, shadow, space, type as typeScale } from '../../theme/v2';
 
 interface MapCreator extends WorkAreaAccount {
   _id: string;
@@ -189,8 +189,8 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={monthlyEarnings == null ? 'Open earnings' : `${formatPeso(monthlyEarnings)} earned this month. Open earnings`}
             onPress={() => router.push('/(app)/(tabs)/wallet')} style={[styles.earnings, shadow.soft]}>
-            <Text variant="bodyLg" weight="bold">{monthlyEarnings == null ? '—' : formatPeso(monthlyEarnings)}</Text>
-            <Text variant="label" tone="muted">this month</Text>
+            <Text variant="bodyLg" weight="bold" style={styles.earningsText}>{monthlyEarnings == null ? '—' : formatPeso(monthlyEarnings)}</Text>
+            <Text variant="label" tone="muted" style={styles.earningsText}>this month</Text>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
             onPress={() => router.push('/(app)/notifications')} style={[styles.round, shadow.soft]}>
@@ -354,7 +354,9 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   profileHit: { minHeight: 48, minWidth: 48 },
   earnings: { flex: 1, backgroundColor: colors.card, minHeight: 52, paddingHorizontal: space.lg,
-    paddingVertical: space.xs, borderRadius: radius.pill, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.xs },
+    paddingVertical: space.xs, borderRadius: radius.pill, flexDirection: 'row', flexWrap: 'wrap',
+    alignItems: 'center', justifyContent: 'center', alignContent: 'center', gap: space.xs },
+  earningsText: { textAlign: 'center', lineHeight: typeScale.bodyLg.lineHeight },
   round: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   notificationDot: { position: 'absolute', right: 10, top: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.ink, borderWidth: 1, borderColor: colors.card },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
