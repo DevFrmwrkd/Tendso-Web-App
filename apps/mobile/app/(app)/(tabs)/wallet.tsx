@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Alert, Linking, StyleSheet, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, BackHandler, Keyboard, Linking, Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
@@ -9,10 +9,8 @@ import { useNetwork } from '../../../providers/NetworkProvider';
 import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
 import {
   Banner,
-  BigNumber,
   Button,
   Card,
-  Chip,
   Field,
   ListRow,
   Loading,
@@ -20,52 +18,32 @@ import {
   ScreenShell,
   SectionLabel,
   Text,
+  TextLink,
   formatPeso,
-  type ChipTone,
 } from '../../../components/v2';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { PreviewWallet } from '../../../components/AccountPreview';
+import { activityTime, EarningRow, EarningsTrend, isCredited, PayoutRow, WalletHistory, walletPeso as peso,
+  type HistoryFilter, type WalletEarning, type WalletWithdrawal } from '../../../components/wallet/WalletActivity';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function timeAgo(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const mins = Math.floor(diff / 60_000);
-  const hours = Math.floor(diff / 3_600_000);
-  const days = Math.floor(diff / 86_400_000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return 'Yesterday';
-  return `${days}d ago`;
+function withdrawalAmount(value: string): number {
+  return /^\d+(?:\.\d{1,2})?$/.test(value.trim()) ? Number(value) : Number.NaN;
 }
 
-/** "₱1,500" for whole pesos, "₱1,500.50" when there are centavos (so a balance is never rounded up). */
-function peso(amount: number): string {
-  if (Number.isInteger(amount)) return formatPeso(amount);
-  return `₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function moneyTextUnits(value: string): number {
+  return [...value].reduce((sum, character) => sum + (/[.,]/.test(character) ? 0.34 : 0.7), 0);
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const WITHDRAWAL_STATUS: Record<string, { label: string; tone: ChipTone }> = {
-  pending: { label: 'Pending', tone: 'warn' },
-  processing: { label: 'Processing', tone: 'info' },
-  completed: { label: 'Completed', tone: 'ok' },
-  failed: { label: 'Failed', tone: 'danger' },
-};
-
-const EARNING_TITLE: Record<string, string> = {
-  submission_approved: 'Site payout',
-  referral_bonus: 'From your invites',
-  creator_override: '5% team commission',
-  lead_bonus: 'Lead bonus',
-};
 
 const QUICK_PICKS = [1000, 2000];
 
@@ -90,12 +68,15 @@ const EMPTY_FORM: WithdrawalForm = {
 // Small pieces
 // ---------------------------------------------------------------------------
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, fontSize, fontScale, stacked, testID }: {
+  label: string; value: string; fontSize: number; fontScale: number; stacked: boolean; testID: string;
+}) {
   return (
-    <Card variant="lg" style={styles.stat} accessible accessibilityLabel={`${label}, ${value}`}>
-      <Text variant="title" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
-        {value}
-      </Text>
+    <Card variant="lg" style={[styles.stat, stacked && styles.statStacked]} accessible accessibilityLabel={`${label}, ${value}`}>
+      <View style={{ minHeight: Math.ceil(fontSize * 1.2 * Math.max(1, fontScale)), justifyContent: 'center' }}>
+        <Text testID={testID} variant="title" tabular numberOfLines={1}
+          style={{ fontSize, lineHeight: Math.ceil(fontSize * 1.2), letterSpacing: -0.5 }}>{value}</Text>
+      </View>
       <Text variant="label" tone="muted">
         {label}
       </Text>
@@ -119,17 +100,29 @@ function EmptyRow({ title, body }: { title: string; body: string }) {
 // ---------------------------------------------------------------------------
 
 export default function WalletScreen() {
-  const { isPreview, account } = useMobileAccount();
-  return isPreview ? <PreviewWallet /> : <PersonalWallet isAffiliate={account?.role === 'affiliate'} />;
+  const { isPreview, account, isAuthenticated } = useMobileAccount();
+  return isPreview ? <PreviewWallet /> : <WalletSession isAffiliate={account?.role === 'affiliate'} isAuthenticated={isAuthenticated} />;
 }
 
-function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
-  const router = useGuardedRouter();
+function WalletSession({ isAffiliate, isAuthenticated }: { isAffiliate: boolean; isAuthenticated: boolean }) {
   const { user } = useUser();
+  // Never carry an open payout editor or a resolved request into another login.
+  return <PersonalWallet key={`${user?.id ?? 'signed-out'}:${isAffiliate}:${isAuthenticated}`} clerkId={user?.id}
+    isAffiliate={isAffiliate} isAuthenticated={isAuthenticated} />;
+}
+
+function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate: boolean; isAuthenticated: boolean; clerkId?: string }) {
+  const router = useGuardedRouter();
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
+  const { height, width, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [balanceWidth, setBalanceWidth] = useState(0);
+  const [statsWidth, setStatsWidth] = useState(0);
 
-  const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : 'skip');
+  const rawCreator = useQuery(api.creators.getByClerkId, clerkId && isAuthenticated ? { clerkId } : 'skip');
+  const creator = !isAuthenticated || !clerkId || (rawCreator?.clerkId && rawCreator.clerkId !== clerkId) ? undefined : rawCreator;
   const creatorWithdrawals = useQuery(
     api.withdrawals.getByCreator,
     creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip'
@@ -138,9 +131,9 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
     api.earnings.getByCreator,
     creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip'
   );
-  const portal = useQuery(api.affiliates.portal, isAffiliate ? {} : 'skip');
-  const withdrawals = isAffiliate ? portal?.withdrawals : creatorWithdrawals;
-  const earnings = isAffiliate ? portal?.earnings : creatorEarnings;
+  const portal = useQuery(api.affiliates.portal, isAffiliate && creator?._id && isAuthenticated ? {} : 'skip');
+  const withdrawals: WalletWithdrawal[] | undefined = creator ? (isAffiliate ? portal?.withdrawals : creatorWithdrawals) : undefined;
+  const earnings: WalletEarning[] | undefined = creator ? (isAffiliate ? portal?.earnings : creatorEarnings) : undefined;
 
   const createWithdrawal = useMutation(api.withdrawals.create);
   // Persist the Wise payout email through the canonical profile mutation.
@@ -154,8 +147,37 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
   const [formError, setFormError] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
   const [setupError, setSetupError] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
+  const mounted = useRef(true);
+  const submitBusy = useRef(false);
+  const setupBusy = useRef(false);
+  const suspended = creator?.status === 'suspended';
+  const paused = suspended || creator?.status === 'deleted' || !!creator?.isDeleted || (isAffiliate && creator?.status !== 'active');
+  const canWrite = !!creator?._id && !!clerkId && isAuthenticated && !isOffline && !paused;
+  const balance = creator ? (isAffiliate ? portal?.summary.balance : undefined) ?? creator.balance ?? 0 : null;
+  const live = useRef({ creatorId: creator?._id, canWrite, balance });
+  live.current = { creatorId: creator?._id, canWrite, balance };
 
-  if (!isOffline && (creator === undefined || (isAffiliate && portal === undefined))) {
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useEffect(() => {
+    const shown = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillChangeFrame' : 'keyboardDidShow', event => {
+      setKeyboardHeight(Math.max(0, height - event.endCoordinates.screenY));
+    });
+    const hidden = Keyboard.addListener('keyboardDidHide', () => setKeyboardHeight(0));
+    return () => { shown.remove(); hidden.remove(); };
+  }, [height]);
+  useFocusEffect(useCallback(() => {
+    if (!showHistory || Platform.OS !== 'android') return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { setShowHistory(false); return true; });
+    return () => subscription.remove();
+  }, [showHistory]));
+  const sheetMaxHeight = Math.max(160, height - insets.top - insets.bottom - keyboardHeight - 90);
+
+  if (isAuthenticated && !isOffline && (creator === undefined || (isAffiliate && creator && portal === undefined))) {
     return (
       <View testID="activity-indicator" style={styles.flex}>
         <Loading />
@@ -163,14 +185,21 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
     );
   }
 
-  const balance = creator?.balance ?? 0;
-  const recentWithdrawals = withdrawals?.slice(0, 5) ?? [];
-  const recentEarnings = earnings?.slice(0, 5) ?? [];
-  const savedWiseEmail = (creator as any)?.wiseEmail as string | undefined;
-  const suspended = creator?.status === 'suspended';
+  const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
+  const sortedWithdrawals = withdrawals ? [...withdrawals].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
+  const recentWithdrawals = sortedWithdrawals?.slice(0, 3) ?? [];
+  const recentEarnings = sortedEarnings?.slice(0, 3) ?? [];
+  const savedWiseEmail = creator?.wiseEmail;
+  const totalEarnings = creator ? (isAffiliate ? portal?.summary.totalEarned : creator.totalEarnings)
+    ?? (earnings ? earnings.filter(isCredited).reduce((sum, row) => sum + row.amount, 0) : null) : null;
+  const totalWithdrawn = creator ? (isAffiliate ? portal?.summary.totalWithdrawn : creator.totalWithdrawn)
+    ?? (withdrawals ? withdrawals.filter(row => row.status === 'completed').reduce((sum, row) => sum + row.amount, 0) : null) : null;
+
+  function openHistory(filter: HistoryFilter) { setHistoryFilter(filter); setShowHistory(true); }
+  function sameActor(creatorId: string) { return mounted.current && live.current.creatorId === creatorId; }
 
   function openWithdrawFlow() {
-    if (creator?.status === 'suspended') return;
+    if (!canWrite || !balance || submitBusy.current || setupBusy.current) return;
     if (savedWiseEmail) {
       // The whole balance is pre-picked; quick-pick pills change it.
       setForm({ amount: String(balance), wiseEmail: savedWiseEmail });
@@ -184,12 +213,12 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
   }
 
   function closeModal() {
-    if (submitting) return;
+    if (submitBusy.current) return;
     setShowModal(false);
   }
 
   function closeWiseSetup() {
-    if (savingEmail) return;
+    if (setupBusy.current) return;
     setShowWiseSetup(false);
   }
 
@@ -198,73 +227,97 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
   }
 
   async function handleSaveWiseEmail() {
+    if (setupBusy.current || !live.current.canWrite || !creator?._id) return;
     setSetupError('');
     const email = wiseSetupEmail.trim();
     if (!email) { setSetupError('Please enter your Wise email address.'); return; }
     if (!isValidEmail(email)) { setSetupError('Please enter a valid email address.'); return; }
-    if (!creator?._id || creator.status === 'suspended') return;
-
+    const creatorId = creator._id;
+    setupBusy.current = true;
     setSavingEmail(true);
     try {
-      await updateCreator({ id: creator._id, wiseEmail: email });
+      await updateCreator({ id: creatorId, wiseEmail: email });
+      if (!sameActor(creatorId)) return;
+      if (!live.current.canWrite) { setSetupError('Reconnect with an active account to continue.'); return; }
       setShowWiseSetup(false);
-      setForm({ amount: String(balance), wiseEmail: email });
+      setForm({ amount: String(live.current.balance), wiseEmail: email });
       setFormError('');
       setShowModal(true);
     } catch (err: any) {
-      setSetupError(err?.message ?? 'Something went wrong. Please try again.');
+      if (sameActor(creatorId)) setSetupError(err?.message ?? 'Something went wrong. Please try again.');
     } finally {
-      setSavingEmail(false);
+      setupBusy.current = false;
+      if (sameActor(creatorId)) setSavingEmail(false);
     }
   }
 
   async function handleSubmit() {
+    if (submitBusy.current || !live.current.canWrite || !creator?._id) return;
     setFormError('');
 
-    const amount = parseFloat(form.amount);
-    if (isNaN(amount) || amount <= 0) { setFormError('Please enter a valid amount.'); return; }
-    if (amount > balance) { setFormError('Amount exceeds your available balance.'); return; }
+    const amount = withdrawalAmount(form.amount);
+    if (!Number.isFinite(amount) || amount <= 0) { setFormError('Please enter a valid amount.'); return; }
+    if (live.current.balance === null || amount > live.current.balance) { setFormError('Amount exceeds your available balance.'); return; }
     if (!form.wiseEmail.trim()) { setFormError('Wise email is required.'); return; }
     if (!isValidEmail(form.wiseEmail.trim())) { setFormError('Please enter a valid email address.'); return; }
-    if (!creator?._id || creator.status === 'suspended') return;
-
+    const creatorId = creator._id;
+    submitBusy.current = true;
     setSubmitting(true);
     try {
       await createWithdrawal({
-        creatorId: creator._id,
+        creatorId,
         amount,
         wiseEmail: form.wiseEmail.trim(),
       });
+      if (!sameActor(creatorId)) return;
       setShowModal(false);
+      if (!live.current.canWrite) return;
       Alert.alert(
         'Withdrawal submitted',
-        `Your withdrawal of ₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })} is being sent to your Wise account. You will receive a notification once completed.`,
+        `Your request for ${peso(amount)} was received. Track its status in Payout history. We'll notify you when the transfer completes.`,
         [{ text: 'OK' }]
       );
     } catch (err: any) {
-      setFormError(err?.message ?? 'Something went wrong. Please try again.');
+      if (sameActor(creatorId)) setFormError(err?.message ?? 'Something went wrong. Please try again.');
     } finally {
-      setSubmitting(false);
+      submitBusy.current = false;
+      if (sameActor(creatorId)) setSubmitting(false);
     }
   }
 
-  const totalEarnings = (creator as any)?.totalEarnings ?? 0;
-  const totalWithdrawn = (creator as any)?.totalWithdrawn ?? 0;
-
-  const typedAmount = parseFloat(form.amount);
-  const amountReady = !isNaN(typedAmount) && typedAmount > 0 && typedAmount <= balance;
+  const typedAmount = withdrawalAmount(form.amount);
+  const amountReady = Number.isFinite(typedAmount) && typedAmount > 0 && balance !== null && typedAmount <= balance;
   const sendLabel = amountReady ? `Send ${peso(typedAmount)} to Wise` : 'Send to Wise';
+  const balanceText = balance === null ? '—' : peso(balance);
+  const balanceUnits = moneyTextUnits(balanceText);
+  const balanceAvailableWidth = balanceWidth || Math.max(100, width - space.gutter * 2 - (space.xl - 4) * 2);
+  // Size from the actual card width, including centavos and grouping marks.
+  // Native and web both show the full amount without relying on text autosize.
+  const balanceFontSize = Math.max(16, Math.min(56, Math.floor(balanceAvailableWidth / (balanceUnits * Math.max(1, fontScale)))));
+  const earnedText = totalEarnings === null ? '—' : peso(totalEarnings);
+  const withdrawnText = totalWithdrawn === null ? '—' : peso(totalWithdrawn);
+  const statUnits = Math.max(moneyTextUnits(earnedText), moneyTextUnits(withdrawnText));
+  const statsAvailableWidth = statsWidth || Math.max(100, width - space.gutter * 2);
+  const sideBySideValueWidth = (statsAvailableWidth - space.md) / 2 - space.lg * 2;
+  const stackStats = statUnits * 16 * Math.max(1, fontScale) > sideBySideValueWidth;
+  const statValueWidth = stackStats ? statsAvailableWidth - space.lg * 2 : sideBySideValueWidth;
+  const statFontSize = Math.max(16, Math.min(28, Math.floor(statValueWidth / (statUnits * Math.max(1, fontScale)))));
+
+  if (showHistory && creator) return <WalletHistory earnings={earnings} withdrawals={withdrawals} balance={balance}
+    earned={totalEarnings} withdrawn={totalWithdrawn} isOffline={isOffline} filter={historyFilter} onFilter={setHistoryFilter} onBack={() => setShowHistory(false)} />;
 
   return (
     <ScreenShell
       title="Earn"
       insetBottom={false}
+      headerRight={<Button title="History" variant="ghost" size="md" icon="time-outline" fullWidth={false}
+        onPress={() => openHistory('all')} disabled={!creator} accessibilityLabel="View all earnings and payouts" />}
       footer={
         <Button
           testID="withdraw-button"
-          title={balance > 0 ? `Cash out ${peso(balance)} to Wise` : 'No balance available'}
+          title={balance === null ? 'Balance unavailable' : balance > 0 ? `Cash out ${peso(balance)} to Wise` : 'No balance available'}
           onPress={openWithdrawFlow}
-          disabled={balance <= 0 || isOffline || suspended}
+          disabled={!canWrite || balance === null || balance <= 0}
         />
       }
     >
@@ -272,108 +325,86 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
         {isOffline ? (
           <Banner tone="warn" icon="cloud-offline-outline" body="You're offline. Reconnect to cash out." />
         ) : null}
-        {suspended ? (
+        {paused && creator ? (
           <Banner
             tone="warn"
             title="Cash out is paused"
-            body={`Your ${isAffiliate ? 'creator' : 'field agent'} account is suspended. Your earnings and history stay here.`}
+            body={`Your ${isAffiliate ? 'creator' : 'field agent'} account needs to be active to cash out. Your earnings and history stay here.`}
           />
         ) : null}
 
         {/* Available balance */}
         <Card variant="lg" style={styles.hero}>
-          <BigNumber value={peso(balance)} label="Available to cash out" />
+          <View style={styles.balanceHeading}>
+            <View style={styles.balanceIcon}><Ionicons name="wallet-outline" size={22} color={colors.ink} /></View>
+            <Text variant="label" tone="muted">Available to cash out</Text>
+          </View>
+          <View testID="wallet-balance-width" onLayout={event => {
+            const measured = event.nativeEvent.layout.width;
+            if (Number.isFinite(measured) && measured > 0) setBalanceWidth(measured);
+          }}>
+            <Text testID="wallet-balance-value" variant="number" tabular numberOfLines={1}
+              accessibilityLabel={`Available to cash out, ${balanceText}`}
+              style={{ fontSize: balanceFontSize, lineHeight: Math.ceil(balanceFontSize * 1.12), letterSpacing: -1 }}>
+              {balanceText}
+            </Text>
+          </View>
+          <Text variant="label" tone="ink2">{balance === null ? 'Reconnect to load your account balance.'
+            : savedWiseEmail ? `Payout email · ${savedWiseEmail}` : 'Set up your Wise email when you cash out.'}</Text>
         </Card>
 
-        <View style={styles.statRow}>
-          <Stat label="Total earned" value={peso(totalEarnings)} />
-          <Stat label="Withdrawn" value={peso(totalWithdrawn)} />
+        <View testID="wallet-stats-row" style={[styles.statRow, stackStats && styles.statColumn]} onLayout={event => {
+          const measured = event.nativeEvent.layout.width;
+          if (Number.isFinite(measured) && measured > 0) setStatsWidth(measured);
+        }}>
+          <Stat label="Total earned" value={earnedText} fontSize={statFontSize} fontScale={fontScale} stacked={stackStats} testID="wallet-earned-total" />
+          <Stat label="Withdrawn" value={withdrawnText} fontSize={statFontSize} fontScale={fontScale} stacked={stackStats} testID="wallet-withdrawn-total" />
         </View>
 
-        {/* Referrals live here because their earnings pay into this same balance. */}
-        <Card style={styles.linkCard}>
-          <ListRow
-            icon="people-outline"
-            title="Invite field agents"
-            subtitle={isAffiliate ? 'Earn 5% of their sales' : 'Bring a friend to Tendso'}
-            onPress={() => router.push('/(app)/referrals' as any)}
-            accessibilityLabel="View your referrals"
-          />
-        </Card>
+        {earnings === undefined ? <Card><Text tone="muted">{isOffline ? 'Reconnect to load your earnings.' : 'Loading earnings…'}</Text></Card>
+          : <EarningsTrend earnings={earnings} />}
 
         {/* Recent earnings */}
         <View style={styles.section}>
-          <SectionLabel>Recent earnings</SectionLabel>
-          {recentEarnings.length === 0 ? (
+          <View style={styles.sectionHead}><SectionLabel>Recent earnings</SectionLabel>
+            <TextLink label="All earnings" onPress={() => openHistory('earned')} disabled={!creator} /></View>
+          {earnings === undefined ? <Text tone="muted">{isOffline ? 'Earnings unavailable offline.' : 'Loading recent earnings…'}</Text>
+            : recentEarnings.length === 0 ? (
             <EmptyRow
               title="No earnings yet"
               body={isAffiliate ? 'Your first sale shows up here.' : 'Your first paid site shows up here.'}
             />
           ) : (
             <Card style={styles.listCard}>
-              {recentEarnings.map((earning: any, idx: number) => (
-                <ListRow
-                  key={earning._id}
-                  icon="trending-up-outline"
-                  title={EARNING_TITLE[earning.type] ?? 'Payout'}
-                  subtitle={timeAgo(earning.createdAt ?? earning._creationTime ?? 0)}
-                  divider={idx < recentEarnings.length - 1}
-                  trailing={
-                    <Text variant="bodyLg" weight="extrabold" tabular>
-                      +{peso(earning.amount ?? 0)}
-                    </Text>
-                  }
-                />
-              ))}
+              {recentEarnings.map((earning, idx) => <EarningRow key={earning._id} earning={earning} divider={idx < recentEarnings.length - 1} />)}
             </Card>
           )}
         </View>
 
         {/* Withdrawal history */}
         <View style={styles.section}>
-          <SectionLabel>Withdrawal history</SectionLabel>
-          {recentWithdrawals.length === 0 ? (
+          <View style={styles.sectionHead}><SectionLabel>Recent cash-outs</SectionLabel>
+            <TextLink label="All cash-outs" onPress={() => openHistory('cashed-out')} disabled={!creator} /></View>
+          {withdrawals === undefined ? <Text tone="muted">{isOffline ? 'Payout history unavailable offline.' : 'Loading payouts…'}</Text>
+            : recentWithdrawals.length === 0 ? (
             <EmptyRow title="Nothing here yet" body="Your withdrawal history will show up here once you cash out." />
           ) : (
             <Card style={styles.listCard}>
-              {recentWithdrawals.map((w: any, idx: number) => {
-                const status = WITHDRAWAL_STATUS[w.status] ?? { label: String(w.status), tone: 'muted' as ChipTone };
-                const displayLabel = w.wiseEmail ? `Wise · ${w.wiseEmail}` : w.bankName ?? 'Wise transfer';
-                return (
-                  <View key={w._id} style={[styles.payRow, idx < recentWithdrawals.length - 1 ? styles.payDivider : null]}>
-                    <View style={styles.payIcon}>
-                      <Ionicons name="send-outline" size={22} color={colors.ink} />
-                    </View>
-                    <View style={styles.payBody}>
-                      <Text variant="bodyLg" weight="semibold" numberOfLines={1}>
-                        {displayLabel}
-                      </Text>
-                      <View style={styles.payMeta}>
-                        <Chip label={status.label} tone={status.tone} />
-                        <Text variant="bodyLg" weight="extrabold" tone="ink2" tabular>
-                          −{peso(w.amount ?? 0)}
-                        </Text>
-                      </View>
-                      <Text variant="label" weight="medium" tone="muted">
-                        {timeAgo(w.createdAt ?? w._creationTime ?? 0)}
-                      </Text>
-                      {w.wiseTransferId ? (
-                        <Text variant="label" weight="medium" tone="muted">
-                          Wise #{w.wiseTransferId}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </View>
-                );
-              })}
+              {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} divider={idx < recentWithdrawals.length - 1} />)}
             </Card>
           )}
         </View>
+        <Card style={styles.linkCard}>
+          <ListRow icon="people-outline" title="Invite field agents"
+            subtitle={isAffiliate ? 'See your team commissions' : 'Bring a friend to Tendso'}
+            onPress={() => router.push('/(app)/referrals' as any)} accessibilityLabel="View your referrals" />
+        </Card>
       </View>
 
       {/* Wise account setup sheet */}
       <SwipeSheet testID="wise-setup-modal" visible={showWiseSetup} onClose={closeWiseSetup} dismissable={!savingEmail}>
-        <View style={styles.sheetStack}>
+        <ScrollView testID="wallet-wise-setup-scroll" style={[styles.sheetScroll, { maxHeight: sheetMaxHeight }]} contentContainerStyle={styles.sheetStack}
+          keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.sheetHead}>
             <Text variant="title" accessibilityRole="header">
               Set up Wise
@@ -413,25 +444,28 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
           />
 
           {setupError !== '' ? <Banner tone="danger" body={setupError} /> : null}
+          {!canWrite ? <Banner tone="warn" body="Reconnect with an active account to save your payout details." /> : null}
 
           <Button
             title="Save and continue"
             loading={savingEmail}
+            disabled={!canWrite}
             onPress={handleSaveWiseEmail}
             accessibilityLabel="Continue to withdrawal"
           />
-        </View>
+        </ScrollView>
       </SwipeSheet>
 
       {/* Cash out to Wise sheet */}
       <SwipeSheet testID="withdrawal-modal" visible={showModal} onClose={closeModal} dismissable={!submitting}>
-        <View style={styles.sheetStack}>
+        <ScrollView testID="wallet-withdraw-scroll" style={[styles.sheetScroll, { maxHeight: sheetMaxHeight }]} contentContainerStyle={styles.sheetStack}
+          keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.sheetHead}>
             <Text variant="title" accessibilityRole="header">
               Cash out to Wise
             </Text>
             <Text variant="bodyLg" tone="muted">
-              {peso(balance)} ready to cash out
+              {balance === null ? 'Balance unavailable' : `${peso(balance)} ready to cash out`}
             </Text>
           </View>
 
@@ -451,30 +485,29 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
                 keyboardType="numeric"
                 value={form.amount}
                 onChangeText={(v) => {
-                  const num = parseFloat(v);
-                  if (v === '' || isNaN(num) || num <= balance) {
-                    setForm((f) => ({ ...f, amount: v }));
-                  }
+                  if (submitBusy.current) return;
+                  setForm((f) => ({ ...f, amount: v }));
+                  setFormError('');
                 }}
                 editable={!submitting}
                 accessibilityLabel="Withdrawal amount"
               />
             </View>
             <View style={styles.picks}>
-              {QUICK_PICKS.filter((p) => p < balance).map((p) => (
+              {QUICK_PICKS.filter((p) => balance !== null && p < balance).map((p) => (
                 <Pill
                   key={p}
                   label={formatPeso(p)}
                   selected={form.amount === String(p)}
-                  onPress={() => setForm((f) => ({ ...f, amount: String(p) }))}
+                  onPress={() => { if (!submitBusy.current) setForm((f) => ({ ...f, amount: String(p) })); }}
                   accessibilityLabel={`Cash out ${formatPeso(p)}`}
                 />
               ))}
               <Pill
-                label={`All · ${peso(balance)}`}
+                label={`All · ${balance === null ? '—' : peso(balance)}`}
                 selected={form.amount === String(balance)}
-                onPress={() => setForm((f) => ({ ...f, amount: String(balance) }))}
-                accessibilityLabel={`Cash out all, ${peso(balance)}`}
+                onPress={() => { if (!submitBusy.current && balance !== null) setForm((f) => ({ ...f, amount: String(balance) })); }}
+                accessibilityLabel={`Cash out all, ${balance === null ? 'unavailable' : peso(balance)}`}
               />
             </View>
           </View>
@@ -502,12 +535,13 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
           </View>
 
           {formError !== '' ? <Banner tone="danger" body={formError} /> : null}
+          {!canWrite ? <Banner tone="warn" body="Reconnect with an active account to cash out." /> : null}
 
           <View style={styles.sheetButtons}>
-            <Button title={sendLabel} loading={submitting} onPress={handleSubmit} accessibilityLabel="Confirm withdrawal" />
+            <Button title={sendLabel} loading={submitting} disabled={!canWrite} onPress={handleSubmit} accessibilityLabel="Confirm withdrawal" />
             <Button title="Not now" variant="ghost" onPress={closeModal} disabled={submitting} />
           </View>
-        </View>
+        </ScrollView>
       </SwipeSheet>
     </ScreenShell>
   );
@@ -516,28 +550,22 @@ function PersonalWallet({ isAffiliate }: { isAffiliate: boolean }) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   stack: { gap: space.lg },
-  hero: { paddingVertical: space.xl },
-  statRow: { flexDirection: 'row', gap: space.md },
-  stat: { flex: 1, gap: space.xs, paddingHorizontal: space.lg },
+  hero: { paddingVertical: space.xl, gap: space.md },
+  balanceHeading: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  balanceIcon: { width: 40, height: 40, borderRadius: radius.field, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  statRow: { flexDirection: 'row', alignItems: 'stretch', gap: space.md },
+  statColumn: { flexDirection: 'column' },
+  // Longhands let stacked cards return to content sizing in native Yoga.
+  stat: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, gap: space.xs, paddingHorizontal: space.lg },
+  statStacked: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
   linkCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
   section: { gap: space.md, marginTop: space.sm },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: space.md },
   listCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
   empty: { gap: space.xs },
-  payRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.lg - 2, paddingVertical: space.md, paddingHorizontal: space.xs },
-  payDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
-  payIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bg2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  payBody: { flex: 1, gap: space.xs, minWidth: 0 },
-  payMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-
   // Sheets
-  sheetStack: { gap: space.lg },
+  sheetScroll: { flexShrink: 1 },
+  sheetStack: { gap: space.lg, paddingBottom: space.sm },
   sheetHead: { gap: space.xs },
   sheetButtons: { gap: space.md },
   noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingHorizontal: space.xs },

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -9,6 +9,7 @@ import {
   PermissionsAndroid,
   Pressable,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
 import Constants from 'expo-constants';
 import { useUser, useClerk } from '@clerk/clerk-expo';
@@ -53,7 +54,9 @@ type MenuItem = {
 
 export default function ProfileScreen() {
   const { isPreview, account } = useMobileAccount();
-  return isPreview ? <PreviewProfile /> : <PersonalProfile isAffiliate={account?.role === 'affiliate'} />;
+  const { user } = useUser();
+  const isAffiliate = account?.role === 'affiliate';
+  return isPreview ? <PreviewProfile /> : <PersonalProfile key={`${user?.id ?? 'signed-out'}:${isAffiliate ? 'affiliate' : 'agent'}`} isAffiliate={isAffiliate} />;
 }
 
 /** One white card holding a stack of icon rows. */
@@ -63,34 +66,43 @@ function MenuCard({ items }: { items: MenuItem[] }) {
       {items.map((item, idx) => (
         <ListRow
           key={item.label}
-          icon={item.icon}
+          leading={<View style={styles.menuIcon}><Ionicons name={item.icon} size={21} color={colors.ink} /></View>}
           title={item.label}
+          titleNumberOfLines={0}
           subtitle={item.sublabel}
+          subtitleNumberOfLines={0}
           trailing={item.trailing}
           onPress={item.onPress}
           accessibilityLabel={item.label}
           divider={idx < items.length - 1}
+          style={styles.menuRow}
         />
       ))}
     </Card>
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({ label, value, compact }: { label: string; value: string; compact: boolean }) {
   return (
-    <Card style={styles.stat} accessibilityLabel={`${label} ${value}`}>
-      <Text variant="heading" weight="extrabold" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+    <Card style={styles.stat} accessible accessibilityLabel={`${label} ${value}`}>
+      <Text variant="heading" weight="extrabold" tabular align="center" style={compact ? styles.compactStatValue : undefined}>
         {value}
       </Text>
-      <Text variant="label" tone="muted" numberOfLines={1}>
+      <Text variant="label" tone="muted" align="center">
         {label}
       </Text>
     </Card>
   );
 }
 
+function profileMoney(amount: number) {
+  return Number.isInteger(amount) ? formatPeso(amount)
+    : `₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const insets = useSafeAreaInsets();
+  const { width, fontScale } = useWindowDimensions();
   const router = useGuardedRouter();
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
@@ -100,38 +112,67 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const [referralCode, setReferralCode] = useState('');
   const [referralLoading, setReferralLoading] = useState(false);
   const [referralError, setReferralError] = useState('');
+  const [certificateAction, setCertificateAction] = useState<'save' | 'share' | null>(null);
   const certModalRef = useRef<View>(null);
+  const mounted = useRef(true);
+  const signingOutBusy = useRef(false);
+  const signOutPrompt = useRef(false);
+  const referralBusy = useRef(false);
+  const certificateBusy = useRef(false);
+  const actorId = user?.id;
+  const liveActor = useRef(actorId);
+  liveActor.current = actorId;
+  const isCurrent = () => mounted.current && !!actorId && liveActor.current === actorId;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const applyReferralCode = useMutation(api.creators.applyReferralCode);
 
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
 
-  const creator = useQuery(
+  const queriedCreator = useQuery(
     api.creators.getByClerkId,
     user ? { clerkId: user.id } : 'skip'
   );
+  const creator = queriedCreator?.clerkId && queriedCreator.clerkId !== actorId ? null : queriedCreator;
+  const affiliateAccount = creator?.role === 'affiliate' || isAffiliate;
+  const liveCreator = useRef(creator);
+  liveCreator.current = creator;
+  const isCertified = !affiliateAccount && !!creator?.certifiedAt && !creator?.rejectedAt;
+  const certificateVisible = useRef(false);
+  certificateVisible.current = showCertModal && isCertified;
 
-  // Count real submissions rather than the creator.submissionCount counter,
-  // which isn't maintained and reads 0 even for field agents with earnings. Mirrors
-  // the Home dashboard, which counts this query's length.
+  // Read the real capture list. Drafts remain available in Your submissions,
+  // while the Submitted stat counts only captures that have left draft status.
   const submissions = useQuery(
     api.submissions.getByCreatorId,
-    creator?._id && !isAffiliate ? { creatorId: creator._id } : 'skip',
+    creator?._id && !affiliateAccount ? { creatorId: creator._id } : 'skip',
   );
 
   const handleShareCert = useCallback(async () => {
+    const current = () => isCurrent() && certificateVisible.current;
+    if (!current() || certificateBusy.current) return;
+    certificateBusy.current = true;
+    setCertificateAction('share');
     try {
       const uri = await captureRef(certModalRef, { format: 'png', quality: 1 });
+      if (!current()) return;
       await Sharing.shareAsync(uri, {
         mimeType: 'image/png',
         dialogTitle: 'Share your certificate',
       });
     } catch {
-      Alert.alert('Error', 'Could not share certificate. Please try again.');
+      if (current()) Alert.alert('Error', 'Could not share certificate. Please try again.');
+    } finally {
+      certificateBusy.current = false;
+      if (isCurrent()) setCertificateAction(null);
     }
-  }, []);
+  }, [actorId]);
 
   const handleDownloadCert = useCallback(async () => {
+    const current = () => isCurrent() && certificateVisible.current;
+    if (!current() || certificateBusy.current) return;
+    certificateBusy.current = true;
+    setCertificateAction('save');
     try {
       if (Platform.OS === 'android' && (Platform.Version as number) < 33) {
         const granted = await PermissionsAndroid.request(
@@ -142,52 +183,76 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
             buttonPositive: 'Allow',
           }
         );
+        if (!current()) return;
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
           Alert.alert('Permission needed', 'Please allow access to save the certificate.');
           return;
         }
       }
+      if (!current()) return;
       const uri = await captureRef(certModalRef, { format: 'png', quality: 1 });
+      if (!current()) return;
       const fileUri = uri.startsWith('file://') ? uri : `file://${uri}`;
       await MediaLibrary.saveToLibraryAsync(fileUri);
-      Alert.alert('Saved!', 'Certificate has been saved to your gallery.');
+      if (current()) Alert.alert('Saved!', 'Certificate has been saved to your gallery.');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not save certificate. Please try again.');
+      if (current()) Alert.alert('Error', e?.message || 'Could not save certificate. Please try again.');
+    } finally {
+      certificateBusy.current = false;
+      if (isCurrent()) setCertificateAction(null);
     }
-  }, []);
+  }, [actorId]);
 
   const handleSignOut = () => {
+    if (!isCurrent() || signOutPrompt.current || signingOutBusy.current) return;
+    signOutPrompt.current = true;
     Alert.alert(
       'Sign out',
       'Are you sure you want to sign out?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel', onPress: () => { signOutPrompt.current = false; } },
         {
           text: 'Sign out',
           style: 'destructive',
           onPress: async () => {
+            signOutPrompt.current = false;
+            if (!isCurrent() || signingOutBusy.current) return;
+            signingOutBusy.current = true;
             setSigningOut(true);
-            await signOut();
-            router.replace('/(auth)/login');
+            try {
+              await signOut();
+              if (isCurrent()) router.replace('/(auth)/login');
+            } catch {
+              if (isCurrent()) Alert.alert('Could not sign out', 'Please try again.');
+            } finally {
+              signingOutBusy.current = false;
+              if (isCurrent()) setSigningOut(false);
+            }
           },
         },
-      ]
+      ],
+      { cancelable: true, onDismiss: () => { signOutPrompt.current = false; } },
     );
   };
 
   const handleApplyReferral = async () => {
-    if (!creator?._id || !referralCode.trim()) return;
+    const creatorId = creator?._id;
+    const current = () => isCurrent() && liveCreator.current?._id === creatorId;
+    if (!creatorId || !referralCode.trim() || isOffline || !current() || referralBusy.current) return;
+    referralBusy.current = true;
     setReferralLoading(true);
     setReferralError('');
     try {
-      await applyReferralCode({ id: creator._id, referredByCode: referralCode.trim() });
+      await applyReferralCode({ id: creatorId, referredByCode: referralCode.trim() });
+      if (!current()) return;
       Alert.alert('Code applied!', 'Your code has been applied.');
       setShowReferralInput(false);
       setReferralCode('');
     } catch (err: any) {
-      setReferralError(err?.message || 'Could not apply that code.');
+      if (current()) setReferralError(err?.message || 'Could not apply that code.');
     } finally {
-      setReferralLoading(false);
+      referralBusy.current = false;
+      if (current()) setReferralLoading(false);
     }
   };
 
@@ -198,18 +263,25 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const firstName = creator?.firstName || '';
   const lastName = creator?.lastName || '';
   const displayName =
-    [firstName, lastName].filter(Boolean).join(' ') || user?.fullName || (isAffiliate ? 'Creator' : 'Field agent');
-  const isCertified = !isAffiliate && !!creator?.certifiedAt;
-  const profileImage = (creator as any)?.profileImage as string | undefined;
+    [firstName, lastName].filter(Boolean).join(' ') || user?.fullName || (affiliateAccount ? 'Creator' : 'Field agent');
+  const profileImage = creator?.profileImage;
 
   const balance = creator?.balance ?? 0;
-  const totalEarnings = (creator as any)?.totalEarnings ?? 0;
-  const submissionCount = submissions?.length ?? 0;
+  const totalEarnings = creator?.totalEarnings ?? 0;
+  const submissionCount = submissions?.filter(submission => submission.status !== 'draft').length;
+  const allCapturesCount = submissions?.length;
+  const balanceLabel = creator ? profileMoney(balance) : '—';
+  const earningsLabel = creator ? profileMoney(totalEarnings) : '—';
+  // Keep complete amounts readable rather than squeezing or truncating them.
+  const moneyLength = Math.max(balanceLabel.length, earningsLabel.length);
+  const moneyNeedsSpace = moneyLength > (affiliateAccount ? 12 : 10);
+  const stackStats = width < 360 || fontScale > 1.3 || moneyNeedsSpace;
+  const compactStatValues = !stackStats && moneyLength > (affiliateAccount ? 10 : 8);
 
   // Field agents: their work, then settings, then the small print. Creators
   // (role `affiliate`) keep the trimmed menu: settings and legal only.
   const workItems: MenuItem[] = [];
-  if (!isAffiliate) {
+  if (!affiliateAccount) {
     if (isCertified) {
       workItems.push({
         icon: 'ribbon-outline',
@@ -232,22 +304,11 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
         trailing: submissions
           ? (
             <View style={styles.trailing}>
-              <Text variant="bodyLg" weight="bold" tone="muted">{String(submissionCount)}</Text>
+              <Text variant="label" weight="bold" tone="muted">{String(allCapturesCount)}</Text>
               <Ionicons name="chevron-forward" size={22} color={colors.ink3} />
             </View>
           )
           : undefined,
-      },
-      {
-        icon: 'book-outline',
-        label: 'Learn & help',
-        sublabel: 'Guides and Ask Tendso',
-        onPress: () => router.push('/(app)/(tabs)/knowledge' as any),
-      },
-      {
-        icon: 'help-circle-outline',
-        label: 'Help & FAQ',
-        onPress: () => router.push('/(app)/help-faq' as any),
       },
       {
         icon: 'people-outline',
@@ -280,7 +341,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
     },
   ];
 
-  if (!isAffiliate && !creator?.referredByCode) {
+  if (!affiliateAccount && creator && !creator.referredByCode) {
     settingsItems.push({
       icon: 'gift-outline',
       label: 'Enter referral code',
@@ -294,11 +355,25 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   }
 
   const visibleSettings =
-    isAffiliate && creator?.status === 'suspended'
+    affiliateAccount && creator?.status === 'suspended'
       ? settingsItems.filter((item) => item.label !== 'Edit profile')
       : settingsItems;
 
-  const aboutItems: MenuItem[] = [
+  const helpItems: MenuItem[] = affiliateAccount ? [] : [
+    {
+      icon: 'book-outline',
+      label: 'Learn & help',
+      sublabel: 'Guides and Ask Tendso',
+      onPress: () => router.push('/(app)/(tabs)/knowledge' as any),
+    },
+    {
+      icon: 'help-circle-outline',
+      label: 'Help & FAQ',
+      onPress: () => router.push('/(app)/help-faq' as any),
+    },
+  ];
+
+  const legalItems: MenuItem[] = [
     {
       icon: 'document-text-outline',
       label: 'Terms of service',
@@ -316,43 +391,55 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
       <ScreenShell insetBottom={false} contentStyle={styles.content}>
         <OfflineBanner />
 
-        <View style={styles.header}>
-          <Avatar uri={profileImage} name={displayName} size={64} ring />
-          <View style={styles.headerText}>
-            <Text variant="heading" numberOfLines={2}>
-              {displayName}
-            </Text>
-            <Text variant="label" tone="muted" weight="medium">
-              {isAffiliate ? 'Creator' : 'Field agent'}
-            </Text>
+        <Card variant="lg" style={styles.identityCard}>
+          <View style={styles.header}>
+            <Avatar uri={profileImage} name={displayName} size={72} ring />
+            <View style={styles.headerText}>
+              <Text variant="title" accessibilityRole="header">{displayName}</Text>
+              <View style={styles.identityMeta}>
+                <Text variant="label" tone="muted">{affiliateAccount ? 'Creator' : 'Field agent'}</Text>
+                {isCertified ? <Chip label="Certified" tone="ok" /> : null}
+              </View>
+            </View>
           </View>
+          {creator?.referralCode ? <View style={styles.inviteCode}>
+            <Text variant="label" tone="muted">Your code</Text>
+            <Text variant="label" weight="bold" selectable>{creator.referralCode}</Text>
+          </View> : null}
+        </Card>
+
+        <View style={[styles.stats, stackStats && styles.statsStack]} testID="profile-stats">
+          {!affiliateAccount ? <StatTile label="Submitted" value={submissionCount == null ? '—' : String(submissionCount)} compact={compactStatValues} /> : null}
+          <StatTile label="Balance" value={balanceLabel} compact={compactStatValues} />
+          <StatTile label="Earned" value={earningsLabel} compact={compactStatValues} />
+        </View>
+        {isOffline && (!creator || (!affiliateAccount && submissions === undefined))
+          ? <Text variant="label" tone="muted">Reconnect to load your profile and totals.</Text> : null}
+
+        {workItems.length > 0 ? <View style={styles.group}>
+          <SectionLabel style={styles.sectionLabel}>Your work</SectionLabel>
+          <MenuCard items={workItems} />
+        </View> : null}
+
+        <View style={styles.group}>
+          <SectionLabel style={styles.sectionLabel}>Settings</SectionLabel>
+          <MenuCard items={visibleSettings} />
         </View>
 
-        {isCertified || creator?.referralCode ? (
-          <View style={styles.chips}>
-            {isCertified ? <Chip label="Certified" tone="ok" /> : null}
-            {creator?.referralCode ? <Chip label={`Your code ${creator.referralCode}`} tone="muted" /> : null}
-          </View>
-        ) : null}
+        {helpItems.length > 0 ? <View style={styles.group}>
+          <SectionLabel style={styles.sectionLabel}>Help</SectionLabel>
+          <MenuCard items={helpItems} />
+        </View> : null}
 
-        <View style={styles.stats}>
-          {!isAffiliate ? <StatTile label="Submitted" value={String(submissionCount)} /> : null}
-          <StatTile label="Balance" value={formatPeso(balance)} />
-          <StatTile label="Earned" value={formatPeso(totalEarnings)} />
+        <View style={styles.group}>
+          <SectionLabel style={styles.sectionLabel}>Legal</SectionLabel>
+          <MenuCard items={legalItems} />
         </View>
-
-        {workItems.length > 0 ? <MenuCard items={workItems} /> : null}
-
-        <SectionLabel style={styles.sectionLabel}>Settings</SectionLabel>
-        <MenuCard items={visibleSettings} />
-
-        <SectionLabel style={styles.sectionLabel}>About</SectionLabel>
-        <MenuCard items={aboutItems} />
 
         <Card style={styles.menuCard}>
-          <ListRow
-            title={signingOut ? 'Signing out…' : 'Sign out'}
-            leading={
+          <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel="Sign out"
+            accessibilityState={{ disabled: signingOut, busy: signingOut }} disabled={signingOut}
+            onPress={handleSignOut} style={({ pressed }) => [styles.signOutRow, pressed && styles.pressedRow]}>
               <View style={styles.signOutIcon}>
                 {signingOut ? (
                   <ActivityIndicator size="small" color={colors.danger} />
@@ -360,10 +447,8 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
                   <Ionicons name="log-out-outline" size={22} color={colors.danger} />
                 )}
               </View>
-            }
-            onPress={signingOut ? undefined : handleSignOut}
-            accessibilityLabel="Sign out"
-          />
+              <Text variant="bodyLg" weight="semibold" tone="danger">{signingOut ? 'Signing out…' : 'Sign out'}</Text>
+          </Pressable>
         </Card>
 
         <Text variant="label" tone="muted" align="center" style={styles.version}>
@@ -400,10 +485,11 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
           <Button
             title={referralLoading ? 'Applying…' : 'Apply code'}
             loading={referralLoading}
-            disabled={referralLoading || !referralCode.trim()}
+            disabled={referralLoading || isOffline || !referralCode.trim()}
             onPress={handleApplyReferral}
             accessibilityLabel="Apply referral code"
           />
+          {isOffline ? <Text variant="label" tone="muted">Reconnect to apply your code.</Text> : null}
           <TextLink
             label="Cancel"
             tone="muted"
@@ -416,7 +502,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
 
       {/* Certificate modal */}
       <Modal
-        visible={showCertModal}
+        visible={showCertModal && isCertified}
         animationType="slide"
         transparent
         onRequestClose={() => setShowCertModal(false)}
@@ -434,22 +520,15 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
                 <Ionicons name="close" size={22} color={colors.ink} />
               </Pressable>
               <Text variant="heading" style={styles.certTitle}>Your certificate</Text>
-              <Pressable
-                onPress={handleShareCert}
-                style={styles.roundButton}
-                accessibilityLabel="Share certificate"
-                accessibilityRole="button"
-                hitSlop={4}
-              >
-                <Ionicons name="share-outline" size={22} color={colors.ink} />
-              </Pressable>
+              <View style={styles.certHeaderSpacer} />
             </View>
 
             <ScrollView
+              style={styles.certScrollView}
               contentContainerStyle={styles.certScroll}
               showsVerticalScrollIndicator={false}
             >
-              <CertificateCard
+              {isCertified ? <CertificateCard
                 ref={certModalRef}
                 creatorName={
                   creator
@@ -466,7 +545,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
                     ? new Date((creator as any).certifiedAt).getFullYear()
                     : new Date().getFullYear()
                 }
-              />
+              /> : null}
             </ScrollView>
 
             <View style={styles.certFooter}>
@@ -476,13 +555,17 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
                 size="md"
                 icon="download-outline"
                 onPress={handleDownloadCert}
+                loading={certificateAction === 'save'}
+                disabled={certificateAction !== null}
                 accessibilityLabel="Save certificate to gallery"
               />
               <Button
-                title="Send to others"
+                title="Share certificate"
                 size="md"
                 icon="share-outline"
                 onPress={handleShareCert}
+                loading={certificateAction === 'share'}
+                disabled={certificateAction !== null}
                 accessibilityLabel="Share certificate"
               />
             </View>
@@ -495,18 +578,27 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
 
 const styles = StyleSheet.create({
   content: { gap: space.lg, paddingTop: space.lg, paddingBottom: space.xxl },
-  header: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  headerText: { flex: 1, gap: space.xs },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  stats: { flexDirection: 'row', gap: space.md },
-  stat: { flex: 1, minWidth: 0, paddingHorizontal: space.md, paddingVertical: space.lg, gap: space.xs },
+  identityCard: { gap: space.lg },
+  header: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  headerText: { flex: 1, minWidth: 0, gap: space.sm },
+  identityMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.sm },
+  inviteCode: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule, paddingTop: space.md },
+  stats: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
+  statsStack: { flexDirection: 'column' },
+  stat: { flex: 1, minWidth: 0, minHeight: 96, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.sm, paddingVertical: space.lg, gap: space.xs },
+  compactStatValue: { fontSize: 16, lineHeight: 22 },
+  group: { gap: space.sm },
   menuCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
-  sectionLabel: { marginTop: space.sm, paddingLeft: space.xs },
+  menuRow: { minHeight: 64, paddingVertical: space.sm + 2, gap: space.md },
+  menuIcon: { width: 40, height: 40, borderRadius: radius.field, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg2 },
+  sectionLabel: { paddingLeft: space.xs },
   trailing: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  signOutRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, paddingVertical: space.sm + 2, paddingHorizontal: space.xs, borderRadius: radius.field },
+  pressedRow: { backgroundColor: colors.dangerBg },
   signOutIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
+    width: 40,
+    height: 40,
+    borderRadius: radius.field,
     backgroundColor: colors.dangerBg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -529,6 +621,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
   },
   certTitle: { flex: 1, textAlign: 'center' },
+  certHeaderSpacer: { width: 48 },
   roundButton: {
     width: 48,
     height: 48,
@@ -538,6 +631,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadow.soft,
   },
+  certScrollView: { flexShrink: 1, minHeight: 0 },
   certScroll: { padding: space.lg, alignItems: 'center' },
   certFooter: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.lg, gap: space.md },
 });

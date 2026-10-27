@@ -10,6 +10,10 @@
 .cm-kicker { margin: 0 0 18px; font: 600 13px/1 var(--sans, "Onest"); color: var(--muted); }
 .cm-title { margin: 0; font-size: clamp(40px, 4.4vw, 68px); font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; color: var(--ink); }
 .cm-lede { margin-top: 16px; font-size: 19px; line-height: 1.4; color: var(--ink-2); }
+.cm-jumps { display: flex; gap: 10px; margin-top: 20px; }
+.cm-jumps a { border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; color: var(--ink); text-decoration: none; font: 700 14px/1 "Onest", sans-serif; }
+.cm-jumps a:hover, .cm-jumps a:focus-visible { background: var(--a-accent); outline: 2px solid var(--ink); outline-offset: 2px; }
+.cm-row[id] { scroll-margin-top: 24px; }
 
 .cm-row { border-top: 1px solid var(--line); padding-top: 26px; }
 .cm-rowhead { display: flex; align-items: baseline; gap: 12px; padding: 0 var(--page-pad); font: 600 15px/1 "Onest", sans-serif; color: var(--muted); }
@@ -78,6 +82,17 @@
 .cm-code6 span.is-cur { box-shadow: inset 0 0 0 2px var(--a-ink); }
 
 /* ---------- earn (Round 2 F3) ---------- */
+.cm-earn { gap: 8px; padding-top: 14px; }
+.cm-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cm-balance { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.cm-history { width: 28px; height: 28px; display: grid; place-items: center; color: var(--a-ink); }
+.cm-earn .cm-totals > div { background: var(--a-card); padding: 12px; }
+.cm-earn .cm-totals strong { font-size: 22px; line-height: 28px; }
+.cm-month { padding: 12px 14px; }
+.cm-month .cm-between > b { font: 800 18px/24px var(--a-sans); color: var(--a-ink); }
+.cm-month .cm-bars { height: 54px; margin-top: 6px; }
+.cm-earn .cm-h2 { font-size: 15px; line-height: 20px; }
+.cm-earn .cm-listcard { padding: 10px; gap: 12px; }
 .cm-earnhead { padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 2px; }
 .cm-earnhead .top { display: flex; align-items: center; justify-content: space-between; }
 .cm-earnhead .k { font: 700 14px/20px var(--a-sans); color: var(--a-ink3); }
@@ -285,6 +300,12 @@
 .cm-sugg { display: flex; gap: 8px; flex-wrap: wrap; padding-left: 44px; }
 
 /* ---------- me ---------- */
+.cm-profile { gap: 10px; padding-top: 10px; }
+.cm-profile .cm-stats > div { padding: 12px 10px; }
+.cm-profile .cm-stats strong { font-size: 22px; line-height: 28px; }
+.cm-profile .cm-mr { padding: 6px 12px; font-size: 14px; line-height: 18px; }
+.cm-profile .cm-mr .ic { flex: none; width: 26px; height: 26px; border-radius: 9px; }
+.cm-profile .cm-mr .ic svg.lucide { width: 16px; height: 16px; }
 .cm-prof { display: flex; align-items: center; gap: 14px; }
 .cm-prof .m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .cm-prof .m b { font: 800 24px/28px var(--a-sans); letter-spacing: -0.6px; color: var(--a-ink); }

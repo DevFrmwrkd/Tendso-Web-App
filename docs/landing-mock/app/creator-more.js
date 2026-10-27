@@ -89,32 +89,32 @@
   // ================= ROW 2 · EARN (Round 2 F3) =================
   const BARS = [['May', 38], ['Jun', 52], ['Jul', 44], ['Aug', 61], ['Sep', 76], ['Oct', 100]];
   const LATEST = [
-    [S.kalan.hero, 'Kalan', 2999, 'Oct 18'],
-    [S.hela.hero, 'Héla Hair Studio', 4999, 'Oct 12'],
-    [A + 'photos/kalan-pandesal.jpg', 'Panaderya Dela Cruz', 3999, 'Oct 9'],
+    ['Kalan', 1500, 'Oct 18'],
+    ['Héla Hair Studio', 2500, 'Oct 12'],
+    ['Panaderya Dela Cruz', 2000, 'Oct 9'],
   ];
-  const sale = ([img, name, price, date]) => `<div class="cm-sale"><img src="${img}" alt="">
-    <div class="m"><b>${name}</b><span>Paid ${peso(price)} · ${date}</span></div><span class="cm-amt">+${peso(keep(price))}</span></div>`;
+  const sale = ([name, amount, date]) => `<div class="cm-sale"><span class="cm-icwrap">${I('store')}</span>
+    <div class="m"><b>${name}</b><span>Site payout · ${date}</span></div><span class="cm-amt">+${peso(amount)}</span></div>`;
 
   const earnBody = () => `
     <div class="cm-body cm-body--tabs">
-      <div class="cm-earnhead">
-        <div class="top"><span class="k">You earned in October</span><span class="cm-round" style="width:36px;height:36px">${I('history')}</span></div>
-        <div class="cm-big">₱12,400</div>
-        <div class="d">6 sites · ₱3,000 more than September</div>
-        <div class="cm-bars">${BARS.map(([m, h], i) => `<div class="${i === BARS.length - 1 ? 'is-on' : ''}"><i style="height:${h * 0.56}px"></i><b>${m}</b></div>`).join('')}</div>
-      </div>
-      <div class="cm-pad cm-col" style="gap:14px">
-        <div class="a-card cm-price">
-          <div class="h"><b>Your price</b><span class="cm-small">Lower price = easier yes</span></div>
-          <div class="cm-chips5">${[999, 1999, 2999, 3999, 4999].map((p) => `<span class="${p === PRICE ? 'is-on' : ''}">${p.toLocaleString('en-US')}</span>`).join('')}</div>
-          <div class="cm-two">
-            <div class="is-keep"><strong>${peso(keep(PRICE))}</strong><span>you keep per site</span></div>
-            <div><strong>${peso(4999 - PRICE)}</strong><span>the shop saves</span></div>
-          </div>
+      <div class="cm-pad cm-col cm-earn">
+        <div class="a-card cm-balance">
+          <div class="cm-between"><span class="cm-small">Available to cash out</span><span class="cm-history">${I('history')}</span></div>
+          <div class="cm-big">₱3,750</div>
         </div>
-        <div class="cm-h2" style="font-size:16px;margin-top:2px">Latest</div>
-        ${LATEST.map(sale).join('')}
+        <div class="cm-two cm-totals">
+          <div><strong>₱41,500</strong><span>Total earned</span></div>
+          <div><strong>₱32,750</strong><span>Withdrawn</span></div>
+        </div>
+        <div class="a-card cm-month">
+          <div class="cm-between"><span class="cm-small">Earned in October</span><b>₱12,400</b></div>
+          <div class="cm-bars">${BARS.map(([m, h], i) => `<div class="${i === BARS.length - 1 ? 'is-on' : ''}"><i style="height:${h * 0.36}px"></i><b>${m}</b></div>`).join('')}</div>
+        </div>
+        <div class="cm-between"><span class="cm-h2">Recent earnings</span><span class="cm-small cm-link">See all</span></div>
+        <div class="a-card cm-listcard">${LATEST.slice(0, 1).map(sale).join('')}</div>
+        <div class="cm-between"><span class="cm-h2">Cash outs</span><span class="cm-small cm-link">See all</span></div>
+        <div class="a-card cm-listcard">${payRow(5000, 'Oct 20', st('proc', 'Processing'))}</div>
       </div>
     </div>`;
   const earnHome = () => `${earnBody()}<div class="cm-cta">${door('Cash out ₱3,750 to Wise', 'accent')}</div>${tabbar('earn')}`;
@@ -137,12 +137,12 @@
     <div class="m"><b>To Wise · ${date}</b><span>${ME.email}</span></div>
     <div class="cm-r"><span class="cm-amt cm-amt--out">−${peso(amt)}</span>${status}</div></div>`;
   const payouts = () => `
-    ${topBar('Payouts')}
+    ${topBar('History')}
     <div class="cm-body" style="top:106px">
       <div class="cm-pad cm-col" style="gap:14px;padding-top:8px">
         <div class="a-card cm-sum">
           <div><strong>₱41,500</strong><span>Earned</span></div>
-          <div><strong>₱37,750</strong><span>Cashed out</span></div>
+          <div><strong>₱32,750</strong><span>Cashed out</span></div>
           <div><strong>₱3,750</strong><span>Ready</span></div>
         </div>
         <div class="cm-pills"><span class="a-pill a-pill--ink">All</span><span class="a-pill">Earned</span><span class="a-pill">Cashed out</span></div>
@@ -156,8 +156,8 @@
         <span class="a-sec" style="text-align:left;margin-top:4px">September</span>
         <div class="a-card cm-listcard">
           ${payRow(8750, 'Sep 28', st('paid', 'Completed'))}
-          ${sale([S.labana.hero, 'Labaná Laundry', 3999, 'Sep 24'])}
-          ${sale([S.vulca.hero, 'Vulca Garage', 4999, 'Sep 16'])}
+          ${sale(['Labaná Laundry', 2000, 'Sep 24'])}
+          ${sale(['Vulca Garage', 2500, 'Sep 16'])}
         </div>
       </div>
     </div>`;
@@ -352,18 +352,20 @@
   const mr = (icon, label, right = '') => `<div class="cm-mr"><span class="ic">${I(icon)}</span><span>${label}</span>${right ? `<em>${right}</em>` : ''}${I('chevron-right')}</div>`;
   const profile = () => `
     <div class="cm-body cm-body--tabs">
-      <div class="cm-pad cm-col" style="gap:14px;padding-top:14px">
-        <div class="cm-prof">${av(64)}<div class="m"><b>Mika Santos</b><span>Creator · Marikina</span><span class="cm-tag" style="margin-top:4px">${I('link')}${ME.link}</span></div></div>
+      <div class="cm-pad cm-col cm-profile">
+        <div class="cm-prof">${av(64)}<div class="m"><b>Mika Santos</b><span>Field agent</span><span class="cm-tag" style="margin-top:4px">${I('badge-check')}Certified</span></div></div>
         <div class="cm-stats">
-          <div class="a-card"><strong>23</strong><span>Sites built</span></div>
-          <div class="a-card"><strong>4.9</strong><span>Rating</span></div>
+          <div class="a-card"><strong>23</strong><span>Submitted</span></div>
+          <div class="a-card"><strong>₱3,750</strong><span>Balance</span></div>
           <div class="a-card"><strong>₱41.5k</strong><span>Earned</span></div>
         </div>
         <div class="a-card cm-menu">
-          ${mr('store', 'Your submissions', '23')}
-          ${mr('link', 'Your link')}
-          ${mr('users', 'Invite creators', '3')}
+          ${mr('badge-check', 'Show my certificate')}
+          ${mr('chart-no-axes-combined', 'Dashboard')}
+          ${mr('store', 'Your submissions', '25')}
           ${mr('book-open', 'Learn & help')}
+          ${mr('circle-help', 'Help & FAQ')}
+          ${mr('users', 'Invite field agents')}
         </div>
         <span class="a-sec" style="text-align:left">Settings</span>
         <div class="a-card cm-menu">
@@ -384,7 +386,6 @@
         <div class="cm-split">${fl('First name', field('', ME.first))}${fl('Last name', field('', ME.last))}</div>
         ${fl('Mobile', field('phone', '0917 482 3310'))}
         ${fl('Email', field('mail', ME.email, { right: I('lock', 'cm-lock') }), '<span class="a-label">Can\'t change</span>')}
-        ${fl('Wise email for payouts', field('send', ME.email, { right: I('circle-check', 'cm-ink') }))}
         <div style="margin-top:8px">${door('Save changes', 'accent')}</div>
         <p class="cm-danger" style="margin-top:8px">Delete my account</p>
       </div>
@@ -433,9 +434,9 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
       [forgot, 'Forgot password', 'apps/mobile/app/(auth)/forgot-password.tsx', 'Email step; the 6-digit code step follows (shown faded).'],
     ] },
     { name: 'Earn', screens: [
-      [earnHome, 'Earn home', P + '(tabs)/wallet.tsx · R2-F3', 'Month total and bars, your price ₱999–₱4,999 with what you keep vs what the shop saves, latest paid sites, one accent cash-out.'],
+      [earnHome, 'Earn home', P + '(tabs)/wallet.tsx · R2-F3', 'Available balance, lifetime earned/withdrawn, six months of credited earnings, named earnings and cash-out history. One accent Wise cash-out; price stays in each capture Review. Sample amounts illustrate real account data.'],
       [cashOut, 'Cash out', P + '(tabs)/wallet.tsx (withdraw modal)', 'Amount with quick picks, the saved Wise email, confirm. Nothing else on screen.'],
-      [payouts, 'Payout history', P + '(tabs)/wallet.tsx (history)', 'Earned, cashed out, ready; Wise transfers with status mixed into the month’s sales.'],
+      [payouts, 'Payout history', P + '(tabs)/wallet.tsx (history)', 'Full history with All / Earned / Cashed out filters, month groups, real earning amounts and Wise statuses. Pending earnings are excluded from the credited-earnings trend.'],
     ] },
     { name: 'Your link', screens: [
       [linkEditor, 'Link page editor', 'apps/mobile/components/affiliate/PageEditor.tsx', 'What shows on your page as toggles; intro; copy and share the link.'],
@@ -453,8 +454,8 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
       [ask, 'Ask Tendso', P + '(tabs)/knowledge/ask.tsx', 'Answered chat with sources under each reply; follows the 2026-10-06 price rule.'],
     ] },
     { name: 'Me', screens: [
-      [profile, 'Profile', P + '(tabs)/profile.tsx', 'Photo, link, three stats (no levels), shortcuts, settings rows.'],
-      [editProfile, 'Edit profile', P + 'edit-profile.tsx', 'Photo, name, mobile; email locked; Wise email for payouts.'],
+      [profile, 'Profile', P + '(tabs)/profile.tsx', 'Field-agent identity and certification; Submitted excludes drafts, while Your submissions includes them. Real Balance/Earned, certificate, Dashboard, learning, referrals, settings and legal links. No rating or affiliate page link.'],
+      [editProfile, 'Edit profile', P + 'edit-profile.tsx', 'Photo, name and mobile; email locked. Wise payout setup remains in Earn.'],
       [faq, 'Help & FAQ', P + 'help-faq.tsx', 'Money tab, one answer open, rewritten to the 2026-10-06 rule (no 5-site lock).'],
       [terms, 'Terms', P + 'terms-of-service.tsx', 'Top of the terms, section 1 open.'],
     ] },
@@ -464,6 +465,7 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
   ROWS.forEach((row, ri) => {
     const sec = document.createElement('section');
     sec.className = 'cm-row';
+    if (row.name === 'Earn' || row.name === 'Me') sec.id = row.name.toLowerCase();
     const no = String(ri + 1).padStart(2, '0');
     sec.innerHTML = `<div class="cm-rowhead"><b>${no} ${row.name}</b><span>${row.screens.length} screens</span></div><div class="cm-strip"></div>`;
     const strip = sec.querySelector('.cm-strip');
