@@ -35,12 +35,16 @@ export function currentMonthEarnings(
 }
 
 export type FindFilter = 'all' | 'near' | 'needs' | FindKind;
+export const FIND_RADII_KM = [1, 3, 5, 10, 25] as const;
+export const DEFAULT_FIND_RADIUS_KM = 5;
 
 /** Address-only legacy leads still belong in the feed; only Near me requires coordinates. */
 export function filterCommunityFinds(
   leads: readonly CommunityFind[], filter: FindFilter, search: string, area: MapSearchArea | null,
+  radiusKm = DEFAULT_FIND_RADIUS_KM,
 ): CommunityFind[] {
   const needle = search.trim().toLocaleLowerCase();
+  const radius = Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : DEFAULT_FIND_RADIUS_KM;
   const nearbyDistance = (lead: CommunityFind) => {
     const point = { latitude: lead.businessLatitude as number, longitude: lead.businessLongitude as number };
     return area && validMapCoordinate(point) ? distanceKm(area, point) : null;
@@ -49,7 +53,7 @@ export function filterCommunityFinds(
     if (needle && ![lead.businessName, lead.businessAddress, lead.businessCity,
       lead.spottedBy?.displayName, lead.submittedBy?.displayName].some((value) => value?.toLocaleLowerCase().includes(needle))) return false;
     if (filter === 'needs') return lead.needsWebsite === true && lead.hasLiveWebsite !== true;
-    if (filter === 'near') { const km = nearbyDistance(lead); return km != null && km <= 5; }
+    if (filter === 'near') { const km = nearbyDistance(lead); return km != null && km <= radius; }
     return filter === 'all' || (lead.communityKind ?? findKind(lead.businessType)) === filter;
   });
   return rows.sort((a, b) => filter === 'near'

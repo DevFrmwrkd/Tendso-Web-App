@@ -5,6 +5,7 @@ import {
   findWebsiteLabel,
 } from '../services/fieldAgentFinds';
 import type { CommunityFind } from '../services/fieldAgentMap';
+import { distanceKm } from '../services/fieldAgentMap';
 import type { MapSearchArea } from '../services/workArea';
 
 const area: MapSearchArea = { latitude: 14.65, longitude: 121.10, source: 'device', label: 'you' };
@@ -105,6 +106,38 @@ describe('filterCommunityFinds', () => {
     ];
     expect(filterCommunityFinds(rows, 'near', '', area).map((row) => row._id)).toEqual(['hundred-metres', 'one-km']);
     expect(filterCommunityFinds(rows, 'near', '', null)).toEqual([]);
+  });
+
+  it('expands and narrows the selected radius while preserving search and nearest-first order', () => {
+    const rows = [
+      find('far', { businessName: 'Nena Far', businessLatitude: 14.75, businessLongitude: 121.10 }),
+      find('near', { businessName: 'Nena Near', businessLatitude: 14.651, businessLongitude: 121.10 }),
+      find('middle', { businessName: 'Nena Middle', businessLatitude: 14.67, businessLongitude: 121.10 }),
+      find('other', { businessName: 'Other Cafe', businessLatitude: 14.65, businessLongitude: 121.10 }),
+      find('address-only', { businessName: 'Nena Unpinned', businessCity: 'Marikina' }),
+    ];
+    expect(filterCommunityFinds(rows, 'near', 'nena', area, 1).map((row) => row._id)).toEqual(['near']);
+    expect(filterCommunityFinds(rows, 'near', 'nena', area, 3).map((row) => row._id)).toEqual(['near', 'middle']);
+    expect(filterCommunityFinds(rows, 'near', 'nena', area, 25).map((row) => row._id)).toEqual(['near', 'middle', 'far']);
+    expect(filterCommunityFinds(rows, 'all', 'nena', area, 1)).toHaveLength(4);
+    expect(rows.map((row) => row._id)).toEqual(['far', 'near', 'middle', 'other', 'address-only']);
+  });
+
+  it('includes a point exactly on the chosen radius and excludes one beyond it', () => {
+    const edge = { latitude: 14.67, longitude: 121.10 };
+    const rows = [
+      find('edge', { businessLatitude: edge.latitude, businessLongitude: edge.longitude }),
+      find('beyond', { businessLatitude: 14.67001, businessLongitude: 121.10 }),
+    ];
+    expect(filterCommunityFinds(rows, 'near', '', area, distanceKm(area, edge)).map((row) => row._id)).toEqual(['edge']);
+  });
+
+  it.each([0, -1, NaN, Infinity])('uses the default radius for an invalid range (%s)', (radius) => {
+    const rows = [
+      find('within-five', { businessLatitude: 14.67, businessLongitude: 121.10 }),
+      find('outside-five', { businessLatitude: 14.75, businessLongitude: 121.10 }),
+    ];
+    expect(filterCommunityFinds(rows, 'near', '', area, radius).map((row) => row._id)).toEqual(['within-five']);
   });
 
   it('includes only a confirmed need for a website and lets a verified live website override that need', () => {

@@ -7,7 +7,7 @@ import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useWorkAreaLocation } from '../../hooks/useWorkAreaLocation';
 import { Avatar, Button, EmptyState, Loading, Pill, ScreenShell, Text } from '../v2';
 import { colors, fonts, hit, radius, shadow, space } from '../../theme/v2';
-import { filterCommunityFinds, findWebsiteLabel, type FindFilter } from '../../services/fieldAgentFinds';
+import { DEFAULT_FIND_RADIUS_KM, FIND_RADII_KM, filterCommunityFinds, findWebsiteLabel, type FindFilter } from '../../services/fieldAgentFinds';
 import { normalizeCommunityFind, publicImage, type CommunityFind } from '../../services/fieldAgentMap';
 
 const FILTERS: { key: FindFilter; title: string }[] = [
@@ -23,9 +23,10 @@ export function CommunityFinds() {
   const { area, requestCurrentLocation, isLocating } = useWorkAreaLocation();
   const data = useQuery(api.leads.listForMobileCRM, isAuthenticated ? { statusFilter: 'all' } : 'skip');
   const [filter, setFilter] = useState<FindFilter>(area ? 'near' : 'all');
+  const [radiusKm, setRadiusKm] = useState<number>(DEFAULT_FIND_RADIUS_KM);
   const [search, setSearch] = useState('');
   const leads: readonly CommunityFind[] = data?.leads ?? [];
-  const rows = useMemo(() => filterCommunityFinds(leads, filter, search, area), [leads, filter, search, area]);
+  const rows = useMemo(() => filterCommunityFinds(leads, filter, search, area, radiusKm), [leads, filter, search, area, radiusKm]);
   const columns = [rows.filter((_, index) => index % 2 === 0), rows.filter((_, index) => index % 2 === 1)];
   const tools = () => Alert.alert('Find shops', 'More ways to find and manage shops.', [
     { text: 'Open map', onPress: () => router.replace('/(app)/(tabs)/' as never) },
@@ -59,13 +60,23 @@ export function CommunityFinds() {
             {FILTERS.map((item) => <Pill key={item.key} label={item.title} selected={filter === item.key}
               onPress={() => { Keyboard.dismiss(); setFilter(item.key); }} />)}
           </ScrollView>
+          {filter === 'near' ? <View style={styles.range}>
+            <Text variant="label" tone="muted" accessibilityLiveRegion="polite">{area
+              ? `Within ${radiusKm} km of ${area.source === 'work' ? area.label : 'your location'}` : 'Search range'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rangeOptions}>
+              {FIND_RADII_KM.map((km) => <Pill key={km} label={`${km} km`} accessibilityLabel={`Within ${km} km`}
+                selected={radiusKm === km} style={styles.rangeOption}
+                onPress={() => { Keyboard.dismiss(); setRadiusKm(km); }} />)}
+            </ScrollView>
+          </View> : null}
           {filter === 'near' && !area ? <EmptyState icon="location-outline" title="Choose your location"
-            body="Use your location to see finds within 5 km. Your saved work city also works."
+            body={`Use your location to see finds within ${radiusKm} km. Your saved work city also works.`}
             actionLabel={isLocating ? 'Locating…' : 'Use my location'}
             onAction={() => { if (!isLocating) void requestCurrentLocation(); }} />
             : !data ? <Loading fill={false} />
               : rows.length === 0 ? <EmptyState icon="storefront-outline" title={search || filter !== 'all' ? 'No matching finds' : 'Be the first to spot a shop'}
-                body={search || filter !== 'all' ? 'Try another filter or search.' : 'Take a shop photo and share it with the team.'}
+                body={filter === 'near' ? `No matching finds within ${radiusKm} km. Increase the range or try another search.`
+                  : search || filter !== 'all' ? 'Try another filter or search.' : 'Take a shop photo and share it with the team.'}
                 actionLabel={search || filter !== 'all' ? 'Clear filters' : 'Spot a shop'}
                 onAction={() => { if (search || filter !== 'all') { setFilter('all'); setSearch(''); } else router.push('/(app)/leads/spot' as never); }} />
                 : <View style={styles.masonry}>
@@ -125,6 +136,9 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, minWidth: 0, fontFamily: fonts.medium, fontSize: 16, color: colors.ink, minHeight: 48, paddingVertical: space.sm },
   clear: { minHeight: 48, minWidth: 32, alignItems: 'center', justifyContent: 'center' },
   filters: { paddingHorizontal: space.gutter, gap: space.sm, paddingVertical: space.xs },
+  range: { marginHorizontal: space.gutter, gap: space.sm },
+  rangeOptions: { gap: space.sm, paddingVertical: space.xs },
+  rangeOption: { minHeight: hit.min, paddingHorizontal: space.md },
   masonry: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.gutter }, column: { flex: 1, minWidth: 0, gap: space.xl },
   tile: { gap: space.sm }, photo: { borderRadius: radius.card, backgroundColor: colors.bg2, overflow: 'hidden' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm },
