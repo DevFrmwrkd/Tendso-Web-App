@@ -39,6 +39,9 @@ interface PriceSliderProps {
   showEarnings?: boolean;
 }
 
+const THUMB = 36;
+const DRAG_THRESHOLD = 4;
+
 export function PriceSlider({
   floor,
   ceiling,
@@ -57,50 +60,95 @@ export function PriceSlider({
   const [showTypedInput, setShowTypedInput] = useState(false);
   const [typedInputValue, setTypedInputValue] = useState(String(value));
   const valueRef = useRef(value);
-  valueRef.current = value;
-  const dragStart = useRef(value);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const bounds = useRef({ floor, ceiling, step, trackWidth, disabled });
   bounds.current = { floor, ceiling, step, trackWidth, disabled };
+  const drag = useRef<{ value: number; floor: number; ceiling: number; step: number; travel: number } | null>(null);
+
+  // Notify for actual edits, rather than every parent callback identity change.
+  // In particular, an echoed initialValue must never restart a running drag.
+  const changeValue = (next: number) => {
+    if (next === valueRef.current) return;
+    valueRef.current = next;
+    setValue(next);
+    onChangeRef.current(next);
+  };
 
   useEffect(() => {
-    setValue(Math.max(floor, Math.min(ceiling, initialValue ?? ceiling)));
-  }, [initialValue, floor, ceiling]);
+    const active = drag.current;
+    if (active && (disabled || active.floor !== floor || active.ceiling !== ceiling || active.step !== step)) {
+      drag.current = null;
+    }
+    // The finger owns the value until release. Parent echoes (including delayed
+    // ones) must not pull the thumb back between move events.
+    if (drag.current) return;
+    const next = Math.max(floor, Math.min(ceiling, initialValue ?? ceiling));
+    if (next !== valueRef.current) {
+      valueRef.current = next;
+      setValue(next);
+      if (initialValue === undefined || next !== initialValue) onChangeRef.current(next);
+    }
+  }, [initialValue, floor, ceiling, step, disabled]);
 
   useEffect(() => {
-    onChange(value);
-  }, [value, onChange]);
+    onChangeRef.current(valueRef.current);
+  }, []);
 
   const snapToStep = (raw: number) => {
     return snapPrice(raw, floor, ceiling, step);
   };
 
   // ───── PanResponder: drag thumb left/right ─────
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !bounds.current.disabled,
-      onMoveShouldSetPanResponder: () => !bounds.current.disabled,
-      onPanResponderGrant: () => { dragStart.current = valueRef.current; },
+  const panResponder = useRef<ReturnType<typeof PanResponder.create> | null>(null);
+  if (!panResponder.current) {
+    const wantsHorizontalDrag = (_: unknown, gesture: { dx: number; dy: number }) => {
+      const current = bounds.current;
+      return !current.disabled && current.ceiling > current.floor && current.trackWidth > THUMB
+        && Math.abs(gesture.dx) > DRAG_THRESHOLD && Math.abs(gesture.dx) > Math.abs(gesture.dy);
+    };
+    panResponder.current = PanResponder.create({
+      // Leave vertical movement to the enclosing screen's ScrollView.
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: wantsHorizontalDrag,
+      onMoveShouldSetPanResponderCapture: wantsHorizontalDrag,
+      onPanResponderGrant: () => {
+        const current = bounds.current;
+        const travel = current.trackWidth - THUMB;
+        drag.current = !current.disabled && current.ceiling > current.floor && travel > 0
+          ? { value: valueRef.current, floor: current.floor, ceiling: current.ceiling, step: current.step, travel }
+          : null;
+      },
       onPanResponderMove: (_, gesture) => {
         const current = bounds.current;
-        if (!current.trackWidth || current.disabled) return;
-        const raw = dragStart.current + gesture.dx / current.trackWidth * (current.ceiling - current.floor);
-        const newValue = snapPrice(raw, current.floor, current.ceiling, current.step);
-        if (newValue !== valueRef.current) {
-          setValue(newValue);
-          valueRef.current = newValue;
+        const active = drag.current;
+        if (!active || current.disabled || active.floor !== current.floor || active.ceiling !== current.ceiling
+          || active.step !== current.step || active.travel !== current.trackWidth - THUMB) {
+          drag.current = null;
+          return;
         }
+        if (!Number.isFinite(gesture.dx)) return;
+        const raw = active.value + gesture.dx / active.travel * (active.ceiling - active.floor);
+        changeValue(snapPrice(raw, active.floor, active.ceiling, active.step));
       },
-      onPanResponderRelease: () => {},
-    }),
-  ).current;
+      // A horizontal drag keeps ownership even if the finger drifts vertically.
+      onPanResponderTerminationRequest: () => !drag.current,
+      onShouldBlockNativeResponder: () => !!drag.current,
+      onPanResponderRelease: () => { drag.current = null; },
+      onPanResponderTerminate: () => { drag.current = null; },
+    });
+  }
 
-  // Thumb position as fraction of track width
-  const fraction = (value - floor) / Math.max(1, ceiling - floor);
-  const thumbX = fraction * trackWidth;
-  const filledWidth = thumbX;
+  // Both thumb centers sit on the rail ends; the entire thumb stays inside.
+  const fraction = Math.max(0, Math.min(1, (value - floor) / Math.max(1, ceiling - floor)));
+  const travel = Math.max(0, trackWidth - THUMB);
+  const thumbX = fraction * travel;
 
   const onTrackLayout = (e: LayoutChangeEvent) => {
-    setTrackWidth(e.nativeEvent.layout.width);
+    const width = e.nativeEvent.layout.width;
+    if (!Number.isFinite(width) || width <= 0) return;
+    if (width !== bounds.current.trackWidth) drag.current = null;
+    setTrackWidth(width);
   };
 
   // Live derived values
@@ -118,15 +166,10 @@ export function PriceSlider({
 
   const commitTypedInput = () => {
     const parsed = parseInt(typedInputValue, 10);
-    if (!isNaN(parsed)) {
-      const clamped = snapToStep(parsed);
-      setValue(clamped);
-      valueRef.current = clamped;
-    }
+    if (!disabled && !isNaN(parsed)) changeValue(snapToStep(parsed));
     setShowTypedInput(false);
   };
 
-  const THUMB = 36;
   return (
     <View>
       <Text style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 20, color: colors.ink3Text, marginBottom: 6 }}>
@@ -181,33 +224,37 @@ export function PriceSlider({
             accessibilityValue={{ min: floor, max: ceiling, now: value }}
             accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
             onAccessibilityAction={(event) => {
-              if (!disabled) setValue(snapToStep(value + (event.nativeEvent.actionName === 'increment' ? step : -step)));
+              const action = event.nativeEvent.actionName;
+              if (!disabled && (action === 'increment' || action === 'decrement')) {
+                changeValue(snapToStep(valueRef.current + (action === 'increment' ? step : -step)));
+              }
             }}
             onLayout={onTrackLayout}
             style={{
-              height: 48, justifyContent: 'center',
+              height: 48, minWidth: THUMB, justifyContent: 'center',
               marginBottom: 4,
               opacity: disabled ? 0.5 : 1,
             }}
-            {...panResponder.panHandlers}
+            {...panResponder.current.panHandlers}
           >
             {/* Track */}
             <View style={{
               height: 10, backgroundColor: colors.bg2,
+              marginHorizontal: THUMB / 2,
               borderRadius: 5,
             }} />
             {/* Filled portion */}
             <View style={{
               position: 'absolute',
-              left: 0, top: 19,
-              height: 10, width: filledWidth,
+              left: THUMB / 2, top: 19,
+              height: 10, width: thumbX,
               backgroundColor: colors.accent,
               borderRadius: 5,
             }} />
             {/* Thumb: accent fill, ink ring */}
-            <View style={{
+            <View testID="price-slider-thumb" pointerEvents="none" style={{
               position: 'absolute',
-              left: Math.max(0, thumbX - THUMB / 2),
+              left: thumbX,
               top: (48 - THUMB) / 2,
               width: THUMB, height: THUMB, borderRadius: THUMB / 2,
               backgroundColor: colors.accent,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitReviewScreen from '../app/(app)/submit/review';
 import SubmitSuccessScreen from '../app/(app)/submit/success';
@@ -119,12 +119,62 @@ it('shows the actual capture, then saves its price before submitting with commis
   expect(mockRemove).toHaveBeenCalledWith('current_submission_id');
 });
 
+it('shows the current capture photo beside an unclamped business name with a fixed-size crop', async () => {
+  const businessName = 'Nena and Family General Merchandise and Neighborhood Convenience Store';
+  mockSubmissions['draft-1'].businessName = businessName;
+  const screen = await review();
+  const thumbnail = screen.getByRole('image', { name: `Shop photo for ${businessName}` });
+  expect(thumbnail).toHaveProp('source', { uri: 'https://images.example.com/one' });
+  expect(thumbnail).toHaveProp('resizeMode', 'cover');
+  expect(thumbnail).toHaveStyle({ width: 56, height: 56, flexShrink: 0 });
+  expect(screen.getByText(businessName).props.numberOfLines).toBeUndefined();
+  fireEvent.press(screen.getAllByRole('link', { name: 'Edit' })[0]);
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+});
+
+it('tries the next current-capture photo after a load failure and falls back safely if all fail', async () => {
+  const screen = await review();
+  for (const key of ['one', 'two', 'three']) {
+    const thumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+    expect(thumbnail).toHaveProp('source', { uri: 'https://images.example.com/' + key });
+    fireEvent(thumbnail, 'error', { nativeEvent: { error: 'Image could not load' } });
+  }
+  const fallback = screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' });
+  expect(fallback).toHaveStyle({ width: 56, height: 56 });
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+});
+
+it('uses the storefront fallback without inventing a photo when this capture has none', async () => {
+  mockSubmissions['draft-1'].photos = [];
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' })).toBeTruthy();
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+});
+
+it('keeps the price comparison tiles equally flexible and stretched without fixed text heights', async () => {
+  const screen = await review();
+  expect(screen.getByTestId('capture-price-stats')).toHaveStyle({ flexDirection: 'row', alignItems: 'stretch' });
+  for (const id of ['capture-earnings', 'capture-savings']) {
+    const tile = screen.getByTestId(id);
+    expect(tile).toHaveStyle({ flex: 1, minWidth: 0, justifyContent: 'flex-start' });
+    expect(StyleSheet.flatten(tile.props.style).height).toBeUndefined();
+  }
+  for (const label of ['You keep after payment', 'The shop saves']) {
+    const text = screen.getByText(label);
+    expect(text.props.numberOfLines).toBeUndefined();
+    expect(text.props.allowFontScaling).not.toBe(false);
+  }
+});
+
 it('queues offline media and the selected price without sending or inventing a payout', async () => {
   mockOffline = true; stored('current_submission_id', 'offline_pending');
   stored('submission_pending_sync', { creatorId: mockActor, formData: form });
   stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
   stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
   const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', { uri: 'file://1' });
   fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
   fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
   await act(async () => { confirmation('Save and queue')(); await flush(); });
@@ -135,6 +185,17 @@ it('queues offline media and the selected price without sending or inventing a p
   expect(mockRouter.replace).toHaveBeenCalledWith({
     pathname: '/(app)/submit/success', params: { queued: 'true', submissionId: 'offline_pending' },
   });
+});
+
+it('uses this draft’s cached photo offline and ignores another draft’s pending images', async () => {
+  mockOffline = true;
+  stored('submission_snapshot', { ...form, submissionId: 'draft-1', creatorId: mockActor });
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ uri: 'file://current-shop.jpg' }] });
+  stored('submission_pending_photos', { submissionId: 'other-draft', photoUris: ['file://other-shop.jpg'], existingPhotos: [] });
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', { uri: 'file://current-shop.jpg' });
+  expect(screen.queryByLabelText('Shop photo 2')).toBeNull();
+  expect(mockWrite).not.toHaveBeenCalled();
 });
 
 it.each(['', 'not-an-email'])('keeps a legacy draft with invalid email (%s) editable without submitting it', async (email) => {
@@ -199,6 +260,7 @@ it('blocks a foreign server capture even if local metadata would otherwise allow
   expect(screen.queryByRole('button', { name: 'Send for review' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Save and queue' })).toBeNull();
   expect(screen.queryByText('Private shop')).toBeNull();
+  expect(screen.queryByRole('image', { name: /Shop photo/ })).toBeNull();
   expect(mockSubmit).not.toHaveBeenCalled();
 });
 

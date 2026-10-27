@@ -381,7 +381,7 @@
         <div class="cc-card" style="padding:12px 14px">
           <div class="cc-between"><span class="cc-t">Your price</span><span class="cc-sm">Lower price = easier yes</span></div>
           <div class="cc-between" style="margin-top:6px"><span class="cc-h cc-h--sm" style="font-size:24px">₱4,999</span></div>
-          <div class="cc-slider"><i class="tr"></i><i class="fl" style="width:100%"></i><i class="th" style="left:100%"></i></div>
+          <div class="cc-slider"><i class="tr"></i><i class="fl" style="width:100%"></i><i class="th" style="left:calc(100% - 14px)"></i></div>
           <div class="cc-between cc-xs"><span>₱999</span><span>₱4,999</span></div>
           <div class="cc-row2" style="gap:8px;margin-top:8px"><div class="cc-stat cc-grow" style="background:var(--a-accent-soft)"><b>₱2,500</b><span>you keep</span></div><div class="cc-stat cc-grow" style="background:var(--a-bg2)"><b>₱0</b><span>the shop saves</span></div></div>
         </div>
@@ -486,7 +486,7 @@
       ['4.3', 'components/v2/capture/ShotGuide.tsx', 'One real photo task at a time, device-level guidance, task strip, direct retakes and JPEG uploads. No automatic face/framing assessment is claimed.', shared('shot-guide', photosLocal, { type: 'barber' })],
       ['4.4', P + 'submit/interview.tsx', 'Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback.', shared('interview-list', interviewRecLocal, { step: 3 })],
       ['4.5', 'components/v2/capture/InterviewCam.tsx', 'Continuous recording with question subtitles, Next, device level and supported native pause. Close/background saves or discards deliberately; separate audio supports transcription.', shared('interview-cam', interviewRecLocal, { video: 'assets/video/interview-2.mp4', poster: 'assets/video/interview-2.jpg', type: 'barber' })],
-      ['4.6', P + 'submit/review.tsx', 'Real details, photo strip, recording playback, optional domain and price slider. A missing or invalid owner email shows a warning and Edit shop details action before sending. Offline queues pause safely with their draft, media, selected price and source shop retained; correcting the email resumes sending. Commission depends on payment.', review],
+      ['4.6', P + 'submit/review.tsx', 'Thumbnail from this capture with a fallback for missing/broken photos, real details, photo strip, recording playback, optional domain and equal-size payout/savings tiles. Horizontal slider drags keep the thumb within the track; vertical scrolling, typed entry and accessible adjustments are preserved. Missing or invalid owner email shows a warning and Edit shop details action before sending. Offline queues pause with draft, media, selected price and source shop retained; correcting email resumes sending. Commission depends on payment.', review],
       ['4.7', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
     ] },
     { n: '05', title: 'Home extras', note: 'Notifications', steps: [

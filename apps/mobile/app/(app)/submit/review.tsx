@@ -19,6 +19,18 @@ type LocalInterview = { submissionId: string; type: 'video' | 'audio'; recording
 type DomainQuote = { valid: boolean; available?: boolean; domain?: string; pricePHP?: number; withinBudget?: boolean;
   reason?: string; error?: string; suggestions?: { domain: string; pricePHP: number; withinBudget: boolean }[] };
 
+function CaptureShopThumbnail({ photos, businessName }: { photos: string[]; businessName: string }) {
+  const [failedUris, setFailedUris] = useState<string[]>([]);
+  const uri = photos.find(candidate => candidate.trim().length > 0 && !failedUris.includes(candidate));
+  if (!uri) return <View style={styles.shopThumbnail} accessible accessibilityRole="image"
+    accessibilityLabel={`Shop photo unavailable for ${businessName}`}>
+    <Ionicons name="storefront-outline" size={28} color={colors.ink3Text} />
+  </View>;
+  return <Image key={uri} source={{ uri }} style={styles.shopThumbnail} resizeMode="cover" accessible
+    accessibilityRole="image" accessibilityLabel={`Shop photo for ${businessName}`}
+    onError={() => setFailedUris(previous => previous.includes(uri) ? previous : [...previous, uri])} />;
+}
+
 export default function SubmitReviewScreen() {
   const capture = useCaptureSession();
   if (!capture.isReady) return <Loading />;
@@ -212,8 +224,11 @@ function ReviewForm() {
       {!draft ? <><Banner tone="neutral" title="Already sent" body="This capture is being processed. Your details are saved." />
         <Button title="View capture status" variant="ghost" onPress={() => router.replace({ pathname: '/(app)/submit/success', params: { submissionId: id } } as never)} /></> : null}
       <Card style={styles.card}>
-        <View style={styles.row}><View style={styles.flex}><Text variant="bodyLg" weight="bold">{form.businessName}</Text><Text tone="muted">{form.businessType}</Text></View>
-          <TextLink label="Edit" disabled={saving} onPress={editBusiness} /></View>
+        <View style={styles.row}>
+          <CaptureShopThumbnail key={`${capture.actorKey}:${id}`} photos={photos} businessName={form.businessName} />
+          <View style={styles.businessDetails}><Text variant="bodyLg" weight="bold">{form.businessName}</Text><Text tone="muted">{form.businessType}</Text></View>
+          <View style={styles.businessAction}><TextLink label="Edit" disabled={saving} onPress={editBusiness} /></View>
+        </View>
         <Text>{form.ownerName} · {form.ownerPhone}</Text>
         {normalizeCaptureEmail(form.ownerEmail) ? <Text tone="muted">{normalizeCaptureEmail(form.ownerEmail)}</Text> : null}
         <Text tone="muted">{[form.address, form.city].filter(Boolean).join(', ')}</Text>
@@ -250,8 +265,8 @@ function ReviewForm() {
         <View style={styles.row}><Text variant="bodyLg" weight="bold" style={styles.flex}>Your price</Text><Text tone="muted">Lower price, easier yes</Text></View>
         {priceReady ? <PriceSlider floor={pricing?.basePrice ?? BASE_PRICE} ceiling={pricing?.priceCeiling ?? PRICE_CEILING} anchor={WEBSITE_PRICE}
           commissionRate={0.5} initialValue={sellPrice} onChange={setSellPrice} disabled={saving} showEarnings={false} /> : <Loading fill={false} />}
-        <View style={styles.row}><View style={[styles.stat, styles.accent]}><Text variant="heading">{formatPeso(earnings)}</Text><Text>You keep after payment</Text></View>
-          <View style={styles.stat}><Text variant="heading">{formatPeso(Math.max(0, WEBSITE_PRICE - sellPrice))}</Text><Text>The shop saves</Text></View></View>
+        <View style={styles.statsRow} testID="capture-price-stats"><View style={[styles.stat, styles.accent]} testID="capture-earnings"><Text variant="heading">{formatPeso(earnings)}</Text><Text>You keep after payment</Text></View>
+          <View style={styles.stat} testID="capture-savings"><Text variant="heading">{formatPeso(Math.max(0, WEBSITE_PRICE - sellPrice))}</Text><Text>The shop saves</Text></View></View>
         {wantsDomain && validDomain ? <Text weight="bold">Owner total: {formatPeso(sellPrice + domainCost)}</Text> : null}
       </Card>
       {!ready && draft ? <Text tone="muted">{photoCount < 3 ? 'Add at least 3 photos before sending.' : !hasInterview ? 'Record the owner’s interview before sending.' : !validDomain ? 'Choose an available domain or use the included address.' : 'Finish checking the capture before sending.'}</Text> : null}
@@ -267,7 +282,10 @@ function ReviewForm() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 }, content: { gap: space.lg }, card: { gap: space.md }, row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  businessDetails: { flex: 1, minWidth: 0 }, businessAction: { flexShrink: 0 },
+  shopThumbnail: { width: 56, height: 56, flexShrink: 0, borderRadius: radius.field, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   strip: { gap: space.sm }, thumb: { width: 84, height: 94, borderRadius: radius.card, backgroundColor: colors.bg2 },
-  stat: { flex: 1, minHeight: hit.min, padding: space.md, backgroundColor: colors.bg2, borderRadius: radius.card, gap: space.xs },
+  statsRow: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
+  stat: { flex: 1, minWidth: 0, minHeight: hit.min, justifyContent: 'flex-start', padding: space.md, backgroundColor: colors.bg2, borderRadius: radius.card, gap: space.xs },
   accent: { backgroundColor: colors.accentSoft }, player: { flex: 1, justifyContent: 'center' }, video: { width: '100%', height: 340 },
 });
