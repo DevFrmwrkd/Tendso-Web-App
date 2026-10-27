@@ -9,6 +9,7 @@ import { toast } from "sonner"
 
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { captureEmailError } from "@/lib/captureEmail"
 import {
     Button,
     ButtonLink,
@@ -120,6 +121,8 @@ export default function ReviewSubmissionPage() {
         api.submissions.getById,
         submissionId ? { id: submissionId as Id<"submissions"> } : "skip"
     )
+    const ownerEmailError = captureEmailError(submission?.ownerEmail)
+    const editBusinessHref = `/submit/info?draftId=${encodeURIComponent(submissionId ?? "")}`
 
     // Get resolved photo URLs
     const photoUrls = useQuery(
@@ -227,7 +230,7 @@ export default function ReviewSubmissionPage() {
     const handleSubmit = async () => {
         if (!submission || !submissionId) return
         setTriedSubmit(true)
-        if (!agreed || domainBlocks) return
+        if (!agreed || domainBlocks || ownerEmailError) return
 
         setSubmitting(true)
         setError(null)
@@ -308,6 +311,9 @@ export default function ReviewSubmissionPage() {
     let barError = false
     if (error) {
         barMessage = error
+        barError = true
+    } else if (triedSubmit && ownerEmailError) {
+        barMessage = ownerEmailError
         barError = true
     } else if (triedSubmit && !agreed) {
         barMessage = "Tick the confirmation to send it."
@@ -547,7 +553,15 @@ export default function ReviewSubmissionPage() {
             <div className="flex flex-col gap-4">
                 {/* Business Info Section */}
                 <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby="ns-r-business">
-                    <SectionHead id="ns-r-business" title="Business" edit="/submit/info" editLabel="Edit business details" />
+                    <SectionHead id="ns-r-business" title="Business" edit={editBusinessHref} editLabel="Edit business details" />
+                    {ownerEmailError && (
+                        <div role="alert" className="flex flex-col items-start gap-2 rounded-r1 bg-r1-fill-2 p-3">
+                            <p className="t-error">{ownerEmailError}</p>
+                            <ButtonLink size="sm" href={`${editBusinessHref}&focus=ownerEmail`}>
+                                Edit owner’s email
+                            </ButtonLink>
+                        </div>
+                    )}
                     <dl className="m-0 grid gap-4 sm:grid-cols-2 sm:gap-x-6">
                         <div className="flex min-w-0 flex-col gap-0.5">
                             <dt className="t-label">Business</dt>
@@ -559,7 +573,7 @@ export default function ReviewSubmissionPage() {
                             <dd className="t-body m-0 text-r1-ink">{submission.ownerName}</dd>
                             <dd className="t-meta t-num m-0 [overflow-wrap:anywhere]">
                                 {phoneForReading(submission.ownerPhone)}
-                                {submission.ownerEmail ? ` · ${submission.ownerEmail}` : " · No email"}
+                                {submission.ownerEmail ? ` · ${submission.ownerEmail}` : " · Email required"}
                             </dd>
                         </div>
                         <div className="flex min-w-0 flex-col gap-0.5 sm:col-span-2">

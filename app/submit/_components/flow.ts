@@ -9,6 +9,8 @@
  * under DRAFT_ID_KEY, exactly as before the redesign.
  */
 
+import { captureEmailError } from "@/lib/captureEmail"
+
 /** sessionStorage key the steps share. Unchanged: the mobile web view and old tabs read it too. */
 export const DRAFT_ID_KEY = "current_submission_id"
 
@@ -188,7 +190,8 @@ export function infoErrors(v: InfoValues): Partial<Record<InfoField, string>> {
     if (!v.ownerName.trim()) e.ownerName = "Add the owner’s full name."
     if (!v.ownerPhone) e.ownerPhone = "Add the owner’s phone number."
     else if (!/^09\d{9}$/.test(v.ownerPhone)) e.ownerPhone = "Use 11 digits starting with 09, like 0917 123 4567."
-    if (v.ownerEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.ownerEmail)) e.ownerEmail = "Check the email. It needs an @ and a domain, like name@gmail.com."
+    const emailError = captureEmailError(v.ownerEmail)
+    if (emailError) e.ownerEmail = emailError
     if (!v.city.trim()) e.city = "Add the city or municipality."
     if (!v.address.trim()) e.address = "Add the street, and the house or stall number."
     return e

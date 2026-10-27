@@ -9,6 +9,13 @@ import { requireAccountOwner, requireAdmin, requireCreatorAccount } from './lib/
 import { isCreatorAccount } from '../lib/accounts';
 import { resolveGiveawayReviewSource } from './lib/submissionReview';
 import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
+import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
+
+function requireCaptureOwnerEmail(value: string | undefined): string {
+    const error = captureEmailError(value);
+    if (error) throw new Error(error);
+    return normalizeCaptureEmail(value);
+}
 
 /** Capture edits belong to their creator; admin publishing can edit any account's content. */
 async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>) {
@@ -417,6 +424,11 @@ export const create = mutation({
         if (args.status && args.status !== 'draft' && args.status !== 'submitted' && me.role !== 'admin') {
             throw new Error('Forbidden: admin access required to set submission status');
         }
+        // Incomplete captures stay saveable as drafts. Direct callers cannot
+        // bypass the final-submit requirement by creating a submitted row.
+        const ownerEmail = args.status && args.status !== 'draft'
+            ? requireCaptureOwnerEmail(args.ownerEmail)
+            : args.ownerEmail?.trim();
         const prospectLeadId = await resolveProspectLead(ctx, args.prospectLeadId, args.creatorId);
         const prospectLead = prospectLeadId ? await ctx.db.get(prospectLeadId) : null;
         if (prospectLead?.source === 'community' && args.status && args.status !== 'draft') {
@@ -428,7 +440,7 @@ export const create = mutation({
             businessType: args.businessType,
             ownerName: args.ownerName,
             ownerPhone: args.ownerPhone,
-            ownerEmail: args.ownerEmail,
+            ownerEmail,
             address: args.address,
             city: args.city,
             province: args.province,
@@ -511,6 +523,7 @@ export const update = mutation({
         const filteredUpdates: Record<string, unknown> = Object.fromEntries(
             Object.entries(updates).filter(([, value]) => value !== undefined)
         );
+        if (updates.ownerEmail !== undefined) filteredUpdates.ownerEmail = updates.ownerEmail.trim();
 
         const submission = await ctx.db.get(id);
         if (!submission) throw new Error('Submission not found');
@@ -757,6 +770,10 @@ export const submit = mutation({
         // Studio render. Applies to every submission, not just prospect ones.
         if (submission.status !== 'draft') return;
 
+        // Legacy rows remain readable/editable. Every capture needs the owner's
+        // email before processing starts or its shared lead is created.
+        const ownerEmail = requireCaptureOwnerEmail(submission.ownerEmail);
+
         // Validate: at least 3 photos
         if (!submission.photos || submission.photos.length < 3) {
             throw new Error('At least 3 photos are required');
@@ -770,6 +787,7 @@ export const submit = mutation({
             : 'standard';
         await ctx.db.patch(args.id, {
             status: 'submitted',
+            ownerEmail,
             // Preserve the creator-set amount (from setDomainTier / create);
             // only fall back to the base tier price if it was never set.
             amount: submission.amount ?? ownerTotal(BASE_PRICE, tier),
@@ -806,7 +824,7 @@ export const submit = mutation({
                         creatorId: submission.creatorId,
                         status: 'converted',
                         name: submission.ownerName,
-                        email: submission.ownerEmail,
+                        email: ownerEmail,
                         // phone deliberately left as the scraped listing number;
                         // the owner's direct number is exposed separately as
                         // ownerPhone through the submission join.
@@ -829,7 +847,7 @@ export const submit = mutation({
                 source: 'direct',
                 name: submission.ownerName,
                 phone: submission.ownerPhone,
-                email: submission.ownerEmail,
+                email: ownerEmail,
                 status: 'new',
                 createdAt: Date.now(),
             });
@@ -861,7 +879,7 @@ export const submit = mutation({
 
         // 5. Owner app v2: invite the owner ("Sign in with this email to see
         // your website"). Once per order; also tried again at payment.
-        if (submission.ownerEmail) {
+        if (ownerEmail) {
             await ctx.scheduler.runAfter(0, internal.owners.inviteForSubmission, { submissionId: args.id });
         }
     },

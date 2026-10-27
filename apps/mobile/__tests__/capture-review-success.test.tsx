@@ -67,7 +67,7 @@ jest.mock('react-native-svg', () => ({
 }));
 
 const form = { businessName: 'Nena Store', businessType: 'Sari-Sari Store', ownerName: 'Nena Santos',
-  ownerPhone: '09171234567', address: '12 Rizal Street', city: 'Marikina' };
+  ownerPhone: '09171234567', ownerEmail: 'nena@example.com', address: '12 Rizal Street', city: 'Marikina' };
 const flush = async () => { for (let count = 0; count < 15; count++) await Promise.resolve(); };
 function stored(key: string, value: unknown) { mockStorage.set(mockActor + ':' + key, value); }
 function confirmation(label: string) {
@@ -135,6 +135,58 @@ it('queues offline media and the selected price without sending or inventing a p
   expect(mockRouter.replace).toHaveBeenCalledWith({
     pathname: '/(app)/submit/success', params: { queued: 'true', submissionId: 'offline_pending' },
   });
+});
+
+it.each(['', 'not-an-email'])('keeps a legacy draft with invalid email (%s) editable without submitting it', async (email) => {
+  mockSubmissions['draft-1'].ownerEmail = email;
+  const screen = await review();
+  expect(screen.getByText('Owner’s email required')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit shop details' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('does not queue an older offline capture until its missing owner email is added', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  const { ownerEmail: _email, ...legacyForm } = form;
+  stored('submission_pending_sync', { creatorId: mockActor, formData: legacyForm });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
+  const screen = await review();
+  expect(screen.getByText('Owner’s email required')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeDisabled();
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_pending_photos')).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('keeps ordinary Business edit on the exact draft shown in review', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getAllByRole('link', { name: 'Edit' })[0]);
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+});
+
+it('passes the offline pending target when repairing its email from review', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, ownerEmail: '' } });
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit shop details' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'offline_pending' } });
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('uses corrected owned pending details and queues them before submitting a server draft with no email', async () => {
+  mockSubmissions['draft-1'].ownerEmail = '';
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', formData: form });
+  const screen = await review();
+  expect(screen.queryByText('Owner’s email required')).toBeNull();
+  expect(screen.getByText('nena@example.com')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
 });
 
 it('blocks a foreign server capture even if local metadata would otherwise allow sending', async () => {

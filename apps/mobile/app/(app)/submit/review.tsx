@@ -11,8 +11,9 @@ import { PriceSlider } from '../../../components/PriceSlider';
 import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, EmptyState, Field, Loading, ProgressBar, ScreenShell, Text, TextLink, formatPeso } from '../../../components/v2';
 import { colors, hit, radius, space } from '../../../theme/v2';
+import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 
-type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; address: string; city: string };
+type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
 type LocalPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[] };
 type LocalInterview = { submissionId: string; type: 'video' | 'audio'; recordingUri: string; durationSec?: number; attached?: boolean };
 type DomainQuote = { valid: boolean; available?: boolean; domain?: string; pricePHP?: number; withinBudget?: boolean;
@@ -123,7 +124,8 @@ function ReviewForm() {
     return () => clearTimeout(timer);
   }, [domain, capture.canQuery, capture.actorKey]);
 
-  const form = submission ?? localForm ?? snapshot;
+  const form = localForm ?? submission ?? snapshot;
+  const emailError = captureEmailError(form?.ownerEmail);
   const remotePhotos = (photoUrls ?? []).filter((uri): uri is string => !!uri);
   const savedLocalPhotos = (photoMeta?.items ?? []).map(item => item.uri).filter((uri): uri is string => !!uri);
   const photos = [...new Set([...remotePhotos, ...(localPhotos?.photoUris ?? (remotePhotos.length ? [] : savedLocalPhotos))])];
@@ -139,8 +141,11 @@ function ReviewForm() {
   const earnings = commissionFor(sellPrice);
   const priceReady = capture.isOffline || !!pricing;
   const draft = !submission || submission.status === 'draft';
-  const ready = !!form && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && !checkingDomain && priceReady && draft;
-  const queued = capture.isOffline || id === 'offline_pending' || !!localPhotos || !!localInterview;
+  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && !checkingDomain && priceReady && draft;
+  const queued = capture.isOffline || id === 'offline_pending' || !!localForm || !!localPhotos || !!localInterview;
+  const editBusiness = () => {
+    if (id && isCurrent()) router.push({ pathname: '/(app)/submit/info', params: { draftId: id } } as never);
+  };
   const send = async () => {
     if (busy.current || !id || !capture.actor || !isCurrent() || !ready) return;
     if (!capture.isOffline && !capture.canMutate()) return;
@@ -202,12 +207,15 @@ function ReviewForm() {
       <ProgressBar value={1} label="Step 4 of 4" />
       <OfflineBanner />
       {error ? <Banner tone="danger" body={error} /> : null}
+      {draft && emailError ? <Banner tone="warn" title="Owner’s email required" body={emailError}
+        action={<TextLink label="Edit shop details" disabled={saving} onPress={editBusiness} />} /> : null}
       {!draft ? <><Banner tone="neutral" title="Already sent" body="This capture is being processed. Your details are saved." />
         <Button title="View capture status" variant="ghost" onPress={() => router.replace({ pathname: '/(app)/submit/success', params: { submissionId: id } } as never)} /></> : null}
       <Card style={styles.card}>
         <View style={styles.row}><View style={styles.flex}><Text variant="bodyLg" weight="bold">{form.businessName}</Text><Text tone="muted">{form.businessType}</Text></View>
-          <TextLink label="Edit" disabled={saving} onPress={() => router.push('/(app)/submit/info' as never)} /></View>
+          <TextLink label="Edit" disabled={saving} onPress={editBusiness} /></View>
         <Text>{form.ownerName} · {form.ownerPhone}</Text>
+        {normalizeCaptureEmail(form.ownerEmail) ? <Text tone="muted">{normalizeCaptureEmail(form.ownerEmail)}</Text> : null}
         <Text tone="muted">{[form.address, form.city].filter(Boolean).join(', ')}</Text>
       </Card>
       <Card style={styles.card}>

@@ -33,7 +33,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 
 const creatorId = 'current-creator' as Id<'creators'>;
 const formData = { businessName: 'Nena Shop', businessType: 'Restaurant', ownerName: 'Nena Cruz', ownerPhone: '9171234567',
-  address: '12 Main Street', city: 'Marikina' };
+  ownerEmail: 'nena@example.com', address: '12 Main Street', city: 'Marikina' };
 const scoped = (key: Parameters<typeof captureStorageKey>[1], value: unknown) => mockStorage.set(captureStorageKey(creatorId, key), JSON.stringify(value));
 const read = (key: Parameters<typeof captureStorageKey>[1]) => {
   const value = mockStorage.get(captureStorageKey(creatorId, key)); return value == null ? null : JSON.parse(value);
@@ -172,6 +172,98 @@ it('sets the exact queued price and domain before submitting and then clears fin
   expect(read('submission_interview_draft')).toBeNull(); expect(read('submission_photo_tasks')).toBeNull();
 });
 
+it.each([undefined, '', '   ', 'not-an-email', 'owner@example', `${'a'.repeat(310)}@example.com`])(
+  'keeps a legacy draft queued until its owner email is valid (%p)', async ownerEmail => {
+    row('my-submission', { ownerEmail }); scoped('current_submission_id', 'my-submission');
+    const choice = { submissionId: 'my-submission', sellPrice: 2499, submissionType: 'standard' };
+    scoped('submission_pending_submit', choice);
+    scoped('submission_photo_tasks', { submissionId: 'my-submission', items: [{ id: 'p1', uri: 'file://one.jpg', storageId: 'images/one.jpg' }] });
+    scoped('submission_interview_draft', { submissionId: 'my-submission', recordingUri: 'file://interview.mp4', attached: true });
+    const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+    expect(mockMutation).not.toHaveBeenCalled();
+    expect(read('submission_pending_submit')).toEqual(choice);
+    expect(read('submission_photo_tasks').items[0]).toMatchObject({ uri: 'file://one.jpg', storageId: 'images/one.jpg' });
+    expect(read('submission_interview_draft')).toMatchObject({ recordingUri: 'file://interview.mp4', attached: true });
+    expect(read('submission_last_sent')).toBeNull();
+    expect(Alert.alert).toHaveBeenCalledWith('Email needed to send', expect.stringContaining('Open About the shop'), [{ text: 'OK' }]);
+    await sync(result); await sync(result);
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
+    expect(mockMutation).not.toHaveBeenCalled();
+  },
+);
+
+it('syncs an incomplete offline draft and its media without pricing, submitting or losing the queued choice', async () => {
+  scoped('current_submission_id', 'offline_pending');
+  scoped('submission_pending_sync', info({ formData: { ...formData, ownerEmail: '' } }));
+  scoped('submission_pending_submit', { submissionId: 'offline_pending', sellPrice: 2499, submissionType: 'standard' });
+  scoped('submission_pending_photos', photos('offline_pending'));
+  scoped('submission_photo_tasks', { submissionId: 'offline_pending', items: photos().entries });
+  scoped('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.mp4',
+    parallelAudioUri: 'file://backup.m4a', type: 'video' });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockRows.get('new-submission-1')).toMatchObject({ status: 'draft', ownerEmail: '', photos: [
+    'images/photo-p1.jpg', 'images/photo-p2.jpg', 'images/photo-p3.jpg',
+  ], videoStorageId: 'videos/interview.mp4', audioStorageId: 'audio/interview-audio.m4a' });
+  expect(read('submission_pending_submit')).toEqual({ submissionId: 'new-submission-1', sellPrice: 2499, submissionType: 'standard' });
+  expect(read('submission_snapshot')).toMatchObject({ submissionId: 'new-submission-1', ownerEmail: '' });
+  expect(read('submission_photo_tasks').items).toEqual(expect.arrayContaining([
+    expect.objectContaining({ uri: 'file://1.jpg', storageId: 'images/photo-p1.jpg' }),
+  ]));
+  expect(read('submission_interview_draft')).toMatchObject({ recordingUri: 'file://interview.mp4', attached: true });
+  expect(read('submission_last_sent')).toBeNull();
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:setDomainTier' || name === 'submissions:submit')).toBe(false);
+  expect(Alert.alert).toHaveBeenCalledTimes(1);
+  expect(Alert.alert).toHaveBeenCalledWith('Email needed to send', expect.stringContaining('Your capture and media are saved'), [{ text: 'OK' }]);
+
+  scoped('submission_pending_sync', info({ existingDraftId: 'new-submission-1',
+    formData: { ...formData, ownerEmail: 'corrected@example.com' } }));
+  await sync(result);
+  expect(mockRows.get('new-submission-1')).toMatchObject({ status: 'submitted', ownerEmail: 'corrected@example.com' });
+  expect(mockMutation.mock.calls.filter(([name]) => name === 'submissions:create')).toHaveLength(1);
+  expect(mockUpload.mock.calls).toHaveLength(5);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:setDomainTier', { id: 'new-submission-1', sellPrice: 2499,
+    submissionType: 'standard', requestedDomain: undefined, domainPricePHP: undefined });
+  expect(read('submission_pending_submit')).toBeNull();
+  expect(read('submission_last_sent')).toMatchObject({ submissionId: 'new-submission-1', queued: false });
+});
+
+it('checks the newest owned server email rather than a stale initial row before sending', async () => {
+  const initial = row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  mockQuery.mockResolvedValueOnce(initial).mockResolvedValueOnce({ ...initial, ownerEmail: '' });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockQuery).toHaveBeenCalledTimes(2);
+  expect(mockMutation).not.toHaveBeenCalled();
+  expect(read('submission_pending_submit')).not.toBeNull(); expect(read('submission_last_sent')).toBeNull();
+  expect(Alert.alert).toHaveBeenCalledWith('Email needed to send', expect.any(String), expect.any(Array));
+});
+
+it('resumes the retained queue when the owner email is corrected on the server', async () => {
+  row('my-submission', { ownerEmail: '' }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  mockRows.set('my-submission', { ...mockRows.get('my-submission'), ownerEmail: 'fixed@example.com' });
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+  expect(read('submission_pending_submit')).toBeNull(); expect(read('submission_last_sent')).not.toBeNull();
+});
+
+it('silently stops if the account changes during the final email check', async () => {
+  const initial = row('my-submission', { ownerEmail: '' }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  let finish!: (value: unknown) => void;
+  mockQuery.mockResolvedValueOnce(initial).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const { result, rerender } = renderHook(({ actor }) => useOfflineSync({ enabled: true, creatorId: actor }), { initialProps: { actor: creatorId } });
+  let task!: Promise<void>;
+  await act(async () => { task = result.current.attemptSync(); await Promise.resolve(); });
+  for (let count = 0; count < 20 && !finish; count++) await act(async () => { await Promise.resolve(); });
+  expect(finish).toBeDefined(); rerender({ actor: 'next-creator' as Id<'creators'> });
+  await act(async () => { finish(initial); await task; });
+  expect(mockMutation).not.toHaveBeenCalled(); expect(Alert.alert).not.toHaveBeenCalled();
+  expect(read('submission_pending_submit')).not.toBeNull();
+  expect(mockStorage.has(captureStorageKey('next-creator', 'submission_pending_submit'))).toBe(false);
+});
+
 it('carries the source lead through creation and migrates every offline pointer to the owned server id', async () => {
   scoped('current_submission_id', 'offline_pending'); scoped('submission_pending_sync', info({ prospectLeadId: 'community-lead' }));
   scoped('submission_photo_tasks', { submissionId: 'offline_pending', items: [] });
@@ -261,12 +353,13 @@ it('retries cache migration after an intermediate local write fails without crea
   expect(read('submission_photo_tasks').submissionId).toBe('new-submission-1');
 });
 
-it('finishes cleanup after an accepted submit without re-pricing or re-submitting', async () => {
-  row('my-submission', { status: 'submitted' });
+it('finishes cleanup after an accepted legacy submit even without email, without re-pricing or re-submitting', async () => {
+  row('my-submission', { status: 'submitted', ownerEmail: undefined });
   scoped('current_submission_id', 'my-submission'); scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 1999, submissionType: 'standard' });
   const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
   expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_pending_submit')).toBeNull();
   expect(read('submission_last_sent')).toMatchObject({ submissionId: 'my-submission', queued: false });
+  expect(Alert.alert).not.toHaveBeenCalled();
 });
 
 it('retains the old actor media and stops mutations when accounts switch during upload', async () => {

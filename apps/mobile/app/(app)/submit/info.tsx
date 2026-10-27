@@ -6,9 +6,10 @@ import {
   StyleSheet,
   Alert,
   Keyboard,
+  type TextInput,
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
-import { BUSINESS_TYPES, mapCategoryToBusinessType, toLocalPhDigits } from '../../../services/prospectPrefill';
+import { BUSINESS_TYPES, looksLikeConvexId, mapCategoryToBusinessType, toLocalPhDigits } from '../../../services/prospectPrefill';
 import { removeSubmission } from '../../../services/submissionsExtra';
 import { api } from '@tendso/convex-client';
 import type { Id } from '@tendso/convex-client';
@@ -21,30 +22,39 @@ import { useGuardedPress } from '../../../hooks/useGuardedPress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
+import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
   ...BUSINESS_TYPES.filter((type) => !['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage'].includes(type))];
 
+type CaptureParams = {
+  draftId?: string; prospectLeadId?: string; businessName?: string; phone?: string;
+  address?: string; city?: string; category?: string; latitude?: string; longitude?: string;
+};
+type SavedDetails = {
+  businessName: string; businessType: string; ownerName: string; ownerPhone: string;
+  ownerEmail?: string; address: string; city: string; coordinates?: CaptureCoordinates; prospectLeadId?: string;
+};
+type PendingDetails = { creatorId: string; existingDraftId?: string | null; prospectLeadId?: string; formData: SavedDetails };
+
 export default function SubmitInfoScreen() {
   const capture = useCaptureSession();
-  return <SubmitInfoForm key={capture.actorKey ?? 'loading'} capture={capture} />;
+  const prefillParams = useLocalSearchParams<CaptureParams>();
+  return <SubmitInfoForm key={`${capture.actorKey ?? 'loading'}:${JSON.stringify(prefillParams.draftId ?? null)}`}
+    capture={capture} prefillParams={prefillParams} />;
 }
 
-function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSession> }) {
+function SubmitInfoForm({ capture, prefillParams }: {
+  capture: ReturnType<typeof useCaptureSession>; prefillParams: CaptureParams;
+}) {
   const router = useGuardedRouter();
   // Set when arriving from Discover's "Start with these details". prospectLeadId
   // is present only for legacy-leads rows — see startInterview in discover.tsx.
-  const prefillParams = useLocalSearchParams<{
-    prospectLeadId?: string;
-    businessName?: string;
-    phone?: string;
-    address?: string;
-    city?: string;
-    category?: string;
-    latitude?: string;
-    longitude?: string;
-  }>();
+  const explicitDraft = prefillParams.draftId != null;
+  const requestedDraftId = typeof prefillParams.draftId === 'string'
+    && (prefillParams.draftId === 'offline_pending' || looksLikeConvexId(prefillParams.draftId))
+    ? prefillParams.draftId : null;
   const goBack = useGuardedPress(() => router.back());
 
   const creator = useQuery(
@@ -52,10 +62,16 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
     capture.canQuery && capture.actor ? { clerkId: capture.actor.clerkId } : 'skip'
   );
 
-  const existingDraft = useQuery(
+  const newestDraft = useQuery(
     api.submissions.getDraftByCreatorId,
-    capture.canQuery && capture.actor ? { creatorId: capture.actor.creatorId } : 'skip'
+    !explicitDraft && capture.canQuery && capture.actor ? { creatorId: capture.actor.creatorId } : 'skip'
   );
+  const requestedDraft = useQuery(
+    api.submissions.getById,
+    explicitDraft && capture.canQuery && requestedDraftId && requestedDraftId !== 'offline_pending'
+      ? { id: requestedDraftId as Id<'submissions'> } : 'skip'
+  );
+  const existingDraft = explicitDraft ? requestedDraft : newestDraft;
 
   const createSubmission = useMutation(api.submissions.create);
   const updateSubmission = useMutation(api.submissions.update);
@@ -72,11 +88,14 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const emailInput = useRef<TextInput | null>(null);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [coordinates, setCoordinates] = useState<CaptureCoordinates | undefined>();
   const [choosingLocation, setChoosingLocation] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [unavailableDraft, setUnavailableDraft] = useState(false);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const mounted = useRef(true);
   const initializing = useRef(false);
@@ -116,9 +135,55 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
   }, [prefillParams.businessName, prefillParams.phone, prefillParams.address, prefillParams.city, prefillParams.category,
     prefillParams.latitude, prefillParams.longitude]);
 
+  // A review repair must open that exact capture. Untagged form caches and the
+  // newest server draft may belong to another business, so neither is a fallback.
+  useEffect(() => {
+    if (!explicitDraft || initialized || initializing.current || !capture.isReady || !capture.actor || !isCurrent()) return;
+    if (!requestedDraftId) { setUnavailableDraft(true); return; }
+    if (!capture.isOffline && !capture.canQuery) return;
+    if (capture.canQuery && requestedDraftId !== 'offline_pending' && requestedDraft === undefined) return;
+    initializing.current = true;
+    void (async () => {
+      try {
+        if (capture.canQuery && requestedDraftId !== 'offline_pending'
+          && (!requestedDraft || requestedDraft.creatorId !== capture.actor?.creatorId || requestedDraft.status !== 'draft')) {
+          if (isCurrent()) setUnavailableDraft(true);
+          return;
+        }
+        const [pending, snapshot, storedId] = await Promise.all([
+          capture.read<PendingDetails>('submission_pending_sync'),
+          capture.read<SavedDetails & { submissionId: string; creatorId: string }>('submission_snapshot'),
+          capture.read<string>('current_submission_id'),
+        ]);
+        if (!isCurrent()) return;
+        const matchingPending = pending && pending.creatorId === capture.actor?.creatorId && pending.formData
+          && (requestedDraftId === 'offline_pending'
+            ? storedId === 'offline_pending' && (!pending.existingDraftId || pending.existingDraftId === 'offline_pending')
+            : pending.existingDraftId === requestedDraftId) ? pending : null;
+        const matchingSnapshot = snapshot && snapshot.creatorId === capture.actor?.creatorId
+          && snapshot.submissionId === requestedDraftId ? snapshot : null;
+        const data = matchingPending?.formData
+          ?? (capture.canQuery && requestedDraftId !== 'offline_pending' ? requestedDraft : matchingSnapshot);
+        if (!data) { setUnavailableDraft(true); return; }
+        setUnavailableDraft(false);
+        setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
+        setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
+        setOwnerEmail(data.ownerEmail || ''); setAddress(data.address || ''); setCity(data.city || '');
+        setCoordinates(validCaptureCoordinates(data.coordinates) ? data.coordinates : undefined);
+        setProspectLeadId(matchingPending?.prospectLeadId ?? data.prospectLeadId);
+        setSelectedDraftId(requestedDraftId === 'offline_pending' ? null : requestedDraftId);
+        await capture.write('current_submission_id', requestedDraftId);
+        if (isCurrent()) setInitialized(true);
+      } catch {
+        if (isCurrent()) setUnavailableDraft(true);
+      } finally { initializing.current = false; }
+    })();
+  }, [explicitDraft, requestedDraftId, requestedDraft, initialized, capture.actorKey, capture.isReady, capture.canQuery, capture.isOffline]);
+
   // Keep server drafts first, then this account's cached form. A new shop must
   // never silently reuse a draft whose lead link is set once on the server.
   useEffect(() => {
+    if (explicitDraft) return;
     if (initialized || initializing.current || !capture.isReady || !capture.actor || !isCurrent()) return;
     if (!capture.isOffline && existingDraft === undefined) return;
     initializing.current = true;
@@ -207,7 +272,7 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
         if (isCurrent()) setError('Could not load your saved details. Reopen this capture to try again.');
       } finally { initializing.current = false; }
     })();
-  }, [capture.actorKey, capture.isReady, capture.isOffline, existingDraft, initialized, loadDraft, hasPrefill, applyPrefill,
+  }, [explicitDraft, capture.actorKey, capture.isReady, capture.isOffline, existingDraft, initialized, loadDraft, hasPrefill, applyPrefill,
     prefillParams.businessName, prefillParams.prospectLeadId, discardDraft, clearDraft]);
 
   // Auto-save form fields to local cache (debounced)
@@ -238,13 +303,16 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
       setError('Please fill in all required fields');
       return;
     }
+    const invalidEmail = captureEmailError(ownerEmail);
+    setEmailError(invalidEmail);
+    if (invalidEmail) { emailInput.current?.focus(); return; }
 
     const formData = {
       businessName: businessName.trim(),
       businessType,
       ownerName: ownerName.trim(),
       ownerPhone: ownerPhone.trim(),
-      ownerEmail: ownerEmail.trim() || undefined,
+      ownerEmail: normalizeCaptureEmail(ownerEmail),
       address: address.trim(),
       city: city.trim(),
       ...(validCaptureCoordinates(coordinates) ? { coordinates } : {}),
@@ -330,6 +398,11 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
   if (!capture.actor) return <ScreenShell onBack={goBack} title="Capture unavailable">
     <Banner tone="warn" body="Sign in with your certified field-agent account to start a capture." />
   </ScreenShell>;
+  if (explicitDraft && unavailableDraft) return <ScreenShell onBack={goBack} title="Capture unavailable">
+    <Banner tone="warn" body="This draft is unavailable for your account. Reconnect or return to your capture to try again. Your saved media is unchanged." />
+    <Button title="Go back" variant="ghost" onPress={goBack} />
+  </ScreenShell>;
+  if (explicitDraft && !initialized) return <Loading label="Loading shop details…" />;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
@@ -365,8 +438,9 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
         <Field label="Owner’s mobile" icon="call-outline" prefix="+63" placeholder="917 123 4567"
           value={ownerPhone} onChangeText={(value) => setOwnerPhone(value.replace(/[^0-9]/g, ''))}
           keyboardType="phone-pad" textContentType="telephoneNumber" maxLength={15} editable={!loading} />
-        <Field label="Owner’s email (optional)" icon="mail-outline" placeholder="owner@example.com"
-          value={ownerEmail} onChangeText={setOwnerEmail} keyboardType="email-address"
+        <Field ref={emailInput} label="Owner’s email" icon="mail-outline" placeholder="owner@example.com" maxLength={320}
+          value={ownerEmail} onChangeText={(value) => { setOwnerEmail(value); if (emailError) setEmailError(captureEmailError(value)); }}
+          error={emailError} helper="Required so the owner can access their website." keyboardType="email-address"
           autoCapitalize="none" autoCorrect={false} textContentType="emailAddress" editable={!loading} returnKeyType="next" />
         <Field label="Address" icon="location-outline" placeholder="Street and barangay"
           value={address} onChangeText={setAddress} autoCapitalize="words" editable={!loading} returnKeyType="next" />

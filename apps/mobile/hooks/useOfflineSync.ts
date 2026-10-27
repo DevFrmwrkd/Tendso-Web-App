@@ -5,6 +5,7 @@ import { useMutation, useAction, useConvex } from 'convex/react';
 import { api, type Doc, type Id } from '@tendso/convex-client';
 import { useNetwork } from '../providers/NetworkProvider';
 import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey } from '../services/captureSession';
+import { captureEmailError } from '../../../lib/captureEmail';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string; savedAt: number; legacyMigration?: boolean };
@@ -35,6 +36,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
   const setTier = useMutation(api.submissions.setDomainTier);
   const uploadTarget = useAction(api.r2.generateUploadUrl);
   const busy = useRef(false);
+  const emailWarning = useRef<string | null>(null);
   const mounted = useRef(true);
   const live = useRef({ enabled, creatorId, isConnected });
   live.current = { enabled, creatorId, isConnected };
@@ -209,6 +211,26 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await remove('submission_pending_interview'); synced.push('interview');
       }
       if (queued && typeof queued === 'object' && current()) {
+        // Re-read after syncing pending details and media: the initial row may
+        // still have the old email, or another screen may have corrected it.
+        const latest = await checkOwner(id);
+        if (!latest || !current()) return;
+        if (latest.status !== 'draft') {
+          await finishSent();
+          return;
+        }
+        const emailError = captureEmailError(latest.ownerEmail);
+        if (emailError) {
+          const warningKey = `${actor}:${id}:${emailError}`;
+          if (emailWarning.current !== warningKey) {
+            emailWarning.current = warningKey;
+            Alert.alert('Email needed to send', `${emailError} Open About the shop to add or correct it. Your capture and media are saved.`, [{ text: 'OK' }]);
+          }
+          // Keep the queued choice and the owned draft for a later correction.
+          // A draft/media sync must not turn an invalid legacy queue into Sent.
+          return;
+        }
+        emailWarning.current = null;
         if (queued.sellPrice != null || queued.submissionType || queued.requestedDomain) {
           await setTier({ id: id as Id<'submissions'>, submissionType: queued.submissionType ?? 'standard',
             sellPrice: queued.sellPrice, requestedDomain: queued.requestedDomain, domainPricePHP: queued.domainPricePHP });

@@ -358,6 +358,7 @@
         <div class="cc-chips">${types.map((t) => `<span class="cc-chip cc-chip--sm ${t === 'Restaurant' ? 'is-on' : ''}">${t === 'Restaurant' ? `<i class="cc-chk">${ic('check', 11)}</i>` : ''}${t}</span>`).join('')}</div>
         ${fld('Owner’s full name', 'Teresita Bautista', { icon: 'user', focus: true })}
         ${fld('Owner’s mobile', '+63 917 555 0199', { icon: 'phone' })}
+        ${fld('Owner’s email', 'teresita.bautista@example.com', { icon: 'mail' })}
         ${fld('Address', 'Gil Fernando Ave, Marikina', { icon: 'map-pin', right: `<span class="cc-sm" style="color:var(--a-ink)">Map</span>` })}
       </div>
       <div class="cc-foot">${door('Continue to photos')}</div>`);
@@ -480,12 +481,12 @@
       ['3.5', P + 'leads/[leadId].tsx', 'Deliberate Spot photo or admin cover, real distance/address below the name, and spotting time with the original spotter. Capture galleries are limited to the capturing creator/admin. Empty community contact cards are omitted; known contacts and directions remain usable. Visiting reserves the shop; Live requires a live URL. Legacy original media URLs and generic resolvers still require separate privacy hardening.', leadDetail],
     ] },
     { n: '04', title: 'Capture', note: 'Info, 10 photo tasks, 10 questions on camera, review, sent', steps: [
-      ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile and address. Choose the shop on a native map, adjust the pin, then confirm the editable address/city. Source pins and offline recovery are preserved.', info],
+      ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile, required valid owner email and address. Missing or invalid email blocks Continue with a field error. Choose the shop on a native map, adjust the pin, then confirm the editable address/city. Source pins and offline recovery are preserved.', info],
       ['4.2', P + 'submit/photos.tsx', 'Ten shop-specific photo suggestions as tiles, a next-task card, retakes and owner/library extras. Add 3–10 photos total; suggestions are optional. Actor-scoped drafts resume safely.', shared('shot-list', photosLocal, { type: 'barber', step: 2 })],
       ['4.3', 'components/v2/capture/ShotGuide.tsx', 'One real photo task at a time, device-level guidance, task strip, direct retakes and JPEG uploads. No automatic face/framing assessment is claimed.', shared('shot-guide', photosLocal, { type: 'barber' })],
       ['4.4', P + 'submit/interview.tsx', 'Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback.', shared('interview-list', interviewRecLocal, { step: 3 })],
       ['4.5', 'components/v2/capture/InterviewCam.tsx', 'Continuous recording with question subtitles, Next, device level and supported native pause. Close/background saves or discards deliberately; separate audio supports transcription.', shared('interview-cam', interviewRecLocal, { video: 'assets/video/interview-2.mp4', poster: 'assets/video/interview-2.jpg', type: 'barber' })],
-      ['4.6', P + 'submit/review.tsx', 'Real details, photo strip, recording playback, optional domain and price slider. Commission depends on payment; queued sends retain the selected price and source shop.', review],
+      ['4.6', P + 'submit/review.tsx', 'Real details, photo strip, recording playback, optional domain and price slider. A missing or invalid owner email shows a warning and Edit shop details action before sending. Offline queues pause safely with their draft, media, selected price and source shop retained; correcting the email resumes sending. Commission depends on payment.', review],
       ['4.7', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
     ] },
     { n: '05', title: 'Home extras', note: 'Notifications', steps: [

@@ -18,7 +18,7 @@ const find = {
     clientRequestId: 'find-request-001',
 };
 const capture = {
-    businessName: 'Mang Oca’s Panaderya', businessType: 'Food', ownerName: 'Oca', ownerPhone: '09171234567',
+    businessName: 'Mang Oca’s Panaderya', businessType: 'Food', ownerName: 'Oca', ownerPhone: '09171234567', ownerEmail: 'oca@example.com',
     address: 'Main Street', city: 'Marikina', photos: ['https://images.example.com/1.jpg', 'https://images.example.com/2.jpg', 'https://images.example.com/3.jpg'],
 };
 

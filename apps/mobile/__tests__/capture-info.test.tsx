@@ -14,8 +14,10 @@ const mockCaptureRead = jest.fn();
 const mockCaptureWrite = jest.fn();
 const mockCaptureRemove = jest.fn();
 const mockReverseGeocode = jest.fn();
-let mockParams: Record<string, string>;
+const mockQuery = jest.fn();
+let mockParams: Record<string, string | string[]>;
 let mockDraft: Record<string, unknown> | null | undefined;
+let mockRequestedDrafts: Record<string, Record<string, unknown> | null | undefined>;
 let mockOnline: boolean | null;
 let mockCreator: Record<string, unknown>;
 let mockCurrent: boolean;
@@ -41,11 +43,17 @@ jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
 } }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   creators: { getByClerkId: 'creators:getByClerkId' },
-  submissions: { getDraftByCreatorId: 'submissions:getDraftByCreatorId', create: 'submissions:create',
+  submissions: { getDraftByCreatorId: 'submissions:getDraftByCreatorId', getById: 'submissions:getById', create: 'submissions:create',
     update: 'submissions:update', remove: 'submissions:remove' },
 } }));
 jest.mock('convex/react', () => ({
-  useQuery: (reference: string) => reference === 'creators:getByClerkId' ? mockCreator : mockDraft,
+  useQuery: (reference: string, args: 'skip' | Record<string, string>) => {
+    mockQuery(reference, args);
+    if (args === 'skip') return undefined;
+    if (reference === 'creators:getByClerkId') return mockCreator;
+    if (reference === 'submissions:getById') return mockRequestedDrafts[args.id] ?? null;
+    return mockDraft;
+  },
   useMutation: (reference: string) => reference === 'submissions:create' ? mockCreate
     : reference === 'submissions:update' ? mockUpdate : mockDiscard,
 }));
@@ -76,11 +84,11 @@ jest.mock('react-native-svg', () => ({ __esModule: true, default: 'MockSvg', Pat
 const source = { prospectLeadId: 'lead-nena', businessName: 'Nena’s Eatery', phone: '+63 917 123 4567',
   address: '12 J.P. Rizal St', city: 'Marikina', category: 'Local restaurant' };
 const draft = { _id: 'draft-ramon', creatorId: 'agent-mika', businessName: 'Ramon’s Barber', businessType: 'Barber/Salon',
-  ownerName: 'Ramon Cruz', ownerPhone: '9181234567', ownerEmail: '', address: '10 Main St', city: 'Marikina' };
+  ownerName: 'Ramon Cruz', ownerPhone: '9181234567', ownerEmail: 'ramon@example.com', address: '10 Main St', city: 'Marikina' };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockParams = {}; mockDraft = null; mockOnline = true;
+  mockParams = {}; mockDraft = null; mockRequestedDrafts = {}; mockOnline = true;
   mockCurrent = true;
   mockCreator = { _id: 'agent-mika', clerkId: 'clerk-mika', role: 'creator', certifiedAt: 10 };
   mockCreate.mockReset().mockResolvedValue('new-submission');
@@ -99,6 +107,7 @@ afterEach(() => jest.restoreAllMocks());
 async function completePrefilled(screen: ReturnType<typeof render>) {
   await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(source.businessName));
   fireEvent.changeText(screen.getByLabelText('Owner’s full name'), 'Nena Cruz');
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), ' nena@example.com ');
 }
 async function next(screen: ReturnType<typeof render>) {
   await waitFor(() => expect(screen.getByRole('button', { name: 'Continue to photos step' })).not.toBeDisabled());
@@ -113,7 +122,7 @@ it('preserves real prospect details, normalizes its phone and never invents an o
   expect(screen.getByLabelText('Address').props.value).toBe(source.address);
   expect(screen.getByLabelText('City').props.value).toBe(source.city);
   expect(screen.getByLabelText('Owner’s full name').props.value).toBe('');
-  expect(screen.getByLabelText('Owner’s email (optional)').props.value).toBe('');
+  expect(screen.getByLabelText('Owner’s email').props.value).toBe('');
   expect(screen.getByRole('button', { name: 'Restaurant' }).props.accessibilityState.selected).toBe(true);
   expect(screen.getByRole('button', { name: 'Clinic' })).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Law Office' })).toBeTruthy();
@@ -126,7 +135,7 @@ it('creates one properly linked interview then advances to the photos step', asy
   await completePrefilled(screen); await next(screen);
   expect(mockCreate).toHaveBeenCalledWith({ creatorId: 'agent-mika', prospectLeadId: source.prospectLeadId,
     businessName: source.businessName, businessType: 'Restaurant', ownerName: 'Nena Cruz', ownerPhone: '9171234567',
-    ownerEmail: undefined, address: source.address, city: source.city });
+    ownerEmail: 'nena@example.com', address: source.address, city: source.city });
   expect(mockUpdate).not.toHaveBeenCalled();
   expect(mockCaptureWrite).toHaveBeenCalledWith('current_submission_id', 'new-submission');
   expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/photos');
@@ -174,6 +183,43 @@ it('keeps required-field validation before any save or navigation', async () => 
   expect(screen.getByText('Please fill in all required fields')).toBeTruthy();
 });
 
+it.each([
+  ['', 'Enter the owner’s email address.'],
+  ['   ', 'Enter the owner’s email address.'],
+  ['nena', 'Enter a valid email address for the owner.'],
+  ['nena@', 'Enter a valid email address for the owner.'],
+  ['nena @example.com', 'Enter a valid email address for the owner.'],
+])('blocks a missing or invalid owner email (%s) before any remote or queued save', async (email, message) => {
+  mockParams = source;
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), email);
+  await next(screen);
+  expect(screen.getByText(message)).toBeTruthy();
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), 'Nena+shop@example.com');
+  expect(screen.queryByText(message)).toBeNull();
+  await next(screen);
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ ownerEmail: 'Nena+shop@example.com' }));
+});
+
+it('requires email when continuing offline while preserving the unfinished form cache', async () => {
+  mockParams = source; mockOnline = false; mockDraft = undefined;
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), '');
+  await next(screen);
+  expect(screen.getByText('Enter the owner’s email address.')).toBeTruthy();
+  expect(mockSaveCache).toHaveBeenLastCalledWith(expect.objectContaining({ ownerEmail: '', businessName: source.businessName }));
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), ' nena@example.com ');
+  await next(screen);
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({
+    formData: expect.objectContaining({ ownerEmail: 'nena@example.com' }),
+  }));
+});
+
 it('preserves community attribution in the offline payload without making a remote write', async () => {
   mockOnline = false; mockParams = source; mockDraft = undefined;
   const screen = render(<SubmitInfo />);
@@ -197,6 +243,10 @@ it('restores the pending offline details when returning from photos after the fo
   const screen = render(<SubmitInfo />);
   await waitFor(() => expect(screen.getByLabelText('Owner’s full name').props.value).toBe('Nena Cruz'));
   expect(screen.getByLabelText('Business name').props.value).toBe(source.businessName);
+  await next(screen);
+  expect(screen.getByText('Enter the owner’s email address.')).toBeTruthy();
+  expect(mockCaptureWrite).not.toHaveBeenCalled();
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), 'nena@example.com');
   await next(screen);
   expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({
     creatorId: 'agent-mika', prospectLeadId: 'lead-nena', formData: expect.objectContaining({ ownerName: 'Nena Cruz' }),
@@ -328,4 +378,124 @@ it('does not fabricate a pin from incomplete or invalid source coordinates', asy
   expect(screen.getByRole('button', { name: 'Choose on map' })).toBeTruthy();
   await next(screen);
   expect(mockCreate.mock.calls[0][0]).not.toHaveProperty('coordinates');
+});
+
+const olderDraftId = 'j123456789012345678901234567890';
+const newerDraftId = 'j123456789012345678901234567891';
+
+it('repairs the exact older owned draft without loading the newest draft or discarding its media', async () => {
+  mockParams = { draftId: olderDraftId, ...source };
+  mockDraft = { ...draft, _id: newerDraftId, businessName: 'Newer shop', status: 'draft' };
+  mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft', ownerEmail: '', prospectLeadId: 'original-lead' };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  expect(screen.getByLabelText('Owner’s email').props.value).toBe('');
+  expect(Alert.alert).not.toHaveBeenCalled(); expect(mockLoadCache).not.toHaveBeenCalled();
+  expect(mockQuery.mock.calls.filter(([reference, args]) => reference === 'submissions:getDraftByCreatorId' && args !== 'skip')).toEqual([]);
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), ' fixed@example.com ');
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: olderDraftId, ownerEmail: 'fixed@example.com', prospectLeadId: 'original-lead' }));
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockDiscard).not.toHaveBeenCalled();
+  expect(mockCaptureWrite).toHaveBeenCalledWith('current_submission_id', olderDraftId);
+  expect(mockCaptureRemove.mock.calls.map(([key]) => key)).toEqual(['submission_pending_sync']);
+});
+
+it.each([
+  null,
+  { ...draft, creatorId: 'another-agent', status: 'draft' },
+  { ...draft, status: 'submitted' },
+])('rejects an unavailable, foreign or already-sent explicit draft without changing caches: %j', async (record) => {
+  mockParams = { draftId: olderDraftId };
+  mockDraft = { ...draft, _id: newerDraftId, status: 'draft' };
+  mockRequestedDrafts[olderDraftId] = record && { ...record, _id: olderDraftId };
+  mockLoadCache.mockResolvedValue(draft);
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByText('Capture unavailable')).toBeTruthy());
+  expect(screen.queryByLabelText('Business name')).toBeNull();
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockCaptureRemove).not.toHaveBeenCalled();
+  expect(mockSaveCache).not.toHaveBeenCalled(); expect(mockLoadCache).not.toHaveBeenCalled();
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled(); expect(mockDiscard).not.toHaveBeenCalled();
+});
+
+it.each([{ draftId: '' }, { draftId: 'not-a-submission-id' }, { draftId: ['one', 'two'] }])('never queries a malformed explicit draft ID: %j', async ({ draftId }) => {
+  mockParams = { draftId };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByText('Capture unavailable')).toBeTruthy());
+  expect(mockQuery.mock.calls.filter(([reference, args]) => reference.startsWith('submissions:') && args !== 'skip')).toEqual([]);
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockCaptureRemove).not.toHaveBeenCalled();
+});
+
+it.each([olderDraftId, 'offline_pending'])('repairs only the matching owned offline pending capture %s', async (target) => {
+  mockOnline = false; mockParams = { draftId: target };
+  const pending = { creatorId: 'agent-mika', existingDraftId: target === 'offline_pending' ? null : target,
+    formData: { ...draft, ownerEmail: '' }, prospectLeadId: 'original-lead' };
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? pending
+    : key === 'current_submission_id' ? target : null);
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  fireEvent.changeText(screen.getByLabelText('Owner’s email'), 'fixed@example.com');
+  await next(screen);
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({
+    creatorId: 'agent-mika', existingDraftId: target === 'offline_pending' ? null : target,
+    formData: expect.objectContaining({ ownerEmail: 'fixed@example.com' }), prospectLeadId: 'original-lead',
+  }));
+  expect(mockCaptureWrite).toHaveBeenCalledWith('current_submission_id', target);
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockCaptureRemove).not.toHaveBeenCalled();
+});
+
+it('recovers an exact owned offline snapshot without falling back to an untagged cached form', async () => {
+  mockOnline = false; mockParams = { draftId: olderDraftId };
+  mockLoadCache.mockResolvedValue({ ...draft, businessName: 'Unrelated local draft' });
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_snapshot'
+    ? { ...draft, creatorId: 'agent-mika', submissionId: olderDraftId } : null);
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  expect(mockLoadCache).not.toHaveBeenCalled();
+  await next(screen);
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({ existingDraftId: olderDraftId }));
+  expect(mockCaptureRemove).not.toHaveBeenCalled();
+});
+
+it.each([
+  { pending: { creatorId: 'another-agent', existingDraftId: olderDraftId, formData: draft }, snapshot: null },
+  { pending: { creatorId: 'agent-mika', existingDraftId: newerDraftId, formData: draft }, snapshot: null },
+  { pending: null, snapshot: { ...draft, creatorId: 'agent-mika', submissionId: newerDraftId } },
+  { pending: null, snapshot: { ...draft, creatorId: 'another-agent', submissionId: olderDraftId } },
+])('does not replace an offline exact draft with another actor or target’s cached capture: %j', async ({ pending, snapshot }) => {
+  mockOnline = false; mockParams = { draftId: olderDraftId };
+  mockLoadCache.mockResolvedValue(draft);
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? pending
+    : key === 'submission_snapshot' ? snapshot : key === 'current_submission_id' ? olderDraftId : null);
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByText('Capture unavailable')).toBeTruthy());
+  expect(screen.queryByLabelText('Business name')).toBeNull(); expect(mockSaveCache).not.toHaveBeenCalled();
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockCaptureRemove).not.toHaveBeenCalled();
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('remounts the form when an explicit draft target changes', async () => {
+  mockParams = { draftId: olderDraftId };
+  mockRequestedDrafts = {
+    [olderDraftId]: { ...draft, _id: olderDraftId, status: 'draft' },
+    [newerDraftId]: { ...draft, _id: newerDraftId, status: 'draft', businessName: 'Second owned shop' },
+  };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  mockParams = { draftId: newerDraftId }; screen.rerender(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe('Second owned shop'));
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: newerDraftId, businessName: 'Second owned shop' }));
+});
+
+it('reopens the exact owned draft after reconnecting when no matching offline snapshot was available', async () => {
+  mockOnline = false; mockParams = { draftId: olderDraftId };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByText('Capture unavailable')).toBeTruthy());
+  expect(mockCaptureWrite).not.toHaveBeenCalled(); expect(mockCaptureRemove).not.toHaveBeenCalled();
+  mockOnline = true; mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft' };
+  screen.rerender(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  expect(screen.queryByText('Capture unavailable')).toBeNull();
+  expect(mockCaptureRemove).not.toHaveBeenCalled();
 });
