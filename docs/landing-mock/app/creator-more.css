@@ -31,7 +31,7 @@
 .cm-screen .a-tab:not(.is-on) svg.lucide { width: 24px; height: 24px; }
 .cm-screen .a-tab--main svg.lucide { width: 24px; height: 24px; }
 .cm-screen p, .cm-screen h1, .cm-screen h2, .cm-screen h3 { margin: 0; }
-.cm-body { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; overflow: hidden; }
+.cm-screen .cm-body { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; overflow: hidden; }
 .cm-body--tabs { bottom: 84px; }
 .cm-pad { padding: 0 20px; }
 .cm-col { display: flex; flex-direction: column; }
