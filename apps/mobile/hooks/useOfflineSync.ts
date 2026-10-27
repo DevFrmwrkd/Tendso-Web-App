@@ -7,7 +7,7 @@ import { useNetwork } from '../providers/NetworkProvider';
 import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey } from '../services/captureSession';
 import { captureEmailError } from '../../../lib/captureEmail';
 import { commissionFor } from '@tendso/shared/pricing';
-import { validFieldAgentPrice } from '../services/fieldAgentPrice';
+import { validCapturePrice } from '../services/capturePrice';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
@@ -98,7 +98,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
               submission = candidate; id = candidate._id;
             } else {
               if (!current()) return;
-              const initialPrice = validFieldAgentPrice(info.initialSellPrice);
+              const initialPrice = validCapturePrice(info.initialSellPrice);
               id = await create({ creatorId: actor, ...info.formData,
                 ...(initialPrice !== null ? { amount: initialPrice, creatorPayout: commissionFor(initialPrice) } : {}),
                 ...(info.prospectLeadId ? { prospectLeadId: info.prospectLeadId as Id<'leads'> } : {}) });
@@ -137,7 +137,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         if (part && matches(String(part.submissionId))) await save(key, { ...part, submissionId: id });
       }
       if (info) await save('submission_snapshot', { ...info.formData, creatorId: actor, submissionId: id,
-        ...(validFieldAgentPrice(info.initialSellPrice) !== null ? { initialSellPrice: info.initialSellPrice } : {}) });
+        ...(validCapturePrice(info.initialSellPrice) !== null ? { initialSellPrice: info.initialSellPrice } : {}) });
       // Legacy globals are removed only after every matching part is copied to
       // the owned scope. Never touch another login's remaining global records.
       if (migration && (!legacyInfo || legacyInfo.creatorId === actor)) {

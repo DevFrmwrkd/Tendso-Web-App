@@ -3,7 +3,6 @@ import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitInfo from '../app/(app)/submit/info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fieldAgentPriceKey } from '../services/fieldAgentPrice';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockCreate = jest.fn();
@@ -387,9 +386,9 @@ it('does not fabricate a pin from incomplete or invalid source coordinates', asy
 const olderDraftId = 'j123456789012345678901234567890';
 const newerDraftId = 'j123456789012345678901234567891';
 
-it('freezes the saved field-agent price only on a new capture and preserves it through a failed-create retry', async () => {
+it('ignores a legacy device price preference for a new capture and its failed-create retry', async () => {
   mockParams = source;
-  const priceKey = fieldAgentPriceKey({ clerkId: 'clerk-mika', creatorId: 'agent-mika' });
+  const priceKey = 'field-agent-price:v1:clerk-mika:agent-mika';
   jest.mocked(AsyncStorage.getItem).mockImplementation(async key => key === priceKey ? '2999' : null);
   mockCreate.mockRejectedValueOnce(new Error('Temporary create failure'));
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -399,11 +398,12 @@ it('freezes the saved field-agent price only on a new capture and preserves it t
   jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
   await next(screen);
   expect(mockCreate).toHaveBeenCalledTimes(2);
-  for (const [args] of mockCreate.mock.calls) expect(args).toMatchObject({ amount: 2999, creatorPayout: 1500 });
-  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({ initialSellPrice: 2999 }));
+  for (const [args] of mockCreate.mock.calls) expect(args).toMatchObject({ amount: 999, creatorPayout: 500 });
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({ initialSellPrice: 999 }));
+  expect(AsyncStorage.getItem).not.toHaveBeenCalled();
 });
 
-it('does not reprice an existing draft or its domain when the future default changes', async () => {
+it('ignores legacy device preferences while preserving an existing draft quote and its domain', async () => {
   mockDraft = { ...draft, amount: 2449, domainCostPHP: 450, submissionType: 'with_custom_domain' };
   jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
   const screen = render(<SubmitInfo />);
@@ -416,17 +416,17 @@ it('does not reprice an existing draft or its domain when the future default cha
   expect(AsyncStorage.getItem).not.toHaveBeenCalled();
 });
 
-it('saves the initial default on a new offline capture and retains that choice when the cached capture resumes', async () => {
+it('starts new offline captures at ₱999 and preserves older cached captures with a saved quoted price', async () => {
   mockOnline = false; mockDraft = undefined; mockParams = source;
   jest.mocked(AsyncStorage.getItem).mockResolvedValue('3999');
   const screen = render(<SubmitInfo />);
   await completePrefilled(screen); await next(screen);
   const pending = mockCaptureWrite.mock.calls.find(([key]) => key === 'submission_pending_sync')![1];
-  expect(pending.initialSellPrice).toBe(3999);
+  expect(pending.initialSellPrice).toBe(999);
   expect(mockCreate).not.toHaveBeenCalled();
   screen.unmount(); mockParams = {}; mockCaptureWrite.mockClear();
   jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
-  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? pending
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? { ...pending, initialSellPrice: 3999 }
     : key === 'current_submission_id' ? 'offline_pending' : null);
   const reopened = render(<SubmitInfo />);
   await waitFor(() => expect(reopened.getByLabelText('Owner’s full name').props.value).toBe('Nena Cruz'));
@@ -434,25 +434,34 @@ it('saves the initial default on a new offline capture and retains that choice w
   expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({ initialSellPrice: 3999 }));
 });
 
-it('reports an unreadable preference without creating a capture at a silently substituted price', async () => {
+it('does not read an obsolete unreadable preference when creating a new capture', async () => {
   mockParams = source;
   jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('Storage unavailable'));
   const screen = render(<SubmitInfo />);
   await completePrefilled(screen); await next(screen);
-  expect(screen.getByText('Could not load your capture price. Try again.')).toBeTruthy();
-  expect(mockCreate).not.toHaveBeenCalled(); expect(mockCaptureWrite).not.toHaveBeenCalled();
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 999, creatorPayout: 500 }));
+  expect(AsyncStorage.getItem).not.toHaveBeenCalled();
 });
 
-it('does not create or cache a capture when its actor changes while the initial price loads', async () => {
+it('does not reuse an orphaned offline price snapshot for a genuinely new capture', async () => {
   mockParams = source;
-  let finish!: (value: string) => void;
-  jest.mocked(AsyncStorage.getItem).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_snapshot'
+    ? { ...draft, creatorId: 'agent-mika', submissionId: 'offline_pending', initialSellPrice: 4999 } : null);
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen); await next(screen);
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 999, creatorPayout: 500 }));
+});
+
+it('does not create or cache a capture when its actor changes while the saved quote loads', async () => {
+  mockParams = source;
+  let finish!: (value: null) => void;
+  mockCaptureRead.mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
   const screen = render(<SubmitInfo />);
   await completePrefilled(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Continue to photos step' }));
-  await waitFor(() => expect(AsyncStorage.getItem).toHaveBeenCalled());
+  await waitFor(() => expect(mockCaptureRead).toHaveBeenCalled());
   mockCurrent = false;
-  await act(async () => { finish('4999'); });
+  await act(async () => { finish(null); });
   expect(mockCreate).not.toHaveBeenCalled(); expect(mockCaptureWrite).not.toHaveBeenCalled();
 });
 

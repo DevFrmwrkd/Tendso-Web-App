@@ -24,7 +24,7 @@ import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
-import { readFieldAgentPrice, validFieldAgentPrice } from '../../../services/fieldAgentPrice';
+import { validCapturePrice } from '../../../services/capturePrice';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
@@ -324,8 +324,8 @@ function SubmitInfoForm({ capture, prefillParams }: {
     };
 
     saving.current = true; setLoading(true);
-    // Freeze the preference once for a new capture. Resuming any established
-    // capture keeps its original price, even if Earn's preference changed.
+    // New captures start at the base price. Existing captures keep their
+    // original quote; legacy device-wide preferences are never read.
     let capturedPrice: number;
     try {
       if (initialSellPrice.current === null) {
@@ -339,15 +339,14 @@ function SubmitInfoForm({ capture, prefillParams }: {
         const ownsPending = pending?.creatorId === capture.actor.creatorId
           && (selectedDraftId ? pending.existingDraftId === selectedDraftId
             : storedId === 'offline_pending' && (!pending.existingDraftId || pending.existingDraftId === 'offline_pending'));
-        const ownsSnapshot = snapshot?.creatorId === capture.actor.creatorId && snapshot.submissionId === target;
+        const ownsSnapshot = snapshot?.creatorId === capture.actor.creatorId && snapshot.submissionId === target
+          && (!!selectedDraftId || storedId === 'offline_pending');
         const serverPrice = selectedDraftId && existingDraft?._id === selectedDraftId
           && existingDraft.creatorId === capture.actor.creatorId && typeof existingDraft.amount === 'number'
-          ? validFieldAgentPrice(existingDraft.amount - (existingDraft.domainCostPHP ?? 0)) : null;
-        const savedPrice = serverPrice ?? (ownsPending ? validFieldAgentPrice(pending.initialSellPrice) : null)
-          ?? (ownsSnapshot ? validFieldAgentPrice(snapshot.initialSellPrice) : null);
-        initialSellPrice.current = savedPrice ?? (selectedDraftId || ownsPending || ownsSnapshot
-          ? BASE_PRICE : await readFieldAgentPrice(capture.actor));
-        if (!isCurrent()) return;
+          ? validCapturePrice(existingDraft.amount - (existingDraft.domainCostPHP ?? 0)) : null;
+        const savedPrice = serverPrice ?? (ownsPending ? validCapturePrice(pending.initialSellPrice) : null)
+          ?? (ownsSnapshot ? validCapturePrice(snapshot.initialSellPrice) : null);
+        initialSellPrice.current = savedPrice ?? BASE_PRICE;
       }
       capturedPrice = initialSellPrice.current;
     } catch {

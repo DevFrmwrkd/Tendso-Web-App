@@ -31,7 +31,6 @@ jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
   };
 } }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
-jest.mock('@react-native-async-storage/async-storage', () => ({ getItem: jest.fn(), setItem: jest.fn() }));
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
   useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
@@ -130,7 +129,7 @@ it.each([false, true])('hydrates a saved domain on reconnect and preserves a del
   expect(screen.getByLabelText('Website price').props.value).toBe(edited ? '2999' : '1999');
 });
 
-it('restores an offline capture’s own initial price instead of consulting the latest future default', async () => {
+it('restores an offline capture’s own saved initial price', async () => {
   mockOffline = true; stored('current_submission_id', 'offline_pending');
   stored('submission_pending_sync', { creatorId: mockActor, initialSellPrice: 3999, formData: form });
   stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['one', 'two', 'three'], existingPhotos: [] });

@@ -27,10 +27,7 @@ import { activityTime, EarningRow, EarningsTrend, isCredited, PayoutRow, WalletH
   type HistoryFilter, type WalletEarning, type WalletWithdrawal } from '../../../components/wallet/WalletActivity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import { useFieldAgentPrice } from '../../../hooks/useFieldAgentPrice';
 import { useWalletThumbnails } from '../../../hooks/useWalletThumbnails';
-import { WalletMonthlySummary } from '../../../components/wallet/WalletMonthlySummary';
-import { FieldAgentPriceCard } from '../../../components/wallet/FieldAgentPriceCard';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -162,10 +159,8 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const balance = creator ? (isAffiliate ? portal?.summary.balance : undefined) ?? creator.balance ?? 0 : null;
   const live = useRef({ creatorId: creator?._id, canWrite, balance });
   live.current = { creatorId: creator?._id, canWrite, balance };
-  const defaultPrice = useFieldAgentPrice(!isAffiliate && isAuthenticated && clerkId && creator?._id
-    ? { clerkId, creatorId: creator._id } : null);
   const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
-  const recentEarnings = sortedEarnings?.slice(0, isAffiliate ? 1 : 3) ?? [];
+  const recentEarnings = sortedEarnings?.slice(0, 1) ?? [];
   const submissionDetails = useWalletThumbnails({ creatorId: creator?._id, clerkId,
     isAuthenticated, isAffiliate, isOffline,
     submissionIds: (showHistory ? sortedEarnings ?? [] : recentEarnings)
@@ -347,25 +342,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
           />
         ) : null}
 
-        {!isAffiliate ? <>
-          <WalletMonthlySummary earnings={earnings} isOffline={isOffline} onHistory={() => openHistory('all')} />
-          <FieldAgentPriceCard price={defaultPrice.price} loaded={defaultPrice.loaded} saving={defaultPrice.saving}
-            error={defaultPrice.error} disabled={!creator || !isAuthenticated || paused}
-            onChange={price => { if (creator && isAuthenticated && !paused) void defaultPrice.setPrice(price); }} />
-          <View style={styles.latest}>
-            <Text variant="bodyLg" weight="bold" accessibilityRole="header">Latest</Text>
-            {earnings === undefined ? <Text tone="muted">{isOffline ? 'Reconnect to load your earnings.' : 'Loading recent earnings…'}</Text>
-              : recentEarnings.length === 0 ? <View style={styles.noEarnings}>
-                <Ionicons name="storefront-outline" size={28} color={colors.ink3} />
-                <Text variant="label" tone="muted">Your first paid site will appear here.</Text>
-              </View> : recentEarnings.map(earning => {
-                const details = earning.submissionId ? submissionDetails.bySubmission.get(earning.submissionId) : undefined;
-                return <EarningRow key={earning._id} earning={earning} compact
-                  thumbnailUrl={details?.thumbnailUrl} submissionPrice={details?.submissionPrice} paid={details?.paid} />;
-              })}
-          </View>
-        </> : <>
-        {/* Creator-program wallet keeps its balance and team commission overview. */}
+        {/* Available balance */}
         <Card variant="lg" style={styles.hero}>
           <View style={styles.balanceHeading}>
             <Text variant="label" tone="muted" accessibilityRole="header">Available to cash out</Text>
@@ -412,7 +389,11 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             />
           ) : (
             <Card style={styles.listCard}>
-              {recentEarnings.map((earning, idx) => <EarningRow key={earning._id} earning={earning} compact divider={idx < recentEarnings.length - 1} />)}
+              {recentEarnings.map((earning, idx) => {
+                const details = earning.submissionId ? submissionDetails.bySubmission.get(earning.submissionId) : undefined;
+                return <EarningRow key={earning._id} earning={earning} compact divider={idx < recentEarnings.length - 1}
+                  thumbnailUrl={details?.thumbnailUrl} submissionPrice={details?.submissionPrice} paid={details?.paid} />;
+              })}
             </Card>
           )}
         </View>
@@ -436,7 +417,6 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             subtitle={isAffiliate ? 'See your team commissions' : 'Bring a friend to Tendso'}
             onPress={() => router.push('/(app)/referrals' as any)} accessibilityLabel="View your referrals" />
         </Card>
-        </>}
       </View>
 
       {/* Wise account setup sheet */}
@@ -593,8 +573,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 14 },
   footer: { paddingHorizontal: 20, paddingTop: space.sm, paddingBottom: 14 },
   stack: { gap: space.sm },
-  latest: { gap: space.xs, paddingTop: space.xs },
-  noEarnings: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   hero: { borderRadius: radius.card, padding: 14, gap: space.xs },
   balanceHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   historyButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },

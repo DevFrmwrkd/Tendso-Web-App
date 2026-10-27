@@ -98,23 +98,23 @@
 
   const earnBody = () => `
     <div class="cm-body cm-body--tabs">
-      <div class="cm-earnhead">
-        <div class="top"><span class="k">You earned in October</span><span class="cm-round" style="width:36px;height:36px">${I('history')}</span></div>
-        <div class="cm-big">₱12,400</div>
-        <div class="d">6 sites · ₱3,000 more than September</div>
-        <div class="cm-bars">${BARS.map(([m, h], i) => `<div class="${i === BARS.length - 1 ? 'is-on' : ''}"><i style="height:${h * 0.56}px"></i><b>${m}</b></div>`).join('')}</div>
-      </div>
-      <div class="cm-pad cm-col" style="gap:14px">
-        <div class="a-card cm-price">
-          <div class="h"><b>Your price</b><span class="cm-small">Lower price = easier yes</span></div>
-          <div class="cm-chips5">${[999, 1999, 2999, 3999, 4999].map((p) => `<span class="${p === PRICE ? 'is-on' : ''}">${p.toLocaleString('en-US')}</span>`).join('')}</div>
-          <div class="cm-two">
-            <div class="is-keep"><strong>${peso(keep(PRICE))}</strong><span>you keep per site</span></div>
-            <div><strong>${peso(4999 - PRICE)}</strong><span>the shop saves</span></div>
-          </div>
+      <div class="cm-pad cm-col cm-earn">
+        <div class="a-card cm-balance">
+          <div class="cm-between"><span class="cm-small">Available to cash out</span><span class="cm-history">${I('history')}</span></div>
+          <div class="cm-big">₱3,750</div>
         </div>
-        <div class="cm-h2" style="font-size:16px;margin-top:2px">Latest</div>
-        ${LATEST.map(sale).join('')}
+        <div class="cm-two cm-totals">
+          <div><strong>₱41,500</strong><span>Total earned</span></div>
+          <div><strong>₱32,750</strong><span>Withdrawn</span></div>
+        </div>
+        <div class="a-card cm-month">
+          <div class="cm-between"><span class="cm-small">Earned in October</span><b>₱12,400</b></div>
+          <div class="cm-bars">${BARS.map(([m, h], i) => `<div class="${i === BARS.length - 1 ? 'is-on' : ''}"><i style="height:${h * 0.36}px"></i><b>${m}</b></div>`).join('')}</div>
+        </div>
+        <div class="cm-between"><span class="cm-h2">Recent earnings</span><span class="cm-small cm-link">See all</span></div>
+        <div class="a-card cm-listcard">${LATEST.slice(0, 1).map(sale).join('')}</div>
+        <div class="cm-between"><span class="cm-h2">Cash outs</span><span class="cm-small cm-link">See all</span></div>
+        <div class="a-card cm-listcard">${payRow(5000, 'Oct 20', st('proc', 'Processing'))}</div>
       </div>
     </div>`;
   const earnHome = () => `${earnBody()}<div class="cm-cta">${door('Cash out ₱3,750 to Wise', 'accent')}</div>${tabbar('earn')}`;
@@ -142,7 +142,7 @@
       <div class="cm-pad cm-col" style="gap:14px;padding-top:8px">
         <div class="a-card cm-sum">
           <div><strong>₱41,500</strong><span>Earned</span></div>
-          <div><strong>₱37,750</strong><span>Cashed out</span></div>
+          <div><strong>₱32,750</strong><span>Cashed out</span></div>
           <div><strong>₱3,750</strong><span>Ready</span></div>
         </div>
         <div class="cm-pills"><span class="a-pill a-pill--ink">All</span><span class="a-pill">Earned</span><span class="a-pill">Cashed out</span></div>
@@ -433,7 +433,7 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
       [forgot, 'Forgot password', 'apps/mobile/app/(auth)/forgot-password.tsx', 'Email step; the 6-digit code step follows (shown faded).'],
     ] },
     { name: 'Earn', screens: [
-      [earnHome, 'Earn home', P + '(tabs)/wallet.tsx · R2-F3', 'Original Earn02: unboxed monthly earnings and six bars, five price pills with creator share/shop savings, three latest shop-photo rows and a pinned Wise cash-out. Reference amounts are sample data.'],
+      [earnHome, 'Earn home', P + '(tabs)/wallet.tsx · R2-F3', 'Available-balance hero, earned/withdrawn totals and six-month credited-earnings bars. One recent own shop-photo earning and cash-out preview open complete Payouts history; Wise cash-out stays pinned. Reference amounts are sample data.'],
       [cashOut, 'Cash out', P + '(tabs)/wallet.tsx (withdraw modal)', 'Amount with quick picks, the saved Wise email, confirm. Nothing else on screen.'],
       [payouts, 'Payouts', P + '(tabs)/wallet.tsx (history)', 'Compact earned/cashed-out/ready summary, All / Earned / Cashed out filters and complete mixed activity by month, with shop photos and actual Wise statuses. Pending earnings stay outside credited-earnings totals.'],
     ] },

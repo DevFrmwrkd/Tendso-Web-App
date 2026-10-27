@@ -12,7 +12,7 @@ import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, EmptyState, Field, Loading, ProgressBar, ScreenShell, Text, TextLink, formatPeso } from '../../../components/v2';
 import { colors, hit, radius, space } from '../../../theme/v2';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
-import { validFieldAgentPrice } from '../../../services/fieldAgentPrice';
+import { validCapturePrice } from '../../../services/capturePrice';
 
 type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
 type LocalPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[] };
@@ -118,9 +118,9 @@ function ReviewForm() {
           : pendingInfo.existingDraftId === target);
       const matchingSnapshot = storedSnapshot?.submissionId === target && storedSnapshot.creatorId === capture.actor?.creatorId;
       setSavedPrice(target ? { submissionId: target,
-        captured: (matchingPending ? validFieldAgentPrice(pendingInfo.initialSellPrice) : null)
-          ?? (matchingSnapshot ? validFieldAgentPrice(storedSnapshot.initialSellPrice) : null),
-        queued: pendingSubmit?.submissionId === target ? validFieldAgentPrice(pendingSubmit.sellPrice) : null,
+        captured: (matchingPending ? validCapturePrice(pendingInfo.initialSellPrice) : null)
+          ?? (matchingSnapshot ? validCapturePrice(storedSnapshot.initialSellPrice) : null),
+        queued: pendingSubmit?.submissionId === target ? validCapturePrice(pendingSubmit.sellPrice) : null,
       } : null);
       setHydrated(true);
     })().catch(() => { if (active && isCurrent()) { setError('Could not open your saved capture. Try again.'); setHydrated(true); } });
@@ -146,7 +146,7 @@ function ReviewForm() {
     const serverPrice = typeof submission?.amount === 'number'
       ? Math.max(BASE_PRICE, Math.min(PRICE_CEILING, submission.amount - (submission.domainCostPHP ?? 0))) : null;
     // A queued final choice is already quoted; otherwise the saved draft
-    // amount outranks the capture's initial preference. Never read Earn here.
+    // amount outranks the capture's initial price snapshot.
     setSellPrice(storedPrice?.queued ?? serverPrice ?? storedPrice?.captured ?? BASE_PRICE);
   }, [hydrated, id, submission, raw, canQuery, savedPrice]);
   useEffect(() => {
