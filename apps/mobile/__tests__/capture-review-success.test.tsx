@@ -11,11 +11,13 @@ const mockCheckDomain = jest.fn();
 const mockRead = jest.fn();
 const mockWrite = jest.fn();
 const mockRemove = jest.fn();
+const mockFindLookup = jest.fn();
 let mockActor = 'agent-1';
 let mockOffline = false;
 let mockRevision = 0;
 let mockParams: Record<string, string>;
 let mockSubmissions: Record<string, any>;
+let mockFinds: Record<string, any>;
 const mockStorage = new Map<string, unknown>();
 
 jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
@@ -35,12 +37,14 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   submissions: { getById: 'get', getPricingContext: 'pricing', setDomainTier: 'tier', submit: 'submit' },
+  leads: { getDetailForMobileCRM: 'source-find' },
   files: { getMultipleUrls: 'photos', getUrl: 'file' }, domains: { checkDomainAvailability: 'domain' },
 } }));
 jest.mock('convex/react', () => ({
   useQuery: (reference: string, args: any) => {
     if (args === 'skip') return undefined;
     if (reference === 'get') return mockSubmissions[args.id] ?? null;
+    if (reference === 'source-find') { mockFindLookup(args); return mockFinds[args.id] ?? null; }
     if (reference === 'pricing') return { basePrice: 999, priceCeiling: 4999, unlocked: true };
     if (reference === 'photos') return args.storageIds.map((key: string) => 'https://images.example.com/' + key);
     if (reference === 'file') return 'https://media.example.com/' + args.storageId;
@@ -83,6 +87,7 @@ async function review() {
 beforeEach(() => {
   jest.clearAllMocks();
   mockActor = 'agent-1'; mockOffline = false; mockRevision = 0; mockParams = {};
+  mockFinds = {};
   mockStorage.clear(); stored('current_submission_id', 'draft-1');
   mockSubmissions = { 'draft-1': { _id: 'draft-1', creatorId: mockActor, status: 'draft',
     ...form, photos: ['one', 'two', 'three'], videoStorageId: 'videos/interview.mp4' } };
@@ -132,6 +137,98 @@ it('shows the current capture photo beside an unclamped business name with a fix
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
 });
 
+it.each([2, 3])('prefers the original Spot photo without adding it to the %i captured photos', async (count) => {
+  mockSubmissions['draft-1'].prospectLeadId = 'source-find';
+  mockSubmissions['draft-1'].photos = ['one', 'two', 'three'].slice(0, count);
+  mockFinds['source-find'] = { lead: { _id: 'source-find' }, photoUrl: 'https://shared.example.com/spotted-shop.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).toHaveBeenCalledWith({ id: 'source-find' });
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/spotted-shop.jpg',
+  });
+  expect(screen.getByText(`${count} photos`)).toBeTruthy();
+  expect(screen.getAllByLabelText(/^Shop photo \d+$/)).toHaveLength(count);
+  for (const [index, key] of ['one', 'two', 'three'].slice(0, count).entries()) {
+    expect(screen.getByLabelText(`Shop photo ${index + 1}`)).toHaveProp('source', { uri: 'https://images.example.com/' + key });
+  }
+  expect(screen.getByRole('button', { name: 'Send for review' }).props.accessibilityState.disabled).toBe(count < 3);
+});
+
+it.each([null, 'https://shared.example.com/broken.jpg'])('does not use another agent’s capture media when the shared cover is missing or broken: %s', async (photoUrl) => {
+  mockSubmissions['draft-1'].prospectLeadId = 'source-find';
+  mockSubmissions['draft-1'].photos = ['one'];
+  mockFinds['source-find'] = { lead: { _id: 'source-find' }, photoUrl, canViewCaptureMedia: false,
+    business: { photos: ['https://private.example.com/other-agent-capture.jpg'] } };
+  const screen = await review();
+  if (photoUrl) {
+    const thumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+    expect(thumbnail).toHaveProp('source', { uri: photoUrl });
+    fireEvent(thumbnail, 'error', { nativeEvent: { error: 'Shared cover could not load' } });
+  }
+  const ownThumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+  expect(ownThumbnail).toHaveProp('source', { uri: 'https://images.example.com/one' });
+  fireEvent(ownThumbnail, 'error', { nativeEvent: { error: 'Own capture photo could not load' } });
+  expect(screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' })).toBeTruthy();
+  expect(screen.getAllByLabelText(/^Shop photo \d+$/)).toHaveLength(1);
+});
+
+it('keeps the owned server source link ahead of a different pending source link', async () => {
+  mockSubmissions['draft-1'].prospectLeadId = 'original-source';
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'pending-source', formData: form });
+  mockFinds['original-source'] = { lead: { _id: 'original-source' }, photoUrl: 'https://shared.example.com/original.jpg' };
+  mockFinds['pending-source'] = { lead: { _id: 'pending-source' }, photoUrl: 'https://shared.example.com/other.jpg' };
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/original.jpg',
+  });
+  expect(mockFindLookup).toHaveBeenCalledWith({ id: 'original-source' });
+  expect(mockFindLookup).not.toHaveBeenCalledWith({ id: 'pending-source' });
+});
+
+it('does not introduce a source lookup from pending details when the server draft is unlinked', async () => {
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'pending-source', formData: form });
+  mockFinds['pending-source'] = { lead: { _id: 'pending-source' }, photoUrl: 'https://shared.example.com/pending.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://images.example.com/one',
+  });
+});
+
+it.each([
+  { creatorId: 'another-agent', existingDraftId: 'draft-1' },
+  { creatorId: 'agent-1', existingDraftId: 'other-draft' },
+])('ignores a source link from mismatched cached capture details: %j', async (scope) => {
+  stored('submission_pending_sync', { ...scope, prospectLeadId: 'wrong-source', formData: form });
+  mockFinds['wrong-source'] = { lead: { _id: 'wrong-source' }, photoUrl: 'https://shared.example.com/wrong.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://images.example.com/one',
+  });
+});
+
+it('clears the original shop cover when the signed-in capture account changes', async () => {
+  mockSubmissions['draft-1'].prospectLeadId = 'original-source';
+  mockFinds['original-source'] = { lead: { _id: 'original-source' }, photoUrl: 'https://shared.example.com/original.jpg' };
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/original.jpg',
+  });
+  mockActor = 'agent-2';
+  stored('current_submission_id', 'draft-2');
+  mockSubmissions['draft-2'] = { ...mockSubmissions['draft-1'], _id: 'draft-2', creatorId: mockActor,
+    businessName: 'Second Shop', prospectLeadId: undefined, photos: ['second-shop'] };
+  mockFindLookup.mockClear();
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Second Shop')).toBeTruthy());
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('image', { name: 'Shop photo for Second Shop' })).toHaveProp('source', {
+    uri: 'https://images.example.com/second-shop',
+  });
+  expect(mockFindLookup).not.toHaveBeenCalled();
+});
+
 it('tries the next current-capture photo after a load failure and falls back safely if all fail', async () => {
   const screen = await review();
   for (const key of ['one', 'two', 'three']) {
@@ -170,11 +267,13 @@ it('keeps the price comparison tiles equally flexible and stretched without fixe
 
 it('queues offline media and the selected price without sending or inventing a payout', async () => {
   mockOffline = true; stored('current_submission_id', 'offline_pending');
-  stored('submission_pending_sync', { creatorId: mockActor, formData: form });
+  stored('submission_pending_sync', { creatorId: mockActor, prospectLeadId: 'offline-source', formData: form });
+  mockFinds['offline-source'] = { lead: { _id: 'offline-source' }, photoUrl: 'https://shared.example.com/offline-source.jpg' };
   stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
   stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
   const screen = await review();
   expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', { uri: 'file://1' });
+  expect(mockFindLookup).not.toHaveBeenCalled();
   fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
   fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
   await act(async () => { confirmation('Save and queue')(); await flush(); });
@@ -251,7 +350,9 @@ it('uses corrected owned pending details and queues them before submitting a ser
 });
 
 it('blocks a foreign server capture even if local metadata would otherwise allow sending', async () => {
-  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], creatorId: 'another-agent', businessName: 'Private shop' };
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], creatorId: 'another-agent', businessName: 'Private shop', prospectLeadId: 'private-source' };
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'private-source', formData: form });
+  mockFinds['private-source'] = { lead: { _id: 'private-source' }, photoUrl: 'https://shared.example.com/private-source.jpg' };
   stored('submission_snapshot', { ...form, submissionId: 'draft-1', creatorId: mockActor });
   stored('submission_pending_photos', { submissionId: 'draft-1', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
   stored('submission_pending_interview', { submissionId: 'draft-1', recordingUri: 'file://take.m4a', type: 'audio' });
@@ -261,6 +362,7 @@ it('blocks a foreign server capture even if local metadata would otherwise allow
   expect(screen.queryByRole('button', { name: 'Save and queue' })).toBeNull();
   expect(screen.queryByText('Private shop')).toBeNull();
   expect(screen.queryByRole('image', { name: /Shop photo/ })).toBeNull();
+  expect(mockFindLookup).not.toHaveBeenCalled();
   expect(mockSubmit).not.toHaveBeenCalled();
 });
 

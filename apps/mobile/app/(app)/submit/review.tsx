@@ -71,6 +71,9 @@ function ReviewForm() {
   const canQuery = capture.canQuery && !!id && id !== 'offline_pending';
   const raw = useQuery(api.submissions.getById, canQuery ? { id: id as Id<'submissions'> } : 'skip');
   const submission = raw?.creatorId === capture.actor?.creatorId ? raw : null;
+  const sourceLeadId = submission?.prospectLeadId;
+  const sourceFind = useQuery(api.leads.getDetailForMobileCRM, capture.canQuery && submission && sourceLeadId
+    ? { id: sourceLeadId as Id<'leads'> } : 'skip');
   const pricing = useQuery(api.submissions.getPricingContext, capture.canQuery && capture.actor
     ? { creatorId: capture.actor.creatorId } : 'skip');
   const photoKeys = localPhotos?.existingPhotos ?? submission?.photos ?? [];
@@ -141,6 +144,10 @@ function ReviewForm() {
   const remotePhotos = (photoUrls ?? []).filter((uri): uri is string => !!uri);
   const savedLocalPhotos = (photoMeta?.items ?? []).map(item => item.uri).filter((uri): uri is string => !!uri);
   const photos = [...new Set([...remotePhotos, ...(localPhotos?.photoUris ?? (remotePhotos.length ? [] : savedLocalPhotos))])];
+  // The find's deliberately shared cover identifies the business. Capture
+  // photos are website material and remain separate from the original find.
+  const sharedCover = sourceFind && sourceFind.lead._id === sourceLeadId ? sourceFind.photoUrl : null;
+  const thumbnailPhotos = sharedCover ? [sharedCover, ...photos] : photos;
   const photoCount = localPhotos ? localPhotos.photoUris.length + localPhotos.existingPhotos.length : submission?.photos?.length ?? photoMeta?.items.length ?? 0;
   const previewInterview = localInterview ?? attachedInterview;
   const videoUri = previewInterview?.type === 'video' ? previewInterview.recordingUri : remoteVideo;
@@ -225,7 +232,7 @@ function ReviewForm() {
         <Button title="View capture status" variant="ghost" onPress={() => router.replace({ pathname: '/(app)/submit/success', params: { submissionId: id } } as never)} /></> : null}
       <Card style={styles.card}>
         <View style={styles.row}>
-          <CaptureShopThumbnail key={`${capture.actorKey}:${id}`} photos={photos} businessName={form.businessName} />
+          <CaptureShopThumbnail key={`${capture.actorKey}:${id}`} photos={thumbnailPhotos} businessName={form.businessName} />
           <View style={styles.businessDetails}><Text variant="bodyLg" weight="bold">{form.businessName}</Text><Text tone="muted">{form.businessType}</Text></View>
           <View style={styles.businessAction}><TextLink label="Edit" disabled={saving} onPress={editBusiness} /></View>
         </View>
