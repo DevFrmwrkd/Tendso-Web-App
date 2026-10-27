@@ -2,12 +2,12 @@
  * ShotGuide — the guided photo camera (mock js/screens.js `shotGuide`, css "CAMERA SCREENS v4").
  *
  * Same layout as the recording screen, NO outlines and NO grid. Top: close · "Shot 3 of 10" ·
- * flash. A level line + one feedback chip ("Step back a little" → "Perfect, hold still", simple
- * sensor heuristics, no ML). The task title + hint low like a subtitle; the strip of the 10 shots
+ * flash. A level line + device steadiness feedback (no subject/framing analysis).
+ * The task title + hint low like a subtitle; the strip of the 10 shots
  * (tap one to retake it); last photo · white shutter · Skip. Quick capture: photo, photo, photo.
  */
 import React, { useEffect, useReducer, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -23,6 +23,13 @@ export interface ShotGuideProps {
   tasks: readonly ShotTask[];
   /** Photos already taken per task (resume / retake). */
   initial?: (string | null)[];
+  /** Open a particular suggestion, including an already-taken photo to retake. */
+  initialIndex?: number;
+  /** Remaining guided capacity after other photos; retakes do not use capacity. */
+  maxCaptured?: number;
+  /** Return after the selected photo instead of continuing through suggestions. */
+  singleShot?: boolean;
+  onBusyChange?: (busy: boolean) => void;
   /** Fires for every photo, so it can upload while the next one is taken. */
   onShot?: (index: number, uri: string) => void;
   /** All tasks asked (taken or skipped). */
@@ -31,26 +38,49 @@ export interface ShotGuideProps {
   onClose: (taken: (string | null)[]) => void;
 }
 
-export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuideProps) {
+export function ShotGuide({ tasks, initial, initialIndex, maxCaptured = tasks.length, singleShot = false, onBusyChange, onShot, onDone, onClose }: ShotGuideProps) {
   const insets = useSafeAreaInsets();
   const [perm, requestPerm] = useCameraPermissions();
-  const [state, dispatch] = useReducer(shotReducer, undefined, () => initialShots(tasks.length, initial));
+  const [state, dispatch] = useReducer(shotReducer, undefined, () => {
+    const starting = initialShots(tasks.length, initial);
+    return initialIndex === undefined ? starting : { ...starting, cur: Math.max(0, Math.min(initialIndex, tasks.length - 1)) };
+  });
   const [flash, setFlash] = useState<'off' | 'on'>('off');
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const capturing = useRef(false);
+  const mounted = useRef(true);
+  const completed = useRef(false);
+  const requestedPermission = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const shutterFlash = useFlash();
   const level = useLevel(!shotsDone(state));
   const done = shotsDone(state);
-  const task = tasks[Math.min(state.cur, tasks.length - 1)];
+  const task = tasks[Math.min(state.cur, tasks.length - 1)] ?? { t: 'Take a photo', h: 'Show the shop clearly.', kind: 'object' as const };
+  const atLimit = takenCount(state) >= maxCaptured && !state.taken[state.cur];
 
   useEffect(() => {
-    if (perm && !perm.granted && perm.canAskAgain) requestPerm();
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (perm && !perm.granted && perm.canAskAgain && !requestedPermission.current) {
+      requestedPermission.current = true;
+      void requestPerm().catch(() => { if (mounted.current) setCameraError('Could not open the camera. Please try again.'); });
+    }
   }, [perm, requestPerm]);
 
+  const finish = (taken: (string | null)[]) => {
+    if (!mounted.current || completed.current) return;
+    completed.current = true;
+    onDone(taken);
+  };
   useEffect(() => {
-    if (done) onDone(state.taken);
+    if (done) finish(state.taken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
@@ -73,30 +103,43 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
   });
 
   const shoot = async () => {
-    if (capturing.current || done || !cameraRef.current) return;
+    if (capturing.current || done || atLimit || !ready || !perm?.granted || !cameraRef.current) return;
     capturing.current = true;
     setBusy(true);
+    onBusyChange?.(true);
+    setCameraError(null);
+    const index = stateRef.current.cur;
     try {
       const pic = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-      if (pic?.uri) {
+      if (mounted.current && !completed.current && pic?.uri) {
         shutterFlash.fire();
-        const index = state.cur;
+        const taken = [...stateRef.current.taken];
+        taken[index] = pic.uri;
         dispatch({ type: 'TAKE', uri: pic.uri });
         onShot?.(index, pic.uri);
+        if (singleShot || taken.filter(Boolean).length >= maxCaptured) finish(taken);
       }
-    } catch (e) {
-      console.warn('[ShotGuide] takePictureAsync failed', e);
+    } catch {
+      if (mounted.current) setCameraError('Could not take that photo. Try again.');
     } finally {
       capturing.current = false;
-      setBusy(false);
+      if (mounted.current) { setBusy(false); onBusyChange?.(false); }
     }
   };
 
-  if (perm && !perm.granted && !perm.canAskAgain) {
+  const close = () => {
+    if (capturing.current || completed.current) return;
+    completed.current = true;
+    onClose(stateRef.current.taken);
+  };
+
+  if (!perm?.granted || tasks.length === 0) {
     return (
       <View style={[styles.root, styles.center]}>
-        <Text style={[subtitle.big, { marginHorizontal: 32 }]}>Please allow the camera</Text>
-        <Pressable onPress={() => { if (!capturing.current) onClose(state.taken); }} accessibilityRole="button" style={styles.textBtn}>
+        <Text style={[subtitle.big, { marginHorizontal: 32 }]}>{tasks.length === 0 ? 'No photo tasks available' : 'Allow camera access'}</Text>
+        <Text style={[subtitle.small, { marginHorizontal: 32 }]}>{cameraError || 'You can also add photos from your phone on the photo list.'}</Text>
+        {perm?.canAskAgain ? <Pressable onPress={() => { void requestPerm().catch(() => {}); }} accessibilityRole="button" accessibilityLabel="Allow camera access" style={styles.textBtn}><Text style={styles.textBtnLabel}>Allow camera</Text></Pressable> : null}
+        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close" style={styles.textBtn}>
           <Text style={styles.textBtnLabel}>Close</Text>
         </Pressable>
       </View>
@@ -115,31 +158,34 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
         mode="picture"
         flash={flash}
         onCameraReady={() => setReady(true)}
+        onMountError={() => setCameraError('Could not open the camera. Close it and try again.')}
       />
       <TopShade />
       <BottomShade height={380} />
 
       <View style={[styles.top, { top: insets.top + 8 }]}>
-        <GlassButton icon="close" label="Close" onPress={() => { if (!capturing.current) onClose(state.taken); }} />
+        <GlassButton icon="close" label="Close" onPress={close} />
         <GlassPill>
           <PillText>{`Shot ${shown} of ${tasks.length}`}</PillText>
         </GlassPill>
         <GlassButton icon={flash === 'on' ? 'flash' : 'flash-off'} label={flash === 'on' ? 'Flash on' : 'Flash off'} onPress={() => setFlash(flash === 'on' ? 'off' : 'on')} />
       </View>
 
-      <LevelLine roll={level.roll} good={fb.good} strong={!fb.good} />
-      <HintChip text={fb.text} good={fb.good} icon="move" visible={ready} />
+      {level.hasSensor ? <LevelLine roll={level.roll} good={fb.good} strong={!fb.good} /> : null}
+      <HintChip text={cameraError || (atLimit ? 'Return to the list to keep or replace photos' : !level.hasSensor ? 'Follow the photo tip below' : fb.good ? 'Phone steady' : /Hold the phone|Hold still/.test(fb.text) ? fb.text : 'Hold still')}
+        good={!cameraError && !atLimit && level.hasSensor && fb.good} icon="move" visible={ready} />
 
       <Animated.View
         pointerEvents="none"
-        style={[styles.task, { bottom: insets.bottom + 196, opacity: tAnim, transform: [{ translateY: tAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}
+        style={[styles.task, { bottom: insets.bottom + 244, opacity: tAnim, transform: [{ translateY: tAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}
       >
         <Text style={subtitle.big} accessibilityRole="header" accessibilityLiveRegion="polite">{task.t}</Text>
         <Text style={subtitle.small}>{task.h}</Text>
       </Animated.View>
 
       <View style={[styles.sheet, { bottom: insets.bottom + 20 }]}>
-        <View style={styles.strip} accessibilityLabel={`${takenCount(state)} of ${tasks.length} photos taken`}>
+        <View style={styles.stripHeading}><Text style={styles.stripText}>Your shot list</Text><Text style={styles.stripText}>{`${takenCount(state)} of ${tasks.length} taken`}</Text></View>
+        <ScrollView horizontal style={styles.stripScroller} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip} accessibilityLabel={`${takenCount(state)} of ${tasks.length} photos taken`}>
           {tasks.map((t, i) => {
             const uri = state.taken[i];
             const cur = i === state.cur;
@@ -161,14 +207,14 @@ export function ShotGuide({ tasks, initial, onShot, onDone, onClose }: ShotGuide
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
         <View style={styles.ctl}>
           <View style={[styles.last, !state.last && styles.lastEmpty]}>
             {state.last ? <Image source={{ uri: state.last }} style={styles.lastImg} /> : null}
           </View>
           <Pressable
             onPress={shoot}
-            disabled={!ready || busy}
+            disabled={!ready || busy || atLimit}
             accessibilityRole="button"
             accessibilityLabel="Take photo"
             cssInterop={false}
@@ -192,18 +238,21 @@ const styles = StyleSheet.create({
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 6 },
   task: { position: 'absolute', left: 24, right: 24, alignItems: 'center', gap: 6, zIndex: 4 },
   sheet: { position: 'absolute', left: 20, right: 20, gap: 16, zIndex: 6 },
-  strip: { flexDirection: 'row', gap: 5 },
-  slot: { flex: 1, aspectRatio: 1, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'visible' },
+  stripScroller: { height: 56 },
+  strip: { flexDirection: 'row', gap: 5, paddingVertical: 4, paddingHorizontal: 3 },
+  stripHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  stripText: { fontFamily: fonts.semibold, fontSize: 16, color: '#fff' },
+  slot: { width: 48, height: 48, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'visible' },
   slotCur: { backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 2, borderColor: colors.accent },
   slotImg: { width: '100%', height: '100%', borderRadius: 8 },
-  slotTick: { position: 'absolute', right: -3, bottom: -3, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  slotTick: { position: 'absolute', right: -3, bottom: -3, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   ctl: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   last: { width: 54, height: 54, borderRadius: 14, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' },
   lastEmpty: { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.6)' },
   lastImg: { width: '100%', height: '100%' },
   shutter: { width: 84, height: 84, borderRadius: 42, borderWidth: 5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   shutterIn: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  skip: { width: 54, alignItems: 'center' },
+  skip: { width: 54, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   skipText: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22, color: '#fff', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
   textBtn: { minHeight: 56, paddingHorizontal: 24, justifyContent: 'center' },
   textBtnLabel: { fontFamily: fonts.bold, fontSize: 18, color: '#fff' },

@@ -481,12 +481,12 @@
     ] },
     { n: '04', title: 'Capture', note: 'Info, 10 photo tasks, 10 questions on camera, review, sent', steps: [
       ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile, address.', info],
-      ['4.2', NEW, 'Replaces photos.tsx. Ten photo tasks suggested for the kind of shop (here a barbershop), then the owner’s own extras.', shared('shot-list', photosLocal, { type: 'barber', step: 2 })],
-      ['4.3', NEW, 'Guided camera: one task at a time a faint outline while it checks the shot, then only a level; the ten tasks as a strip.', shared('shot-guide', photosLocal, { type: 'barber' })],
-      ['4.4', NEW, 'Replaces the interview intro. Ten super-simple questions, English and Tagalog, plus “anything else”.', shared('interview-list', interviewRecLocal, { step: 3 })],
-      ['4.5', NEW, 'Replaces the recording screen. The question sits low like a subtitle; framing is checked once, then only a level stays; Next is the biggest button.', shared('interview-cam', interviewRecLocal, { video: 'assets/video/interview-2.mp4', poster: 'assets/video/interview-2.jpg', type: 'barber' })],
-      ['4.6', P + 'submit/review.tsx', 'Everything on one screen. The agent sets the price, ₱999–₱4,999, and keeps half.', review],
-      ['4.7', P + 'submit/success.tsx', 'Sent; what happens next, ending with the payout.', sent],
+      ['4.2', P + 'submit/photos.tsx', 'Ten shop-specific photo suggestions as tiles, a next-task card, retakes and owner/library extras. Add 3–10 photos total; suggestions are optional. Actor-scoped drafts resume safely.', shared('shot-list', photosLocal, { type: 'barber', step: 2 })],
+      ['4.3', 'components/v2/capture/ShotGuide.tsx', 'One real photo task at a time, device-level guidance, task strip, direct retakes and JPEG uploads. No automatic face/framing assessment is claimed.', shared('shot-guide', photosLocal, { type: 'barber' })],
+      ['4.4', P + 'submit/interview.tsx', 'Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback.', shared('interview-list', interviewRecLocal, { step: 3 })],
+      ['4.5', 'components/v2/capture/InterviewCam.tsx', 'Continuous recording with question subtitles, Next, device level and supported native pause. Close/background saves or discards deliberately; separate audio supports transcription.', shared('interview-cam', interviewRecLocal, { video: 'assets/video/interview-2.mp4', poster: 'assets/video/interview-2.jpg', type: 'barber' })],
+      ['4.6', P + 'submit/review.tsx', 'Real details, photo strip, recording playback, optional domain and price slider. Commission depends on payment; queued sends retain the selected price and source shop.', review],
+      ['4.7', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
     ] },
     { n: '05', title: 'Home extras', note: 'Notifications', steps: [
       ['5.1', P + 'notifications.tsx', 'Unread on white cards with an ink dot; older ones sit flat.', notifications],

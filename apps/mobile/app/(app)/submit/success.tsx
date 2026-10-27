@@ -1,339 +1,107 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  BackHandler,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useCallback, useEffect, useState } from 'react';
+import { BackHandler, StyleSheet, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useQuery } from 'convex/react';
-import { api } from '@tendso/convex-client';
-import type { Id } from '@tendso/convex-client';
-import { colors, fonts, radius, space, shadow } from '../../../theme/tokens';
-import { Display, Body, Label, Door, Card, Rule, LiveDot } from '../../../components/ui/primitives';
+import { api, type Id } from '@tendso/convex-client';
+import { Ionicons } from '@expo/vector-icons';
+import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { Button, Card, EmptyState, Loading, ScreenShell, Text, formatPeso } from '../../../components/v2';
+import { colors, radius, space } from '../../../theme/v2';
+
+type Receipt = { submissionId: string; queued: boolean; sentAt: number; businessName?: string };
 
 export default function SubmitSuccessScreen() {
-  const router = useRouter();
-  const { queued } = useLocalSearchParams<{ queued?: string }>();
-  const isQueued = queued === 'true';
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
-
-  // Load submission ID — only clear it if NOT queued (offline sync still needs it)
-  useEffect(() => {
-    const loadSubmissionId = async () => {
-      const id = await AsyncStorage.getItem('current_submission_id');
-      if (id) {
-        setSubmissionId(id);
-        if (!isQueued) {
-          await AsyncStorage.removeItem('current_submission_id');
-        }
-      }
-    };
-    loadSubmissionId();
-  }, [isQueued]);
-
-  // Intercept back button to go to dashboard instead of back through submit flow
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        router.replace('/(app)/dashboard');
-        return true; // Prevent default back behavior
-      };
-
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        subscription.remove();
-      };
-    }, [router])
-  );
-
-  // Query the submission to check transcription status (skip for queued/offline_pending)
-  const canQuery = submissionId && submissionId !== 'offline_pending' && !isQueued;
-  const submission = useQuery(
-    api.submissions.getById,
-    canQuery ? { id: submissionId as Id<'submissions'> } : 'skip'
-  );
-
-  const hasInterview = submission?.videoStorageId || submission?.audioStorageId;
-  const hasTranscription = !!submission?.transcript;
-  const transcriptionFailed = submission?.transcriptionStatus === 'failed' || submission?.transcriptionStatus === 'skipped';
-  const isProcessing = hasInterview && !hasTranscription && !transcriptionFailed;
-  const requestedDomain = (submission as any)?.requestedDomain as string | undefined;
-  const businessName = (submission as any)?.businessName as string | undefined;
-
-  // Short submission tag (last 6 chars, uppercase) for editorial reference
-  const shortTag = submissionId && submissionId !== 'offline_pending'
-    ? submissionId.slice(-6).toUpperCase()
-    : 'OFFLINE';
-
-  // ── Queued (offline) success state ──
-  if (isQueued) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingHorizontal: 28,
-            paddingTop: space.xl,
-            paddingBottom: space.xl,
-            justifyContent: 'center',
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Eyebrow */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: space.lg }}>
-            <LiveDot size={6} color={colors.warn} />
-            <Label tracking={1.8} color={colors.warn}>QUEUED · OFFLINE</Label>
-          </View>
-
-          {/* Hero icon */}
-          <View style={{ alignItems: 'center', marginBottom: space.lg }}>
-            <View
-              style={{
-                width: 84,
-                height: 84,
-                borderRadius: 42,
-                backgroundColor: colors.warnBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: colors.rule,
-              }}
-            >
-              <Ionicons name="cloud-upload-outline" size={40} color={colors.warn} />
-            </View>
-          </View>
-
-          {/* Editorial headline */}
-          <View style={{ alignItems: 'center', marginBottom: space.md }}>
-            <Display size="lg">Saved</Display>
-            <Display size="lg" italic color={colors.accent}>on paper.</Display>
-          </View>
-
-          <Body
-            size="md"
-            color={colors.ink2}
-            style={{ textAlign: 'center', marginBottom: space.lg, paddingHorizontal: 4 }}
-          >
-            Your submission is tucked safely on your device. The moment you reconnect, it
-            will upload automatically and head to our admin team for review.
-          </Body>
-
-          {/* Info card */}
-          <Card style={{ marginBottom: space.lg }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <Ionicons name="information-circle-outline" size={16} color={colors.ink3} />
-              <Label tracking={1.6}>WHEN YOU&apos;RE BACK ONLINE</Label>
-            </View>
-            <Rule style={{ marginBottom: 10 }} />
-            <View style={{ gap: 8 }}>
-              <Body size="sm" color={colors.ink2}>
-                <Text style={{ fontFamily: fonts.mono, color: colors.ink3 }}>01  </Text>
-                Business info, photos, and interview upload automatically.
-              </Body>
-              <Body size="sm" color={colors.ink2}>
-                <Text style={{ fontFamily: fonts.mono, color: colors.ink3 }}>02  </Text>
-                Your submission is sent to the admin queue for review.
-              </Body>
-              <Body size="sm" color={colors.ink2}>
-                <Text style={{ fontFamily: fonts.mono, color: colors.ink3 }}>03  </Text>
-                You receive a notification confirming the sync.
-              </Body>
-            </View>
-          </Card>
-
-          {/* Doors */}
-          <View style={{ gap: 10 }}>
-            <Door
-              caption="HOME"
-              label="Back to dashboard"
-              variant="solid"
-              onPress={() => router.replace('/(app)/dashboard')}
-              accessibilityLabel="Back to dashboard"
-            />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // ── Normal (online) success state ──
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: 28,
-          paddingTop: space.xl,
-          paddingBottom: space.xl,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Mono eyebrow */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: space.lg }}>
-          <Label tracking={1.8} color={colors.live}>● SUBMITTED</Label>
-        </View>
-
-        {/* Hero checkmark — accent emerald in paper3 circle */}
-        <View style={{ alignItems: 'center', marginBottom: space.lg }}>
-          <View
-            style={{
-              width: 88,
-              height: 88,
-              borderRadius: 44,
-              backgroundColor: colors.accentBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.rule,
-              ...shadow.soft,
-            }}
-          >
-            <Ionicons name="checkmark" size={44} color={colors.accent} />
-          </View>
-        </View>
-
-        {/* Editorial headline */}
-        <View style={{ alignItems: 'center', marginBottom: space.md }}>
-          <Display size="lg">You&apos;re</Display>
-          <Display size="lg" italic color={colors.accent}>in motion.</Display>
-        </View>
-
-        <Body
-          size="md"
-          color={colors.ink2}
-          style={{ textAlign: 'center', marginBottom: space.lg, paddingHorizontal: 4 }}
-        >
-          Our admin team will review your submission within 24 hours. We&apos;ll send you a
-          notification the moment your business is verified.
-        </Body>
-
-        {/* Submission detail Card — paper3 with rule */}
-        <Card style={{ marginBottom: space.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <Label tracking={1.6}>SUBMISSION</Label>
-            <Label tracking={1.6} color={colors.ink3}>#{shortTag}</Label>
-          </View>
-          <Rule style={{ marginBottom: 12 }} />
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <Display size="sm" color={colors.ink}>
-              {businessName || 'Business'}
-            </Display>
-          </View>
-          <Body size="sm" color={colors.ink3} style={{ marginTop: 6 }}>
-            Submitted just now · Awaiting verification.
-          </Body>
-        </Card>
-
-        {/* Custom Domain Status Card — only when creator picked the with_custom_domain tier */}
-        {requestedDomain && (
-          <Card style={{ marginBottom: space.md, backgroundColor: colors.businessBg, borderColor: colors.business }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Ionicons name="globe-outline" size={16} color={colors.business} />
-              <Label tracking={1.6} color={colors.business}>CUSTOM DOMAIN</Label>
-            </View>
-            <Body size="sm" weight="bold" color={colors.businessInk}>
-              {requestedDomain} — coming soon.
-            </Body>
-            <Body size="sm" color={colors.businessInk} style={{ marginTop: 6 }}>
-              Once the business owner pays, the domain will be automatically registered and
-              connected to the website. This usually takes 2-6 minutes.
-            </Body>
-            <Body size="xs" weight="medium" color={colors.business} style={{ marginTop: 8 }}>
-              You&apos;ll get a notification when it&apos;s live.
-            </Body>
-          </Card>
-        )}
-
-        {/* Transcription Status Card */}
-        {hasInterview && (
-          <Card
-            style={{
-              marginBottom: space.md,
-              backgroundColor: hasTranscription
-                ? colors.accentBg
-                : transcriptionFailed
-                ? colors.dangerBg
-                : colors.warnBg,
-              borderColor: hasTranscription
-                ? colors.accent
-                : transcriptionFailed
-                ? colors.danger
-                : colors.warn,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              {hasTranscription ? (
-                <>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
-                  <View style={{ flex: 1 }}>
-                    <Label tracking={1.4} color={colors.accentInk}>TRANSCRIPTION COMPLETE</Label>
-                    <Body size="xs" color={colors.accentInk} style={{ marginTop: 2 }}>
-                      Your interview has been transcribed successfully.
-                    </Body>
-                  </View>
-                </>
-              ) : transcriptionFailed ? (
-                <>
-                  <Ionicons name="alert-circle" size={20} color={colors.danger} />
-                  <View style={{ flex: 1 }}>
-                    <Label tracking={1.4} color={colors.danger}>
-                      {submission?.transcriptionStatus === 'skipped' ? 'TRANSCRIPTION SKIPPED' : 'TRANSCRIPTION FAILED'}
-                    </Label>
-                    <Body size="xs" color={colors.danger} style={{ marginTop: 2 }}>
-                      {submission?.transcriptionError || 'Your submission is still valid and will be reviewed.'}
-                    </Body>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <ActivityIndicator size="small" color={colors.warn} />
-                  <View style={{ flex: 1 }}>
-                    <Label tracking={1.4} color={colors.warn}>PROCESSING TRANSCRIPTION</Label>
-                    <Body size="xs" color={colors.warn} style={{ marginTop: 2 }}>
-                      Your interview is being transcribed. This may take a moment.
-                    </Body>
-                  </View>
-                </>
-              )}
-            </View>
-          </Card>
-        )}
-
-        {/* Actions — inline, no pinned CTA bar */}
-        <View style={{ gap: 10, marginTop: space.sm }}>
-          <Door
-            caption="HOME"
-            label="Back to dashboard"
-            variant="solid"
-            onPress={() => router.replace('/(app)/dashboard')}
-            accessibilityLabel="Back to dashboard"
-          />
-          <Door
-            caption="ANOTHER"
-            label="Submit another business"
-            variant="ghost"
-            onPress={() => router.push('/(app)/submit/info' as any)}
-            accessibilityLabel="Submit another business"
-          />
-        </View>
-
-        {/* Bottom brand mark — Google Sans Flex wordmark */}
-        <View style={{ marginTop: space.xl, alignItems: 'center', opacity: 0.5 }}>
-          <Body
-            size="xs"
-            color={colors.ink3}
-            style={{ fontFamily: fonts.wordmarkMed, letterSpacing: 2.4, textTransform: 'uppercase' }}
-          >
-            Tendso
-          </Body>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+  const capture = useCaptureSession();
+  if (!capture.isReady) return <Loading />;
+  if (!capture.actor) return <ScreenShell title="Sign in to see your capture" subtitle="Your saved capture stays with the field-agent account that created it." />;
+  return <CaptureReceipt key={capture.actorKey} />;
 }
+
+function CaptureReceipt() {
+  const capture = useCaptureSession();
+  const router = useGuardedRouter();
+  const params = useLocalSearchParams<{ queued?: string; submissionId?: string }>();
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void capture.read<Receipt>('submission_last_sent').then(value => {
+      if (active && capture.isCurrent()) {
+        setReceipt(value && typeof value.submissionId === 'string' && typeof value.queued === 'boolean'
+          && Number.isFinite(value.sentAt) ? value : null);
+        setLoaded(true);
+      }
+    }).catch(() => { if (active && capture.isCurrent()) setLoaded(true); });
+    return () => { active = false; };
+  }, [capture.actorKey, capture.revision]);
+  const requestedId = typeof params.submissionId === 'string' && params.submissionId ? params.submissionId : null;
+  // An explicit server route identifies this capture. Only the temporary
+  // offline marker follows the latest receipt as sync assigns its server id.
+  const matchingReceipt = receipt && (!requestedId || requestedId === 'offline_pending' || receipt.submissionId === requestedId)
+    ? receipt : null;
+  const id = requestedId && requestedId !== 'offline_pending' ? requestedId : matchingReceipt?.submissionId ?? requestedId;
+  const raw = useQuery(api.submissions.getById, capture.canQuery && id && id !== 'offline_pending'
+    ? { id: id as Id<'submissions'> } : 'skip');
+  const submission = raw?.creatorId === capture.actor?.creatorId ? raw : null;
+  const received = !!submission && submission.status !== 'draft';
+  const pending = matchingReceipt?.queued === true && !received;
+  const locallySent = !capture.canQuery && !!id && id !== 'offline_pending' && matchingReceipt?.queued === false;
+  const paid = submission?.status === 'paid' || submission?.status === 'completed';
+  const built = !!submission?.websiteUrl || ['website_generated', 'deployed', 'pending_payment', 'paid', 'completed'].includes(submission?.status ?? '');
+  const name = submission?.businessName || matchingReceipt?.businessName || 'your shop';
+  const backToMap = useCallback(() => router.replace('/(app)/(tabs)/' as never), [router]);
+  useFocusEffect(useCallback(() => {
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => { backToMap(); return true; });
+    return () => listener.remove();
+  }, [backToMap]));
+  if (!loaded) return <Loading />;
+  if (capture.canQuery && id && id !== 'offline_pending' && raw === undefined) return <Loading />;
+  const unavailable = capture.canQuery && id && id !== 'offline_pending'
+    && (raw === null || (!!raw && raw.creatorId !== capture.actor?.creatorId));
+  if (unavailable || (!pending && !received && !locallySent)) return <ScreenShell title="Your captures" footer={<Button title="Back to the map" onPress={backToMap} />}>
+    <EmptyState title={submission?.status === 'draft' ? 'This capture is still a draft' : 'No capture receipt here'}
+      body={submission?.status === 'draft' ? 'Check your capture and send it for review when you are ready.' : 'Open your dashboard to check the captures saved to your account.'}
+      actionLabel={submission?.status === 'draft' ? 'Review capture' : 'Open dashboard'}
+      onAction={() => router.replace((submission?.status === 'draft' ? '/(app)/submit/review' : '/(app)/(tabs)/dashboard') as never)} />
+  </ScreenShell>;
+  return <ScreenShell contentStyle={styles.content} footer={<View style={styles.actions}>
+    <Button title="Back to the map" onPress={backToMap} />
+    <Button title="Spot another shop" variant="ghost" onPress={() => router.replace('/(app)/leads/spot' as never)} />
+  </View>}>
+    <View style={styles.hero}>
+      <View style={styles.icon}><Ionicons name={pending ? 'cloud-upload-outline' : 'checkmark'} size={44} color={colors.ink} /></View>
+      <Text variant="display" align="center">{pending ? 'Saved on this phone' : `Sent! We’ll build ${name}’s site.`}</Text>
+      <Text variant="bodyLg" tone="ink2" align="center">{pending
+        ? 'Your capture is queued. Keep Tendso open and connect to upload it.'
+        : 'Your photos and the owner’s words are saved. Follow the progress from your dashboard.'}</Text>
+    </View>
+    <Text variant="label" tone="muted">What happens next</Text>
+    <View style={styles.timeline}>
+      <ReceiptStep title={pending ? 'Upload your capture' : 'Sent for review'} body={pending ? 'Waiting for a connection' : 'Shop details, photos and interview'} state={pending ? 'now' : 'done'} />
+      <ReceiptStep title="We review and build the site" body="From the owner’s words and your photos" state={built ? 'done' : pending ? 'later' : 'now'} />
+      <ReceiptStep title="The owner reviews and pays" body="They review their website before paying" state={paid ? 'done' : built ? 'now' : 'later'} />
+      <ReceiptStep title={typeof submission?.creatorPayout === 'number' ? `Your commission: ${formatPeso(submission.creatorPayout)}` : 'Your commission'}
+        body={paid ? 'Check Earn for the payment and payout status' : 'Commission becomes eligible after the owner pays'} state={paid ? 'now' : 'later'} />
+    </View>
+  </ScreenShell>;
+}
+
+function ReceiptStep({ title, body, state }: { title: string; body: string; state: 'done' | 'now' | 'later' }) {
+  return <Card style={styles.step}>
+    <View style={[styles.status, state === 'done' ? styles.done : state === 'now' ? styles.now : null]}>
+      {state === 'done' ? <Ionicons name="checkmark" size={19} color={colors.ink} />
+        : state === 'now' ? <View style={styles.dot} /> : null}
+    </View>
+    <View style={styles.flex}><Text weight="bold">{title}</Text><Text tone="muted">{body}</Text></View>
+  </Card>;
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 }, content: { gap: space.xl, paddingTop: space.xxl }, hero: { alignItems: 'center', gap: space.lg },
+  icon: { width: 88, height: 88, borderRadius: 44, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  actions: { gap: space.sm }, timeline: { gap: space.sm }, step: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  status: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: colors.ruleStrong, alignItems: 'center', justifyContent: 'center' },
+  done: { backgroundColor: colors.accent, borderColor: colors.accent }, now: { borderColor: colors.ink },
+  dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.ink },
+});

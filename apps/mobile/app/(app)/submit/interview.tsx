@@ -1,314 +1,380 @@
 /**
- * Field-agent interview step — design v2. Recording uses the shared camera
- * (components/v2/capture/InterviewCam, continuous mode): full-bleed, no outline, the
- * 10 simple questions as subtitles (FEATURES-QUESTIONS Q25), Next as the biggest control,
- * audio-only fallback.
- *
- * The upload + submission contract is unchanged: one recording → R2 (videos/ or audio/),
- * then submissions.update({ videoStorageId, audioStorageId }) — for video the parallel
- * audio file is the transcription source. Offline: the recording is kept in
- * `submission_pending_interview` for useOfflineSync, exactly as before.
+ * Field-agent capture, step 3: preview the ten bilingual questions, record one
+ * continuous take and keep a local copy before uploading or moving to review.
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, BackHandler, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useQuery, useMutation, useAction } from 'convex/react';
-import { api } from '@tendso/convex-client';
-import { useRouter } from 'expo-router';
+import { api, type Id } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio, Video, ResizeMode } from 'expo-av';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Id } from '@tendso/convex-client';
-import { useNetwork } from '../../../providers/NetworkProvider';
+import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { OfflineBanner } from '../../../components/OfflineBanner';
-import { Button, ProgressBar, ScreenShell, Text } from '../../../components/v2';
-import { Buddy } from '../../../components/v2/owner/OwnerUI';
+import { Banner, Button, Card, Loading, ProgressBar, ScreenShell, Text, TextLink } from '../../../components/v2';
 import { InterviewCam, type InterviewResult } from '../../../components/v2/capture';
 import { formatClock } from '../../../components/v2/capture/level';
-import { colors, radius, space } from '../../../theme/v2';
-import { useGuardedPress } from '../../../hooks/useGuardedPress';
+import { EXTRA_QUESTION, INTERVIEW_QUESTIONS, type Lang } from '../../../lib/v2/captureContent';
+import { colors, hit, radius, shadow, space } from '../../../theme/v2';
 
-type InterviewType = 'video' | 'audio' | null;
+type CaptureSession = ReturnType<typeof useCaptureSession>;
+type RecordingDraft = {
+  submissionId: string;
+  recordingUri: string;
+  parallelAudioUri: string | null;
+  type: 'video' | 'audio';
+  durationSec: number;
+  lang: Lang;
+  interrupted?: boolean;
+  savedAt: number;
+  storageId?: string;
+  audioStorageId?: string;
+  attached?: boolean;
+};
 
-export default function SubmitInterviewScreen() {
-  const router = useRouter();
-  const { user, isLoaded } = useUser();
-  const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : 'skip');
-  const { isConnected } = useNetwork();
-  const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
-  const updateSubmission = useMutation(api.submissions.update);
-  const goBack = useGuardedPress(() => router.back());
-
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-
-  const [interviewType, setInterviewType] = useState<InterviewType>(null);
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
-  const [parallelAudioUri, setParallelAudioUri] = useState<string | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
-  const [hasExistingRecording, setHasExistingRecording] = useState(false);
-  const [wantsToReRecord, setWantsToReRecord] = useState(false);
-  const [camera, setCamera] = useState<null | { audioOnly: boolean }>(null);
-
-  const isOfflinePending = submissionId === 'offline_pending';
-  const submission = useQuery(
-    api.submissions.getById,
-    submissionId && !isOfflinePending ? { id: submissionId as Id<'submissions'> } : 'skip',
-  );
-
-  // Load submission ID (same contract as before).
-  useEffect(() => {
-    (async () => {
-      let id = await AsyncStorage.getItem('current_submission_id');
-      if (!id) {
-        const pendingSync = await AsyncStorage.getItem('submission_pending_sync');
-        if (pendingSync) {
-          id = 'offline_pending';
-          await AsyncStorage.setItem('current_submission_id', id);
-        } else {
-          router.replace('/(app)/dashboard');
-          return;
-        }
-      }
-      setSubmissionId(id);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (submission?.videoStorageId) {
-      setHasExistingRecording(true);
-    } else if (submission?.audioStorageId) {
-      setHasExistingRecording(true);
-    }
-  }, [submission]);
-
-  const onFinish = (r: InterviewResult) => {
-    setCamera(null);
-    if (!r.uri) {
-      setError('The recording did not save. Please try again.');
-      return;
-    }
-    setInterviewType(r.kind);
-    setRecordingUri(r.uri);
-    setParallelAudioUri(r.parallelAudioUri ?? null);
-    setRecordingDuration(r.durationSec);
-    setError(null);
+function recordingFor(value: unknown, submissionId: string): RecordingDraft | null {
+  const draft = value as Partial<RecordingDraft> | null;
+  if (!draft || draft.submissionId !== submissionId || !draft.recordingUri
+    || typeof draft.recordingUri !== 'string' || !['video', 'audio'].includes(draft.type ?? '')) return null;
+  return {
+    ...draft,
+    type: draft.type as 'video' | 'audio',
+    submissionId,
+    recordingUri: draft.recordingUri,
+    parallelAudioUri: typeof draft.parallelAudioUri === 'string' ? draft.parallelAudioUri : null,
+    durationSec: Number.isFinite(draft.durationSec) ? Math.max(0, draft.durationSec!) : 0,
+    lang: draft.lang === 'tl' ? 'tl' : 'en',
+    savedAt: draft.savedAt ?? 0,
   };
-
-  const deleteRecording = () => {
-    setRecordingUri(null);
-    setParallelAudioUri(null);
-    setRecordingDuration(0);
-    setInterviewType(null);
-    if (hasExistingRecording) setWantsToReRecord(false);
-  };
-
-  const handleNext = async () => {
-    if (!submissionId) return;
-    if (!recordingUri && !hasExistingRecording) {
-      setError('Please record an interview before continuing.');
-      return;
-    }
-
-    // OFFLINE PATH: Save recording URI locally and navigate
-    if (!isConnected || isOfflinePending) {
-      try {
-        if (recordingUri && interviewType) {
-          await AsyncStorage.setItem('submission_pending_interview', JSON.stringify({
-            recordingUri,
-            parallelAudioUri: parallelAudioUri || null,
-            type: interviewType,
-            submissionId,
-            savedAt: Date.now(),
-          }));
-        }
-        router.push('/(app)/submit/review');
-      } catch {
-        setError('Failed to save recording locally');
-      }
-      return;
-    }
-
-    setLoading(true);
-    setUploadProgress(0);
-    setError(null);
-
-    const uploadFile = async (uri: string, folder: string, contentType: string, fileName: string, trackProgress = true): Promise<string> => {
-      const { uploadUrl, fileKey } = await generateR2UploadUrl({ folder, filename: fileName, contentType });
-      let fileUri = uri;
-      if (Platform.OS === 'android' && !fileUri.startsWith('file://')) fileUri = 'file://' + fileUri;
-      if (trackProgress) setUploadProgress(0.1);
-      const blob = await (await fetch(fileUri)).blob();
-      const uploadResult = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: blob });
-      if (trackProgress) setUploadProgress(1);
-      if (uploadResult.ok) return fileKey;
-      throw new Error(`Upload failed with status ${uploadResult.status}`);
-    };
-
-    try {
-      if (recordingUri && interviewType) {
-        const contentType = interviewType === 'video' ? 'video/mp4' : 'audio/m4a';
-        const fileName = interviewType === 'video' ? 'interview.mp4' : 'interview.m4a';
-        const folder = interviewType === 'video' ? 'videos' : 'audio';
-        const fileKey = await uploadFile(recordingUri, folder, contentType, fileName, true);
-
-        // Payout is computed server-side at submit time (50% of the agent's price).
-        if (interviewType === 'video') {
-          let transcriptionAudioKey: string | undefined;
-          if (parallelAudioUri) {
-            try {
-              transcriptionAudioKey = await uploadFile(parallelAudioUri, 'audio', 'audio/m4a', 'interview-audio.m4a', false);
-            } catch (audioErr) {
-              console.warn('[Interview] Parallel audio upload failed, transcription will use the video:', audioErr);
-            }
-          }
-          await updateSubmission({ id: submissionId as Id<'submissions'>, videoStorageId: fileKey, audioStorageId: transcriptionAudioKey });
-        } else {
-          await updateSubmission({ id: submissionId as Id<'submissions'>, audioStorageId: fileKey });
-        }
-      }
-      router.push('/(app)/submit/review');
-    } catch (err: any) {
-      console.error('Error uploading recording:', err);
-      setError(err.message || 'Failed to upload recording');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if ((isConnected && (!isLoaded || creator === undefined)) || !submissionId) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
-        <ActivityIndicator size="large" color={colors.ink} />
-      </View>
-    );
-  }
-
-  const cam = (
-    <Modal visible={camera !== null} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setCamera(null)} statusBarTranslucent>
-      {camera ? (
-        <InterviewCam
-          recording="continuous"
-          facing="back"
-          audioOnly={camera.audioOnly}
-          onFinish={onFinish}
-          onClose={() => setCamera(null)}
-        />
-      ) : null}
-    </Modal>
-  );
-
-  // A new recording to check.
-  if (recordingUri) {
-    return (
-      <ScreenShell
-        title="Interview recorded."
-        subtitle={formatClock(recordingDuration)}
-        onBack={goBack}
-        footer={
-          <>
-            {loading ? <ProgressBar value={uploadProgress} tone="accent" label="Uploading interview" /> : null}
-            {error ? <Text tone="danger" align="center">{error}</Text> : null}
-            <Button title={isConnected ? 'Continue' : 'Save and continue'} loading={loading} onPress={handleNext} />
-            <Button title="Record again" variant="ghost" disabled={loading} onPress={deleteRecording} />
-          </>
-        }
-      >
-        <OfflineBanner />
-        <Playback uri={recordingUri} kind={interviewType ?? 'audio'} />
-      </ScreenShell>
-    );
-  }
-
-  // Already recorded earlier.
-  if (hasExistingRecording && !wantsToReRecord) {
-    return (
-      <ScreenShell
-        title="Interview saved."
-        onBack={goBack}
-        scroll={false}
-        footer={
-          <>
-            {error ? <Text tone="danger" align="center">{error}</Text> : null}
-            <Button title="Continue" onPress={handleNext} />
-            <Button title="Record again" variant="ghost" onPress={() => setWantsToReRecord(true)} />
-          </>
-        }
-      >
-        <View style={styles.center}>
-          <View style={styles.ok}><Ionicons name="checkmark" size={52} color={colors.onAccent} /></View>
-        </View>
-      </ScreenShell>
-    );
-  }
-
-  // Talk start (SIMPLE-FLOWS C5).
-  return (
-    <ScreenShell
-      onBack={goBack}
-      scroll={false}
-      footer={
-        <>
-          {error ? <Text tone="danger" align="center">{error}</Text> : null}
-          <Button title="Start" onPress={() => setCamera({ audioOnly: false })} />
-          <Pressable onPress={() => setCamera({ audioOnly: true })} accessibilityRole="button" hitSlop={8} style={styles.link}>
-            <Text weight="bold" align="center">Voice only, no video</Text>
-          </Pressable>
-        </>
-      }
-    >
-      <OfflineBanner />
-      <View style={styles.center}>
-        <Buddy size={168} />
-        <Text variant="display" align="center" accessibilityRole="header">Now ask 10 questions.</Text>
-      </View>
-      {cam}
-    </ScreenShell>
-  );
 }
 
-/** Watch / listen back before sending. */
+export default function SubmitInterviewScreen() {
+  const session = useCaptureSession();
+  if (!session.isReady) return <Loading />;
+  if (!session.actor) return <ScreenShell title="Reconnect to open your interview"
+    subtitle="Sign in with the field-agent account that started this capture." />;
+  return <InterviewStep key={session.actorKey} session={session} />;
+}
+
+function InterviewStep({ session }: { session: CaptureSession }) {
+  const router = useGuardedRouter();
+  const generateUploadUrl = useAction(api.r2.generateUploadUrl);
+  const updateSubmission = useMutation(api.submissions.update);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [recording, setRecording] = useState<RecordingDraft | null>(null);
+  const [lang, setLang] = useState<Lang>('en');
+  const [retaking, setRetaking] = useState(false);
+  const [camera, setCamera] = useState<{ audioOnly: boolean } | null>(null);
+  const [closeRequest, setCloseRequest] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(true);
+  const busy = useRef(false);
+  const persisted = useRef(true);
+  const live = useRef(session);
+  live.current = session;
+  const current = () => mounted.current && live.current.isCurrent();
+  const submission = useQuery(api.submissions.getById,
+    session.canQuery && submissionId && submissionId !== 'offline_pending'
+      ? { id: submissionId as Id<'submissions'> } : 'skip');
+  const hasExisting = !!(submission?.videoStorageId || submission?.audioStorageId);
+  const latest = useRef({ recording, camera, loading });
+  latest.current = { recording, camera, loading };
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void (async () => {
+      try {
+        let id = await live.current.read<string>('current_submission_id');
+        if (!current() || !active) return;
+        if (!id && await live.current.read('submission_pending_sync')) {
+          id = 'offline_pending';
+          await live.current.write('current_submission_id', id);
+        }
+        if (!current() || !active) return;
+        if (!id) { router.replace('/(app)/(tabs)/dashboard'); return; }
+        const draft = recordingFor(await live.current.read('submission_interview_draft'), id)
+          ?? recordingFor(await live.current.read('submission_pending_interview'), id);
+        if (!current() || !active) return;
+        setSubmissionId(id);
+        setRecording(draft);
+        if (draft) setLang(draft.lang);
+      } catch {
+        if (current() && active) setError('Could not open your saved interview. Go back and reopen this capture.');
+      } finally {
+        if (current() && active) setReady(true);
+      }
+    })();
+    return () => { active = false; };
+  }, [session.revision]));
+
+  const goBack = useCallback(() => {
+    if (busy.current) return;
+    if (latest.current.camera) { setCloseRequest(value => value + 1); return; }
+    if (latest.current.recording && !persisted.current) {
+      Alert.alert('Recording not saved on this phone', 'Keep this screen open and try Continue again to save it.', [
+        { text: 'Keep recording', style: 'cancel' },
+        { text: 'Leave without saving', style: 'destructive', onPress: () => router.back() },
+      ]);
+      return;
+    }
+    router.back();
+  }, [router]);
+  useFocusEffect(useCallback(() => {
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
+    return () => listener.remove();
+  }, [goBack]));
+
+  const persist = async (draft: RecordingDraft) => {
+    await live.current.write('submission_interview_draft', draft);
+    if (!current()) return false;
+    persisted.current = true;
+    return true;
+  };
+  const onFinish = async (result: InterviewResult) => {
+    if (!current() || !submissionId || busy.current) return;
+    setCamera(null);
+    if (!result.uri) { setError('The recording did not save. Please try again.'); return; }
+    const draft: RecordingDraft = {
+      submissionId, recordingUri: result.uri, parallelAudioUri: result.parallelAudioUri ?? null,
+      type: result.kind, durationSec: result.durationSec, lang: result.lang,
+      interrupted: result.interrupted, savedAt: Date.now(), attached: false,
+    };
+    setRecording(draft); setRetaking(false); setLang(result.lang);
+    persisted.current = false;
+    busy.current = true; setLoading(true); setError(null);
+    try { await persist(draft); }
+    catch { if (current()) setError('Could not save this recording on your phone. Keep this screen open and try Continue again.'); }
+    finally { busy.current = false; if (mounted.current) setLoading(false); }
+  };
+  const openCamera = (audioOnly: boolean) => {
+    if (busy.current || !current() || !submissionId || camera) return;
+    setCloseRequest(0); setError(null); setCamera({ audioOnly });
+  };
+  const recordAgain = () => Alert.alert('Record another take?', 'Your saved interview stays available until the new recording is ready.', [
+    { text: 'Keep this take', style: 'cancel' },
+    { text: 'Record again', onPress: () => { if (!busy.current && current()) setRetaking(true); } },
+  ]);
+
+  const handleNext = async () => {
+    if (busy.current || !current() || !submissionId || (!recording && !hasExisting)) return;
+    busy.current = true; setLoading(true); setProgress(0); setError(null);
+    const origin = live.current;
+    const valid = () => mounted.current && origin.isCurrent();
+    const online = () => valid() && origin.canMutate();
+    try {
+      // A queued draft may have acquired its real server id while recording.
+      const storedId = await origin.read<string>('current_submission_id');
+      if (!valid()) return;
+      const targetId = storedId || submissionId;
+      let draft = recording ? { ...recording, submissionId: targetId } : null;
+      if (draft) {
+        if (!await persist(draft)) return;
+        if (targetId !== submissionId) { setSubmissionId(targetId); setRecording(draft); }
+      }
+      if (!online() || targetId === 'offline_pending') {
+        if (draft) await origin.write('submission_pending_interview', draft);
+        if (valid()) router.push('/(app)/submit/review');
+        return;
+      }
+      const upload = async (uri: string, folder: string, contentType: string, filename: string) => {
+        if (!online()) throw new Error('Reconnect to upload. Your recording is saved on this phone.');
+        const target = await generateUploadUrl({ folder, filename, contentType });
+        if (!online()) throw new Error('Your capture connection changed. Your recording is saved on this phone.');
+        const localUri = Platform.OS === 'android' && !uri.startsWith('file://') && !uri.startsWith('content://')
+          ? 'file://' + uri : uri;
+        const body = await (await fetch(localUri)).blob();
+        if (!online()) throw new Error('Reconnect to finish uploading. Your recording is saved on this phone.');
+        const response = await fetch(target.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body });
+        if (!response.ok) throw new Error('Could not upload the recording. Your saved take is ready to retry.');
+        if (!valid()) throw new Error('Your capture account changed.');
+        return target.fileKey;
+      };
+      if (draft) {
+        if (!draft.storageId) {
+          const storageId = await upload(draft.recordingUri, draft.type === 'video' ? 'videos' : 'audio',
+            draft.type === 'video' ? 'video/mp4' : 'audio/m4a', draft.type === 'video' ? 'interview.mp4' : 'interview.m4a');
+          draft = { ...draft, storageId };
+          if (!valid()) return;
+          setRecording(draft);
+          await persist(draft);
+        }
+        setProgress(0.65);
+        if (draft.type === 'video' && draft.parallelAudioUri && !draft.audioStorageId) {
+          // Retain both source files and retry instead of silently dropping the
+          // separate audio used by transcription.
+          const audioStorageId = await upload(draft.parallelAudioUri, 'audio', 'audio/m4a', 'interview-audio.m4a');
+          draft = { ...draft, audioStorageId };
+          if (!valid()) return;
+          setRecording(draft);
+          await persist(draft);
+        }
+        if (!online()) throw new Error('Reconnect to finish saving your interview. Your recording is saved on this phone.');
+        const alreadyAttached = draft.type === 'video'
+          ? submission?.videoStorageId === draft.storageId && (!draft.audioStorageId || submission?.audioStorageId === draft.audioStorageId)
+          : submission?.audioStorageId === draft.storageId;
+        if (!alreadyAttached) {
+          if (draft.type === 'video') await updateSubmission({
+            id: targetId as Id<'submissions'>, videoStorageId: draft.storageId, audioStorageId: draft.audioStorageId,
+          });
+          else await updateSubmission({ id: targetId as Id<'submissions'>, audioStorageId: draft.storageId });
+        }
+        if (!valid()) return;
+        draft = { ...draft, attached: true };
+        setRecording(draft);
+        await persist(draft);
+        if (!valid()) return;
+        setProgress(1);
+        await origin.remove('submission_pending_interview');
+      }
+      if (valid()) router.push('/(app)/submit/review');
+    } catch (cause) {
+      if (valid()) setError(cause instanceof Error ? cause.message : 'Could not save your interview. Please try again.');
+    } finally {
+      busy.current = false;
+      if (mounted.current) setLoading(false);
+    }
+  };
+
+  if (!ready || (session.canQuery && submissionId && submissionId !== 'offline_pending' && submission === undefined && !recording)) return <Loading />;
+  if (!submissionId) return <ScreenShell title="Could not open your interview" onBack={goBack}>
+    <Banner tone="danger" body={error ?? 'Go back and reopen this capture.'} />
+  </ScreenShell>;
+  if (session.canQuery && submissionId !== 'offline_pending' && submission === null) return <ScreenShell
+    title="Capture unavailable" subtitle="Go back and reopen the business you are capturing." onBack={goBack} />;
+
+  const modal = <Modal visible={camera !== null} animationType="fade" presentationStyle="fullScreen"
+    onRequestClose={() => setCloseRequest(value => value + 1)} statusBarTranslucent>
+    {camera ? <InterviewCam recording="continuous" facing="back" audioOnly={camera.audioOnly} lang={lang}
+      closeRequest={closeRequest} onFinish={result => { void onFinish(result); }} onClose={() => setCamera(null)} /> : null}
+  </Modal>;
+
+  if ((recording || hasExisting) && !retaking) return <ScreenShell title={recording ? 'Interview recorded.' : 'Interview saved.'}
+    subtitle={recording ? formatClock(recording.durationSec) : 'Your interview is attached to this capture.'}
+    progress={0.75} onBack={goBack} contentStyle={styles.content}
+    footer={<>
+      {loading ? <ProgressBar value={progress} tone="accent" label="Saving interview" /> : null}
+      {error ? <Banner tone="danger" body={error} /> : null}
+      <Button title={session.isOffline ? 'Save and continue' : 'Continue'} loading={loading} onPress={() => { void handleNext(); }} />
+      <Button title="Record again" variant="ghost" disabled={loading} onPress={recordAgain} />
+    </>}>
+    <OfflineBanner />
+    {recording?.interrupted ? <Banner tone="warn" title="Your recording stopped early"
+      body="The take so far is saved. Listen back, or record again to finish the questions." /> : null}
+    {recording ? <Playback key={recording.recordingUri} uri={recording.recordingUri} kind={recording.type} /> :
+      <Card style={styles.saved}><Ionicons name="checkmark-circle" size={64} color={colors.ink} />
+        <Text variant="body" align="center">You can continue or record a replacement.</Text></Card>}
+    {modal}
+  </ScreenShell>;
+
+  return <ScreenShell title="Now ask the owner." subtitle="10 short questions. About 5 minutes."
+    progress={0.75} onBack={goBack} contentStyle={styles.content}
+    headerRight={<Pressable accessibilityRole="button" accessibilityLabel={lang === 'en' ? 'Switch to Tagalog' : 'Switch to English'}
+      onPress={() => setLang(value => value === 'en' ? 'tl' : 'en')} style={styles.language}>
+      <Ionicons name="language-outline" size={20} color={colors.ink} /><Text variant="label">{lang.toUpperCase()}</Text>
+    </Pressable>}
+    footer={<>
+      {error ? <Banner tone="danger" body={error} /> : null}
+      <Button title="Start" icon="videocam-outline" disabled={loading} onPress={() => openCamera(false)} />
+      <Button title="Voice only, no video" variant="ghost" icon="mic-outline" disabled={loading} onPress={() => openCamera(true)} />
+      {recording || hasExisting ? <TextLink label="Keep saved recording" onPress={() => setRetaking(false)} style={styles.keep} /> : null}
+    </>}>
+    <OfflineBanner />
+    <QuestionPreview lang={lang} />
+    <Text variant="body" tone="ink2">Ask one question at a time. Let the owner answer in their own words.</Text>
+    <Text variant="label" tone="muted">One recording, from the first question to “{EXTRA_QUESTION[lang]}”.</Text>
+    {modal}
+  </ScreenShell>;
+}
+
+function QuestionPreview({ lang }: { lang: Lang }) {
+  const [index, setIndex] = useState(0);
+  const questions = [...INTERVIEW_QUESTIONS, EXTRA_QUESTION];
+  return <View style={styles.preview}>
+    <View style={styles.stack}>
+      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.stackBack, styles.stackFar]} />
+      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.stackBack, styles.stackNear]} />
+      <Card style={styles.questionCard}>
+        <View style={styles.number}><Text variant="label" weight="bold">{index < 10 ? index + 1 : '+'}</Text></View>
+        <Text variant="title" accessibilityRole="header" accessibilityLiveRegion="polite">{questions[index][lang]}</Text>
+      </Card>
+    </View>
+    <View style={styles.questionNav}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Preview previous question" disabled={index === 0}
+        accessibilityState={{ disabled: index === 0 }} onPress={() => setIndex(value => Math.max(0, value - 1))}
+        style={[styles.navButton, index === 0 ? styles.disabled : null]}>
+        <Ionicons name="arrow-back" size={22} color={colors.ink} />
+      </Pressable>
+      <Text variant="label" tone="muted">{index < 10 ? `Question ${index + 1} of 10` : 'Anything else · optional'}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Preview next question" disabled={index === 10}
+        accessibilityState={{ disabled: index === 10 }} onPress={() => setIndex(value => Math.min(10, value + 1))}
+        style={[styles.navButton, index === 10 ? styles.disabled : null]}>
+        <Ionicons name="arrow-forward" size={22} color={colors.ink} />
+      </Pressable>
+    </View>
+  </View>;
+}
+
+/** Watch or listen back before continuing. Playback never records audio. */
 function Playback({ uri, kind }: { uri: string; kind: 'video' | 'audio' }) {
   const sound = useRef<Audio.Sound | null>(null);
+  const mounted = useRef(true);
+  const busy = useRef(false);
   const [playing, setPlaying] = useState(false);
-  useEffect(() => () => { sound.current?.unloadAsync().catch(() => {}); }, []);
-
-  if (kind === 'video') {
-    return (
-      <View style={styles.video}>
-        <Video source={{ uri }} style={StyleSheet.absoluteFill} resizeMode={ResizeMode.COVER} useNativeControls isLooping={false} />
-      </View>
-    );
-  }
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; void sound.current?.unloadAsync().catch(() => {}); };
+  }, []);
+  if (kind === 'video') return <View style={styles.video}>
+    <Video source={{ uri }} style={StyleSheet.absoluteFill} resizeMode={ResizeMode.CONTAIN} useNativeControls isLooping={false} />
+  </View>;
   const toggle = async () => {
+    if (busy.current) return;
+    busy.current = true; setError(false);
     try {
       if (!sound.current) {
         await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
-        const { sound: s } = await Audio.Sound.createAsync({ uri }, { shouldPlay: true }, (st: any) => setPlaying(!!st.isPlaying));
-        sound.current = s;
-        return;
+        if (!mounted.current) return;
+        const { sound: next } = await Audio.Sound.createAsync({ uri }, { shouldPlay: true }, (status: any) => {
+          if (mounted.current) setPlaying(!!status.isPlaying);
+        });
+        if (!mounted.current) { await next.unloadAsync(); return; }
+        sound.current = next;
+      } else if (playing) await sound.current.pauseAsync();
+      else {
+        const status = await sound.current.getStatusAsync();
+        if (status.isLoaded && status.didJustFinish) await sound.current.replayAsync();
+        else await sound.current.playAsync();
       }
-      if (playing) await sound.current.pauseAsync();
-      else await sound.current.replayAsync();
-    } catch (e) {
-      console.warn('[Interview] playback failed', e);
-    }
+    } catch { if (mounted.current) setError(true); }
+    finally { busy.current = false; }
   };
-  return (
-    <Pressable onPress={toggle} accessibilityRole="button" accessibilityLabel={playing ? 'Pause' : 'Play'} style={styles.audio}>
-      <View style={styles.play}><Ionicons name={playing ? 'pause' : 'play'} size={36} color={colors.onAccent} /></View>
-      <Text weight="bold">{playing ? 'Playing' : 'Listen back'}</Text>
-    </Pressable>
-  );
+  return <View style={styles.audio}>
+    <Button title={playing ? 'Pause playback' : 'Listen back'} icon={playing ? 'pause' : 'play'} onPress={() => { void toggle(); }} />
+    {error ? <Text tone="danger">Could not play this recording. You can record another take.</Text> : null}
+  </View>;
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
-  link: { minHeight: 48, justifyContent: 'center' },
-  ok: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  video: { height: 420, borderRadius: radius.cardLg, overflow: 'hidden', backgroundColor: colors.camera, marginTop: space.md },
-  audio: { alignItems: 'center', gap: space.md, paddingVertical: space.xxl, borderRadius: radius.cardLg, backgroundColor: colors.card, marginTop: space.md },
-  play: { width: 88, height: 88, borderRadius: 44, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  content: { gap: space.lg }, language: { minHeight: hit.icon, paddingHorizontal: space.md, borderRadius: radius.pill,
+    backgroundColor: colors.card, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  preview: { marginTop: space.xl, gap: space.xl }, stack: { paddingBottom: 32 },
+  stackBack: { position: 'absolute', height: '92%', borderRadius: radius.tile, backgroundColor: colors.card, ...shadow.soft },
+  stackNear: { left: 10, right: 10, top: 16, opacity: 0.65 }, stackFar: { left: 20, right: 20, top: 32, opacity: 0.35 },
+  questionCard: { minHeight: 180, padding: space.xl, gap: space.md, borderRadius: radius.tile },
+  number: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  questionNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
+  navButton: { width: hit.icon, height: hit.icon, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  disabled: { opacity: 0.35 }, keep: { alignSelf: 'center' },
+  video: { height: 380, borderRadius: radius.cardLg, overflow: 'hidden', backgroundColor: colors.camera },
+  audio: { padding: space.xl, backgroundColor: colors.card, borderRadius: radius.cardLg, gap: space.md },
+  saved: { alignItems: 'center', gap: space.md, paddingVertical: space.xxl },
 });

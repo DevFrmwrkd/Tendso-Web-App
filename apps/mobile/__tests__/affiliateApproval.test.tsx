@@ -254,11 +254,13 @@ describe('Spot draft reconnect boundary', () => {
   const approvedAgent = () => ({ ...ready(), role: 'creator', view: 'creator',
     account: { _id: 'approved-agent', clerkId: mockClerkSubject, role: 'creator', status: 'active', firstName: 'Pablo', certifiedAt: 100 } });
 
-  it('keeps an already-open same-subject Spot subtree mounted through offline and account reconnection', async () => {
-    mockSegments = ['(app)', 'leads', 'spot']; mockSpotDraft = true;
+  it.each([['leads', 'spot'], ['submit', 'info'], ['submit', 'photos'], ['submit', 'interview'], ['submit', 'review']])(
+    'keeps an already-open same-subject %s/%s subtree mounted through offline and account reconnection', async (...route) => {
+    mockSegments = ['(app)', ...route]; mockSpotDraft = true;
     mockAccount = approvedAgent();
     const approved = mockAccount;
     const screen = await mountApp();
+    if (route[0] === 'submit') expect(mockOfflineSync).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
     fireEvent.changeText(screen.getByTestId('spot-draft'), 'Nena Store and its selected photo');
     mockNetworkConnected = false;
     mockAccount = { ...approved, account: undefined, isOffline: true, isAuthenticated: false };

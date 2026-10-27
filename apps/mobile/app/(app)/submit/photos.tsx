@@ -1,277 +1,326 @@
-/**
- * Field-agent photo step — design v2. Photos are taken with the shared guided camera
- * (components/v2/capture/ShotGuide: 10 tasks for this kind of shop, no outlines); the
- * phone's library stays as a secondary option.
- *
- * The upload + submission contract is unchanged: 3–10 photos, each uploaded to R2
- * (images/), then submissions.update({ photos: [...existing, ...new keys] }). Offline: the
- * uris are kept in `submission_pending_photos` for useOfflineSync, exactly as before.
- */
-import React, { useEffect, useState } from 'react';
+/** Optional photo suggestions; the submission still accepts 3–10 photos total. */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation, useAction } from 'convex/react';
-import { api } from '@tendso/convex-client';
-import { useRouter } from 'expo-router';
+import { api, type Id } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Id } from '@tendso/convex-client';
-import { useNetwork } from '../../../providers/NetworkProvider';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { useFocusEffect } from 'expo-router';
 import { OfflineBanner } from '../../../components/OfflineBanner';
-import { Button, ScreenShell, Text } from '../../../components/v2';
-import { Buddy } from '../../../components/v2/owner/OwnerUI';
+import { Banner, Button, Card, EmptyState, Loading, ScreenShell, Text } from '../../../components/v2';
 import { ShotGuide } from '../../../components/v2/capture';
-import { MAX_PHOTOS, MIN_PHOTOS, shotList, shotListKeyForBusinessType } from '../../../lib/v2/captureContent';
-import { colors, space } from '../../../theme/v2';
-import { useGuardedPress } from '../../../hooks/useGuardedPress';
+import { MAX_PHOTOS, MIN_PHOTOS, shotList, shotListKeyForBusinessType, type ShotKind } from '../../../lib/v2/captureContent';
+import { colors, radius, space } from '../../../theme/v2';
+import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+
+type CaptureSession = ReturnType<typeof useCaptureSession>;
+type PhotoItem = { id: string; uri?: string; storageId?: string; taskIndex?: number };
+type PhotoDraft = { version: 1; submissionId: string; businessType?: string; items: PhotoItem[]; removedExistingPhotos: string[] };
+type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; savedAt: number; entries?: PhotoItem[] };
+type CameraRun = { id: number; initial: (string | null)[]; index: number; singleShot: boolean };
+const TASK_ICONS: Record<ShotKind, React.ComponentProps<typeof Ionicons>['name']> = {
+  head: 'person-outline', half: 'body-outline', front: 'storefront-outline', sign: 'reader-outline', room: 'business-outline', object: 'cube-outline',
+};
+const localPhotoId = () => `photo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+function validItems(value: unknown): PhotoItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is PhotoItem => item && typeof item.id === 'string'
+    && ((typeof item.uri === 'string' && !!item.uri) || (typeof item.storageId === 'string' && !!item.storageId)))
+    .map((item) => ({ ...item, taskIndex: Number.isInteger(item.taskIndex) && item.taskIndex! >= 0 && item.taskIndex! < 10 ? item.taskIndex : undefined }));
+}
 
 export default function SubmitPhotosScreen() {
-  const router = useRouter();
+  const session = useCaptureSession();
+  const router = useGuardedRouter();
+  if (!session.actor || !session.actorKey) {
+    if (!session.isReady) return <Loading label="Loading your photo draft" />;
+    return <ScreenShell onBack={() => router.back()}><EmptyState icon="cloud-offline-outline" title="Photo draft unavailable"
+      body="Reconnect with your approved field-agent account to open this draft." actionLabel="Back to the map"
+      onAction={() => router.replace('/(app)/(tabs)/' as never)} /></ScreenShell>;
+  }
+  return <PhotoTasks key={session.actorKey} session={session} />;
+}
+
+function PhotoTasks({ session }: { session: CaptureSession }) {
+  const router = useGuardedRouter();
   const { width } = useWindowDimensions();
-  const { user, isLoaded } = useUser();
-  const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : 'skip');
-  const { isConnected } = useNetwork();
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
   const updateSubmission = useMutation(api.submissions.update);
-
   const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [businessType, setBusinessType] = useState<string | undefined>();
+  const [items, setItems] = useState<PhotoItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<{ uri: string; uploaded: boolean; storageId?: string }[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
-  const [hasExistingPhotos, setHasExistingPhotos] = useState(false);
-  const [removedExistingPhotos, setRemovedExistingPhotos] = useState<Set<string>>(new Set());
-  const [camera, setCamera] = useState(false);
+  const [camera, setCamera] = useState<CameraRun | null>(null);
+  const [finishingCamera, setFinishingCamera] = useState(false);
+  const mounted = useRef(true);
+  const busy = useRef(false);
+  const pickerBusy = useRef(false);
+  const cameraBusy = useRef(false);
+  const finishing = useRef(false);
+  const removed = useRef<string[]>([]);
+  const itemsRef = useRef(items);
+  const idRef = useRef(submissionId);
+  const typeRef = useRef(businessType);
+  const sessionRef = useRef(session);
+  const persistQueue = useRef<Promise<void>>(Promise.resolve());
+  const photoQueue = useRef<Promise<void>>(Promise.resolve());
+  const normalizing = useRef(0);
+  const cameraSequence = useRef(0);
+  const hydrationVersion = useRef(0);
+  sessionRef.current = session;
+  const current = () => mounted.current && sessionRef.current.actorKey === session.actorKey && session.isCurrent();
+  const canMutate = () => current() && sessionRef.current.canMutate();
+  const offlinePending = submissionId === 'offline_pending';
+  const submission = useQuery(api.submissions.getById,
+    session.canQuery && submissionId && !offlinePending ? { id: submissionId as Id<'submissions'> } : 'skip');
+  const storedKeys = items.filter((item) => !!item.storageId).map((item) => item.storageId!);
+  const photoUrls = useQuery(api.files.getMultipleUrls,
+    session.canQuery && storedKeys.length ? { storageIds: storedKeys } : 'skip');
+  const urlByKey = new Map(storedKeys.map((key, index) => [key, photoUrls?.[index] ?? null]));
+  const tasks = shotList(shotListKeyForBusinessType(businessType));
+  const total = items.length;
+  const enough = total >= MIN_PHOTOS && total <= MAX_PHOTOS;
+  const remaining = Math.max(0, MAX_PHOTOS - total);
+  const taskItems = tasks.map((_, index) => items.find((item) => item.taskIndex === index));
+  const nextTask = taskItems.findIndex((item) => !item);
+  const extras = items.filter((item) => item.taskIndex === undefined);
+  const discoveringType = session.canQuery && !offlinePending && !businessType;
+  const locked = saving || preparing || finishingCamera || discoveringType;
+  const awaitingRemote = session.canQuery && !!submissionId && !offlinePending && submission === undefined;
+  const tileSize = Math.max(48, (width - space.gutter * 2 - space.sm * 4) / 5);
+  const uriFor = (item?: PhotoItem) => item?.uri || (item?.storageId ? urlByKey.get(item.storageId) : null) || null;
 
-  const isOfflinePending = submissionId === 'offline_pending';
-  const submission = useQuery(
-    api.submissions.getById,
-    submissionId && !isOfflinePending ? { id: submissionId as Id<'submissions'> } : 'skip',
-  );
-
-  const activeExistingPhotos = existingPhotos.filter((p) => !removedExistingPhotos.has(p));
-  const hasChanges = photos.length > 0 || removedExistingPhotos.size > 0;
-  const photoUrls = useQuery(api.files.getMultipleUrls, activeExistingPhotos.length > 0 ? { storageIds: activeExistingPhotos } : 'skip');
-
-  useEffect(() => {
-    (async () => {
-      let id = await AsyncStorage.getItem('current_submission_id');
-      if (!id) {
-        const pendingSync = await AsyncStorage.getItem('submission_pending_sync');
-        if (pendingSync) {
-          id = 'offline_pending';
-          await AsyncStorage.setItem('current_submission_id', id);
-        } else {
-          router.replace('/(app)/dashboard');
-          return;
-        }
-      }
-      setSubmissionId(id);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (submission?.photos && submission.photos.length > 0) {
-      setExistingPhotos(submission.photos);
-      setHasExistingPhotos(true);
-    }
-  }, [submission]);
-
-  const totalCount = photos.length + activeExistingPhotos.length;
-  const remaining = MAX_PHOTOS - totalCount;
-
-  const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant access to your photos to upload images.', [{ text: 'OK' }]);
-      return;
-    }
-    if (remaining <= 0) {
-      setError('You can only have a maximum of 10 photos total.');
-      return;
-    }
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsMultipleSelection: true,
-        quality: 0.8,
-        selectionLimit: remaining,
-      });
-      if (!result.canceled && result.assets.length > 0) {
-        setPhotos((prev) => [...prev, ...result.assets.map((a) => ({ uri: a.uri, uploaded: false }))]);
-        setError(null);
-      }
-    } catch (err) {
-      console.error('Error picking images:', err);
-      setError('Failed to select images');
-    }
+  const snapshot = (next: PhotoItem[]): PhotoDraft => ({ version: 1, submissionId: idRef.current!,
+    businessType: typeRef.current, items: next, removedExistingPhotos: [...removed.current] });
+  const persist = (next: PhotoItem[]) => {
+    const draft = snapshot(next); const writer = sessionRef.current;
+    persistQueue.current = persistQueue.current.catch(() => {}).then(async () => {
+      if (current() && draft.submissionId) await writer.write('submission_photo_tasks', draft);
+    });
+    void persistQueue.current.catch(() => { if (current()) setError('Could not save these photos on this device. Keep this screen open and try again.'); });
+    return persistQueue.current;
   };
-  const onPickImages = useGuardedPress(pickImages);
-  const goBack = useGuardedPress(() => router.back());
+  const commit = (next: PhotoItem[]) => { itemsRef.current = next; setItems(next); return persist(next); };
 
-  const addTaken = (taken: (string | null)[]) => {
-    setCamera(false);
-    const uris = taken.filter((u): u is string => !!u);
-    if (uris.length === 0) return;
-    const fit = uris.slice(0, Math.max(0, remaining));
-    setPhotos((prev) => [...prev, ...fit.map((uri) => ({ uri, uploaded: false }))]);
-    setError(uris.length > fit.length ? `Only ${MAX_PHOTOS} photos fit. We kept the first ${fit.length}.` : null);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    mounted.current = true;
+    const version = ++hydrationVersion.current;
+    const currentLoad = () => active && current() && version === hydrationVersion.current;
+    void (async () => {
+      try {
+        const [storedId, pendingInfo, taskDraft, pendingPhotos, form, savedShop] = await Promise.all([
+          session.read<string>('current_submission_id'),
+          session.read<{ formData?: { businessType?: string } }>('submission_pending_sync'),
+          session.read<PhotoDraft>('submission_photo_tasks'), session.read<PendingPhotos>('submission_pending_photos'),
+          session.read<{ businessType?: string }>('submission_draft_form'),
+          session.read<{ submissionId: string; businessType?: string }>('submission_snapshot'),
+        ]);
+        if (!currentLoad()) return;
+        const id = storedId || (pendingInfo ? 'offline_pending' : null);
+        if (!id) { router.replace('/(app)/(tabs)/' as never); return; }
+        if (!storedId) await session.write('current_submission_id', id);
+        if (!currentLoad()) return;
+        const migrating = idRef.current === 'offline_pending' && id !== 'offline_pending';
+        if (idRef.current && idRef.current !== id && !migrating) setCamera(null);
+        const ownDraft = taskDraft?.submissionId === id || (migrating && taskDraft?.submissionId === 'offline_pending') ? taskDraft : null;
+        const ownPending = pendingPhotos?.submissionId === id || (migrating && pendingPhotos?.submissionId === 'offline_pending') ? pendingPhotos : null;
+        let restored = validItems(ownDraft?.items ?? ownPending?.entries);
+        if (!ownDraft && !ownPending?.entries && Array.isArray(ownPending?.photoUris)) {
+          ownPending.photoUris.forEach((uri, index) => { if (typeof uri === 'string' && uri) restored.push({ id: `restored-${index}`, uri }); });
+        }
+        for (const key of ownPending?.existingPhotos ?? []) {
+          if (typeof key === 'string' && !restored.some((item) => item.storageId === key)) restored.push({ id: `stored-${key}`, storageId: key });
+        }
+        removed.current = Array.isArray(ownDraft?.removedExistingPhotos) ? ownDraft.removedExistingPhotos : [];
+        const snapshotType = savedShop?.submissionId === id || (migrating && savedShop?.submissionId === 'offline_pending') ? savedShop?.businessType : undefined;
+        const restoredType = pendingInfo?.formData?.businessType || form?.businessType || snapshotType || ownDraft?.businessType;
+        const differentSuggestions = ownDraft?.businessType && restoredType
+          && shotListKeyForBusinessType(ownDraft.businessType) !== shotListKeyForBusinessType(restoredType);
+        if (differentSuggestions) restored = restored.map((item) => ({ ...item, taskIndex: undefined }));
+        typeRef.current = restoredType; setBusinessType(restoredType);
+        idRef.current = id; setSubmissionId(id); itemsRef.current = restored; setItems(restored); setHydrated(true);
+        if (differentSuggestions) void persist(restored);
+      } catch { if (currentLoad()) setError('Could not load your photo draft. Reopen this step to try again.'); }
+    })();
+    return () => { active = false; };
+  }, [session.revision, session.actorKey]));
+
+  useEffect(() => {
+    if (!hydrated || !submission || String(submission.creatorId) !== String(session.actor?.creatorId)) return;
+    let active = true;
+    const differentSuggestions = typeRef.current && shotListKeyForBusinessType(typeRef.current) !== shotListKeyForBusinessType(submission.businessType);
+    typeRef.current = submission.businessType; setBusinessType(submission.businessType);
+    if (differentSuggestions) {
+      setCamera(null);
+      void commit(itemsRef.current.map((item) => ({ ...item, taskIndex: undefined })));
+    }
+    void session.read<PhotoDraft>('submission_photo_tasks').then((cached) => {
+      if (!active || !current()) return;
+      const synchronized = cached?.submissionId === idRef.current ? validItems(cached.items) : [];
+      const next = itemsRef.current.map((item) => {
+        const uploaded = synchronized.find((saved) => saved.id === item.id && saved.storageId);
+        return uploaded && !item.storageId ? { ...item, storageId: uploaded.storageId } : item;
+      });
+      for (const key of submission.photos ?? []) {
+        if (!removed.current.includes(key) && !next.some((item) => item.storageId === key)) next.push({ id: `stored-${key}`, storageId: key });
+      }
+      if (JSON.stringify(next) !== JSON.stringify(itemsRef.current)) void commit(next);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [submission, hydrated]);
+
+  const normalize = async (uri: string) => {
+    // Render bakes EXIF orientation into an actual JPEG, including HEIC imports.
+    const rendered = await ImageManipulator.manipulate(uri).resize({ width: 1600 }).renderAsync();
+    return (await rendered.saveAsync({ compress: 0.85, format: SaveFormat.JPEG })).uri;
+  };
+  const addCameraShot = (taskIndex: number, uri: string) => {
+    const fromDraft = idRef.current;
+    const fromSuggestions = shotListKeyForBusinessType(typeRef.current);
+    normalizing.current += 1; setPreparing(true);
+    photoQueue.current = photoQueue.current.catch(() => {}).then(async () => {
+      const normalized = await normalize(uri);
+      if (!current() || (idRef.current !== fromDraft && fromDraft !== 'offline_pending')) return;
+      const assignedIndex = fromSuggestions === shotListKeyForBusinessType(typeRef.current) ? taskIndex : undefined;
+      const previous = assignedIndex === undefined ? undefined : itemsRef.current.find((item) => item.taskIndex === assignedIndex);
+      if (!previous && itemsRef.current.length >= MAX_PHOTOS) throw new Error('Keep up to 10 photos. Remove one before adding another.');
+      if (previous?.storageId) removed.current = [...new Set([...removed.current, previous.storageId])];
+      await commit([...itemsRef.current.filter((item) => item.id !== previous?.id), { id: previous?.id ?? localPhotoId(), uri: normalized, taskIndex: assignedIndex }]);
+    }).catch((cause) => { if (current()) setError(cause instanceof Error ? cause.message : 'Could not prepare that photo. Please try again.'); })
+      .finally(() => { normalizing.current -= 1; if (current()) setPreparing(normalizing.current > 0); });
+  };
+  const finishCamera = async () => {
+    if (finishing.current || cameraBusy.current || !current()) return;
+    finishing.current = true; setFinishingCamera(true); await photoQueue.current;
+    if (current()) { setCamera(null); setFinishingCamera(false); }
+    finishing.current = false;
+  };
+  const openCamera = (index = nextTask, singleShot = false) => {
+    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current() || index < 0) return;
+    if (itemsRef.current.length >= MAX_PHOTOS && !taskItems[index]) return;
+    setError(null); setCamera({ id: ++cameraSequence.current, initial: taskItems.map(uriFor), index, singleShot });
+  };
+  const pickImages = async () => {
+    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    const capacity = MAX_PHOTOS - itemsRef.current.length;
+    const fromDraft = idRef.current;
+    const sameDraft = () => current() && (idRef.current === fromDraft || fromDraft === 'offline_pending');
+    if (capacity <= 0) { setError('Keep up to 10 photos. Remove one before adding another.'); return; }
+    pickerBusy.current = true; setPreparing(true); setError(null);
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!sameDraft()) return;
+      if (permission.status !== 'granted') { Alert.alert('Photo access needed', 'Allow photo access to add pictures, or use the guided camera.'); return; }
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, quality: 0.8, selectionLimit: capacity });
+      if (!sameDraft() || result.canceled) return;
+      const added: PhotoItem[] = [];
+      for (const asset of result.assets.slice(0, capacity)) { const uri = await normalize(asset.uri); if (!sameDraft()) return; added.push({ id: localPhotoId(), uri }); }
+      const fit = Math.min(added.length, MAX_PHOTOS - itemsRef.current.length);
+      await commit([...itemsRef.current, ...added.slice(0, fit)]);
+      if (sameDraft() && result.assets.length > fit) setError('Only the photos that fit within the 10-photo limit were added.');
+    } catch { if (current()) setError('Could not prepare those photos. Please choose them again.'); }
+    finally { pickerBusy.current = false; if (current()) setPreparing(false); }
+  };
+  const removePhoto = (item: PhotoItem) => {
+    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    if (item.storageId) removed.current = [...new Set([...removed.current, item.storageId])];
+    void commit(itemsRef.current.filter((photo) => photo.id !== item.id));
   };
 
   const handleNext = async () => {
-    if (!submissionId) return;
-    if (hasExistingPhotos && !hasChanges) {
-      router.push('/(app)/submit/interview');
-      return;
-    }
-    if (totalCount < MIN_PHOTOS) {
-      setError('Please upload at least 3 photos.');
-      return;
-    }
-
-    // OFFLINE PATH: Save photo URIs locally and navigate
-    if (!isConnected) {
-      try {
-        await AsyncStorage.setItem('submission_pending_photos', JSON.stringify({
-          photoUris: photos.map((p) => p.uri),
-          existingPhotos: activeExistingPhotos,
-          submissionId,
-          savedAt: Date.now(),
-        }));
-        router.push('/(app)/submit/interview');
-      } catch {
-        setError('Failed to save photos locally');
-      }
-      return;
-    }
-
-    // Only removals: update the submission with the remaining existing photos.
-    if (photos.length === 0 && removedExistingPhotos.size > 0) {
-      setLoading(true);
-      setError(null);
-      try {
-        await updateSubmission({ id: submissionId as Id<'submissions'>, photos: activeExistingPhotos });
-        setRemovedExistingPhotos(new Set());
-        router.push('/(app)/submit/interview');
-      } catch (err: any) {
-        setError(err.message || 'Failed to update photos');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (photos.length === 0) {
-      router.push('/(app)/submit/interview');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current() || !idRef.current) return;
+    if (itemsRef.current.length < MIN_PHOTOS || itemsRef.current.length > MAX_PHOTOS) { setError('Add 3–10 photos to continue.'); return; }
+    const savingId = idRef.current;
+    const sameDraft = () => current() && idRef.current === savingId;
+    busy.current = true; setSaving(true); setError(null);
     try {
-      const uploadedKeys: string[] = [];
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i];
-        if (photo.uploaded) continue;
-        const { uploadUrl, fileKey } = await generateR2UploadUrl({ folder: 'images', filename: `photo-${i}.jpg`, contentType: 'image/jpeg' });
-        const blob = await (await fetch(photo.uri)).blob();
-        const uploadResult = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
-        if (!uploadResult.ok) throw new Error(`Failed to upload photo ${i + 1}`);
-        uploadedKeys.push(fileKey);
+      await persist(itemsRef.current); if (!sameDraft()) return;
+      if (!canMutate() || savingId === 'offline_pending') {
+        await session.write('submission_pending_photos', {
+          submissionId: savingId, photoUris: itemsRef.current.filter((item) => !item.storageId && item.uri).map((item) => item.uri!),
+          existingPhotos: itemsRef.current.filter((item) => item.storageId).map((item) => item.storageId!),
+          entries: itemsRef.current.filter((item) => item.uri), savedAt: Date.now(),
+        } satisfies PendingPhotos);
+        if (sameDraft()) router.push('/(app)/submit/interview'); return;
       }
-      await updateSubmission({ id: submissionId as Id<'submissions'>, photos: [...activeExistingPhotos, ...uploadedKeys] });
-      setPhotos([]);
-      setRemovedExistingPhotos(new Set());
-      router.push('/(app)/submit/interview');
-    } catch (err: any) {
-      console.error('Error uploading photos:', err);
-      setError(err.message || 'Failed to upload photos');
-    } finally {
-      setLoading(false);
-    }
+      if (!submission || String(submission.creatorId) !== String(session.actor?.creatorId)) throw new Error('Reconnect to confirm this draft before saving photos.');
+      for (const item of [...itemsRef.current]) {
+        if (item.storageId || !item.uri) continue;
+        if (!sameDraft() || !canMutate()) throw new Error('Your connection changed. Your photos remain on this device; try again.');
+        const target = await generateR2UploadUrl({ folder: 'images', filename: `${item.id}.jpg`, contentType: 'image/jpeg' });
+        if (!sameDraft() || !canMutate()) return;
+        const blob = await (await fetch(item.uri)).blob(); if (!sameDraft() || !canMutate()) return;
+        const response = await fetch(target.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
+        if (!sameDraft()) return;
+        if (!response.ok) throw new Error('A photo could not upload. Your photos are kept here; try again.');
+        await commit(itemsRef.current.map((photo) => photo.id === item.id ? { ...photo, storageId: target.fileKey } : photo));
+      }
+      if (!sameDraft() || !canMutate()) return;
+      await updateSubmission({ id: savingId as Id<'submissions'>, photos: itemsRef.current.map((item) => item.storageId!) });
+      if (!sameDraft()) return;
+      removed.current = []; await persist(itemsRef.current); await session.remove('submission_pending_photos');
+      if (sameDraft()) router.push('/(app)/submit/interview');
+    } catch (cause) { if (current()) setError(cause instanceof Error ? cause.message : 'Could not save these photos. Please try again.'); }
+    finally { busy.current = false; if (current()) setSaving(false); }
   };
 
-  if ((isConnected && (!isLoaded || creator === undefined)) || !submissionId) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
-        <ActivityIndicator size="large" color={colors.ink} />
-      </View>
-    );
-  }
+  if (!hydrated) return <ScreenShell onBack={() => router.back()}>{error ? <Banner tone="danger" body={error} /> : <Loading fill={false} label="Loading your photo draft" />}</ScreenShell>;
+  if (submission === null || (submission && String(submission.creatorId) !== String(session.actor?.creatorId))) return <ScreenShell onBack={() => router.back()}><EmptyState icon="lock-closed-outline" title="Draft unavailable" body="Open a draft from your account to add photos." /></ScreenShell>;
 
-  const tasks = shotList(shotListKeyForBusinessType(submission?.businessType));
-  const tile = (width - space.gutter * 2 - space.sm * 2) / 3;
-  const enough = totalCount >= MIN_PHOTOS;
-  const existingShown = activeExistingPhotos.map((key, i) => ({ key, url: photoUrls?.[i] ?? null }));
-
-  return (
-    <ScreenShell
-      title={totalCount === 0 ? 'Now 10 photos.' : `${totalCount} of ${MAX_PHOTOS} photos`}
-      subtitle={totalCount === 0 ? "We'll tell you what to take." : enough ? undefined : `${MIN_PHOTOS - totalCount} more to go.`}
-      onBack={goBack}
-      footer={
-        <>
-          {error ? <Text tone="danger" align="center">{error}</Text> : null}
-          {enough ? (
-            <>
-              <Button title="Continue to interview" loading={loading} onPress={handleNext} />
-              {remaining > 0 ? <Button title="Take more photos" variant="ghost" disabled={loading} onPress={() => setCamera(true)} /> : null}
-            </>
-          ) : (
-            <>
-              <Button title="Take photos" onPress={() => setCamera(true)} />
-              <Pressable onPress={onPickImages} accessibilityRole="button" hitSlop={8} style={styles.link}>
-                <Text weight="bold" align="center">From the phone's photos</Text>
-              </Pressable>
-            </>
-          )}
-        </>
-      }
-    >
-      <OfflineBanner />
-      {totalCount === 0 ? (
-        <View style={styles.empty}><Buddy size={168} /></View>
-      ) : (
-        <View style={styles.grid}>
-          {existingShown.map((p) => (
-            <Thumb key={p.key} uri={p.url && !p.url.startsWith('convex:') ? p.url : null} size={tile} onRemove={() => setRemovedExistingPhotos((prev) => new Set([...prev, p.key]))} />
-          ))}
-          {photos.map((p, i) => (
-            <Thumb key={`${p.uri}-${i}`} uri={p.uri} size={tile} onRemove={() => setPhotos((prev) => prev.filter((_, k) => k !== i))} />
-          ))}
-        </View>
-      )}
-      {enough && remaining > 0 ? (
-        <Pressable onPress={onPickImages} accessibilityRole="button" hitSlop={8} style={[styles.link, { marginTop: space.lg }]}>
-          <Text weight="bold" align="center">From the phone's photos</Text>
-        </Pressable>
-      ) : null}
-
-      <Modal visible={camera} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setCamera(false)} statusBarTranslucent>
-        {camera ? <ShotGuide tasks={tasks.slice(0, Math.max(1, remaining))} onDone={addTaken} onClose={addTaken} /> : null}
-      </Modal>
-    </ScreenShell>
-  );
-}
-
-function Thumb({ uri, size, onRemove }: { uri: string | null; size: number; onRemove: () => void }) {
-  return (
-    <View style={{ width: size, height: size }}>
-      <View style={[styles.thumb, { width: size, height: size }]}>
-        {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <ActivityIndicator color={colors.ink3} />}
-      </View>
-      <Pressable onPress={onRemove} accessibilityRole="button" accessibilityLabel="Remove photo" hitSlop={10} style={styles.remove}>
-        <Ionicons name="close" size={18} color="#fff" />
-      </Pressable>
-    </View>
-  );
+  return <ScreenShell title="Show us the shop" subtitle="Ten suggestions. Add 3–10 photos in total." progress={0.5} onBack={() => { if (!busy.current && !pickerBusy.current) router.back(); }}
+    contentStyle={styles.body} footer={<>
+      {error ? <Text tone="danger" align="center" accessibilityRole="alert">{error}</Text> : null}
+      {enough ? <Button title="Continue to interview" onPress={handleNext} loading={saving} disabled={locked || awaitingRemote} />
+        : <Button title="Start taking photos" onPress={() => openCamera()} disabled={locked || remaining === 0} />}
+      <Button title="Add your own photos" variant="ghost" icon="images-outline" onPress={pickImages} disabled={locked || remaining === 0} />
+    </>}>
+    <OfflineBanner />
+    <View style={styles.between}><Text variant="label" tone="muted">Step 2 of 4</Text><Text variant="label" weight="bold">{`${total} of ${MAX_PHOTOS} photos added`}</Text></View>
+    <View style={styles.grid}>{tasks.map((task, index) => {
+      const item = taskItems[index]; const uri = uriFor(item); const disabled = locked || (!item && remaining === 0);
+      return <Pressable key={index} onPress={() => openCamera(index, !!item)} disabled={disabled} accessibilityRole="button"
+        accessibilityLabel={`${task.t}${item ? ', taken. Retake photo' : ', not taken'}`} accessibilityState={{ disabled }}
+        style={[styles.taskTile, { width: tileSize, height: tileSize }, nextTask === index && remaining > 0 ? styles.nextTile : null, disabled && !item ? styles.dim : null]}>
+        {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <Ionicons name={TASK_ICONS[task.kind]} size={28} color={colors.ink2} />}
+        {item ? <View style={styles.tick}><Ionicons name="checkmark" size={15} color={colors.ink} /></View> : <View style={styles.taskNumber}><Text variant="label" tone="muted">{index + 1}</Text></View>}
+      </Pressable>;
+    })}</View>
+    {nextTask >= 0 && remaining > 0 ? <Card onPress={() => { if (!locked) openCamera(nextTask); }} accessibilityLabel={`Take ${tasks[nextTask].t}`} style={styles.nextCard}>
+      <View style={styles.nextIcon}><Ionicons name={TASK_ICONS[tasks[nextTask].kind]} size={28} color={colors.ink} /></View>
+      <View style={styles.grow}><Text variant="label" tone="muted">Next suggestion</Text><Text variant="bodyLg" weight="bold">{tasks[nextTask].t}</Text><Text variant="label" tone="ink2" weight="medium">{tasks[nextTask].h}</Text></View>
+      <Ionicons name="chevron-forward" size={22} color={colors.ink3} />
+    </Card> : <Banner tone="neutral" title={remaining === 0 ? 'You have 10 photos' : 'Suggestions covered'} body="Keep the photos that show this shop best. You can retake a suggestion or replace an added photo." />}
+    <Text variant="label" tone="muted" weight="medium">Suggestions are optional. Three clear photos are enough to continue; extras share the same 10-photo limit.</Text>
+    {items.length ? <View style={styles.photoSection}><Text variant="heading">Your photos</Text><View style={styles.addedGrid}>{items.map((item) => <View key={item.id} style={styles.addedPhoto}>
+      <View style={styles.addedThumb}>{uriFor(item) ? <Image source={{ uri: uriFor(item)! }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <ActivityIndicator color={colors.ink3} />}</View>
+      <Text variant="label" numberOfLines={2}>{item.taskIndex === undefined ? 'Added photo' : tasks[item.taskIndex]?.t ?? 'Photo'}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${item.taskIndex === undefined ? 'added photo' : tasks[item.taskIndex]?.t ?? 'photo'}`} disabled={locked} onPress={() => removePhoto(item)} style={styles.removeButton}><Ionicons name="trash-outline" size={20} color={colors.danger} /><Text variant="label" tone="danger">Remove</Text></Pressable>
+    </View>)}</View></View> : null}
+    <Modal visible={!!camera} animationType="fade" presentationStyle="fullScreen" statusBarTranslucent onRequestClose={() => { void finishCamera(); }}>
+      {camera ? <ShotGuide key={camera.id} tasks={tasks} initial={camera.initial} initialIndex={camera.index} singleShot={camera.singleShot}
+        maxCaptured={Math.max(0, MAX_PHOTOS - extras.length)} onBusyChange={(value) => { cameraBusy.current = value; }}
+        onShot={addCameraShot} onDone={() => { cameraBusy.current = false; void finishCamera(); }} onClose={() => { void finishCamera(); }} /> : null}
+      {finishingCamera ? <View style={styles.cameraSaving}><ActivityIndicator color={colors.ink} /><Text variant="body" weight="bold">Saving your photos…</Text></View> : null}
+    </Modal>
+  </ScreenShell>;
 }
 
 const styles = StyleSheet.create({
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 280 },
+  body: { gap: space.lg }, between: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: space.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  thumb: { borderRadius: 16, overflow: 'hidden', backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
-  remove: { position: 'absolute', top: 6, right: 6, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(12,10,8,0.7)', alignItems: 'center', justifyContent: 'center' },
-  link: { minHeight: 48, justifyContent: 'center' },
+  taskTile: { borderRadius: radius.field, backgroundColor: colors.bg2, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
+  nextTile: { borderColor: colors.ink, backgroundColor: colors.accentSoft }, dim: { opacity: 0.45 },
+  taskNumber: { position: 'absolute', bottom: 1, right: 4 }, tick: { position: 'absolute', right: 2, bottom: 2, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, justifyContent: 'center', alignItems: 'center' },
+  nextCard: { flexDirection: 'row', alignItems: 'center', gap: space.md }, nextIcon: { width: 56, height: 64, backgroundColor: colors.bg2, borderRadius: radius.field, alignItems: 'center', justifyContent: 'center' },
+  grow: { flex: 1, minWidth: 0, gap: 2 }, photoSection: { gap: space.md }, addedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  addedPhoto: { width: '46%', gap: space.sm }, addedThumb: { height: 112, borderRadius: radius.field, overflow: 'hidden', backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
+  removeButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  cameraSaving: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: space.md },
 });

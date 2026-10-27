@@ -36,7 +36,9 @@ export default function AppLayout() {
   // Auto-sync offline data when connectivity returns
   useOfflineSync({
     enabled: mobileAccount.isAuthenticated && !mobileAccount.isOffline && !mobileAccount.isBlocked
-      && mobileAccount.role === 'creator' && !mobileAccount.isPreview,
+      && mobileAccount.role === 'creator' && !mobileAccount.isPreview
+      && !!mobileAccount.account?.certifiedAt && !mobileAccount.account?.rejectedAt
+      && ((segments as string[])[1] !== 'submit' || (segments as string[])[2] === 'success'),
     creatorId: mobileAccount.account?._id,
   });
 
@@ -77,10 +79,11 @@ export default function AppLayout() {
     }
   }, [mobileAccount.isAuthenticated, mobileAccount.account?._id, mobileAccount.isOffline, userId, updateLastActive]);
 
-  // Only an already-open, validated Spot form may retain its local draft while
+  // An already-open, validated Spot/capture form may retain its local draft while
   // Convex reconnects. A cold deep link and every explicit access change still
   // use the normal account gate below; retained state never authorizes writes.
-  const openSpot = (segments as string[])[1] === 'leads' && (segments as string[])[2] === 'spot';
+  const openSpot = ((segments as string[])[1] === 'leads' && (segments as string[])[2] === 'spot')
+    || (segments as string[])[1] === 'submit';
   const spotAccount = mobileAccount.account;
   const spotAccountApproved = !!spotAccount && !mobileAccount.isBlocked && !accountBlocked(spotAccount)
     && !fieldAgentNeedsOnboarding(spotAccount) && fieldAgentWorkspaceRedirect(spotAccount) === null;

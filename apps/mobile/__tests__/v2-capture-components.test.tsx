@@ -89,7 +89,7 @@ describe('ShotGuide', () => {
     expect(r.getByText('Shot 1 of 3')).toBeTruthy();
     expect(r.getByText('Owner headshot')).toBeTruthy();
     await act(async () => { await flush(); jest.advanceTimersByTime(1200); await flush(); });
-    expect(r.getByText('Perfect, hold still')).toBeTruthy();
+    expect(r.getByText('Phone steady')).toBeTruthy();
 
     await act(async () => { fireEvent.press(r.getByLabelText('Take photo')); });
     expect(mockTakePicture).toHaveBeenCalled();
@@ -130,6 +130,42 @@ describe('ShotGuide', () => {
     const r = wrap(<ShotGuide tasks={SHOT_LISTS.salon} onDone={jest.fn()} onClose={jest.fn()} />);
     expect(r.queryByTestId('ghost-outline')).toBeNull();
     expect(r.UNSAFE_queryAllByProps({ strokeDasharray: expect.anything() })).toHaveLength(0);
+  });
+
+  it('retakes a selected filled slot at capacity without appending another photo', async () => {
+    const onDone = jest.fn();
+    const onShot = jest.fn();
+    const r = wrap(<ShotGuide tasks={SHOT_LISTS.barber.slice(0, 2)} initial={['file://old-head.jpg', 'file://old-work.jpg']}
+      initialIndex={0} maxCaptured={2} singleShot onShot={onShot} onDone={onDone} onClose={jest.fn()} />);
+    await act(flush);
+    expect(onDone).not.toHaveBeenCalled();
+    await act(async () => { fireEvent.press(r.getByLabelText('Take photo')); await flush(); });
+    expect(onShot).toHaveBeenCalledWith(0, 'file://shot.jpg');
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(onDone).toHaveBeenCalledWith(['file://shot.jpg', 'file://old-work.jpg']);
+  });
+
+  it('returns after the remaining photo capacity is used without requiring every suggestion', async () => {
+    const onDone = jest.fn();
+    const r = wrap(<ShotGuide tasks={SHOT_LISTS.barber.slice(0, 3)} initialIndex={1} maxCaptured={1}
+      onDone={onDone} onClose={jest.fn()} />);
+    await act(flush);
+    await act(async () => { fireEvent.press(r.getByLabelText('Take photo')); await flush(); });
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(onDone).toHaveBeenCalledWith([null, 'file://shot.jpg', null]);
+  });
+
+  it('does not deliver a late native photo after the camera screen is unmounted', async () => {
+    let release!: (photo: { uri: string }) => void;
+    mockTakePicture.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
+    const onShot = jest.fn(); const onDone = jest.fn();
+    const r = wrap(<ShotGuide tasks={SHOT_LISTS.barber.slice(0, 2)} onShot={onShot} onDone={onDone} onClose={jest.fn()} />);
+    await act(flush);
+    fireEvent.press(r.getByLabelText('Take photo'));
+    r.unmount();
+    await act(async () => { release({ uri: 'file://late-photo.jpg' }); await flush(); });
+    expect(onShot).not.toHaveBeenCalled();
+    expect(onDone).not.toHaveBeenCalled();
   });
 });
 

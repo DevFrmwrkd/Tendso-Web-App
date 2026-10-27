@@ -17,7 +17,7 @@
  *    transcription, as before), with the second each question started at.
  */
 import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Animated, AppState, BackHandler, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -53,6 +53,8 @@ export interface InterviewResult {
   /** Questions that have a clip / were asked. */
   answered: number;
   lang: Lang;
+  /** A saved partial take after an interruption or an explicit Save and close. */
+  interrupted?: boolean;
 }
 
 export interface InterviewCamProps {
@@ -67,6 +69,8 @@ export interface InterviewCamProps {
   onClip?: (clip: InterviewClip) => void;
   onFinish: (result: InterviewResult) => void;
   onClose: () => void;
+  /** Forward a Modal's Android back request through the same recording guard. */
+  closeRequest?: number;
 }
 
 const METER_OPTIONS: Audio.RecordingOptions = {
@@ -84,6 +88,7 @@ export function InterviewCam({
   onClip,
   onFinish,
   onClose,
+  closeRequest = 0,
 }: InterviewCamProps) {
   const insets = useSafeAreaInsets();
   const [camPerm, requestCam] = useCameraPermissions();
@@ -100,6 +105,8 @@ export function InterviewCam({
   const [cameraReady, setCameraReady] = useState(false);
   const [audioOnly, setAudioOnly] = useState(wantsAudioOnly);
   const [permissionAsked, setPermissionAsked] = useState(false);
+  const [recordingStarted, setRecordingStarted] = useState(false);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
 
   // Framing is measured once: the sensor only runs while checking (afterwards the faint level is static).
   const level = useLevel(state.phase === 'framing');
@@ -122,21 +129,31 @@ export function InterviewCam({
   const canToggle = useRef(false);
   const transitioning = useRef(false);
   const [busy, setBusy] = useState(false);
+  const mounted = useRef(true);
+  const interrupted = useRef(false);
+  const closeAlertOpen = useRef(false);
+  const callbacks = useRef({ onFinish, onClose, onClip });
+  callbacks.current = { onFinish, onClose, onClip };
 
   // ---------------------------------------------------------------- permissions
   useEffect(() => {
     let alive = true;
     (async () => {
-      const mic = micPerm?.granted ? micPerm : await requestMic();
-      let cam = camPerm;
-      if (!wantsAudioOnly) cam = camPerm?.granted ? camPerm : await requestCam();
-      if (!alive) return;
-      if (!mic?.granted) {
-        Alert.alert('Microphone needed', 'Please allow the microphone to record your answers.', [{ text: 'OK', onPress: onClose }]);
-        return;
+      try {
+        const mic = micPerm?.granted ? micPerm : await requestMic();
+        if (!alive) return;
+        if (!mic?.granted) {
+          Alert.alert('Microphone needed', 'Please allow the microphone to record your answers.', [{ text: 'OK', onPress: () => { if (mounted.current) callbacks.current.onClose(); } }]);
+          return;
+        }
+        let cam = camPerm;
+        if (!wantsAudioOnly) cam = camPerm?.granted ? camPerm : await requestCam();
+        if (!alive) return;
+        if (!wantsAudioOnly && !cam?.granted) setAudioOnly(true);
+        setPermissionAsked(true);
+      } catch {
+        if (alive) setRecordingError('Could not access the camera or microphone. Close this screen and try again.');
       }
-      if (!wantsAudioOnly && !cam?.granted) setAudioOnly(true);
-      setPermissionAsked(true);
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,55 +186,55 @@ export function InterviewCam({
 
   // ---------------------------------------------------------------- timer
   useEffect(() => {
-    if (state.phase !== 'asking') return;
+    if (state.phase !== 'asking' || !recordingStarted) return;
     const t = setInterval(() => {
       elapsedRef.current += 1;
       setElapsed(elapsedRef.current);
     }, 1000);
     return () => clearInterval(t);
-  }, [state.phase]);
+  }, [state.phase, recordingStarted]);
 
   // ---------------------------------------------------------------- recorders
   const startMeter = useCallback(async () => {
     // Audio-only: this IS the recording. Video: meter (+ parallel transcription file in continuous mode).
     if (audioRec.current) return;
     if (!audioOnly && recording === 'perQuestion' && Platform.OS === 'android') return; // keep the mic for the camera
-    try {
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording: rec } = await Audio.Recording.createAsync(
-        METER_OPTIONS,
-        (s) => { if (s.isRecording) setMeter(meterLevel(s.metering)); },
-        140,
-      );
-      audioRec.current = rec;
-    } catch (e) {
-      console.warn('[InterviewCam] audio recorder failed to start', e);
+    await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+    if (!mounted.current || finished.current) return;
+    const { recording: rec } = await Audio.Recording.createAsync(
+      METER_OPTIONS,
+      (s) => { if (mounted.current && s.isRecording) setMeter(meterLevel(s.metering)); },
+      140,
+    );
+    if (!mounted.current || finished.current) {
+      await rec.stopAndUnloadAsync().catch(() => {});
+      return;
     }
+    audioRec.current = rec;
   }, [audioOnly, recording]);
 
-  const stopMeter = useCallback(async (): Promise<string | undefined> => {
+  const stopMeter = useCallback(async (resetAudioMode = true): Promise<string | undefined> => {
     const rec = audioRec.current;
     audioRec.current = null;
-    if (!rec) return undefined;
-    try {
-      await rec.stopAndUnloadAsync();
-    } catch { /* already stopped */ }
-    try {
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
-    } catch { /* ignore */ }
-    return rec.getURI() ?? undefined;
+    if (rec) {
+      try { await rec.stopAndUnloadAsync(); } catch { /* already stopped */ }
+    }
+    if (resetAudioMode) {
+      try { await Audio.setAudioModeAsync({ allowsRecordingIOS: false }); } catch { /* ignore */ }
+    }
+    return rec?.getURI() ?? undefined;
   }, []);
 
   const emitClip = useCallback((index: number, uri: string | undefined, kind: CaptureKind, startedAt = clipStartedAt.current) => {
-    if (!uri) return;
+    if (!uri || !mounted.current) return;
     const durationSec = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
     answered.current.add(index);
-    onClip?.({ index, uri, kind, durationSec, lang: langRef.current });
-  }, [onClip]);
+    callbacks.current.onClip?.({ index, uri, kind, durationSec, lang: langRef.current });
+  }, []);
 
   const startVideoClip = useCallback(() => {
     const cam = cameraRef.current;
-    if (!cam) return;
+    if (!cam || !mounted.current || finished.current) return;
     const startedAt = Date.now();
     clipStartedAt.current = startedAt;
     const flag = { discard: false };
@@ -228,8 +245,20 @@ export function InterviewCam({
     lastClip.current = p
       .then((res) => {
         if (recording === 'perQuestion' && !flag.discard) emitClip(index, res?.uri, 'video', startedAt);
+        if (recording === 'continuous' && mounted.current && !finished.current && !flag.discard) {
+          // A time limit, system interruption or camera stop must not silently
+          // leave a REC timer running after the native file has ended.
+          interrupted.current = true;
+          dispatch({ type: 'FINISH' });
+        }
       })
-      .catch((e) => console.warn('[InterviewCam] recordAsync failed', e));
+      .catch(() => {
+        if (mounted.current && !finished.current) {
+          setRecordingError('The video stopped. Saving any available audio.');
+          interrupted.current = true;
+          dispatch({ type: 'FINISH' });
+        }
+      });
   }, [recording, emitClip]);
 
   const stopVideoClip = useCallback(async () => {
@@ -256,21 +285,33 @@ export function InterviewCam({
           await startMeter();
           return;
         }
-        if (recording === 'continuous') await startMeter(); // parallel audio first, like before
+        if (recording === 'continuous') {
+          try { await startMeter(); } catch {
+            // The video still records its own sound when a device cannot open
+            // a second recorder. Never display a fabricated microphone meter.
+            if (mounted.current) setRecordingError('Sound will be saved in the video. The separate audio recorder is unavailable.');
+          }
+        }
+        if (!mounted.current || finished.current) return;
         startVideoClip();
         try {
           canToggle.current = !!cameraRef.current?.getSupportedFeatures?.()?.toggleRecordingAsyncAvailable;
         } catch { canToggle.current = false; }
+      } catch {
+        if (mounted.current) setRecordingError('Could not start recording. Close this screen and try again.');
       } finally {
         transitioning.current = false;
-        setBusy(false);
+        if (mounted.current) {
+          setRecordingStarted(!!(audioOnly ? audioRec.current : videoPromise.current));
+          setBusy(false);
+        }
       }
     })();
   }, [state.phase, state.q, audioOnly, recording, startMeter, startVideoClip]);
 
   // ---------------------------------------------------------------- actions
   const goNext = useCallback(async () => {
-    if (state.phase !== 'asking' || transitioning.current) return;
+    if (state.phase !== 'asking' || transitioning.current || !recordingStarted) return;
     transitioning.current = true;
     setBusy(true);
     try {
@@ -296,24 +337,35 @@ export function InterviewCam({
       }
       // The done effect closes the final clip.
       dispatch({ type: 'NEXT' });
+    } catch {
+      if (mounted.current) {
+        setRecordingStarted(false);
+        setRecordingError('Could not start the next answer. Close and try again. Your earlier answers are saved.');
+      }
     } finally {
       await Promise.resolve();
       transitioning.current = false;
       setBusy(false);
     }
-  }, [state, recording, audioOnly, stopMeter, startMeter, emitClip, stopVideoClip, startVideoClip]);
+  }, [state, recording, audioOnly, recordingStarted, stopMeter, startMeter, emitClip, stopVideoClip, startVideoClip]);
 
   const pause = useCallback(async () => {
-    if (transitioning.current || (state.phase !== 'asking' && state.phase !== 'paused')) return;
+    if (transitioning.current || !recordingStarted || (state.phase !== 'asking' && state.phase !== 'paused')) return;
     transitioning.current = true;
     setBusy(true);
     try {
       if (state.phase === 'asking') {
         if (audioOnly) {
-          try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
+          await audioRec.current?.pauseAsync();
         } else if (recording === 'continuous') {
-          if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
-          try { await audioRec.current?.pauseAsync(); } catch { /* ignore */ }
+          if (!canToggle.current) return;
+          await cameraRef.current?.toggleRecordingAsync();
+          try { await audioRec.current?.pauseAsync(); } catch {
+            // Stop a secondary microphone that failed to pause. The video's
+            // own audio remains the complete, authoritative recording.
+            await stopMeter(false);
+            if (mounted.current) setRecordingError('Separate audio is unavailable. Sound stays in the video.');
+          }
         } else {
           clipFlag.current.discard = true; // this answer starts again on resume
           await stopVideoClip();
@@ -321,21 +373,29 @@ export function InterviewCam({
         dispatch({ type: 'PAUSE' });
       } else if (state.phase === 'paused') {
         if (audioOnly) {
-          try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
+          await audioRec.current?.startAsync();
         } else if (recording === 'continuous') {
-          if (canToggle.current) { try { await cameraRef.current?.toggleRecordingAsync(); } catch { /* ignore */ } }
-          try { await audioRec.current?.startAsync(); } catch { /* ignore */ }
+          if (!canToggle.current) return;
+          await cameraRef.current?.toggleRecordingAsync();
+          try { await audioRec.current?.startAsync(); } catch {
+            // A partial secondary file must never replace the full video
+            // soundtrack as the source used for transcription.
+            await stopMeter(false);
+            if (mounted.current) setRecordingError('Separate audio is unavailable. Sound stays in the video.');
+          }
         } else {
           startVideoClip();
         }
         dispatch({ type: 'RESUME' });
       }
+    } catch {
+      if (mounted.current) setRecordingError('Could not pause or resume. Your current recording is still open.');
     } finally {
       await Promise.resolve();
       transitioning.current = false;
       setBusy(false);
     }
-  }, [state.phase, audioOnly, recording, stopVideoClip, startVideoClip]);
+  }, [state.phase, audioOnly, recording, recordingStarted, stopMeter, stopVideoClip, startVideoClip]);
 
   // DONE: wrap up once.
   useEffect(() => {
@@ -359,47 +419,79 @@ export function InterviewCam({
         await lastClip.current;
         await stopMeter();
       }
-      onFinish({
-        kind: audioOnly ? 'audio' : 'video',
-        uri,
+      if (!mounted.current) return;
+      callbacks.current.onFinish({
+        kind: audioOnly || (!uri && parallelAudioUri) ? 'audio' : 'video',
+        uri: uri ?? parallelAudioUri,
         parallelAudioUri,
         durationSec: elapsedRef.current,
         marks: marks.current,
         answered: answered.current.size,
         lang: langRef.current,
+        interrupted: interrupted.current || undefined,
       });
     })();
-  }, [state.phase, recording, audioOnly, stopMeter, stopVideoClip, emitClip, onFinish]);
+  }, [state.phase, recording, audioOnly, stopMeter, stopVideoClip, emitClip]);
 
   // Unmount safety: never leave the mic or the camera running.
-  useEffect(() => () => {
-    try { cameraRef.current?.stopRecording(); } catch { /* ignore */ }
-    const rec = audioRec.current;
-    audioRec.current = null;
-    rec?.stopAndUnloadAsync().catch(() => {});
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      try { cameraRef.current?.stopRecording(); } catch { /* ignore */ }
+      const rec = audioRec.current;
+      audioRec.current = null;
+      rec?.stopAndUnloadAsync().catch(() => {});
+    };
   }, []);
 
   const close = () => {
-    if (transitioning.current || finished.current) return;
-    if (state.phase === 'framing') { onClose(); return; }
-    Alert.alert('Stop the interview?', recording === 'perQuestion' ? 'Your answers so far are kept.' : 'This recording will be lost.', [
-      { text: 'Keep going', style: 'cancel' },
+    if (!mounted.current || transitioning.current || finished.current || closeAlertOpen.current) return;
+    if (state.phase === 'framing' || !recordingStarted) { callbacks.current.onClose(); return; }
+    closeAlertOpen.current = true;
+    Alert.alert('Stop the interview?', recording === 'perQuestion' ? 'Your answers so far are kept.' : 'Save this take, or discard it and record again.', [
+      { text: 'Keep going', style: 'cancel', onPress: () => { closeAlertOpen.current = false; } },
+      ...(recording === 'continuous' ? [{ text: 'Save and close', onPress: () => {
+        closeAlertOpen.current = false;
+        if (!mounted.current || finished.current || transitioning.current) return;
+        transitioning.current = true;
+        interrupted.current = true;
+        dispatch({ type: 'FINISH' });
+      } }] : []),
       {
-        text: 'Stop',
+        text: recording === 'continuous' ? 'Discard recording' : 'Stop',
         style: 'destructive',
         onPress: async () => {
-          if (transitioning.current || finished.current) return;
+          if (!mounted.current || transitioning.current || finished.current) return;
           transitioning.current = true;
           setBusy(true);
           finished.current = true;
           clipFlag.current.discard = recording !== 'perQuestion';
           await stopVideoClip();
           await stopMeter();
-          onClose();
+          if (mounted.current) callbacks.current.onClose();
         },
       },
-    ]);
+    ], { cancelable: true, onDismiss: () => { closeAlertOpen.current = false; } });
   };
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  useEffect(() => {
+    const back = BackHandler.addEventListener('hardwareBackPress', () => { closeRef.current(); return true; });
+    return () => back.remove();
+  }, []);
+  useEffect(() => { if (closeRequest > 0) closeRef.current(); }, [closeRequest]);
+  const phaseRef = useRef(state.phase);
+  phaseRef.current = state.phase;
+  useEffect(() => {
+    const listener = AppState.addEventListener('change', (next) => {
+      if (recording === 'continuous' && next !== 'active' && begun.current && !finished.current && phaseRef.current !== 'framing') {
+        interrupted.current = true;
+        dispatch({ type: 'FINISH' });
+      }
+    });
+    return () => listener.remove();
+  }, [recording]);
 
   // ---------------------------------------------------------------- question animation
   const qAnim = useRef(new Animated.Value(0)).current;
@@ -415,7 +507,7 @@ export function InterviewCam({
   const last = isLastQuestion(state);
   const segs = segmentStates(state);
   const bars = meterBars(paused ? 0 : meter);
-  const showMeter = audioOnly || recording === 'continuous' || Platform.OS !== 'android';
+  const showMeter = !!audioRec.current && (audioOnly || recording === 'continuous' || Platform.OS !== 'android');
   const hintText = framingGood ? L.ok : L.hold;
   const pauseAllowed = audioOnly || recording === 'perQuestion' || canToggle.current;
 
@@ -432,6 +524,7 @@ export function InterviewCam({
           mode="video"
           mute={false}
           onCameraReady={() => setCameraReady(true)}
+          onMountError={() => { setAudioOnly(true); setRecordingError('Camera unavailable. You can record voice only.'); }}
         />
       )}
       <TopShade />
@@ -441,8 +534,8 @@ export function InterviewCam({
       <View style={[styles.top, { top: insets.top + 8 }]}>
         <GlassButton icon="close" label="Close" onPress={close} />
         <GlassPill style={{ opacity: framingPhase ? 0.6 : 1 }}>
-          <View style={[styles.recDot, { opacity: state.phase === 'asking' ? 1 : 0.4 }]} />
-          <PillText>{formatClock(elapsed)}</PillText>
+          <View style={[styles.recDot, { opacity: recordingStarted && state.phase === 'asking' ? 1 : 0.25 }]} />
+          <PillText>{recordingStarted ? formatClock(elapsed) : framingPhase ? 'Ready' : recordingError ? 'Not recording' : 'Starting…'}</PillText>
           {showMeter ? (
             <View style={styles.meter} accessibilityElementsHidden>
               {bars.map((h, i) => <View key={i} style={[styles.meterBar, { height: 4 + h * 12 }]} />)}
@@ -465,6 +558,7 @@ export function InterviewCam({
       {/* level: strong while checking, faint afterwards */}
       {audioOnly ? null : <LevelLine roll={level.roll} good={framingGood} strong={framingPhase} />}
       <HintChip text={paused ? L.paused : hintText} good={!paused && framingGood} visible={(framingPhase && ready) || paused} icon={paused ? 'pause' : 'phone-portrait-outline'} />
+      {recordingError ? <Text accessibilityRole="alert" style={[styles.recordingError, { top: insets.top + 94 }]}>{recordingError}</Text> : null}
 
       {/* the question, low like a subtitle */}
       {!framingPhase ? (
@@ -473,7 +567,7 @@ export function InterviewCam({
           style={[styles.prompt, { bottom: insets.bottom + 140, opacity: qAnim, transform: [{ translateY: qAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}
         >
           <Text style={subtitle.count}>{last ? L.last : `${state.q + 1} / ${total}`}</Text>
-          <Text style={subtitle.big} accessibilityLiveRegion="polite" accessibilityRole="header">{questionAt(state.q, lang)}</Text>
+          <Text style={subtitle.big} accessibilityLiveRegion="polite" accessibilityRole="header">{state.q < total ? questions[state.q][lang] : questionAt(INTERVIEW_QUESTIONS.length, lang)}</Text>
         </Animated.View>
       ) : null}
 
@@ -482,7 +576,7 @@ export function InterviewCam({
         {pauseAllowed ? (
           <Pressable
             onPress={pause}
-            disabled={framingPhase || busy || state.phase === 'done'}
+            disabled={framingPhase || busy || !recordingStarted || state.phase === 'done'}
             accessibilityRole="button"
             accessibilityLabel={paused ? L.resume : 'Pause'}
             cssInterop={false}
@@ -495,7 +589,7 @@ export function InterviewCam({
         ) : null}
         <Pressable
           onPress={paused ? pause : goNext}
-          disabled={framingPhase || busy || state.phase === 'done'}
+          disabled={framingPhase || busy || !recordingStarted || state.phase === 'done'}
           accessibilityRole="button"
           accessibilityLabel={paused ? L.resume : last ? L.finish : L.next}
           cssInterop={false}
@@ -529,6 +623,7 @@ function AudioStage({ level }: { level: number }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
+  recordingError: { position: 'absolute', left: 24, right: 24, color: '#fff', fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 16, padding: 12, zIndex: 7 },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 6 },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.rec },
   meter: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 16 },
