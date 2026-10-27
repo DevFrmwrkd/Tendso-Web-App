@@ -6,7 +6,7 @@ import { api, type Doc, type Id } from '@tendso/convex-client';
 import { useNetwork } from '../providers/NetworkProvider';
 import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey } from '../services/captureSession';
 
-type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
+type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string; savedAt: number; legacyMigration?: boolean };
 type PhotoEntry = { id: string; uri: string; storageId?: string; taskIndex?: number };
 type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; entries?: PhotoEntry[]; savedAt?: number };
@@ -21,7 +21,9 @@ const clean = (value: unknown) => typeof value === 'string' ? value.trim().repla
 function sameCapture(row: Doc<'submissions'>, info: PendingInfo) {
   return ['businessName', 'businessType', 'ownerName', 'ownerPhone', 'ownerEmail', 'address', 'city']
     .every(key => clean(row[key as keyof Doc<'submissions'>]) === clean(info.formData[key as keyof Info]))
-    && (row.prospectLeadId ?? null) === (info.prospectLeadId ?? null);
+    && (row.prospectLeadId ?? null) === (info.prospectLeadId ?? null)
+    && (!info.formData.coordinates || (row.coordinates?.lat === info.formData.coordinates.lat
+      && row.coordinates.lng === info.formData.coordinates.lng));
 }
 
 export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolean; creatorId?: Id<'creators'> } = {}) {

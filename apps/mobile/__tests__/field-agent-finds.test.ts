@@ -159,8 +159,8 @@ describe('findWebsiteLabel', () => {
   it('describes confirmed need, an existing website and unknown data distinctly', () => {
     expect(findWebsiteLabel(find('needs', { needsWebsite: true }))).toBe('Needs a site');
     expect(findWebsiteLabel(find('existing', { needsWebsite: false }))).toBe('Has a website');
-    expect(findWebsiteLabel(find('unknown', { needsWebsite: null }))).toBe('Website unconfirmed');
-    expect(findWebsiteLabel(find('legacy'))).toBe('Website unconfirmed');
+    expect(findWebsiteLabel(find('unknown', { needsWebsite: null }))).toBe('Check for a website');
+    expect(findWebsiteLabel(find('legacy'))).toBe('Check for a website');
     expect(findWebsiteLabel(find('live', { needsWebsite: true, hasLiveWebsite: true }))).toBe('Live');
   });
 });

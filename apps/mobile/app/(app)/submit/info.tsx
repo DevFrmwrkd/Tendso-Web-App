@@ -5,6 +5,7 @@ import {
   Platform,
   StyleSheet,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { useQuery, useMutation } from 'convex/react';
 import { BUSINESS_TYPES, mapCategoryToBusinessType, toLocalPhDigits } from '../../../services/prospectPrefill';
@@ -19,6 +20,7 @@ import { space } from '../../../theme/v2';
 import { useGuardedPress } from '../../../hooks/useGuardedPress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
@@ -40,6 +42,8 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
     address?: string;
     city?: string;
     category?: string;
+    latitude?: string;
+    longitude?: string;
   }>();
   const goBack = useGuardedPress(() => router.back());
 
@@ -70,6 +74,8 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
   const [ownerEmail, setOwnerEmail] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [coordinates, setCoordinates] = useState<CaptureCoordinates | undefined>();
+  const [choosingLocation, setChoosingLocation] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const mounted = useRef(true);
@@ -99,12 +105,16 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
     setOwnerPhone(toLocalPhDigits(prefillParams.phone));
     setAddress(prefillParams.address ?? '');
     setCity(prefillParams.city ?? '');
+    const point = prefillParams.latitude?.trim() && prefillParams.longitude?.trim()
+      ? { lat: Number(prefillParams.latitude), lng: Number(prefillParams.longitude) } : undefined;
+    setCoordinates(validCaptureCoordinates(point) ? point : undefined);
     // '' when Outscraper's free-text category matches nothing — the required
     // check then makes the creator pick, rather than storing a confident guess.
     setBusinessType(mapCategoryToBusinessType(prefillParams.category));
     // Owner name and email are deliberately NOT prefilled: the scrape knows the
     // business, not the person, and a wrong owner name is worse than a blank one.
-  }, [prefillParams.businessName, prefillParams.phone, prefillParams.address, prefillParams.city, prefillParams.category]);
+  }, [prefillParams.businessName, prefillParams.phone, prefillParams.address, prefillParams.city, prefillParams.category,
+    prefillParams.latitude, prefillParams.longitude]);
 
   // Keep server drafts first, then this account's cached form. A new shop must
   // never silently reuse a draft whose lead link is set once on the server.
@@ -120,7 +130,7 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
           ? await capture.read<{
             creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
             formData: { businessName: string; businessType: string; ownerName: string; ownerPhone: string;
-              ownerEmail?: string; address: string; city: string };
+              ownerEmail?: string; address: string; city: string; coordinates?: CaptureCoordinates };
           }>('submission_pending_sync') : null;
         if (!isCurrent()) return;
         const cached = localForm ?? (pending && pending.creatorId === capture.actor?.creatorId && pending.formData
@@ -138,6 +148,7 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
             setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
             setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
             setOwnerEmail(data.ownerEmail || ''); setAddress(data.address || ''); setCity(data.city || '');
+            setCoordinates(validCaptureCoordinates(data.coordinates) ? data.coordinates : undefined);
             setProspectLeadId(data.prospectLeadId ?? (sameBusiness ? prefillParams.prospectLeadId : undefined));
           }
           setSelectedDraftId(draftId);
@@ -210,9 +221,10 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
       ownerEmail,
       address,
       city,
+      ...(coordinates ? { coordinates } : {}),
       prospectLeadId,
     });
-  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, prospectLeadId, initialized, saveDraft]);
+  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, coordinates, prospectLeadId, initialized, saveDraft]);
 
   const handleNext = async () => {
     if (saving.current || !initialized || !capture.actor || !isCurrent()) return;
@@ -235,6 +247,7 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
       ownerEmail: ownerEmail.trim() || undefined,
       address: address.trim(),
       city: city.trim(),
+      ...(validCaptureCoordinates(coordinates) ? { coordinates } : {}),
     };
 
     saving.current = true; setLoading(true);
@@ -311,7 +324,7 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
 
   // Offline access is already scoped by the app layout; do not block local drafts
   // on an unavailable live Clerk or Convex response.
-  if (!capture.isReady || (capture.canQuery && creator === undefined)) {
+  if ((!capture.isReady && !capture.actor) || (!initialized && capture.canQuery && creator === undefined)) {
     return <Loading label="Loading shop details…" />;
   }
   if (!capture.actor) return <ScreenShell onBack={goBack} title="Capture unavailable">
@@ -357,9 +370,22 @@ function SubmitInfoForm({ capture }: { capture: ReturnType<typeof useCaptureSess
           autoCapitalize="none" autoCorrect={false} textContentType="emailAddress" editable={!loading} returnKeyType="next" />
         <Field label="Address" icon="location-outline" placeholder="Street and barangay"
           value={address} onChangeText={setAddress} autoCapitalize="words" editable={!loading} returnKeyType="next" />
+        <Button title={coordinates ? 'Edit map location' : 'Choose on map'} variant="ghost" icon="map-outline"
+          disabled={loading || !initialized} onPress={() => {
+            if (!isCurrent() || saving.current) return;
+            Keyboard.dismiss(); setChoosingLocation(true);
+          }} />
+        {coordinates ? <Text variant="label" tone="muted">Changing the address does not move the pin. Use Edit map location to move it.</Text> : null}
         <Field label="City" icon="business-outline" placeholder="City or municipality"
           value={city} onChangeText={setCity} autoCapitalize="words" editable={!loading} returnKeyType="done" />
       </ScreenShell>
+      {choosingLocation ? <CaptureLocationPicker coordinates={coordinates} address={address} city={city}
+        isOffline={capture.isOffline} isCurrent={isCurrent}
+        onClose={() => { if (isCurrent()) setChoosingLocation(false); }}
+        onConfirm={(location) => {
+          if (!isCurrent() || saving.current || !validCaptureCoordinates(location.coordinates)) return;
+          setCoordinates(location.coordinates); setAddress(location.address); setCity(location.city); setChoosingLocation(false);
+        }} /> : null}
     </KeyboardAvoidingView>
   );
 }

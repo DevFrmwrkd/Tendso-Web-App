@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, internalMutation, internalQuery, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
+import { requireAccountOwner, requireAuth } from './lib/auth';
 
 // ==================== INTERNAL ====================
 
@@ -193,6 +194,31 @@ export const getByCreator = query({
     },
 });
 
+/** Read one recipient's message, including the original announcement text. */
+export const getDetails = query({
+    args: { id: v.id('notifications') },
+    handler: async (ctx, args) => {
+        await requireAuth(ctx);
+        const notification = await ctx.db.get(args.id);
+        if (!notification) return null;
+
+        const { me } = await requireAccountOwner(ctx, notification.creatorId);
+        // This inbox endpoint has no administrator override: the notification
+        // itself is the recipient's authorization to read a broadcast.
+        if (me._id !== notification.creatorId) {
+            throw new Error('Forbidden: you can only read your own notifications');
+        }
+
+        const announcementId = notification.data && typeof notification.data === 'object'
+            ? notification.data.announcementId : undefined;
+        if (typeof announcementId !== 'string') return notification;
+        const normalizedId = ctx.db.normalizeId('announcements', announcementId);
+        if (!normalizedId) return notification;
+        const announcement = await ctx.db.get(normalizedId);
+        return announcement ? { ...notification, body: announcement.body } : notification;
+    },
+});
+
 /**
  * Get unread notification count
  */
@@ -242,6 +268,12 @@ export const createForClient = mutation({
         data: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
+        // Only the internal announcement writer may grant access to a broadcast.
+        // Client-generated profile/password notices cannot forge that linkage.
+        if (args.data && typeof args.data === 'object' &&
+            Object.prototype.hasOwnProperty.call(args.data, 'announcementId')) {
+            throw new Error('Announcement references are reserved for internal notifications');
+        }
         await ctx.db.insert('notifications', {
             creatorId: args.creatorId,
             type: args.type,

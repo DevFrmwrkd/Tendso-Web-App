@@ -57,7 +57,7 @@ describe('field agent shop states', () => {
     expect(reportedWebsite.hasLiveWebsite).toBe(false);
     expect(shopStatus(reportedWebsite)).toBe('Has a website');
     expect(unknown.needsWebsite).toBeNull();
-    expect(shopStatus(unknown)).toBe('Website unconfirmed');
+    expect(shopStatus(unknown)).toBe('Check for a website');
     expect(shopStatus(needs)).toBe('Needs a site');
   });
 
@@ -71,7 +71,7 @@ describe('field agent shop states', () => {
 
   it('does not infer no website from an imported prospect with a missing URL', () => {
     const shop = normalizeProspect(prospect(), area)!;
-    expect(shopStatus(shop)).toBe('Website unconfirmed');
+    expect(shopStatus(shop)).toBe('Check for a website');
     expect(shop.needsWebsite).toBeNull();
     expect(shop.photoUrl).toBeNull();
     expect(shop.spottedBy).toBeNull();
@@ -177,8 +177,26 @@ describe('claims, provenance, and capture', () => {
     const community = normalizeCommunityFind(find(), area)!;
     const imported = normalizeProspect(prospect(), area, true)!;
     expect(shopPrefill(community)).toEqual({ prospectLeadId: 'find-nena', businessName: 'Aling Nena’s',
-      phone: '', address: '12 J.P. Rizal St', city: 'Marikina', category: 'Sari-sari store' });
+      phone: '', address: '12 J.P. Rizal St', city: 'Marikina', category: 'Sari-sari store',
+      latitude: '14.651', longitude: '121.1' });
     expect(shopPrefill(imported)).not.toHaveProperty('prospectLeadId');
+    expect(shopPrefill(imported)).toMatchObject({ latitude: '14.652', longitude: '121.1' });
     expect(shopPrefill(imported).businessName).toBe('Ramon’s Barber');
+  });
+
+  it.each([
+    { latitude: NaN, longitude: 121.1 },
+    { latitude: 14.65, longitude: Infinity },
+    { latitude: 91, longitude: 121.1 },
+    { latitude: 14.65, longitude: -181 },
+  ])('does not prefill an invalid shop point (%j)', (coordinate) => {
+    const shop = { ...normalizeCommunityFind(find(), area)!, ...coordinate };
+    expect(shopPrefill(shop)).not.toHaveProperty('latitude');
+    expect(shopPrefill(shop)).not.toHaveProperty('longitude');
+  });
+
+  it('retains a valid zero coordinate pair when opening capture', () => {
+    const shop = { ...normalizeCommunityFind(find(), area)!, latitude: 0, longitude: 0 };
+    expect(shopPrefill(shop)).toMatchObject({ latitude: '0', longitude: '0' });
   });
 });

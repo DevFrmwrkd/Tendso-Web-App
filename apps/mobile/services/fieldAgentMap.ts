@@ -168,7 +168,7 @@ export function shopStatus(shop: FieldAgentShop): string {
   if (shop.hasLiveWebsite) return 'Live';
   if (shop.isMine) return 'Yours';
   if (shop.claimedBy) return 'Agent visiting';
-  return shop.needsWebsite === true ? 'Needs a site' : shop.needsWebsite === false ? 'Has a website' : 'Website unconfirmed';
+  return shop.needsWebsite === true ? 'Needs a site' : shop.needsWebsite === false ? 'Has a website' : 'Check for a website';
 }
 
 export function shopPrefill(shop: FieldAgentShop) {
@@ -177,5 +177,6 @@ export function shopPrefill(shop: FieldAgentShop) {
     ...(shop.source !== 'pool' ? { prospectLeadId: shop.id } : {}),
     businessName: shop.name, phone: shop.phone ?? '', address: shop.address ?? '',
     city: shop.city ?? '', category: shop.category ?? '',
+    ...(validMapCoordinate(shop) ? { latitude: String(shop.latitude), longitude: String(shop.longitude) } : {}),
   };
 }

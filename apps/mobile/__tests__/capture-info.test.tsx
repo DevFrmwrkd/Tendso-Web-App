@@ -13,6 +13,7 @@ const mockClearCache = jest.fn();
 const mockCaptureRead = jest.fn();
 const mockCaptureWrite = jest.fn();
 const mockCaptureRemove = jest.fn();
+const mockReverseGeocode = jest.fn();
 let mockParams: Record<string, string>;
 let mockDraft: Record<string, unknown> | null | undefined;
 let mockOnline: boolean | null;
@@ -53,6 +54,22 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('expo-location', () => ({
+  geocodeAsync: jest.fn(async () => []),
+  reverseGeocodeAsync: (...args: unknown[]) => mockReverseGeocode(...args),
+  getForegroundPermissionsAsync: jest.fn(async () => ({ status: 'denied' })),
+  requestForegroundPermissionsAsync: jest.fn(async () => ({ status: 'denied' })),
+  getCurrentPositionAsync: jest.fn(), Accuracy: { High: 4 },
+}));
+jest.mock('react-native-maps', () => {
+  const ReactModule = require('react');
+  const { View } = require('react-native');
+  return { __esModule: true,
+    default: ReactModule.forwardRef((props: any, ref: unknown) => {
+      ReactModule.useImperativeHandle(ref, () => ({ animateToRegion: jest.fn() }));
+      return ReactModule.createElement(View, props, props.children);
+    }), Marker: (props: any) => ReactModule.createElement(View, props), PROVIDER_GOOGLE: 'google' };
+});
 jest.mock('react-native-svg', () => ({ __esModule: true, default: 'MockSvg', Path: 'MockPath', Defs: 'MockDefs',
   LinearGradient: 'MockGradient', Rect: 'MockRect', Stop: 'MockStop' }));
 
@@ -74,6 +91,7 @@ beforeEach(() => {
   mockCaptureRead.mockReset().mockResolvedValue(null);
   mockCaptureWrite.mockReset().mockResolvedValue(undefined);
   mockCaptureRemove.mockReset().mockResolvedValue(undefined);
+  mockReverseGeocode.mockReset().mockResolvedValue([{ streetNumber: '18', street: 'River St', district: 'San Roque', city: 'Marikina' }]);
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());
@@ -237,4 +255,77 @@ it('does not write a saved id or navigate after the capture account changes mid-
   await act(async () => { finish('new-submission'); });
   expect(mockCaptureWrite).not.toHaveBeenCalled();
   expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('confirms a map pin and suggested address into the existing capture API and owned form cache', async () => {
+  mockParams = source;
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.press(screen.getByRole('button', { name: 'Choose on map' }));
+  expect(screen.getByRole('button', { name: 'Use this location' })).toBeDisabled();
+  await act(async () => { fireEvent.press(screen.getByTestId('capture-location-map'), {
+    nativeEvent: { coordinate: { latitude: 14.65, longitude: 121.1 } },
+  }); });
+  await waitFor(() => expect(screen.getByLabelText('Shop address').props.value).toBe('18 River St, San Roque'));
+  fireEvent.press(screen.getByRole('button', { name: 'Use this location' }));
+  expect(screen.queryByTestId('capture-location-map')).toBeNull();
+  expect(screen.getByLabelText('Address').props.value).toBe('18 River St, San Roque');
+  expect(mockSaveCache).toHaveBeenLastCalledWith(expect.objectContaining({ coordinates: { lat: 14.65, lng: 121.1 } }));
+  await next(screen);
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ address: '18 River St, San Roque', city: 'Marikina',
+    coordinates: { lat: 14.65, lng: 121.1 }, prospectLeadId: source.prospectLeadId }));
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({ coordinates: { lat: 14.65, lng: 121.1 } }));
+});
+
+it('canceling map edits keeps the original manual address and real source pin', async () => {
+  mockParams = { ...source, latitude: '14.651', longitude: '121.101' };
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.press(screen.getByRole('button', { name: 'Edit map location' }));
+  expect(screen.getByTestId('capture-location-pin').props.coordinate).toEqual({ latitude: 14.651, longitude: 121.101 });
+  fireEvent.changeText(screen.getByLabelText('Shop address'), 'Unconfirmed address');
+  fireEvent.press(screen.getAllByRole('button', { name: 'Back' }).at(-1)!);
+  expect(screen.getByLabelText('Address').props.value).toBe(source.address);
+  await next(screen);
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ address: source.address, coordinates: { lat: 14.651, lng: 121.101 } }));
+});
+
+it('retains an existing draft pin when its manually typed address is corrected', async () => {
+  mockDraft = { ...draft, coordinates: { lat: 14.6, lng: 121.2 } };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Address').props.value).toBe(draft.address));
+  fireEvent.changeText(screen.getByLabelText('Address'), 'Corrected unit 2, 10 Main St');
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: draft._id,
+    address: 'Corrected unit 2, 10 Main St', coordinates: { lat: 14.6, lng: 121.2 } }));
+});
+
+it('saves an offline chosen pin with the queued details and restores it on returning to Info', async () => {
+  mockOnline = false; mockDraft = undefined; mockParams = source;
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.press(screen.getByRole('button', { name: 'Choose on map' }));
+  fireEvent.press(screen.getByTestId('capture-location-map'), { nativeEvent: { coordinate: { latitude: 14.7, longitude: 121.3 } } });
+  fireEvent.press(screen.getByRole('button', { name: 'Use this location' }));
+  await next(screen);
+  const pending = mockCaptureWrite.mock.calls.find(([key]) => key === 'submission_pending_sync')![1];
+  expect(pending.formData).toEqual(expect.objectContaining({ coordinates: { lat: 14.7, lng: 121.3 }, address: source.address }));
+  expect(mockReverseGeocode).not.toHaveBeenCalled();
+  expect(mockCreate).not.toHaveBeenCalled();
+  screen.unmount(); mockParams = {};
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? pending
+    : key === 'current_submission_id' ? 'offline_pending' : null);
+  const reopened = render(<SubmitInfo />);
+  await waitFor(() => expect(reopened.getByRole('button', { name: 'Edit map location' })).toBeTruthy());
+  fireEvent.press(reopened.getByRole('button', { name: 'Edit map location' }));
+  expect(reopened.getByTestId('capture-location-pin').props.coordinate).toEqual({ latitude: 14.7, longitude: 121.3 });
+});
+
+it('does not fabricate a pin from incomplete or invalid source coordinates', async () => {
+  mockParams = { ...source, latitude: 'NaN', longitude: '121.1' };
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  expect(screen.getByRole('button', { name: 'Choose on map' })).toBeTruthy();
+  await next(screen);
+  expect(mockCreate.mock.calls[0][0]).not.toHaveProperty('coordinates');
 });

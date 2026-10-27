@@ -206,6 +206,28 @@ it('does not overwrite a different unfinished server business when reconciling a
   expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_pending_sync')).not.toBeNull();
 });
 
+it('keeps the chosen map point through offline creation, update and the saved snapshot', async () => {
+  const coordinates = { lat: 14.6507, lng: 121.1029 };
+  scoped('current_submission_id', 'offline_pending');
+  scoped('submission_pending_sync', info({ formData: { ...formData, coordinates } }));
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId }));
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:create', { creatorId, ...formData, coordinates });
+  expect(mockMutation).toHaveBeenCalledWith('submissions:update', { id: 'new-submission-1', ...formData, coordinates });
+  expect(read('submission_snapshot')).toMatchObject({ submissionId: 'new-submission-1', coordinates });
+});
+
+it('does not mistake another map pin for the capture whose create response was lost', async () => {
+  row('other-location', { coordinates: { lat: 14.65, lng: 121.1 } });
+  scoped('current_submission_id', 'offline_pending');
+  scoped('submission_pending_sync', info({ formData: { ...formData, coordinates: { lat: 14.66, lng: 121.11 } } }));
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId }));
+  await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled();
+  expect(read('submission_pending_sync')).not.toBeNull();
+  expect(mockRows.get('other-location')?.coordinates).toEqual({ lat: 14.65, lng: 121.1 });
+});
+
 it('retains a migrated legacy offline photo queue after a partial upload and resumes it', async () => {
   mockStorage.set('submission_pending_sync', JSON.stringify(info())); mockStorage.set('current_submission_id', 'offline_pending');
   mockStorage.set('submission_pending_photos', JSON.stringify(photos('offline_pending')));

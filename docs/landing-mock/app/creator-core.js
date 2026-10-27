@@ -473,14 +473,14 @@
       ['2.3', P + 'certification-quiz.tsx', 'Tendso asks one question; answer B is picked. Pass with 4 of 5.', quiz],
     ] },
     { n: '03', title: 'Find shops', note: 'The map and the finds feed are home', steps: [
-      ['3.1', P + '(tabs)/index.tsx · FieldAgentMap', 'Map home. Real shop photos, needs-site and yours filters, saved work area or GPS, and actual earnings this month.', mapHome],
+      ['3.1', P + '(tabs)/index.tsx · FieldAgentMap', 'Map home with real photos, filters, saved work area/GPS and actual earnings. Drag the handle down to minimize or up to expand all loaded nearby shops; tap and accessibility alternatives preserve filters and selected details.', mapHome],
       ['3.2', 'components/field-agent/FieldAgentMap.tsx · selected', 'Tap a pin for the original spotter, actual website status, exclusive visit reservation, capture handoff and native Route.', shopSheet],
-      ['3.3', P + '(tabs)/finds.tsx', 'Shared shops as a photo feed with search and nearby/category/site filters. Spot a shop is always one tap away; legacy CRM tools remain available.', finds],
-      ['3.4', P + 'leads/spot.tsx', 'Save a real team find: photo, name, kind, needs-site choice and an exact shop pin. Certified field agents only; retries preserve one find.', spot],
-      ['3.5', P + 'leads/[leadId].tsx', 'Shop photo, contact actions, notes, original spotter and permitted CRM statuses. Visiting is a reservation; Live requires an actual live URL.', leadDetail],
+      ['3.3', P + '(tabs)/finds.tsx', 'Shared shop photo feed with search and filters, content-sized status pills and a compact Spot a shop action at lower right. Unknown website data says Check for a website; legacy CRM tools remain available.', finds],
+      ['3.4', P + 'leads/spot.tsx', 'Save a real team find: photo, name, kind, needs-site choice and exact shop pin. Placing or dragging the pin preserves map zoom; GPS can recenter. Certified agents only; retries preserve one find.', spot],
+      ['3.5', P + 'leads/[leadId].tsx', 'Photo, real distance/address below the name, and spotting time with the original spotter. Empty community contact cards are omitted; known contacts and directions remain usable. Visiting reserves the shop; Live requires a live URL.', leadDetail],
     ] },
     { n: '04', title: 'Capture', note: 'Info, 10 photo tasks, 10 questions on camera, review, sent', steps: [
-      ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile, address.', info],
+      ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile and address. Choose the shop on a native map, adjust the pin, then confirm the editable address/city. Source pins and offline recovery are preserved.', info],
       ['4.2', P + 'submit/photos.tsx', 'Ten shop-specific photo suggestions as tiles, a next-task card, retakes and owner/library extras. Add 3–10 photos total; suggestions are optional. Actor-scoped drafts resume safely.', shared('shot-list', photosLocal, { type: 'barber', step: 2 })],
       ['4.3', 'components/v2/capture/ShotGuide.tsx', 'One real photo task at a time, device-level guidance, task strip, direct retakes and JPEG uploads. No automatic face/framing assessment is claimed.', shared('shot-guide', photosLocal, { type: 'barber' })],
       ['4.4', P + 'submit/interview.tsx', 'Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback.', shared('interview-list', interviewRecLocal, { step: 3 })],
@@ -489,7 +489,7 @@
       ['4.7', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
     ] },
     { n: '05', title: 'Home extras', note: 'Notifications', steps: [
-      ['5.1', P + 'notifications.tsx', 'Unread on white cards with an ink dot; older ones sit flat.', notifications],
+      ['5.1', P + 'notifications.tsx', 'Tap any notice to read its full title, message and date. Announcement details load the original paragraphs for the actual recipient. Unread cards stay white with an ink dot; older ones sit flat.', notifications],
     ] },
   ];
 

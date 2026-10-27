@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator, Image, Linking, Modal, Platform, Pressable, ScrollView,
+  AccessibilityInfo, ActivityIndicator, Animated, Image, Linking, Modal, PanResponder, Platform, Pressable, ScrollView,
   StyleSheet, View, useWindowDimensions,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapViewProps, type Region } from 'react-native-maps';
@@ -57,6 +57,69 @@ const KIND_ICONS: Record<FieldAgentShop['kind'], React.ComponentProps<typeof Ion
   repair: 'construct-outline', other: 'business-outline',
 };
 
+type MapSheetPosition = 'collapsed' | 'preview' | 'expanded';
+type MapSheetHeights = Record<MapSheetPosition, number>;
+
+/** Only the header owns a drag gesture; the shop list owns its own scrolling. */
+function useMapSheet(heights: MapSheetHeights, accountId: string) {
+  const [position, setPosition] = useState<MapSheetPosition>('preview');
+  const animatedHeight = useRef(new Animated.Value(heights.preview)).current;
+  const actualHeight = useRef(heights.preview);
+  const dragStart = useRef(heights.preview);
+  const reduceMotion = useRef(false);
+  const live = useRef({ heights, position });
+  live.current = { heights, position };
+  const snapTo = useCallback((next: MapSheetPosition, animate = true) => {
+    setPosition(next);
+    animatedHeight.stopAnimation();
+    const target = live.current.heights[next];
+    if (!animate || reduceMotion.current) animatedHeight.setValue(target);
+    else Animated.timing(animatedHeight, { toValue: target, duration: 200, useNativeDriver: false }).start();
+  }, [animatedHeight]);
+  const snapRef = useRef(snapTo);
+  snapRef.current = snapTo;
+  const pan = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+    onMoveShouldSetPanResponderCapture: (_, gesture) => Math.abs(gesture.dy) > 6 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+    onPanResponderGrant: () => {
+      animatedHeight.stopAnimation();
+      dragStart.current = actualHeight.current;
+    },
+    onPanResponderMove: (_, gesture) => {
+      const bounds = live.current.heights;
+      animatedHeight.setValue(Math.max(bounds.collapsed, Math.min(bounds.expanded, dragStart.current - gesture.dy)));
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const bounds = live.current.heights;
+      const projected = dragStart.current - gesture.dy - gesture.vy * 100;
+      const positions: MapSheetPosition[] = ['collapsed', 'preview', 'expanded'];
+      const nearest = positions.reduce((best, next) => Math.abs(bounds[next] - projected) < Math.abs(bounds[best] - projected) ? next : best);
+      snapRef.current(nearest);
+    },
+    onPanResponderTerminate: () => snapRef.current(live.current.position),
+    onPanResponderTerminationRequest: () => false,
+  }), [animatedHeight]);
+
+  useEffect(() => {
+    const listener = animatedHeight.addListener(({ value }) => { actualHeight.current = value; });
+    return () => { animatedHeight.stopAnimation(); animatedHeight.removeListener(listener); };
+  }, [animatedHeight]);
+  useEffect(() => {
+    let active = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (active) reduceMotion.current = value; }).catch(() => {});
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (value) => {
+      reduceMotion.current = value;
+      if (value) snapRef.current(live.current.position, false);
+    });
+    return () => { active = false; subscription.remove(); };
+  }, []);
+  useEffect(() => {
+    snapRef.current(live.current.position, false);
+  }, [heights.collapsed, heights.preview, heights.expanded]);
+  useEffect(() => { snapRef.current('preview', false); }, [accountId]);
+  return { position, snapTo, animatedHeight, panHandlers: pan.panHandlers };
+}
+
 /** Section 03: the map is home; the Finds tab remains a second view of real shops. */
 export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount, topNotice }: FieldAgentMapProps) {
   const router = useGuardedRouter();
@@ -76,6 +139,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   const [visitingId, setVisitingId] = useState<string | null>(null);
   const [pendingShops, setPendingShops] = useState<Array<FieldAgentShop & { actorKey: string }>>([]);
   const [clockVersion, setClockVersion] = useState(0);
+  const [mapHeight, setMapHeight] = useState(height);
   const map = useRef<MapView | null>(null);
   const mounted = useRef(true);
   const busy = useRef(false);
@@ -111,6 +175,9 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   const mineCount = shops.filter((shop) => shop.isMine).length;
   const loading = location.isLoading || (isAuthenticated && (crm === undefined || (area && prospects === undefined)));
   const topInset = isAdmin ? space.sm : insets.top + space.sm;
+  const expandedHeight = Math.max(180, mapHeight - topInset - 56);
+  const sheet = useMapSheet({ collapsed: 56, expanded: expandedHeight,
+    preview: Math.min(expandedHeight, selected ? Math.max(330, mapHeight * 0.58) : 350) }, creator._id);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
@@ -136,6 +203,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
 
   const focus = (shop: FieldAgentShop) => {
     setSelectedId(`${shop.source}:${shop.id}`); setError(null);
+    if (sheet.position === 'collapsed') sheet.snapTo('preview');
     map.current?.animateToRegion({ latitude: shop.latitude - 0.0035, longitude: shop.longitude,
       latitudeDelta: 0.018, longitudeDelta: 0.018 }, 350);
   };
@@ -168,7 +236,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   const selectFilter = (next: typeof filter) => { setFilter(filter === next ? 'all' : next); setSelectedId(null); };
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} onLayout={(event) => setMapHeight(event.nativeEvent.layout.height)}>
       <MapView
         ref={(instance) => { map.current = instance; }} style={StyleSheet.absoluteFill}
         provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
@@ -214,13 +282,35 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
         {isConnected === false ? <Banner tone="warn" body="You’re offline. Reconnect to visit a shop." /> : null}
       </View>
 
-      <View style={[styles.sheet, { maxHeight: Math.max(230, height * 0.58) }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel={selected ? 'Close shop details' : 'Show all nearby shops'}
-          onPress={() => { setSelectedId(null); setFilter('all'); }} style={styles.grabHit}>
-          <View style={styles.grab} />
-        </Pressable>
+      <Animated.View style={[styles.sheet, { height: sheet.animatedHeight }]} testID="nearby-shops-sheet">
+        <View {...sheet.panHandlers} testID="nearby-shops-sheet-header">
+          <Pressable accessibilityRole="button"
+            accessibilityLabel={sheet.position === 'collapsed' ? 'Show nearby shops' : sheet.position === 'expanded' ? 'Minimize nearby shops' : 'Show all nearby shops'}
+            accessibilityHint="Drag up to see the full shop list or drag down to minimize it."
+            accessibilityState={{ expanded: sheet.position === 'expanded' }}
+            accessibilityValue={{ text: sheet.position === 'collapsed' ? 'Minimized' : sheet.position === 'expanded' ? 'Full list' : 'Preview' }}
+            accessibilityActions={[{ name: 'expand', label: 'Show full shop list' }, { name: 'collapse', label: 'Minimize shops' }, { name: 'preview', label: 'Show shop preview' }]}
+            onAccessibilityAction={(event) => {
+              const action = event.nativeEvent.actionName;
+              if (action === 'expand' || action === 'collapse' || action === 'preview')
+                sheet.snapTo(action === 'expand' ? 'expanded' : action === 'collapse' ? 'collapsed' : 'preview');
+            }}
+            onPress={() => sheet.snapTo(sheet.position === 'collapsed' ? 'preview' : sheet.position === 'preview' ? 'expanded' : 'collapsed')}
+            style={styles.grabHit}>
+            <View style={styles.grab} />
+            {sheet.position === 'collapsed' ? <Text variant="label" numberOfLines={1} style={styles.peekLabel}>{selected?.name ?? 'Nearby shops'}</Text> : null}
+            <Ionicons name={sheet.position === 'expanded' ? 'chevron-down' : 'chevron-up'} size={20} color={colors.ink3Text} style={styles.sheetChevron} />
+          </Pressable>
+          {sheet.position !== 'collapsed' ? <View style={styles.sheetHead}>
+            <Text variant="bodyLg" weight="bold" style={styles.flex}>{selected ? 'Shop details' : filter === 'mine' ? 'Your shops' : filter === 'needs' ? 'Shops needing a site' : 'Shops near you'}</Text>
+            {selected ? <TextLink label="Close shop details" onPress={() => setSelectedId(null)} />
+              : <TextLink label="See list" onPress={() => router.push('/(app)/(tabs)/finds' as never)} />}
+          </View> : null}
+        </View>
+        <View style={styles.sheetBody} pointerEvents={sheet.position === 'collapsed' ? 'none' : 'auto'}
+          accessibilityElementsHidden={sheet.position === 'collapsed'} importantForAccessibility={sheet.position === 'collapsed' ? 'no-hide-descendants' : 'auto'}>
         {selected ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.detail}>
+          <ScrollView style={styles.flex} showsVerticalScrollIndicator={false} contentContainerStyle={styles.detail}>
             <View style={styles.detailTop}>
               <ShopPhoto shop={selected} width={110} height={140} />
               <View style={styles.detailText}>
@@ -260,17 +350,27 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
           </ScrollView>
         ) : (
           <>
-            <View style={styles.sheetHead}>
-              <Text variant="bodyLg" weight="bold" style={styles.flex}>{filter === 'mine' ? 'Your shops' : filter === 'needs' ? 'Shops needing a site' : 'Shops near you'}</Text>
-              <TextLink label="See list" onPress={() => router.push('/(app)/(tabs)/finds' as never)} />
-            </View>
             {loading ? <View style={styles.empty}><ActivityIndicator color={colors.ink} /><Text variant="label" tone="muted">Finding nearby shops…</Text></View>
               : visibleShops.length === 0 ? <View style={styles.empty}>
                 <Text variant="body" weight="bold">{filter === 'mine' ? 'No shops reserved yet' : 'No shops here yet'}</Text>
                 <Text variant="label" tone="muted">{filter === 'mine' ? 'Choose a shop and tap I’m visiting.' : 'Spot a local shop to help the community find it.'}</Text>
                 <TextLink label="Spot a shop" onPress={() => router.push('/(app)/leads/spot' as never)} />
               </View>
-                : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+                : sheet.position === 'expanded' ? <ScrollView style={styles.flex} testID="nearby-shops-full-list"
+                  showsVerticalScrollIndicator contentContainerStyle={styles.fullList}>
+                  {visibleShops.map((shop) => <Pressable key={`${shop.source}:${shop.id}`} onPress={() => focus(shop)}
+                    accessibilityRole="button" accessibilityLabel={`${shop.name}, ${shop.distanceLabel}, ${shopStatus(shop)}`}
+                    style={[styles.listShop, shadow.soft]}>
+                    <ShopPhoto shop={shop} width={80} height={80} />
+                    <View style={styles.listShopText}>
+                      <Text variant="body" weight="bold" numberOfLines={2}>{shop.name}</Text>
+                      <Text variant="label" tone="muted">{shop.distanceLabel}</Text>
+                      <Text variant="label">{shopStatus(shop)}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.ink3Text} />
+                  </Pressable>)}
+                </ScrollView>
+                  : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
                   {visibleShops.slice(0, 30).map((shop) => <Pressable key={`${shop.source}:${shop.id}`} onPress={() => focus(shop)}
                     accessibilityRole="button" accessibilityLabel={`${shop.name}, ${shop.distanceLabel}, ${shopStatus(shop)}`}
                     style={[styles.shopCard, shadow.soft]}>
@@ -282,7 +382,8 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
                 </ScrollView>}
           </>
         )}
-      </View>
+        </View>
+      </Animated.View>
 
       <Modal visible={areaMenu} transparent animationType="fade" onRequestClose={() => setAreaMenu(false)}>
         <View style={styles.modalRoot}>
@@ -367,10 +468,16 @@ const styles = StyleSheet.create({
   area: { minHeight: 48, maxWidth: '90%', alignSelf: 'flex-start', paddingHorizontal: space.md,
     flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderRadius: radius.pill },
   sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    shadowColor: colors.ink, shadowOffset: { width: 0, height: -6 }, shadowRadius: 16, shadowOpacity: 0.12, elevation: 8 },
-  grabHit: { height: 28, alignItems: 'center', justifyContent: 'center' }, grab: { height: 5, width: 40, borderRadius: 3, backgroundColor: colors.ruleStrong },
+    overflow: 'hidden', shadowColor: colors.ink, shadowOffset: { width: 0, height: -6 }, shadowRadius: 16, shadowOpacity: 0.12, elevation: 8 },
+  sheetBody: { flex: 1, minHeight: 0 },
+  grabHit: { height: 56, alignItems: 'center', justifyContent: 'center', gap: space.xs, paddingHorizontal: 48 },
+  grab: { height: 5, width: 40, borderRadius: 3, backgroundColor: colors.ruleStrong },
+  peekLabel: { maxWidth: '100%' }, sheetChevron: { position: 'absolute', right: space.lg, top: 18 },
   sheetHead: { paddingHorizontal: space.lg, paddingBottom: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.sm },
   carousel: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
+  fullList: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
+  listShop: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.card, padding: space.md, borderRadius: radius.card },
+  listShopText: { flex: 1, minWidth: 0, gap: space.xs },
   shopCard: { width: 200, borderRadius: radius.card, backgroundColor: colors.card, padding: space.sm, gap: space.xs },
   cardName: { marginTop: space.xs }, photo: { overflow: 'hidden', borderRadius: 16, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   empty: { paddingHorizontal: space.xl, paddingBottom: space.xl, gap: space.sm },

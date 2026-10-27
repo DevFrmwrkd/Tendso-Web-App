@@ -3,6 +3,7 @@ import { BackHandler, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import LeadDetailScreen from '../app/(app)/leads/[leadId]';
 import { Button } from '../components/v2';
+import type { MapSearchArea } from '../services/workArea';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn() };
 const mockVisit = jest.fn();
@@ -16,8 +17,10 @@ let mockConnected: boolean;
 let mockParams: { leadId: string };
 let mockDetail: any;
 let mockCrm: any;
+let mockArea: MapSearchArea | null;
 
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
+jest.mock('../hooks/useWorkAreaLocation', () => ({ useWorkAreaLocation: () => ({ area: mockArea }) }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('@clerk/clerk-expo', () => ({ useUser: () => ({ user: { id: mockUserId } }) }));
 jest.mock('@tendso/convex-client', () => ({ api: {
@@ -84,6 +87,7 @@ beforeEach(() => {
   mockUserId = 'clerk-agent-1';
   mockAuthenticated = true;
   mockConnected = true;
+  mockArea = null;
   mockParams = { leadId: 'lead-1' };
   mockDetail = communityDetail();
   mockCrm = { leads: [{ _id: 'lead-1', phone: '09171234567' }] };
@@ -96,6 +100,111 @@ beforeEach(() => {
 
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
 
+it('shows actual nearby distance and address under the shop name, with spotting time beside its spotter', () => {
+  const now = Date.now();
+  jest.spyOn(Date, 'now').mockReturnValue(now);
+  mockArea = { latitude: 14.65, longitude: 121.1, source: 'device', label: 'you' };
+  mockDetail.businessLatitude = 14.65315;
+  mockDetail.spottedAt = now - 120_000;
+  mockDetail.lead.createdAt = now - 60_000;
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText('350 m away · 12 Rizal Street, Marikina')).toBeTruthy();
+  expect(screen.getByText('Ana S.')).toBeTruthy();
+  expect(screen.getByText('Spotted this shop · 2m ago')).toBeTruthy();
+  expect(screen.queryByText(/Community find/)).toBeNull();
+});
+
+it('identifies saved-area distances without presenting them as current GPS distances', () => {
+  mockArea = { latitude: 14.65, longitude: 121.1, source: 'work', label: 'Marikina' };
+  mockDetail.businessLatitude = 14.65315;
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText('350 m from Marikina · 12 Rizal Street, Marikina')).toBeTruthy();
+  expect(screen.queryByText(/away/)).toBeNull();
+});
+
+it.each(['origin', 'shop point'])('shows the real address without an invented distance when %s is unavailable', (missing) => {
+  if (missing === 'shop point') {
+    mockArea = { latitude: 14.65, longitude: 121.1, source: 'device', label: 'you' };
+    mockDetail.businessLatitude = null;
+    mockDetail.businessLongitude = null;
+  }
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText('12 Rizal Street, Marikina')).toBeTruthy();
+  expect(screen.queryByText(/\d+ m (away|from)/)).toBeNull();
+});
+
+it.each([
+  { city: 'Marikina', expected: 'Marikina' },
+  { city: ' ', expected: 'Address not added' },
+])('uses a truthful address fallback when only city "$city" is available', ({ city, expected }) => {
+  mockDetail.lead.businessAddress = ' ';
+  mockDetail.lead.businessCity = city;
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText(expected)).toBeTruthy();
+});
+
+it('omits an empty community contact card while keeping the shop directions available', () => {
+  mockDetail.lead.name = ' ';
+  mockDetail.lead.phone = ' ';
+  mockDetail.lead.email = ' ';
+  mockCrm.leads[0] = { _id: 'lead-1', ownerName: ' ', ownerPhone: ' ', phone: ' ' };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.queryByText('Business contact')).toBeNull();
+  expect(screen.queryByText('Phone not added')).toBeNull();
+  expect(screen.queryByText('No contact info yet.')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Show directions' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /^Call / })).toBeNull();
+  expect(screen.queryByRole('button', { name: /^Message / })).toBeNull();
+  expect(screen.queryByRole('button', { name: /^Email / })).toBeNull();
+});
+
+it.each(['name', 'email'])('shows an actual community contact %s without a missing-phone placeholder', (field) => {
+  mockDetail.lead.phone = null;
+  mockDetail.lead.email = field === 'email' ? 'nena@example.com' : null;
+  mockCrm.leads[0] = { _id: 'lead-1', ...(field === 'name' ? { ownerName: 'Nena Cruz' } : {}) };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText(field === 'name' ? 'Nena Cruz' : 'nena@example.com')).toBeTruthy();
+  expect(screen.queryByText('Phone not added')).toBeNull();
+  expect(screen.queryByText('No contact info yet.')).toBeNull();
+  if (field === 'email') {
+    fireEvent.press(screen.getByRole('button', { name: 'Email Business contact' }));
+    expect(Linking.openURL).toHaveBeenCalledWith('mailto:nena@example.com');
+  }
+});
+
+it('keeps an existing website accessible when an empty community contact card is omitted', () => {
+  mockDetail.lead.phone = null;
+  mockDetail.lead.email = null;
+  mockCrm.leads[0] = { _id: 'lead-1' };
+  mockDetail.hasLiveWebsite = true;
+  mockDetail.websiteUrl = 'https://nena.tendso.site';
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.queryByText('Business contact')).toBeNull();
+  fireEvent.press(screen.getByRole('button', { name: 'View website' }));
+  expect(mockExternalUrl).toHaveBeenCalledWith('https://nena.tendso.site');
+});
+
+it('preserves the existing contact placeholder for a non-community inquiry', () => {
+  mockDetail.lead.source = 'direct';
+  mockDetail.lead.phone = null;
+  mockDetail.lead.email = null;
+  mockCrm.leads[0] = { _id: 'lead-1' };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText('Business contact')).toBeTruthy();
+  expect(screen.getByText('Phone not added')).toBeTruthy();
+});
+
+it('uses a known owner contact from the CRM fallback and preserves its call action', () => {
+  mockDetail.lead.phone = ' ';
+  mockDetail.lead.email = null;
+  mockCrm.leads[0] = { _id: 'lead-1', ownerName: ' Nena Cruz ', ownerPhone: ' 09175556666 ' };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByText('Nena Cruz')).toBeTruthy();
+  expect(screen.getByText('Owner · 09175556666')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Call Nena Cruz' }));
+  expect(Linking.openURL).toHaveBeenCalledWith('tel:09175556666');
+});
+
 it('reserves a community find before opening capture with its original binding and details', async () => {
   const screen = render(<LeadDetailScreen />);
   expect(screen.getByText('Nena Store')).toBeTruthy();
@@ -106,6 +215,7 @@ it('reserves a community find before opening capture with its original binding a
     params: {
       prospectLeadId: 'lead-1', businessName: 'Nena Store', phone: '09171234567',
       address: '12 Rizal Street', city: 'Marikina', category: 'Sari-sari',
+      latitude: '14.65', longitude: '121.1',
     },
   }));
   expect(mockVisit).toHaveBeenCalledWith({ leadId: 'lead-1' });
@@ -125,9 +235,30 @@ it('keeps legacy scraped-lead capture prefill without reserving the prospects ta
     pathname: '/(app)/submit/info', params: {
       prospectLeadId: 'legacy-lead', businessName: 'Ramon Repair', phone: '09181111111',
       address: '4 Market Road', city: 'Pasig', category: 'Auto Shop',
+      latitude: '14.65', longitude: '121.1',
     },
   }));
   expect(mockVisit).not.toHaveBeenCalled();
+});
+
+it('uses one complete cached point when the detail location is partial', async () => {
+  mockDetail.businessLongitude = null;
+  mockCrm.leads[0] = { ...mockCrm.leads[0], businessLatitude: 14.58, businessLongitude: 121.08 };
+  const screen = render(<LeadDetailScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'Start the capture' }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith(expect.objectContaining({
+    params: expect.objectContaining({ latitude: '14.58', longitude: '121.08' }),
+  })));
+});
+
+it('does not combine partial detail and cached points into a capture location', async () => {
+  mockDetail.businessLongitude = null;
+  mockCrm.leads[0] = { ...mockCrm.leads[0], businessLatitude: null, businessLongitude: 121.08 };
+  const screen = render(<LeadDetailScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'Start the capture' }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledTimes(1));
+  expect(mockRouter.push.mock.calls[0][0].params).not.toHaveProperty('latitude');
+  expect(mockRouter.push.mock.calls[0][0].params).not.toHaveProperty('longitude');
 });
 
 it('blocks capture when another agent has an active reservation', () => {

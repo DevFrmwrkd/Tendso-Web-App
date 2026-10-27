@@ -77,7 +77,8 @@ export function CommunityFinds() {
                 </View>}
         </ScrollView>
         <View style={styles.fab} pointerEvents="box-none">
-          <Button title="Spot a shop" icon="camera-outline" size="md" onPress={() => router.push('/(app)/leads/spot' as never)} />
+          <Button title="Spot a shop" icon="camera-outline" size="md" fullWidth={false}
+            style={styles.fabButton} onPress={() => router.push('/(app)/leads/spot' as never)} />
         </View>
       </View>
     </ScreenShell>
@@ -99,8 +100,10 @@ function FindTile({ lead, imageHeight, distanceLabel, onPress }: {
       <View style={[styles.photo, { height: imageHeight }]}>
         {photo && !failedPhoto ? <Image source={{ uri: photo }} style={StyleSheet.absoluteFill} resizeMode="cover" onError={() => setFailedPhoto(true)} />
           : <View style={styles.placeholder}><Ionicons name="storefront-outline" size={36} color={colors.ink3} /><Text variant="label" tone="muted">Shop photo</Text></View>}
-        <View style={[styles.tag, lead.hasLiveWebsite ? styles.liveTag : null]}>
-          <Text variant="label" weight="bold">{label}</Text>
+        <View style={styles.tags}>
+          <View style={[styles.tag, lead.hasLiveWebsite ? styles.liveTag : null]}>
+            <Text variant="label" weight="bold" style={styles.tagText}>{label}</Text>
+          </View>
         </View>
       </View>
       <Text variant="bodyLg" weight="semibold" numberOfLines={2}>{lead.businessName || 'Unnamed shop'}</Text>
@@ -125,7 +128,10 @@ const styles = StyleSheet.create({
   masonry: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.gutter }, column: { flex: 1, minWidth: 0, gap: space.xl },
   tile: { gap: space.sm }, photo: { borderRadius: radius.card, backgroundColor: colors.bg2, overflow: 'hidden' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm },
-  tag: { position: 'absolute', left: space.sm, right: space.sm, top: space.sm, paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.card },
+  tags: { position: 'absolute', left: space.sm, right: space.sm, top: space.sm, alignItems: 'flex-start' },
+  tag: { maxWidth: '100%', paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.card },
+  tagText: { textAlign: 'center' },
   liveTag: { backgroundColor: colors.accent }, byline: { flexDirection: 'row', alignItems: 'center', gap: space.xs }, bylineText: { flex: 1 },
-  fab: { position: 'absolute', bottom: space.lg, left: space.gutter, right: space.gutter },
+  fab: { position: 'absolute', bottom: space.lg, right: space.gutter, alignItems: 'flex-end' },
+  fabButton: { paddingHorizontal: space.lg, borderColor: colors.ink, ...shadow.object },
 });

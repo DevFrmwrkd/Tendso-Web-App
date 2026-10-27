@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '@tendso/convex-client';
+import { api, type Doc } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { useNetwork } from '../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -43,15 +44,22 @@ function groupOf(sentAt: number): 'Today' | 'This week' | 'Earlier' {
 }
 
 export default function NotificationsScreen() {
-  const router = useGuardedRouter();
   const { user } = useUser();
+  if (!user) return <Loading />;
+  return <NotificationInbox key={user.id} clerkId={user.id} />;
+}
+
+function NotificationInbox({ clerkId }: { clerkId: string }) {
+  const router = useGuardedRouter();
+  const { isConnected } = useNetwork();
+  const [selectedNotification, setSelectedNotification] = useState<Doc<'notifications'> | null>(null);
   const [showCertModal, setShowCertModal] = useState(false);
   const certModalRef = useRef<View>(null);
   const seenUnread = useRef<Set<string>>(new Set());
 
   const creator = useQuery(
     api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip'
+    { clerkId }
   );
 
   const notifications = useQuery(
@@ -61,6 +69,10 @@ export default function NotificationsScreen() {
 
   const markAsRead = useMutation(api.notifications.markAsRead);
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
+  const selected = selectedNotification?.creatorId === creator?._id ? selectedNotification : null;
+  const details = useQuery(api.notifications.getDetails, selected ? { id: selected._id } : 'skip');
+  const message = details ?? selected;
+  const waitingForAnnouncement = !!selected?.data?.announcementId && details === undefined;
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 
@@ -68,9 +80,9 @@ export default function NotificationsScreen() {
   useFocusEffect(
     useCallback(() => {
       if (creator?._id) {
-        markAllAsRead({ creatorId: creator._id });
+        void markAllAsRead({ creatorId: creator._id }).catch(() => {});
       }
-    }, [creator?._id])
+    }, [creator?._id, markAllAsRead])
   );
 
   const handleShareCert = useCallback(async () => {
@@ -116,28 +128,20 @@ export default function NotificationsScreen() {
     }
   }, []);
 
-  const handleNotificationPress = async (notification: any) => {
-    // Mark as read
+  const handleNotificationPress = (notification: Doc<'notifications'>) => {
+    // Reading never waits for a network write or requires a deep-link payload.
+    setSelectedNotification(notification);
     if (!notification.read) {
-      await markAsRead({ id: notification._id });
-    }
-
-    // Deep link based on notification type
-    if (notification.data?.showCertificate) {
-      setShowCertModal(true);
-    } else if (notification.data?.submissionId) {
-      router.push(`/(app)/submissions/${notification.data.submissionId}` as any);
-    } else if (notification.data?.articleSlug) {
-      // "Your question was answered" — the escalation loop captures the answer as
-      // a KB article and puts its slug here. Open the article. (No-ops safely
-      // until the backend that sets articleSlug is deployed.)
-      router.push(`/(app)/(tabs)/knowledge/article/${notification.data.articleSlug}` as any);
+      void markAsRead({ id: notification._id }).catch(() => {});
     }
   };
 
+  const closeDetails = () => { setSelectedNotification(null); setShowCertModal(false); };
+
   const handleMarkAllRead = async () => {
     if (creator?._id && unreadCount > 0) {
-      await markAllAsRead({ creatorId: creator._id });
+      try { await markAllAsRead({ creatorId: creator._id }); }
+      catch { Alert.alert('Could not mark notifications read', 'You can still open and read each message. Try again when you are connected.'); }
     }
   };
 
@@ -158,10 +162,17 @@ export default function NotificationsScreen() {
     }))
     .filter((g) => g.items.length > 0);
 
-  const certName = creator
-    ? `${((creator as any).firstName || '').toUpperCase()} ${((creator as any).lastName || '').toUpperCase()}`.trim()
-    : '';
-  const certDate = (creator as any)?.certifiedAt ? new Date((creator as any).certifiedAt) : new Date();
+  const certName = `${creator.firstName || ''} ${creator.lastName || ''}`.trim().toUpperCase();
+  const certDate = creator.certifiedAt ? new Date(creator.certifiedAt) : new Date();
+  const isFieldAgent = (!creator.role || creator.role === 'creator') && !!creator.certifiedAt && !creator.rejectedAt;
+  const canOpenCertificate = isFieldAgent && message?.data?.showCertificate === true;
+  const articleSlug = isFieldAgent && typeof message?.data?.articleSlug === 'string' && message.data.articleSlug.trim()
+    ? message.data.articleSlug.trim() : null;
+  const openArticle = () => {
+    if (!articleSlug) return;
+    setSelectedNotification(null);
+    router.push({ pathname: '/(app)/(tabs)/knowledge/article/[slug]', params: { slug: articleSlug } } as never);
+  };
 
   return (
     <ScreenShell
@@ -183,6 +194,7 @@ export default function NotificationsScreen() {
                     key={notification._id}
                     onPress={() => handleNotificationPress(notification)}
                     accessibilityLabel={`${notification.title}: ${notification.body}`}
+                    accessibilityHint="Opens the full notification"
                     accessibilityRole="button"
                     style={[styles.row, unread ? styles.rowUnread : styles.rowOld, unread ? shadow.soft : null]}
                   >
@@ -201,6 +213,7 @@ export default function NotificationsScreen() {
                         {timeAgo(notification.sentAt)}
                       </Text>
                     </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.ink3Text} style={styles.chevron} />
                   </Pressable>
                 );
               })}
@@ -215,37 +228,38 @@ export default function NotificationsScreen() {
         />
       )}
 
-      {/* Certificate Modal */}
+      {/* One native modal keeps the detail-to-certificate transition reliable on iOS. */}
       <Modal
-        visible={showCertModal}
+        visible={!!selected || showCertModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowCertModal(false)}
+        onRequestClose={closeDetails}
       >
-        <View style={styles.scrim}>
+        <View style={styles.scrim} accessibilityViewIsModal onAccessibilityEscape={closeDetails}>
           <Card variant="lg" style={styles.sheet}>
             <View style={styles.sheetHead}>
               <Pressable
-                onPress={() => setShowCertModal(false)}
+                onPress={closeDetails}
                 style={styles.roundBtn}
-                accessibilityLabel="Close certificate"
+                accessibilityLabel={showCertModal ? 'Close certificate' : 'Close notification'}
                 accessibilityRole="button"
               >
                 <Ionicons name="close" size={22} color={colors.ink} />
               </Pressable>
               <Text variant="heading" align="center" style={styles.sheetTitle}>
-                My certificate
+                {showCertModal ? 'My certificate' : 'Notification'}
               </Text>
-              <Pressable
+              {showCertModal ? <Pressable
                 onPress={handleShareCert}
                 style={styles.roundBtn}
                 accessibilityLabel="Share certificate"
                 accessibilityRole="button"
               >
                 <Ionicons name="share-outline" size={22} color={colors.ink} />
-              </Pressable>
+              </Pressable> : <View style={styles.roundSpacer} />}
             </View>
 
+            {showCertModal ? <>
             <ScrollView contentContainerStyle={styles.certBody} showsVerticalScrollIndicator={false}>
               <CertificateCard
                 ref={certModalRef}
@@ -271,6 +285,26 @@ export default function NotificationsScreen() {
                 accessibilityLabel="Share certificate"
               />
             </View>
+            </> : message ? <>
+              <ScrollView style={styles.detailScroll} contentContainerStyle={styles.detailBody} showsVerticalScrollIndicator>
+                <View style={styles.detailMeta}>
+                  <NotificationIcon type={message.type} />
+                  <Text variant="label" tone="muted" style={styles.rowText}>
+                    {new Date(message.sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </Text>
+                </View>
+                <Text variant="heading" accessibilityRole="header" selectable>{message.title}</Text>
+                <Text variant="bodyLg" selectable testID="notification-full-body">{message.body}</Text>
+                {waitingForAnnouncement ? <Text tone="muted">{isConnected === false
+                  ? 'Connect to read the full announcement.' : 'Loading the full message…'}</Text> : null}
+              </ScrollView>
+              <View style={styles.sheetFoot}>
+                {canOpenCertificate ? <Button title="View certificate" icon="ribbon-outline"
+                  onPress={() => { setSelectedNotification(null); setShowCertModal(true); }} />
+                  : articleSlug ? <Button title="Read article" icon="book-outline" onPress={openArticle} /> : null}
+                <Button title="Close" variant={canOpenCertificate || articleSlug ? 'ghost' : 'primary'} onPress={closeDetails} />
+              </View>
+            </> : null}
           </Card>
         </View>
       </Modal>
@@ -287,11 +321,16 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 2 },
   rowHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   rowTitle: { flex: 1 },
+  chevron: { alignSelf: 'center' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.ink },
   scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'center', paddingHorizontal: space.lg },
   sheet: { maxHeight: '88%', padding: 0, overflow: 'hidden' },
   sheetHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg },
   sheetTitle: { flex: 1 },
+  roundSpacer: { width: hit.icon },
+  detailScroll: { flexShrink: 1 },
+  detailBody: { paddingHorizontal: space.lg, paddingBottom: space.lg, gap: space.lg },
+  detailMeta: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   roundBtn: {
     width: hit.icon,
     height: hit.icon,

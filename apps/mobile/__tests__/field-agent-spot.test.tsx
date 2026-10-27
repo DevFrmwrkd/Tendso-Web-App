@@ -17,6 +17,8 @@ const mockResize = jest.fn();
 const mockRenderImage = jest.fn();
 const mockSaveImage = jest.fn();
 const mockRequestLocation = jest.fn();
+const mockAnimate = jest.fn();
+let mockViewport: MapCoordinate & { latitudeDelta: number; longitudeDelta: number };
 let mockAccount: any;
 let mockArea: MapSearchArea | null;
 let mockCurrentLocation: MapCoordinate | null;
@@ -67,11 +69,21 @@ jest.mock('expo-image-manipulator', () => ({
   ImageManipulator: { manipulate: () => ({ resize: (...args: unknown[]) => mockResize(...args) }) },
   SaveFormat: { JPEG: 'jpeg' },
 }));
-jest.mock('react-native-maps', () => ({
-  __esModule: true,
-  default: (props: any) => require('react').createElement(require('react-native').View, props, props.children),
-  Marker: () => null, PROVIDER_GOOGLE: 'google',
-}));
+jest.mock('react-native-maps', () => {
+  const ReactModule = require('react');
+  const { View } = require('react-native');
+  return { __esModule: true,
+    default: ReactModule.forwardRef((props: any, ref: unknown) => {
+      ReactModule.useEffect(() => { mockViewport = props.region ?? props.initialRegion; }, []);
+      ReactModule.useEffect(() => { if (props.region) mockViewport = props.region; }, [props.region]);
+      ReactModule.useImperativeHandle(ref, () => ({ animateToRegion: (region: typeof mockViewport, duration: number) => {
+        mockAnimate(region, duration); mockViewport = region;
+      } }));
+      return ReactModule.createElement(View, { ...props, onRegionChangeComplete: (region: typeof mockViewport) => {
+        mockViewport = region; props.onRegionChangeComplete?.(region);
+      } }, props.children);
+    }), Marker: (props: any) => ReactModule.createElement(View, { ...props, testID: 'native-spot-pin' }), PROVIDER_GOOGLE: 'google' };
+});
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('react-native-svg', () => ({
@@ -178,6 +190,7 @@ it('preserves a manually selected pin when a late GPS result arrives', async () 
   await fillForm(screen);
   mockCurrentLocation = { latitude: 14.60, longitude: 121.01 };
   screen.rerender(<SpotShopScreen />);
+  expect(mockAnimate).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole('button', { name: 'Save find' }));
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining(pin)));
 });
@@ -189,8 +202,26 @@ it('uses a newly requested GPS result when the user explicitly chooses their loc
   expect(mockRequestLocation).toHaveBeenCalledTimes(1);
   mockCurrentLocation = { latitude: 14.60, longitude: 121.01 };
   screen.rerender(<SpotShopScreen />);
+  expect(mockAnimate).toHaveBeenCalledWith({ ...mockCurrentLocation, latitudeDelta: 0.008, longitudeDelta: 0.008 }, 250);
   fireEvent.press(screen.getByRole('button', { name: 'Save find' }));
   await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining(mockCurrentLocation!)));
+});
+
+it('keeps the manually zoomed map viewport when placing or dragging the shop pin', async () => {
+  const screen = render(<SpotShopScreen />);
+  await fillForm(screen, false);
+  const zoomed = { latitude: 14.6512, longitude: 121.1098, latitudeDelta: 0.0007, longitudeDelta: 0.0005 };
+  fireEvent(screen.getByLabelText('Tap to pin the shop location'), 'regionChangeComplete', zoomed);
+  fireEvent.press(screen.getByLabelText('Tap to pin the shop location'), { nativeEvent: { coordinate: pin } });
+  expect(mockViewport).toEqual(zoomed);
+  expect(mockAnimate).not.toHaveBeenCalled();
+  const adjusted = { latitude: 14.65125, longitude: 121.10989 };
+  fireEvent(screen.getByTestId('native-spot-pin'), 'dragEnd', { nativeEvent: { coordinate: adjusted } });
+  expect(screen.getByTestId('native-spot-pin').props.coordinate).toEqual(adjusted);
+  expect(mockViewport).toEqual(zoomed);
+  expect(mockAnimate).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByRole('button', { name: 'Save find' }));
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining(adjusted)));
 });
 
 it.each([

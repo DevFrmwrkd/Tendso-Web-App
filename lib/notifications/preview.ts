@@ -3,20 +3,15 @@
  *  NOTIFICATION PREVIEW — what fits on a phone
  * ════════════════════════════════════════════════════════════════════════════
  *
- * `notifications.body` is rendered by the mobile app as a list row: a clipped
- * line or two, with no detail view to expand into. Announcements were writing
- * the entire message there — up to 4000 characters of paragraphs — so a creator
- * saw a sentence fragment cut mid-word and had no way to read the rest.
- *
- * The notification's job is to say what arrived and where the whole thing is.
- * The email is what carries the message; it is reliably delivered and has no
- * length limit.
+ * `notifications.body` is a short list-row preview. Mobile notification details
+ * resolve a recipient's announcementId to the original announcement body, while
+ * email remains available for older clients and offline readers.
  *
  * Kept deliberately short. The announcement title already says what the message
  * is about, so the snippet is secondary — what matters is that the pointer to
  * the email survives the clamp rather than being cut off with everything else.
  *
- * The mobile app is a separate repo, so what we store is the only lever here.
+ * Keep previews compact; the full announcement is stored separately.
  */
 
 export const NOTIFICATION_PREVIEW_LIMIT = 120;

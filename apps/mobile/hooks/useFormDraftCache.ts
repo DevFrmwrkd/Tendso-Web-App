@@ -12,6 +12,7 @@ export interface SubmissionFormData {
   ownerEmail: string;
   address: string;
   city: string;
+  coordinates?: { lat: number; lng: number };
   prospectLeadId?: string;
   savedAt: number;
 }

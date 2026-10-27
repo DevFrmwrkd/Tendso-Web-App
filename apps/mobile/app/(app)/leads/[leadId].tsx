@@ -15,11 +15,14 @@ import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useWorkAreaLocation } from '../../../hooks/useWorkAreaLocation';
 import { useNetwork } from '../../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import type { Id } from '@tendso/convex-client';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
+import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
+import { distanceKm } from '../../../services/fieldAgentMap';
 import {
   Avatar,
   Banner,
@@ -61,6 +64,7 @@ export default function LeadDetailScreen() {
   const { user } = useUser();
   const { isAuthenticated } = useConvexAuth();
   const { isConnected } = useNetwork();
+  const { area } = useWorkAreaLocation();
 
   const creator = useQuery(
     api.creators.getByClerkId,
@@ -163,10 +167,15 @@ export default function LeadDetailScreen() {
   const canMarkConverted = detail.canMarkConverted !== false;
   const crmLead: any =
     crm?.leads?.find((l: any) => String(l._id) === String(lead._id)) ?? null;
+  const detailPoint = { latitude: detail.businessLatitude, longitude: detail.businessLongitude };
+  const crmPoint = { latitude: crmLead?.businessLatitude, longitude: crmLead?.businessLongitude };
+  const point = validMapCoordinate(detailPoint) ? detailPoint : validMapCoordinate(crmPoint) ? crmPoint : null;
+  const distanceLabel = area && point ? mapDistanceLabel(distanceKm(area, point), area) : null;
 
   // The number / email to reach: the lead's own, else the owner on the submission.
-  const phone: string | null = lead.phone || business?.ownerPhone || null;
-  const email: string | null = lead.email || business?.ownerEmail || null;
+  const phone: string | null = lead.phone?.trim() || business?.ownerPhone?.trim()
+    || crmLead?.ownerPhone?.trim() || crmLead?.phone?.trim() || null;
+  const email: string | null = lead.email?.trim() || business?.ownerEmail?.trim() || crmLead?.email?.trim() || null;
 
   const handleCall = () => {
     if (!phone) return;
@@ -217,6 +226,7 @@ export default function LeadDetailScreen() {
           address: lead.businessAddress ?? crmLead?.businessAddress ?? '',
           city: lead.businessCity ?? crmLead?.businessCity ?? '',
           category: lead.businessCategory ?? crmLead?.businessType ?? '',
+          ...(point ? { latitude: String(point.latitude), longitude: String(point.longitude) } : {}),
         },
       } as any);
     } catch (err: any) {
@@ -287,27 +297,48 @@ export default function LeadDetailScreen() {
 
   const listedBusinessName = crmLead?.businessName === '(business unavailable)' ? null : crmLead?.businessName;
   const shopName: string = business?.businessName || lead.businessName || listedBusinessName || lead.name || 'Shop';
-  const address: string | null = business?.address
-    ? `${business.address}${business.city ? `, ${business.city}` : ''}`
-    : (lead.businessAddress ?? crmLead?.businessAddress)
-      ? `${lead.businessAddress ?? crmLead.businessAddress}${(lead.businessCity ?? crmLead?.businessCity) ? `, ${lead.businessCity ?? crmLead.businessCity}` : ''}`
-      : null;
+  const street: string | null = business?.address?.trim() || lead.businessAddress?.trim() || crmLead?.businessAddress?.trim() || null;
+  const city: string | null = business?.city?.trim() || lead.businessCity?.trim() || crmLead?.businessCity?.trim() || null;
+  const address = street ? `${street}${city ? `, ${city}` : ''}` : city || 'Address not added';
   const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl || business?.photos?.[0] || null;
   const status = STATUS_OPTIONS.find((option) => option.key === lead.status)
     ?? { label: 'Status unavailable', tone: 'muted' as const };
   const hasLiveWebsite = typeof detail.hasLiveWebsite === 'boolean' ? detail.hasLiveWebsite
     : !!business?.websiteUrl && ['deployed', 'paid', 'completed'].includes(business.status);
   const heroLabel = hasLiveWebsite ? 'Live' : detail.needsWebsite === true ? 'Needs a site' : status.label;
-  const ownerName: string = business?.ownerName || (!isProspect && !isCommunityFind ? lead.name : null) || 'Business contact';
-  const roleLabel = business?.ownerName ? 'Owner' : 'Contact';
+  const confirmedOwnerName: string | null = business?.ownerName?.trim() || crmLead?.ownerName?.trim() || null;
+  const contactName: string | null = confirmedOwnerName || (!isProspect && !isCommunityFind ? lead.name?.trim() : null) || null;
+  const ownerName = contactName || 'Business contact';
+  const showContactCard = !isCommunityFind || !!(contactName || phone || email);
+  const roleLabel = confirmedOwnerName ? 'Owner' : 'Contact';
   const canSave = noteContent.trim().length > 0 && !postingNote && !!creator?._id && canUpdate;
   const hasContact = !!(phone || email || hasDirections);
   const needsInterview = (isProspect || isCommunityFind) && !business && !hasLiveWebsite && lead.status !== 'lost'
     && !(isCommunityFind && lead.status === 'converted');
   const spotter = detail.spottedBy ?? submittedBy;
-  const sourceLabel = isCommunityFind ? 'Community find' : isProspect ? 'Discovered shop'
-    : lead.source === 'qr_code' ? 'QR code inquiry'
-      : lead.source === 'website' ? 'Website inquiry' : 'Direct inquiry';
+  const spottedAt = [detail.spottedAt, lead.createdAt, lead._creationTime]
+    .find((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  const shopActions = <>
+    {hasDirections ? (
+      <Button
+        title="Directions"
+        variant="ghost"
+        size="md"
+        icon="navigate"
+        onPress={handleDirections}
+        accessibilityLabel="Show directions"
+      />
+    ) : null}
+    {!business && (detail.websiteUrl || detail.businessWebsite) ? (
+      <Button
+        title={hasLiveWebsite ? 'View website' : 'View existing website'}
+        variant="ghost"
+        size="md"
+        icon="globe-outline"
+        onPress={() => void openExternalUrl(detail.websiteUrl || detail.businessWebsite)}
+      />
+    ) : null}
+  </>;
 
   return (
     <ScreenShell
@@ -350,13 +381,8 @@ export default function LeadDetailScreen() {
         <Text variant="title" accessibilityRole="header">
           {shopName}
         </Text>
-        {address ? (
-          <Text variant="body" tone="ink2">
-            {address}
-          </Text>
-        ) : null}
-        <Text variant="label" tone="muted" weight="medium">
-          {`${sourceLabel} · ${timeAgo(lead.createdAt)}`}
+        <Text variant="body" tone="ink2">
+          {distanceLabel ? `${distanceLabel} · ${address}` : address}
         </Text>
       </View>
 
@@ -370,16 +396,16 @@ export default function LeadDetailScreen() {
       ) : null}
 
       {/* Contact actions stay on a separate row so names remain readable. */}
-      <Card style={styles.contactCard}>
+      {showContactCard ? <Card style={styles.contactCard}>
         <View style={styles.row}>
           <Avatar name={ownerName} size={48} />
           <View style={styles.flex1}>
             <Text variant="body" weight="bold">
               {ownerName}
             </Text>
-            <Text variant="label" tone="muted" weight="medium">
+            {phone || !isCommunityFind ? <Text variant="label" tone="muted" weight="medium">
               {phone ? `${roleLabel} · ${phone}` : 'Phone not added'}
-            </Text>
+            </Text> : null}
             {email ? (
               <Text variant="label" tone="muted" weight="medium">
                 {email}
@@ -424,31 +450,13 @@ export default function LeadDetailScreen() {
             ) : null}
           </View>
         ) : null}
-        {hasDirections ? (
-          <Button
-            title="Directions"
-            variant="ghost"
-            size="md"
-            icon="navigate"
-            onPress={handleDirections}
-            accessibilityLabel="Show directions"
-          />
-        ) : null}
-        {!business && (detail.websiteUrl || detail.businessWebsite) ? (
-          <Button
-            title={hasLiveWebsite ? 'View website' : 'View existing website'}
-            variant="ghost"
-            size="md"
-            icon="globe-outline"
-            onPress={() => void openExternalUrl(detail.websiteUrl || detail.businessWebsite)}
-          />
-        ) : null}
-        {!hasContact ? (
+        {shopActions}
+        {!hasContact && !isCommunityFind ? (
           <Text variant="label" tone="muted" weight="medium">
             No contact info yet.
           </Text>
         ) : null}
-      </Card>
+      </Card> : shopActions}
 
       {/* Notes and their actual timestamps, without invented author metadata. */}
       <View style={styles.section}>
@@ -546,7 +554,7 @@ export default function LeadDetailScreen() {
           <View style={styles.flex1}>
             <Text variant="body" weight="bold">{spotter.displayName}</Text>
             <Text variant="label" tone="muted" weight="medium">
-              {isProspect || isCommunityFind ? 'Spotted this shop' : 'Submitted the shop'}
+              {`${isProspect || isCommunityFind ? 'Spotted this shop' : 'Submitted the shop'}${spottedAt !== undefined ? ` · ${timeAgo(spottedAt)}` : ''}`}
             </Text>
           </View>
           {String(spotter.creatorId) === String(creator?._id) ? <Chip label="You" tone="ok" /> : null}

@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections } from '../../../services/links';
-import { mapDistanceLabel } from '../../../services/workArea';
+import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
 import {
   Banner,
   Button,
@@ -410,6 +410,7 @@ export default function DiscoverLeadsScreen() {
           address: biz.businessAddress ?? '',
           city: biz.businessCity ?? '',
           category: biz.businessCategory ?? '',
+          ...(validMapCoordinate(biz) ? { latitude: String(biz.latitude), longitude: String(biz.longitude) } : {}),
         },
       } as any);
     },

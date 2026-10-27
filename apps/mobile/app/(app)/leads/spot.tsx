@@ -45,6 +45,13 @@ function SpotShopForm({ creator }: { creator: Doc<'creators'> }) {
   const pickerBusy = useRef(false);
   const mounted = useRef(true);
   const preferGPS = useRef(true);
+  const map = useRef<MapView>(null);
+  const initialRegion = useRef({
+    latitude: currentLocation?.latitude ?? area?.latitude ?? 14.5995,
+    longitude: currentLocation?.longitude ?? area?.longitude ?? 120.9842,
+    latitudeDelta: currentLocation || area ? 0.008 : 0.5,
+    longitudeDelta: currentLocation || area ? 0.008 : 0.5,
+  });
   const requestId = useRef(`find-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
   const uploaded = useRef<{ local: string; publicUrl: string } | null>(null);
   const live = useRef({ id: account?._id, authenticated: isAuthenticated, offline: isOffline });
@@ -57,6 +64,7 @@ function SpotShopForm({ creator }: { creator: Doc<'creators'> }) {
     if (preferGPS.current && validMapCoordinate(currentLocation)) {
       preferGPS.current = false;
       setPoint(currentLocation);
+      map.current?.animateToRegion({ ...currentLocation, latitudeDelta: 0.008, longitudeDelta: 0.008 }, 250);
     }
   }, [currentLocation]);
 
@@ -124,7 +132,11 @@ function SpotShopForm({ creator }: { creator: Doc<'creators'> }) {
       if (mounted.current) setSaving(false);
     }
   };
-  const center = point ?? area ?? { latitude: 14.5995, longitude: 120.9842 };
+  const pinManually = (coordinate: MapCoordinate) => {
+    if (busy.current || !validMapCoordinate(coordinate)) return;
+    preferGPS.current = false;
+    setPoint(coordinate);
+  };
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
     <ScreenShell title="Spot a shop" subtitle="Take a photo and share it with the team." onBack={() => router.back()}
       contentStyle={styles.content} footer={<Button title="Save find" onPress={() => { void save(); }} loading={saving}
@@ -146,12 +158,13 @@ function SpotShopForm({ creator }: { creator: Doc<'creators'> }) {
       <ToggleRow title="Needs a site" subtitle="No website, or only a social media page." value={needsWebsite} onValueChange={setNeedsWebsite} disabled={saving} />
       <Text variant="label" tone="muted">Pin the shop</Text>
       <Text variant="body" tone="ink2">Tap the map at the shop, or use your location while standing there.</Text>
-      <MapView style={styles.map} provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        region={{ latitude: center.latitude, longitude: center.longitude, latitudeDelta: !point && !area ? 0.5 : 0.008, longitudeDelta: !point && !area ? 0.5 : 0.008 }}
+      <MapView ref={map} style={styles.map} provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+        initialRegion={initialRegion.current}
         showsUserLocation={!!currentLocation} showsMyLocationButton={false}
-        onPress={(event) => { if (!saving && validMapCoordinate(event.nativeEvent.coordinate)) { preferGPS.current = false; setPoint(event.nativeEvent.coordinate); } }}
+        onPress={(event) => pinManually(event.nativeEvent.coordinate)}
         accessibilityLabel="Tap to pin the shop location">
-        {point ? <Marker coordinate={point} title={name.trim() || 'Shop location'} /> : null}
+        {point ? <Marker coordinate={point} title={name.trim() || 'Shop location'} draggable={!saving}
+          onDragEnd={(event) => pinManually(event.nativeEvent.coordinate)} /> : null}
       </MapView>
       <Button variant="ghost" size="md" icon="locate-outline" title={isLocating ? 'Finding your location…' : 'Use my location'}
         disabled={saving || isLocating || !canWrite} onPress={() => { preferGPS.current = true; void requestCurrentLocation(); }} />
