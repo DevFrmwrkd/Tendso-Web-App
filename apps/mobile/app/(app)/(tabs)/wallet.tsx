@@ -6,7 +6,7 @@ import { api } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useNetwork } from '../../../providers/NetworkProvider';
-import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
+import { colors, fonts, hit, radius, shadow, space } from '../../../theme/v2';
 import {
   Banner,
   Button,
@@ -46,6 +46,7 @@ function moneyTextUnits(value: string): number {
 // ---------------------------------------------------------------------------
 
 const QUICK_PICKS = [1000, 2000];
+const CASH_OUT_BOTTOM = 14;
 
 const WISE_REFERRAL_LINK =
   'https://wise.com/invite/dic/theoimmorosalesv?utm_source=desktop-invite-tab-copylink&utm_medium=invite&utm_campaign=&utm_content=&referralCode=theoimmorosalesv';
@@ -120,6 +121,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [balanceWidth, setBalanceWidth] = useState(0);
   const [statsWidth, setStatsWidth] = useState(0);
+  const [cashOutHeight, setCashOutHeight] = useState<number>(hit.primary);
   const wiseEmailInput = useRef<TextInput>(null);
 
   const rawCreator = useQuery(api.creators.getByClerkId, clerkId && isAuthenticated ? { clerkId } : 'skip');
@@ -320,14 +322,17 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     <ScreenShell
       insetBottom={false}
       testID="earn-screen"
-      contentStyle={styles.content}
+      contentStyle={[styles.content, { paddingBottom: cashOutHeight + CASH_OUT_BOTTOM + space.xl }]}
       footerStyle={styles.footer}
       footer={
-        <>
+        <View testID="wallet-cashout-float" style={styles.cashOut} pointerEvents="box-none" onLayout={event => {
+          const measured = event.nativeEvent.layout.height;
+          if (Number.isFinite(measured) && measured > 0) setCashOutHeight(measured);
+        }}>
           {compactCashOut && balance !== null ? <Text variant="label" align="center" tabular>{peso(balance)} to Wise</Text> : null}
           <Button testID="withdraw-button" size="md" title={compactCashOut ? 'Cash out' : cashOutTitle} accessibilityLabel={cashOutTitle}
             onPress={openWithdrawFlow} disabled={!canWrite || balance === null || balance <= 0} />
-        </>
+        </View>
       }
     >
       <View style={styles.stack}>
@@ -571,7 +576,9 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
-  footer: { paddingHorizontal: 20, paddingTop: space.sm, paddingBottom: 14 },
+  footer: { position: 'absolute', left: 20, right: 20, bottom: CASH_OUT_BOTTOM, zIndex: 1,
+    paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, backgroundColor: 'transparent' },
+  cashOut: { gap: space.sm },
   stack: { gap: space.sm },
   hero: { borderRadius: radius.card, padding: 14, gap: space.xs },
   balanceHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
