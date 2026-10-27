@@ -386,23 +386,9 @@ async function mobileFindFields(ctx: QueryCtx, lead: Doc<'leads'>, submission: D
         ?? communityWebUrl(lead.businessWebsite);
     // Hosted sites retain their URL while a holding page is being served.
     const hasLiveWebsite = !!websiteUrl && published?.offlineAt === undefined;
-    let photoUrl = communityWebUrl(lead.communityPhotoUrl) ?? communityWebUrl(lead.previewImageUrl);
-    if (!photoUrl) {
-        for (const photo of submission?.photos ?? []) {
-            photoUrl = communityWebUrl(photo);
-            // Current native capture stores R2 image keys, while older builds
-            // stored Convex IDs (sometimes with the explicit convex: prefix).
-            const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
-            if (!photoUrl && photo.startsWith('images/') && r2PublicUrl) {
-                photoUrl = communityWebUrl(`${r2PublicUrl}/${photo}`);
-            }
-            if (!photoUrl) {
-                const storageId = photo.startsWith('convex:') ? photo.slice('convex:'.length) : photo;
-                try { photoUrl = await ctx.storage.getUrl(storageId as Id<'_storage'>); } catch { /* Legacy malformed/photo key. */ }
-            }
-            if (photoUrl) break;
-        }
-    }
+    // Only explicitly shared shop covers belong in the team feed. Capture
+    // originals are website-building material, not a fallback community photo.
+    const photoUrl = communityWebUrl(lead.communityPhotoUrl) ?? communityWebUrl(lead.previewImageUrl);
     const spotterId = lead.spottedByCreatorId ?? lead.creatorId;
     const spotter = spotterId ? await ctx.db.get(spotterId) : null;
     const spottedBy = spotter ? {
@@ -790,6 +776,8 @@ export const getDetailForMobileCRM = query({
 
         const submitterCreator = lead.creatorId ? await ctx.db.get(lead.creatorId) : null;
         const submission = lead.submissionId ? await ctx.db.get(lead.submissionId) : null;
+        const canViewCaptureMedia = !!submission
+            && (submission.creatorId === currentCreator._id || currentCreator.role === 'admin');
 
         let interviewers: Array<{
             creatorId: string;
@@ -843,6 +831,7 @@ export const getDetailForMobileCRM = query({
 
         return {
             ...findFields,
+            canViewCaptureMedia,
             canUpdateStatus: lead.source === 'community'
                 ? canManageCommunityFind(lead, currentCreator, Date.now())
                 : lead.creatorId === currentCreator._id || currentCreator.role === 'admin',
@@ -893,7 +882,7 @@ export const getDetailForMobileCRM = query({
                       barangay: (submission as any).barangay ?? null,
                       websiteUrl: (submission as any).websiteUrl ?? null,
                       businessDescription: (submission as any).businessDescription ?? null,
-                      photos: (submission as any).photos ?? [],
+                      photos: canViewCaptureMedia ? submission.photos ?? [] : [],
                       status: submission.status,
                   }
                 : null,

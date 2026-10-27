@@ -205,6 +205,33 @@ it('uses a known owner contact from the CRM fallback and preserves its call acti
   expect(Linking.openURL).toHaveBeenCalledWith('tel:09175556666');
 });
 
+it.each([false, undefined])('does not render raw capture media without explicit permission (%s)', (permission) => {
+  mockDetail.canViewCaptureMedia = permission;
+  mockDetail.business = {
+    businessName: 'Nena Store', ownerName: 'Nena', ownerPhone: '09171234567',
+    photos: ['https://media.example.com/private-owner.jpg'], status: 'submitted',
+  };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByLabelText('Nena Store photo').props.source.uri).toBe(mockDetail.photoUrl);
+  expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
+  mockDetail.photoUrl = null;
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.queryByLabelText('Nena Store photo')).toBeNull();
+  expect(screen.getByText('Shop photo not added')).toBeTruthy();
+});
+
+it('keeps capture photos available in detail when the server explicitly permits the capturing agent or admin', () => {
+  mockDetail.canViewCaptureMedia = true;
+  mockDetail.photoUrl = null;
+  mockDetail.business = {
+    businessName: 'Nena Store', ownerName: 'Nena', ownerPhone: '09171234567',
+    photos: ['https://media.example.com/private-owner.jpg'], status: 'submitted',
+  };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getByLabelText('Shop photo 1').props.source.uri).toBe('https://media.example.com/private-owner.jpg');
+  expect(screen.getByLabelText('Nena Store photo').props.source.uri).toBe('https://media.example.com/private-owner.jpg');
+});
+
 it('reserves a community find before opening capture with its original binding and details', async () => {
   const screen = render(<LeadDetailScreen />);
   expect(screen.getByText('Nena Store')).toBeTruthy();

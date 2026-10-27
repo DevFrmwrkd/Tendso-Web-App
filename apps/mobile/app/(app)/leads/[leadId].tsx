@@ -300,7 +300,9 @@ export default function LeadDetailScreen() {
   const street: string | null = business?.address?.trim() || lead.businessAddress?.trim() || crmLead?.businessAddress?.trim() || null;
   const city: string | null = business?.city?.trim() || lead.businessCity?.trim() || crmLead?.businessCity?.trim() || null;
   const address = street ? `${street}${city ? `, ${city}` : ''}` : city || 'Address not added';
-  const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl || business?.photos?.[0] || null;
+  const canViewCaptureMedia = detail.canViewCaptureMedia === true;
+  const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl
+    || (canViewCaptureMedia ? business?.photos?.[0] : null) || null;
   const status = STATUS_OPTIONS.find((option) => option.key === lead.status)
     ?? { label: 'Status unavailable', tone: 'muted' as const };
   const hasLiveWebsite = typeof detail.hasLiveWebsite === 'boolean' ? detail.hasLiveWebsite
@@ -573,7 +575,7 @@ export default function LeadDetailScreen() {
               </Text>
             </View>
           </View>
-          {business.photos && business.photos.length > 0 ? (
+          {canViewCaptureMedia && business.photos && business.photos.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
               {business.photos.map((photo: string, idx: number) => (
                 <Image key={idx} source={{ uri: photo }} style={styles.photo} accessibilityLabel={`Shop photo ${idx + 1}`} />

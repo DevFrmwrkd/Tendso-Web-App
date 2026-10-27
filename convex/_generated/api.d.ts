@@ -80,6 +80,7 @@ import type * as lib_ownerApp from "../lib/ownerApp.js";
 import type * as lib_ownerAuth from "../lib/ownerAuth.js";
 import type * as lib_paymentPricing from "../lib/paymentPricing.js";
 import type * as lib_phone from "../lib/phone.js";
+import type * as lib_prospectViewport from "../lib/prospectViewport.js";
 import type * as lib_quality from "../lib/quality.js";
 import type * as lib_reminders from "../lib/reminders.js";
 import type * as lib_settlement from "../lib/settlement.js";
@@ -196,6 +197,7 @@ declare const fullApi: ApiFromModules<{
   "lib/ownerAuth": typeof lib_ownerAuth;
   "lib/paymentPricing": typeof lib_paymentPricing;
   "lib/phone": typeof lib_phone;
+  "lib/prospectViewport": typeof lib_prospectViewport;
   "lib/quality": typeof lib_quality;
   "lib/reminders": typeof lib_reminders;
   "lib/settlement": typeof lib_settlement;

@@ -2,6 +2,31 @@ import { mapDistanceLabel, validMapCoordinate, type MapSearchArea } from './work
 
 export type FindKind = 'food' | 'sari_sari' | 'beauty' | 'repair' | 'other';
 export type FindPerson = { creatorId: string; displayName: string; profileImage: string | null };
+export type MapViewportBounds = { south: number; north: number; west: number; east: number };
+type MapRegion = { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number };
+
+const wrapLongitude = (value: number) => ((value + 180) % 360 + 360) % 360 - 180;
+
+/** Native map bounds are search geometry, independent from the distance origin. */
+export function viewportBounds(region: MapRegion): MapViewportBounds | null {
+  if (!validMapCoordinate(region) || !Number.isFinite(region.latitudeDelta) || !Number.isFinite(region.longitudeDelta)
+    || region.latitudeDelta <= 0 || region.longitudeDelta <= 0) return null;
+  const halfLat = Math.min(region.latitudeDelta, 180) / 2;
+  const halfLng = Math.min(region.longitudeDelta, 360) / 2;
+  return {
+    south: Math.max(-90, region.latitude - halfLat), north: Math.min(90, region.latitude + halfLat),
+    west: halfLng === 180 ? -180 : wrapLongitude(region.longitude - halfLng),
+    east: halfLng === 180 ? 180 : wrapLongitude(region.longitude + halfLng),
+  };
+}
+
+/** Inclusive edges; west > east represents a viewport across the dateline. */
+export function isInViewport(coordinate: { latitude: number; longitude: number }, bounds: MapViewportBounds): boolean {
+  if (!validMapCoordinate(coordinate) || coordinate.latitude < bounds.south || coordinate.latitude > bounds.north) return false;
+  if (bounds.west === -180 && bounds.east === 180) return true;
+  const lng = wrapLongitude(coordinate.longitude);
+  return bounds.west <= bounds.east ? lng >= bounds.west && lng <= bounds.east : lng >= bounds.west || lng <= bounds.east;
+}
 
 /** The mobile CRM response, including the optional community-find additions. */
 export interface CommunityFind {
@@ -150,11 +175,11 @@ export function normalizeProspect(prospect: MapProspect, area: MapSearchArea | n
 /** A community photo and its original spotter win over an imported duplicate. */
 export function mergeMapShops(
   pool: readonly MapProspect[], reservations: readonly MapProspect[],
-  leads: readonly CommunityFind[], area: MapSearchArea | null, radiusKm = 5,
+  leads: readonly CommunityFind[], area: MapSearchArea | null, radiusKm: number | null = 5,
 ): FieldAgentShop[] {
   const result = new Map<string, FieldAgentShop>();
   const add = (shop: FieldAgentShop | null) => {
-    if (!shop || (shop.distanceKm != null && shop.distanceKm > radiusKm)) return;
+    if (!shop || (radiusKm != null && shop.distanceKm != null && shop.distanceKm > radiusKm)) return;
     const key = shop.googlePlaceId ? `place:${shop.googlePlaceId}` : `${shop.source}:${shop.id}`;
     result.set(key, shop);
   };

@@ -138,7 +138,7 @@ describe('field-agent community finds', () => {
         expect(rows.find((lead) => lead.source === 'direct')).toMatchObject({ needsWebsite: null, hasLiveWebsite: false, photoUrl: null });
     });
 
-    it('uses real submission photos and published URLs and does not call a paused site live', async () => {
+    it('keeps capture photos out of shared covers while preserving published website status', async () => {
         const { t, ids, agent } = await setup();
         const { leadId, websiteId } = await t.run(async (ctx) => {
             const submissionId = await ctx.db.insert('submissions', { ...capture, creatorId: ids.agent, status: 'approved' });
@@ -147,7 +147,8 @@ describe('field-agent community finds', () => {
             return { leadId, websiteId };
         });
         expect(await agent.query(api.leads.getDetailForMobileCRM, { id: leadId })).toMatchObject({
-            photoUrl: capture.photos[0], websiteUrl: 'https://panaderya.sites.tendso.com', hasLiveWebsite: true, needsWebsite: false,
+            photoUrl: null, canViewCaptureMedia: true, business: { photos: capture.photos },
+            websiteUrl: 'https://panaderya.sites.tendso.com', hasLiveWebsite: true, needsWebsite: false,
         });
         await t.run((ctx) => ctx.db.patch(websiteId, { offlineAt: NOW }));
         expect(await agent.query(api.leads.getDetailForMobileCRM, { id: leadId })).toMatchObject({ hasLiveWebsite: false, needsWebsite: false });
@@ -164,7 +165,7 @@ describe('field-agent community finds', () => {
         expect((await agent.query(api.leads.listForMobileCRM, {})).leads[0]).toMatchObject({ hasLiveWebsite: false, needsWebsite: true, businessWebsite: null });
     });
 
-    it('resolves the R2 image keys saved by native capture and legacy prefixed Convex photo IDs', async () => {
+    it('never promotes native R2 keys or legacy Convex capture photos into shared covers', async () => {
         vi.stubEnv('R2_PUBLIC_URL', 'https://public-images.example.com/');
         const { t, ids, agent } = await setup();
         const { leadId, submissionId, storageId, storageUrl } = await t.run(async (ctx) => {
@@ -173,9 +174,11 @@ describe('field-agent community finds', () => {
             const leadId = await ctx.db.insert('leads', { submissionId, source: 'direct', status: 'new', createdAt: NOW });
             return { leadId, submissionId, storageId, storageUrl: await ctx.storage.getUrl(storageId) };
         });
-        expect((await agent.query(api.leads.listForMobileCRM, {})).leads[0].photoUrl).toBe('https://public-images.example.com/images/123-native-shop.jpg');
+        expect((await agent.query(api.leads.listForMobileCRM, {})).leads[0].photoUrl).toBeNull();
         await t.run((ctx) => ctx.db.patch(submissionId, { photos: [`convex:${storageId}`] }));
-        expect((await agent.query(api.leads.getDetailForMobileCRM, { id: leadId }))?.photoUrl).toBe(storageUrl);
+        expect(await agent.query(api.leads.getDetailForMobileCRM, { id: leadId })).toMatchObject({
+            photoUrl: null, canViewCaptureMedia: true, business: { photos: [`convex:${storageId}`] },
+        });
         expect(storageUrl).toBeTruthy();
     });
 

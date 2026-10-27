@@ -14,9 +14,9 @@ import { useWorkAreaLocation } from '../../hooks/useWorkAreaLocation';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
 import { useNetwork } from '../../providers/NetworkProvider';
 import { openDirections } from '../../services/links';
-import { mapSearchArea, type WorkAreaAccount } from '../../services/workArea';
+import { mapDistanceLabel, mapSearchArea, type WorkAreaAccount } from '../../services/workArea';
 import {
-  mergeMapShops, publicImage, shopPrefill, shopStatus, type CommunityFind,
+  distanceKm, isInViewport, mergeMapShops, publicImage, shopPrefill, shopStatus, viewportBounds, type CommunityFind,
   type FieldAgentShop, type MapProspect,
 } from '../../services/fieldAgentMap';
 import { Avatar, Banner, Button, Text, TextLink, formatPeso } from '../v2';
@@ -42,6 +42,9 @@ export interface FieldAgentMapProps {
 const FALLBACK_REGION: Region = {
   latitude: 14.5995, longitude: 120.9842, latitudeDelta: 0.5, longitudeDelta: 0.5,
 };
+const EMPTY_PROSPECTS: MapProspect[] = [];
+const regionForArea = (area: { latitude: number; longitude: number } | null): Region => area
+  ? { latitude: area.latitude, longitude: area.longitude, latitudeDelta: 0.055, longitudeDelta: 0.055 } : FALLBACK_REGION;
 const QUIET_MAP: NonNullable<MapViewProps['customMapStyle']> = [
   { elementType: 'geometry', stylers: [{ color: '#E9E9E3' }] },
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
@@ -132,6 +135,10 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   const savedArea = useMemo(() => mapSearchArea(creator), [creator.workCity, creator.workLatitude, creator.workLongitude, creator.workLocationSource]);
   const [areaMode, setAreaMode] = useState<'saved' | 'device'>('saved');
   const area = areaMode === 'saved' && savedArea ? savedArea : location.area;
+  const [settledViewport, setSettledViewport] = useState(() => ({ creatorId: creator._id, region: regionForArea(area) }));
+  const viewport = settledViewport.creatorId === creator._id ? settledViewport.region : regionForArea(area);
+  const bounds = useMemo(() => viewportBounds(viewport)!,
+    [viewport.latitude, viewport.longitude, viewport.latitudeDelta, viewport.longitudeDelta]);
   const [areaMenu, setAreaMenu] = useState(false);
   const [filter, setFilter] = useState<'all' | 'needs' | 'mine'>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -143,56 +150,77 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   const map = useRef<MapView | null>(null);
   const mounted = useRef(true);
   const busy = useRef(false);
+  const viewportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousPool = useRef<{ actorKey: string; rows: MapProspect[] } | null>(null);
   const actorKey = `${creator._id}:${isAuthenticated}`;
   const actor = useRef(actorKey);
   actor.current = actorKey;
   const canAct = isAuthenticated && isConnected !== false && !!creator.certifiedAt;
 
   const crm = useQuery(api.leads.listForMobileCRM, isAuthenticated ? { statusFilter: 'all' } : 'skip');
-  const prospects = useQuery(api.prospects.searchNearby, isAuthenticated && area
-    ? { lat: area.latitude, lng: area.longitude, radiusKm: 5, limit: 100 } : 'skip');
+  const viewportResult = useQuery(api.prospects.searchViewport, isAuthenticated
+    ? { ...bounds, limit: 100 } : 'skip');
+  if (isAuthenticated && viewportResult !== undefined) previousPool.current = { actorKey, rows: viewportResult.prospects };
+  const prospects = viewportResult?.prospects
+    ?? (previousPool.current?.actorKey === actorKey ? previousPool.current.rows : EMPTY_PROSPECTS);
   const reservations = useQuery(api.prospects.listMyReservations, isAuthenticated ? {} : 'skip');
   const pricing = useQuery(api.submissions.getPricingContext,
     isAuthenticated ? { creatorId: creator._id as Id<'creators'> } : 'skip');
   const reserve = useMutation(api.prospects.reserve);
   const visit = useMutation(api.leads.visitCommunityFind);
 
-  const shops = useMemo(() => {
+  const knownShops = useMemo(() => {
     const merged = mergeMapShops((prospects ?? []) as MapProspect[], (reservations ?? []) as MapProspect[],
-      (crm?.leads ?? []) as CommunityFind[], area);
+      (crm?.leads ?? []) as CommunityFind[], area, null);
     // Keep a successful reservation visible during the two live-query updates.
     for (const pending of pendingShops) {
       if (pending.actorKey === actorKey && !merged.some((shop) => shop.id === pending.id && shop.source === pending.source)
-        && pending.claimExpiresAt != null && pending.claimExpiresAt > Date.now()
-        && (!area || (pending.distanceKm != null && pending.distanceKm <= 5))) merged.push(pending);
+        && pending.claimExpiresAt != null && pending.claimExpiresAt > Date.now()) {
+        const distance = area ? distanceKm(area, pending) : null;
+        merged.push({ ...pending, distanceKm: distance, distanceLabel: mapDistanceLabel(distance, area) });
+      }
     }
     return merged;
   }, [prospects, reservations, crm?.leads, area, pendingShops, clockVersion, actorKey]);
+  const shops = useMemo(() => knownShops.filter((shop) => isInViewport(shop, bounds)), [knownShops, bounds]);
   const visibleShops = shops.filter((shop) => filter === 'mine' ? shop.isMine
     : filter === 'needs' ? shop.needsWebsite === true && !shop.hasLiveWebsite : true);
-  const selected = shops.find((shop) => `${shop.source}:${shop.id}` === selectedId) ?? null;
+  const selected = knownShops.find((shop) => `${shop.source}:${shop.id}` === selectedId) ?? null;
   const needsCount = shops.filter((shop) => shop.needsWebsite === true && !shop.hasLiveWebsite).length;
   const mineCount = shops.filter((shop) => shop.isMine).length;
-  const loading = location.isLoading || (isAuthenticated && (crm === undefined || (area && prospects === undefined)));
+  const refreshing = isAuthenticated && viewportResult === undefined;
+  const loading = isAuthenticated && shops.length === 0 && (crm === undefined || viewportResult === undefined);
   const topInset = isAdmin ? space.sm : insets.top + space.sm;
   const expandedHeight = Math.max(180, mapHeight - topInset - 56);
   const sheet = useMapSheet({ collapsed: 56, expanded: expandedHeight,
     preview: Math.min(expandedHeight, selected ? Math.max(330, mapHeight * 0.58) : 350) }, creator._id);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => () => {
+    if (viewportTimer.current) clearTimeout(viewportTimer.current);
+    viewportTimer.current = null;
+  }, [actorKey]);
   useEffect(() => {
-    setSelectedId(null); setPendingShops([]); setError(null); setVisitingId(null); busy.current = false;
+    setAreaMode('saved'); setSelectedId(null); setPendingShops([]); setError(null); setVisitingId(null); busy.current = false;
   }, [creator._id]);
   useEffect(() => {
     setPendingShops([]); setSelectedId(null);
-    if (area) map.current?.animateToRegion({ ...area, latitudeDelta: 0.055, longitudeDelta: 0.055 }, 350);
-  }, [area?.latitude, area?.longitude]);
+    if (viewportTimer.current) clearTimeout(viewportTimer.current);
+    viewportTimer.current = null;
+    const region = regionForArea(area);
+    setSettledViewport({ creatorId: creator._id, region });
+    map.current?.animateToRegion(region, 350);
+  }, [area, creator._id]);
   useEffect(() => {
-    const expiries = shops.map((shop) => shop.claimExpiresAt).filter((expiry): expiry is number => expiry != null && expiry > Date.now());
+    if (selectedId && !selected && viewportResult !== undefined && crm !== undefined && reservations !== undefined && !busy.current)
+      setSelectedId(null);
+  }, [selectedId, selected, viewportResult, crm, reservations, visitingId]);
+  useEffect(() => {
+    const expiries = knownShops.map((shop) => shop.claimExpiresAt).filter((expiry): expiry is number => expiry != null && expiry > Date.now());
     if (!expiries.length) return;
     const timer = setTimeout(() => setClockVersion((value) => value + 1), Math.min(...expiries) - Date.now() + 50);
     return () => clearTimeout(timer);
-  }, [shops]);
+  }, [knownShops]);
   useEffect(() => {
     if (!pendingShops.length) return;
     const remaining = pendingShops.filter((pending) => pending.source === 'pool'
@@ -233,6 +261,21 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
     setAreaMenu(false); setAreaMode('device'); setSelectedId(null);
     void location.requestCurrentLocation();
   };
+  const settleViewport = useCallback((region: Region) => {
+    if (!isAuthenticated || actor.current !== actorKey || !viewportBounds(region)) return;
+    const nextRegion = { latitude: region.latitude, longitude: region.longitude,
+      latitudeDelta: region.latitudeDelta, longitudeDelta: region.longitudeDelta };
+    if (viewportTimer.current) clearTimeout(viewportTimer.current);
+    const initiatingActor = actorKey;
+    viewportTimer.current = setTimeout(() => {
+      viewportTimer.current = null;
+      if (!mounted.current || actor.current !== initiatingActor) return;
+      setSettledViewport((current) => current.creatorId === creator._id
+        && current.region.latitude === nextRegion.latitude && current.region.longitude === nextRegion.longitude
+        && current.region.latitudeDelta === nextRegion.latitudeDelta && current.region.longitudeDelta === nextRegion.longitudeDelta
+        ? current : { creatorId: creator._id, region: nextRegion });
+    }, 350);
+  }, [actorKey, creator._id, isAuthenticated]);
   const selectFilter = (next: typeof filter) => { setFilter(filter === next ? 'all' : next); setSelectedId(null); };
 
   return (
@@ -240,7 +283,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
       <MapView
         ref={(instance) => { map.current = instance; }} style={StyleSheet.absoluteFill}
         provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        initialRegion={area ? { ...area, latitudeDelta: 0.055, longitudeDelta: 0.055 } : FALLBACK_REGION}
+        initialRegion={regionForArea(area)} onRegionChangeComplete={settleViewport}
         customMapStyle={QUIET_MAP} mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
         userInterfaceStyle="light" showsPointsOfInterest={false} showsBuildings={false}
         showsCompass={false} toolbarEnabled={false} showsMyLocationButton={false}
@@ -273,13 +316,15 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
         <Pressable accessibilityRole="button" accessibilityLabel={`Map area: ${area?.label ?? 'Choose an area'}. Change area`}
           onPress={() => setAreaMenu(true)} style={[styles.area, shadow.soft]}>
           <Ionicons name="location-outline" size={19} color={colors.ink} />
-          <Text variant="label" numberOfLines={1} style={styles.flex}>{area?.source === 'work' ? `Near ${area.label}` : area ? 'Near my location' : 'Choose map area'}</Text>
+          <Text variant="label" numberOfLines={1} style={styles.flex}>{area?.source === 'work' ? `Distances from ${area.label}` : area ? 'Distances from my location' : 'Choose map area'}</Text>
           {location.isLocating ? <ActivityIndicator size="small" color={colors.ink} /> : <Ionicons name="chevron-down" size={17} color={colors.ink} />}
         </Pressable>
         {topNotice}
         {areaMode === 'device' && (location.permissionStatus === 'denied' || location.permissionStatus === 'unavailable')
           ? <Banner tone="warn" body={savedArea ? `Current location is unavailable. Showing ${savedArea.label}.` : 'Current location is unavailable. You can still browse the shop list.'} /> : null}
         {isConnected === false ? <Banner tone="warn" body="You’re offline. Reconnect to visit a shop." /> : null}
+        {refreshing ? <Text variant="label" tone="muted" style={styles.searchStatus} accessibilityLiveRegion="polite">Updating shops in this map area…</Text>
+          : viewportResult?.truncated ? <Banner tone="info" body="Showing a limited set of saved shops. Zoom in to see more." /> : null}
       </View>
 
       <Animated.View style={[styles.sheet, { height: sheet.animatedHeight }]} testID="nearby-shops-sheet">
@@ -302,7 +347,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
             <Ionicons name={sheet.position === 'expanded' ? 'chevron-down' : 'chevron-up'} size={20} color={colors.ink3Text} style={styles.sheetChevron} />
           </Pressable>
           {sheet.position !== 'collapsed' ? <View style={styles.sheetHead}>
-            <Text variant="bodyLg" weight="bold" style={styles.flex}>{selected ? 'Shop details' : filter === 'mine' ? 'Your shops' : filter === 'needs' ? 'Shops needing a site' : 'Shops near you'}</Text>
+            <Text variant="bodyLg" weight="bold" style={styles.flex}>{selected ? 'Shop details' : filter === 'mine' ? 'Your shops in view' : filter === 'needs' ? 'Shops needing a site' : 'Shops in view'}</Text>
             {selected ? <TextLink label="Close shop details" onPress={() => setSelectedId(null)} />
               : <TextLink label="See list" onPress={() => router.push('/(app)/(tabs)/finds' as never)} />}
           </View> : null}
@@ -352,8 +397,9 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
           <>
             {loading ? <View style={styles.empty}><ActivityIndicator color={colors.ink} /><Text variant="label" tone="muted">Finding nearby shops…</Text></View>
               : visibleShops.length === 0 ? <View style={styles.empty}>
-                <Text variant="body" weight="bold">{filter === 'mine' ? 'No shops reserved yet' : 'No shops here yet'}</Text>
-                <Text variant="label" tone="muted">{filter === 'mine' ? 'Choose a shop and tap I’m visiting.' : 'Spot a local shop to help the community find it.'}</Text>
+                <Text variant="body" weight="bold">{filter === 'mine' ? 'No reserved shops in view' : filter === 'needs' ? 'No shops confirmed to need a site' : 'No saved shops in view'}</Text>
+                <Text variant="label" tone="muted">{filter === 'mine' ? 'Move the map, or choose a shop and tap I’m visiting.'
+                  : filter === 'needs' ? 'Try another filter or move the map.' : 'Move the map or spot a local shop to share it with the team.'}</Text>
                 <TextLink label="Spot a shop" onPress={() => router.push('/(app)/leads/spot' as never)} />
               </View>
                 : sheet.position === 'expanded' ? <ScrollView style={styles.flex} testID="nearby-shops-full-list"
@@ -467,6 +513,7 @@ const styles = StyleSheet.create({
   filterDashed: { borderStyle: 'dashed' }, filterMine: { backgroundColor: colors.accent },
   area: { minHeight: 48, maxWidth: '90%', alignSelf: 'flex-start', paddingHorizontal: space.md,
     flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: colors.card, borderRadius: radius.pill },
+  searchStatus: { alignSelf: 'flex-start', backgroundColor: colors.card, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.card },
   sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28,
     overflow: 'hidden', shadowColor: colors.ink, shadowOffset: { width: 0, height: -6 }, shadowRadius: 16, shadowOpacity: 0.12, elevation: 8 },
   sheetBody: { flex: 1, minHeight: 0 },
