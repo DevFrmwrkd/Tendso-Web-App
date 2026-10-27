@@ -205,9 +205,10 @@ describe("WalletScreen", () => {
   });
 
   it("identifies team commission credits separately from earlier referral bonuses", () => {
+    const now = Date.now();
     const earnings = [
-      { _id: "team", type: "creator_override", amount: 250, createdAt: Date.now() },
-      { _id: "bonus", type: "referral_bonus", amount: 1000, createdAt: Date.now() },
+      { _id: "team", type: "creator_override", amount: 250, createdAt: now },
+      { _id: "bonus", type: "referral_bonus", amount: 1000, createdAt: now - 86400000 },
     ];
     setupQueries(mockCreator, earnings);
     const view = render(<WalletScreen />);
