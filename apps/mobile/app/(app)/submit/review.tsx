@@ -12,6 +12,7 @@ import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, EmptyState, Field, Loading, ProgressBar, ScreenShell, Text, TextLink, formatPeso } from '../../../components/v2';
 import { colors, hit, radius, space } from '../../../theme/v2';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
+import { validFieldAgentPrice } from '../../../services/fieldAgentPrice';
 
 type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
 type LocalPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[] };
@@ -57,6 +58,7 @@ function ReviewForm() {
   const [quotedFor, setQuotedFor] = useState('');
   const [checkingDomain, setCheckingDomain] = useState(false);
   const [sellPrice, setSellPrice] = useState(BASE_PRICE);
+  const [savedPrice, setSavedPrice] = useState<{ submissionId: string; captured: number | null; queued: number | null } | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
@@ -67,6 +69,9 @@ function ReviewForm() {
   const mounted = useRef(true);
   const quoteVersion = useRef(0);
   const initialized = useRef<string | null>(null);
+  const initializedDomain = useRef<string | null>(null);
+  const initializedServerPrice = useRef<string | null>(null);
+  const priceEdited = useRef(false);
   const isCurrent = () => mounted.current && capture.isCurrent();
   const canQuery = capture.canQuery && !!id && id !== 'offline_pending';
   const raw = useQuery(api.submissions.getById, canQuery ? { id: id as Id<'submissions'> } : 'skip');
@@ -88,14 +93,15 @@ function ReviewForm() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const [storedId, pendingInfo, pendingPhotos, pendingInterview, storedSnapshot, storedMeta, interviewDraft] = await Promise.all([
+      const [storedId, pendingInfo, pendingPhotos, pendingInterview, storedSnapshot, storedMeta, interviewDraft, pendingSubmit] = await Promise.all([
         capture.read<string>('current_submission_id'),
-        capture.read<{ creatorId: string; existingDraftId?: string; formData: Form }>('submission_pending_sync'),
+        capture.read<{ creatorId: string; existingDraftId?: string; initialSellPrice?: number; formData: Form }>('submission_pending_sync'),
         capture.read<LocalPhotos>('submission_pending_photos'),
         capture.read<LocalInterview>('submission_pending_interview'),
-        capture.read<Form & { submissionId: string; creatorId: string }>('submission_snapshot'),
+        capture.read<Form & { submissionId: string; creatorId: string; initialSellPrice?: number }>('submission_snapshot'),
         capture.read<{ submissionId: string; items: { uri?: string; storageId?: string }[] }>('submission_photo_tasks'),
         capture.read<LocalInterview>('submission_interview_draft'),
+        capture.read<{ submissionId: string; sellPrice?: number }>('submission_pending_submit'),
       ]);
       if (!active || !isCurrent()) return;
       const target = storedId ?? (pendingInfo?.creatorId === capture.actor?.creatorId ? 'offline_pending' : null);
@@ -107,18 +113,42 @@ function ReviewForm() {
       setSnapshot(storedSnapshot?.submissionId === target && storedSnapshot.creatorId === capture.actor?.creatorId ? storedSnapshot : null);
       setPhotoMeta(storedMeta?.submissionId === target ? storedMeta : null);
       setAttachedInterview(interviewDraft?.submissionId === target && interviewDraft.attached ? interviewDraft : null);
+      const matchingPending = !!pendingInfo && pendingInfo.creatorId === capture.actor?.creatorId
+        && (target === 'offline_pending' ? !pendingInfo.existingDraftId || pendingInfo.existingDraftId === 'offline_pending'
+          : pendingInfo.existingDraftId === target);
+      const matchingSnapshot = storedSnapshot?.submissionId === target && storedSnapshot.creatorId === capture.actor?.creatorId;
+      setSavedPrice(target ? { submissionId: target,
+        captured: (matchingPending ? validFieldAgentPrice(pendingInfo.initialSellPrice) : null)
+          ?? (matchingSnapshot ? validFieldAgentPrice(storedSnapshot.initialSellPrice) : null),
+        queued: pendingSubmit?.submissionId === target ? validFieldAgentPrice(pendingSubmit.sellPrice) : null,
+      } : null);
       setHydrated(true);
     })().catch(() => { if (active && isCurrent()) { setError('Could not open your saved capture. Try again.'); setHydrated(true); } });
     return () => { active = false; };
   }, [capture.actorKey, capture.read, capture.revision, capture.canQuery]);
   useEffect(() => {
-    if (!submission || initialized.current === submission._id) return;
-    initialized.current = submission._id;
+    if (!submission || initializedDomain.current === submission._id) return;
+    initializedDomain.current = submission._id;
     if (submission.requestedDomain) { setDomain(submission.requestedDomain); setDomainOpen(true); }
-    if (typeof submission.amount === 'number') {
-      setSellPrice(Math.max(BASE_PRICE, Math.min(PRICE_CEILING, submission.amount - (submission.domainCostPHP ?? 0))));
-    }
   }, [submission]);
+  useEffect(() => {
+    if (!hydrated || !id || (canQuery && raw === undefined) || (raw && !submission)) return;
+    const first = initialized.current !== id;
+    const serverArrived = !!submission && initializedServerPrice.current !== id;
+    if (!first && !serverArrived) return;
+    if (first) priceEdited.current = false;
+    initialized.current = id;
+    if (serverArrived) initializedServerPrice.current = id;
+    // Reconnecting may supply a newer saved quote. Preserve an intentional
+    // edit made in this Review while the server data was unavailable.
+    if (!first && priceEdited.current) return;
+    const storedPrice = savedPrice?.submissionId === id ? savedPrice : null;
+    const serverPrice = typeof submission?.amount === 'number'
+      ? Math.max(BASE_PRICE, Math.min(PRICE_CEILING, submission.amount - (submission.domainCostPHP ?? 0))) : null;
+    // A queued final choice is already quoted; otherwise the saved draft
+    // amount outranks the capture's initial preference. Never read Earn here.
+    setSellPrice(storedPrice?.queued ?? serverPrice ?? storedPrice?.captured ?? BASE_PRICE);
+  }, [hydrated, id, submission, raw, canQuery, savedPrice]);
   useEffect(() => {
     if (!pricing) return;
     setSellPrice(value => Math.max(pricing.basePrice, Math.min(pricing.priceCeiling, value)));
@@ -271,7 +301,7 @@ function ReviewForm() {
       <Card style={styles.card}>
         <View style={styles.row}><Text variant="bodyLg" weight="bold" style={styles.flex}>Your price</Text><Text tone="muted">Lower price, easier yes</Text></View>
         {priceReady ? <PriceSlider floor={pricing?.basePrice ?? BASE_PRICE} ceiling={pricing?.priceCeiling ?? PRICE_CEILING} anchor={WEBSITE_PRICE}
-          commissionRate={0.5} initialValue={sellPrice} onChange={setSellPrice} disabled={saving} showEarnings={false} /> : <Loading fill={false} />}
+          commissionRate={0.5} initialValue={sellPrice} onChange={price => { priceEdited.current = true; setSellPrice(price); }} disabled={saving} showEarnings={false} /> : <Loading fill={false} />}
         <View style={styles.statsRow} testID="capture-price-stats"><View style={[styles.stat, styles.accent]} testID="capture-earnings"><Text variant="heading">{formatPeso(earnings)}</Text><Text>You keep after payment</Text></View>
           <View style={styles.stat} testID="capture-savings"><Text variant="heading">{formatPeso(Math.max(0, WEBSITE_PRICE - sellPrice))}</Text><Text>The shop saves</Text></View></View>
         {wantsDomain && validDomain ? <Text weight="bold">Owner total: {formatPeso(sellPrice + domainCost)}</Text> : null}

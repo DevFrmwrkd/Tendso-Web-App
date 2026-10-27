@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.rule,
   },
-  row: { flexDirection: 'row', alignItems: 'stretch', minHeight: 84, paddingTop: space.sm - 2, paddingHorizontal: space.xs },
+  row: { flexDirection: 'row', alignItems: 'stretch', minHeight: 64, paddingTop: space.xs, paddingHorizontal: space.xs },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingVertical: space.xs },
   iconPill: { width: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   iconPillOn: { backgroundColor: colors.accent },

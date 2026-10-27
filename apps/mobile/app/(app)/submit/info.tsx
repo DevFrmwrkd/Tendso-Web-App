@@ -23,6 +23,8 @@ import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
+import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
+import { readFieldAgentPrice, validFieldAgentPrice } from '../../../services/fieldAgentPrice';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
@@ -36,7 +38,8 @@ type SavedDetails = {
   businessName: string; businessType: string; ownerName: string; ownerPhone: string;
   ownerEmail?: string; address: string; city: string; coordinates?: CaptureCoordinates; prospectLeadId?: string;
 };
-type PendingDetails = { creatorId: string; existingDraftId?: string | null; prospectLeadId?: string; formData: SavedDetails };
+type PendingDetails = { creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
+  initialSellPrice?: number; formData: SavedDetails };
 
 export default function SubmitInfoScreen() {
   const capture = useCaptureSession();
@@ -100,6 +103,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
   const mounted = useRef(true);
   const initializing = useRef(false);
   const saving = useRef(false);
+  const initialSellPrice = useRef<number | null>(null);
   const isCurrent = () => mounted.current && capture.isCurrent();
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   // Carried through to submissions.create/update so the backend attaches this
@@ -247,6 +251,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
                   await capture.remove('submission_interview_draft');
                   await clearDraft();
                   if (!isCurrent()) return;
+                  initialSellPrice.current = null;
                   setSelectedDraftId(null); setOwnerName(''); setOwnerEmail('');
                   applyPrefill();
                   setProspectLeadId(typeof prefillParams.prospectLeadId === 'string' ? prefillParams.prospectLeadId : undefined);
@@ -319,6 +324,37 @@ function SubmitInfoForm({ capture, prefillParams }: {
     };
 
     saving.current = true; setLoading(true);
+    // Freeze the preference once for a new capture. Resuming any established
+    // capture keeps its original price, even if Earn's preference changed.
+    let capturedPrice: number;
+    try {
+      if (initialSellPrice.current === null) {
+        const [pending, snapshot, storedId] = await Promise.all([
+          capture.read<PendingDetails>('submission_pending_sync'),
+          capture.read<{ submissionId: string; creatorId: string; initialSellPrice?: number }>('submission_snapshot'),
+          capture.read<string>('current_submission_id'),
+        ]);
+        if (!isCurrent()) return;
+        const target = selectedDraftId ?? 'offline_pending';
+        const ownsPending = pending?.creatorId === capture.actor.creatorId
+          && (selectedDraftId ? pending.existingDraftId === selectedDraftId
+            : storedId === 'offline_pending' && (!pending.existingDraftId || pending.existingDraftId === 'offline_pending'));
+        const ownsSnapshot = snapshot?.creatorId === capture.actor.creatorId && snapshot.submissionId === target;
+        const serverPrice = selectedDraftId && existingDraft?._id === selectedDraftId
+          && existingDraft.creatorId === capture.actor.creatorId && typeof existingDraft.amount === 'number'
+          ? validFieldAgentPrice(existingDraft.amount - (existingDraft.domainCostPHP ?? 0)) : null;
+        const savedPrice = serverPrice ?? (ownsPending ? validFieldAgentPrice(pending.initialSellPrice) : null)
+          ?? (ownsSnapshot ? validFieldAgentPrice(snapshot.initialSellPrice) : null);
+        initialSellPrice.current = savedPrice ?? (selectedDraftId || ownsPending || ownsSnapshot
+          ? BASE_PRICE : await readFieldAgentPrice(capture.actor));
+        if (!isCurrent()) return;
+      }
+      capturedPrice = initialSellPrice.current;
+    } catch {
+      if (isCurrent()) { setError('Could not load your capture price. Try again.'); setLoading(false); }
+      saving.current = false;
+      return;
+    }
     // Offline writes stay with the cached, signed-in field agent. The source
     // lead is retained so reconnecting does not create a duplicate shop.
     if (capture.isOffline) {
@@ -328,10 +364,12 @@ function SubmitInfoForm({ capture, prefillParams }: {
           creatorId: capture.actor.creatorId,
           existingDraftId: selectedDraftId,
           prospectLeadId,
+          initialSellPrice: capturedPrice,
           savedAt: Date.now(),
         });
         if (!isCurrent()) return;
-        await capture.write('submission_snapshot', { submissionId: selectedDraftId ?? 'offline_pending', creatorId: capture.actor.creatorId, ...formData });
+        await capture.write('submission_snapshot', { submissionId: selectedDraftId ?? 'offline_pending', creatorId: capture.actor.creatorId,
+          ...formData, initialSellPrice: capturedPrice });
         if (!isCurrent()) return;
         await capture.write('current_submission_id', selectedDraftId ?? 'offline_pending');
         if (!isCurrent()) return;
@@ -367,13 +405,15 @@ function SubmitInfoForm({ capture, prefillParams }: {
           creatorId: capture.actor.creatorId,
           ...formData,
           ...link,
+          amount: capturedPrice,
+          creatorPayout: commissionFor(capturedPrice),
         });
       }
       if (!isCurrent()) return;
       // Remember a successful create even if a later local write fails. A
       // retry must update that draft, rather than create a second interview.
       setSelectedDraftId(submissionId);
-      await capture.write('submission_snapshot', { submissionId, creatorId: capture.actor.creatorId, ...formData });
+      await capture.write('submission_snapshot', { submissionId, creatorId: capture.actor.creatorId, ...formData, initialSellPrice: capturedPrice });
       if (!isCurrent()) return;
       await capture.write('current_submission_id', submissionId);
       if (!isCurrent()) return;

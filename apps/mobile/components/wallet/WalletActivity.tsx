@@ -3,11 +3,13 @@ import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Chip, Pill, ScreenShell, SectionLabel, Text, type ChipTone } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
+import { WalletShopThumbnail } from './WalletShopThumbnail';
 
 export type WalletEarning = {
   _id: string; amount: number; type?: string; status?: string; businessName?: string;
-  createdAt?: number; _creationTime?: number;
+  createdAt?: number; _creationTime?: number; submissionId?: string;
 };
+export type WalletSubmissionDetail = { thumbnailUrl: string | null; submissionPrice: number | null; paid: boolean };
 export type WalletWithdrawal = {
   _id: string; amount: number; status: string; wiseEmail?: string; bankName?: string;
   wiseTransferId?: string; reference?: string; failureReason?: string; errorMessage?: string;
@@ -50,9 +52,10 @@ function shortActivityDate(time: number): string {
   return time ? new Date(time).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : 'Date unavailable';
 }
 
-function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status }: {
+function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status, leading, divider = false }: {
   testID: string; title: string; subtitle: string; amount: string;
   icon: React.ComponentProps<typeof Ionicons>['name']; darkIcon?: boolean; status?: { label: string; tone: ChipTone };
+  leading?: React.ReactNode; divider?: boolean;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const [measuredWidth, setMeasuredWidth] = useState(0);
@@ -66,12 +69,12 @@ function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = 
       style={stacked ? styles.stackedAmount : undefined}>{amount}</Text>
     {status ? <Chip label={status.label} tone={status.tone} style={styles.previewStatus} /> : null}
   </>;
-  return <View testID={testID} style={styles.compactActivity} onLayout={event => {
+  return <View testID={testID} style={[styles.compactActivity, divider && styles.divider]} onLayout={event => {
     const measured = event.nativeEvent.layout.width;
     if (Number.isFinite(measured) && measured > 0) setMeasuredWidth(measured);
   }}>
     <View style={styles.compactMain}>
-      <View style={[styles.icon, darkIcon && styles.payoutIcon]}><Ionicons name={icon} size={22} color={darkIcon ? colors.onDark : colors.ink} /></View>
+      {leading ?? <View style={[styles.icon, darkIcon && styles.payoutIcon]}><Ionicons name={icon} size={22} color={darkIcon ? colors.onDark : colors.ink} /></View>}
       <View style={styles.rowBody}>
         <Text variant="label" weight="bold" numberOfLines={2}>{title}</Text>
         <Text variant="label" tone="muted" numberOfLines={2}>{subtitle}</Text>
@@ -82,16 +85,22 @@ function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = 
   </View>;
 }
 
-export function EarningRow({ earning, divider = false, compact = false }: { earning: WalletEarning; divider?: boolean; compact?: boolean }) {
+export function EarningRow({ earning, divider = false, compact = false, thumbnailUrl, submissionPrice, paid = false }: {
+  earning: WalletEarning; divider?: boolean; compact?: boolean; thumbnailUrl?: string | null; submissionPrice?: number | null; paid?: boolean;
+}) {
   const title = EARNING_TITLE[earning.type ?? ''] ?? 'Earnings';
   const business = earning.businessName?.trim();
   const hasBusiness = !!business && business !== 'Unknown';
+  const icon = earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline';
+  const thumbnail = <WalletShopThumbnail url={thumbnailUrl} name={hasBusiness ? business : title} icon={icon} />;
+  const realPrice = typeof submissionPrice === 'number' && Number.isFinite(submissionPrice) && submissionPrice >= 0;
+  const saleLabel = realPrice ? `${paid ? 'Paid' : 'Site price'} ${walletPeso(submissionPrice)}` : title;
   if (compact) return <CompactActivityRow testID={`earning-${earning._id}`} title={hasBusiness ? business : title}
-    subtitle={`${hasBusiness ? `${title} · ` : ''}${shortActivityDate(activityTime(earning))}`} amount={`+${walletPeso(earning.amount)}`}
-    icon={earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline'}
+    subtitle={`${hasBusiness || realPrice ? `${saleLabel} · ` : ''}${shortActivityDate(activityTime(earning))}`} amount={`+${walletPeso(earning.amount)}`}
+    icon={icon} leading={thumbnail} divider={divider}
     status={earning.status === 'pending' ? { label: 'Pending', tone: 'warn' } : undefined} />;
   return <View style={[styles.row, divider && styles.divider]} testID={`earning-${earning._id}`}>
-    <View style={styles.icon}><Ionicons name={earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline'} size={22} color={colors.ink} /></View>
+    {thumbnail}
     <View style={styles.rowBody}>
       <Text variant="label" weight="bold">{hasBusiness ? business : title}</Text>
       <Text variant="label" tone="muted">{hasBusiness ? `${title} · ` : ''}{activityDate(activityTime(earning))}</Text>
@@ -101,12 +110,21 @@ export function EarningRow({ earning, divider = false, compact = false }: { earn
   </View>;
 }
 
-export function PayoutRow({ withdrawal, divider = false, compact = false }: { withdrawal: WalletWithdrawal; divider?: boolean; compact?: boolean }) {
+export function PayoutRow({ withdrawal, divider = false, compact = false, showDetails = false }: {
+  withdrawal: WalletWithdrawal; divider?: boolean; compact?: boolean; showDetails?: boolean;
+}) {
   const status = WITHDRAWAL_STATUS[withdrawal.status] ?? { label: withdrawal.status, tone: 'muted' as ChipTone };
   const failure = withdrawal.failureReason || withdrawal.errorMessage;
-  if (compact) return <CompactActivityRow testID={`payout-${withdrawal._id}`} darkIcon icon="arrow-up-outline" status={status}
-    title={withdrawal.wiseEmail ? `To Wise · ${shortActivityDate(activityTime(withdrawal))}` : withdrawal.bankName || 'Wise transfer'}
-    subtitle={withdrawal.wiseEmail || shortActivityDate(activityTime(withdrawal))} amount={`−${walletPeso(withdrawal.amount)}`} />;
+  if (compact) return <View style={divider ? styles.divider : undefined}>
+    <CompactActivityRow testID={`payout-${withdrawal._id}`} darkIcon icon="arrow-up-outline" status={status}
+      title={withdrawal.wiseEmail ? `To Wise · ${shortActivityDate(activityTime(withdrawal))}` : withdrawal.bankName || 'Wise transfer'}
+      subtitle={withdrawal.wiseEmail || shortActivityDate(activityTime(withdrawal))} amount={`−${walletPeso(withdrawal.amount)}`} />
+    {showDetails && (withdrawal.wiseTransferId || withdrawal.reference || (withdrawal.status === 'failed' && failure)) ? <View style={styles.compactPayoutDetails}>
+      {withdrawal.wiseTransferId ? <Text variant="label" tone="muted" selectable>Wise #{withdrawal.wiseTransferId}</Text> : null}
+      {withdrawal.reference ? <Text variant="label" tone="muted" selectable>{withdrawal.reference}</Text> : null}
+      {withdrawal.status === 'failed' && failure ? <Text variant="label" tone="danger">{failure}</Text> : null}
+    </View> : null}
+  </View>;
   return <View style={[styles.row, divider && styles.divider]} testID={`payout-${withdrawal._id}`}>
     <View style={[styles.icon, styles.payoutIcon]}><Ionicons name="arrow-up-outline" size={22} color={colors.onDark} /></View>
     <View style={styles.rowBody}>
@@ -154,10 +172,11 @@ export function EarningsTrend({ earnings }: { earnings: WalletEarning[] }) {
   </Card>;
 }
 
-export function WalletHistory({ earnings, withdrawals, balance, earned, withdrawn, isOffline, filter, onFilter, onBack }: {
+export function WalletHistory({ earnings, withdrawals, balance, earned, withdrawn, isOffline, filter, onFilter, onBack, submissionDetails }: {
   earnings?: WalletEarning[]; withdrawals?: WalletWithdrawal[]; balance: number | null; earned: number | null; withdrawn: number | null;
   isOffline: boolean;
   filter: HistoryFilter; onFilter: (filter: HistoryFilter) => void; onBack: () => void;
+  submissionDetails?: ReadonlyMap<string, WalletSubmissionDetail>;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const [summaryWidth, setSummaryWidth] = useState(0);
@@ -182,7 +201,7 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
   }
   const loading = (filter !== 'cashed-out' && earnings === undefined) || (filter !== 'earned' && withdrawals === undefined);
   return <ScreenShell onBack={onBack} insetBottom={false} testID="wallet-history" contentStyle={styles.historyContent}
-    headerRight={<View pointerEvents="none" style={styles.historyTitle}><Text variant="label" weight="bold" accessibilityRole="header">History</Text></View>}>
+    headerRight={<View pointerEvents="none" style={styles.historyTitle}><Text variant="bodyLg" weight="bold" accessibilityRole="header">Payouts</Text></View>}>
     <View style={styles.historyStack}>
       <Card style={[styles.summary, stackedSummary && styles.summaryColumn]} onLayout={event => {
         const measured = event.nativeEvent.layout.width;
@@ -206,8 +225,9 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
       {[...groups].map(([month, rows]) => <View key={month} style={styles.historyMonth}>
         <SectionLabel>{month}</SectionLabel>
         <Card style={styles.historyCard}>{rows.map((record, index) => record.kind === 'earning'
-          ? <EarningRow key={`earning-${record.row._id}`} earning={record.row} divider={index < rows.length - 1} />
-          : <PayoutRow key={`payout-${record.row._id}`} withdrawal={record.row} divider={index < rows.length - 1} />)}</Card>
+          ? <EarningRow key={`earning-${record.row._id}`} earning={record.row} compact divider={index < rows.length - 1}
+            {...(record.row.submissionId ? submissionDetails?.get(record.row.submissionId) : undefined)} />
+          : <PayoutRow key={`payout-${record.row._id}`} withdrawal={record.row} compact showDetails divider={index < rows.length - 1} />)}</Card>
       </View>)}
     </View>
   </ScreenShell>;
@@ -215,13 +235,14 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.lg },
-  compactActivity: { paddingVertical: space.sm },
+  compactActivity: { paddingVertical: space.xs },
+  compactPayoutDetails: { gap: space.xs, paddingLeft: 44 + space.md, paddingBottom: space.md },
   compactMain: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   compactFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
   stackedAmount: { maxWidth: '100%', flexShrink: 1 },
   previewStatus: { maxWidth: '100%' },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
-  icon: { width: 44, height: 44, borderRadius: radius.field, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 44, height: 44, flexShrink: 0, borderRadius: radius.field, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   payoutIcon: { backgroundColor: colors.ink },
   rowBody: { flex: 1, minWidth: 0, gap: space.xs },
   rowAmount: { maxWidth: '37%' },

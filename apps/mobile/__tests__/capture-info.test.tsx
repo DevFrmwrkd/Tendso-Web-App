@@ -2,6 +2,8 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitInfo from '../app/(app)/submit/info';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fieldAgentPriceKey } from '../services/fieldAgentPrice';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockCreate = jest.fn();
@@ -90,6 +92,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockParams = {}; mockDraft = null; mockRequestedDrafts = {}; mockOnline = true;
   mockCurrent = true;
+  jest.mocked(AsyncStorage.getItem).mockReset().mockResolvedValue(null);
   mockCreator = { _id: 'agent-mika', clerkId: 'clerk-mika', role: 'creator', certifiedAt: 10 };
   mockCreate.mockReset().mockResolvedValue('new-submission');
   mockUpdate.mockReset().mockResolvedValue(undefined);
@@ -135,7 +138,7 @@ it('creates one properly linked interview then advances to the photos step', asy
   await completePrefilled(screen); await next(screen);
   expect(mockCreate).toHaveBeenCalledWith({ creatorId: 'agent-mika', prospectLeadId: source.prospectLeadId,
     businessName: source.businessName, businessType: 'Restaurant', ownerName: 'Nena Cruz', ownerPhone: '9171234567',
-    ownerEmail: 'nena@example.com', address: source.address, city: source.city });
+    ownerEmail: 'nena@example.com', address: source.address, city: source.city, amount: 999, creatorPayout: 500 });
   expect(mockUpdate).not.toHaveBeenCalled();
   expect(mockCaptureWrite).toHaveBeenCalledWith('current_submission_id', 'new-submission');
   expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/photos');
@@ -289,7 +292,7 @@ it('deduplicates rapid continues before the first create finishes', async () => 
   await completePrefilled(screen);
   const button = screen.getByRole('button', { name: 'Continue to photos step' });
   act(() => { fireEvent.press(button); fireEvent.press(button); });
-  expect(mockCreate).toHaveBeenCalledTimes(1);
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
   await act(async () => { finish('new-submission'); });
   expect(mockRouter.push).toHaveBeenCalledTimes(1);
 });
@@ -301,6 +304,7 @@ it('does not write a saved id or navigate after the capture account changes mid-
   const screen = render(<SubmitInfo />);
   await completePrefilled(screen);
   act(() => { fireEvent.press(screen.getByRole('button', { name: 'Continue to photos step' })); });
+  await waitFor(() => expect(mockCreate).toHaveBeenCalledTimes(1));
   mockCurrent = false;
   await act(async () => { finish('new-submission'); });
   expect(mockCaptureWrite).not.toHaveBeenCalled();
@@ -382,6 +386,75 @@ it('does not fabricate a pin from incomplete or invalid source coordinates', asy
 
 const olderDraftId = 'j123456789012345678901234567890';
 const newerDraftId = 'j123456789012345678901234567891';
+
+it('freezes the saved field-agent price only on a new capture and preserves it through a failed-create retry', async () => {
+  mockParams = source;
+  const priceKey = fieldAgentPriceKey({ clerkId: 'clerk-mika', creatorId: 'agent-mika' });
+  jest.mocked(AsyncStorage.getItem).mockImplementation(async key => key === priceKey ? '2999' : null);
+  mockCreate.mockRejectedValueOnce(new Error('Temporary create failure'));
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen); await next(screen);
+  expect(screen.getByText('Temporary create failure')).toBeTruthy();
+  jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
+  await next(screen);
+  expect(mockCreate).toHaveBeenCalledTimes(2);
+  for (const [args] of mockCreate.mock.calls) expect(args).toMatchObject({ amount: 2999, creatorPayout: 1500 });
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({ initialSellPrice: 2999 }));
+});
+
+it('does not reprice an existing draft or its domain when the future default changes', async () => {
+  mockDraft = { ...draft, amount: 2449, domainCostPHP: 450, submissionType: 'with_custom_domain' };
+  jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Owner’s full name').props.value).toBe(draft.ownerName));
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledTimes(1);
+  expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('amount');
+  expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('creatorPayout');
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({ initialSellPrice: 1999 }));
+  expect(AsyncStorage.getItem).not.toHaveBeenCalled();
+});
+
+it('saves the initial default on a new offline capture and retains that choice when the cached capture resumes', async () => {
+  mockOnline = false; mockDraft = undefined; mockParams = source;
+  jest.mocked(AsyncStorage.getItem).mockResolvedValue('3999');
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen); await next(screen);
+  const pending = mockCaptureWrite.mock.calls.find(([key]) => key === 'submission_pending_sync')![1];
+  expect(pending.initialSellPrice).toBe(3999);
+  expect(mockCreate).not.toHaveBeenCalled();
+  screen.unmount(); mockParams = {}; mockCaptureWrite.mockClear();
+  jest.mocked(AsyncStorage.getItem).mockResolvedValue('4999');
+  mockCaptureRead.mockImplementation(async (key: string) => key === 'submission_pending_sync' ? pending
+    : key === 'current_submission_id' ? 'offline_pending' : null);
+  const reopened = render(<SubmitInfo />);
+  await waitFor(() => expect(reopened.getByLabelText('Owner’s full name').props.value).toBe('Nena Cruz'));
+  await next(reopened);
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({ initialSellPrice: 3999 }));
+});
+
+it('reports an unreadable preference without creating a capture at a silently substituted price', async () => {
+  mockParams = source;
+  jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('Storage unavailable'));
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen); await next(screen);
+  expect(screen.getByText('Could not load your capture price. Try again.')).toBeTruthy();
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockCaptureWrite).not.toHaveBeenCalled();
+});
+
+it('does not create or cache a capture when its actor changes while the initial price loads', async () => {
+  mockParams = source;
+  let finish!: (value: string) => void;
+  jest.mocked(AsyncStorage.getItem).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+  const screen = render(<SubmitInfo />);
+  await completePrefilled(screen);
+  fireEvent.press(screen.getByRole('button', { name: 'Continue to photos step' }));
+  await waitFor(() => expect(AsyncStorage.getItem).toHaveBeenCalled());
+  mockCurrent = false;
+  await act(async () => { finish('4999'); });
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockCaptureWrite).not.toHaveBeenCalled();
+});
 
 it('repairs the exact older owned draft without loading the newest draft or discarding its media', async () => {
   mockParams = { draftId: olderDraftId, ...source };

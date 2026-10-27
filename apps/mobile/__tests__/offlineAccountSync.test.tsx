@@ -81,6 +81,27 @@ it('does not sync when the live account is ineligible or foreground capture paus
   expect(mockStorage.get('submission_pending_submit')).toBe('true');
 });
 
+it('creates an offline capture at its snapshotted initial price and commission', async () => {
+  scoped('current_submission_id', 'offline_pending');
+  scoped('submission_pending_sync', info({ initialSellPrice: 3999 }));
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId }));
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:create', expect.objectContaining({ amount: 3999, creatorPayout: 2000 }));
+  expect(read('submission_snapshot')).toMatchObject({ submissionId: 'new-submission-1', initialSellPrice: 3999 });
+});
+
+it('does not reprice a resumed online draft using an offline initial default', async () => {
+  row('my-submission', { amount: 2449, domainCostPHP: 450, creatorPayout: 1000 });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_sync', info({ existingDraftId: 'my-submission', initialSellPrice: 4999 }));
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId }));
+  await sync(result);
+  expect(mockMutation.mock.calls.some(([reference]) => reference === 'submissions:create' || reference === 'submissions:setDomainTier')).toBe(false);
+  const update = mockMutation.mock.calls.find(([reference]) => reference === 'submissions:update')![1];
+  expect(update).not.toHaveProperty('amount'); expect(update).not.toHaveProperty('creatorPayout');
+  expect(mockRows.get('my-submission')).toMatchObject({ amount: 2449, domainCostPHP: 450, creatorPayout: 1000 });
+});
+
 it('retains another creator saved form without creating, migrating, or updating it', async () => {
   const pending = JSON.stringify(info({ creatorId: 'previous-creator' }));
   mockStorage.set('submission_pending_sync', pending);

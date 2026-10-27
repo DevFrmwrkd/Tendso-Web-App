@@ -31,6 +31,7 @@ jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
   };
 } }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
+jest.mock('@react-native-async-storage/async-storage', () => ({ getItem: jest.fn(), setItem: jest.fn() }));
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
   useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
@@ -100,6 +101,46 @@ beforeEach(() => {
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 });
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
+
+it('uses the saved server website price without changing its custom-domain add-on', async () => {
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450 });
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 4999 });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('1999');
+});
+
+it('keeps a queued final price ahead of the server draft and its older captured preference', async () => {
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450 });
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 4999 });
+  stored('submission_pending_submit', { submissionId: 'draft-1', sellPrice: 2999, submissionType: 'standard' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+});
+
+it.each([false, true])('hydrates a saved domain on reconnect and preserves a deliberate local price edit: %s', async edited => {
+  mockOffline = true;
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 3999 });
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450, requestedDomain: 'nenastore.com' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('3999');
+  if (edited) fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  mockOffline = false;
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByLabelText('Custom domain (optional)').props.value).toBe('nenastore.com'));
+  expect(screen.getByLabelText('Website price').props.value).toBe(edited ? '2999' : '1999');
+});
+
+it('restores an offline capture’s own initial price instead of consulting the latest future default', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, initialSellPrice: 3999, formData: form });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['one', 'two', 'three'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', type: 'audio', recordingUri: 'file://audio.m4a' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('3999');
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ sellPrice: 3999 }));
+});
 
 it('shows the actual capture, then saves its price before submitting with commission conditional on payment', async () => {
   const order: string[] = [];

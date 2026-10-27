@@ -82,17 +82,6 @@
 .cm-code6 span.is-cur { box-shadow: inset 0 0 0 2px var(--a-ink); }
 
 /* ---------- earn (Round 2 F3) ---------- */
-.cm-earn { gap: 8px; padding-top: 14px; }
-.cm-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.cm-balance { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
-.cm-history { width: 28px; height: 28px; display: grid; place-items: center; color: var(--a-ink); }
-.cm-earn .cm-totals > div { background: var(--a-card); padding: 12px; }
-.cm-earn .cm-totals strong { font-size: 22px; line-height: 28px; }
-.cm-month { padding: 12px 14px; }
-.cm-month .cm-between > b { font: 800 18px/24px var(--a-sans); color: var(--a-ink); }
-.cm-month .cm-bars { height: 54px; margin-top: 6px; }
-.cm-earn .cm-h2 { font-size: 15px; line-height: 20px; }
-.cm-earn .cm-listcard { padding: 10px; gap: 12px; }
 .cm-earnhead { padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 2px; }
 .cm-earnhead .top { display: flex; align-items: center; justify-content: space-between; }
 .cm-earnhead .k { font: 700 14px/20px var(--a-sans); color: var(--a-ink3); }

@@ -27,6 +27,10 @@ import { activityTime, EarningRow, EarningsTrend, isCredited, PayoutRow, WalletH
   type HistoryFilter, type WalletEarning, type WalletWithdrawal } from '../../../components/wallet/WalletActivity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import { useFieldAgentPrice } from '../../../hooks/useFieldAgentPrice';
+import { useWalletThumbnails } from '../../../hooks/useWalletThumbnails';
+import { WalletMonthlySummary } from '../../../components/wallet/WalletMonthlySummary';
+import { FieldAgentPriceCard } from '../../../components/wallet/FieldAgentPriceCard';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -119,6 +123,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [balanceWidth, setBalanceWidth] = useState(0);
   const [statsWidth, setStatsWidth] = useState(0);
+  const wiseEmailInput = useRef<TextInput>(null);
 
   const rawCreator = useQuery(api.creators.getByClerkId, clerkId && isAuthenticated ? { clerkId } : 'skip');
   const creator = !isAuthenticated || !clerkId || (rawCreator?.clerkId && rawCreator.clerkId !== clerkId) ? undefined : rawCreator;
@@ -157,6 +162,15 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const balance = creator ? (isAffiliate ? portal?.summary.balance : undefined) ?? creator.balance ?? 0 : null;
   const live = useRef({ creatorId: creator?._id, canWrite, balance });
   live.current = { creatorId: creator?._id, canWrite, balance };
+  const defaultPrice = useFieldAgentPrice(!isAffiliate && isAuthenticated && clerkId && creator?._id
+    ? { clerkId, creatorId: creator._id } : null);
+  const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
+  const recentEarnings = sortedEarnings?.slice(0, isAffiliate ? 1 : 3) ?? [];
+  const submissionDetails = useWalletThumbnails({ creatorId: creator?._id, clerkId,
+    isAuthenticated, isAffiliate, isOffline,
+    submissionIds: (showHistory ? sortedEarnings ?? [] : recentEarnings)
+      .map(row => row.submissionId).filter((id): id is string => typeof id === 'string'),
+  });
 
   useEffect(() => {
     mounted.current = true;
@@ -184,10 +198,8 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     );
   }
 
-  const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
   const sortedWithdrawals = withdrawals ? [...withdrawals].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
   const recentWithdrawals = sortedWithdrawals?.slice(0, 1) ?? [];
-  const recentEarnings = sortedEarnings?.slice(0, 1) ?? [];
   const savedWiseEmail = creator?.wiseEmail;
   const totalEarnings = creator ? (isAffiliate ? portal?.summary.totalEarned : creator.totalEarnings)
     ?? (earnings ? earnings.filter(isCredited).reduce((sum, row) => sum + row.amount, 0) : null) : null;
@@ -306,17 +318,19 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const compactCashOut = balance !== null && balance > 0 && cashOutUnits * 18 * Math.max(1, fontScale) > Math.max(100, width - space.gutter * 2 - space.xl * 2);
 
   if (showHistory && creator) return <WalletHistory earnings={earnings} withdrawals={withdrawals} balance={balance}
-    earned={totalEarnings} withdrawn={totalWithdrawn} isOffline={isOffline} filter={historyFilter} onFilter={setHistoryFilter} onBack={() => setShowHistory(false)} />;
+    earned={totalEarnings} withdrawn={totalWithdrawn} submissionDetails={submissionDetails.bySubmission}
+    isOffline={isOffline} filter={historyFilter} onFilter={setHistoryFilter} onBack={() => setShowHistory(false)} />;
 
   return (
     <ScreenShell
       insetBottom={false}
       testID="earn-screen"
       contentStyle={styles.content}
+      footerStyle={styles.footer}
       footer={
         <>
           {compactCashOut && balance !== null ? <Text variant="label" align="center" tabular>{peso(balance)} to Wise</Text> : null}
-          <Button testID="withdraw-button" title={compactCashOut ? 'Cash out' : cashOutTitle} accessibilityLabel={cashOutTitle}
+          <Button testID="withdraw-button" size="md" title={compactCashOut ? 'Cash out' : cashOutTitle} accessibilityLabel={cashOutTitle}
             onPress={openWithdrawFlow} disabled={!canWrite || balance === null || balance <= 0} />
         </>
       }
@@ -333,7 +347,25 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
           />
         ) : null}
 
-        {/* Available balance */}
+        {!isAffiliate ? <>
+          <WalletMonthlySummary earnings={earnings} isOffline={isOffline} onHistory={() => openHistory('all')} />
+          <FieldAgentPriceCard price={defaultPrice.price} loaded={defaultPrice.loaded} saving={defaultPrice.saving}
+            error={defaultPrice.error} disabled={!creator || !isAuthenticated || paused}
+            onChange={price => { if (creator && isAuthenticated && !paused) void defaultPrice.setPrice(price); }} />
+          <View style={styles.latest}>
+            <Text variant="bodyLg" weight="bold" accessibilityRole="header">Latest</Text>
+            {earnings === undefined ? <Text tone="muted">{isOffline ? 'Reconnect to load your earnings.' : 'Loading recent earnings…'}</Text>
+              : recentEarnings.length === 0 ? <View style={styles.noEarnings}>
+                <Ionicons name="storefront-outline" size={28} color={colors.ink3} />
+                <Text variant="label" tone="muted">Your first paid site will appear here.</Text>
+              </View> : recentEarnings.map(earning => {
+                const details = earning.submissionId ? submissionDetails.bySubmission.get(earning.submissionId) : undefined;
+                return <EarningRow key={earning._id} earning={earning} compact
+                  thumbnailUrl={details?.thumbnailUrl} submissionPrice={details?.submissionPrice} paid={details?.paid} />;
+              })}
+          </View>
+        </> : <>
+        {/* Creator-program wallet keeps its balance and team commission overview. */}
         <Card variant="lg" style={styles.hero}>
           <View style={styles.balanceHeading}>
             <Text variant="label" tone="muted" accessibilityRole="header">Available to cash out</Text>
@@ -404,6 +436,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             subtitle={isAffiliate ? 'See your team commissions' : 'Bring a friend to Tendso'}
             onPress={() => router.push('/(app)/referrals' as any)} accessibilityLabel="View your referrals" />
         </Card>
+        </>}
       </View>
 
       {/* Wise account setup sheet */}
@@ -469,7 +502,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             <Text variant="title" accessibilityRole="header">
               Cash out to Wise
             </Text>
-            <Text variant="bodyLg" tone="muted">
+            <Text variant="label" weight="medium" tone="muted">
               {balance === null ? 'Balance unavailable' : `${peso(balance)} ready to cash out`}
             </Text>
           </View>
@@ -483,7 +516,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
               <Text style={styles.amountPrefix}>₱</Text>
               <TextInput
                 testID="amount-input"
-                style={styles.amountInput}
+                style={[styles.amountInput, { width: Math.min(Math.max(80, moneyTextUnits(form.amount || '0') * 40 * Math.max(1, fontScale) + 10), Math.max(80, width - 140)) }]}
                 placeholder="0"
                 placeholderTextColor={colors.ink3}
                 selectionColor={colors.ink}
@@ -502,6 +535,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
               {QUICK_PICKS.filter((p) => balance !== null && p < balance).map((p) => (
                 <Pill
                   key={p}
+                  style={styles.quickPick}
                   label={formatPeso(p)}
                   selected={form.amount === String(p)}
                   onPress={() => { if (!submitBusy.current) setForm((f) => ({ ...f, amount: String(p) })); }}
@@ -509,6 +543,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
                 />
               ))}
               <Pill
+                style={styles.quickPick}
                 label={`All · ${balance === null ? '—' : peso(balance)}`}
                 selected={form.amount === String(balance)}
                 onPress={() => { if (!submitBusy.current && balance !== null) setForm((f) => ({ ...f, amount: String(balance) })); }}
@@ -517,20 +552,21 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             </View>
           </View>
 
-          <Field
-            testID="wise-email-input"
-            label="Your Wise email"
-            icon="mail-outline"
-            placeholder="email@example.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={form.wiseEmail}
-            onChangeText={(v) => setForm((f) => ({ ...f, wiseEmail: v }))}
-            editable={!submitting}
-            accessibilityLabel="Wise email address"
-            right={isValidEmail(form.wiseEmail.trim()) ? <Ionicons name="checkmark-circle" size={24} color={colors.ink} /> : undefined}
-          />
+          <View style={styles.wiseField}>
+            <View style={styles.emailHeading}>
+              <Text variant="label" tone="muted">Your Wise email</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Change Wise email" disabled={submitting}
+                onPress={() => wiseEmailInput.current?.focus()} hitSlop={10}>
+                <Text variant="label" style={styles.linkText}>Change</Text>
+              </Pressable>
+            </View>
+            <Field ref={wiseEmailInput} testID="wise-email-input" label="Your Wise email" hideLabel variant="outlined"
+              icon="mail-outline" placeholder="email@example.com" keyboardType="email-address"
+              autoCapitalize="none" autoCorrect={false} value={form.wiseEmail}
+              onChangeText={value => { if (!submitBusy.current) setForm(previous => ({ ...previous, wiseEmail: value })); }}
+              editable={!submitting} accessibilityLabel="Wise email address"
+              right={isValidEmail(form.wiseEmail.trim()) ? <Ionicons name="checkmark-circle-outline" size={20} color={colors.ink3} /> : undefined} />
+          </View>
 
           <View style={styles.noteRow}>
             <Ionicons name="notifications-outline" size={22} color={colors.ink3} />
@@ -555,7 +591,10 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 14 },
+  footer: { paddingHorizontal: 20, paddingTop: space.sm, paddingBottom: 14 },
   stack: { gap: space.sm },
+  latest: { gap: space.xs, paddingTop: space.xs },
+  noEarnings: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   hero: { borderRadius: radius.card, padding: 14, gap: space.xs },
   balanceHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   historyButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
@@ -574,20 +613,22 @@ const styles = StyleSheet.create({
   empty: { gap: space.xs },
   // Sheets
   sheetScroll: { flexShrink: 1 },
-  sheetStack: { gap: space.lg, paddingBottom: space.sm },
+  sheetStack: { gap: space.md, paddingBottom: space.sm },
   sheetHead: { gap: space.xs },
   sheetButtons: { gap: space.md },
   noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingHorizontal: space.xs },
   amountCard: {
     backgroundColor: colors.card,
     borderRadius: radius.cardLg,
-    padding: space.lg,
-    gap: space.sm,
+    padding: space.md,
+    gap: space.md,
+    alignItems: 'center',
   },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  amountPrefix: { fontFamily: fonts.extrabold, fontSize: 40, lineHeight: 48, color: colors.ink3 },
+  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
+  amountPrefix: { fontFamily: fonts.extrabold, fontSize: 40, lineHeight: 48, color: colors.ink },
   amountInput: {
-    flex: 1,
+    flexShrink: 1,
+    minWidth: 80,
     padding: 0,
     minHeight: 56,
     fontFamily: fonts.extrabold,
@@ -596,5 +637,8 @@ const styles = StyleSheet.create({
     letterSpacing: -1.2,
     color: colors.ink,
   },
-  picks: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  picks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
+  quickPick: { paddingHorizontal: 10 },
+  wiseField: { gap: space.sm },
+  emailHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
 });

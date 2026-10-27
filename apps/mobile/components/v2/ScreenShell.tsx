@@ -22,6 +22,8 @@ export interface ScreenShellProps {
   progress?: number;
   /** The one primary action, pinned above the home indicator. Usually a <Button/>. */
   footer?: React.ReactNode;
+  /** Optional spacing for the primary-action slot. */
+  footerStyle?: StyleProp<ViewStyle>;
   /** Scroll the body (default true). Use false for fixed one-question screens. */
   scroll?: boolean;
   /** Optional body ref for bringing a specific form field into view. */
@@ -45,6 +47,7 @@ export function ScreenShell({
   insetBottom = true,
   progress,
   footer,
+  footerStyle,
   scroll = true,
   scrollRef,
   tone = 'tinted',
@@ -115,7 +118,7 @@ export function ScreenShell({
         {header}
         {body}
         {footer ? (
-          <View style={[styles.footer, { paddingBottom: (insetBottom ? Math.max(insets.bottom, space.lg) : space.lg) + space.sm }]}>{footer}</View>
+          <View style={[styles.footer, { paddingBottom: (insetBottom ? Math.max(insets.bottom, space.lg) : space.lg) + space.sm }, footerStyle]}>{footer}</View>
         ) : (
           <View style={{ height: insetBottom ? insets.bottom : 0 }} />
         )}

@@ -6,9 +6,12 @@ import { api, type Doc, type Id } from '@tendso/convex-client';
 import { useNetwork } from '../providers/NetworkProvider';
 import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey } from '../services/captureSession';
 import { captureEmailError } from '../../../lib/captureEmail';
+import { commissionFor } from '@tendso/shared/pricing';
+import { validFieldAgentPrice } from '../services/fieldAgentPrice';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
-type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string; savedAt: number; legacyMigration?: boolean };
+type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
+  initialSellPrice?: number; savedAt: number; legacyMigration?: boolean };
 type PhotoEntry = { id: string; uri: string; storageId?: string; taskIndex?: number };
 type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; entries?: PhotoEntry[]; savedAt?: number };
 type PendingInterview = { submissionId: string; recordingUri: string; parallelAudioUri?: string | null; type: 'video' | 'audio'; storageId?: string; audioStorageId?: string; savedAt?: number };
@@ -95,7 +98,9 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
               submission = candidate; id = candidate._id;
             } else {
               if (!current()) return;
+              const initialPrice = validFieldAgentPrice(info.initialSellPrice);
               id = await create({ creatorId: actor, ...info.formData,
+                ...(initialPrice !== null ? { amount: initialPrice, creatorPayout: commissionFor(initialPrice) } : {}),
                 ...(info.prospectLeadId ? { prospectLeadId: info.prospectLeadId as Id<'leads'> } : {}) });
               if (!current() || !id) return;
               submission = await checkOwner(id);
@@ -131,7 +136,8 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         if (!current()) return;
         if (part && matches(String(part.submissionId))) await save(key, { ...part, submissionId: id });
       }
-      if (info) await save('submission_snapshot', { ...info.formData, creatorId: actor, submissionId: id });
+      if (info) await save('submission_snapshot', { ...info.formData, creatorId: actor, submissionId: id,
+        ...(validFieldAgentPrice(info.initialSellPrice) !== null ? { initialSellPrice: info.initialSellPrice } : {}) });
       // Legacy globals are removed only after every matching part is copied to
       // the owned scope. Never touch another login's remaining global records.
       if (migration && (!legacyInfo || legacyInfo.creatorId === actor)) {

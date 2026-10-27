@@ -7,6 +7,8 @@ import { Text } from './Text';
 export interface FieldProps extends Omit<TextInputProps, 'style'> {
   /** The accessible label; inside the default card or above an outlined field. */
   label: string;
+  /** Hide a duplicate visual label when the parent already renders it. */
+  hideLabel?: boolean;
   /** Outlined sign-in fields put the label above a compact, shadow-free input. */
   variant?: 'card' | 'outlined';
   /** Optional action beside an outlined field's label. */
@@ -28,7 +30,7 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
  * Label 16, value 18 (Rule #1: nothing under 16). Forwards the ref to the TextInput.
  */
 export const Field = forwardRef<TextInput, FieldProps>(function Field(
-  { label, variant = 'card', labelRight, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, onSelectionChange, editable = true, accessibilityLabel, ...input },
+  { label, hideLabel = false, variant = 'card', labelRight, icon, error, helper, right, prefix, containerStyle, onFocus, onBlur, onSelectionChange, editable = true, accessibilityLabel, ...input },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
@@ -63,7 +65,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   const outlined = variant === 'outlined';
   return (
     <View style={containerStyle}>
-      {outlined ? (
+      {outlined && !hideLabel ? (
         <View style={styles.labelRow}>
           <Text variant="label" weight="medium" tone="muted">{label}</Text>
           {labelRight}
@@ -80,7 +82,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
       >
         {icon ? <Ionicons name={icon} size={22} color={colors.ink3} /> : null}
         <View style={styles.body}>
-          {!outlined ? (
+          {!outlined && !hideLabel ? (
             <Text variant="label" tone="muted">{label}</Text>
           ) : null}
           <View style={styles.inputRow}>
