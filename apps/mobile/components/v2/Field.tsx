@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
   prefix: { marginRight: space.sm },
   input: {
     flex: 1,
+    minWidth: 0,
     minHeight: 28,
     padding: 0,
     fontFamily: fonts.semibold,

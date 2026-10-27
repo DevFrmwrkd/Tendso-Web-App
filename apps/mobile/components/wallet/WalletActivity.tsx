@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Chip, Pill, ScreenShell, SectionLabel, Text, type ChipTone } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
@@ -46,24 +46,67 @@ function activityDate(time: number): string {
   return time ? new Date(time).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date unavailable';
 }
 
-export function EarningRow({ earning, divider = false }: { earning: WalletEarning; divider?: boolean }) {
-  const title = EARNING_TITLE[earning.type ?? ''] ?? 'Earnings';
-  const business = earning.businessName?.trim();
-  const hasBusiness = !!business && business !== 'Unknown';
-  return <View style={[styles.row, divider && styles.divider]} testID={`earning-${earning._id}`}>
-    <View style={styles.icon}><Ionicons name={earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline'} size={22} color={colors.ink} /></View>
-    <View style={styles.rowBody}>
-      <Text weight="bold">{hasBusiness ? business : title}</Text>
-      <Text variant="label" tone="muted">{hasBusiness ? `${title} · ` : ''}{activityDate(activityTime(earning))}</Text>
-      {earning.status === 'pending' ? <Chip label="Pending" tone="warn" /> : null}
+function shortActivityDate(time: number): string {
+  return time ? new Date(time).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : 'Date unavailable';
+}
+
+function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status }: {
+  testID: string; title: string; subtitle: string; amount: string;
+  icon: React.ComponentProps<typeof Ionicons>['name']; darkIcon?: boolean; status?: { label: string; tone: ChipTone };
+}) {
+  const { width, fontScale } = useWindowDimensions();
+  const [measuredWidth, setMeasuredWidth] = useState(0);
+  const rowWidth = measuredWidth || Math.max(100, width - 60);
+  const units = [...amount].reduce((sum, character) => sum + (/[.,]/.test(character) ? 0.34 : 0.7), 0);
+  const moneyWidth = units * 16 * Math.max(1, fontScale);
+  const badgeWidth = status ? status.label.length * 9 * Math.max(1, fontScale) + 24 : 0;
+  const stacked = Math.max(moneyWidth, badgeWidth) > rowWidth * 0.4;
+  const amountAndStatus = <>
+    <Text variant="label" weight="extrabold" tone={darkIcon ? 'ink2' : 'ink'} tabular
+      style={stacked ? styles.stackedAmount : undefined}>{amount}</Text>
+    {status ? <Chip label={status.label} tone={status.tone} style={styles.previewStatus} /> : null}
+  </>;
+  return <View testID={testID} style={styles.compactActivity} onLayout={event => {
+    const measured = event.nativeEvent.layout.width;
+    if (Number.isFinite(measured) && measured > 0) setMeasuredWidth(measured);
+  }}>
+    <View style={styles.compactMain}>
+      <View style={[styles.icon, darkIcon && styles.payoutIcon]}><Ionicons name={icon} size={22} color={darkIcon ? colors.onDark : colors.ink} /></View>
+      <View style={styles.rowBody}>
+        <Text variant="label" weight="bold" numberOfLines={2}>{title}</Text>
+        <Text variant="label" tone="muted" numberOfLines={2}>{subtitle}</Text>
+      </View>
+      {!stacked ? <View style={styles.rowEnd}>{amountAndStatus}</View> : null}
     </View>
-    <Text weight="extrabold" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.rowAmount}>+{walletPeso(earning.amount)}</Text>
+    {stacked ? <View style={styles.compactFooter}>{amountAndStatus}</View> : null}
   </View>;
 }
 
-export function PayoutRow({ withdrawal, divider = false }: { withdrawal: WalletWithdrawal; divider?: boolean }) {
+export function EarningRow({ earning, divider = false, compact = false }: { earning: WalletEarning; divider?: boolean; compact?: boolean }) {
+  const title = EARNING_TITLE[earning.type ?? ''] ?? 'Earnings';
+  const business = earning.businessName?.trim();
+  const hasBusiness = !!business && business !== 'Unknown';
+  if (compact) return <CompactActivityRow testID={`earning-${earning._id}`} title={hasBusiness ? business : title}
+    subtitle={`${hasBusiness ? `${title} · ` : ''}${shortActivityDate(activityTime(earning))}`} amount={`+${walletPeso(earning.amount)}`}
+    icon={earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline'}
+    status={earning.status === 'pending' ? { label: 'Pending', tone: 'warn' } : undefined} />;
+  return <View style={[styles.row, divider && styles.divider]} testID={`earning-${earning._id}`}>
+    <View style={styles.icon}><Ionicons name={earning.type === 'creator_override' ? 'people-outline' : 'storefront-outline'} size={22} color={colors.ink} /></View>
+    <View style={styles.rowBody}>
+      <Text variant="label" weight="bold">{hasBusiness ? business : title}</Text>
+      <Text variant="label" tone="muted">{hasBusiness ? `${title} · ` : ''}{activityDate(activityTime(earning))}</Text>
+      {earning.status === 'pending' ? <Chip label="Pending" tone="warn" /> : null}
+    </View>
+    <Text variant="label" weight="extrabold" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.rowAmount}>+{walletPeso(earning.amount)}</Text>
+  </View>;
+}
+
+export function PayoutRow({ withdrawal, divider = false, compact = false }: { withdrawal: WalletWithdrawal; divider?: boolean; compact?: boolean }) {
   const status = WITHDRAWAL_STATUS[withdrawal.status] ?? { label: withdrawal.status, tone: 'muted' as ChipTone };
   const failure = withdrawal.failureReason || withdrawal.errorMessage;
+  if (compact) return <CompactActivityRow testID={`payout-${withdrawal._id}`} darkIcon icon="arrow-up-outline" status={status}
+    title={withdrawal.wiseEmail ? `To Wise · ${shortActivityDate(activityTime(withdrawal))}` : withdrawal.bankName || 'Wise transfer'}
+    subtitle={withdrawal.wiseEmail || shortActivityDate(activityTime(withdrawal))} amount={`−${walletPeso(withdrawal.amount)}`} />;
   return <View style={[styles.row, divider && styles.divider]} testID={`payout-${withdrawal._id}`}>
     <View style={[styles.icon, styles.payoutIcon]}><Ionicons name="arrow-up-outline" size={22} color={colors.onDark} /></View>
     <View style={styles.rowBody}>
@@ -92,20 +135,22 @@ export function EarningsTrend({ earnings }: { earnings: WalletEarning[] }) {
   });
   const maximum = Math.max(0, ...months.map(month => month.total));
   const current = months[5];
-  return <Card variant="lg" style={styles.trend}>
-    <Text variant="label" tone="muted">Earned in {now.toLocaleDateString('en-PH', { month: 'long' })}</Text>
-    <Text variant="display" tabular accessibilityLabel={`Earned this month, ${walletPeso(current.total)}`}>{walletPeso(current.total)}</Text>
+  return <Card style={styles.trend}>
+    <View style={styles.trendHeader}>
+      <Text variant="label" tone="muted">Earned in {now.toLocaleDateString('en-PH', { month: 'long' })}</Text>
+      <Text variant="heading" tabular accessibilityLabel={`Earned this month, ${walletPeso(current.total)}`}
+        accessibilityHint="Includes credited available and withdrawn earnings. Pending earnings are excluded." style={styles.trendAmount}>{walletPeso(current.total)}</Text>
+    </View>
     {maximum > 0 ? <View style={styles.chart} testID="earnings-six-month-trend">
       {months.map((month, index) => <View key={month.key} style={styles.barColumn} accessible
         accessibilityLabel={`${month.fullLabel}, ${walletPeso(month.total)} earned`}>
         <View style={styles.barWell}>
           <View testID={`earnings-bar-${month.key}`} style={[styles.bar,
-            { height: maximum > 0 ? Math.max(0, month.total / maximum) * 64 : 0 }, index === 5 && month.total > 0 && styles.currentBar]} />
+            { height: maximum > 0 ? Math.max(0, month.total / maximum) * 36 : 0 }, index === 5 && month.total > 0 && styles.currentBar]} />
         </View>
         <Text variant="label" tone={index === 5 ? 'ink' : 'muted'}>{month.label}</Text>
       </View>)}
     </View> : <Text tone="muted">No earnings recorded in the last six months.</Text>}
-    <Text variant="label" tone="muted">Credited earnings · pending earnings excluded</Text>
   </Card>;
 }
 
@@ -114,6 +159,17 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
   isOffline: boolean;
   filter: HistoryFilter; onFilter: (filter: HistoryFilter) => void; onBack: () => void;
 }) {
+  const { width, fontScale } = useWindowDimensions();
+  const [summaryWidth, setSummaryWidth] = useState(0);
+  const summaryValues = ([['Earned', earned], ['Cashed out', withdrawn], ['Ready', balance]] as const)
+    .map(([label, amount]) => ({ label, value: amount === null ? '—' : walletPeso(amount) }));
+  const widestUnits = Math.max(...summaryValues.map(({ value }) => [...value]
+    .reduce((sum, character) => sum + (/[.,]/.test(character) ? 0.34 : 0.7), 0)));
+  const innerWidth = (summaryWidth || Math.max(100, width - 40)) - space.xs * 2;
+  const columnWidth = innerWidth / 3 - space.xs * 2;
+  const stackedSummary = widestUnits * 16 * Math.max(1, fontScale) > columnWidth;
+  const valueWidth = stackedSummary ? innerWidth - space.xs * 2 : columnWidth;
+  const summaryFontSize = Math.max(16, Math.min(17, Math.floor(valueWidth / (widestUnits * Math.max(1, fontScale)))));
   const records = [
     ...(filter !== 'cashed-out' ? (earnings ?? []).map(earning => ({ kind: 'earning' as const, row: earning, time: activityTime(earning) })) : []),
     ...(filter !== 'earned' ? (withdrawals ?? []).map(withdrawal => ({ kind: 'payout' as const, row: withdrawal, time: activityTime(withdrawal) })) : []),
@@ -125,11 +181,19 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
     group.push(record); groups.set(month, group);
   }
   const loading = (filter !== 'cashed-out' && earnings === undefined) || (filter !== 'earned' && withdrawals === undefined);
-  return <ScreenShell title="Payout history" onBack={onBack} insetBottom={false} testID="wallet-history">
+  return <ScreenShell onBack={onBack} insetBottom={false} testID="wallet-history" contentStyle={styles.historyContent}
+    headerRight={<View pointerEvents="none" style={styles.historyTitle}><Text variant="label" weight="bold" accessibilityRole="header">History</Text></View>}>
     <View style={styles.historyStack}>
-      <Card style={styles.summary}>
-        {([['Earned', earned], ['Cashed out', withdrawn], ['Ready', balance]] as const).map(([label, amount], index) => <View key={label} style={[styles.summaryStat, index > 0 && styles.summaryDivider]}>
-          <Text weight="extrabold" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{amount === null ? '—' : walletPeso(amount)}</Text>
+      <Card style={[styles.summary, stackedSummary && styles.summaryColumn]} onLayout={event => {
+        const measured = event.nativeEvent.layout.width;
+        if (Number.isFinite(measured) && measured > 0) setSummaryWidth(measured);
+      }}>
+        {summaryValues.map(({ label, value }, index) => <View key={label} style={[
+          styles.summaryStat, stackedSummary && styles.summaryStatStacked,
+          index > 0 && (stackedSummary ? styles.summaryStackedDivider : styles.summaryDivider),
+        ]}>
+          <Text weight="extrabold" tabular align="center" accessibilityLabel={`${label}, ${value}`}
+            style={{ maxWidth: '100%', fontSize: summaryFontSize, lineHeight: Math.ceil(summaryFontSize * 1.4) }}>{value}</Text>
           <Text variant="label" tone="muted" align="center">{label}</Text>
         </View>)}
       </Card>
@@ -151,22 +215,35 @@ export function WalletHistory({ earnings, withdrawals, balance, earned, withdraw
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.lg },
+  compactActivity: { paddingVertical: space.sm },
+  compactMain: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  compactFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
+  stackedAmount: { maxWidth: '100%', flexShrink: 1 },
+  previewStatus: { maxWidth: '100%' },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
   icon: { width: 44, height: 44, borderRadius: radius.field, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   payoutIcon: { backgroundColor: colors.ink },
   rowBody: { flex: 1, minWidth: 0, gap: space.xs },
   rowAmount: { maxWidth: '37%' },
+  rowEnd: { alignItems: 'flex-end', gap: space.xs, maxWidth: '40%' },
   payoutMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, flexWrap: 'wrap' },
-  trend: { gap: space.sm },
-  chart: { flexDirection: 'row', gap: space.sm, marginTop: space.md },
+  trend: { gap: space.sm, paddingVertical: space.md, paddingHorizontal: 14 },
+  trendHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, flexWrap: 'wrap' },
+  trendAmount: { maxWidth: '100%', fontSize: 20, lineHeight: 24, letterSpacing: -0.4 },
+  chart: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
   barColumn: { flex: 1, alignItems: 'center', gap: space.sm, minWidth: 0 },
-  barWell: { height: 64, alignSelf: 'stretch', justifyContent: 'flex-end' },
+  barWell: { height: 36, alignSelf: 'stretch', justifyContent: 'flex-end' },
   bar: { borderRadius: 8, backgroundColor: colors.ruleStrong },
   currentBar: { backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.ink },
   historyStack: { gap: space.xl },
+  historyContent: { paddingHorizontal: 20, paddingTop: space.lg },
+  historyTitle: { position: 'absolute', left: 80, right: 80, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   summary: { flexDirection: 'row', paddingHorizontal: space.xs, paddingVertical: space.lg },
-  summaryStat: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xs, paddingHorizontal: space.xs },
+  summaryColumn: { flexDirection: 'column', gap: space.md },
+  summaryStat: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, alignItems: 'center', justifyContent: 'center', gap: space.xs, paddingHorizontal: space.xs },
+  summaryStatStacked: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
   summaryDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.ruleStrong },
+  summaryStackedDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.ruleStrong, paddingTop: space.md },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   historyMonth: { gap: space.md },
   historyCard: { paddingVertical: 0 },

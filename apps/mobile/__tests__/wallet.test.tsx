@@ -194,6 +194,7 @@ describe("WalletScreen", () => {
     setupQueries(mockCreator, earnings);
     const view = render(<WalletScreen />);
     expect(view.getByText("5% team commission")).toBeTruthy();
+    fireEvent.press(view.getByLabelText('All earnings'));
     expect(view.getByText("From your invites")).toBeTruthy();
     expect(view.getByText("+₱250")).toBeTruthy();
   });
@@ -205,11 +206,13 @@ describe("WalletScreen", () => {
   });
 
   it("renders recent earnings as +₱ rows and the history status chip", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText("+₱1,000")).toBeTruthy();
-    expect(getByText("+₱500")).toBeTruthy();
-    expect(getByText("−₱500")).toBeTruthy();
-    expect(getByText("Completed")).toBeTruthy();
+    const view = render(<WalletScreen />);
+    expect(view.getByText("+₱1,000")).toBeTruthy();
+    expect(view.queryByText("+₱500")).toBeNull();
+    expect(view.getByText("−₱500")).toBeTruthy();
+    expect(view.getByText("Completed")).toBeTruthy();
+    fireEvent.press(view.getByLabelText('All earnings'));
+    expect(view.getByText("+₱500")).toBeTruthy();
   });
 
   it("links to the Invite field agents screen", () => {
@@ -219,9 +222,10 @@ describe("WalletScreen", () => {
   });
 
   it("renders withdrawal history with Wise email and transfer ID", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/Wise \u00b7 juan@wise\.com/)).toBeTruthy();
-    expect(getByText(/Wise #12345/)).toBeTruthy();
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('All cash-outs'));
+    expect(view.getByText(/Wise \u00b7 juan@wise\.com/)).toBeTruthy();
+    expect(view.getByText(/Wise #12345/)).toBeTruthy();
   });
 
   it("renders legacy withdrawal history with bank name", () => {
@@ -409,6 +413,34 @@ describe("WithdrawalModal", () => {
 describe('Earn design and complete history', () => {
   beforeEach(() => { jest.clearAllMocks(); setupQueries(); });
 
+  it('starts with the compact balance and exposes a48pt History control without a duplicate page heading', () => {
+    const view = render(<WalletScreen />);
+    expect(view.queryByText('Earn')).toBeNull();
+    expect(view.getByRole('header', { name: 'Available to cash out' })).toBeTruthy();
+    expect(view.getByLabelText('View all earnings and payouts')).toHaveStyle({ width: 48, height: 48 });
+    expect(view.getAllByTestId(/^earning-/)).toHaveLength(1);
+    expect(view.getAllByTestId(/^payout-/)).toHaveLength(1);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByRole('header', { name: 'History' })).toBeTruthy();
+    expect(view.queryByText('Payout history')).toBeNull();
+  });
+
+  it('preserves exact preview money and a readable cash-out action with large text and long names', () => {
+    jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 320, height: 812, scale: 3, fontScale: 1.5 });
+    const businessName = 'A very long community business name that still belongs to the actual earning';
+    const wiseEmail = 'a.long.account.name.for.our.actual.recipient@example.com';
+    setupQueries({ ...mockCreator, balance: 1234567.89 }, [{ _id: 'long-money', amount: 1234567.89, status: 'available',
+      businessName, createdAt: Date.now() }], [{ ...mockWithdrawals[0], amount: 1234567.89, wiseEmail }]);
+    const view = render(<WalletScreen />);
+    expect(view.getByText(businessName).props.numberOfLines).toBe(2);
+    expect(view.getByText(wiseEmail).props.numberOfLines).toBe(2);
+    expect(view.getByText('+₱1,234,567.89').props.numberOfLines).toBeUndefined();
+    expect(view.getByText('−₱1,234,567.89').props.numberOfLines).toBeUndefined();
+    expect(view.getByText('₱1,234,567.89 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out')).toBeTruthy();
+    expect(view.getByTestId('withdraw-button').props.accessibilityLabel).toBe('Cash out ₱1,234,567.89 to Wise');
+  });
+
   it('uses real credited calendar-month earnings and keeps pending money out of the trend', () => {
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 2, 12).getTime();
@@ -425,9 +457,11 @@ describe('Earn design and complete history', () => {
     expect(view.getByTestId('earnings-six-month-trend').children).toHaveLength(6);
     expect(view.getByText('Cash out ₱1,500 to Wise')).toBeTruthy();
     expect(view.getByText('Kalan')).toBeTruthy();
+    expect(view.queryByText('Pending shop')).toBeNull();
+    expect(view.queryByText('Your price')).toBeNull();
+    fireEvent.press(view.getByLabelText('All earnings'));
     expect(view.getByText('Pending shop')).toBeTruthy();
     expect(view.getByText('Pending')).toBeTruthy();
-    expect(view.queryByText('Your price')).toBeNull();
   });
 
   it('does not show a zero or empty earnings state while the ledger is loading', () => {

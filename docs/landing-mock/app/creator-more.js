@@ -379,17 +379,16 @@
 
   const editProfile = () => `
     ${topBar('Edit profile')}
-    <div class="cm-body" style="top:106px">
+    <div class="cm-body" style="top:106px;bottom:116px">
       <div class="cm-pad cm-col" style="gap:13px;padding-top:6px">
         <div class="cm-avedit">${av(96)}<span class="cm-cam">${I('camera')}</span></div>
         <span class="cm-small" style="text-align:center;margin:-4px 0 4px">Tap the photo to change it</span>
         <div class="cm-split">${fl('First name', field('', ME.first))}${fl('Last name', field('', ME.last))}</div>
         ${fl('Mobile', field('phone', '0917 482 3310'))}
         ${fl('Email', field('mail', ME.email, { right: I('lock', 'cm-lock') }), '<span class="a-label">Can\'t change</span>')}
-        <div style="margin-top:8px">${door('Save changes', 'accent')}</div>
-        <p class="cm-danger" style="margin-top:8px">Delete my account</p>
+        <div class="door door--ghost" style="margin-top:8px;border:1px solid var(--a-danger);color:var(--a-danger);display:flex;align-items:center;justify-content:center;gap:8px">${I('trash-2')}Delete my account</div>
       </div>
-    </div>`;
+    </div><div class="cm-cta" style="bottom:34px">${door('Save changes', 'accent')}</div>`;
 
   const acc = (q, a = '', icon = '') => `<div class="a-card cm-acc${a ? ' is-open' : ''}"><div class="q">${icon ? `<span class="cm-icwrap" style="width:36px;height:36px;border-radius:12px">${I(icon)}</span>` : ''}<span>${q}</span>${I(a ? 'chevron-up' : 'chevron-down')}</div>${a ? `<div class="a">${a}</div>` : ''}</div>`;
   const faq = () => `
@@ -455,7 +454,7 @@ These Terms are a legally binding agreement between you and Tendso ("we," "us," 
     ] },
     { name: 'Me', screens: [
       [profile, 'Profile', P + '(tabs)/profile.tsx', 'Field-agent identity and certification; Submitted excludes drafts, while Your submissions includes them. Real Balance/Earned, certificate, Dashboard, learning, referrals, settings and legal links. No rating or affiliate page link.'],
-      [editProfile, 'Edit profile', P + 'edit-profile.tsx', 'Photo, name and mobile; email locked. Wise payout setup remains in Earn.'],
+      [editProfile, 'Edit profile', P + 'edit-profile.tsx', 'Centered photo/camera action, split names, mobile and locked email. Save changes stays pinned; deletion is a separate outlined button. Rejected-profile correction keeps its warning and focus behavior. Wise payout setup remains in Earn.'],
       [faq, 'Help & FAQ', P + 'help-faq.tsx', 'Money tab, one answer open, rewritten to the 2026-10-06 rule (no 5-site lock).'],
       [terms, 'Terms', P + 'terms-of-service.tsx', 'Top of the terms, section 1 open.'],
     ] },

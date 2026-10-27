@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
+  useWindowDimensions,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
@@ -19,7 +20,7 @@ import { useDeleteAccount } from '../../hooks/useDeleteAccount';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import { colors, radius, shadow, space } from '../../theme/v2';
+import { colors, hit, radius, space } from '../../theme/v2';
 import { Avatar, Banner, Button, Field, Loading, ScreenShell, Text } from '../../components/v2';
 import { ProfileReviewNotice } from '../../components/profile/ProfileReviewNotice';
 import { isCreatorAccount } from '../../../../lib/accounts';
@@ -27,28 +28,42 @@ import { isCreatorAccount } from '../../../../lib/accounts';
 const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
 export default function EditProfileScreen() {
+  const { user, isLoaded } = useUser();
+  return <EditProfileForm key={user?.id ?? 'signed-out'} user={user} isLoaded={isLoaded} />;
+}
+
+function EditProfileForm({ user, isLoaded }: {
+  user: ReturnType<typeof useUser>['user'];
+  isLoaded: boolean;
+}) {
   const router = useGuardedRouter();
   const { review, field } = useLocalSearchParams<{ review?: string; field?: string }>();
-  const { user, isLoaded } = useUser();
+  const { width, fontScale } = useWindowDimensions();
   const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
   const updateCreator = useMutation(api.creators.update);
   const resubmitProfileForReview = useMutation(api.creators.resubmitProfileForReview);
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
 
-  const creator = useQuery(
+  const result = useQuery(
     api.creators.getByClerkId,
     user ? { clerkId: user.id } : 'skip'
   );
+  const creator = result && result.clerkId !== user?.id ? undefined : result;
 
   const [firstName, setFirstName]           = useState('');
   const [lastName,  setLastName]            = useState('');
   const [phone,     setPhone]               = useState('');
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [loading,   setLoading]             = useState(false);
+  const [picking, setPicking] = useState(false);
   const [error,     setError]               = useState('');
   const [success,   setSuccess]             = useState(false);
   const initializedId = useRef<string | null>(null);
   const saving = useRef(false);
+  const pickingPhoto = useRef(false);
+  const saved = useRef(false);
+  const mounted = useRef(true);
+  const backTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const firstNameRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
@@ -57,6 +72,25 @@ export default function EditProfileScreen() {
   const [fieldPositions, setFieldPositions] = useState<{ name?: number; phone?: number }>({});
   const targetField = field === 'name' || field === 'phone' ? field : null;
   const reviewing = review === '1' && isCreatorAccount(creator);
+  const canEdit = isLoaded && !!user && !!creator && !creator.isDeleted
+    && creator.status !== 'deleted' && creator.status !== 'suspended'
+    && (!reviewing || (!!creator.rejectedAt && !!creator.quizPassedAt && !creator.certifiedAt));
+  const current = useRef({ userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete });
+  current.current = { userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete };
+  const isCurrent = () => mounted.current && current.current.userId === user?.id
+    && current.current.creatorId === creator?._id;
+  const canWrite = () => isCurrent() && current.current.canEdit
+    && current.current.reviewing === reviewing && !current.current.deleting;
+  const busy = loading || picking || deleting;
+  const splitNames = !reviewing && width >= 360 && fontScale <= 1.3;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (backTimer.current !== null) clearTimeout(backTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!reviewing || !creator) return;
@@ -122,55 +156,60 @@ export default function EditProfileScreen() {
   };
 
   const handlePickImage = async () => {
-    if (saving.current || loading || deleting) return;
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant access to your photos to update your profile picture.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-
-      // Normalize the picked/cropped image so the round avatar is deterministic
-      // on every device. expo-image-picker's built-in editor alone doesn't
-      // guarantee this, which is why "centered in the square cropper" didn't
-      // match the round avatar:
-      //   • center-square crop — guards against a non-square result (some
-      //     Android crop intents return the full image / wrong aspect)
-      //   • bake EXIF orientation — iPhone photos carry a rotation flag the
-      //     native crop preview honors but a raw <Image> renders shifted/rotated
-      //   • downscale + re-encode as REAL JPEG — iPhones hand back HEIC, which
-      //     we were uploading mislabeled as image/jpeg (renders inconsistently)
-      try {
-        const side = Math.min(asset.width, asset.height);
-        const originX = Math.round((asset.width - side) / 2);
-        const originY = Math.round((asset.height - side) / 2);
-
-        const rendered = await ImageManipulator.manipulate(asset.uri)
-          .crop({ originX, originY, width: side, height: side })
-          .resize({ width: 512, height: 512 })
-          .renderAsync();
-        const output = await rendered.saveAsync({ compress: 0.85, format: SaveFormat.JPEG });
-        setProfileImageUri(output.uri);
-      } catch (e) {
-        // If normalization ever fails, fall back to the raw cropped uri so the
-        // user can still set a photo.
-        console.warn('Avatar normalization failed, using raw crop:', e);
-        setProfileImageUri(asset.uri);
+    if (!canWrite() || saving.current || pickingPhoto.current || saved.current) return;
+    pickingPhoto.current = true;
+    setPicking(true);
+    setError('');
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!canWrite()) return;
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please grant access to your photos to update your profile picture.');
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!canWrite()) return;
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        // Normalize the square crop and EXIF orientation before resizing and
+        // encoding, so the saved photo matches the circular avatar preview.
+        try {
+          const side = Math.min(asset.width, asset.height);
+          const originX = Math.round((asset.width - side) / 2);
+          const originY = Math.round((asset.height - side) / 2);
+          const rendered = await ImageManipulator.manipulate(asset.uri)
+            .crop({ originX, originY, width: side, height: side })
+            .resize({ width: 512, height: 512 })
+            .renderAsync();
+          if (!canWrite()) return;
+          const output = await rendered.saveAsync({ compress: 0.85, format: SaveFormat.JPEG });
+          if (!canWrite()) return;
+          setProfileImageUri(output.uri);
+        } catch (e) {
+          // Keep the existing cropped-photo fallback if normalization fails.
+          if (canWrite()) {
+            console.warn('Avatar normalization failed, using raw crop:', e);
+            setProfileImageUri(asset.uri);
+          }
+        }
+      }
+    } catch (err) {
+      if (canWrite()) setError(err instanceof Error ? err.message : 'Could not open your photos. Please try again.');
+    } finally {
+      pickingPhoto.current = false;
+      if (mounted.current) setPicking(false);
     }
   };
 
   const handleSave = async () => {
-    if (!user || !creator?._id || saving.current || deleting) return;
+    if (!user || !creator?._id || !canWrite() || saving.current || pickingPhoto.current || saved.current) return;
 
     const trimFirst = firstName.trim();
     const trimLast  = lastName.trim();
@@ -199,15 +238,19 @@ export default function EditProfileScreen() {
           filename: `avatar-${creator._id}.jpg`,
           contentType: 'image/jpeg',
         });
+        if (!canWrite()) return;
 
         const response = await fetch(profileImageUri);
+        if (!canWrite()) return;
         const blob = await response.blob();
+        if (!canWrite()) return;
 
         const uploadResult = await fetch(uploadUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'image/jpeg' },
           body: blob,
         });
+        if (!canWrite()) return;
 
         if (!uploadResult.ok) {
           throw new Error('Failed to upload profile image. Please try again.');
@@ -230,6 +273,7 @@ export default function EditProfileScreen() {
       } else {
         await updateCreator(updates);
       }
+      if (!canWrite()) return;
 
       // Convex is the profile displayed in the app. A Clerk sync failure must
       // not make a successful resubmission look like it failed.
@@ -240,14 +284,18 @@ export default function EditProfileScreen() {
         return;
       }
 
+      saved.current = true;
       setSuccess(true);
-      setTimeout(() => router.back(), 1200);
+      backTimer.current = setTimeout(() => {
+        if (canWrite()) router.back();
+      }, 1200);
     } catch (err: any) {
+      if (!canWrite()) return;
       console.error('Edit profile error:', err);
       setError(err?.errors?.[0]?.message ?? err?.message ?? 'Failed to update profile.');
     } finally {
       saving.current = false;
-      setLoading(false);
+      if (mounted.current) setLoading(false);
     }
   };
 
@@ -259,7 +307,7 @@ export default function EditProfileScreen() {
   if (creator === null) {
     return <Loading />;
   }
-  if (reviewing && !creator.quizPassedAt) return <Loading />;
+  if (reviewing && !canEdit) return <Loading />;
 
   // Use the saved profile photo, with the Clerk avatar as a fallback.
   const savedPhoto = creator.profileImage && /^https?:\/\//.test(creator.profileImage)
@@ -275,9 +323,14 @@ export default function EditProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScreenShell
-        title={reviewing ? 'Fix your profile' : 'Edit profile'}
+        title={reviewing ? 'Fix your profile' : undefined}
         subtitle={reviewing ? 'Correct your details below. Your quiz pass stays saved.' : undefined}
         onBack={() => router.back()}
+        headerRight={!reviewing ? (
+          <View pointerEvents="none" style={styles.headerTitle}>
+            <Text variant="bodyLg" weight="bold" accessibilityRole="header">Edit profile</Text>
+          </View>
+        ) : undefined}
         contentStyle={styles.content}
         scrollRef={scrollRef}
         footer={
@@ -285,7 +338,7 @@ export default function EditProfileScreen() {
             title={reviewing ? 'Resubmit for review' : success ? 'Saved' : 'Save changes'}
             onPress={handleSave}
             loading={loading}
-            disabled={loading || success || deleting}
+            disabled={busy || success || !canEdit}
             accessibilityLabel={reviewing ? 'Resubmit for review' : 'Save changes'}
           />
         }
@@ -301,25 +354,29 @@ export default function EditProfileScreen() {
         ) : null}
 
         {/* Avatar picker */}
-        <Pressable
-          onPress={handlePickImage}
-          disabled={loading || deleting}
-          accessibilityLabel="Change profile photo"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: loading || deleting }}
-          style={[styles.photoRow, shadow.soft]}
-        >
-          <Avatar uri={avatarUri} name={fullName || undefined} size={56} />
-          <View style={styles.rowBody}>
-            <Text variant="bodyLg" weight="semibold">Profile photo</Text>
-            <Text variant="label" tone="muted" weight="medium">Change photo</Text>
-          </View>
-          <View style={styles.camera}>
-            <Ionicons name="camera" size={18} color={colors.onAccent} />
-          </View>
-        </Pressable>
+        <View style={styles.photoSection}>
+          <Pressable
+            onPress={handlePickImage}
+            disabled={busy || success || !canEdit}
+            accessibilityLabel="Change profile photo"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: busy || success || !canEdit, busy: picking }}
+            style={styles.photo}
+          >
+            <Avatar uri={avatarUri} name={fullName || undefined} size={96} />
+            <View style={styles.camera}>
+              <Ionicons name="camera" size={18} color={colors.onAccent} />
+            </View>
+          </Pressable>
+          <Text variant="label" weight="medium" tone="muted" style={styles.photoHint}>
+            {picking ? 'Preparing your photo…' : 'Tap the photo to change it'}
+          </Text>
+        </View>
 
-        <View onLayout={(event) => recordFieldPosition('name', event.nativeEvent.layout.y)}>
+        <View
+          onLayout={(event) => recordFieldPosition('name', event.nativeEvent.layout.y)}
+          style={[styles.names, splitNames ? styles.namesSplit : null]}
+        >
           <Field
             ref={firstNameRef}
             label="First name"
@@ -328,19 +385,21 @@ export default function EditProfileScreen() {
             onChangeText={setFirstName}
             onBlur={() => { pendingKeyboardReveal.current = null; }}
             autoCapitalize="words"
-            editable={!loading && !deleting}
+            editable={!busy && !success && canEdit}
+            containerStyle={splitNames ? styles.nameColumn : undefined}
             accessibilityLabel="First name"
           />
+          <Field
+            label="Last name"
+            placeholder="Last name"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            editable={!busy && !success && canEdit}
+            containerStyle={splitNames ? styles.nameColumn : undefined}
+            accessibilityLabel="Last name"
+          />
         </View>
-        <Field
-          label="Last name"
-          placeholder="Last name"
-          value={lastName}
-          onChangeText={setLastName}
-          autoCapitalize="words"
-          editable={!loading && !deleting}
-          accessibilityLabel="Last name"
-        />
         <View onLayout={(event) => recordFieldPosition('phone', event.nativeEvent.layout.y)}>
           <Field
             ref={phoneRef}
@@ -352,14 +411,17 @@ export default function EditProfileScreen() {
             onBlur={() => { pendingKeyboardReveal.current = null; }}
             keyboardType="number-pad"
             maxLength={15}
-            editable={!loading && !deleting}
+            editable={!busy && !success && canEdit}
             accessibilityLabel="Phone number"
           />
         </View>
         <View style={styles.emailRow} accessible accessibilityLabel={`Email: ${email}. Can't change.`}>
           <Ionicons name="mail-outline" size={22} color={colors.ink3} />
           <View style={styles.rowBody}>
-            <Text variant="label" tone="muted">Email · Can't change</Text>
+            <View style={styles.emailLabel}>
+              <Text variant="label" tone="muted">Email</Text>
+              <Text variant="label" weight="medium" tone="muted">Can't change</Text>
+            </View>
             <Text variant="body" weight="medium">{email}</Text>
           </View>
           <Ionicons name="lock-closed-outline" size={18} color={colors.ink3} />
@@ -374,9 +436,10 @@ export default function EditProfileScreen() {
             size="md"
             icon="trash-outline"
             loading={deleting}
-            disabled={deleting || loading || !canDelete}
+            disabled={busy || success || !canDelete}
             onPress={() => {
-              if (saving.current || deleting || loading || !canDelete) return;
+              if (!isCurrent() || saving.current || pickingPhoto.current || saved.current
+                || current.current.deleting || !current.current.canDelete) return;
               requestDelete();
             }}
           />
@@ -389,19 +452,25 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { gap: space.md, paddingTop: space.lg, paddingBottom: space.xxl },
-  photoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    padding: space.lg,
-    backgroundColor: colors.card,
-    borderRadius: radius.card,
+  headerTitle: {
+    position: 'absolute', left: space.gutter + hit.icon + space.sm,
+    right: space.gutter + hit.icon + space.sm, top: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center',
   },
+  photoSection: { alignItems: 'center', gap: space.md, marginBottom: space.lg },
+  photo: { width: 96, height: 96 },
+  photoHint: { textAlign: 'center' },
+  names: { gap: space.md },
+  namesSplit: { flexDirection: 'row', alignItems: 'flex-start' },
+  nameColumn: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0 },
   rowBody: { flex: 1, minWidth: 0, gap: space.xs },
   camera: {
-    width: 36,
-    height: 36,
+    position: 'absolute', right: -2, bottom: 2,
+    width: 34,
+    height: 34,
     borderRadius: radius.pill,
+    borderWidth: 3,
+    borderColor: colors.bg,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
@@ -414,5 +483,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     backgroundColor: colors.bg2,
   },
+  emailLabel: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: space.xs },
   danger: { marginTop: space.xl },
 });

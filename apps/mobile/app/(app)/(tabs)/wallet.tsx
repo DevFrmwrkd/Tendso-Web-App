@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, BackHandler, Keyboard, Linking, Platform, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Alert, BackHandler, Keyboard, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
@@ -18,7 +18,6 @@ import {
   ScreenShell,
   SectionLabel,
   Text,
-  TextLink,
   formatPeso,
 } from '../../../components/v2';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
@@ -187,8 +186,8 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
   const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
   const sortedWithdrawals = withdrawals ? [...withdrawals].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
-  const recentWithdrawals = sortedWithdrawals?.slice(0, 3) ?? [];
-  const recentEarnings = sortedEarnings?.slice(0, 3) ?? [];
+  const recentWithdrawals = sortedWithdrawals?.slice(0, 1) ?? [];
+  const recentEarnings = sortedEarnings?.slice(0, 1) ?? [];
   const savedWiseEmail = creator?.wiseEmail;
   const totalEarnings = creator ? (isAffiliate ? portal?.summary.totalEarned : creator.totalEarnings)
     ?? (earnings ? earnings.filter(isCredited).reduce((sum, row) => sum + row.amount, 0) : null) : null;
@@ -290,35 +289,36 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const sendLabel = amountReady ? `Send ${peso(typedAmount)} to Wise` : 'Send to Wise';
   const balanceText = balance === null ? '—' : peso(balance);
   const balanceUnits = moneyTextUnits(balanceText);
-  const balanceAvailableWidth = balanceWidth || Math.max(100, width - space.gutter * 2 - (space.xl - 4) * 2);
+  const balanceAvailableWidth = balanceWidth || Math.max(100, width - 40 - 28);
   // Size from the actual card width, including centavos and grouping marks.
   // Native and web both show the full amount without relying on text autosize.
-  const balanceFontSize = Math.max(16, Math.min(56, Math.floor(balanceAvailableWidth / (balanceUnits * Math.max(1, fontScale)))));
+  const balanceFontSize = Math.max(16, Math.min(48, Math.floor(balanceAvailableWidth / (balanceUnits * Math.max(1, fontScale)))));
   const earnedText = totalEarnings === null ? '—' : peso(totalEarnings);
   const withdrawnText = totalWithdrawn === null ? '—' : peso(totalWithdrawn);
   const statUnits = Math.max(moneyTextUnits(earnedText), moneyTextUnits(withdrawnText));
-  const statsAvailableWidth = statsWidth || Math.max(100, width - space.gutter * 2);
-  const sideBySideValueWidth = (statsAvailableWidth - space.md) / 2 - space.lg * 2;
+  const statsAvailableWidth = statsWidth || Math.max(100, width - 40);
+  const sideBySideValueWidth = (statsAvailableWidth - space.sm) / 2 - space.md * 2;
   const stackStats = statUnits * 16 * Math.max(1, fontScale) > sideBySideValueWidth;
-  const statValueWidth = stackStats ? statsAvailableWidth - space.lg * 2 : sideBySideValueWidth;
-  const statFontSize = Math.max(16, Math.min(28, Math.floor(statValueWidth / (statUnits * Math.max(1, fontScale)))));
+  const statValueWidth = stackStats ? statsAvailableWidth - space.md * 2 : sideBySideValueWidth;
+  const statFontSize = Math.max(16, Math.min(22, Math.floor(statValueWidth / (statUnits * Math.max(1, fontScale)))));
+  const cashOutTitle = balance === null ? 'Balance unavailable' : balance > 0 ? `Cash out ${peso(balance)} to Wise` : 'No balance available';
+  const cashOutUnits = [...cashOutTitle].reduce((sum, character) => sum + (/\s/.test(character) ? 0.3 : /[.,]/.test(character) ? 0.34 : /[0-9₱]/.test(character) ? 0.7 : 0.58), 0);
+  const compactCashOut = balance !== null && balance > 0 && cashOutUnits * 18 * Math.max(1, fontScale) > Math.max(100, width - space.gutter * 2 - space.xl * 2);
 
   if (showHistory && creator) return <WalletHistory earnings={earnings} withdrawals={withdrawals} balance={balance}
     earned={totalEarnings} withdrawn={totalWithdrawn} isOffline={isOffline} filter={historyFilter} onFilter={setHistoryFilter} onBack={() => setShowHistory(false)} />;
 
   return (
     <ScreenShell
-      title="Earn"
       insetBottom={false}
-      headerRight={<Button title="History" variant="ghost" size="md" icon="time-outline" fullWidth={false}
-        onPress={() => openHistory('all')} disabled={!creator} accessibilityLabel="View all earnings and payouts" />}
+      testID="earn-screen"
+      contentStyle={styles.content}
       footer={
-        <Button
-          testID="withdraw-button"
-          title={balance === null ? 'Balance unavailable' : balance > 0 ? `Cash out ${peso(balance)} to Wise` : 'No balance available'}
-          onPress={openWithdrawFlow}
-          disabled={!canWrite || balance === null || balance <= 0}
-        />
+        <>
+          {compactCashOut && balance !== null ? <Text variant="label" align="center" tabular>{peso(balance)} to Wise</Text> : null}
+          <Button testID="withdraw-button" title={compactCashOut ? 'Cash out' : cashOutTitle} accessibilityLabel={cashOutTitle}
+            onPress={openWithdrawFlow} disabled={!canWrite || balance === null || balance <= 0} />
+        </>
       }
     >
       <View style={styles.stack}>
@@ -336,8 +336,12 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
         {/* Available balance */}
         <Card variant="lg" style={styles.hero}>
           <View style={styles.balanceHeading}>
-            <View style={styles.balanceIcon}><Ionicons name="wallet-outline" size={22} color={colors.ink} /></View>
-            <Text variant="label" tone="muted">Available to cash out</Text>
+            <Text variant="label" tone="muted" accessibilityRole="header">Available to cash out</Text>
+            <Pressable onPress={() => openHistory('all')} disabled={!creator} hitSlop={8} cssInterop={false}
+              accessibilityRole="button" accessibilityLabel="View all earnings and payouts" accessibilityState={{ disabled: !creator }}
+              style={styles.historyButton}>
+              <Ionicons name="time-outline" size={22} color={colors.ink} />
+            </Pressable>
           </View>
           <View testID="wallet-balance-width" onLayout={event => {
             const measured = event.nativeEvent.layout.width;
@@ -349,8 +353,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
               {balanceText}
             </Text>
           </View>
-          <Text variant="label" tone="ink2">{balance === null ? 'Reconnect to load your account balance.'
-            : savedWiseEmail ? `Payout email · ${savedWiseEmail}` : 'Set up your Wise email when you cash out.'}</Text>
+          {balance === null ? <Text variant="label" tone="ink2">Reconnect to load your account balance.</Text> : null}
         </Card>
 
         <View testID="wallet-stats-row" style={[styles.statRow, stackStats && styles.statColumn]} onLayout={event => {
@@ -366,8 +369,9 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
         {/* Recent earnings */}
         <View style={styles.section}>
-          <View style={styles.sectionHead}><SectionLabel>Recent earnings</SectionLabel>
-            <TextLink label="All earnings" onPress={() => openHistory('earned')} disabled={!creator} /></View>
+          <View style={styles.sectionHead}><SectionLabel style={styles.sectionTitle}>Recent earnings</SectionLabel>
+            <Pressable accessibilityRole="link" accessibilityLabel="All earnings" disabled={!creator} hitSlop={10}
+              onPress={() => openHistory('earned')} style={styles.historyLink}><Text variant="label" style={styles.linkText}>See all</Text></Pressable></View>
           {earnings === undefined ? <Text tone="muted">{isOffline ? 'Earnings unavailable offline.' : 'Loading recent earnings…'}</Text>
             : recentEarnings.length === 0 ? (
             <EmptyRow
@@ -376,21 +380,22 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             />
           ) : (
             <Card style={styles.listCard}>
-              {recentEarnings.map((earning, idx) => <EarningRow key={earning._id} earning={earning} divider={idx < recentEarnings.length - 1} />)}
+              {recentEarnings.map((earning, idx) => <EarningRow key={earning._id} earning={earning} compact divider={idx < recentEarnings.length - 1} />)}
             </Card>
           )}
         </View>
 
         {/* Withdrawal history */}
         <View style={styles.section}>
-          <View style={styles.sectionHead}><SectionLabel>Recent cash-outs</SectionLabel>
-            <TextLink label="All cash-outs" onPress={() => openHistory('cashed-out')} disabled={!creator} /></View>
+          <View style={styles.sectionHead}><SectionLabel style={styles.sectionTitle}>Cash outs</SectionLabel>
+            <Pressable accessibilityRole="link" accessibilityLabel="All cash-outs" disabled={!creator} hitSlop={10}
+              onPress={() => openHistory('cashed-out')} style={styles.historyLink}><Text variant="label" style={styles.linkText}>See all</Text></Pressable></View>
           {withdrawals === undefined ? <Text tone="muted">{isOffline ? 'Payout history unavailable offline.' : 'Loading payouts…'}</Text>
             : recentWithdrawals.length === 0 ? (
             <EmptyRow title="Nothing here yet" body="Your withdrawal history will show up here once you cash out." />
           ) : (
             <Card style={styles.listCard}>
-              {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} divider={idx < recentWithdrawals.length - 1} />)}
+              {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} compact divider={idx < recentWithdrawals.length - 1} />)}
             </Card>
           )}
         </View>
@@ -549,19 +554,23 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  stack: { gap: space.lg },
-  hero: { paddingVertical: space.xl, gap: space.md },
-  balanceHeading: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  balanceIcon: { width: 40, height: 40, borderRadius: radius.field, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
-  statRow: { flexDirection: 'row', alignItems: 'stretch', gap: space.md },
+  content: { paddingHorizontal: 20, paddingTop: 14 },
+  stack: { gap: space.sm },
+  hero: { borderRadius: radius.card, padding: 14, gap: space.xs },
+  balanceHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
+  historyButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  statRow: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
   statColumn: { flexDirection: 'column' },
   // Longhands let stacked cards return to content sizing in native Yoga.
-  stat: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, gap: space.xs, paddingHorizontal: space.lg },
+  stat: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0, borderRadius: radius.field, gap: space.xs, padding: space.md },
   statStacked: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
   linkCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
-  section: { gap: space.md, marginTop: space.sm },
+  section: { gap: space.sm, marginTop: space.xs },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: space.md },
-  listCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  sectionTitle: { color: colors.ink },
+  historyLink: { minHeight: 28, justifyContent: 'center', paddingHorizontal: space.xs },
+  linkText: { textDecorationLine: 'underline' },
+  listCard: { paddingVertical: space.xs, paddingHorizontal: 10 },
   empty: { gap: space.xs },
   // Sheets
   sheetScroll: { flexShrink: 1 },
