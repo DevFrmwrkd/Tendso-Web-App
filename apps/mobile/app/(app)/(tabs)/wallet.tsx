@@ -313,6 +313,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const cashOutTitle = balance === null ? 'Balance unavailable' : balance > 0 ? `Cash out ${peso(balance)} to Wise` : 'No balance available';
   const cashOutUnits = [...cashOutTitle].reduce((sum, character) => sum + (/\s/.test(character) ? 0.3 : /[.,]/.test(character) ? 0.34 : /[0-9₱]/.test(character) ? 0.7 : 0.58), 0);
   const compactCashOut = balance !== null && balance > 0 && cashOutUnits * 18 * Math.max(1, fontScale) > Math.max(100, width - space.gutter * 2 - space.xl * 2);
+  const cashOutDisabled = !canWrite || balance === null || balance <= 0;
 
   if (showHistory && creator) return <WalletHistory earnings={earnings} withdrawals={withdrawals} balance={balance}
     earned={totalEarnings} withdrawn={totalWithdrawn} submissionDetails={submissionDetails.bySubmission}
@@ -329,9 +330,11 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
           const measured = event.nativeEvent.layout.height;
           if (Number.isFinite(measured) && measured > 0) setCashOutHeight(measured);
         }}>
-          {compactCashOut && balance !== null ? <Text variant="label" align="center" tabular>{peso(balance)} to Wise</Text> : null}
+          {compactCashOut && balance !== null ? <View style={styles.cashOutAmount}>
+            <Text variant="label" align="center" tabular>{peso(balance)} to Wise</Text>
+          </View> : null}
           <Button testID="withdraw-button" size="md" title={compactCashOut ? 'Cash out' : cashOutTitle} accessibilityLabel={cashOutTitle}
-            onPress={openWithdrawFlow} disabled={!canWrite || balance === null || balance <= 0} />
+            onPress={openWithdrawFlow} disabled={cashOutDisabled} style={cashOutDisabled ? styles.cashOutDisabled : undefined} />
         </View>
       }
     >
@@ -579,6 +582,9 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', left: 20, right: 20, bottom: CASH_OUT_BOTTOM, zIndex: 1,
     paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, backgroundColor: 'transparent' },
   cashOut: { gap: space.sm },
+  cashOutAmount: { alignSelf: 'center', maxWidth: '100%', borderRadius: radius.pill,
+    paddingHorizontal: space.md, paddingVertical: space.xs, backgroundColor: colors.card },
+  cashOutDisabled: { opacity: 1, backgroundColor: colors.accentSoft, borderColor: colors.accentSoft },
   stack: { gap: space.sm },
   hero: { borderRadius: radius.card, padding: 14, gap: space.xs },
   balanceHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
