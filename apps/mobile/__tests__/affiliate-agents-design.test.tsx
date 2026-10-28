@@ -43,6 +43,27 @@ it('shows four real agents, zero earnings and the actual accessible months remai
   expect(progress.props.accessibilityValue).toEqual({ min: 0, max: 12, now: 5 });
   expect(progress.props.accessibilityHint).toMatch(/^Until/);
   expect(result.queryByText(/^Until/)).toBeNull();
+  expect(result.queryByText('Simulated progress')).toBeNull();
+});
+
+it.each([0, 3, 6, 9, 12])('labels %s demo months as simulated without claiming a real expiry', demoMonthsLeft => {
+  const data = { ...portal, recruits: [{ ...recruits[0], monthsLeft: 12, demoMonthsLeft, monthEarned: 123456789 }] };
+  const result = screen(data);
+  expect(result.getByText('Simulated progress')).toBeTruthy();
+  const progress = result.getByLabelText(`Agent 1, simulated progress, ${demoMonthsLeft} of 12 months remaining in this example`);
+  expect(progress.props.accessibilityValue).toEqual({ min: 0, max: 12, now: demoMonthsLeft });
+  expect(progress.props.accessibilityHint).toBe('Example progress only. The actual commission period and expiry date are unchanged.');
+  expect(result.queryByLabelText('Agent 1, 12 of 12 months remaining')).toBeNull();
+  expect(result.getByTestId('affiliate-agent-amount-agent-0').props.children).toBe('₱123,456,789');
+});
+
+it.each([-1, 13, 2.5, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, undefined, null, '9'])('ignores invalid simulated month metadata %s', invalid => {
+  const invalidRecruit = { ...recruits[0], demoMonthsLeft: invalid } as unknown as AffiliatePortal['recruits'][number];
+  const result = screen({ ...portal, recruits: [invalidRecruit] });
+  const progress = result.getByLabelText('Agent 1, 5 of 12 months remaining');
+  expect(progress.props.accessibilityValue.now).toBe(5);
+  expect(progress.props.accessibilityHint).toMatch(/^Until/);
+  expect(result.queryByText('Simulated progress')).toBeNull();
 });
 
 it('keeps four agents per page and disables controls at the page boundaries', () => {

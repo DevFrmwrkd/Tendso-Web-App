@@ -48,7 +48,10 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
     {portal === undefined ? <AffiliateLoading inline label="Loading your agents" /> : recruits.length ? <>
       <Card style={styles.agentList} testID="affiliate-agent-list">
         {recruits.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((recruit, index) => {
-          const months = Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
+          const demoMonthsLeft = recruit.demoMonthsLeft;
+          const simulated = typeof demoMonthsLeft === 'number' && Number.isFinite(demoMonthsLeft) &&
+            Number.isInteger(demoMonthsLeft) && demoMonthsLeft >= 0 && demoMonthsLeft <= 12;
+          const months = simulated ? demoMonthsLeft : Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
           const amount = recruit.monthEarned;
           const formatted = amount === undefined ? '—' : formatPHP(amount);
           const until = recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Commission period ended';
@@ -59,11 +62,14 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
               <View style={styles.meta}>
                 <Text variant="bodyLg" weight="bold" style={styles.name}>{recruit.referredName}</Text>
                 <View style={styles.months} accessibilityRole="progressbar"
-                  accessibilityLabel={`${recruit.referredName}, ${months} of 12 months remaining`}
-                  accessibilityHint={until}
+                  accessibilityLabel={simulated
+                    ? `${recruit.referredName}, simulated progress, ${months} of 12 months remaining in this example`
+                    : `${recruit.referredName}, ${months} of 12 months remaining`}
+                  accessibilityHint={simulated ? 'Example progress only. The actual commission period and expiry date are unchanged.' : until}
                   accessibilityValue={{ min: 0, max: 12, now: months }}>
                   {Array.from({ length: 12 }, (_, i) => <View key={i} testID={`affiliate-agent-month-${recruit._id}-${i}`} style={[styles.month, i < months && styles.monthOn]} />)}
                 </View>
+                {simulated ? <Text variant="label" tone="muted">Simulated progress</Text> : null}
               </View>
             </View>
             <Text variant="bodyLg" weight="extrabold" tabular testID={`affiliate-agent-amount-${recruit._id}`}
