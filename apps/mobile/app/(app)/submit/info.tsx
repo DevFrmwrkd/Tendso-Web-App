@@ -451,7 +451,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
         subtitle="The basics first. Photos and the interview come next."
         onBack={goBack}
         progress={0.2}
-        headerRight={<Text variant="label" tone="muted">1 / 4</Text>}
+        headerRight={<Text variant="label" tone="muted">1 / 5</Text>}
         contentStyle={styles.content}
         footer={<Button title={loading ? 'Saving…' : capture.isOffline ? 'Save & continue offline' : 'Continue to photos'}
           loading={loading} disabled={loading || !initialized} onPress={handleNext}
