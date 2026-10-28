@@ -78,6 +78,7 @@ import type * as lib_hostinger from "../lib/hostinger.js";
 import type * as lib_mediaChunker from "../lib/mediaChunker.js";
 import type * as lib_ownerApp from "../lib/ownerApp.js";
 import type * as lib_ownerAuth from "../lib/ownerAuth.js";
+import type * as lib_ownerCreatorCode from "../lib/ownerCreatorCode.js";
 import type * as lib_paymentPricing from "../lib/paymentPricing.js";
 import type * as lib_phone from "../lib/phone.js";
 import type * as lib_prospectViewport from "../lib/prospectViewport.js";
@@ -195,6 +196,7 @@ declare const fullApi: ApiFromModules<{
   "lib/mediaChunker": typeof lib_mediaChunker;
   "lib/ownerApp": typeof lib_ownerApp;
   "lib/ownerAuth": typeof lib_ownerAuth;
+  "lib/ownerCreatorCode": typeof lib_ownerCreatorCode;
   "lib/paymentPricing": typeof lib_paymentPricing;
   "lib/phone": typeof lib_phone;
   "lib/prospectViewport": typeof lib_prospectViewport;
