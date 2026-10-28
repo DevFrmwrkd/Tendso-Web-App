@@ -278,10 +278,14 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const stackStats = width < 360 || fontScale > 1.3 || moneyNeedsSpace;
   const compactStatValues = !stackStats && moneyLength > (affiliateAccount ? 10 : 8);
 
-  // Field agents: their work, then settings, then the small print. Creators
-  // (role `affiliate`) keep the trimmed menu: settings and legal only.
+  // Work tools stay reachable through the Home avatar without crowding Home.
   const workItems: MenuItem[] = [];
-  if (!affiliateAccount) {
+  if (affiliateAccount) {
+    workItems.push(
+      { icon: 'link-outline', label: 'My creator page', onPress: () => router.push('/(app)/(affiliate-tabs)/page' as any) },
+      { icon: 'receipt-outline', label: 'Sales', onPress: () => router.push('/(app)/(affiliate-tabs)/sales' as any) },
+    );
+  } else {
     if (isCertified) {
       workItems.push({
         icon: 'ribbon-outline',

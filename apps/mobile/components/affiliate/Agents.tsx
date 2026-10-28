@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Share, StyleSheet, View } from 'react-native';
+import { Pressable, Share, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { formatPHP } from '../../../../packages/shared/pricing';
@@ -21,7 +22,9 @@ function LiveAgents(props: AffiliateAccessProps) {
 }
 
 export function AgentsContent({ account, isPreview, isOffline, portal }: AffiliateAccessProps & { portal: AffiliatePortal | undefined }) {
+  const { width, fontScale } = useWindowDimensions();
   const [page, setPage] = useState(0);
+  const [inviting, setInviting] = useState(false);
   const [error, setError] = useState('');
   const sharing = useRef(false);
   const recruits = portal?.recruits ?? [];
@@ -36,38 +39,59 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
     catch { setError('Could not share your invite. Please try again.'); }
     finally { sharing.current = false; }
   };
-  return <AffiliateFrame title="My agents" sub={portal?.month?.label ?? 'This month'} preview={isPreview}
+  return <AffiliateFrame preview={isPreview}
     suspended={account.status !== 'active'} offline={isOffline}>
+    <View style={styles.header}>
+      <Text variant="display" accessibilityRole="header" style={styles.title}>My agents</Text>
+      <Text tone="muted" style={styles.subtitle}>This month</Text>
+    </View>
     {portal === undefined ? <AffiliateLoading inline label="Loading your agents" /> : recruits.length ? <>
-      <View style={styles.list}>
-        {recruits.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map(recruit => {
+      <Card style={styles.agentList} testID="affiliate-agent-list">
+        {recruits.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((recruit, index) => {
           const months = Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
           const amount = recruit.monthEarned;
-          return <Card key={recruit._id} style={styles.agent}>
-            <Avatar name={recruit.referredName} uri={recruit.photo ?? undefined} size={52} />
-            <View style={styles.meta}>
-              <Text variant="bodyLg" weight="bold">{recruit.referredName}</Text>
-              <View style={styles.months} accessibilityRole="progressbar"
-                accessibilityLabel={`${recruit.referredName}, ${months} of 12 months remaining`}
-                accessibilityValue={{ min: 0, max: 12, now: months }}>
-                {Array.from({ length: 12 }, (_, i) => <View key={i} style={[styles.month, i < months && styles.monthOn]} />)}
+          const formatted = amount === undefined ? '—' : formatPHP(amount);
+          const until = recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Commission period ended';
+          const stack = width < 360 || fontScale > 1.2 || formatted.length > 8;
+          return <View key={recruit._id} testID={`affiliate-agent-row-${recruit._id}`} style={[styles.agent, index > 0 && styles.divider, stack && styles.stackedAgent]}>
+            <View style={[styles.identity, stack && styles.stackedIdentity]}>
+              <Avatar name={recruit.referredName} uri={recruit.photo ?? undefined} size={52} />
+              <View style={styles.meta}>
+                <Text variant="bodyLg" weight="bold" style={styles.name}>{recruit.referredName}</Text>
+                <View style={styles.months} accessibilityRole="progressbar"
+                  accessibilityLabel={`${recruit.referredName}, ${months} of 12 months remaining`}
+                  accessibilityHint={until}
+                  accessibilityValue={{ min: 0, max: 12, now: months }}>
+                  {Array.from({ length: 12 }, (_, i) => <View key={i} testID={`affiliate-agent-month-${recruit._id}-${i}`} style={[styles.month, i < months && styles.monthOn]} />)}
+                </View>
               </View>
-              <Text variant="label" tone="muted">{recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Commission period ended'}</Text>
             </View>
-            <Text variant="bodyLg" weight="bold" tabular style={styles.amount}>{amount === undefined ? '—' : formatPHP(amount)}</Text>
-          </Card>;
+            <Text variant="bodyLg" weight="extrabold" tabular testID={`affiliate-agent-amount-${recruit._id}`}
+              style={[styles.amount, stack && styles.stackedAmount]}>{formatted}</Text>
+          </View>;
         })}
-      </View>
+      </Card>
       {pages > 1 ? <View style={styles.pagination}>
-        <Button title="Previous agents" variant="ghost" size="md" fullWidth={false} disabled={currentPage === 0} onPress={() => setPage(currentPage - 1)} />
-        <Text variant="label" tone="muted">{currentPage + 1} / {pages}</Text>
-        <Button title="Next agents" variant="ghost" size="md" fullWidth={false} disabled={currentPage === pages - 1} onPress={() => setPage(currentPage + 1)} />
+        <Pressable accessibilityRole="button" accessibilityLabel="Previous agents" accessibilityState={{ disabled: currentPage === 0 }}
+          disabled={currentPage === 0} onPress={() => setPage(currentPage - 1)} style={[styles.pageButton, currentPage === 0 && styles.disabled]}>
+          <Ionicons name="chevron-back" size={24} color={colors.ink} /></Pressable>
+        <Text variant="label" tone="muted" accessibilityLabel={`Page ${currentPage + 1} of ${pages}`}>{currentPage + 1} / {pages}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Next agents" accessibilityState={{ disabled: currentPage === pages - 1 }}
+          disabled={currentPage === pages - 1} onPress={() => setPage(currentPage + 1)} style={[styles.pageButton, currentPage === pages - 1 && styles.disabled]}>
+          <Ionicons name="chevron-forward" size={24} color={colors.ink} /></Pressable>
       </View> : null}
-      <Text variant="label" tone="muted">Your credited 5% share this month. The bar shows the time left in each agent’s 12-month period.</Text>
+      <Text variant="label" tone="muted">Your 5% share this month. Bars show time left out of 12 months.</Text>
     </> : <EmptyState icon="people-outline" title="Your team starts here"
       body="Field agents appear here after joining with your link or code." />}
 
-    <Card variant="tint" style={styles.invite}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Invite field agents" accessibilityState={{ expanded: inviting }}
+      accessibilityHint={inviting ? 'Hide your invitation tools' : 'Show your invitation code and share tools'}
+      onPress={() => setInviting(value => !value)} style={styles.inviteToggle}>
+      <Ionicons name="person-add-outline" size={24} color={colors.ink} />
+      <Text weight="bold" style={styles.flex}>Invite field agents</Text>
+      <Ionicons name={inviting ? 'chevron-up' : 'chevron-down'} size={22} color={colors.ink} />
+    </Pressable>
+    {inviting ? <Card variant="tint" style={styles.invite} testID="affiliate-agent-invite-tools">
       <SectionLabel>Invite field agents</SectionLabel>
       <Text tone="ink2">Earn 5% of their sales for 12 months, after each shop has paid in full.</Text>
       {account.referralCode ? <>
@@ -76,7 +100,7 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
       </> : <Text tone="muted">Your invitation code is not available yet.</Text>}
       <Button title="Share agent invite" variant="dark" icon="share-outline" onPress={invite} disabled={disabled || !account.affiliateHandle} />
       {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
-    </Card>
+    </Card> : null}
 
     {portal?.referrals.length ? <View style={styles.list}>
       <SectionLabel>{`Earlier ₱1,000 referrals · ${portal.referralStats.total}`}</SectionLabel>
@@ -92,12 +116,26 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
 
 const styles = StyleSheet.create({
   list: { gap: space.md },
-  agent: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md },
-  meta: { flex: 1, minWidth: 0, gap: space.sm },
-  amount: { flexShrink: 1, maxWidth: '32%' },
-  months: { flexDirection: 'row', gap: 3, height: 5, maxWidth: 190 },
+  header: { gap: 4, marginBottom: 4 },
+  title: { fontSize: 30, lineHeight: 36 },
+  subtitle: { fontSize: 18, lineHeight: 26 },
+  flex: { flex: 1, minWidth: 0 },
+  agentList: { borderRadius: 24, paddingHorizontal: 18, paddingVertical: 4 },
+  agent: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16 },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule },
+  identity: { flexGrow: 1, flexShrink: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  meta: { flex: 1, minWidth: 0, gap: 9 },
+  name: { fontSize: 18, lineHeight: 22 },
+  amount: { flexShrink: 0, fontSize: 19, lineHeight: 24, textAlign: 'right' },
+  stackedAgent: { flexDirection: 'column', alignItems: 'stretch', gap: space.sm },
+  stackedIdentity: { flexGrow: 0, flexShrink: 0, width: '100%' },
+  stackedAmount: { alignSelf: 'flex-end', maxWidth: '100%' },
+  months: { flexDirection: 'row', gap: 3, height: 6, maxWidth: 150 },
   month: { flex: 1, borderRadius: radius.pill, backgroundColor: colors.bg2 },
-  monthOn: { backgroundColor: colors.accent },
-  pagination: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
+  monthOn: { backgroundColor: colors.ink },
+  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.lg },
+  pageButton: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
+  disabled: { opacity: 0.4 },
+  inviteToggle: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.md, backgroundColor: colors.card, borderRadius: radius.card },
   invite: { gap: space.md },
 });

@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { formatPHP } from '../../../../packages/shared/pricing';
 import { Avatar, Button, Card, Text, TextLink } from '../v2';
-import { colors, radius, space } from '../../theme/v2';
+import { colors, radius } from '../../theme/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, type AffiliateAccessProps } from './Screen';
 import { affiliateName, affiliateUrl, type AffiliatePortal, samplePortal } from './model';
@@ -22,9 +22,9 @@ function LiveHome(props: AffiliateAccessProps) {
 function Income({ label, amount, team = false }: { label: string; amount: number | undefined; team?: boolean }) {
   return <Card style={styles.income}>
     <View style={[styles.icon, team && styles.teamIcon]}>
-      <Ionicons name={team ? 'people-outline' : 'storefront-outline'} size={25} color={team ? colors.onDark : colors.ink} />
+      <Ionicons name={team ? 'calendar-outline' : 'storefront-outline'} size={22} color={team ? colors.onDark : colors.ink} />
     </View>
-    <Text variant="label" tone="muted">{label}</Text>
+    <Text variant="label" tone="ink2" style={styles.incomeLabel}>{label}</Text>
     <Text variant="number" tabular style={styles.amount}
       accessibilityLabel={amount === undefined ? `${label}, loading` : `${label}, ${formatPHP(amount)}`}>
       {amount === undefined ? 'Loading…' : formatPHP(amount)}
@@ -42,6 +42,7 @@ export function HomeContent({ account, isPreview, isOffline, portal }: Affiliate
   const busy = useRef(false);
   const suspended = account.status !== 'active';
   const url = account.affiliateHandle ? affiliateUrl(account.affiliateHandle) : null;
+  const month = portal?.month ? new Date(portal.month.start).toLocaleDateString('en-PH', { month: 'long', timeZone: 'Asia/Manila' }) : 'This month';
   const share = async () => {
     if (!url || isPreview || suspended || busy.current) return;
     busy.current = true; setError('');
@@ -52,43 +53,42 @@ export function HomeContent({ account, isPreview, isOffline, portal }: Affiliate
   return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline}
     footer={<>
       {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
-      <Button title="Share my link" icon="share-outline" onPress={share} disabled={!url || isPreview || suspended} />
+      <Button title="Share my link" onPress={share} disabled={!url || isPreview || suspended} style={{ minHeight: 58 }} />
     </>}>
     <View style={styles.greeting}>
       <Pressable onPress={() => router.push('/(app)/(affiliate-tabs)/profile')} accessibilityRole="button" accessibilityLabel="Open my profile">
-        <Avatar uri={account.affiliatePhoto || undefined} name={affiliateName(account)} size={56} />
+        <Avatar uri={account.affiliatePhoto || undefined} name={affiliateName(account)} size={52} />
       </Pressable>
-      <Text variant="display" accessibilityRole="header" style={styles.flex}>Hi, {account.firstName || 'creator'}</Text>
+      <Text variant="title" accessibilityRole="header" style={[styles.flex, styles.greetingText]}>Hi, {account.firstName || 'creator'}</Text>
     </View>
-    <Text variant="label" tone="muted">{portal?.month?.label ?? 'This month'}</Text>
-    <View style={[styles.incomes, stackIncome && styles.stackedIncomes]}>
-      <Income label="From your link" amount={portal?.income?.directThisMonth} />
-      <Income label="From your agents" amount={portal?.income?.teamThisMonth} team />
+    <View style={styles.overview}>
+      <Text variant="bodyLg" tone="muted">{month}</Text>
+      <View style={[styles.incomes, stackIncome && styles.stackedIncomes]}>
+        <Income label="From your link" amount={portal?.income?.directThisMonth} />
+        <Income label="From your agents" amount={portal?.income?.teamThisMonth} team />
+      </View>
+      <Card style={styles.link} onPress={() => router.push('/(app)/(affiliate-tabs)/page')}
+        accessibilityLabel="Edit my creator page">
+        <Ionicons name="link-outline" size={20} color={colors.ink3} />
+        <Text variant="bodyLg" weight="bold" style={[styles.flex, styles.linkText]}>{url?.replace(/^https?:\/\//, '') ?? 'Your page link is not available yet.'}</Text>
+      </Card>
     </View>
-    <Text variant="label" tone="muted">Credited earnings this month. Your available balance is in Money.</Text>
-    <Pressable style={styles.link} onPress={() => router.push('/(app)/(affiliate-tabs)/page')}
-      accessibilityRole="button" accessibilityLabel="Edit my creator page">
-      <Ionicons name="link-outline" size={24} color={colors.ink} />
-      <Text variant="bodyLg" weight="bold" selectable style={styles.flex}>{url?.replace(/^https?:\/\//, '') ?? 'Your page link is not available yet.'}</Text>
-      <Ionicons name="chevron-forward" size={20} color={colors.ink3} />
-    </Pressable>
-    <View style={styles.shortcuts}>
-      <TextLink label="My page" onPress={() => router.push('/(app)/(affiliate-tabs)/page')} />
-      <TextLink label="Sales" onPress={() => router.push('/(app)/(affiliate-tabs)/sales')} />
-      <TextLink label="Me" onPress={() => router.push('/(app)/(affiliate-tabs)/profile')} />
-    </View>
+    {isPreview ? <TextLink label="Preview sales" onPress={() => router.push('/(app)/(affiliate-tabs)/sales')} /> : null}
   </AffiliateFrame>;
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
-  greeting: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  incomes: { flexDirection: 'row', alignItems: 'stretch', gap: space.sm },
+  greeting: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  greetingText: { fontSize: 26, lineHeight: 32 },
+  overview: { gap: 12, marginTop: 6 },
+  incomes: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
   stackedIncomes: { flexDirection: 'column' },
-  income: { flex: 1, minWidth: 0, gap: space.sm, padding: space.md },
-  amount: { fontSize: 28, lineHeight: 36 },
-  icon: { width: 48, height: 48, borderRadius: radius.field, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
+  income: { flex: 1, minWidth: 0, gap: 6, paddingTop: 18, paddingHorizontal: 16, paddingBottom: 20, borderRadius: radius.cardLg },
+  incomeLabel: { marginTop: 12 },
+  amount: { fontSize: 29, lineHeight: 34, letterSpacing: -1, marginTop: 'auto' },
+  icon: { width: 46, height: 46, borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.ink, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
   teamIcon: { backgroundColor: colors.ink },
-  link: { flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: 64, paddingVertical: space.lg },
-  shortcuts: { flexDirection: 'row', flexWrap: 'wrap', gap: space.lg },
+  link: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 22 },
+  linkText: { fontSize: 19, lineHeight: 24 },
 });

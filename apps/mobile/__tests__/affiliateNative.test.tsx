@@ -17,13 +17,14 @@ const mockPaginated = jest.fn();
 const mockMutation = jest.fn();
 const mockSave = jest.fn();
 const mockAction = jest.fn();
+const mockRouter = { push: jest.fn() };
 
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { portal: 'affiliates:portal', sales: 'affiliates:sales', updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' } } }));
 jest.mock('convex/react', () => ({
   useQuery: (...args: unknown[]) => mockQuery(...args),
@@ -60,6 +61,8 @@ describe('native affiliate access and live data', () => {
     const home = render(<AffiliateHomeScreen />);
     expect(home.getByText(/Admin preview/)).toBeTruthy();
     expect(home.getByText('₱2,500')).toBeTruthy();
+    fireEvent.press(home.getByLabelText('Preview sales'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/sales');
     home.unmount();
     const sales = render(<AffiliateSalesScreen />);
     expect(sales.getByText('Sample barbershop')).toBeTruthy();
@@ -96,7 +99,7 @@ describe('native affiliate access and live data', () => {
     const view = render(<AgentsContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
     expect(view.getByText('New Team Agent')).toBeTruthy();
     expect(view.getByText('My agents')).toBeTruthy();
-    expect(view.getByText(/credited 5% share this month/)).toBeTruthy();
+    expect(view.getByText(/5% share this month/)).toBeTruthy();
     expect(view.getByText('Earlier ₱1,000 referrals · 1')).toBeTruthy();
     expect(view.getByText('Alex Reyes')).toBeTruthy();
   });
@@ -107,7 +110,16 @@ describe('native affiliate access and live data', () => {
     expect(view.getByLabelText('From your link, ₱6,000')).toBeTruthy();
     expect(view.getByLabelText('From your agents, ₱450')).toBeTruthy();
     expect(view.queryByText('₱2,500')).toBeNull();
-    expect(view.getByText('October 2026')).toBeTruthy();
+    expect(view.getByText('October')).toBeTruthy();
+  });
+
+  it('opens the real page and profile from the board layout without utility links crowding Home', () => {
+    const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={samplePortal} />);
+    fireEvent.press(view.getByLabelText('Edit my creator page'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/page');
+    fireEvent.press(view.getByLabelText('Open my profile'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/profile');
+    expect(view.queryByText('Sales')).toBeNull();
   });
 
   it('paginates every recruited agent without hiding their current-month credit', () => {

@@ -333,6 +333,10 @@ it('preserves the affiliate profile’s trimmed menu and real financial stats th
   expect(view.queryByRole('button', { name: 'Enter referral code' })).toBeNull();
   expect(view.getByRole('button', { name: 'Edit profile' })).toBeTruthy();
   expect(view.getByRole('button', { name: 'Privacy policy' })).toBeTruthy();
+  fireEvent.press(view.getByRole('button', { name: 'My creator page' }));
+  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/page');
+  fireEvent.press(view.getByRole('button', { name: 'Sales' }));
+  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/sales');
   expect(mockSubmissionsLookup).not.toHaveBeenCalled();
   mockAccounts['clerk-mika'].status = 'suspended';
   view.rerender(<AffiliateProfileScreen />);
