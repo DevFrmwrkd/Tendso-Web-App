@@ -158,6 +158,162 @@ it('resumes assigned local photos offline and queues the existing pending-photo 
   expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
 });
 
+it('previews a local photo offline without cropping and closes without changing or sending the draft', async () => {
+  mockOnline = false;
+  mockCache['agent-1'] = { current_submission_id: 'offline_pending', submission_photo_tasks: photoDraft(localItems(3), 'offline_pending') };
+  const screen = await screenReady();
+  const saved = mockClone(mockCache['agent-1']);
+  const writes = mockWrite.mock.calls.length;
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
+
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://photo-0.jpg' });
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('resizeMode', 'contain');
+  fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
+
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
+  expect(screen.getByText('3 of 10 photos added')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Owner headshot, taken. Retake photo' })).toBeTruthy();
+  expect(mockCache['agent-1']).toEqual(saved);
+  expect(mockWrite).toHaveBeenCalledTimes(writes);
+  expect(mockUpload).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockFetch).not.toHaveBeenCalled(); expect(mockLibrary).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
+it('dismisses the preview through the native Android back request without navigating away or losing photos', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  const saved = mockClone(mockCache['agent-1']);
+  const writes = mockWrite.mock.calls.length;
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  fireEvent(screen.getByTestId('capture-photo-preview'), 'requestClose');
+
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled();
+  expect(mockCache['agent-1']).toEqual(saved); expect(mockWrite).toHaveBeenCalledTimes(writes);
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRouter.back).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it('previews the selected stored extra using its resolved remote URL without adding or uploading a photo', async () => {
+  mockSubmissions['draft-1'].photos = ['stored-a', 'stored-b', 'stored-c'];
+  const screen = await screenReady();
+  await waitFor(() => expect(screen.getByRole('button', { name: 'View photo 2: Added photo' })).toBeTruthy());
+  await waitFor(() => expect(mockCache['agent-1'].submission_photo_tasks?.items).toHaveLength(3));
+  const saved = mockClone(mockCache['agent-1']);
+  const writes = mockWrite.mock.calls.length;
+
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Added photo' }));
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/stored-b' });
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('resizeMode', 'contain');
+  fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
+
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(mockCache['agent-1']).toEqual(saved); expect(mockWrite).toHaveBeenCalledTimes(writes);
+  expect(mockSubmissions['draft-1'].photos).toEqual(['stored-a', 'stored-b', 'stored-c']);
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled(); expect(mockFetch).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
+it('ignores a previous photo’s delayed load error and recovers from the current photo’s failure without changing the draft', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  const saved = mockClone(mockCache['agent-1']);
+  const writes = mockWrite.mock.calls.length;
+  const failure = { nativeEvent: { error: 'Photo could not load' } };
+
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  const previousError = screen.getByTestId('capture-photo-full-image').props.onError;
+  expect(typeof previousError).toBe('function');
+  fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
+  fireEvent.press(screen.getByRole('button', { name: /^View photo 2:/ }));
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://photo-1.jpg' });
+
+  act(() => { previousError(failure); });
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://photo-1.jpg' });
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('resizeMode', 'contain');
+  expect(screen.queryByRole('alert')).toBeNull();
+
+  fireEvent(screen.getByTestId('capture-photo-full-image'), 'error', failure);
+  expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
+  expect(screen.getByRole('alert')).toHaveTextContent('Could not load this photo. Close the preview and try again.');
+  fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
+
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.getByText('3 of 10 photos added')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled();
+  expect(mockCache['agent-1']).toEqual(saved); expect(mockWrite).toHaveBeenCalledTimes(writes);
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled(); expect(mockFetch).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
+it('clears a preview when the capture actor changes and only opens the new actor’s own photo', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://photo-0.jpg' });
+  const original = mockClone(mockCache['agent-1']);
+
+  mockActor = 'agent-2';
+  mockCache['agent-2'] = { current_submission_id: 'draft-2', submission_photo_tasks: photoDraft(
+    localItems(3).map(item => ({ ...item, uri: `file://other-${item.id}.jpg` })), 'draft-2') };
+  screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'View photo 1: Owner headshot' })).toBeTruthy());
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://other-local-0.jpg' });
+  expect(mockCache['agent-1']).toEqual(original);
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it('dismisses an open preview when the same actor switches to a different capture draft', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
+
+  mockCache['agent-1'] = { current_submission_id: 'draft-2', submission_photo_tasks: photoDraft(
+    localItems(3).map(item => ({ ...item, uri: `file://next-${item.id}.jpg` })), 'draft-2') };
+  mockRevision += 1;
+  screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(screen.queryByTestId('capture-photo-preview')).toBeNull());
+  expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'file://next-local-0.jpg' });
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it('dismisses the preview on focus loss and returns to the same saved draft without reopening it', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  const saved = mockClone(mockCache['agent-1']);
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
+
+  mockFocused = false;
+  screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(screen.queryByTestId('capture-photo-preview')).toBeNull());
+  mockFocused = true;
+  screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'View photo 1: Owner headshot' })).toBeTruthy());
+  expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
+  expect(screen.getByText('3 of 10 photos added')).toBeTruthy(); expect(mockCache['agent-1']).toEqual(saved);
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
 it('reuses uploaded keys on retry instead of uploading the same photos twice', async () => {
   mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   mockUpdate.mockRejectedValueOnce(new Error('Temporary server failure')).mockResolvedValueOnce(undefined);

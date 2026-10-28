@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, EmptyState, Loading, ScreenShell, Text } from '../../../components/v2';
 import { ShotGuide } from '../../../components/v2/capture';
@@ -46,6 +48,7 @@ export default function SubmitPhotosScreen() {
 function PhotoTasks({ session }: { session: CaptureSession }) {
   const router = useGuardedRouter();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
   const updateSubmission = useMutation(api.submissions.update);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
@@ -56,6 +59,8 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [camera, setCamera] = useState<CameraRun | null>(null);
+  const [preview, setPreview] = useState<{ id: string; submissionId: string } | null>(null);
+  const [failedPreviewUri, setFailedPreviewUri] = useState<string | null>(null);
   const [finishingCamera, setFinishingCamera] = useState(false);
   const mounted = useRef(true);
   const busy = useRef(false);
@@ -94,6 +99,11 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const awaitingRemote = session.canQuery && !!submissionId && !offlinePending && submission === undefined;
   const tileSize = Math.max(48, (width - space.gutter * 2 - space.sm * 4) / 5);
   const uriFor = (item?: PhotoItem) => item?.uri || (item?.storageId ? urlByKey.get(item.storageId) : null) || null;
+  const photoLabel = (item: PhotoItem) => item.taskIndex === undefined ? 'Added photo' : tasks[item.taskIndex]?.t ?? 'Photo';
+  const previewItem = preview?.submissionId === submissionId ? items.find((item) => item.id === preview.id) : undefined;
+  const previewUri = uriFor(previewItem);
+  const previewOpen = !!previewItem && !!previewUri && !camera && current();
+  const closePreview = () => setPreview(null);
 
   const snapshot = (next: PhotoItem[]): PhotoDraft => ({ version: 1, submissionId: idRef.current!,
     businessType: typeRef.current, items: next, removedExistingPhotos: [...removed.current] });
@@ -128,7 +138,10 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (!storedId) await session.write('current_submission_id', id);
         if (!currentLoad()) return;
         const migrating = idRef.current === 'offline_pending' && id !== 'offline_pending';
-        if (idRef.current && idRef.current !== id && !migrating) setCamera(null);
+        if (idRef.current && idRef.current !== id) {
+          setPreview(null);
+          if (!migrating) setCamera(null);
+        }
         const ownDraft = taskDraft?.submissionId === id || (migrating && taskDraft?.submissionId === 'offline_pending') ? taskDraft : null;
         const ownPending = pendingPhotos?.submissionId === id || (migrating && pendingPhotos?.submissionId === 'offline_pending') ? pendingPhotos : null;
         let restored = validItems(ownDraft?.items ?? ownPending?.entries);
@@ -149,7 +162,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (differentSuggestions) void persist(restored);
       } catch { if (currentLoad()) setError('Could not load your photo draft. Reopen this step to try again.'); }
     })();
-    return () => { active = false; };
+    return () => { active = false; setPreview(null); };
   }, [session.revision, session.actorKey]));
 
   useEffect(() => {
@@ -205,7 +218,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const openCamera = (index = nextTask, singleShot = false) => {
     if (busy.current || pickerBusy.current || normalizing.current > 0 || !current() || index < 0) return;
     if (itemsRef.current.length >= MAX_PHOTOS && !taskItems[index]) return;
-    setError(null); setCamera({ id: ++cameraSequence.current, initial: taskItems.map(uriFor), index, singleShot });
+    setPreview(null); setError(null); setCamera({ id: ++cameraSequence.current, initial: taskItems.map(uriFor), index, singleShot });
   };
   const pickImages = async () => {
     if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
@@ -213,7 +226,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     const fromDraft = idRef.current;
     const sameDraft = () => current() && (idRef.current === fromDraft || fromDraft === 'offline_pending');
     if (capacity <= 0) { setError('Keep up to 10 photos. Remove one before adding another.'); return; }
-    pickerBusy.current = true; setPreparing(true); setError(null);
+    setPreview(null); pickerBusy.current = true; setPreparing(true); setError(null);
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!sameDraft()) return;
@@ -239,7 +252,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     if (itemsRef.current.length < MIN_PHOTOS || itemsRef.current.length > MAX_PHOTOS) { setError('Add 3–10 photos to continue.'); return; }
     const savingId = idRef.current;
     const sameDraft = () => current() && idRef.current === savingId;
-    busy.current = true; setSaving(true); setError(null);
+    setPreview(null); busy.current = true; setSaving(true); setError(null);
     try {
       await persist(itemsRef.current); if (!sameDraft()) return;
       if (!canMutate() || savingId === 'offline_pending') {
@@ -298,12 +311,31 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
       <Ionicons name="chevron-forward" size={22} color={colors.ink3} />
     </Card> : <Banner tone="neutral" title={remaining === 0 ? 'You have 10 photos' : 'Suggestions covered'} body="Keep the photos that show this shop best. You can retake a suggestion or replace an added photo." />}
     <Text variant="label" tone="muted" weight="medium">Suggestions are optional. Three clear photos are enough to continue; extras share the same 10-photo limit.</Text>
-    {items.length ? <View style={styles.photoSection}><Text variant="heading">Your photos</Text><View style={styles.addedGrid}>{items.map((item) => <View key={item.id} style={styles.addedPhoto}>
-      <View style={styles.addedThumb}>{uriFor(item) ? <Image source={{ uri: uriFor(item)! }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <ActivityIndicator color={colors.ink3} />}</View>
-      <Text variant="label" numberOfLines={2}>{item.taskIndex === undefined ? 'Added photo' : tasks[item.taskIndex]?.t ?? 'Photo'}</Text>
+    {items.length ? <View style={styles.photoSection}><Text variant="heading">Your photos</Text><View style={styles.addedGrid}>{items.map((item, index) => <View key={item.id} style={styles.addedPhoto}>
+      <Pressable style={styles.addedThumb} accessibilityRole="button" accessibilityLabel={`View photo ${index + 1}: ${photoLabel(item)}`}
+        accessibilityHint="Opens the full photo" disabled={!uriFor(item) || locked || awaitingRemote}
+        onPress={() => { if (current() && !camera && !locked && !awaitingRemote && submissionId && uriFor(item)) { setFailedPreviewUri(null); setPreview({ id: item.id, submissionId }); } }}>
+        {uriFor(item) ? <Image source={{ uri: uriFor(item)! }} style={StyleSheet.absoluteFill} resizeMode="cover" accessible={false} /> : <ActivityIndicator color={colors.ink3} />}
+      </Pressable>
+      <Text variant="label" numberOfLines={2}>{photoLabel(item)}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${item.taskIndex === undefined ? 'added photo' : tasks[item.taskIndex]?.t ?? 'photo'}`} disabled={locked} onPress={() => removePhoto(item)} style={styles.removeButton}><Ionicons name="trash-outline" size={20} color={colors.danger} /><Text variant="label" tone="danger">Remove</Text></Pressable>
     </View>)}</View></View> : null}
-    <Modal visible={!!camera} animationType="fade" presentationStyle="fullScreen" statusBarTranslucent onRequestClose={() => { void finishCamera(); }}>
+    <Modal visible={!!camera || previewOpen} testID={previewOpen ? 'capture-photo-preview' : undefined}
+      animationType="fade" presentationStyle="fullScreen" statusBarTranslucent onRequestClose={() => { if (previewOpen) closePreview(); else void finishCamera(); }}>
+      {previewOpen && previewItem && previewUri ? <View style={[styles.preview, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+        accessibilityViewIsModal onAccessibilityEscape={closePreview}>
+        <StatusBar style="light" />
+        <View style={styles.previewHeader}>
+          <View style={styles.grow}><Text variant="label" style={styles.previewText}>{`Photo ${items.indexOf(previewItem) + 1} of ${total}`}</Text>
+            <Text variant="body" weight="bold" style={styles.previewText}>{photoLabel(previewItem)}</Text></View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close photo" onPress={closePreview} style={styles.previewClose}>
+            <Ionicons name="close" size={28} color={colors.onDark} />
+          </Pressable>
+        </View>
+        {failedPreviewUri === previewUri ? <View style={styles.previewFallback}><Text variant="body" align="center" style={styles.previewText} accessibilityRole="alert">Could not load this photo. Close the preview and try again.</Text></View>
+          : <Image key={previewUri} testID="capture-photo-full-image" source={{ uri: previewUri }} style={styles.previewImage} resizeMode="contain"
+            accessible accessibilityLabel={photoLabel(previewItem)} onError={() => setFailedPreviewUri(previewUri)} />}
+      </View> : null}
       {camera ? <ShotGuide key={camera.id} tasks={tasks} initial={camera.initial} initialIndex={camera.index} singleShot={camera.singleShot}
         maxCaptured={Math.max(0, MAX_PHOTOS - extras.length)} onBusyChange={(value) => { cameraBusy.current = value; }}
         onShot={addCameraShot} onDone={() => { cameraBusy.current = false; void finishCamera(); }} onClose={() => { void finishCamera(); }} /> : null}
@@ -322,5 +354,9 @@ const styles = StyleSheet.create({
   grow: { flex: 1, minWidth: 0, gap: 2 }, photoSection: { gap: space.md }, addedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   addedPhoto: { width: '46%', gap: space.sm }, addedThumb: { height: 112, borderRadius: radius.field, overflow: 'hidden', backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   removeButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  preview: { flex: 1, backgroundColor: colors.camera }, previewText: { color: colors.onDark },
+  previewHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.gutter, paddingVertical: space.sm },
+  previewClose: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.onDarkMuted, alignItems: 'center', justifyContent: 'center' },
+  previewImage: { flex: 1, width: '100%' }, previewFallback: { flex: 1, justifyContent: 'center', padding: space.gutter },
   cameraSaving: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: space.md },
 });
