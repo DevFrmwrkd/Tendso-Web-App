@@ -113,8 +113,8 @@
       <div class="cl-hi">${face('mika', 52, 'Mika Santos')}<h1 class="cl-h cl-h--md">Hi, Mika</h1></div>
       <p class="cl-p cl-muted" style="margin-top:22px">October</p>
       <div class="cl-two">
-        <div class="cl-inc"><span class="cl-ic cl-ic--accent">${IC.store}</span><span class="l">Money now</span><strong>${peso(MONTH.now)}</strong></div>
-        <div class="cl-inc"><span class="cl-ic cl-ic--ink">${IC.calendar}</span><span class="l">Monthly money</span><strong>${peso(MONTH.monthly)}</strong></div>
+        <div class="cl-inc"><span class="cl-ic cl-ic--accent">${IC.store}</span><span class="l">From your link</span><strong>${peso(MONTH.now)}</strong></div>
+        <div class="cl-inc"><span class="cl-ic cl-ic--ink">${IC.calendar}</span><span class="l">From your agents</span><strong>${peso(MONTH.monthly)}</strong></div>
       </div>
       <div class="cl-linkrow">${IC.link}<b>${ME.shopLink}</b></div>
     </div>

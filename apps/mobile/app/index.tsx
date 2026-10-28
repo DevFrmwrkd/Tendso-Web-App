@@ -18,6 +18,7 @@ import { Button, TendsoMark, Text } from '../components/v2';
 import { Buddy } from '../components/v2/owner/OwnerUI';
 import { colors, space } from '../theme/v2';
 import { hasOwnerIntent, setOwnerIntent } from '../lib/v2/ownerIntake';
+import { CreatorAttributionGate } from '../components/CreatorAttributionGate';
 
 const ONBOARDING_KEY = 'ndm_has_seen_onboarding';
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
@@ -113,6 +114,7 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <CreatorAttributionGate enabled={!businessWelcome} />
       <StatusBar style="dark" />
       <PhotoWall business={businessWelcome} />
       {businessWelcome ? (

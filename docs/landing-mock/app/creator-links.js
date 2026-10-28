@@ -1,16 +1,16 @@
 /* Creator links board: rows of phones (same board layout as creator-more.html). Screens come from
-   creator-links-screens.js (window.CL). All screens are proposed (not in apps/mobile yet). */
+   creator-links-screens.js (window.CL). Captions point to the implemented mobile screens. */
 (function () {
   const S = CL.screens;
   const ROWS = [
     { name: 'Who sent you', screens: [
-      [S.firstOpen, 'First open (iOS)', 'proposed · after install, when a recent click on tendso.com/a/mika matches', 'Apple passes nothing through the App Store, so we ask once. Yes attributes; No clears it. On Android the Play install referrer fills it in silently.'],
-      [S.whoSent, 'Agent sign-up · who sent you', 'proposed · step in the field-agent sign-up', 'Code pre-filled when we already know the creator; empty and typeable when we don’t. Joining through Mika starts her 12 months.'],
-      [S.checkout, 'Owner checkout', 'proposed · publish step', 'Code applied automatically: ₱4,999 → ₱3,499. “Change” opens a field to type another code or remove it.'],
+      [S.firstOpen, 'First open', 'apps/mobile/components/CreatorAttributionGate.tsx', 'A recent creator-link match asks once. Yes saves consent, then confirms after sign-in on the chosen owner/agent path. No clears it. A missing or failed match never blocks opening the app.'],
+      [S.whoSent, 'Agent sign-up · who sent you', 'apps/mobile/app/(app)/agent-onboarding.tsx', 'The optional code stays in How did you hear about us. A matching public creator name/photo confirms the lookup; existing field-agent referral codes also work. Saved attribution is never overwritten.'],
+      [S.checkout, 'Owner checkout', 'apps/mobile/app/(owner)/pay/index.tsx', 'The saved creator offer sets the real order total. Change applies another active code or removes it before payment starts. Existing payment requests lock the quote; self-referrals are rejected.'],
     ] },
     { name: 'Creator in the app', screens: [
-      [S.home, 'Creator home', 'proposed · affiliate role, Home tab', 'The two incomes side by side for this month, the shop link, one Share button. Details live on the web portal.'],
-      [S.agents, 'My agents', 'proposed · affiliate role, Agents tab', 'Four agents per screen, Mika’s 5% this month. The thin bar is months left of 12; no labels.'],
+      [S.home, 'Creator home', 'apps/mobile/components/affiliate/Home.tsx', 'Credited link sales and team commission side by side for the same Manila calendar month. One Share button; My page, Sales and Me stay reachable. Money contains the available balance and payouts.'],
+      [S.agents, 'My agents', 'apps/mobile/components/affiliate/Agents.tsx', 'Four agents per page with this month’s actual credited 5% share and a twelve-segment time-left bar. Invite tools and earlier one-time bonuses remain available below.'],
     ] },
   ];
 
@@ -29,7 +29,7 @@
       cell.appendChild(ph.el);
       const cap = document.createElement('figcaption');
       cap.className = 'cm-cap';
-      cap.innerHTML = `<div class="cm-step"><i>${no}.${si + 1}</i>${label}</div><div class="cm-src cm-src--new">${src}</div><p class="cm-note">${note}</p>`;
+      cap.innerHTML = `<div class="cm-step"><i>${no}.${si + 1}</i>${label}</div><div class="cm-src">${src}</div><p class="cm-note">${note}</p>`;
       cell.appendChild(cap);
       strip.appendChild(cell);
     });

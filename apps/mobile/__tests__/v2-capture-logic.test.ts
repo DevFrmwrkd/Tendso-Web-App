@@ -73,6 +73,16 @@ describe('interview state machine', () => {
     expect(initialInterview(10, 4).q).toBe(4);
     expect(initialInterview(10, 99).q).toBe(10);
   });
+
+  it('finishes a targeted answer replacement without asking later or extra questions', () => {
+    let state = initialInterview(10, 4, 4);
+    state = interviewReducer(state, { type: 'BEGIN' });
+    expect(state.q).toBe(4);
+    expect(isLastQuestion(state)).toBe(true);
+    state = interviewReducer(state, { type: 'NEXT' });
+    expect(state).toMatchObject({ phase: 'done', q: 4 });
+    expect(initialInterview(10, 4).stopAfterQuestion).toBeUndefined();
+  });
 });
 
 describe('photo state machine', () => {

@@ -144,17 +144,16 @@
   }
 
   function profile() {
-    return app(`<div class="cc-main" style="gap:16px">${step(3, 3)}
-        <div><h2 class="cc-h">Your agent profile</h2><p class="cc-sub" style="margin-top:6px">Shops see this when you visit.</p></div>
-        <div class="cc-center" style="gap:8px;padding:2px 0 4px"><div style="position:relative">${face('mika', 104, 'cc-face--ring')}
-          <span class="cc-ic cc-ic--round cc-ic--ink" style="position:absolute;right:-4px;bottom:0;width:36px;height:36px;box-shadow:0 0 0 3px var(--a-bg)">${ic('camera', 17)}</span></div>
-          <span class="cc-sm" style="color:var(--a-ink);font-size:13px">Change photo</span></div>
-        ${fld('Full name', 'Mika Santos', { icon: 'user' })}
-        ${fld('Mobile', '+63 917 555 0142', { icon: 'phone' })}
-        <div>${fld('Wise email for payouts', 'mika.santos@gmail', { icon: 'mail', focus: true })}
-          <p class="cc-help">We send your earnings here through Wise. No Wise yet? You can add it later.</p></div>
+    return app(`<div class="cc-main" style="gap:14px">
+        <div><h2 class="cc-h">Your field agent profile</h2><p class="cc-sub" style="margin-top:6px">Shops see this when you visit.</p></div>
+        <div class="cc-center" style="padding:2px 0 4px">${face('mika', 104, 'cc-face--ring')}</div>
+        ${fld('First name', 'Mika', { icon: 'user', focus: true })}
+        ${fld('Last name (optional)', 'Santos', { icon: 'user' })}
+        ${fld('Mobile (optional)', '+63 917 555 0142', { icon: 'phone' })}
+        <div>${fld('Email', 'mika@example.com', { icon: 'lock' })}
+          <p class="cc-help">From your sign-in. Can’t be changed here.</p></div>
       </div>
-      <div class="cc-foot">${door('Send for review')}</div>`);
+      <div class="cc-foot">${door('Save and continue')}</div>`);
   }
 
   function pending() {
@@ -168,8 +167,8 @@
         </div>
         <div class="cc-col" style="gap:8px">
           ${chk('Profile sent', 'Just now', 'is-done')}
-          ${chk('Team checks your photo and number', 'Usually within 24 hours', 'is-now', 'Now')}
-          ${chk('Training and a short quiz', '5 lessons · 15 minutes')}
+          ${chk('Training and quiz', 'Passed', 'is-done')}
+          ${chk('Team checks your details', 'Usually within 24 hours', 'is-now', 'Now')}
           ${chk('Start finding shops', 'Your map opens')}
         </div>
       </div>
@@ -484,12 +483,12 @@
   const P = 'apps/mobile/app/(app)/';
   const NEW = 'new';
   const ROWS = [
-    { n: '01', title: 'Join', note: 'Choose, two questions, profile, review', steps: [
-      ['1.1', P + 'account-setup.tsx', 'Welcome choice. The field-agent pill is the creator account type; the business path goes to the owner app.', welcome],
+    { n: '01', title: 'Join', note: 'Welcome, two questions · profile recovery when needed · learn before team review', steps: [
+      ['1.1', 'apps/mobile/app/index.tsx', 'Welcome choice. I want to earn opens sign-in; account setup chooses Field agent or Creator. The business path opens the owner app.', welcome],
       ['1.2', P + 'agent-onboarding.tsx · discovery', 'Step 1 of 2. Save how they heard about Tendso and enter an optional referral code here once. Existing link attribution stays attached.', qHeard],
       ['1.3', P + 'agent-onboarding.tsx · city', 'Step 2 of 2. City chips or optional GPS set the work area the map shows first. Saved for new field agents.', qCity],
-      ['1.4', P + 'complete-profile.tsx', 'Photo, name, mobile and the Wise email we pay to. Step 3 of 3.', profile],
-      ['1.5', P + 'pending-review.tsx', 'A person checks every new agent within 24 hours. Sign out is the only exit.', pending],
+      ['1.4', P + 'complete-profile.tsx', 'Missing-name recovery for an existing field-agent account: first name, optional last name/mobile and locked sign-in email. Save and continue returns to the normal onboarding gates. New accounts already collect identity in account setup; full profile/photo edits are in Me, and Wise setup is in Earn.', profile],
+      ['1.5', P + 'pending-review.tsx', 'Training and the certification quiz are already passed before team review. A person checks the profile next; sign out is the only exit while waiting.', pending],
       ['1.6', P + 'verification-rejected.tsx', 'Kind and specific: what to fix, then one accent action to resend.', rejected],
     ] },
     { n: '02', title: 'Learn', note: 'Five lessons, then the quiz', steps: [

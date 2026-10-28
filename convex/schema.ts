@@ -13,7 +13,7 @@ const kbBlock = v.union(
     v.object({ t: v.literal('callout'), kind: v.string(), text: v.string() }), // kind: "note" | "warn"
     v.object({ t: v.literal('code'), lang: v.string(), text: v.string() }),
     v.object({ t: v.literal('quote'), text: v.string(), who: v.string() }),
-    v.object({ t: v.literal('image'), caption: v.string() }),
+    v.object({ t: v.literal('image'), caption: v.string(), url: v.optional(v.string()), alt: v.optional(v.string()) }),
 );
 
 // ==================== OUTREACH TRACKER ====================

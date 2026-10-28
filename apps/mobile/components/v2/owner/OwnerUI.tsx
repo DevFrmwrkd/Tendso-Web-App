@@ -80,21 +80,24 @@ export function OptionRow({
   icon,
   selected,
   onPress,
+  disabled = false,
 }: {
   label: string;
   photo?: ImageSourcePropType;
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   selected: boolean;
   onPress: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="radio"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
       accessibilityLabel={label}
       cssInterop={false}
-      style={({ pressed }) => [styles.opt, shadow.soft, selected && styles.optOn, pressed && { transform: [{ scale: 0.99 }] }]}
+      style={({ pressed }) => [styles.opt, shadow.soft, selected && styles.optOn, disabled && { opacity: 0.6 }, pressed && { transform: [{ scale: 0.99 }] }]}
     >
       {photo ? <Image source={photo} style={styles.optImg} /> : null}
       {!photo && icon ? (

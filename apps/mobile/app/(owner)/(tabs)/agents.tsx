@@ -4,9 +4,10 @@
  * a real owner books a visit and the team picks the agent.
  */
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Chip, EmptyState, ScreenShell, Text } from '../../../components/v2';
+import { Button, Card, Chip, ScreenShell, Text } from '../../../components/v2';
+import { Ionicons } from '@expo/vector-icons';
 import { Face, Tick } from '../../../components/v2/owner/OwnerUI';
 import { useAgentsNear } from '../../../lib/v2/ownerData';
 import { colors, shadow, space } from '../../../theme/v2';
@@ -20,15 +21,23 @@ export default function Agents() {
   return (
     <ScreenShell
       title="Agents near you"
+      subtitle="Get help making your shop’s website."
+      insetBottom={false}
       footer={
         <Button
-          title="Book a visit"
+          title="Request a visit"
           onPress={() => router.push({ pathname: '/(owner)/agents/book', params: chosen ? { agent: chosen.name } : {} } as never)}
         />
       }
     >
       {agents.length === 0 ? (
-        <EmptyState icon="people-outline" title="We pick an agent near you" body="Book a visit. An agent comes to your shop." />
+        <Card style={styles.help}>
+          <Image source={require('../../../assets/v2/owner/how-friend.jpg')} style={styles.hero} resizeMode="cover" />
+          <Text variant="heading">We find a field agent for you</Text>
+          <Text tone="ink2">They visit your shop, take photos and record your story with you.</Text>
+          <View style={styles.fact}><Ionicons name="time-outline" size={24} color={colors.ink} /><Text style={{ flex: 1 }}>About 30 minutes at your shop</Text></View>
+          <View style={styles.fact}><Ionicons name="call-outline" size={24} color={colors.ink} /><Text style={{ flex: 1 }}>The team calls to confirm a time</Text></View>
+        </Card>
       ) : (
         <Chip label="Sample" tone="muted" style={{ marginBottom: space.md }} />
       )}
@@ -59,6 +68,9 @@ export default function Agents() {
 }
 
 const styles = StyleSheet.create({
+  help: { gap: space.md, marginBottom: space.md },
+  hero: { width: '100%', height: 180, borderRadius: 16, backgroundColor: colors.bg2 },
+  fact: { flexDirection: 'row', gap: space.md, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 80, padding: space.md, borderRadius: 22, backgroundColor: colors.card, borderWidth: 2, borderColor: 'transparent' },
   rowOn: { borderColor: colors.ink },
 });

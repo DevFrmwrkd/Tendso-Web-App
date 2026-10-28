@@ -10,18 +10,29 @@ const mockSignOut = jest.fn();
 const mockPermission = jest.fn();
 const mockPosition = jest.fn();
 const mockGeocode = jest.fn();
+const mockLookup = jest.fn();
+const mockGate = jest.fn();
+const mockClient = { query: (...args: unknown[]) => mockLookup(...args) };
 let mockMobile: any;
+let mockCreatorCards: Record<string, any>;
+let mockLegacyReferrers: Record<string, any>;
 
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockMobile }));
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: mockSignOut }) }));
 jest.mock('convex/react', () => ({
+  useConvex: () => mockClient,
   useMutation: (reference: string) => {
     if (reference.endsWith(':saveDiscovery')) return mockSaveDiscovery;
     if (reference.endsWith(':saveWorkArea')) return mockSaveWorkArea;
     return mockComplete;
   },
 }));
+jest.mock('@tendso/convex-client', () => ({ api: {
+  fieldAgentOnboarding: { saveDiscovery: 'fieldAgentOnboarding:saveDiscovery', saveWorkArea: 'fieldAgentOnboarding:saveWorkArea' },
+  creatorProgram: { getCreatorByCode: 'creator-card' }, creators: { getByReferralCode: 'referral-account' },
+} }));
+jest.mock('../components/CreatorAttributionGate', () => ({ CreatorAttributionGate: (props: unknown) => { mockGate(props); return null; } }));
 jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
   requestForegroundPermissionsAsync: () => mockPermission(),
@@ -45,8 +56,11 @@ beforeEach(() => {
   mockPermission.mockReset().mockResolvedValue({ status: 'granted' });
   mockPosition.mockReset().mockResolvedValue({ coords: { latitude: 14.65, longitude: 121.1 } });
   mockGeocode.mockReset().mockResolvedValue([{ city: 'Marikina' }]);
+  mockCreatorCards = {}; mockLegacyReferrers = {};
+  mockLookup.mockReset().mockImplementation(async (reference, args) => reference === 'creator-card'
+    ? mockCreatorCards[args.code] ?? null : mockLegacyReferrers[args.referralCode] ?? null);
   mockMobile = {
-    account: { _id: 'agent_1', role: 'creator', fieldAgentOnboardingRequired: true },
+    account: { _id: 'agent_1', clerkId: 'clerk-agent-1', role: 'creator', fieldAgentOnboardingRequired: true },
     role: 'creator', isPreview: false, isBlocked: false, isLoading: false, isOffline: false,
   };
 });
@@ -61,6 +75,106 @@ function resumeAtCity() {
   mockMobile.account.discoverySource = 'friend';
   return render(<AgentOnboardingScreen />);
 }
+
+const flushLookup = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); };
+async function lookupCode(screen: ReturnType<typeof render>, code: string) {
+  fireEvent.changeText(screen.getByLabelText('Who sent you? (optional)'), code);
+  await act(async () => { jest.advanceTimersByTime(300); await flushLookup(); });
+}
+
+it('mounts the agent attribution boundary while keeping discovery as the first of two questions', () => {
+  const screen = render(<AgentOnboardingScreen />);
+  expect(mockGate).toHaveBeenCalledWith({ claimAs: 'agent' });
+  expect(screen.getByText('How did you hear about us?')).toBeTruthy();
+  expect(screen.getByLabelText('Step 1 of 2')).toBeTruthy();
+});
+
+it('shows the validated creator name and actual photo within the optional code entry', async () => {
+  jest.useFakeTimers();
+  mockCreatorCards.MIKA = { code: 'MIKA', name: 'Mika Santos', photo: 'https://media.example.com/mika.jpg' };
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, ' mika ');
+  expect(screen.getByTestId('onboarding-referrer-card')).toBeTruthy();
+  expect(screen.getByText('Mika Santos')).toBeTruthy();
+  expect(screen.getByLabelText("Mika Santos's profile photo").props.source.uri).toBe('https://media.example.com/mika.jpg');
+  expect(screen.getByLabelText('Step 1 of 2')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled();
+});
+
+it('supports a valid legacy field-agent code even when the affiliate card lookup is null', async () => {
+  jest.useFakeTimers();
+  mockLegacyReferrers.JOYD4K2 = { _id: 'agent-joy', clerkId: 'clerk-joy', role: 'creator', referralCode: 'JOYD4K2', firstName: 'Joy', lastName: 'Dizon' };
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'joyd4k2');
+  expect(screen.getByText('Joy Dizon')).toBeTruthy();
+  fireEvent.press(screen.getByRole('radio', { name: 'A friend or another agent' }));
+  next(screen);
+  await act(flushLookup);
+  expect(mockSaveDiscovery).toHaveBeenCalledWith({ discoverySource: 'friend', referredByCode: 'JOYD4K2' });
+  expect(screen.getByText('Where do you work?')).toBeTruthy();
+});
+
+it('ignores old lookup responses after the code changes and clears the card when erased', async () => {
+  jest.useFakeTimers();
+  let finish!: (value: any) => void;
+  mockLookup.mockImplementation((reference, args) => reference === 'creator-card' && args.code === 'MIKA'
+    ? new Promise(resolve => { finish = resolve; })
+    : Promise.resolve(reference === 'creator-card' && args.code === 'OTHER' ? { code: 'OTHER', name: 'Other Creator', photo: null } : null));
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'MIKA');
+  await lookupCode(screen, 'OTHER');
+  expect(screen.getByText('Other Creator')).toBeTruthy();
+  await act(async () => { finish({ code: 'MIKA', name: 'Mika Santos', photo: null }); await flushLookup(); });
+  expect(screen.queryByText('Mika Santos')).toBeNull();
+  fireEvent.changeText(screen.getByLabelText('Who sent you? (optional)'), '');
+  expect(screen.queryByTestId('onboarding-referrer-card')).toBeNull();
+});
+
+it('never displays a resolved identity for a different code and leaves final validation to Continue', async () => {
+  jest.useFakeTimers();
+  mockCreatorCards.LEGACY = { code: 'DIFFERENT', name: 'Wrong Creator', photo: null };
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'LEGACY');
+  expect(screen.queryByText('Wrong Creator')).toBeNull();
+  fireEvent.press(screen.getByRole('radio', { name: 'Facebook' }));
+  next(screen); await act(flushLookup);
+  expect(mockSaveDiscovery).toHaveBeenCalledWith({ discoverySource: 'facebook', referredByCode: 'LEGACY' });
+});
+
+it('does not block a valid backend referral when public lookup fails', async () => {
+  jest.useFakeTimers();
+  mockLookup.mockRejectedValue(new Error('Lookup unavailable'));
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'LEGACY');
+  expect(screen.queryByTestId('onboarding-referrer-card')).toBeNull();
+  fireEvent.press(screen.getByRole('radio', { name: 'TikTok' }));
+  next(screen); await act(flushLookup);
+  expect(mockSaveDiscovery).toHaveBeenCalledWith({ discoverySource: 'tiktok', referredByCode: 'LEGACY' });
+  expect(screen.getByText('Where do you work?')).toBeTruthy();
+});
+
+it('falls back to the validated name’s avatar when the real profile photo fails', async () => {
+  jest.useFakeTimers();
+  mockCreatorCards.MIKA = { code: 'MIKA', name: 'Mika Santos', photo: 'https://media.example.com/mika.jpg' };
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'MIKA');
+  fireEvent(screen.getByLabelText("Mika Santos's profile photo"), 'error');
+  expect(screen.queryByLabelText("Mika Santos's profile photo")).toBeNull();
+  expect(screen.getByLabelText("Mika Santos's photo")).toBeTruthy();
+});
+
+it('ignores an old account’s pending lookup after onboarding remounts for another account', async () => {
+  jest.useFakeTimers();
+  let finish!: (value: any) => void;
+  mockLookup.mockImplementation(reference => reference === 'creator-card' ? new Promise(resolve => { finish = resolve; }) : Promise.resolve(null));
+  const screen = render(<AgentOnboardingScreen />);
+  await lookupCode(screen, 'MIKA');
+  mockMobile.account = { ...mockMobile.account, _id: 'agent-2', clerkId: 'clerk-agent-2' };
+  screen.rerender(<AgentOnboardingScreen />);
+  await act(async () => { finish({ code: 'MIKA', name: 'Mika Santos', photo: null }); await flushLookup(); });
+  expect(screen.queryByText('Mika Santos')).toBeNull();
+  expect(screen.getByLabelText('Who sent you? (optional)').props.value).toBe('');
+});
 
 it('asks how they heard first and saves that answer before showing cities', async () => {
   const screen = render(<AgentOnboardingScreen />);

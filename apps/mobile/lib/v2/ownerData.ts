@@ -23,6 +23,8 @@ import type {
   NearbyAgent,
   OwnerMe,
   OwnerSubmission,
+  OwnerCreatorCodeState,
+  OwnerCreatorOffer,
   PayKind,
   PaymentState,
   PayToken,
@@ -159,7 +161,17 @@ export function usePaymentState(id: SubmissionId | null | undefined): PaymentSta
   return useQuery(ref.paymentState, id ? { submissionId: id } : skip); // eslint-disable-line react-hooks/rules-of-hooks
 }
 
-export function useCreatePayToken(): (args: Sid & { kind: PayKind; amount?: number }) => Promise<PayToken> {
+/** The owner's saved creator offer is an order quote, never a client-side discount. */
+export function useOwnerCreatorCode(id: SubmissionId | null | undefined): OwnerCreatorCodeState | undefined {
+  return useQuery(api.ownerApp.creatorCode, !OWNER_SAMPLE_DATA && id ? { submissionId: id } : skip);
+}
+
+export function useApplyOwnerCreatorCode(): (args: Sid & { code: string | null }) => Promise<OwnerCreatorOffer | null> {
+  const apply = useMutation(api.ownerApp.applyCreatorCode);
+  return useCallback(args => apply(args), [apply]);
+}
+
+export function useCreatePayToken(): (args: Sid & { kind: PayKind; amount?: number; expectedTotal?: number }) => Promise<PayToken> {
   const m = useMutation(ref.createPayToken);
   return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.createPayToken(args) : m(args)), [m]);
 }

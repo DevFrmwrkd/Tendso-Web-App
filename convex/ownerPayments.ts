@@ -138,6 +138,8 @@ export const createPayToken = mutation({
         kind: payKind,
         // Down payment amount in whole pesos (kind 'deposit' only).
         amount: v.optional(v.number()),
+        // The displayed whole-order quote; old clients may omit it.
+        expectedTotal: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId);
@@ -148,6 +150,14 @@ export const createPayToken = mutation({
         }
         let charge: { kind: PayKind; amount: number };
         try {
+            if (args.expectedTotal !== undefined) {
+                if (!Number.isFinite(args.expectedTotal) || args.expectedTotal <= 0) {
+                    throw new ConvexError('Refresh the price and try again.');
+                }
+                if (orderMoney(submission).total !== args.expectedTotal) {
+                    throw new ConvexError('The price has changed. Check the latest total before paying.');
+                }
+            }
             charge = resolveCharge(submission, args.kind, args.amount);
         } catch (error) {
             if (error instanceof ConvexError) throw error;

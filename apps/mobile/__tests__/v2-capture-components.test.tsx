@@ -170,6 +170,21 @@ describe('ShotGuide', () => {
 });
 
 describe('InterviewCam', () => {
+  it('saves exactly the selected answer and finishes a voice-only redo', async () => {
+    const onClip = jest.fn(); const onFinish = jest.fn();
+    const r = wrap(<InterviewCam recording="perQuestion" audioOnly startAt={4} stopAfterQuestion={4}
+      onClip={onClip} onFinish={onFinish} onClose={jest.fn()} />);
+    await act(flush);
+    await act(async () => { jest.advanceTimersByTime(5000); await flush(); });
+    await act(async () => { jest.advanceTimersByTime(1300); await flush(); });
+    expect(r.getByText('How did you start?')).toBeTruthy();
+    expect(r.queryByLabelText('Next question')).toBeNull();
+    await act(async () => { fireEvent.press(r.getByLabelText('Finish')); await flush(); });
+    expect(onClip).toHaveBeenCalledTimes(1);
+    expect(onClip).toHaveBeenCalledWith(expect.objectContaining({ index: 4, uri: 'file://a.m4a', kind: 'audio' }));
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    r.unmount();
+  });
   it('checks framing once, then asks the questions as subtitles with Next as the big button', async () => {
     const onFinish = jest.fn();
     const r = wrap(<InterviewCam recording="continuous" onFinish={onFinish} onClose={jest.fn()} />);

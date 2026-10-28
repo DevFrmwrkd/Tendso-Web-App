@@ -195,6 +195,28 @@ includes `creator_override` rows; the normal wallet and withdrawal flow pays
 these too. This response contains only the signed-in affiliate's team, without
 agents' contact details. Earlier referral bonuses are not migrated or reset.
 
+### Additive native portal month and team fields
+
+`affiliates.portal` also returns `month: { start, end, label }`, the current Asia/Manila calendar month (`[start, end)`, label `YYYY-MM`), and:
+
+```ts
+income: {
+  directThisMonth: number; // submission_approved ledger credits
+  teamThisMonth: number;   // creator_override ledger credits
+  totalThisMonth: number;  // the two streams above
+};
+```
+
+These new totals use each earning's `createdAt` and count `available` and `withdrawn` credits, excluding `pending`. Direct commission is credited when the owner makes a qualifying down payment or full payment; team commission is credited only after full payment. A later withdrawal, deleted submission, or changed submission status does not erase a credited earning. Other earning types, including earlier referral bonuses, remain separate. Existing `summary`, `recruitStats.totalEarned`, referral totals and full histories retain their previous all-status/history semantics.
+
+Each `recruits` row adds `photo: string | null` (the agent's public profile image only), `monthEarned: number` (this creator's credited team share in that month), and `monthsLeft: number` (a display estimate clamped to 0–12, zero after expiry). Existing `createdAt` and `endsAt` remain the exact join timestamp and end of the 12-calendar-month commission period. No contact details or shop-capture photos are exposed through these additions.
+
+### Native confirmation status
+
+The mobile first-open gate uses the HTTP suggestion endpoint and explicitly asks “Did X send you?” on both platforms. The current native implementation uses `source: "confirmed"`; Android Play install-referrer extraction is not wired and no new install-referrer dependency is included.
+
+A signed-out Yes saves consent locally and makes no server claim. After sign-in, only the first authenticated subject can adopt that answer; claiming then requires an explicit agent or owner flow and live matching account/auth state. Acknowledgements and pending retries are scoped to that subject. No clears pending consent and never creates a claim. Existing server attribution wins, and late callbacks from another account or an unmounted gate are ignored. Failed confirmation can be retried; a null, invalid, or failed network suggestion produces no invented creator. The HTTP lookup, including its response body, has a six-second timeout and does not block the underlying app when no question is available.
+
 ## 4. Creator portal — `creatorPortal.summary` (query, active or suspended creator)
 
 Throws "Your creator account is waiting for admin approval." while pending, "A creator account is required." for anyone else.

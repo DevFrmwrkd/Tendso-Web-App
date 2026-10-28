@@ -15,6 +15,8 @@ export interface InterviewState {
   total: number;
   /** The framing check passed (shown as "Good. Start talking" for a moment). */
   framingGood: boolean;
+  /** Optional last question when replacing one saved answer. */
+  stopAfterQuestion?: number;
 }
 
 export type InterviewEvent =
@@ -25,8 +27,11 @@ export type InterviewEvent =
   | { type: 'RESUME' }
   | { type: 'FINISH' };
 
-export function initialInterview(total = 10, startAt = 0): InterviewState {
-  return { phase: 'framing', q: Math.max(0, Math.min(startAt, total)), total, framingGood: false };
+export function initialInterview(total = 10, startAt = 0, stopAfterQuestion?: number): InterviewState {
+  const q = Math.max(0, Math.min(startAt, total));
+  return { phase: 'framing', q, total, framingGood: false,
+    ...(stopAfterQuestion !== undefined && Number.isInteger(stopAfterQuestion)
+      ? { stopAfterQuestion: Math.max(q, Math.min(stopAfterQuestion, total)) } : {}) };
 }
 
 export function interviewReducer(s: InterviewState, e: InterviewEvent): InterviewState {
@@ -37,7 +42,7 @@ export function interviewReducer(s: InterviewState, e: InterviewEvent): Intervie
       return s.phase === 'framing' ? { ...s, phase: 'asking', framingGood: true } : s;
     case 'NEXT':
       if (s.phase !== 'asking') return s;
-      return s.q >= s.total ? { ...s, phase: 'done' } : { ...s, q: s.q + 1 };
+      return isLastQuestion(s) ? { ...s, phase: 'done' } : { ...s, q: s.q + 1 };
     case 'PAUSE':
       return s.phase === 'asking' ? { ...s, phase: 'paused' } : s;
     case 'RESUME':
@@ -51,7 +56,7 @@ export function interviewReducer(s: InterviewState, e: InterviewEvent): Intervie
 
 /** On the extra question the big button says Finish. */
 export function isLastQuestion(s: InterviewState): boolean {
-  return s.q >= s.total;
+  return s.q >= (s.stopAfterQuestion ?? s.total);
 }
 
 export type SegmentState = 'done' | 'cur' | 'todo';

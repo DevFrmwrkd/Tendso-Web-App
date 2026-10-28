@@ -3,11 +3,13 @@ import { internalMutation, mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { WEBSITE_PRICE } from '../lib/pricing';
+import { WEBSITE_PRICE, commissionFor, domainAddOnFor } from '../lib/pricing';
 import { BUSINESS_TYPES } from '../lib/prospectPrefill';
 import { resolveSiteSlug } from '../lib/siteSlug';
 import { needsCloudflareWorker, publishAddressFor } from '../lib/publish-target';
 import { requireOwner, requireOwnerOfSubmission, linkOwnerToSubmission, ownerAppPublishBlockReason, resetOwnerApproval } from './lib/ownerAuth';
+import { findActiveCreator } from './lib/creatorRecruits';
+import { ownerCreatorCodeBlockReason, ownerCreatorIsSelf, savedOwnerCreatorCode } from './lib/ownerCreatorCode';
 import {
     BUILD_ESTIMATE_MINUTES,
     BUILD_STEPS,
@@ -34,8 +36,8 @@ import {
  *   → publishIfReady (automatic) → live.
  *
  * Every function checks the signed-in owner is linked to the submission.
- * The order is attributed to the house creator (SELF_SERVE_CREATOR_ID) with a
- * ₱0 payout, exactly like /start.
+ * A confirmed active creator offer is snapshotted onto the order. Otherwise
+ * attribution stays with the house (SELF_SERVE_CREATOR_ID) and payout is ₱0.
  */
 
 function reject(message: string): never {
@@ -154,7 +156,14 @@ export const createDraft = mutation({
         }
         if (drafts >= MAX_OPEN_DRAFTS) reject('You already have a website in progress. Finish that one first.');
 
-        const creatorId = await houseCreatorId(ctx);
+        const houseId = await houseCreatorId(ctx);
+        const attribution = await ctx.db.query('creatorAttributions')
+            .withIndex('by_clerk_id', q => q.eq('clerkId', owner.clerkId)).first();
+        const suggestedOffer = attribution?.kind === 'owner' && attribution.status === 'applied'
+            ? await findActiveCreator(ctx, attribution.handle, 'handle') : null;
+        const offer = suggestedOffer && suggestedOffer.affiliate._id === attribution?.creatorId
+            && !ownerCreatorIsSelf(owner, suggestedOffer.affiliate) ? suggestedOffer : null;
+        const creatorId = offer?.affiliate._id ?? houseId;
         const submissionId = await ctx.db.insert('submissions', {
             creatorId,
             businessName,
@@ -170,9 +179,11 @@ export const createDraft = mutation({
             shotListKey: cleanShotListKey(args.shotListKey),
             status: 'draft',
             contentSource: OWNER_APP_SOURCE,
-            // Self-serve: full list price, house attribution, no agent payout.
-            amount: WEBSITE_PRICE,
-            creatorPayout: 0,
+            // Freeze an explicitly confirmed, active creator offer; otherwise use the house.
+            amount: offer?.price ?? WEBSITE_PRICE,
+            creatorPayout: offer ? commissionFor(offer.price) : 0,
+            websiteListPrice: offer ? WEBSITE_PRICE : undefined,
+            affiliateHandle: offer?.affiliate.affiliateHandle,
             submissionType: 'standard',
             domainStatus: 'not_requested',
             domainChargedPHP: 0,
@@ -185,6 +196,50 @@ export const createDraft = mutation({
 function validCoordinates(c: { lat: number; lng: number }): boolean {
     return Number.isFinite(c.lat) && Math.abs(c.lat) <= 90 && Number.isFinite(c.lng) && Math.abs(c.lng) <= 180;
 }
+
+/** The applied creator and immutable quote, plus whether checkout may still change it. */
+export const creatorCode = query({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        const { submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
+        const reason = await ownerCreatorCodeBlockReason(ctx, submission);
+        return { applied: await savedOwnerCreatorCode(ctx, submission), editable: !reason, reason, total: submission.amount ?? 0 };
+    },
+});
+
+/** Apply/remove a real creator code on the linked owner's unpaid self-serve quote. */
+export const applyCreatorCode = mutation({
+    args: { submissionId: v.id('submissions'), code: v.union(v.string(), v.null()) },
+    handler: async (ctx, args) => {
+        const { owner, submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
+        const reason = await ownerCreatorCodeBlockReason(ctx, submission);
+        if (reason) reject(reason);
+        const offer = args.code === null ? null : await findActiveCreator(ctx, args.code, 'code');
+        if (args.code !== null && !offer) reject('We could not find an active creator with that code.');
+        if (offer && ownerCreatorIsSelf(owner, offer.affiliate, submission)) reject('You cannot use your own creator code.');
+        const websitePrice = offer?.price ?? WEBSITE_PRICE;
+        const creatorPayout = offer ? commissionFor(websitePrice) : 0;
+        const addon = domainAddOnFor(submission.submissionType ?? 'standard', submission.domainCostPHP, submission.domainChargedPHP);
+        const amount = websitePrice + addon;
+        await ctx.db.patch(args.submissionId, {
+            creatorId: offer?.affiliate._id ?? await houseCreatorId(ctx),
+            affiliateHandle: offer?.affiliate.affiliateHandle,
+            websiteListPrice: offer ? WEBSITE_PRICE : undefined,
+            amount, creatorPayout, campaign: undefined,
+            ...(submission.platformFee !== undefined ? { platformFee: websitePrice - creatorPayout } : {}),
+            ...(submission.balanceDue !== undefined ? { balanceDue: amount } : {}),
+        });
+        // Per-order offers can change; the person's first identity attribution cannot.
+        if (offer) {
+            const existing = await ctx.db.query('creatorAttributions').withIndex('by_clerk_id', q => q.eq('clerkId', owner.clerkId)).first();
+            if (!existing) await ctx.db.insert('creatorAttributions', {
+                clerkId: owner.clerkId, creatorId: offer.affiliate._id, handle: offer.affiliate.affiliateHandle!,
+                kind: 'owner', source: 'code', status: 'applied', createdAt: Date.now(), appliedAt: Date.now(),
+            });
+        }
+        return savedOwnerCreatorCode(ctx, (await ctx.db.get(args.submissionId))!);
+    },
+});
 
 function cleanShotListKey(key: string | undefined): string | undefined {
     if (key === undefined) return undefined;

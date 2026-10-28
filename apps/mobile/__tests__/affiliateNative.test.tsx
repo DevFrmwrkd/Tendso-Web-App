@@ -1,6 +1,8 @@
 import React from 'react';
+import { Share } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AffiliateHomeScreen, HomeContent } from '../components/affiliate/Home';
+import { AffiliateAgentsScreen, AgentsContent } from '../components/affiliate/Agents';
 import { AffiliatePageScreen } from '../components/affiliate/PageEditor';
 import { AffiliateSalesScreen } from '../components/affiliate/Sales';
 import { affiliateDraft, affiliatePagePayload, sampleAffiliate, samplePortal } from '../components/affiliate/model';
@@ -69,16 +71,21 @@ describe('native affiliate access and live data', () => {
     expect(mockPaginated).not.toHaveBeenCalled();
     expect(mockMutation).not.toHaveBeenCalled();
     expect(mockAction).not.toHaveBeenCalled();
+    page.unmount();
+    const agents = render(<AffiliateAgentsScreen />);
+    expect(agents.getByText('Bea Reyes')).toBeTruthy();
+    expect(mockQuery).not.toHaveBeenCalled();
+    agents.unmount();
   });
 
   it('shows actual zero totals and keeps missing totals loading', () => {
     const props = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true };
-    const zeroPortal = { ...samplePortal, summary: { ...samplePortal.summary, balance: 0, totalEarned: 0, pendingCommission: 0 } };
+    const zeroPortal = { ...samplePortal, income: { directThisMonth: 0, teamThisMonth: 0, totalThisMonth: 0 } };
     const view = render(<HomeContent {...props} portal={zeroPortal} />);
-    expect(view.getAllByText('₱0')).toHaveLength(3);
+    expect(view.getAllByText('₱0')).toHaveLength(2);
     view.rerender(<HomeContent {...props} portal={undefined} />);
     expect(view.queryByText('₱0')).toBeNull();
-    expect(view.getAllByText('Loading…')).toHaveLength(3);
+    expect(view.getAllByText('Loading…')).toHaveLength(2);
   });
 
   it('shows team commissions alongside earlier one-time referral bonuses', () => {
@@ -86,12 +93,50 @@ describe('native affiliate access and live data', () => {
       recruits: [{ _id: 'new-agent' as typeof sampleAffiliate._id, referredName: 'New Team Agent', createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 250 }],
       recruitStats: { total: 1, earning: 1, totalEarned: 250 },
     };
-    const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
+    const view = render(<AgentsContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
     expect(view.getByText('New Team Agent')).toBeTruthy();
-    expect(view.getByText('5% team commissions · 1')).toBeTruthy();
-    expect(view.getByText(/₱250 team commission earned/)).toBeTruthy();
+    expect(view.getByText('My agents')).toBeTruthy();
+    expect(view.getByText(/credited 5% share this month/)).toBeTruthy();
     expect(view.getByText('Earlier ₱1,000 referrals · 1')).toBeTruthy();
     expect(view.getByText('Alex Reyes')).toBeTruthy();
+  });
+
+  it('separates real monthly link and team income from the available balance', () => {
+    const portal = { ...samplePortal, income: { directThisMonth: 6000, teamThisMonth: 450, totalThisMonth: 6450 } };
+    const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
+    expect(view.getByLabelText('From your link, ₱6,000')).toBeTruthy();
+    expect(view.getByLabelText('From your agents, ₱450')).toBeTruthy();
+    expect(view.queryByText('₱2,500')).toBeNull();
+    expect(view.getByText('October 2026')).toBeTruthy();
+  });
+
+  it('paginates every recruited agent without hiding their current-month credit', () => {
+    const recruits = Array.from({ length: 6 }, (_, index) => ({ ...samplePortal.recruits[0], _id: `agent-${index}` as typeof sampleAffiliate._id,
+      referredName: `Agent ${index + 1}`, monthEarned: (index + 1) * 50 }));
+    const view = render(<AgentsContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={{ ...samplePortal, recruits }} />);
+    expect(view.getByText('Agent 1')).toBeTruthy();
+    expect(view.getByText('Agent 4')).toBeTruthy();
+    expect(view.queryByText('Agent 5')).toBeNull();
+    expect(view.getByLabelText('Agent 1, 12 of 12 months remaining')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('Next agents'));
+    expect(view.getByText('Agent 5')).toBeTruthy();
+    expect(view.getByText('₱250')).toBeTruthy();
+    expect(view.queryByText('Agent 1')).toBeNull();
+    fireEvent.press(view.getByLabelText('Previous agents'));
+    expect(view.getByText('Agent 1')).toBeTruthy();
+  });
+
+  it('shares only the creator’s saved link and prevents suspended/preview sharing', async () => {
+    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: Share.sharedAction });
+    const props = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true, portal: samplePortal };
+    const view = render(<HomeContent {...props} />);
+    fireEvent.press(view.getByLabelText('Share my link'));
+    await waitFor(() => expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://tendso.com/v2/a/sample-affiliate' })));
+    view.rerender(<HomeContent {...props} account={{ ...sampleAffiliate, status: 'suspended' }} />);
+    expect(view.getByLabelText('Share my link').props.accessibilityState.disabled).toBe(true);
+    view.rerender(<HomeContent {...props} isPreview />);
+    expect(view.getByLabelText('Share my link').props.accessibilityState.disabled).toBe(true);
+    share.mockRestore();
   });
 
   it('keeps suspended pages read-only without mounting write hooks', () => {

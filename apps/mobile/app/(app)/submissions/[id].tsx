@@ -16,7 +16,9 @@ import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Id } from '@tendso/convex-client';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from '@clerk/clerk-expo';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import { openExternalUrl } from '../../../services/links';
 import { colors, radius, shadow, space } from '../../../theme/v2';
@@ -69,11 +71,20 @@ export default function SubmissionDetailScreen() {
   const router = useGuardedRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { width: windowWidth } = useWindowDimensions();
-
-  const submission = useQuery(
-    api.submissions.getByIdWithCreator,
-    id ? { id: id as Id<'submissions'> } : 'skip'
-  );
+  const { user, isLoaded } = useUser();
+  const { account, isAuthenticated, isOffline, isBlocked, isPreview, isLoading } = useMobileAccount();
+  const capture = useCaptureSession();
+  const ownAccount = account?.clerkId === user?.id && !isBlocked && !isPreview
+    && (!account?.role || account.role === 'creator') ? account : null;
+  const canRead = !!ownAccount && isAuthenticated && !isOffline;
+  const raw = useQuery(api.submissions.getById, canRead && id ? { id: id as Id<'submissions'> } : 'skip');
+  // Verify ownership before resolving any private capture media.
+  const submission = canRead && raw?.creatorId === ownAccount._id ? raw : null;
+  const [resuming, setResuming] = useState(false);
+  const [resumeError, setResumeError] = useState('');
+  const resumeBusy = useRef(false);
+  const liveId = useRef(id);
+  liveId.current = id;
 
   // Preserve the legacy response's URL preference while using canonical types.
   const legacyDeployedUrl = submission && 'deployedUrl' in submission &&
@@ -211,7 +222,7 @@ export default function SubmissionDetailScreen() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (submission === undefined) {
+  if (!isLoaded || isLoading || (canRead && raw === undefined)) {
     return <Loading />;
   }
 
@@ -220,8 +231,8 @@ export default function SubmissionDetailScreen() {
       <ScreenShell onBack={() => router.back()} contentStyle={styles.centerBody}>
         <EmptyState
           icon="alert-circle-outline"
-          title="Shop not found"
-          body="It may have been deleted."
+          title={isOffline ? 'Reconnect to open this shop' : 'Shop not found'}
+          body={isOffline ? 'Your submissions are available when you reconnect.' : 'Open a submission from your own field-agent account.'}
         />
       </ScreenShell>
     );
@@ -335,23 +346,34 @@ export default function SubmissionDetailScreen() {
         title={submission.businessName}
         onBack={() => router.back()}
         footer={
-          isDraft ? (
+          submission.status === 'draft' ? (
             <Button
               title="Continue submission"
+              loading={resuming}
+              disabled={resuming || !capture.canMutate()}
               onPress={async () => {
-                await AsyncStorage.setItem('current_submission_id', submission._id);
-                const route = !submission.photos || submission.photos.length === 0
-                  ? '/(app)/submit/photos'
-                  : !submission.videoStorageId && !submission.audioStorageId
-                  ? '/(app)/submit/interview'
-                  : '/(app)/submit/review';
-                router.push(route as any);
+                const draftId = submission._id;
+                if (resumeBusy.current || !capture.canMutate() || capture.actor?.creatorId !== submission.creatorId) return;
+                resumeBusy.current = true; setResuming(true); setResumeError('');
+                try {
+                  await capture.write('current_submission_id', draftId);
+                  const pointer = await capture.read<string>('current_submission_id');
+                  if (!capture.canMutate() || liveId.current !== draftId || pointer !== draftId) return;
+                  // Explicit hydration also preserves only this draft's local edits.
+                  router.push({ pathname: '/(app)/submit/info', params: { draftId } } as never);
+                } catch {
+                  if (capture.isCurrent()) setResumeError('Could not reopen this draft. Please try again.');
+                } finally {
+                  resumeBusy.current = false;
+                  if (capture.isCurrent()) setResuming(false);
+                }
               }}
             />
           ) : undefined
         }
         contentStyle={styles.body}
       >
+        {resumeError ? <Banner tone="danger" body={resumeError} /> : null}
         <Chip label={badge.label} tone={badge.tone} style={styles.statusChip} />
 
         {heroUrl ? (

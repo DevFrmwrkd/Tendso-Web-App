@@ -1,116 +1,91 @@
-/** Start 2/3 — the shop's name and where it is (mock owner board "q2"). Creates the draft. */
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { Field } from '../../../components/v2/owner/OwnerUI';
+import { CaptureLocationPicker, validCaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 import { sellKind } from '../../../lib/v2/ownerContent';
 import { useCreateDraft, useUpdateDraft } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE, startProgress } from '../../../lib/v2/ownerFlow';
-import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
+import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
 import { colors, radius, space } from '../../../theme/v2';
 
 export default function PlaceScreen() {
+  const scope = useOwnerScope();
+  return <PlaceForm key={scope.accountKey} scope={scope} />;
+}
+function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const router = useRouter();
   const intake = useOwnerIntake();
-  const { site } = useOwnerSite();
   const createDraft = useCreateDraft();
   const updateDraft = useUpdateDraft();
   const [name, setName] = useState(intake.businessName ?? '');
   const [address, setAddress] = useState(intake.address ?? '');
   const [city, setCity] = useState(intake.city ?? '');
   const [coords, setCoords] = useState(intake.coordinates);
-  const [locating, setLocating] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const inFlight = useRef(false);
   const kind = sellKind(intake.kind);
-
-  const locate = async () => {
-    setLocating(true);
-    setError(null);
-    try {
-      const perm = await Location.requestForegroundPermissionsAsync();
-      if (!perm.granted) {
-        setError('Type the address instead.');
-        return;
-      }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setCoords(c);
-      const [place] = await Location.reverseGeocodeAsync({ latitude: c.lat, longitude: c.lng });
-      if (place) {
-        const street = [place.streetNumber, place.street].filter(Boolean).join(' ');
-        const line = [street || place.name, place.district].filter(Boolean).join(', ');
-        if (line) setAddress(line);
-        if (place.city || place.subregion) setCity(place.city || place.subregion || '');
-      }
-    } catch {
-      setError('We could not find you. Type the address instead.');
-    } finally {
-      setLocating(false);
-    }
-  };
-
   const next = async () => {
-    if (!kind) {
-      router.replace(STEP_ROUTE.sell as never);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const fields = {
-      businessType: kind.businessType,
-      businessName: name.trim(),
-      address: address.trim(),
-      city: city.trim(),
-      coordinates: coords,
-      shotListKey: kind.shots,
-    };
+    if (inFlight.current || !scope.isAccountCurrent() || scope.isOffline || (scope.site && scope.site.phase !== 'draft')) return;
+    if (!kind) { router.replace(STEP_ROUTE.sell as never); return; }
+    if (!name.trim() || !address.trim()) return;
+    inFlight.current = true; setBusy(true); setError(null);
+    const fields = { businessType: kind.businessType, businessName: name.trim(), address: address.trim(), city: city.trim(),
+      coordinates: validCaptureCoordinates(coords) ? coords : undefined, shotListKey: kind.shots };
     try {
-      let id = site?.phase === 'draft' ? site.submissionId : undefined;
+      let id = scope.site?.phase === 'draft' ? scope.site.submissionId : undefined;
       if (id) await updateDraft({ submissionId: id, ...fields });
       else id = await createDraft(fields);
-      ownerIntake.set({ businessName: fields.businessName, address: fields.address, city: fields.city, coordinates: coords, submissionId: id });
+      if (!scope.isAccountCurrent()) return;
+      ownerIntake.set({ businessName: fields.businessName, address: fields.address, city: fields.city, coordinates: fields.coordinates, submissionId: id,
+        ...(intake.submissionId !== id ? { shots: undefined, design: undefined } : {}) });
       router.push(STEP_ROUTE.how as never);
-    } catch (e: any) {
-      setError(e?.data ?? e?.message ?? 'Please try again.');
-    } finally {
-      setBusy(false);
-    }
+    } catch (cause) {
+      if (scope.isAccountCurrent()) setError(cause instanceof Error ? cause.message : 'Could not save your shop. Please try again.');
+    } finally { inFlight.current = false; if (scope.isAccountCurrent()) setBusy(false); }
   };
-
-  return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScreenShell
-        title="What's your shop called?"
-        subtitle="And where is it?"
-        progress={startProgress('place')}
-        onBack={() => router.back()}
-        footer={<Button title="Next" onPress={next} loading={busy} disabled={!name.trim() || (!address.trim() && !coords)} />}
-      >
-        <View style={{ gap: space.lg }}>
-          <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="next" />
-          <Field label="Address" icon="location-outline" value={address} onChangeText={setAddress} autoCapitalize="words" />
-          <Pressable
-            onPress={locate}
-            accessibilityRole="button"
-            accessibilityLabel="Use my location"
-            cssInterop={false}
-            style={({ pressed }) => [
-              { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start', minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.bg2 },
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Ionicons name={coords ? 'checkmark-circle' : 'locate'} size={22} color={colors.ink} />
-            <Text weight="bold">{locating ? 'Finding you…' : coords ? 'Location added' : 'Use my location'}</Text>
-          </Pressable>
-          {error ? <Text tone="danger">{error}</Text> : null}
+  const hasPin = validCaptureCoordinates(coords);
+  const region = hasPin ? { latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }
+    : { latitude: 14.5995, longitude: 120.9842, latitudeDelta: 0.3, longitudeDelta: 0.3 };
+  if (scope.site && scope.site.phase !== 'draft') return <ScreenShell title="Your shop details are saved"
+    subtitle="To update your website, send a change request to the team."
+    footer={<Button title="View my site" onPress={() => router.replace('/(owner)/(tabs)/site' as never)} />} />;
+  return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <ScreenShell title="What's your shop called?" subtitle="And where is it?" progress={startProgress('place')}
+      onBack={() => { if (!inFlight.current) router.back(); }} contentStyle={styles.content}
+      footer={<Button title="Next" onPress={() => { void next(); }} loading={busy} disabled={scope.isOffline || !name.trim() || !address.trim()} />}>
+      <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={setName} autoCapitalize="words" editable={!busy} />
+      <Field label="Address" icon="location-outline" value={address} onChangeText={setAddress} autoCapitalize="words" editable={!busy} />
+      <Field label="City" value={city} onChangeText={setCity} autoCapitalize="words" editable={!busy} />
+      <Pressable accessibilityRole="button" accessibilityLabel={hasPin ? 'Adjust shop location on map' : 'Choose shop location on map'}
+        disabled={busy} onPress={() => setMapOpen(true)} style={styles.mapCard}>
+        <View style={styles.map} pointerEvents="none">
+          <MapView key={hasPin ? `${coords.lat}:${coords.lng}` : 'unplaced'} style={styles.flex} initialRegion={region}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined} scrollEnabled={false} zoomEnabled={false}
+            rotateEnabled={false} pitchEnabled={false} showsUserLocation={false}>
+            {hasPin ? <Marker coordinate={{ latitude: coords.lat, longitude: coords.lng }} title="Your shop" /> : null}
+          </MapView>
         </View>
-      </ScreenShell>
-    </KeyboardAvoidingView>
-  );
+        <View style={styles.mapLabel}><Ionicons name="location-outline" size={22} color={colors.ink} />
+          <Text weight="bold" style={styles.flex}>{hasPin ? 'Shop pin added · tap to adjust' : 'Tap the map to pin your shop'}</Text>
+          <Ionicons name="chevron-forward" size={20} color={colors.ink3Text} /></View>
+      </Pressable>
+      {scope.isOffline ? <Text tone="muted">Reconnect to save your shop details.</Text> : null}
+      {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
+    </ScreenShell>
+    {mapOpen ? <CaptureLocationPicker coordinates={coords} address={address} city={city} isOffline={scope.isOffline}
+      isCurrent={scope.isAccountCurrent} onClose={() => setMapOpen(false)} onConfirm={location => {
+        if (!scope.isAccountCurrent()) return;
+        setCoords(location.coordinates); setAddress(location.address); setCity(location.city); setMapOpen(false);
+      }} /> : null}
+  </KeyboardAvoidingView>;
 }
+const styles = StyleSheet.create({ flex: { flex: 1 }, content: { gap: space.lg },
+  mapCard: { borderRadius: radius.card, overflow: 'hidden', backgroundColor: colors.card },
+  map: { height: 180, backgroundColor: colors.bg2 }, mapLabel: { padding: space.md, minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: space.sm } });

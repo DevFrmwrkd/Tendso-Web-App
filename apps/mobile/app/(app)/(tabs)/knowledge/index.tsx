@@ -5,7 +5,7 @@ import { useGuardedRouter } from '../../../../hooks/useGuardedRouter';
 import { useKnowledge } from '../../../../services/knowledge/KnowledgeProvider';
 import { categoryIcon, hue } from '../../../../components/knowledge/kbTheme';
 import { AskMark } from '../../../../components/knowledge/AskMark';
-import { Card, ListRow, Loading, ScreenShell, SectionLabel, TextLink, Text } from '../../../../components/v2';
+import { Banner, Card, EmptyState, ListRow, Loading, ScreenShell, SectionLabel, TextLink, Text } from '../../../../components/v2';
 import type { Workspace } from '../../../../services/knowledge/api';
 import { colors, hit, radius, shadow, space } from '../../../../theme/v2';
 
@@ -51,11 +51,15 @@ function WorkspaceToggle({
 
 export default function KnowledgeHome() {
   const router = useGuardedRouter();
-  const { workspace, setWorkspace, canAccessWiki, categories, articles, faqs, loading } = useKnowledge();
+  const { workspace, setWorkspace, canAccessWiki, categories, articles, faqs, loading,
+    bookmarkedIds, bookmarksReady, bookmarkError, reloadBookmarks } = useKnowledge();
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
 
   const popular = articles.filter((a) => a.popular).slice(0, 5);
   const wikiBlocked = workspace === 'wiki' && canAccessWiki === false;
+  // IDs alone never reveal an article outside the currently authorized workspace.
+  const savedArticles = articles.filter(article => bookmarkedIds.includes(article._id));
 
   return (
     <ScreenShell title="How can we help?" insetBottom={false} contentStyle={styles.content}>
@@ -73,6 +77,11 @@ export default function KnowledgeHome() {
           {workspace === 'wiki' ? 'Search the wiki' : 'Search the help center'}
         </Text>
       </Pressable>
+
+      <TextLink label={savedOnly ? 'Browse all topics' : `Saved articles (${savedArticles.length})`}
+        disabled={!bookmarksReady} onPress={() => setSavedOnly(value => !value)} align="left" />
+      {bookmarkError ? <Banner tone="warn" body={bookmarkError} /> : null}
+      {bookmarkError && !bookmarksReady ? <TextLink label="Retry saved articles" onPress={reloadBookmarks} align="left" /> : null}
 
       {/* Ask Tendso */}
       <Card variant="dark" onPress={() => router.push(`${KB}/ask` as any)} accessibilityLabel="Ask Tendso" style={styles.ask}>
@@ -101,6 +110,15 @@ export default function KnowledgeHome() {
           <Text variant="bodyLg" tone="ink2" align="center">
             Finish your certification to open it.
           </Text>
+        </View>
+      ) : savedOnly ? (
+        <View style={styles.section}>
+          <SectionLabel>Saved articles</SectionLabel>
+          {savedArticles.length ? <Card style={styles.listCard}>{savedArticles.map((article, index) =>
+            <ListRow key={article._id} icon="bookmark" title={article.title}
+              subtitle={`${article.readMin} min read`} divider={index < savedArticles.length - 1}
+              onPress={() => router.push(`${KB}/article/${article.slug}` as never)} />)}</Card>
+            : <EmptyState icon="bookmark-outline" title="No saved articles here" body="Tap the bookmark on an article to save it. Switch Help center or Field wiki to see that workspace’s saved articles." />}
         </View>
       ) : (
         <>

@@ -13,6 +13,7 @@ import { ownerIntake, setOwnerIntent, useOwnerIntake } from '../../lib/v2/ownerI
 import { useOwnerUploads } from '../../lib/v2/ownerUploads';
 import { useOwnerSite } from '../../lib/v2/useOwnerSite';
 import { colors } from '../../theme/v2';
+import { CreatorAttributionGate } from '../../components/CreatorAttributionGate';
 
 function UploadRecovery() {
   const { id, site } = useOwnerSite();
@@ -26,7 +27,7 @@ function UploadRecovery() {
 }
 
 export default function OwnerLayout() {
-  const { isLoaded, isSignedIn, signOut } = useAuth();
+  const { isLoaded, isSignedIn, signOut, userId } = useAuth();
   const signedIn = OWNER_SAMPLE_DATA || !!isSignedIn;
   const me = useOwnerMe(signedIn);
   const ensure = useEnsureOwner();
@@ -83,8 +84,9 @@ export default function OwnerLayout() {
   const cam = { gestureEnabled: false, animation: 'fade' as const, presentation: 'fullScreenModal' as const };
   return (
     <>
+      <CreatorAttributionGate enabled={!OWNER_SAMPLE_DATA} claimAs="owner" />
       <UploadRecovery />
-      <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
+      <Stack key={userId ?? 'sample-owner'} screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
         <Stack.Screen name="talk/record" options={cam} />
         <Stack.Screen name="photos/shoot" options={cam} />
         <Stack.Screen name="building" options={{ gestureEnabled: false }} />

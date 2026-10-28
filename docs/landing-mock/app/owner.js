@@ -28,25 +28,12 @@
 
   // ================= ROW 1 · START =================
   // Sign up (real: (auth)/signup.tsx, simplified for owners)
-  const signup = () => app(`${SB()}
-    <div class="ow-top">${back}</div>
-    <div class="ow-main" style="top:126px;gap:14px">
-      <h2 class="ow-h1 ow-h1--lg">Make your account</h2>
-      <p class="ow-sub" style="margin-top:-6px">Two minutes. No card needed.</p>
-      <div class="ow-fld" style="margin-top:10px"><span class="a-label">Your name</span>
-        <div class="a-field is-focus">${I('user')}<b>Ben Reyes<span class="ow-caret"></span></b></div></div>
-      <div class="ow-fld"><span class="a-label">Mobile number</span>
-        <div class="a-field"><span class="ow-cc">+63</span><b>917 482 1063</b></div></div>
-      <div class="ow-fld"><span class="a-label">Password</span>
-        <div class="a-field">${I('lock')}<b style="letter-spacing:2px">••••••••••</b>${I('eye-off')}</div></div>
-      <p class="ow-small" style="text-align:left;margin-top:2px">We'll text a code to this number to confirm it's you.</p>
-    </div>
-    <div class="ow-foot">
-      <p class="ow-small">By continuing you agree to the <span class="ow-link">Terms</span> and <span class="ow-link">Privacy Policy</span></p>
-      ${pill('Create account')}
-      <p class="ow-small">Already have an account? <b>Log in</b></p>
-    </div>`, { white: true });
-
+  const signup = () => app(`${SB()}<div class="ow-top">${back}</div>
+    <div class="ow-main" style="top:126px;gap:18px">
+      <h2 class="ow-h1 ow-h1--lg">Make your account</h2><p class="ow-sub">We email you a code. No password.</p>
+      <div class="ow-fld"><span class="a-label">Your name</span><div class="a-field">${I('user')}<b>Ben Reyes</b></div></div>
+      <div class="ow-fld"><span class="a-label">Email</span><div class="a-field">${I('mail')}<b>ben@example.com</b></div></div>
+    </div><div class="ow-foot">${pill('Send my code')}<p class="ow-small">By continuing you agree to our Terms and Privacy Policy.</p></div>`);
   // Q1 What does your shop sell? (real fields from submit/info.tsx, asked one at a time)
   const kinds = [
     ['Food & carinderia', 'assets/photos/kalan-cook.jpg'],
@@ -96,18 +83,17 @@
   // Q3 how do you want to do this? (proposed)
   const q3 = () => app(`${SB()}${stepBar(3, 3)}
     <div class="ow-main" style="gap:12px">
-      ${bubble('How do you want to do this?', 'Same site either way. You see it before you pay.')}
+      ${bubble('Who holds the phone?', 'Film yourself, or ask a friend to help.')}
       <div class="ow-way is-on" style="margin-top:6px">
         <div class="ow-way-img"><img src="${A('assets/photos/forge/phone-headshot.jpg')}" alt=""></div>${tick}
-        <div class="ow-way-t"><b>I'll do it on my phone</b><span class="ow-way-m">${I('clock')}About 20 min · talk, photos, pick a look</span></div>
+        <div class="ow-way-t"><b>By myself</b><span class="ow-way-m">${I('smartphone')}You film yourself</span></div>
       </div>
       <div class="ow-way">
         <div class="ow-way-img"><img src="${A('assets/people/15-carinderia.jpg')}" alt=""></div>
-        <div class="ow-way-t"><b>Send someone to my shop</b><span class="ow-way-m">${I('clock')}About 30 min · a Tendso creator near you</span></div>
-        <span class="ow-deal">${I('tag', 'ow-s14')}As low as ₱999 when a Tendso creator signs you up</span>
+        <div class="ow-way-t"><b>With a friend</b><span class="ow-way-m">${I('users')}A friend films you</span></div>
       </div>
     </div>
-    <div class="ow-foot">${pill('Continue')}</div>`, { proposed: true });
+    <div class="ow-foot">${pill('Continue')}<p class="ow-small"><b>Send someone to my shop</b></p></div>`);
 
   // ================= ROW 2 · TALK =================
   // interview-list + interview-cam come from js/screens.js (guided capture, proposed 2026-10-21)
@@ -135,56 +121,43 @@
     { src: 'assets/photos/forge/pro2-clippers.jpg', up: true }, { src: 'assets/photos/forge/phone-prices.jpg', up: false }, { src: 'assets/photos/forge/pro2-outside.jpg', up: true },
   ];
   const photoUpgrade = () => app(`${SB()}${stepBar(2)}
-    <div class="ow-main" style="top:120px;gap:12px">
-      <div><h2 class="ow-h1">Same chair. Shot properly.</h2>
-        <p class="ow-sub ow-gap4">We re-shot the light on 5 of your 6 photos. You choose.</p></div>
-      <div class="ow-cmp" data-cmp>
-        <img src="${A(pair.after)}" alt="The owner, re-shot">
-        <div class="ow-cmp-before"><img src="${A(pair.before)}" alt="The original phone photo"></div>
-        <span class="ow-cmp-tag ow-cmp-tag--l">Phone photo</span>
-        <span class="ow-cmp-tag ow-cmp-tag--r">For your site</span>
+    <div class="ow-main" style="gap:14px"><h2 class="ow-h1">Your photos</h2><p class="ow-sub">Tap a photo to view it. Retake any suggestion.</p>
+      <div class="ow-thumbs" style="flex-wrap:wrap">${thumbs.map(t => `<span class="ow-thumb"><img src="${A(t.src)}" alt="Sample shop photo"></span>`).join('')}</div>
+      <div class="a-card"><b>10 photo ideas</b><p class="ow-sub">Owner, outside, inside, work, tools and prices.</p></div>
+    </div><div class="ow-foot">${pill('Next: pick a design')}${pill('Add from my phone', 'ghost')}</div>`);
+  // Kept as a future concept: the owner API does not expose upgrade choices yet.
+  const photoEnhancementConcept = () => app(`${SB()}${stepBar(2)}
+    <div class="ow-main" style="gap:14px"><h2 class="ow-h1">Photo upgrade review</h2>
+      <p class="ow-sub">Future concept · compare the original and upgraded photo.</p>
+      <div class="ow-cmp" data-cmp><img src="${A(pair.after)}" alt="Upgrade concept">
+        <div class="ow-cmp-before"><img src="${A(pair.before)}" alt="Original phone photo"></div>
+        <span class="ow-cmp-tag ow-cmp-tag--l">Phone photo</span><span class="ow-cmp-tag ow-cmp-tag--r">Upgrade concept</span>
         <div class="ow-cmp-line"><span class="ow-cmp-knob">${I('chevrons-left-right')}</span></div>
       </div>
-      <div class="ow-thumbs">${thumbs.map((t) => `<span class="ow-thumb${t.on ? ' is-on' : ''}"><img src="${A(t.src)}" alt=""><span class="ow-thumb-b${t.up ? '' : ' ow-thumb-b--orig'}">${I(t.up ? 'check' : 'minus')}</span></span>`).join('')}</div>
-    </div>
-    <div class="ow-foot"><div class="ow-foot-row">${pill('Keep originals', 'ghost')}${pill('Use upgrades')}</div></div>`, { proposed: true });
+    </div><div class="ow-foot"><p class="ow-small">Not available in the app yet.</p></div>`, { proposed: true });
 
   // ================= ROW 4 · DESIGN =================
-  const mixing = () => app(`${SB()}
-    <div class="ow-main" style="top:92px;gap:26px">
-      <h2 class="ow-h1" style="text-align:center">Mixing your picks…<br>just for Forge</h2>
-      <div class="ow-mix">
-        <div class="ow-mc ow-mc--cozy"><img src="${A('assets/photos/forge/pro2-inside.jpg')}" alt=""><b>Walk in anytime</b></div>
-        <div class="ow-mc ow-mc--bold"><img src="${A(kalan.hero)}" alt=""><span class="ow-mc-shade"></span><b>Sharp<br>cuts.</b></div>
-        <div class="ow-mx">
-          <div class="ow-mx-hero"><img src="${A(pair.after)}" alt="Preview of the mixed design"><span class="ow-mc-shade" style="background:rgba(12,10,8,.3)"></span><b>Sharp cuts.<br>No waiting.</b></div>
-          <div class="ow-mx-in"><b>Forge</b><span>Fades · Scissor cuts · Shaves</span><i>Message us</i></div>
-        </div>
-      </div>
-      <div class="a-card a-card--lg ow-mixcard">
-        <div class="ow-ms">${okDot}<span>Big photo + headline from <b>Bold</b></span></div>
-        <div class="ow-ms">${okDot}<span>Warm colours + fonts from <b>Cozy</b></span></div>
-        <div class="ow-ms is-wait"><span class="ow-dot ow-dot--run"></span><span>Writing your pages…</span></div>
-      </div>
-    </div>`, { proposed: true });
-
+  const mixing = () => app(`${SB()}${titleBar('Forge')}
+    <div class="ow-main" style="top:118px;gap:12px"><p class="ow-sub">Sample website · Scroll to explore</p>
+      <div style="height:450px;overflow:auto;border-radius:22px"><img src="${A('assets/sites/designs/barber-f-m-long.jpg')}" alt="Sample Forge design" style="width:100%"></div>
+    </div><div class="ow-foot">${pill('Use this design')}</div>`);
   const stage = (state, label, meta, extra = '') => `<div class="ow-st is-${state}">${
     state === 'done' ? okDot : state === 'run' ? '<span class="ow-dot ow-dot--run"></span>' : '<span class="ow-dot ow-dot--wait"></span>'
   }<div class="ow-st-l">${label}${extra}</div><em>${meta}</em></div>`;
   const building = () => app(`${SB()}
     <div class="ow-main" style="top:84px;gap:12px">
       <h2 class="ow-h1 ow-h1--lg">We're building<br>Forge's site</h2>
-      <p class="ow-sub" style="margin-top:-4px">Ready in about 30 minutes. We'll notify you.</p>
+      <p class="ow-sub" style="margin-top:-4px">Ready in about 20 minutes. Check progress here.</p>
       <div class="a-card ow-stages" style="margin-top:8px" data-build>
         ${stage('done', 'Interview transcribed', 'Done')}
-        ${stage('done', 'Photos upgraded', 'Done')}
+        ${stage('done', 'Photos prepared', 'Done')}
         ${stage('run', 'Writing your pages', 'Now', '<span class="a-progress"><i style="width:40%"></i></span>')}
         ${stage('wait', 'Design and build', 'Next')}
         ${stage('wait', 'Review', 'Last')}
       </div>
       <div class="a-sec" style="margin-top:6px">What happens next</div>
       <div class="a-card ow-next">
-        <div><span class="a-ic">${I('bell')}</span>We send you a notification</div>
+        <div><span class="a-ic">${I('clock')}</span>Open Today to see progress</div>
         <div><span class="a-ic">${I('pencil')}</span>You look it over and change anything</div>
         <div><span class="a-ic">${I('wallet')}</span>You see it first. Then you pay once.</div>
       </div>
@@ -202,26 +175,16 @@
     <span class="ow-lock-btn" style="left:46px">${I('flashlight')}</span>
     <span class="ow-lock-btn" style="right:46px">${I('camera')}</span>`, { proposed: true, dark: true });
 
-  const siteEdit = () => app(`${SB()}${titleBar('Edit your site', `<span class="a-pill a-pill--ink" style="height:34px">${I('eye', 'ow-s14')}Preview</span>`)}
-    <div class="ow-prev">
-      <img src="${A('assets/sites/showcase/forge-m.jpg')}" alt="Forge site preview">
-      <span class="ow-eb ow-eb--on" style="left:5%;top:37.5%;width:86%;height:47%"><span class="ow-eb-tag">${I('pencil')}Headline</span></span>
-      <span class="ow-eb ow-eb--dash" style="left:5%;top:88%;width:88%;height:30%"></span>
-    </div>
-    <div class="ow-sheet">
-      <div class="ow-grab"></div>
-      <div class="ow-sheet-h">Headline<em>3 short lines work best</em></div>
-      <div class="ow-ta">${TD.words.copy.join(' ')}<span class="ow-caret"></span></div>
-      <div class="ow-src-q"><span class="a-ic">${I('mic')}</span><span>From your interview: <b>“We cook slow, the way my lola did.”</b></span></div>
-      <div class="ow-foot-row">${pill('Cancel', 'ghost')}${pill('Save')}</div>
-    </div>`, { proposed: true });
-
+  const siteEdit = () => app(`${SB()}${titleBar('Ask for a change')}
+    <div class="ow-main" style="top:126px;gap:18px"><h2 class="ow-h1">What should we change?</h2><p class="ow-sub">Tell the team in your own words.</p>
+      <div class="a-card"><span class="a-label">Your request</span><div class="ow-ta">Please update our opening hours to 9 AM – 7 PM.</div></div>
+    </div><div class="ow-foot">${pill('Send request')}</div>`);
   const pay = () => app(`${SB()}${titleBar('Pay once', `<span class="a-back">${I('lock', 'ow-s16')}</span>`)}
     <div class="ow-main" style="top:118px;gap:10px">
       <div class="a-card ow-sum">
         <div class="ow-sum-top">
           <span class="ow-sum-thumb"><img src="${A('assets/sites/showcase/forge-m.jpg')}" alt=""></span>
-          <span class="ow-sum-t"><b>${kalan.name} website</b><span>${kalan.url}</span><span>Live and approved by you</span></span>
+          <span class="ow-sum-t"><b>${kalan.name} website</b><span>${kalan.url}</span><span>Private preview approved by you</span></span>
           <span class="ow-price">₱4,999<small>once</small></span>
         </div>
         <div class="ow-incl">${['Your site, hosted', 'Free web address', 'No monthly fees'].map((t) => `<span>${I('check')}${t}</span>`).join('')}</div>
@@ -279,56 +242,36 @@
         <div class="ow-site-in">
           <span class="ow-live"><i></i>Live</span>
           <b>${kalan.name}</b><span>${kalan.url}</span>
-          <div class="ow-stats"><div><b>214</b><span>visits this week</span></div><div><b>18</b><span>Messenger taps</span></div></div>
+          <div class="ow-stats"><div><b>Live</b><span>your website</span></div><div><b>Paid</b><span>in full</span></div></div>
         </div>
         <span class="a-chip a-chip--muted ow-sample">Sample</span>
       </div>
       <div class="a-sec" style="margin-top:6px">Make it better</div>
       <div class="a-check is-done"><i class="c"></i><span>Publish your site</span></div>
-      <div class="a-check"><i class="c"></i><span>Add your prices</span><em>2 min</em></div>
-      <div class="a-check"><i class="c"></i><span>Share on Facebook</span><em>1 tap</em></div>
+      <div class="a-check"><i class="c"></i><span>Ask for a change</span></div>
+      <div class="a-check"><i class="c"></i><span>Share your site and QR</span></div>
       <div class="a-check"><i class="c"></i><span>Get forgebarbers.com</span><em>Optional</em></div>
       <div class="a-sec" style="margin-top:6px">Your plan</div>
       <div class="a-card ow-next" style="padding:14px 16px">
-        <div><span class="a-ic">${I('pencil')}</span><span style="flex:1">Edit your site</span>${I('chevron-right', 'ow-s16')}</div>
+        <div><span class="a-ic">${I('pencil')}</span><span style="flex:1">View your site</span>${I('chevron-right', 'ow-s16')}</div>
       </div>
     </div>
     <nav class="a-tabbar ow-tabs">${tab('house', 'Today', true)}${tab('smartphone', 'My site')}${tab('users', 'Agents')}${tab('circle-user', 'Me')}</nav>`, { proposed: true });
 
   const days = [['Today', '21'], ['Thu', '22', true], ['Fri', '23'], ['Sat', '24'], ['Mon', '26']];
   const slots = [['9:00 AM'], ['10:30 AM', 'on'], ['1:00 PM'], ['2:30 PM', 'off'], ['4:00 PM'], ['5:30 PM']];
-  const book = () => app(`${SB()}${titleBar('Book a visit')}
-    <div class="ow-main" style="top:118px;gap:12px">
-      <div class="a-card ow-agent">${mikaFace}
-        <span class="ow-agent-t"><b>${mika.name}</b><small>Tendso creator · ${mika.dist} away</small></span><span class="a-chip a-chip--ok">Free today</span></div>
-      <h2 class="ow-h1" style="margin-top:8px">When should Mika come?</h2>
-      <div class="ow-lbl">Day</div>
-      <div class="ow-days">${days.map(([d, n, on]) => `<span class="ow-day${on ? ' is-on' : ''}"><small>${d}</small><b>${n}</b></span>`).join('')}</div>
-      <div class="ow-lbl">Time</div>
-      <div class="ow-slots">${slots.map(([t, s]) => `<span class="ow-slot${s ? ' is-' + s : ''}">${t}</span>`).join('')}</div>
-      <div class="a-card ow-facts" style="margin-top:4px">
-        <div class="ow-fact"><span class="a-ic">${I('clock')}</span><span><b>About 30 minutes</b> at your shop</span></div>
-        <div class="ow-fact"><span class="a-ic">${I('tag')}</span><span><b>As low as ₱999</b> when a Tendso creator signs you up</span></div>
-      </div>
-    </div>
-    <div class="ow-foot">${pill('Book Mika')}</div>`, { proposed: true });
-
+  const book = () => app(`${SB()}${titleBar('Request a visit')}
+    <div class="ow-main" style="top:118px;gap:18px"><h2 class="ow-h1">When works for you?</h2>
+      <div class="ow-days">${['Today', 'Tomorrow', 'This week'].map((day, i) => `<span class="ow-slot${i === 1 ? ' is-on' : ''}">${day}</span>`).join('')}</div>
+      <div class="ow-fld"><span class="a-label">Your mobile number</span><div class="a-field">${I('phone')}<b>0917 482 1063</b></div></div>
+      <div class="a-card ow-next"><div>${I('clock')}About 30 minutes at your shop</div><div>${I('phone')}The team confirms your agent and time</div></div>
+    </div><div class="ow-foot">${pill('Send request')}</div>`);
   const booked = () => app(`${SB()}
-    <div class="ow-main" style="top:104px;gap:12px">
-      <div class="ow-center">
-        <span class="ow-av-xl">${mikaFace}${okDot}</span>
-        <h2 class="ow-h1 ow-h1--lg" style="margin-top:20px">Mika is coming by</h2>
-        <p class="ow-sub ow-gap4">Thursday, 22 October · 10:30 AM</p>
-      </div>
-      <div class="a-card ow-kv" style="margin-top:12px">
-        <div><span>Where</span><span>Forge, 12 J.P. Rizal St</span></div>
-        <div><span>How long</span><span>About 30 minutes</span></div>
-        <div><span>You pay</span><span>After you see it</span></div>
-      </div>
-      <div class="ow-wa"><span class="a-ic">${I('message-circle')}</span><span>She'll message you on WhatsApp before she leaves.</span></div>
-    </div>
-    <div class="ow-foot">${pill('Back to home')}${pill('Add to calendar', 'ghost')}</div>`, { proposed: true });
-
+    <div class="ow-main" style="top:118px;gap:18px"><div class="ow-center"><span class="ow-okc">${I('check')}</span>
+      <h2 class="ow-h1 ow-h1--lg ow-gap14">Your request is sent</h2><p class="ow-sub">The team calls to confirm an agent and time.</p></div>
+      <div class="a-card ow-kv"><div><span>Shop</span><span>Forge</span></div><div><span>Preferred</span><span>Tomorrow</span></div>
+      <div><span>Call</span><span>0917 482 1063</span></div></div>
+    </div><div class="ow-foot">${pill('Back to home')}</div>`);
   // ---------- TendsoScreens slots ----------
   const placeholder = (name) => app(`${SB()}
     <div class="ow-ph"><span class="a-label">TendsoScreens · ${name}</span><b>Loads from<br>js/screens.js</b><p>Not available yet.</p></div>`);
@@ -336,41 +279,42 @@
   // ---------- board config ----------
   const ROWS = [
     { title: 'Start', note: 'Account, then three quick questions. One question per screen.', steps: [
-      { ts: 'welcome', kind: 'real', name: 'Welcome', note: 'First launch (app/index.tsx). "I have a business" starts this flow.' },
-      { render: signup, kind: 'real', name: 'Sign up', note: 'signup.tsx, cut to name, mobile and password.' },
-      { render: q1, kind: 'real', name: 'What do you sell?', note: 'Business type from info.tsx, asked as one question with photo rows.' },
-      { render: q2, kind: 'real', name: 'Name and place', note: 'Name and address from info.tsx, with a map pin to confirm.' },
-      { render: q3, kind: 'proposed', name: 'How to do it', note: 'Do it on the phone, or have a Tendso creator come to the shop.' },
+      { ts: 'welcome', kind: 'real', source: 'app/index.tsx', name: 'Welcome', note: 'One app. "I have a business" starts the owner flow.' },
+      { render: signup, kind: 'real', source: '(auth)/owner.tsx', name: 'Sign up', note: 'Name and email, then an email code. No password or SMS.' },
+      { render: q1, kind: 'real', source: '(owner)/start/sell.tsx', name: 'What do you sell?', note: 'Business type, asked as one question with photo rows.' },
+      { render: q2, kind: 'real', source: '(owner)/start/place.tsx', name: 'Name and place', note: 'Name and address with a map pin to confirm.' },
+      { render: q3, kind: 'real', source: '(owner)/start/how.tsx', name: 'How to do it', note: 'Film yourself or have a friend hold the phone. A separate action requests a field-agent visit.' },
     ] },
     { title: 'Talk', note: 'Ten simple questions on camera, one at a time, then anything else. The app writes it down.', steps: [
-      { ts: 'interview-list', kind: 'proposed', name: '10 questions', note: 'New. The ten questions up front, English and Tagalog, ticked as they are answered.', opts: { owner: true, step: 1 } },
-      { ts: 'interview-cam', kind: 'proposed', name: 'Recording', note: 'New. The question sits low like a subtitle. Framing is checked once, then only a level stays. Next is the biggest button.', opts: { owner: true, video: 'assets/video/interview-2.mp4', type: 'barber' } },
-      { render: interviewDone, kind: 'real', name: 'Got it', note: 'Finished state plus the transcript card from review.tsx.' },
+      { ts: 'interview-list', kind: 'real', source: '(owner)/talk/index.tsx', name: '10 questions', note: 'Ten bilingual questions with actual saved-answer completion. Start video or voice only.', opts: { owner: true, step: 1 } },
+      { ts: 'interview-cam', kind: 'real', source: '(owner)/talk/record.tsx', name: 'Recording', note: 'Per-answer recordings, framing feedback and individual answer redo.', opts: { owner: true, video: 'assets/video/interview-2.mp4', type: 'barber' } },
+      { render: interviewDone, kind: 'real', source: '(owner)/talk/done.tsx', name: 'Got it', note: 'Real saved answers, playback and individual redo. Text appears only when available.' },
     ] },
     { title: 'Photos', note: 'Ten photo tasks picked for the kind of shop, then any extras. Phone photos in, site photos out.', steps: [
-      { ts: 'shot-list', kind: 'proposed', name: 'Photo tasks', note: 'New. Ten shots suggested for a barbershop, plus the owner\'s own photos.', opts: { type: 'barber', step: 2 } },
-      { ts: 'shot-guide', kind: 'proposed', name: 'Guided camera', note: 'New. One task at a time, no outlines: a level bar, a hint, "Perfect, hold still", then the next.', opts: { type: 'barber' } },
-      { render: photoUpgrade, kind: 'proposed', name: 'Photo upgrade', note: 'Same shop, re-shot. Drag to compare; keep originals if you like.' },
+      { ts: 'shot-list', kind: 'real', source: '(owner)/photos/index.tsx', name: 'Photo tasks', note: 'Ten suggestions for the shop category, captured thumbnails and library extras.', opts: { type: 'barber', step: 2 } },
+      { ts: 'shot-guide', kind: 'real', source: '(owner)/photos/shoot.tsx', name: 'Guided camera', note: 'One task at a time, with level feedback and targeted retakes.', opts: { type: 'barber' } },
+      { render: photoUpgrade, kind: 'real', source: '(owner)/photos/done.tsx', name: 'Your photos', note: 'Review originals, view full photos and retake a slot. Before/after enhancement selection is a future owner API capability.' },
+      { render: photoEnhancementConcept, kind: 'proposed', source: 'Future: enhancement choices', name: 'Photo upgrade concept', note: 'Original future design retained separately. Requires owner-scoped before/after results and a saved choice; current mobile shows original photos.' },
     ] },
-    { title: 'Design', note: 'Pick what you like; we blend it and build.', steps: [
-      { ts: 'design-picker', kind: 'proposed', name: 'Pick designs', note: 'Designs for barbershops. Pick one to three.' },
-      { render: mixing, kind: 'proposed', name: 'Mixing', note: 'The picks blend into one look, said in plain words.' },
-      { render: building, kind: 'proposed', name: 'Building', note: 'Real stages. Ready in about 30 minutes; the app notifies the owner.' },
+    { title: 'Design', note: 'Choose one sample design, preview the whole site, then build with your words and photos.', steps: [
+      { ts: 'design-picker', kind: 'real', source: '(owner)/design.tsx', name: 'Choose a design', note: 'One design for the shop category. Samples are labelled; offline and loading failures stay readable.' },
+      { render: mixing, kind: 'real', source: 'OwnerDesignGallery.tsx', name: 'Full sample preview', note: 'Scroll a sample website and close to keep the selection. Mixing was dropped by the accepted defaults.' },
+      { render: building, kind: 'real', source: '(owner)/building.tsx', name: 'Building', note: 'Real backend build stages, about 20 minutes. Owner push delivery is a separate backend capability.' },
     ] },
     { title: 'Live', note: 'We build it in about 20 minutes. Check it, ask for a change or say it looks good, pay once.', steps: [
-      { render: notif, kind: 'proposed', name: 'Notification', note: 'Push on the lock screen opens the finished site.' },
-      { ts: 'site-building', kind: 'proposed', name: 'We build it', note: 'New. About 20 minutes: reading the interview, writing, polishing the photos, building. Then Ask for a change or Looks good.', opts: { done: 2 } },
-      { ts: 'site-building', kind: 'proposed', name: 'Ready to check', note: 'Ask for a change, or say it looks good.', opts: { review: true } },
-      { ts: 'site-ready', kind: 'proposed', name: 'Site ready', note: 'The finished site, before paying.', via: 'about 20 minutes later' },
-      { render: siteEdit, kind: 'proposed', name: 'Edit', note: 'Tap a block to change the words. The interview line it came from is shown.' },
-      { render: pay, kind: 'proposed', name: 'Pay once', note: 'GCash, Maya or card. ₱4,999 once. Custom .com optional.' },
-      { render: live, kind: 'proposed', name: 'Live', note: 'success.tsx structure: copy, share, and a QR for the counter.' },
+      { render: notif, kind: 'proposed', source: 'Future: owner push', name: 'Notification', note: 'Future push concept: owner push tokens/delivery are not implemented. Current Inbox opens owned site status.' },
+      { ts: 'site-building', kind: 'real', source: '(owner)/building.tsx', name: 'We build it', note: 'About 20 minutes: reading, writing, polishing photos and building. Check progress from Today.', opts: { done: 2 } },
+      { ts: 'site-building', kind: 'real', source: '(owner)/check.tsx', name: 'Ready to check', note: 'Ask for a change, or say it looks good.', opts: { review: true } },
+      { ts: 'site-ready', kind: 'real', source: '(owner)/pay/index.tsx', name: 'Site ready', note: 'The finished private site, before paying. Deposits are not a fixed monthly subscription.', via: 'about 20 minutes later' },
+      { render: siteEdit, kind: 'real', source: '(owner)/change.tsx', name: 'Ask for a change', note: 'A real free-text request goes to the team. Direct block editing is a later phase.' },
+      { render: pay, kind: 'real', source: '(owner)/pay/index.tsx', name: 'Pay once', note: 'Server price, optional creator code, full or down payment; Xendit methods only when enabled, or Wise.' },
+      { render: live, kind: 'real', source: '(owner)/live.tsx', name: 'Live', note: 'Actual public address, copy/share and a real counter QR with save/share actions.' },
     ] },
-    { title: 'After', note: 'Owner home, and booking a Tendso creator.', steps: [
-      { render: home, kind: 'proposed', name: 'Home', note: 'Live site, sample numbers, a short "make it better" list.' },
-      { ts: 'agents-near', kind: 'proposed', name: 'Agents', note: 'From the Agents tab, or from "Send someone" at the start.', via: 'Agents tab' },
-      { render: book, kind: 'proposed', name: 'Book a visit', note: 'Pick a day and a time. About 30 minutes at the shop.' },
-      { render: booked, kind: 'proposed', name: 'Booked', note: 'Confirmation. Mika messages the owner on WhatsApp.' },
+    { title: 'After', note: 'Owner home and a field-agent visit request assigned by the team.', steps: [
+      { render: home, kind: 'real', source: '(owner)/(tabs)/today.tsx', name: 'Home', note: 'Actual site and payment status, a real checklist, sharing, change requests and Inbox. No invented analytics.' },
+      { ts: 'agents-near', kind: 'proposed', source: 'Future: agent directory', name: 'Nearby-agent map concept', note: 'Live mode requests a team-assigned visit. This map is a labelled concept until consented nearby-agent data exists.', via: 'Agents tab' },
+      { render: book, kind: 'real', source: '(owner)/agents/book.tsx', name: 'Request a visit', note: 'Send a preferred day and contact number. The team confirms the agent and time.' },
+      { render: booked, kind: 'real', source: '(owner)/agents/book.tsx', name: 'Request sent', note: 'Confirms the request only; no fixed appointment, WhatsApp promise or calendar booking.' },
     ] },
   ];
 
@@ -385,6 +329,11 @@
       const m = TS.mount(screen, s.ts, s.opts || {});
       const root = screen.firstElementChild;
       if (root && s.kind === 'proposed') root.setAttribute('data-proposed', 'true');
+      else if (root) root.removeAttribute('data-proposed');
+      if (s.ts === 'site-ready') {
+        const terms = screen.querySelector('.sr-when');
+        if (terms) terms.textContent = 'Pay once, or start with a down payment';
+      }
       mounted.push(m);
     } catch (err) {
       console.warn('[owner] TendsoScreens.mount failed for', s.ts, err);
@@ -407,7 +356,7 @@
         const step = document.createElement('article');
         step.className = `ow-step${s.kind === 'proposed' ? ' is-proposed' : ''}`;
         step.innerHTML = `<div class="ow-step-top"><span class="ow-num">${String(n).padStart(2, '0')}</span>
-          <span class="ow-tag ow-tag--${s.kind}">${s.kind === 'proposed' ? 'Proposed' : 'Real'}</span>${s.ts ? '<span class="ow-src">screens.js</span>' : ''}</div>`;
+          <span class="ow-tag ow-tag--${s.kind}">${s.kind === 'proposed' ? 'Proposed' : 'Real'}</span>${s.source ? `<span class="ow-src">${s.source}</span>` : ''}</div>`;
         const { el, screen } = T.phone({ size: 'md', theme: s.theme || 'light' });
         step.appendChild(el);
         if (s.ts) mountTS(screen, s); else screen.innerHTML = s.render();

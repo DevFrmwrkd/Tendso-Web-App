@@ -106,7 +106,7 @@ agent app uses). Pass the returned `publicUrl`. Any other URL is refused.
 | function | args | returns / notes |
 |---|---|---|
 | `api.ownerApp.interviewQuestions` (query) | – | `[{ index, en, tl, extra }]`: 10 questions plus index 10 "Anything else? / May iba pa?" |
-| `api.ownerApp.createDraft` | `{ businessType, businessName, address?, city?, province?, barangay?, coordinates?, shotListKey? }` | `Id<'submissions'>`. `businessType` must be one of `BUSINESS_TYPES` (`lib/prospectPrefill.ts`). Status `draft`, `contentSource 'owner_app'`, house creator, `amount` ₱4,999, payout 0. At most 3 open drafts per owner. |
+| `api.ownerApp.createDraft` | `{ businessType, businessName, address?, city?, province?, barangay?, coordinates?, shotListKey? }` | `Id<'submissions'>`. `businessType` must be one of `BUSINESS_TYPES` (`lib/prospectPrefill.ts`). Status `draft`, `contentSource 'owner_app'`. Uses an active, non-self confirmed owner creator offer when present; otherwise house creator, `amount` ₱4,999, payout 0. At most 3 open drafts per owner. |
 | `api.ownerApp.updateDraft` | `{ submissionId, businessType?, businessName?, address?, city?, province?, barangay?, coordinates?, shotListKey?, ownerName?, ownerPhone? }` | `{ ok }`. Drafts only. |
 | `api.ownerApp.saveAnswer` | `{ submissionId, index 0-10, lang 'en'\|'tl', answerText?, mediaUrl?, mediaType? 'video'\|'audio', durationSec? }` | `{ answered }`. Upserts by index. Send neither text nor media to clear. Stored in `submissions.ownerInterview[]` with the canonical EN and TL question text. |
 | `api.ownerApp.saveShot` | `{ submissionId, index, url, label?, extra? }` | `{ photos }`. Guided shots use index 0-9 in shot-list order. Extras use `extra: true`, index 0-9. Stored in `ownerShots[]`. |
@@ -126,6 +126,14 @@ Change requests (table `changeRequests`: `submissionId, text, status
 adminNote?`) show in the admin submission page (`ChangeRequests` card in the
 details panel). Admin functions: `api.changeRequests.listForSubmission({ submissionId })`
 and `api.changeRequests.setStatus({ id, status, adminNote? })`.
+
+### Native owner creator codes
+
+- `ownerApp.creatorCode({ submissionId })` returns `{ applied, editable, reason, total }` for the linked owner. `total` is the saved order amount even when no code is applied. `applied` is `null` or `{ name, code, handle, photo, listPrice, total, saving }`; totals use the saved order quote, including its unchanged domain add-on, rather than the creator's current price. Disable invoice creation while a code mutation is pending and until this query's `total` matches the payment-state query's total.
+- `ownerApp.applyCreatorCode({ submissionId, code: string | null })` applies an active creator's exact referral-code namespace (trimmed, case insensitive), or removes it with `null`, returning the applied card or `null`. The server calculates the website price and existing website-only commission. Removal restores the configured house creator, list price and zero commission. It never accepts a client-supplied amount or payout.
+- Changes are restricted to owner-app drafts or finished, owner-approved unpaid previews with no open changes or active build. Agent-made orders, promo/free sites, any received/deposit/credited payment, and any uncancelled payment token lock pricing. Even expired tokens are conservatively locked because the existing settlement path may still receive them; no invoices are silently invalidated. Cancelled receipt-free tokens stay cancelled.
+- Self-referral is rejected by Clerk subject, owner/stored email, and normalized phone. Applying a first typed code creates the owner attribution; changing/removing the order's code never changes that first identity attribution. A new draft uses an existing active, non-self owner attribution when present; other drafts retain their original quote.
+- This operation changes no payment receipt, deposit, received-money history, status, approval, or build. Down-payment and final settlement keep the quote and credit its commission once through the existing payment pipeline.
 
 ---
 
@@ -204,8 +212,9 @@ does not pay the agent twice.
   xenditEnabled, pendingTokens: [{ token, referenceCode, kind, amount, expiresAt, checkoutUrl|null }] }`
 
 ### `api.ownerPayments.createPayToken` (mutation)
-- args `{ submissionId, kind: 'full'|'deposit'|'balance', amount? }` (`amount`
+- args `{ submissionId, kind: 'full'|'deposit'|'balance', amount?, expectedTotal? }` (`amount`
   is in whole pesos and is used for `deposit` only).
+- Native checkout sends `expectedTotal`, the whole-order amount currently shown. It must be finite, positive, and exactly match the saved order total before any token is created or reused, including deposit and balance requests. A changed quote asks the owner to check the latest total. Older callers may omit it.
 - returns `{ token, referenceCode, kind, amount, expiresAt }`. The reference
   (`ND-XXXX-YYYY`) works for a Wise bank transfer. The token is what
   `xendit.createCheckout` takes.

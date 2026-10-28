@@ -1,8 +1,10 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { Block } from '../../services/knowledge/api';
 import { Banner, CheckRow, Text } from '../v2';
 import { colors, fonts, radius, space } from '../../theme/v2';
+import { knowledgeImageUrl } from '../../../../lib/knowledgeArticle';
 
 /** Body paragraph: 17px on a 26px line (long-form reading size). */
 const PARA = { lineHeight: 26 } as const;
@@ -79,6 +81,22 @@ function Quote({ text, who }: { text: string; who: string }) {
   );
 }
 
+function ArticleImage({ block }: { block: Extract<Block, { t: 'image' }> }) {
+  const uri = knowledgeImageUrl(block.url);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  if (!block.url) return block.caption ? <Text variant="label" tone="muted" style={styles.caption}>{block.caption}</Text> : null;
+  return <View style={styles.imageBlock}>
+    {uri && failedUri !== uri ? <Image source={{ uri }} resizeMode="cover" style={styles.image}
+      accessibilityLabel={block.alt?.trim() || block.caption || 'Article photo'} accessibilityIgnoresInvertColors
+      onError={() => setFailedUri(uri)} />
+      : <View style={[styles.image, styles.imageUnavailable]} accessibilityLabel="Article image unavailable">
+        <Ionicons name="image-outline" size={28} color={colors.ink3} />
+        <Text variant="label" tone="muted">Image unavailable</Text>
+      </View>}
+    {block.caption ? <Text variant="label" tone="muted" style={styles.caption}>{block.caption}</Text> : null}
+  </View>;
+}
+
 /** Renders a single article body block. */
 export function BlockView({ block }: { block: Block }) {
   switch (block.t) {
@@ -105,12 +123,7 @@ export function BlockView({ block }: { block: Block }) {
     case 'quote':
       return <Quote text={block.text} who={block.who} />;
     case 'image':
-      // The backend only sends a caption (no photo URL), so there is nothing to draw but the caption.
-      return block.caption ? (
-        <Text variant="label" tone="muted" style={styles.caption}>
-          {block.caption}
-        </Text>
-      ) : null;
+      return <ArticleImage block={block} />;
     default:
       return null;
   }
@@ -149,4 +162,7 @@ const styles = StyleSheet.create({
   code: { backgroundColor: colors.ink, borderRadius: radius.field, padding: space.lg },
   quote: { borderLeftWidth: 3, borderLeftColor: colors.ruleStrong, paddingLeft: space.lg },
   caption: { textAlign: 'center', fontFamily: fonts.medium },
+  imageBlock: { gap: space.sm },
+  image: { width: '100%', aspectRatio: 16 / 9, borderRadius: radius.field, backgroundColor: colors.bg2 },
+  imageUnavailable: { alignItems: 'center', justifyContent: 'center', gap: space.sm },
 });

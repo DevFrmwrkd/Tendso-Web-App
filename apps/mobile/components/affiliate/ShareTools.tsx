@@ -1,10 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
-import Svg, { Path } from 'react-native-svg';
-import qrcode from 'qrcode-generator';
+import { QrCode as SharedQrCode } from '../v2/QrCode';
 // Body / Display / Label are only used by the A4 poster artwork below (captured to a PNG, left as designed).
 import { Body, Display, Label } from '../ui/primitives';
 import { colors, fonts } from '../../theme/tokens';
@@ -15,20 +14,7 @@ import { Notice } from './Screen';
 import { OfferPrice } from './Offer';
 
 export function QrCode({ value, size = 192 }: { value: string; size?: number }) {
-  const matrix = useMemo(() => {
-    const qr = qrcode(0, 'M');
-    qr.addData(value);
-    qr.make();
-    const count = qr.getModuleCount();
-    const pieces: string[] = [];
-    for (let row = 0; row < count; row++) for (let col = 0; col < count; col++) {
-      if (qr.isDark(row, col)) pieces.push(`M${col + 4},${row + 4}h1v1h-1z`);
-    }
-    return { path: pieces.join(''), count: count + 8 };
-  }, [value]);
-  return <Svg width={size} height={size} viewBox={`0 0 ${matrix.count} ${matrix.count}`} accessibilityLabel="QR code for your creator page" accessibilityRole="image">
-    <Path d={`M0,0h${matrix.count}v${matrix.count}H0z`} fill="#ffffff" /><Path d={matrix.path} fill="#111111" />
-  </Svg>;
+  return <SharedQrCode value={value} size={size} accessibilityLabel="QR code for your creator page" />;
 }
 
 export function CopyButton({ value, label, disabled = false }: { value: string; label: string; disabled?: boolean }) {

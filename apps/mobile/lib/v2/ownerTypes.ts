@@ -182,6 +182,22 @@ export interface PayToken {
   expiresAt: number;
 }
 
+export interface OwnerCreatorOffer {
+  name: string;
+  code: string | null;
+  handle: string;
+  photo: string | null;
+  listPrice: number;
+  total: number;
+  saving: number;
+}
+export interface OwnerCreatorCodeState {
+  applied: OwnerCreatorOffer | null;
+  editable: boolean;
+  reason: string | null;
+  total: number;
+}
+
 export type CheckoutResult =
   | { enabled: false }
   | { enabled: true; checkoutUrl: string; invoiceId: string; expiresAt: number | null; amount: number; referenceCode: string };

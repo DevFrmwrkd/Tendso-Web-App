@@ -8,6 +8,7 @@ import {
 } from '../lib/affiliates';
 import { clampSellPrice, creatorOverrideEndsAt, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
+import { manilaMonth } from './creatorPortal';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
 import { insertAffiliateAccount } from './lib/affiliateSignup';
 
@@ -167,12 +168,23 @@ export const portal = query({
         // Both programs remain visible in the existing portal. Old referral
         // rows keep their one-time bonus; new recruits have recurring earnings
         // and must never be projected as another pending ₱1,000 promise.
+        const now = Date.now();
+        const month = manilaMonth(now);
+        const creditedThisMonth = (row: typeof earningRows[number]) =>
+            (row.status === 'available' || row.status === 'withdrawn') && row.createdAt >= month.start && row.createdAt < month.end;
+        const directThisMonth = earningRows.filter((row) => row.type === 'submission_approved' && creditedThisMonth(row))
+            .reduce((sum, row) => sum + row.amount, 0);
         const overrideRows = earningRows.filter((row) => row.type === CREATOR_OVERRIDE_EARNING);
+        const teamThisMonth = overrideRows.filter(creditedThisMonth).reduce((sum, row) => sum + row.amount, 0);
         const overrideSales = await Promise.all(overrideRows.map((row) => ctx.db.get(row.submissionId)));
         const overrideByRecruit = new Map<string, number>();
+        const monthByRecruit = new Map<string, number>();
         for (const [index, row] of overrideRows.entries()) {
             const submission = overrideSales[index];
-            if (submission) overrideByRecruit.set(submission.creatorId, (overrideByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+            if (submission) {
+                overrideByRecruit.set(submission.creatorId, (overrideByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+                if (creditedThisMonth(row)) monthByRecruit.set(submission.creatorId, (monthByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+            }
         }
         const legacyReferredIds = new Set(referralRows.map((row) => row.referredId));
         const recruits = recruitRows
@@ -183,8 +195,11 @@ export const portal = query({
                 _id: recruit._id,
                 referredName: [recruit.firstName, recruit.lastName].filter(Boolean).join(' ') || 'New field agent',
                 createdAt: recruit.recruitedAt!,
+                photo: recruit.profileImage && /^https?:\/\//.test(recruit.profileImage) ? recruit.profileImage : null,
                 endsAt: creatorOverrideEndsAt(recruit.recruitedAt!),
-                earning: Date.now() < creatorOverrideEndsAt(recruit.recruitedAt!),
+                earning: now < creatorOverrideEndsAt(recruit.recruitedAt!),
+                monthsLeft: Math.max(0, Math.min(12, Math.ceil((creatorOverrideEndsAt(recruit.recruitedAt!) - now) / (30.4375 * 24 * 60 * 60 * 1000)))),
+                monthEarned: monthByRecruit.get(recruit._id) ?? 0,
                 totalEarned: overrideByRecruit.get(recruit._id) ?? 0,
             }))
             .sort((a, b) => b.createdAt - a.createdAt);
@@ -213,6 +228,8 @@ export const portal = query({
         ]);
 
         return {
+            month,
+            income: { directThisMonth, teamThisMonth, totalThisMonth: directThisMonth + teamThisMonth },
             summary: {
                 // Ledger statuses are historical; withdrawals reserve balance separately.
                 balance: affiliate.balance ?? 0,

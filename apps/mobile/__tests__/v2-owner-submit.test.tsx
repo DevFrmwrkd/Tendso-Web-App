@@ -15,6 +15,8 @@ let mockSub: any = null;
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
+jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: 'owner-subject' }) }));
+jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: true }) }));
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, back: jest.fn() }) }));
 jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ id: 'draft' }) }));
@@ -28,7 +30,7 @@ const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top:
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockSub = null;
+  mockSub = { submissionId: 'draft', shots: [], interview: [] };
   mockUpload.mockImplementation(async () => 'https://images.test/photo.jpg');
   uploadQueue.reset();
   ownerIntake.clear();

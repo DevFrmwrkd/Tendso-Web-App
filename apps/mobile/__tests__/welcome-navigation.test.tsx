@@ -3,6 +3,7 @@ import { Animated } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Index from '../app/index';
+jest.mock('../components/CreatorAttributionGate', () => ({ CreatorAttributionGate: () => null }));
 
 const mockReplace = jest.fn();
 const mockSetOwnerIntent = jest.fn(async (_owner: boolean) => {});

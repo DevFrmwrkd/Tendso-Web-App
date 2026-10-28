@@ -7,7 +7,7 @@ import { useKnowledge } from '../../../../../services/knowledge/KnowledgeProvide
 import { useRecordFeedback } from '../../../../../services/knowledge/api';
 import { ArticleBody } from '../../../../../components/knowledge/Blocks';
 import { categoryIcon, hue } from '../../../../../components/knowledge/kbTheme';
-import { Card, EmptyState, ListRow, Loading, ScreenShell, SectionLabel, Text } from '../../../../../components/v2';
+import { Banner, Card, EmptyState, ListRow, Loading, ScreenShell, SectionLabel, Text, TextLink } from '../../../../../components/v2';
 import { colors, hit, radius, shadow, space } from '../../../../../theme/v2';
 
 const KB = '/(app)/(tabs)/knowledge';
@@ -15,7 +15,7 @@ const KB = '/(app)/(tabs)/knowledge';
 export default function ArticleScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useGuardedRouter();
-  const { articles, categories, loading } = useKnowledge();
+  const { articles, categories, loading, bookmarkedIds, bookmarksReady, bookmarkSaving, bookmarkError, toggleBookmark, reloadBookmarks } = useKnowledge();
   const recordFeedback = useRecordFeedback();
   const [voted, setVoted] = useState<null | boolean>(null);
 
@@ -44,9 +44,18 @@ export default function ArticleScreen() {
   }
 
   const h = hue(category?.hue);
+  const saved = bookmarkedIds.includes(article._id);
 
   return (
-    <ScreenShell onBack={() => router.back()} insetBottom={false} contentStyle={styles.content}>
+    <ScreenShell onBack={() => router.back()} insetBottom={false} contentStyle={styles.content}
+      headerRight={<Pressable cssInterop={false} accessibilityRole="button"
+        accessibilityLabel={saved ? 'Remove saved article' : 'Save article'}
+        accessibilityState={{ selected: saved, disabled: !bookmarksReady || bookmarkSaving, busy: bookmarkSaving }}
+        disabled={!bookmarksReady || bookmarkSaving} onPress={() => { void toggleBookmark(article._id); }} style={styles.bookmark}>
+        <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={22} color={colors.ink} />
+      </Pressable>}>
+      {bookmarkError ? <Banner tone="warn" body={bookmarkError} /> : null}
+      {bookmarkError && !bookmarksReady ? <TextLink label="Retry saved articles" onPress={reloadBookmarks} align="left" /> : null}
       {/* Topic tag */}
       {category && (
         <Pressable
@@ -147,6 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   meta: { marginTop: -space.xs },
+  bookmark: { width: hit.icon, height: hit.icon, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   helpful: { marginTop: space.lg, alignItems: 'center', gap: space.md, padding: space.xl - 4 },
   voteRow: { flexDirection: 'row', gap: space.md },
   vote: {

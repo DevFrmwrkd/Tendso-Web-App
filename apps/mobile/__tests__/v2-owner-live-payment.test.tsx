@@ -13,6 +13,7 @@ let mockSite: SiteSummary;
 let mockPayment: any;
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
+jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: 'owner-clerk' }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, back: jest.fn() }), Redirect: () => null }));
 jest.mock('../lib/v2/useOwnerSite', () => ({
@@ -23,6 +24,7 @@ jest.mock('../lib/v2/ownerData', () => ({
   usePreview: () => ({ ready: true, publishedUrl: 'https://shop.sites.tendso.com', isLive: true }),
   useOwnerSubmission: () => undefined,
   usePaymentState: () => mockPayment,
+  useOwnerCreatorCode: () => undefined,
 }));
 
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } };

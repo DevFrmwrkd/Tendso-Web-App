@@ -1,268 +1,127 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { BackHandler, Image, Pressable, StyleSheet, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { BackHandler, Image, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
-import { api } from '@tendso/convex-client';
+import { api, type Doc } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { GuardedLink } from '../../../components/GuardedLink';
-import { openExternalUrl } from '../../../services/links';
-import { colors, radius, shadow, space } from '../../../theme/v2';
-import {
-  Button,
-  Chip,
-  EmptyState,
-  Loading,
-  Pill,
-  ScreenShell,
-  Text,
-  shortDate,
-  submissionStatus,
-} from '../../../components/v2';
+import { colors, hit, radius, shadow, space } from '../../../theme/v2';
+import { Banner, Button, Chip, EmptyState, Field, Loading, Pill, ScreenShell, Text, shortDate, submissionStatus } from '../../../components/v2';
 
-// Statuses where the generated website is live and worth linking to (mirrors the
-// submission detail screen's "Website" gate).
-const WEBSITE_READY_STATUSES = [
-  'deployed', 'pending_payment', 'paid', 'completed', 'website_generated',
-];
-
+type Submission = Doc<'submissions'>;
 type Filter = 'all' | 'live' | 'review' | 'draft';
-
+const WEBSITE_READY_STATUSES = ['deployed', 'pending_payment', 'paid', 'completed', 'website_generated'];
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'live', label: 'Live' },
-  { key: 'review', label: 'In review' },
-  { key: 'draft', label: 'Drafts' },
+  { key: 'all', label: 'All' }, { key: 'live', label: 'Live' },
+  { key: 'review', label: 'In review' }, { key: 'draft', label: 'Drafts' },
 ];
 
-/** Same draft / incomplete rule the screen has always used. */
-function isDraftSubmission(sub: any): boolean {
-  const isIncomplete =
-    !sub.photos ||
-    sub.photos.length === 0 ||
-    (!sub.videoStorageId && !sub.audioStorageId);
-  return sub.status === 'draft' || isIncomplete;
+function showAsDraft(sub: Submission): boolean {
+  const incomplete = !sub.photos?.length || (!sub.videoStorageId && !sub.audioStorageId);
+  return (sub.status === 'draft' || incomplete) && sub.status !== 'approved' && sub.status !== 'rejected';
 }
 
-/** Approved and rejected win over "draft", as before. */
-function showAsDraft(sub: any): boolean {
-  return isDraftSubmission(sub) && sub.status !== 'approved' && sub.status !== 'rejected';
-}
-
-function matchesFilter(sub: any, filter: Filter): boolean {
+function matchesFilter(sub: Submission, filter: Filter): boolean {
   if (filter === 'all') return true;
   const draft = showAsDraft(sub);
   if (filter === 'draft') return draft;
   if (draft || sub.status === 'rejected') return false;
-  if (filter === 'live') return WEBSITE_READY_STATUSES.includes(sub.status);
-  return !WEBSITE_READY_STATUSES.includes(sub.status);
+  return filter === 'live' ? WEBSITE_READY_STATUSES.includes(sub.status) : !WEBSITE_READY_STATUSES.includes(sub.status);
 }
 
-function SubThumb({ sub, draft }: { sub: any; draft: boolean }) {
-  const firstPhoto: string | undefined = sub.photos?.[0];
-  const urls = useQuery(
-    api.files.getMultipleUrls,
-    firstPhoto ? { storageIds: [firstPhoto] } : 'skip'
-  );
+function SubThumb({ sub, draft }: { sub: Submission; draft: boolean }) {
+  const firstPhoto = sub.photos?.[0];
+  const urls = useQuery(api.files.getMultipleUrls, firstPhoto ? { storageIds: [firstPhoto] } : 'skip');
   const url = urls?.[0];
-  if (url && !url.startsWith('convex:')) {
-    return <Image source={{ uri: url }} style={styles.thumb} resizeMode="cover" accessibilityIgnoresInvertColors />;
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  if (url && !url.startsWith('convex:') && failedUri !== url) {
+    return <Image source={{ uri: url }} style={styles.thumb} resizeMode="cover"
+      onError={() => setFailedUri(url)} accessibilityIgnoresInvertColors />;
   }
   const rejected = sub.status === 'rejected';
-  return (
-    <View
-      style={[
-        styles.thumb,
-        styles.thumbTile,
-        { backgroundColor: rejected ? colors.dangerBg : draft ? colors.bg2 : colors.accentSoft },
-      ]}
-    >
-      <Ionicons
-        name={draft ? 'time-outline' : rejected ? 'alert-circle-outline' : 'storefront-outline'}
-        size={28}
-        color={rejected ? colors.danger : colors.ink}
-      />
-    </View>
-  );
+  return <View style={[styles.thumb, styles.thumbTile, { backgroundColor: rejected ? colors.dangerBg : draft ? colors.bg2 : colors.accentSoft }]}>
+    <Ionicons name={draft ? 'time-outline' : rejected ? 'alert-circle-outline' : 'storefront-outline'} size={24} color={rejected ? colors.danger : colors.ink} />
+  </View>;
 }
 
 export default function SubmissionsScreen() {
   const router = useGuardedRouter();
   const { user, isLoaded } = useUser();
+  const { account, isAuthenticated, isOffline, isBlocked, isPreview, isLoading } = useMobileAccount();
+  const { width, fontScale } = useWindowDimensions();
   const [filter, setFilter] = useState<Filter>('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ownAccount = account?.clerkId === user?.id && !isBlocked && !isPreview
+    && (!account?.role || account.role === 'creator') ? account : null;
+  const canRead = !!ownAccount && isAuthenticated && !isOffline;
+  const raw = useQuery(api.submissions.getByCreatorId, canRead ? { creatorId: ownAccount._id } : 'skip');
+  const submissions = canRead ? (raw ?? []).filter(sub => sub.creatorId === ownAccount._id) : [];
+  const compact = width < 360 || fontScale > 1.3;
 
-  const creator = useQuery(
-    api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip'
-  );
+  useFocusEffect(useCallback(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { router.replace('/(app)/dashboard'); return true; });
+    return () => subscription.remove();
+  }, [router]));
 
-  const submissions = useQuery(
-    api.submissions.getByCreatorId,
-    creator?._id ? { creatorId: creator._id } : 'skip'
-  );
-
-  // Always go to dashboard when back button is pressed (prevents going back to submit flow)
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        router.replace('/(app)/dashboard');
-        return true;
-      };
-
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        subscription.remove();
-      };
-    }, [router])
-  );
-
-  const visible = useMemo(
-    () => (submissions ?? []).filter((sub: any) => matchesFilter(sub, filter)),
-    [submissions, filter]
-  );
-
-  if (!isLoaded || creator === undefined || submissions === undefined) {
-    return <Loading />;
-  }
-
-  const total = submissions ? submissions.length : 0;
-  const needFix = (submissions ?? []).filter((s: any) => s.status === 'rejected').length;
-  const countLine =
-    total === 0
-      ? undefined
-      : `${total} ${total === 1 ? 'shop' : 'shops'}${needFix > 0 ? ` · ${needFix} ${needFix === 1 ? 'needs' : 'need'} a fix` : ''}`;
-
+  if (!isLoaded || isLoading || (canRead && raw === undefined)) return <Loading />;
   const goBack = () => router.replace('/(app)/dashboard');
+  if (!canRead) return <ScreenShell title="Your submissions" onBack={goBack}>
+    <Banner tone="warn" body={isOffline ? 'Reconnect to see your submissions.' : 'Open your submissions with your field-agent account.'} />
+  </ScreenShell>;
+  const query = search.trim().toLocaleLowerCase();
+  const visible = submissions.filter(sub => matchesFilter(sub, filter) && (!query ||
+    [sub.businessName, sub.businessType, sub.city].some(value => value?.toLocaleLowerCase().includes(query))));
+  const needFix = submissions.filter(sub => sub.status === 'rejected').length;
+  const countLine = submissions.length ? `${submissions.length} ${submissions.length === 1 ? 'shop' : 'shops'}${needFix ? ` · ${needFix} ${needFix === 1 ? 'needs' : 'need'} a fix` : ''}` : undefined;
 
-  if (total === 0) {
-    return (
-      <ScreenShell onBack={goBack} contentStyle={styles.emptyBody}>
-        <EmptyState
-          icon="storefront-outline"
-          title="No shops yet"
-          body="Visit a shop, take photos, and send it."
-          actionLabel="Submit a new shop"
-          onAction={() => router.push('/(app)/submit/info')}
-        />
-      </ScreenShell>
-    );
-  }
-
-  return (
-    <ScreenShell
-      title="Your submissions"
-      subtitle={countLine}
-      onBack={goBack}
-      footer={
-        <GuardedLink href="/(app)/submit/info" asChild>
-          <Button title="Submit a new shop" />
-        </GuardedLink>
-      }
-    >
-      <View style={styles.filters}>
-        {FILTERS.map((f) => (
-          <Pill
-            key={f.key}
-            label={f.label}
-            tone={filter === f.key ? 'ink' : 'neutral'}
-            onPress={() => setFilter(f.key)}
-            accessibilityLabel={filter === f.key ? `${f.label}, selected` : f.label}
-          />
-        ))}
-      </View>
-
-      {visible.length === 0 ? (
-        <Text variant="bodyLg" tone="muted" align="center" style={styles.none}>
-          Nothing here yet.
-        </Text>
-      ) : (
-        <View style={styles.list}>
-          {visible.map((sub: any) => {
-            const draft = showAsDraft(sub);
-            const status = submissionStatus(sub.status, draft);
-            const hasSite = WEBSITE_READY_STATUSES.includes(sub.status) && !!sub.websiteUrl;
-
-            return (
-              <GuardedLink key={sub._id} href={`/(app)/submissions/${sub._id}`} asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`${sub.businessName}, ${status.label}`}
-                  cssInterop={false}
-                  style={({ pressed }) => [styles.card, shadow.soft, pressed ? styles.pressed : null]}
-                >
-                  <View style={styles.top}>
-                    <SubThumb sub={sub} draft={draft} />
-                    <View style={styles.meta}>
-                      <Text variant="bodyLg" weight="bold" numberOfLines={1}>
-                        {sub.businessName}
-                      </Text>
-                      <Text variant="label" weight="medium" tone="muted" numberOfLines={1}>
-                        {sub.businessType} · {sub.city}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.bottom}>
-                    <Chip label={status.label} tone={status.tone} />
-                    <Text variant="label" weight="medium" tone="muted">
-                      {shortDate(sub._creationTime)}
-                    </Text>
-                  </View>
-
-                  {/* Finished website: links straight to the site. */}
-                  {hasSite ? (
-                    <Pressable
-                      onPress={() => void openExternalUrl(sub.websiteUrl)}
-                      hitSlop={6}
-                      accessibilityRole="link"
-                      accessibilityLabel={`View ${sub.businessName} website`}
-                      style={styles.siteLink}
-                    >
-                      <Ionicons name="globe-outline" size={20} color={colors.ink} />
-                      <Text variant="label" weight="bold" style={styles.siteLinkText}>
-                        View website
-                      </Text>
-                      <Ionicons name="open-outline" size={18} color={colors.ink} />
-                    </Pressable>
-                  ) : null}
-                </Pressable>
-              </GuardedLink>
-            );
-          })}
-        </View>
-      )}
-    </ScreenShell>
-  );
+  return <ScreenShell title="Your submissions" subtitle={countLine} onBack={goBack}
+    headerRight={<Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={searchOpen ? 'Close submission search' : 'Search submissions'}
+      accessibilityState={{ expanded: searchOpen }} style={styles.searchButton}
+      onPress={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearch(''); }}>
+      <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.ink} />
+    </Pressable>}
+    footer={<GuardedLink href="/(app)/submit/info" asChild><Button title="Submit a new shop" /></GuardedLink>}>
+    {searchOpen ? <Field label="Search submissions" hideLabel icon="search" value={search} onChangeText={setSearch}
+      placeholder="Shop, type or city" autoCapitalize="none" autoCorrect={false} returnKeyType="search" accessibilityLabel="Search submissions" /> : null}
+    <View style={styles.filters}>{FILTERS.map(f => <Pill key={f.key} label={f.label} tone={filter === f.key ? 'ink' : 'neutral'}
+      onPress={() => setFilter(f.key)} accessibilityLabel={filter === f.key ? `${f.label}, selected` : f.label} />)}</View>
+    {!submissions.length ? <EmptyState icon="storefront-outline" title="No shops yet" body="Visit a shop, take photos, and send it." />
+      : !visible.length ? <EmptyState icon="search-outline" title="No matching shops" body="Try another search or status." />
+      : <View style={styles.list}>{visible.map(sub => {
+        const draft = showAsDraft(sub);
+        const status = submissionStatus(sub.status, draft);
+        return <GuardedLink key={sub._id} href={`/(app)/submissions/${sub._id}`} asChild>
+          <Pressable cssInterop={false} accessibilityRole="button" accessibilityLabel={`${sub.businessName}, ${status.label}`}
+            style={({ pressed }) => [styles.card, shadow.soft, pressed ? styles.pressed : null]}>
+            <SubThumb sub={sub} draft={draft} />
+            <View style={styles.meta}>
+              <Text variant="body" weight="bold" numberOfLines={2}>{sub.businessName}</Text>
+              <Text variant="label" tone="muted">{sub.businessType} · {sub.city}</Text>
+              {compact ? <Chip label={status.label} tone={status.tone} /> : null}
+              {compact ? <Text variant="label" tone="muted">{shortDate(sub._creationTime)}</Text> : null}
+            </View>
+            {!compact ? <View style={styles.trailing}>
+              <Chip label={status.label} tone={status.tone} />
+              <Text variant="label" tone="muted">{shortDate(sub._creationTime)}</Text>
+            </View> : null}
+          </Pressable>
+        </GuardedLink>;
+      })}</View>}
+  </ScreenShell>;
 }
 
 const styles = StyleSheet.create({
-  emptyBody: { flexGrow: 1, justifyContent: 'center' },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginBottom: space.lg },
-  none: { paddingVertical: space.xxl },
-  list: { gap: space.md },
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.card,
-    padding: space.lg,
-    gap: space.md,
-  },
-  pressed: { transform: [{ scale: 0.99 }] },
-  top: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  thumb: { width: 64, height: 64, borderRadius: radius.field, backgroundColor: colors.bg2 },
+  searchButton: { width: hit.icon, height: hit.icon, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginVertical: space.md },
+  list: { gap: space.sm },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.card, padding: space.md, gap: space.sm },
+  pressed: { opacity: 0.85 },
+  thumb: { width: 52, height: 58, borderRadius: radius.field, backgroundColor: colors.bg2 },
   thumbTile: { alignItems: 'center', justifyContent: 'center' },
-  meta: { flex: 1, gap: 2 },
-  bottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  siteLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    minHeight: 48,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.rule,
-    marginTop: -space.xs,
-    paddingTop: space.xs,
-  },
-  siteLinkText: { flex: 1 },
+  meta: { flex: 1, minWidth: 0, gap: 3 },
+  trailing: { alignItems: 'flex-end', gap: space.xs },
 });

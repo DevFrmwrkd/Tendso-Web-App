@@ -24,6 +24,8 @@ const account: Doc<"creators"> = {
 
 function portalData(): AffiliatePortal {
     return {
+        month: { start: Date.UTC(2026, 8, 30, 16), end: Date.UTC(2026, 9, 31, 16), label: "October 2026" },
+        income: { directThisMonth: 0, teamThisMonth: 0, totalThisMonth: 0 },
         summary: { balance: 0, totalEarned: 0, totalWithdrawn: 0, pendingCommission: 0, inFlight: 0 },
         earnings: [], withdrawals: [], referrals: [],
         referralStats: { total: 0, pending: 0, qualified: 0, paid: 0, totalEarned: 0 },
@@ -146,7 +148,7 @@ describe("affiliate referrals and account", () => {
 
     it("shows new recruits and their recurring earnings alongside earlier bonus referrals", () => {
         const portal = portalData();
-        portal.recruits = [{ _id: "agent" as Id<"creators">, referredName: "Ana Private Reyes", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 350 }];
+        portal.recruits = [{ _id: "agent" as Id<"creators">, referredName: "Ana Private Reyes", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 350, photo: null, monthsLeft: 12, monthEarned: 350 }];
         portal.recruitStats = { total: 1, earning: 1, totalEarned: 350 };
         const html = renderToStaticMarkup(createElement(AffiliateReferralsView, { account, portal }));
         expect(html).toContain("Ana R.");

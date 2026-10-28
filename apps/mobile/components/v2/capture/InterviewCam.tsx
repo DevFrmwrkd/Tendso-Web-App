@@ -66,6 +66,8 @@ export interface InterviewCamProps {
   audioOnly?: boolean;
   /** Start at this question (resume). */
   startAt?: number;
+  /** Finish after this answer; omitted for the normal ten-question interview. */
+  stopAfterQuestion?: number;
   onClip?: (clip: InterviewClip) => void;
   onFinish: (result: InterviewResult) => void;
   onClose: () => void;
@@ -85,6 +87,7 @@ export function InterviewCam({
   facing = 'front',
   audioOnly: wantsAudioOnly = false,
   startAt = 0,
+  stopAfterQuestion,
   onClip,
   onFinish,
   onClose,
@@ -97,7 +100,7 @@ export function InterviewCam({
   const L = CAM_LABELS[lang];
   const total = questions.length;
 
-  const [state, dispatch] = useReducer(interviewReducer, undefined, () => initialInterview(total, startAt));
+  const [state, dispatch] = useReducer(interviewReducer, undefined, () => initialInterview(total, startAt, stopAfterQuestion));
   const [framingGood, setFramingGood] = useState(false);
   const framingT0 = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);

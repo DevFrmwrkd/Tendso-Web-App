@@ -34,6 +34,8 @@ export const sampleAffiliateSales: readonly AffiliateSale[] = [
 ];
 
 export const sampleAffiliatePortal: AffiliatePortal = {
+    month: { start: Date.UTC(2026, 8, 30, 16), end: Date.UTC(2026, 9, 31, 16), label: "October 2026" },
+    income: { directThisMonth: 1600, teamThisMonth: 0, totalThisMonth: 1600 },
     summary: { balance: 1600, totalEarned: 2600, totalWithdrawn: 500, pendingCommission: 1000, inFlight: 500 },
     earnings: [
         { _id: "preview-affiliate-sale" as Id<"earnings">, amount: 1100, type: "website_sale", status: "available", createdAt: Date.UTC(2026, 9, 8, 3), businessName: "Luna's Salon" },
@@ -49,7 +51,7 @@ export const sampleAffiliatePortal: AffiliatePortal = {
         { _id: "preview-referral-pending" as Id<"referrals">, referredName: "Jamie Cruz", status: "pending", bonusAmount: 0, createdAt: Date.UTC(2026, 9, 5, 2) },
     ],
     referralStats: { total: 2, pending: 1, qualified: 0, paid: 1, totalEarned: 1000 },
-    recruits: [{ _id: "preview-team-agent" as Id<"creators">, referredName: "Taylor Santos", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 0 }],
+    recruits: [{ _id: "preview-team-agent" as Id<"creators">, referredName: "Taylor Santos", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 0, photo: null, monthsLeft: 12, monthEarned: 0 }],
     recruitStats: { total: 1, earning: 1, totalEarned: 0 },
 };
 

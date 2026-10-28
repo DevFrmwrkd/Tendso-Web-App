@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useClerk } from '@clerk/clerk-expo';
-import { useMutation } from 'convex/react';
+import { useConvex, useMutation } from 'convex/react';
 import { api, type Doc } from '@tendso/convex-client';
 import {
   DISCOVERY_SOURCES,
@@ -11,7 +11,8 @@ import {
   normalizeWorkCity,
   type DiscoverySource,
 } from '../../../../lib/fieldAgentOnboarding';
-import { Banner, Bubble, Button, ChoiceChip, Field, Loading, OptionRow, ScreenShell, Text, TextLink } from '../../components/v2';
+import { Avatar, Banner, Bubble, Button, ChoiceChip, Field, Loading, OptionRow, ScreenShell, Text, TextLink } from '../../components/v2';
+import { CreatorAttributionGate } from '../../components/CreatorAttributionGate';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { colors, radius, shadow, space } from '../../theme/v2';
@@ -39,6 +40,59 @@ function validWorkCity(value: string) {
   catch { return ''; }
 }
 
+type ReferrerCard = { code: string; name: string; photo: string | null };
+function publicPhoto(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? value : null;
+  } catch { return null; }
+}
+
+/** Preview only; the existing saveDiscovery mutation decides whether the code can be attached. */
+function WhoSentYouCard({ code, account, offline }: { code: string; account: Doc<'creators'>; offline: boolean }) {
+  const client = useConvex();
+  const [result, setResult] = useState<ReferrerCard | null>(null);
+  const [failedPhoto, setFailedPhoto] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (!code || offline || code === account.referralCode?.trim().toUpperCase()) return;
+    const timer = setTimeout(() => {
+      void Promise.allSettled([
+        client.query(api.creatorProgram.getCreatorByCode, { code }),
+        client.query(api.creators.getByReferralCode, { referralCode: code }),
+      ]).then(([creatorResult, legacyResult]) => {
+        if (!active) return;
+        const creator = creatorResult.status === 'fulfilled' ? creatorResult.value : null;
+        const legacy = legacyResult.status === 'fulfilled' ? legacyResult.value : null;
+        const matchingCreator = creator?.code?.trim().toUpperCase() === code
+          && typeof creator.name === 'string' && creator.name.trim();
+        const matchingLegacy = legacy?.referralCode?.trim().toUpperCase() === code
+          && legacy._id !== account._id && legacy.clerkId !== account.clerkId
+          && (!legacy.role || legacy.role === 'creator') && !legacy.isDeleted
+          && legacy.status !== 'deleted' && legacy.status !== 'suspended';
+        if (matchingCreator) setResult({ code, name: creator.name.trim(), photo: publicPhoto(creator.photo) });
+        else if (matchingLegacy) {
+          const name = [legacy.firstName, legacy.lastName].filter(Boolean).join(' ').trim();
+          setResult(name ? { code, name, photo: publicPhoto(legacy.profileImage) } : null);
+        } else setResult(null);
+      });
+    }, 300);
+    return () => { active = false; clearTimeout(timer); };
+  }, [client, code, account._id, account.clerkId, account.referralCode, offline]);
+  if (offline || !result || result.code !== code || code === account.referralCode?.trim().toUpperCase()) return null;
+  return <View style={styles.referral} testID="onboarding-referrer-card">
+    {result.photo && failedPhoto !== result.photo ? <Image source={{ uri: result.photo }} style={styles.referrerPhoto}
+      resizeMode="cover" accessibilityLabel={`${result.name}'s profile photo`} onError={() => setFailedPhoto(result.photo)} />
+      : <Avatar name={result.name} size={56} />}
+    <View style={styles.locationText}>
+      <Text variant="body" weight="bold">{result.name}</Text>
+      <Text variant="label" tone="muted">{result.code}</Text>
+    </View>
+    <Ionicons name="checkmark-circle" size={24} color={colors.ink} />
+  </View>;
+}
+
 /** Only newly enrolled field agents answer these questions. Other account types keep their own flow. */
 export default function AgentOnboardingScreen() {
   const mobile = useMobileAccount();
@@ -51,7 +105,10 @@ export default function AgentOnboardingScreen() {
   }, [mobile.isLoading, mobile.isOffline, eligible, router]);
 
   if (mobile.isLoading || !mobile.account || !eligible) return <Loading />;
-  return <OnboardingQuestions key={mobile.account._id} account={mobile.account} offline={mobile.isOffline} />;
+  return <>
+    <CreatorAttributionGate claimAs="agent" />
+    <OnboardingQuestions key={mobile.account._id} account={mobile.account} offline={mobile.isOffline} />
+  </>;
 }
 
 function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; offline: boolean }) {
@@ -234,6 +291,8 @@ function OnboardingQuestions({ account, offline }: { account: Doc<'creators'>; o
               ) : (
                 <Field label="Who sent you? (optional)" icon="gift-outline" placeholder="Enter their referral code" value={referralCode} onChangeText={setReferralCode} autoCapitalize="characters" autoCorrect={false} maxLength={32} editable={!disabled} helper="Have a referral code? We’ll check it when you continue." />
               )}
+              <WhoSentYouCard key={account._id} account={account} offline={offline}
+                code={(attachedReferralCode || referralCode).trim().toUpperCase()} />
             </>
           )}
           {error ? <Banner tone="danger" body={error} /> : null}
@@ -251,5 +310,6 @@ const styles = StyleSheet.create({
   location: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, backgroundColor: colors.card, borderRadius: radius.card },
   locationText: { flex: 1, gap: space.xs },
   referral: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, backgroundColor: colors.card, borderRadius: radius.card },
+  referrerPhoto: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.bg2 },
   disabled: { opacity: 0.5 },
 });

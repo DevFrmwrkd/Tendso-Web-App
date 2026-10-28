@@ -26,7 +26,7 @@ export function AffiliateAccess({ children }: { children: (props: AffiliateAcces
 }
 
 /** Tab-screen frame for every creator screen: v2 shell (title, gradient), notices, optional pinned footer. */
-export function AffiliateFrame({ title, sub, preview, suspended, offline, footer, children }: { title: string; sub?: string; preview?: boolean; suspended?: boolean; offline?: boolean; footer?: ReactNode; children: ReactNode }) {
+export function AffiliateFrame({ title, sub, preview, suspended, offline, footer, children }: { title?: string; sub?: string; preview?: boolean; suspended?: boolean; offline?: boolean; footer?: ReactNode; children: ReactNode }) {
   return <ScreenShell title={title} subtitle={sub} insetBottom={false} footer={footer} contentStyle={{ gap: 16 }}>
     {preview ? <Notice tone="info">Admin preview · Sample data. Account changes and sharing are disabled.</Notice> : null}
     {suspended ? <Notice tone="warn">Your creator account is suspended. Your sales stay visible. Page changes, sharing and payouts are paused.</Notice> : null}

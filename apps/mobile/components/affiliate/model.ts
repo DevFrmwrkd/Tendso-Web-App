@@ -63,12 +63,16 @@ export const sampleAffiliate: Doc<'creators'> = {
 };
 
 export const samplePortal: AffiliatePortal = {
+  month: { start: Date.UTC(2026, 8, 30, 16), end: Date.UTC(2026, 9, 31, 16), label: 'October 2026' },
+  income: { directThisMonth: 2500, teamThisMonth: 250, totalThisMonth: 2750 },
   summary: { balance: 2500, totalEarned: 5000, totalWithdrawn: 1000, pendingCommission: 2000, inFlight: 500 },
   earnings: [], withdrawals: [],
   referrals: [{ _id: 'sample-referral' as Id<'referrals'>, referredName: 'Alex Reyes', status: 'pending', bonusAmount: 0, createdAt: sampleTime }],
   referralStats: { total: 1, pending: 1, qualified: 0, paid: 0, totalEarned: 0 },
-  recruits: [],
-  recruitStats: { total: 0, earning: 0, totalEarned: 0 },
+  recruits: [{ _id: 'sample-team-agent' as Id<'creators'>, referredName: 'Bea Reyes', photo: null,
+    createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true,
+    totalEarned: 250, monthEarned: 250, monthsLeft: 12 }],
+  recruitStats: { total: 1, earning: 1, totalEarned: 250 },
 };
 
 export const sampleSales: AffiliateSale[] = [
