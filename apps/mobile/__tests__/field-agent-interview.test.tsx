@@ -130,7 +130,7 @@ it('queues an offline take for its same capture and never calls live APIs', asyn
   const screen = render(<SubmitInterviewScreen />);
   await waitFor(() => expect(screen.getByText('Interview recorded.')).toBeTruthy());
   fireEvent.press(screen.getByRole('button', { name: 'Save and continue' }));
-  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review'));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/design'));
   expect(mockStorage.get('agent-1:submission_pending_interview')).toMatchObject({ recordingUri: result.uri, submissionId: 'offline_pending' });
   expect(mockUpload).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
 });
@@ -139,7 +139,7 @@ it('uploads one video and its parallel audio without a browser-supplied payout',
   const screen = await open();
   await record(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review'));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/design'));
   expect(mockUpload).toHaveBeenCalledTimes(2);
   expect(mockUpdate).toHaveBeenCalledWith({ id: 'draft-1', videoStorageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' });
   expect(mockStorage.get('agent-1:submission_interview_draft')).toMatchObject({ storageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a', attached: true });

@@ -22,6 +22,7 @@ import { mergeEnhancedImages } from './lib/enhancedImages';
 import { requireAdmin } from './lib/auth';
 import { giveawayCanRender } from './lib/giveaway';
 import { aiPipelineEnabled } from '../lib/aiPipeline/config';
+import { validCaptureDesignCode } from '../lib/captureDesign';
 
 // Tendso's fixed photo order → roles. Products only when hasProducts.
 const PHOTO_ROLES = ['headshot', 'interior_1', 'interior_2', 'exterior', 'product_1', 'product_2'];
@@ -127,8 +128,10 @@ export const triggerStudioRender = internalAction({
             if (url) photos.push({ role, url });
         }
 
+        const templateId = validCaptureDesignCode(submission.templateId);
         const payload = {
             submissionId: args.submissionId,
+            ...(templateId ? { templateId } : {}),
             business: {
                 name: submission.businessName,
                 type: submission.businessType,

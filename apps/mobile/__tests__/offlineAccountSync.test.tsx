@@ -12,13 +12,13 @@ const mockUpload = jest.fn();
 const mockQuery = jest.fn();
 const mockFetch = jest.fn();
 const mockClient = { query: mockQuery };
-const mockCallbacks = Object.fromEntries(['create', 'update', 'submit', 'setDomainTier'].map(name =>
+const mockCallbacks = Object.fromEntries(['create', 'update', 'submit', 'setDomainTier', 'chooseDesign'].map(name =>
   [`submissions:${name}`, (args: unknown) => mockMutation(`submissions:${name}`, args)]));
 const originalFetch = global.fetch;
 let mockOnline = true;
 jest.mock('@tendso/convex-client', () => ({ api: {
   submissions: { create: 'submissions:create', update: 'submissions:update', submit: 'submissions:submit',
-    setDomainTier: 'submissions:setDomainTier', getById: 'submissions:getById', getDraftByCreatorId: 'submissions:getDraftByCreatorId' },
+    setDomainTier: 'submissions:setDomainTier', chooseDesign: 'submissions:chooseDesign', getById: 'submissions:getById', getDraftByCreatorId: 'submissions:getDraftByCreatorId' },
   r2: { generateUploadUrl: 'r2:generateUploadUrl' },
 } }));
 jest.mock('convex/react', () => ({
@@ -191,6 +191,125 @@ it('sets the exact queued price and domain before submitting and then clears fin
     ['submissions:submit', { id: 'my-submission' }],
   ]);
   expect(read('submission_interview_draft')).toBeNull(); expect(read('submission_photo_tasks')).toBeNull();
+});
+
+it('saves a matching pending design without requesting submission or changing the quote', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  const design = { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() };
+  scoped('submission_design', design);
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation.mock.calls).toEqual([['submissions:chooseDesign', { id: 'my-submission', templateId: 'restaurant:AM' }]]);
+  expect(read('submission_design')).toEqual(design);
+  expect(read('submission_pending_submit')).toBeNull(); expect(read('submission_last_sent')).toBeNull();
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledTimes(1); // Already stored on this draft; no repeated design write.
+});
+
+it('migrates the design of an offline capture to the recovered server id', async () => {
+  scoped('current_submission_id', 'offline_pending');
+  scoped('submission_pending_sync', info({ prospectLeadId: 'community-lead' }));
+  const design = { submissionId: 'offline_pending', templateId: 'restaurant:AM', savedAt: Date.now() };
+  scoped('submission_design', design);
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(read('submission_design')).toEqual({ ...design, submissionId: 'new-submission-1' });
+  expect(mockMutation).toHaveBeenCalledWith('submissions:chooseDesign', { id: 'new-submission-1', templateId: 'restaurant:AM' });
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:submit')).toBe(false);
+  expect(mockRows.get('new-submission-1')).toMatchObject({ status: 'draft', prospectLeadId: 'community-lead', templateId: 'restaurant:AM' });
+});
+
+it('applies the exact final queued design before pricing and submit, then clears its draft cache', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  scoped('submission_design', { submissionId: 'my-submission', templateId: 'generic:A', savedAt: Date.now() });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation.mock.calls).toEqual([
+    ['submissions:chooseDesign', { id: 'my-submission', templateId: 'restaurant:AM' }],
+    ['submissions:setDomainTier', { id: 'my-submission', submissionType: 'standard', sellPrice: 2499, requestedDomain: undefined, domainPricePHP: undefined }],
+    ['submissions:submit', { id: 'my-submission' }],
+  ]);
+  expect(read('submission_design')).toBeNull(); expect(read('submission_pending_submit')).toBeNull();
+});
+
+it('uses a matching cached design when an older final queue has no design field', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission' });
+  scoped('submission_design', { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation.mock.calls).toEqual([
+    ['submissions:chooseDesign', { id: 'my-submission', templateId: 'restaurant:AM' }],
+    ['submissions:submit', { id: 'my-submission' }],
+  ]);
+});
+
+it('does not apply or discard the design cached for a different draft when sending this one', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission' });
+  const other = { submissionId: 'other-submission', templateId: 'barbershop:F', savedAt: Date.now() };
+  scoped('submission_design', other);
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation.mock.calls).toEqual([['submissions:submit', { id: 'my-submission' }]]);
+  expect(read('submission_design')).toEqual(other);
+});
+
+it('never reads another account design or saves a design to an unowned draft', async () => {
+  const other = { submissionId: 'other-submission', templateId: 'barbershop:F', savedAt: Date.now() };
+  const otherKey = captureStorageKey('previous-creator', 'submission_design');
+  mockStorage.set(otherKey, JSON.stringify(other));
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockQuery).not.toHaveBeenCalled(); expect(mockMutation).not.toHaveBeenCalled();
+  row('other-submission', { creatorId: 'previous-creator' });
+  scoped('current_submission_id', 'other-submission'); scoped('submission_design', other);
+  await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_design')).toEqual(other);
+  expect(mockStorage.get(otherKey)).toBe(JSON.stringify(other));
+});
+
+it('retains the final queue and design if the server rejects the design, then retries in order', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  const queued = { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 };
+  const design = { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() };
+  scoped('submission_pending_submit', queued); scoped('submission_design', design);
+  let fail = true;
+  mockMutation.mockImplementation((reference, args) => {
+    if (reference === 'submissions:chooseDesign' && fail) { fail = false; throw new Error('Design save failed'); }
+    return defaultMutation(reference, args);
+  });
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation.mock.calls).toEqual([['submissions:chooseDesign', { id: 'my-submission', templateId: 'restaurant:AM' }]]);
+  expect(read('submission_pending_submit')).toEqual(queued); expect(read('submission_design')).toEqual(design);
+  expect(read('submission_last_sent')).toBeNull();
+  await sync(result);
+  expect(mockRows.get('my-submission')).toMatchObject({ status: 'submitted', templateId: 'restaurant:AM' });
+  expect(read('submission_pending_submit')).toBeNull(); expect(read('submission_design')).toBeNull();
+});
+
+it('keeps the design queued until the freshest owned draft has a valid owner email', async () => {
+  row('my-submission', { ownerEmail: '' }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM' });
+  const design = { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() };
+  scoped('submission_design', design);
+  const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_design')).toEqual(design);
+  expect(read('submission_pending_submit')).not.toBeNull();
+});
+
+it('stops before pricing or submitting if the account changes during a design save', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  const design = { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() };
+  scoped('submission_design', design);
+  let finish!: () => void;
+  mockMutation.mockImplementation((reference, args) => reference === 'submissions:chooseDesign'
+    ? new Promise<void>(resolve => { finish = resolve; }) : defaultMutation(reference, args));
+  const { result, rerender } = renderHook(({ actor }) => useOfflineSync({ enabled: true, creatorId: actor }), { initialProps: { actor: creatorId } });
+  let task!: Promise<void>;
+  await act(async () => { task = result.current.attemptSync(); await Promise.resolve(); });
+  for (let count = 0; count < 30 && !finish; count++) await act(async () => { await Promise.resolve(); });
+  expect(finish).toBeDefined(); rerender({ actor: 'next-creator' as Id<'creators'> });
+  await act(async () => { finish(); await task; });
+  expect(mockMutation.mock.calls).toEqual([['submissions:chooseDesign', { id: 'my-submission', templateId: 'restaurant:AM' }]]);
+  expect(read('submission_design')).toEqual(design); expect(read('submission_pending_submit')).not.toBeNull();
+  expect(mockStorage.has(captureStorageKey('next-creator', 'submission_design'))).toBe(false);
 });
 
 it.each([undefined, '', '   ', 'not-an-email', 'owner@example', `${'a'.repeat(310)}@example.com`])(
@@ -376,10 +495,12 @@ it('retries cache migration after an intermediate local write fails without crea
 
 it('finishes cleanup after an accepted legacy submit even without email, without re-pricing or re-submitting', async () => {
   row('my-submission', { status: 'submitted', ownerEmail: undefined });
-  scoped('current_submission_id', 'my-submission'); scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 1999, submissionType: 'standard' });
+  scoped('current_submission_id', 'my-submission'); scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 1999, submissionType: 'standard' });
+  scoped('submission_design', { submissionId: 'my-submission', templateId: 'restaurant:AM', savedAt: Date.now() });
   const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
   expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_pending_submit')).toBeNull();
   expect(read('submission_last_sent')).toMatchObject({ submissionId: 'my-submission', queued: false });
+  expect(read('submission_design')).toBeNull();
   expect(Alert.alert).not.toHaveBeenCalled();
 });
 

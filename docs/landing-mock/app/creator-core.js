@@ -352,7 +352,7 @@
   // ======================= 4 · CAPTURE =======================
   function info() {
     const types = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage', 'Other'];
-    return app(`<div class="cc-main" style="gap:14px">${step(1, 4)}
+    return app(`<div class="cc-main" style="gap:14px">${step(1, 5)}
         <div><h2 class="cc-h">About the shop</h2><p class="cc-sub" style="margin-top:6px">The basics first. Photos and the interview come next.</p></div>
         ${fld('Business name', 'Kalan', { icon: 'store' })}
         <div class="cc-chips">${types.map((t) => `<span class="cc-chip cc-chip--sm ${t === 'Restaurant' ? 'is-on' : ''}">${t === 'Restaurant' ? `<i class="cc-chk">${ic('check', 11)}</i>` : ''}${t}</span>`).join('')}</div>
@@ -364,9 +364,32 @@
       <div class="cc-foot">${door('Continue to photos')}</div>`);
   }
 
+  const CAPTURE_DESIGNS = [
+    { id: 'f', name: 'Forge' }, { id: 'g', name: 'Cinematic' }, { id: 'i', name: 'Minimal' },
+  ];
+  const designPhoto = (design, full = false) => `../assets/sites/designs/barber-${design.id}-m${full ? '-long' : ''}.jpg`;
+
+  function captureDesignPicker() {
+    return app(`<div class="cc-main cc-design-main">${step(4, 5)}
+        <h2 class="cc-h">Choose your design</h2>
+        <p class="cc-design-copy">Example photos and text. Your shop’s content is added after review.</p>
+        <div class="cc-design-rail">${CAPTURE_DESIGNS.map((design, index) => `<div class="cc-design-card ${index === 0 ? 'is-on' : ''}"><img src="${designPhoto(design)}" alt="${design.name} sample website"></div>`).join('')}</div>
+        <div class="cc-between"><span class="cc-t">Forge</span><span class="cc-design-copy">1 of 3</span></div>
+        <p class="cc-design-copy" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p>
+      </div><div class="cc-foot">${door('Use this design')}</div>`);
+  }
+
+  function captureDesignPreview() {
+    return app(`<div class="cc-main cc-design-preview-main">
+        <div class="cc-row2" style="height:48px">${back()}<h2 class="cc-h cc-h--sm">Forge</h2></div>
+        <p class="cc-design-copy">Sample website · Scroll to explore</p>
+        <div class="cc-design-page"><img src="${designPhoto(CAPTURE_DESIGNS[0], true)}" alt="Full Forge sample website with example content"></div>
+      </div><div class="cc-foot">${door('Use this design')}</div>`);
+  }
+
   function review() {
     const shots = ['kalan-hero', 'kalan-cook', 'kalan-pandesal', 'after-kalan', 'after-kalan-alt'];
-    return app(`<div class="cc-main" style="gap:11px">${step(4, 4)}
+    return app(`<div class="cc-main cc-capture-review" style="gap:11px">${step(5, 5)}
         <h2 class="cc-h cc-h--sm" style="margin:0 2px">Check it, then send</h2>
         <div class="cc-card cc-row2" style="gap:12px;padding:10px 14px 10px 10px">
           <img src="${PH}kalan-hero.jpg" alt="" style="width:52px;height:52px;border-radius:14px;object-fit:cover">
@@ -377,6 +400,7 @@
         <div class="cc-card" style="padding:12px 14px">
           <div class="cc-between"><span class="cc-row2 cc-sm" style="gap:6px">${ic('video', 14)}Interview · 4:12</span><span class="cc-sm" style="color:var(--a-ink)">Play</span></div>
           <p class="cc-quote" style="margin-top:6px">“We cook slow, the way my lola did. Tapa, garlic rice, barako in the pot.”</p></div>
+        <div class="cc-card cc-row2" style="padding:12px 14px">${ic('layout-template', 24)}<div class="cc-grow"><div class="cc-t">Design · Lutong Bahay</div><p class="cc-sm">Food sample · Your content follows review</p></div><span class="cc-link cc-sm">Change</span></div>
         <div class="cc-card cc-row2" style="gap:10px;padding:11px 14px">${ic('globe', 18)}<div class="cc-grow"><div class="cc-t" style="font-size:14px">kalan.tendso.site</div><div class="cc-xs">Free address · custom domain optional</div></div><span class="cc-sm" style="color:var(--a-ink)">Add</span></div>
         <div class="cc-card" style="padding:12px 14px">
           <div class="cc-between"><span class="cc-t">Your price</span><span class="cc-sm">Lower price = easier yes</span></div>
@@ -444,13 +468,13 @@
   // local fallbacks in the same language, used only if TendsoScreens is missing
   function photosLocal() {
     const shots = ['kalan-hero', 'kalan-cook', 'kalan-pandesal', 'after-kalan', 'after-kalan-alt'];
-    return app(`<div class="cc-main">${step(2, 4)}
+    return app(`<div class="cc-main">${step(2, 5)}
         <div><h2 class="cc-h">Show us the shop</h2><p class="cc-sub" style="margin-top:6px">Three to ten photos: front, inside, food, the owner.</p></div>
         <div class="cc-strip" style="grid-template-columns:repeat(3,1fr);gap:8px">${shots.map((s) => `<span><img src="${PH}${s}.jpg" alt=""></span>`).join('')}<span class="cc-card cc-center" style="justify-content:center;box-shadow:none;background:var(--a-bg2)">${ic('camera', 22)}</span></div>
       </div><div class="cc-foot">${door('Continue to interview')}</div>`);
   }
   function interviewRecLocal() {
-    return app(`<div class="cc-main">${step(3, 4)}<h2 class="cc-h">Talk to the owner.</h2>
+    return app(`<div class="cc-main">${step(3, 5)}<h2 class="cc-h">Talk to the owner.</h2>
         <div class="cc-card cc-center" style="gap:6px;padding:24px"><span class="cc-h cc-h--lg">2:47</span><span class="cc-sm">Recording</span></div>
         ${bubble('What’s the name of your shop, where are you, and what do you do?', 'Question 1 of 5')}
       </div>`);
@@ -480,14 +504,16 @@
       ['3.4', P + 'leads/spot.tsx', 'Save a real team find: photo, name, kind, needs-site choice and exact shop pin. Placing or dragging the pin preserves map zoom; GPS can recenter. Certified agents only; retries preserve one find.', spot],
       ['3.5', P + 'leads/[leadId].tsx', 'Deliberate Spot photo or admin cover, real distance/address below the name, and spotting time with the original spotter. Capture galleries are limited to the capturing creator/admin. Empty community contact cards are omitted; known contacts and directions remain usable. Visiting reserves the shop; Live requires a live URL. Legacy original media URLs and generic resolvers still require separate privacy hardening.', leadDetail],
     ] },
-    { n: '04', title: 'Capture', note: 'Info, 10 photo tasks, 10 questions on camera, review, sent', steps: [
-      ['4.1', P + 'submit/info.tsx', 'Step 1 of 4: business, type, owner, mobile, required valid owner email and address. Missing or invalid email blocks Continue with a field error. Choose the shop on a native map, adjust the pin, then confirm the editable address/city. Source pins and offline recovery are preserved.', info],
-      ['4.2', P + 'submit/photos.tsx', 'Ten shop-specific photo suggestions as tiles, a next-task card, retakes and owner/library extras. Add 3–10 photos total; suggestions are optional. Actor-scoped drafts resume safely.', shared('shot-list', photosLocal, { type: 'barber', step: 2 })],
+    { n: '04', title: 'Capture', note: 'Five steps: shop, photos, interview, design, review · then sent', steps: [
+      ['4.1', P + 'submit/info.tsx', 'Step 1 of 5: business, type, owner, mobile, required valid owner email and address. Missing or invalid email blocks Continue with a field error. Choose the shop on a native map, adjust the pin, then confirm the editable address/city. Source pins and offline recovery are preserved.', info],
+      ['4.2', P + 'submit/photos.tsx', 'Step 2 of 5. Ten shop-specific photo suggestions as tiles, a next-task card, retakes and owner/library extras. Add 3–10 photos total; suggestions are optional. Tap Your photos for an uncropped full-screen view. Actor-scoped drafts resume safely.', shared('shot-list', photosLocal, { type: 'barber', step: 2, of: 5 })],
       ['4.3', 'components/v2/capture/ShotGuide.tsx', 'One real photo task at a time, device-level guidance, task strip, direct retakes and JPEG uploads. No automatic face/framing assessment is claimed.', shared('shot-guide', photosLocal, { type: 'barber' })],
-      ['4.4', P + 'submit/interview.tsx', 'Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback.', shared('interview-list', interviewRecLocal, { step: 3 })],
+      ['4.4', P + 'submit/interview.tsx', 'Step 3 of 5. Calm question preview with all ten English/Tagalog prompts plus Anything else; video or voice-only, saved takes and playback. Continue opens the design picker.', shared('interview-list', interviewRecLocal, { step: 3, of: 5 })],
       ['4.5', 'components/v2/capture/InterviewCam.tsx', 'Continuous recording with question subtitles, Next, device level and supported native pause. Close/background saves or discards deliberately; separate audio supports transcription.', shared('interview-cam', interviewRecLocal, { video: 'assets/video/interview-2.mp4', poster: 'assets/video/interview-2.jpg', type: 'barber' })],
-      ['4.6', P + 'submit/review.tsx', 'Thumbnail prefers the linked find’s deliberately shared cover, then photos from this capture (also used offline), with a missing/broken-photo fallback. Capture photo strip/count, real details, recording playback, optional domain and equal-size payout/savings tiles are preserved. Horizontal slider drags keep the thumb within the track; vertical scrolling, typed entry and accessible adjustments are preserved. Missing or invalid owner email shows a warning and Edit shop details action before sending. Offline queues pause with draft, media, selected price and source shop retained; correcting email resumes sending. Commission depends on payment.', review],
-      ['4.7', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
+      ['4.6', P + 'submit/design.tsx · CaptureDesignGallery', 'Step 4 of 5. Swipe sample designs for the shop type, tap one for the full sample, then Use this design saves the owned draft choice and continues to Review. This panel demonstrates barber samples; the actual catalog follows the capture. Offline choices remain saved on this device. Choosing does not build, publish or submit.', captureDesignPicker],
+      ['4.7', 'components/field-agent/CaptureDesignGallery.tsx · full sample', 'Scroll the entire sample website. Photos and text are examples, not this capture’s content. Local menus, sections and FAQs remain usable; external calls, directions, links and form submissions are blocked. Close returns to the same design; Use this design saves the choice before Review.', captureDesignPreview],
+      ['4.8', P + 'submit/review.tsx', 'Step 5 of 5. Confirm the saved Design or Change it before sending for admin review. Thumbnail prefers the linked find’s deliberately shared cover, then this capture’s own photos, with a safe fallback. Capture media, optional domain, the per-site price slider and equal payout/savings tiles remain. Missing or invalid owner email blocks sending with an Edit action. Offline queues retain draft, media, design, price and source shop. Commission depends on payment; choosing a design never starts the owner build/pay flow.', review],
+      ['4.9', P + 'submit/success.tsx', 'Actual submitted or queued receipt, progress through review, building and owner payment, then commission. Back goes to Map; Spot another shop opens the team find form.', sent],
     ] },
     { n: '05', title: 'Home extras', note: 'Notifications', steps: [
       ['5.1', P + 'notifications.tsx', 'Tap any notice to read its full title, message and date. Announcement details load the original paragraphs for the actual recipient. Unread cards stay white with an ink dot; older ones sit flat.', notifications],

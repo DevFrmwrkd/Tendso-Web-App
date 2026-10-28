@@ -287,7 +287,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   if (!hydrated) return <ScreenShell onBack={() => router.back()}>{error ? <Banner tone="danger" body={error} /> : <Loading fill={false} label="Loading your photo draft" />}</ScreenShell>;
   if (submission === null || (submission && String(submission.creatorId) !== String(session.actor?.creatorId))) return <ScreenShell onBack={() => router.back()}><EmptyState icon="lock-closed-outline" title="Draft unavailable" body="Open a draft from your account to add photos." /></ScreenShell>;
 
-  return <ScreenShell title="Show us the shop" subtitle="Ten suggestions. Add 3–10 photos in total." progress={0.5} onBack={() => { if (!busy.current && !pickerBusy.current) router.back(); }}
+  return <ScreenShell title="Show us the shop" subtitle="Ten suggestions. Add 3–10 photos in total." progress={0.4} onBack={() => { if (!busy.current && !pickerBusy.current) router.back(); }}
     contentStyle={styles.body} footer={<>
       {error ? <Text tone="danger" align="center" accessibilityRole="alert">{error}</Text> : null}
       {enough ? <Button title="Continue to interview" onPress={handleNext} loading={saving} disabled={locked || awaitingRemote} />
@@ -295,7 +295,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
       <Button title="Add your own photos" variant="ghost" icon="images-outline" onPress={pickImages} disabled={locked || remaining === 0} />
     </>}>
     <OfflineBanner />
-    <View style={styles.between}><Text variant="label" tone="muted">Step 2 of 4</Text><Text variant="label" weight="bold">{`${total} of ${MAX_PHOTOS} photos added`}</Text></View>
+    <View style={styles.between}><Text variant="label" tone="muted">Step 2 of 5</Text><Text variant="label" weight="bold">{`${total} of ${MAX_PHOTOS} photos added`}</Text></View>
     <View style={styles.grid}>{tasks.map((task, index) => {
       const item = taskItems[index]; const uri = uriFor(item); const disabled = locked || (!item && remaining === 0);
       return <Pressable key={index} onPress={() => openCamera(index, !!item)} disabled={disabled} accessibilityRole="button"

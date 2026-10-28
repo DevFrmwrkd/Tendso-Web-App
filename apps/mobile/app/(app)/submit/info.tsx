@@ -247,6 +247,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
                   await capture.remove('submission_pending_photos');
                   await capture.remove('submission_pending_interview');
                   await capture.remove('submission_pending_submit');
+                  await capture.remove('submission_design');
                   await capture.remove('submission_photo_tasks');
                   await capture.remove('submission_interview_draft');
                   await clearDraft();
@@ -449,7 +450,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
         title="About the shop"
         subtitle="The basics first. Photos and the interview come next."
         onBack={goBack}
-        progress={0.25}
+        progress={0.2}
         headerRight={<Text variant="label" tone="muted">1 / 4</Text>}
         contentStyle={styles.content}
         footer={<Button title={loading ? 'Saving…' : capture.isOffline ? 'Save & continue offline' : 'Continue to photos'}

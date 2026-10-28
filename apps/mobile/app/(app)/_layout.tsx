@@ -182,6 +182,7 @@ export default function AppLayout() {
       <Stack.Screen name="submit/info" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/photos" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/interview" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="submit/design" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/review" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/success" options={{ gestureEnabled: false }} />
     </Stack>

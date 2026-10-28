@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation, useAction, useConvex } from 'convex/react';
 import { api, type Doc, type Id } from '@tendso/convex-client';
 import { useNetwork } from '../providers/NetworkProvider';
-import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey } from '../services/captureSession';
+import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureStorageKey, type CaptureDesignDraft } from '../services/captureSession';
 import { captureEmailError } from '../../../lib/captureEmail';
 import { commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../services/capturePrice';
@@ -15,10 +15,10 @@ type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string
 type PhotoEntry = { id: string; uri: string; storageId?: string; taskIndex?: number };
 type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; entries?: PhotoEntry[]; savedAt?: number };
 type PendingInterview = { submissionId: string; recordingUri: string; parallelAudioUri?: string | null; type: 'video' | 'audio'; storageId?: string; audioStorageId?: string; savedAt?: number };
-type SubmitChoice = { submissionId: string; sellPrice?: number; submissionType?: 'standard' | 'with_custom_domain'; requestedDomain?: string; domainPricePHP?: number; savedAt?: number };
+type SubmitChoice = { submissionId: string; templateId?: string; sellPrice?: number; submissionType?: 'standard' | 'with_custom_domain'; requestedDomain?: string; domainPricePHP?: number; savedAt?: number };
 type QueuedSubmit = boolean | SubmitChoice;
 const PARTS = ['submission_pending_sync', 'submission_pending_photos', 'submission_pending_interview', 'submission_pending_submit'] as const;
-const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot'] as const;
+const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_design'] as const;
 const clean = (value: unknown) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : '';
 
 /** Recover a response lost after create without reusing another business's draft. */
@@ -37,6 +37,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
   const update = useMutation(api.submissions.update);
   const submit = useMutation(api.submissions.submit);
   const setTier = useMutation(api.submissions.setDomainTier);
+  const chooseDesign = useMutation(api.submissions.chooseDesign);
   const uploadTarget = useAction(api.r2.generateUploadUrl);
   const busy = useRef(false);
   const emailWarning = useRef<string | null>(null);
@@ -50,7 +51,10 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
     if (!actor || !current() || busy.current) return;
     busy.current = true;
     try {
-      const scoped = await Promise.all(PARTS.map(key => readCaptureCache<unknown>(actor, key)));
+      const [scoped, cachedDesign] = await Promise.all([
+        Promise.all(PARTS.map(key => readCaptureCache<unknown>(actor, key))),
+        readCaptureCache<CaptureDesignDraft>(actor, 'submission_design'),
+      ]);
       const [scopedId, legacyId, ...legacyRaw] = await Promise.all([
         readCaptureCache<string>(actor, 'current_submission_id'), AsyncStorage.getItem('current_submission_id'),
         ...PARTS.map(key => AsyncStorage.getItem(key)),
@@ -59,12 +63,15 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       const decode = (value: string | null | undefined) => { try { return value ? JSON.parse(value) : null; } catch { return null; } };
       const scopedInfo = scoped[0] as PendingInfo | null;
       const legacyInfo = decode(legacyRaw[0]) as PendingInfo | null;
-      const useScoped = !!scopedId || scoped.some(Boolean);
+      const design = cachedDesign && typeof cachedDesign.submissionId === 'string'
+        && typeof cachedDesign.templateId === 'string' && cachedDesign.templateId.trim()
+        && Number.isFinite(cachedDesign.savedAt) ? cachedDesign : null;
+      const useScoped = !!scopedId || scoped.some(Boolean) || !!design;
       let info = useScoped ? scopedInfo : legacyInfo;
       let photos = (useScoped ? scoped[1] : decode(legacyRaw[1])) as PendingPhotos | null;
       let interview = (useScoped ? scoped[2] : decode(legacyRaw[2])) as PendingInterview | null;
       let queued = (useScoped ? scoped[3] : decode(legacyRaw[3])) as QueuedSubmit | null;
-      if (!info && !photos && !interview && !queued) return;
+      if (!info && !photos && !interview && !queued && !design) return;
       if (info && info.creatorId !== actor) return;
       let id = scopedId ?? (useScoped ? null : legacyId);
       if ((!id || id === 'offline_pending') && typeof queued === 'object' && queued?.submissionId !== 'offline_pending') id = queued?.submissionId ?? id;
@@ -153,6 +160,8 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await save('submission_last_sent', { submissionId: id, queued: false, sentAt: Date.now(), businessName: submission?.businessName });
         for (const key of ['submission_pending_sync', 'submission_draft_form', 'submission_pending_photos', 'submission_pending_interview',
           'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'current_submission_id', 'submission_pending_submit'] as const) await remove(key);
+        const savedDesign = await readCaptureCache<CaptureDesignDraft>(actor, 'submission_design');
+        if (current() && savedDesign?.submissionId === id) await remove('submission_design');
       };
       if (submission.status !== 'draft') {
         // The server accepted a previous submit whose local cleanup failed.
@@ -216,6 +225,10 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await save('submission_interview_draft', { ...(previous?.submissionId === id ? previous : {}), ...interview, attached: true });
         await remove('submission_pending_interview'); synced.push('interview');
       }
+      // Selecting a design does not request a submission. Only the final queued
+      // choice may send; it also wins over a subsequently cached draft preview.
+      const templateId = queued && typeof queued === 'object' && queued.templateId !== undefined
+        ? queued.templateId : design && matches(design.submissionId) ? design.templateId : undefined;
       if (queued && typeof queued === 'object' && current()) {
         // Re-read after syncing pending details and media: the initial row may
         // still have the old email, or another screen may have corrected it.
@@ -237,6 +250,10 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           return;
         }
         emailWarning.current = null;
+        if (templateId !== undefined) {
+          await chooseDesign({ id: id as Id<'submissions'>, templateId });
+          if (!current()) return;
+        }
         if (queued.sellPrice != null || queued.submissionType || queued.requestedDomain) {
           await setTier({ id: id as Id<'submissions'>, submissionType: queued.submissionType ?? 'standard',
             sellPrice: queued.sellPrice, requestedDomain: queued.requestedDomain, domainPricePHP: queued.domainPricePHP });
@@ -245,12 +262,20 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await submit({ id: id as Id<'submissions'> });
         if (!current()) return;
         await finishSent(); synced.push('submission');
+      } else if (templateId !== undefined && current()) {
+        const latest = await checkOwner(id);
+        if (!latest || latest.status !== 'draft' || !current()) return;
+        if (latest.templateId !== templateId) {
+          await chooseDesign({ id: id as Id<'submissions'>, templateId });
+          if (!current()) return;
+          synced.push('design');
+        }
       }
       if (current() && synced.length) Alert.alert('Capture synced', `Your ${synced.join(', ')} are saved.`, [{ text: 'OK' }]);
     } catch (error) {
       console.warn('[OfflineSync] Capture retained for retry:', error instanceof Error ? error.message : 'Sync failed');
     } finally { busy.current = false; }
-  }, [creatorId, client, create, update, submit, setTier, uploadTarget]);
+  }, [creatorId, client, create, update, submit, setTier, chooseDesign, uploadTarget]);
   useEffect(() => {
     if (isConnected && enabled) {
       const timer = setTimeout(() => { void attemptSync(); }, 2000);

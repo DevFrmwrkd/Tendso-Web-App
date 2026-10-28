@@ -278,3 +278,15 @@ Withdrawals keep using the existing `withdrawals.create` and saved payout method
 ## 6. Environment
 
 - `ATTRIBUTION_IP_SALT` (Convex env): any long random string. Without it the same-network suggestion is off; raw IPs are never stored either way.
+
+## 7. Field-agent capture design — `submissions.chooseDesign`
+
+Additive legacy/mobile capture API, separate from the owner-app design flow and the affiliate creator program.
+
+- Mutation: `api.submissions.chooseDesign({ id: Id<"submissions">, templateId: string })` → `{ ok: true }`.
+- Requires a signed-in, certified field agent who owns the draft. Deleted or suspended accounts, accounts without certification or with `rejectedAt`, another agent's draft, sent captures, and `owner_app` / `owner_intake` submissions are rejected. There is no admin override through this endpoint.
+- `templateId` must be a canonical catalog code such as `barbershop:BP`; surrounding whitespace is trimmed. Unknown codes and bare letters are rejected by `lib/captureDesign.ts` using `templateByCode` from `components/editor/templateCatalog.ts`.
+- Writes only `templateId`, `templateIds: [templateId]`, and the server timestamp `styleUpdatedAt`. It does not submit, approve, build or publish the site. Final Send and the existing admin review flow remain separate; the normal build paths read the saved choice.
+- The mobile picker shows read-only public template samples, not this shop's generated website. Choosing a sample does not approve a finished site or initiate a payment.
+- Offline selection is retained under the signed-in creator's scoped `submission_design` cache as `{ submissionId, templateId, savedAt }`. Sync remaps the temporary offline ID, saves only a matching owned draft's choice, and retains it on failure. Selection alone never queues a submission.
+- Final Send may add `templateId` to `submission_pending_submit`; that confirmed queued choice takes priority during sync. Older queues without a design remain supported. Completing or discarding a capture clears its matching design metadata without carrying it into another account or draft.

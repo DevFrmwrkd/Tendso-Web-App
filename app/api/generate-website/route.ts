@@ -10,6 +10,7 @@ import { cleanOwnerCustomizations } from '@/lib/ownerSiteEdits'
 import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
+import { validCaptureDesignCode } from '@/lib/captureDesign'
 import { isArchiveKey, orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
 import { websiteContentFields } from '@/lib/websiteContentFields'
 import { isAiPipelineBuildRequest } from '@/lib/aiPipeline/internalAuth'
@@ -850,9 +851,10 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
         // page fell through to the "Coming soon" stub with zero sections. See
         // lib/templatePicker.ts — it also spreads sites across the family that
         // suits the trade, so two shops of the same kind do not come out
-        // identical. Only the DEFAULT: an explicit pick still wins below.
+        // identical. A saved capture choice is the default; explicit editor
+        // customizations still win below.
         const defaultCustomizations = {
-            heroStyle: autoTemplateFor(
+            heroStyle: validCaptureDesignCode((submissionData as any)?.templateId) ?? autoTemplateFor(
                 (submissionData as any)?.businessType,
                 String((submissionData as any)?._id ?? ''),
                 (submissionData as any)?.businessName,

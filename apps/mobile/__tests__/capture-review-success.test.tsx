@@ -6,6 +6,7 @@ import SubmitSuccessScreen from '../app/(app)/submit/success';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockSetTier = jest.fn();
+const mockChooseDesign = jest.fn();
 const mockSubmit = jest.fn();
 const mockCheckDomain = jest.fn();
 const mockRead = jest.fn();
@@ -36,7 +37,7 @@ jest.mock('expo-router', () => ({
   useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
 }));
 jest.mock('@tendso/convex-client', () => ({ api: {
-  submissions: { getById: 'get', getPricingContext: 'pricing', setDomainTier: 'tier', submit: 'submit' },
+  submissions: { getById: 'get', getPricingContext: 'pricing', setDomainTier: 'tier', chooseDesign: 'choose-design', submit: 'submit' },
   leads: { getDetailForMobileCRM: 'source-find' },
   files: { getMultipleUrls: 'photos', getUrl: 'file' }, domains: { checkDomainAvailability: 'domain' },
 } }));
@@ -50,7 +51,7 @@ jest.mock('convex/react', () => ({
     if (reference === 'file') return 'https://media.example.com/' + args.storageId;
     throw new Error('Unexpected query ' + reference);
   },
-  useMutation: (reference: string) => reference === 'tier' ? mockSetTier : mockSubmit,
+  useMutation: (reference: string) => reference === 'tier' ? mockSetTier : reference === 'choose-design' ? mockChooseDesign : mockSubmit,
   useAction: () => mockCheckDomain,
 }));
 jest.mock('../components/PriceSlider', () => ({ PriceSlider: ({ initialValue, onChange, disabled }: any) =>
@@ -95,11 +96,136 @@ beforeEach(() => {
   mockWrite.mockReset().mockImplementation(async (key: string, value: unknown) => { stored(key, value); });
   mockRemove.mockReset().mockImplementation(async (key: string) => { mockStorage.delete(mockActor + ':' + key); });
   mockSetTier.mockReset().mockResolvedValue(undefined);
+  mockChooseDesign.mockReset().mockResolvedValue({ ok: true });
   mockSubmit.mockReset().mockResolvedValue(undefined);
   mockCheckDomain.mockReset().mockResolvedValue({ valid: true, available: true, withinBudget: true, domain: 'nenastore.com', pricePHP: 450 });
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 });
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
+
+it('shows the canonical design name and changes it through the existing Review route', async () => {
+  mockSubmissions['draft-1'].templateId = 'florist:BR';
+  const screen = await review();
+  expect(screen.getByText('Website design')).toBeTruthy(); expect(screen.getByText('Bloom')).toBeTruthy();
+  fireEvent.press(screen.getByRole('link', { name: 'Change design' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { returnTo: 'review' } });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  // Returning to the retained Review refreshes only its choice, preserving a local price edit.
+  fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockRevision++; screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Glacier')).toBeTruthy());
+  expect(screen.queryByText('Bloom')).toBeNull();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+});
+
+it('flushes a local design before price and final submission, then clears only its matching metadata', async () => {
+  const order: string[] = [];
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockImplementation(() => { order.push('design'); return new Promise<void>(done => { resolve = done; }); });
+  mockSetTier.mockImplementation(async () => { order.push('price'); });
+  mockSubmit.mockImplementation(async () => { order.push('submit'); });
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:BP' });
+  expect(order).toEqual(['design']); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+  await act(async () => { resolve(); await flush(); });
+  expect(order).toEqual(['design', 'price', 'submit']);
+  expect(mockRemove).toHaveBeenCalledWith('submission_design');
+  expect(mockStorage.has('agent-1:submission_design')).toBe(false);
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/success', params: { submissionId: 'draft-1' } });
+});
+
+it('preserves the draft and design for retry when design sync fails before sending', async () => {
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockRejectedValueOnce(new Error('Design sync failed')).mockResolvedValueOnce({ ok: true });
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText('Design sync failed')).toBeTruthy();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledTimes(2); expect(mockSubmit).toHaveBeenCalledTimes(1);
+});
+
+it('does not resave an unchanged canonical server design before the ordinary send', async () => {
+  mockSubmissions['draft-1'].templateId = 'barbershop:BP';
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSetTier).toHaveBeenCalledTimes(1); expect(mockSubmit).toHaveBeenCalledTimes(1);
+});
+
+it.each([true, false])('retains only a matching offline queued design when saving again: %s', async matches => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, formData: form });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
+  const submissionId = matches ? 'offline_pending' : 'different-draft';
+  stored('submission_design', { submissionId, templateId: 'barbershop:BP', savedAt: 100 });
+  stored('submission_pending_submit', { submissionId, templateId: 'florist:BR', savedAt: 200, sellPrice: 2999, submissionType: 'standard' });
+  const screen = await review();
+  expect(screen.getByText(matches ? 'Bloom' : 'No design selected')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({
+    submissionId: 'offline_pending', templateId: matches ? 'florist:BR' : undefined,
+  });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('keeps a newer explicit local choice ahead of an older confirmed queue selection', async () => {
+  mockSubmissions['draft-1'].templateId = 'generic:A';
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 300 });
+  stored('submission_pending_submit', { submissionId: 'draft-1', templateId: 'florist:BR', savedAt: 200, sellPrice: 1999, submissionType: 'standard' });
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockSetTier).toHaveBeenCalledWith(expect.objectContaining({ sellPrice: 1999 }));
+});
+
+it('stops before pricing and final send if the signed-in actor changes during design sync', async () => {
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledTimes(1);
+  mockActor = 'agent-2';
+  await act(async () => { resolve(); await flush(); });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+});
+
+it.each(['design', 'price', 'submit'])('preserves the next draft when its pointer changes during the %s request', async pendingStage => {
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  const deferred = () => new Promise<void>(done => { resolve = done; });
+  const pending = pendingStage === 'design' ? mockChooseDesign : pendingStage === 'price' ? mockSetTier : mockSubmit;
+  pending.mockImplementation(deferred);
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(pending).toHaveBeenCalledTimes(1);
+  // Storage can advance before a focus/cache notification reaches this retained Review.
+  stored('current_submission_id', 'draft-new');
+  await act(async () => { resolve(); await flush(); });
+  if (pendingStage === 'design') expect(mockSetTier).not.toHaveBeenCalled();
+  if (pendingStage !== 'submit') expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:current_submission_id')).toBe('draft-new');
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockStorage.has('agent-1:submission_last_sent')).toBe(false);
+});
 
 it('uses the saved server website price without changing its custom-domain add-on', async () => {
   Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450 });
@@ -157,6 +283,7 @@ it('shows the actual capture, then saves its price before submitting with commis
   await act(async () => { confirmation('Send for review')(); await flush(); });
   await waitFor(() => expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' }));
   expect(order).toEqual(['price', 'submit']);
+  expect(mockChooseDesign).not.toHaveBeenCalled();
   expect(mockSetTier).toHaveBeenCalledWith({
     id: 'draft-1', submissionType: 'standard', requestedDomain: undefined, sellPrice: 1999, domainPricePHP: undefined,
   });
@@ -439,7 +566,7 @@ it('deduplicates confirmation and send while a live submission is in progress', 
   expect(Alert.alert).toHaveBeenCalledTimes(1);
   const send = confirmation('Send for review');
   act(() => { send(); send(); });
-  expect(mockSetTier).toHaveBeenCalledTimes(1);
+  await waitFor(() => expect(mockSetTier).toHaveBeenCalledTimes(1));
   await act(async () => { finish(); await flush(); });
   expect(mockSubmit).toHaveBeenCalledTimes(1);
 });

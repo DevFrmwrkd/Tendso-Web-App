@@ -10,6 +10,7 @@ import { isCreatorAccount } from '../lib/accounts';
 import { resolveGiveawayReviewSource } from './lib/submissionReview';
 import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
 import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
+import { validCaptureDesignCode } from '../lib/captureDesign';
 
 function requireCaptureOwnerEmail(value: string | undefined): string {
     const error = captureEmailError(value);
@@ -468,6 +469,31 @@ export const create = mutation({
         }
 
         return submissionId;
+    },
+});
+
+/** Save a field agent's design preference without submitting or building the site. */
+export const chooseDesign = mutation({
+    args: { id: v.id('submissions'), templateId: v.string() },
+    handler: async (ctx, args) => {
+        const { me } = await requireCertifiedFieldAgent(ctx);
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.creatorId !== me._id) {
+            throw new Error('Forbidden: you can only choose a design for your own draft');
+        }
+        if (submission.status !== 'draft') throw new Error('Design choices can only be changed on a draft');
+        if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake') {
+            throw new Error('Choose the design in the owner submission flow');
+        }
+        const templateId = validCaptureDesignCode(args.templateId);
+        if (!templateId) throw new Error('Choose a valid website design');
+        await ctx.db.patch(args.id, {
+            templateId,
+            templateIds: [templateId],
+            styleUpdatedAt: Date.now(),
+        });
+        return { ok: true };
     },
 });
 

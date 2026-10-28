@@ -136,7 +136,7 @@ it('retakes an assigned photo at the ten-photo limit without appending an eleven
   const screen = await screenReady();
   fireEvent.press(screen.getByRole('button', { name: 'Owner headshot, taken. Retake photo' }));
   expect(mockGuide.singleShot).toBe(true); expect(mockGuide.maxCaptured).toBe(1);
-  act(() => { mockGuide.onShot!(0, 'file://retake.jpg'); mockGuide.onDone([]); });
+  await act(async () => { mockGuide.onShot!(0, 'file://retake.jpg'); mockGuide.onDone([]); });
   await waitFor(() => expect(screen.queryByTestId('guided-camera')).toBeNull());
   expect(screen.getByText('10 of 10 photos added')).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Continue to interview' }));

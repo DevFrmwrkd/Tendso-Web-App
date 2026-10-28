@@ -16,9 +16,54 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { WebView } from 'react-native-webview';
+import { WebView, type WebViewProps } from 'react-native-webview';
 import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
 import { Text } from '../Text';
+
+// Fix the public generic WebView's props before NativeWind's JSX inference.
+const SiteWebView: React.ComponentType<WebViewProps> = WebView;
+
+/** Sample previews may scroll and follow section anchors, but never leave the document. */
+export function isSamplePreviewNavigationAllowed(documentUri: string, requestedUri: string): boolean {
+  try {
+    const document = new URL(documentUri);
+    const requested = new URL(requestedUri, documentUri);
+    return /^https?:$/.test(document.protocol) && requested.origin === document.origin
+      && requested.pathname === document.pathname && requested.search === document.search;
+  } catch { return false; }
+}
+
+const SAMPLE_PREVIEW_SCRIPT = `
+(function () {
+  if (window.__tendsoSampleReadOnly) return;
+  window.__tendsoSampleReadOnly = true;
+  function block(event) { event.preventDefault(); event.stopImmediatePropagation(); }
+  document.addEventListener('submit', block, true);
+  document.addEventListener('click', function (event) {
+    var target = event.target && event.target.closest ? event.target.closest('a,button,input,select,textarea,[role="button"],[role="tab"]') : null;
+    if (!target) return;
+    if (target.tagName === 'A') {
+      try {
+        var next = new URL(target.getAttribute('href') || '', location.href);
+        if (next.origin === location.origin && next.pathname === location.pathname && next.search === location.search && next.hash) return;
+      } catch (_) {}
+    }
+    if (target.matches('button,[role="button"],[role="tab"]') && !target.closest('form') && !target.hasAttribute('form')
+      && !target.hasAttribute('formaction') && target.getAttribute('type') !== 'submit') {
+      var controlled = target.getAttribute('aria-controls');
+      var disclosure = controlled && document.getElementById(controlled)
+        && (target.hasAttribute('aria-expanded') || target.getAttribute('role') === 'tab');
+      if (disclosure || target.matches('.nav-toggle,.nav-burger') || target.closest('.car-dots')) return;
+    }
+    block(event);
+  }, true);
+  window.open = function () { return null; };
+  if (window.HTMLFormElement) {
+    HTMLFormElement.prototype.submit = function () {};
+    HTMLFormElement.prototype.requestSubmit = function () {};
+  }
+})(); true;
+`;
 
 export function Tick({ style }: { style?: StyleProp<ViewStyle> }) {
   return (
@@ -186,6 +231,8 @@ export function SiteFrame({
   height,
   style,
   testID,
+  samplePreview = false,
+  onPreviewError,
 }: {
   uri?: string | null;
   html?: string | null;
@@ -195,6 +242,9 @@ export function SiteFrame({
   height?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  /** Read-only public template document; default owner site behavior stays unchanged. */
+  samplePreview?: boolean;
+  onPreviewError?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const source = html ? { html } : uri ? { uri } : null;
@@ -213,10 +263,18 @@ export function SiteFrame({
               : StyleSheet.absoluteFill
           }
         >
-          <WebView
+          <SiteWebView
             source={source}
             originWhitelist={['*']}
             onLoadEnd={() => setLoading(false)}
+            onError={onPreviewError ? () => { setLoading(false); onPreviewError(); } : undefined}
+            onHttpError={onPreviewError ? event => {
+              if (!uri || isSamplePreviewNavigationAllowed(uri, event.nativeEvent.url)) { setLoading(false); onPreviewError(); }
+            } : undefined}
+            onShouldStartLoadWithRequest={samplePreview ? request => !!uri && request.navigationType !== 'formsubmit'
+              && isSamplePreviewNavigationAllowed(uri, request.url) : undefined}
+            injectedJavaScriptBeforeContentLoaded={samplePreview ? SAMPLE_PREVIEW_SCRIPT : undefined}
+            injectedJavaScript={samplePreview ? SAMPLE_PREVIEW_SCRIPT : undefined}
             scrollEnabled={interactive}
             showsVerticalScrollIndicator={false}
             setSupportMultipleWindows={false}

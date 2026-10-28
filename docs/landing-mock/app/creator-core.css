@@ -187,6 +187,19 @@
 .cc-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .cc-strip span { aspect-ratio: 1; border-radius: 12px; overflow: hidden; display: block; }
 .cc-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Capture design samples stay inside their phone; board/page scrolling is unchanged. */
+.cc-design-main { bottom: 118px; overflow-y: auto; padding-bottom: 16px; gap: 14px; }
+.cc-design-main > *, .cc-capture-review > * { flex-shrink: 0; }
+.cc-design-copy { font: 500 16px/22px var(--a-sans); color: var(--a-ink3); }
+.cc-design-rail { display: flex; gap: 12px; margin: 0 -20px; padding: 4px 56px 16px; overflow-x: auto; scroll-snap-type: x mandatory; }
+.cc-design-card { flex: 0 0 248px; height: 350px; border-radius: 24px; overflow: hidden; background: var(--a-card); opacity: .5; scroll-snap-align: center; box-shadow: var(--a-shadow); }
+.cc-design-card.is-on { opacity: 1; }
+.cc-design-card img { display: block; width: 100%; height: auto; }
+.cc-design-preview-main { bottom: 118px; gap: 12px; }
+.cc-design-page { flex: 1; min-height: 0; overflow-y: auto; border-radius: 20px; background: var(--a-card); }
+.cc-design-page img { display: block; width: 100%; height: auto; }
+.cc-capture-review { bottom: 118px; overflow-y: auto; padding-bottom: 16px; }
 .cc-quote { font: 600 15px/21px var(--a-sans); color: var(--a-ink); }
 .cc-slider { position: relative; height: 28px; margin: 6px 0 2px; }
 .cc-slider .tr { position: absolute; left: 0; right: 0; top: 11px; height: 6px; border-radius: 3px; background: var(--a-bg2); }

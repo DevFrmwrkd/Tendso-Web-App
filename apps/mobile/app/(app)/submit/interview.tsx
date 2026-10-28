@@ -181,7 +181,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       }
       if (!online() || targetId === 'offline_pending') {
         if (draft) await origin.write('submission_pending_interview', draft);
-        if (valid()) router.push('/(app)/submit/review');
+        if (valid()) router.push('/(app)/submit/design');
         return;
       }
       const upload = async (uri: string, folder: string, contentType: string, filename: string) => {
@@ -234,7 +234,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
         setProgress(1);
         await origin.remove('submission_pending_interview');
       }
-      if (valid()) router.push('/(app)/submit/review');
+      if (valid()) router.push('/(app)/submit/design');
     } catch (cause) {
       if (valid()) setError(cause instanceof Error ? cause.message : 'Could not save your interview. Please try again.');
     } finally {
@@ -258,7 +258,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
 
   if ((recording || hasExisting) && !retaking) return <ScreenShell title={recording ? 'Interview recorded.' : 'Interview saved.'}
     subtitle={recording ? formatClock(recording.durationSec) : 'Your interview is attached to this capture.'}
-    progress={0.75} onBack={goBack} contentStyle={styles.content}
+    progress={0.6} onBack={goBack} contentStyle={styles.content}
     footer={<>
       {loading ? <ProgressBar value={progress} tone="accent" label="Saving interview" /> : null}
       {error ? <Banner tone="danger" body={error} /> : null}
@@ -275,7 +275,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   </ScreenShell>;
 
   return <ScreenShell title="Now ask the owner." subtitle="10 short questions. About 5 minutes."
-    progress={0.75} onBack={goBack} contentStyle={styles.content}
+    progress={0.6} onBack={goBack} contentStyle={styles.content}
     headerRight={<Pressable accessibilityRole="button" accessibilityLabel={lang === 'en' ? 'Switch to Tagalog' : 'Switch to English'}
       onPress={() => setLang(value => value === 'en' ? 'tl' : 'en')} style={styles.language}>
       <Ionicons name="language-outline" size={20} color={colors.ink} /><Text variant="label">{lang.toUpperCase()}</Text>
