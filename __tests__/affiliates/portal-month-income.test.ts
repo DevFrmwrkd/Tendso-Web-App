@@ -55,7 +55,7 @@ it('splits Manila-month credited income without dropping historical pending, wit
     expect(result.recruitStats.totalEarned).toBe(9300); // unchanged legacy total semantics
     expect(result.earnings).toHaveLength(10);
     expect(result.recruits.find(row => row._id === ids.agent)).toMatchObject({
-        photo: 'https://images.example.test/sam.jpg', monthEarned: 200, totalEarned: 9300,
+        photo: 'https://images.example.test/sam.jpg', monthEarned: 200, totalEarned: 9300, creditedTotalEarned: 300,
         createdAt: ids.joinedAt, endsAt: creatorOverrideEndsAt(ids.joinedAt), earning: true,
     });
     expect(result.recruits.find(row => row._id === ids.agent)).toMatchObject({ monthsLeft: expect.any(Number) });

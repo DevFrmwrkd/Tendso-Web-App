@@ -13,6 +13,22 @@ import { manilaMonth } from './creatorPortal';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
 import { insertAffiliateAccount } from './lib/affiliateSignup';
 
+/** Calendar selection affects displayed income only, never balances or eligibility. */
+function selectedManilaMonth(value: string | undefined, now: number) {
+    if (value === undefined) return manilaMonth(now);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || Number(value.slice(0, 4)) < 2000) {
+        throw new ConvexError('Choose a valid calendar month.');
+    }
+    const month = manilaMonth(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, 1));
+    if (month.start > manilaMonth(now).start) throw new ConvexError('Choose this month or an earlier month.');
+    return month;
+}
+
+/** Optional additive field keeps older clients compatible with the portal shape. */
+function creditedLifetime(amount: number): { creditedTotalEarned?: number } {
+    return { creditedTotalEarned: amount };
+}
+
 /** Development presentation only. Commission eligibility never reads this map. */
 function devBarPreviewFor(ctx: Pick<QueryCtx, 'db'>, affiliate: Doc<'creators'>): ReadonlyMap<string, number> | null {
     if (process.env.CONVEX_CLOUD_URL !== 'https://diligent-ibex-454.convex.cloud'
@@ -136,7 +152,7 @@ export const updatePage = mutation({
 
 /** Only the caller's sales, with frozen amounts and no owner contact details. */
 export const sales = query({
-    args: { paginationOpts: paginationOptsValidator },
+    args: { paginationOpts: paginationOptsValidator, month: v.optional(v.string()), status: v.optional(v.literal('paid')) },
     handler: async (ctx, args) => {
         const identity = await requireAuth(ctx);
         const affiliate = await ctx.db.query('creators')
@@ -149,9 +165,24 @@ export const sales = query({
             throw new ConvexError('An affiliate account is required.');
         }
         // Suspension stops new page edits, while earned sales remain readable.
-        const result = await ctx.db.query('submissions')
-            .withIndex('by_creator_id', (q) => q.eq('creatorId', affiliate._id))
-            .order('desc').paginate(args.paginationOpts);
+        const month = args.month === undefined ? undefined : selectedManilaMonth(args.month, Date.now());
+        const creditedIds = month ? new Set((await ctx.db.query('earnings')
+            .withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).collect())
+            .filter(row => row.type === 'submission_approved' && (row.status === 'available' || row.status === 'withdrawn')
+                && row.createdAt >= month.start && row.createdAt < month.end)
+            .map(row => row.submissionId)) : new Set<Doc<'submissions'>['_id']>();
+        let salesQuery = ctx.db.query('submissions')
+            .withIndex('by_creator_id', (q) => q.eq('creatorId', affiliate._id));
+        // A sale created earlier can be credited in the selected earnings month.
+        // Both sets are filtered inside the owned query before its pagination.
+        if (month) salesQuery = salesQuery.filter((q) => q.or(
+            q.and(q.gte(q.field('_creationTime'), month.start), q.lt(q.field('_creationTime'), month.end)),
+            ...[...creditedIds].map(id => q.eq(q.field('_id'), id)),
+        ));
+        if (args.status === 'paid') salesQuery = salesQuery.filter((q) => q.or(
+            q.eq(q.field('status'), 'paid'), q.eq(q.field('status'), 'completed'),
+        ));
+        const result = await salesQuery.order('desc').paginate(args.paginationOpts);
         return {
             ...result,
             page: result.page.map((submission) => ({
@@ -168,8 +199,8 @@ export const sales = query({
 
 /** Wallet history belongs to the signed-in affiliate, including while suspended. */
 export const portal = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { month: v.optional(v.string()) },
+    handler: async (ctx, args) => {
         const identity = await requireAuth(ctx);
         const affiliate = await ctx.db.query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
@@ -194,7 +225,7 @@ export const portal = query({
         // rows keep their one-time bonus; new recruits have recurring earnings
         // and must never be projected as another pending ₱1,000 promise.
         const now = Date.now();
-        const month = manilaMonth(now);
+        const month = selectedManilaMonth(args.month, now);
         const creditedThisMonth = (row: typeof earningRows[number]) =>
             (row.status === 'available' || row.status === 'withdrawn') && row.createdAt >= month.start && row.createdAt < month.end;
         const directThisMonth = earningRows.filter((row) => row.type === 'submission_approved' && creditedThisMonth(row))
@@ -203,11 +234,15 @@ export const portal = query({
         const teamThisMonth = overrideRows.filter(creditedThisMonth).reduce((sum, row) => sum + row.amount, 0);
         const overrideSales = await Promise.all(overrideRows.map((row) => ctx.db.get(row.submissionId)));
         const overrideByRecruit = new Map<string, number>();
+        const creditedByRecruit = new Map<string, number>();
         const monthByRecruit = new Map<string, number>();
         for (const [index, row] of overrideRows.entries()) {
             const submission = overrideSales[index];
             if (submission) {
                 overrideByRecruit.set(submission.creatorId, (overrideByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+                if (row.status === 'available' || row.status === 'withdrawn') {
+                    creditedByRecruit.set(submission.creatorId, (creditedByRecruit.get(submission.creatorId) ?? 0) + row.amount);
+                }
                 if (creditedThisMonth(row)) monthByRecruit.set(submission.creatorId, (monthByRecruit.get(submission.creatorId) ?? 0) + row.amount);
             }
         }
@@ -231,6 +266,7 @@ export const portal = query({
                     monthsLeft: Math.max(0, Math.min(12, Math.ceil((creatorOverrideEndsAt(recruit.recruitedAt!) - now) / (30.4375 * 24 * 60 * 60 * 1000)))),
                     monthEarned: monthByRecruit.get(recruit._id) ?? 0,
                     totalEarned: overrideByRecruit.get(recruit._id) ?? 0,
+                    ...creditedLifetime(creditedByRecruit.get(recruit._id) ?? 0),
                     ...(demoMonthsLeft !== undefined ? { demoMonthsLeft } : {}),
                 };
             })

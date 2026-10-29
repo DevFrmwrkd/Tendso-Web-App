@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Affiliate mobile · approved redesign · Tendso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/phone.css">
+  <link rel="stylesheet" href="../css/app-kit.css">
+  <link rel="stylesheet" href="affiliate-redesign.css">
+</head>
+<body class="ar-board">
+  <header class="ar-masthead ar-wrap">
+    <a class="ar-brand" href="../hub.html"><img src="../assets/brand/mark-ink-256.png" alt="Tendso"><b>tendso<span> / creators</span></b></a>
+    <a class="ar-compare" href="creator-links.html">Compare earlier board <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="ar-hero ar-wrap" id="prototype">
+      <div class="ar-intro">
+        <span class="ar-eyebrow"><i></i>Approved mobile redesign · 29 October 2026</span>
+        <h1>Your link.<br>Your people.<br><span>Your progress.</span></h1>
+        <p>A clearer creator account, in the same Tendso app. See what you earned, understand your team, and find your next action.</p>
+        <a class="btn btn--ink" href="#screens">Explore the nine screens <span aria-hidden="true">↓</span></a>
+        <div class="ar-principles">
+          <div><b>01</b><span><strong>Earnings ≠ cash available</strong>Income lives on Home. Withdrawals live in Money.</span></div>
+          <div><b>02</b><span><strong>Time left, in plain words</strong>A labelled track replaces unexplained little marks.</span></div>
+          <div><b>03</b><span><strong>Your tools within reach</strong>Sales and My page are visible. Me gets its own tab.</span></div>
+        </div>
+        <p class="ar-disclosure">Interactive design reference · illustrative October 2027 data.<br>No account changes, payments or withdrawals are made here.</p>
+      </div>
+      <div class="ar-live">
+        <div class="ar-preview-top"><span class="ar-live-dot"></span><b>Try the prototype</b><span id="ar-current">01 / Home</span></div>
+        <div id="ar-live-phone"></div>
+        <div class="ar-preview-controls"><button type="button" data-cycle="-1" aria-label="Previous proposed screen">←</button><select id="ar-screen-picker" aria-label="Choose a proposed screen"></select><button type="button" data-cycle="1" aria-label="Next proposed screen">→</button></div>
+      </div>
+    </section>
+    <section class="ar-library ar-wrap" id="screens">
+      <div class="ar-section-head"><div><span class="ar-eyebrow">The complete account</span><h2>One familiar place for everything.</h2></div><p>Every phone is interactive. Scroll inside a phone to see more. These are the approved design references.</p></div>
+      <div class="ar-filters" role="group" aria-label="Filter proposed screens"><button type="button" data-filter="all" aria-pressed="true">All screens <span>9</span></button><button type="button" data-filter="overview" aria-pressed="false">Home & account</button><button type="button" data-filter="team" aria-pressed="false">Agents</button><button type="button" data-filter="money" aria-pressed="false">Money</button></div>
+      <div class="ar-grid" id="ar-gallery"></div>
+    </section>
+    <section class="ar-decisions ar-wrap">
+      <div><span class="ar-eyebrow">What changes</span><h2>Less guessing.<br>More useful detail.</h2></div>
+      <div class="ar-decision-list">
+        <p><b>Four consistent tabs</b>Home, Agents, Money and Me. Sales opens from Home or Me; pushed screens use Back.</p>
+        <p><b>Clear agent periods</b>“9 months left” sits beside a dark-on-grey track. An ended period says so directly. No “Simulated progress” labels in the product design.</p>
+        <p><b>Money that adds up</b>₱4,250 from link sales + ₱700 from agents = ₱4,950 earned this month. ₱7,200 is the separate available balance.</p>
+        <p><b>One app, real account data</b>The mobile implementation uses the signed-in creator’s income, agents, sales and payout history. This board remains an isolated sample.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="ar-footer ar-wrap"><b>Tendso / affiliate mobile</b><span>Approved design reference · sample data</span><a href="creator-links.html">View the earlier board ↗</a></footer>
+  <div id="ar-toast" class="ar-toast" role="status" aria-live="polite" hidden></div>
+  <script src="../js/core.js"></script>
+  <script src="creator-links-screens.js"></script>
+  <script src="affiliate-redesign.js"></script>
+</body>
+</html>

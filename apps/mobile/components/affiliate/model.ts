@@ -71,7 +71,7 @@ export const samplePortal: AffiliatePortal = {
   referralStats: { total: 1, pending: 1, qualified: 0, paid: 0, totalEarned: 0 },
   recruits: [{ _id: 'sample-team-agent' as Id<'creators'>, referredName: 'Bea Reyes', photo: null,
     createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true,
-    totalEarned: 250, monthEarned: 250, monthsLeft: 12 }],
+    totalEarned: 250, creditedTotalEarned: 250, monthEarned: 250, monthsLeft: 12 }],
   recruitStats: { total: 1, earning: 1, totalEarned: 250 },
 };
 

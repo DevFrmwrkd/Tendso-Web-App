@@ -15,6 +15,8 @@ describe('native account navigation', () => {
     });
   it('allows affiliate page, sales, wallet and shared account routes', () => {
     expect(accountRouteRedirect('affiliate', '(affiliate-tabs)')).toBeNull();
+    expect(accountRouteRedirect('affiliate', 'affiliate')).toBeNull();
+    expect(accountRouteRedirect('affiliate', 'affiliate', true)).toBeNull();
     for (const route of ['referrals', 'notifications', 'edit-profile', 'change-password']) {
       expect(accountRouteRedirect('affiliate', route)).toBeNull();
     }
@@ -22,6 +24,8 @@ describe('native account navigation', () => {
   it('keeps creators out of affiliate and admin screens', () => {
     expect(accountRouteRedirect('creator', 'admin')).toBe(mobileHome('creator'));
     expect(accountRouteRedirect('creator', '(affiliate-tabs)')).toBe(mobileHome('creator'));
+    expect(accountRouteRedirect('creator', 'affiliate')).toBe(mobileHome('creator'));
+    expect(accountRouteRedirect('admin', 'affiliate')).toBe(mobileHome('admin'));
     expect(accountRouteRedirect('creator', 'submit')).toBeNull();
   });
   it.each(['affiliate', 'creator'] as const)('blocks mutation screens in admin %s preview', view => {

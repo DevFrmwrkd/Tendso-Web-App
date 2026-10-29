@@ -10,20 +10,31 @@ import { AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError } from '../../../../l
 import { Avatar, Button, Card, Field, SectionLabel, Text, ToggleRow } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
 import { PriceSlider } from '../PriceSlider';
-import { AffiliateAccess, AffiliateFrame, Notice, type AffiliateAccessProps } from './Screen';
+import { AffiliateAccess, Notice, type AffiliateAccessProps } from './Screen';
+import { AffiliateToolFrame } from './AffiliateToolFrame';
 import { affiliateDraft, affiliateName, affiliatePagePayload, type AffiliateDraft } from './model';
 import { OfferPreview } from './Offer';
 import { ShareTools } from './ShareTools';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 type PagePayload = ReturnType<typeof affiliatePagePayload>;
+type EditorMode = 'all' | 'page';
 
+/** Kept for existing imports; pushed page routes use the focused editor below. */
 export function AffiliatePageScreen() {
-  return <AffiliateAccess>{(props) => props.isPreview || props.account.status !== 'active' || !props.isAuthenticated
-    ? <PageEditorContent {...props} /> : <LivePageEditor {...props} />}</AffiliateAccess>;
+  return <EditorScreen mode="all" />;
 }
 
-function LivePageEditor(props: AffiliateAccessProps) {
+export function AffiliatePageEditorScreen() {
+  return <EditorScreen mode="page" />;
+}
+
+function EditorScreen({ mode }: { mode: EditorMode }) {
+  return <AffiliateAccess>{(props) => props.isPreview || props.account.status !== 'active' || !props.isAuthenticated
+    ? <PageEditorContent {...props} mode={mode} /> : <LivePageEditor {...props} mode={mode} />}</AffiliateAccess>;
+}
+
+function LivePageEditor(props: AffiliateAccessProps & { mode: EditorMode }) {
   const save = useMutation(api.affiliates.updatePage);
   const generateUploadUrl = useAction(api.r2.generateUploadUrl);
   async function uploadPhoto(): Promise<string | undefined> {
@@ -45,10 +56,14 @@ function LivePageEditor(props: AffiliateAccessProps) {
     if (!upload.ok || affiliatePhotoError(publicUrl)) throw new Error('Your photo did not upload. Please try again.');
     return publicUrl;
   }
-  return <PageEditorContent {...props} onSave={(payload) => save(payload)} onPhoto={uploadPhoto} />;
+  return <PageEditorContent {...props} onSave={(payload) => {
+    // Page edits never overwrite a separately saved price.
+    const { price, ...page } = payload;
+    return save(props.mode === 'page' ? page : payload);
+  }} onPhoto={uploadPhoto} />;
 }
 
-export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined> }) {
+export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, mode = 'all' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; mode?: EditorMode }) {
   const incoming = affiliateDraft(account);
   const incomingKey = JSON.stringify(incoming);
   const [seen, setSeen] = useState(incomingKey);
@@ -110,19 +125,19 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
   }
   const keep = commissionFor(price);
   const saves = Math.max(0, WEBSITE_PRICE - price);
-  const status = saved && !dirty ? 'Page and price saved.' : dirty ? 'Unsaved changes. Sharing still uses your saved offer.' : '';
+  const status = saved && !dirty ? (mode === 'page' ? 'Page saved.' : 'Page and price saved.') : dirty ? 'Unsaved changes. Sharing still uses your saved offer.' : '';
   const previewName = draft.displayName.trim() || defaultName;
-  return <AffiliateFrame
-    title="My page"
+  return <AffiliateToolFrame avoidKeyboard
+    title={mode === 'page' ? 'Edit your page' : 'My page'}
     preview={isPreview}
     suspended={account.status !== 'active'}
     offline={isOffline}
     footer={<>
       {status ? <Text testID="affiliate-save-status" variant="label" tone="muted" align="center">{status}</Text> : null}
-      <Button title="Save page and price" disabled={locked || !dirty} loading={saving} onPress={save} />
+      <Button title={mode === 'page' ? 'Save page' : 'Save page and price'} disabled={locked || !dirty} loading={saving} onPress={save} />
     </>}
   >
-    <SectionLabel>What shows on your page</SectionLabel>
+    {mode === 'page' ? <Text variant="title" accessibilityRole="header">Make it yours.</Text> : <SectionLabel>What shows on your page</SectionLabel>}
     <Field label="Display name" icon="person-outline" value={draft.displayName} placeholder={defaultName} maxLength={100} editable={!locked} onChangeText={(displayName) => change({ displayName })} />
     <ToggleRow title="Show my photo" subtitle={draft.photo ? 'Tap below to change it' : 'Add a photo of yourself'} value={shows('photo')} disabled={locked} onValueChange={(on) => toggle('photo', on)} />
     {shows('photo') ? <Card style={styles.photoRow}>
@@ -137,7 +152,7 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     {shows('socialLink') ? <Field label="Facebook or Messenger link" icon="chatbubble-ellipses-outline" value={draft.socialLink} placeholder="https://m.me/yourname" autoCapitalize="none" autoCorrect={false} keyboardType="url" maxLength={2048} editable={!locked} helper="Starts with https://" onChangeText={(socialLink) => change({ socialLink })} /> : null}
     <Text variant="label" tone="muted" style={styles.handle}>Your page handle is @{account.affiliateHandle || 'unavailable'}. It stays the same.</Text>
 
-    <SectionLabel>Your website price</SectionLabel>
+    {mode === 'all' ? <><SectionLabel>Your website price</SectionLabel>
     <Card variant="lg" style={styles.priceCard}>
       <Field label="Website price in pesos" prefix="₱" value={draft.price} keyboardType="number-pad" maxLength={9} editable={!locked} helper={`Between ${formatPHP(BASE_PRICE)} and ${formatPHP(PRICE_CEILING)}. Applies to future orders.`} onChangeText={(priceValue) => change({ price: priceValue })} onBlur={() => { if (draft.price.trim() && Number.isFinite(Number(draft.price))) change({ price: String(clampSellPrice(Number(draft.price))) }); }} />
       <PriceSlider floor={BASE_PRICE} ceiling={PRICE_CEILING} anchor={WEBSITE_PRICE} commissionRate={COMMISSION_RATE} step={1} initialValue={price} disabled={locked} onChange={changePrice} showEarnings={false} />
@@ -151,15 +166,15 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
           <Text variant="label" tone="ink2">the shop saves</Text>
         </View>
       </View>
-    </Card>
+    </Card></> : null}
 
     {error ? <Notice error>{error}</Notice> : null}
 
-    <SectionLabel>{dirty ? 'What shop owners see · Unsaved changes' : 'What shop owners see'}</SectionLabel>
+    {mode === 'all' ? <><SectionLabel>{dirty ? 'What shop owners see · Unsaved changes' : 'What shop owners see'}</SectionLabel>
     <OfferPreview photo={shows('photo') ? draft.photo : undefined} displayName={previewName} message={shows('message') ? draft.message.trim() : undefined} socialLink={shows('socialLink') ? draft.socialLink : undefined} price={price} code={account.referralCode} />
 
-    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} price={Number(baseline.price)} disabled={isPreview || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
-  </AffiliateFrame>;
+    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} price={Number(baseline.price)} disabled={isPreview || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}</> : null}
+  </AffiliateToolFrame>;
 }
 
 const styles = StyleSheet.create({

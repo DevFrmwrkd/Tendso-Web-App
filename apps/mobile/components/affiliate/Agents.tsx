@@ -6,31 +6,64 @@ import { api } from '@tendso/convex-client';
 import { formatPHP } from '../../../../packages/shared/pricing';
 import { Avatar, Button, Card, Chip, EmptyState, ListRow, SectionLabel, Text } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
+import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, AffiliateLoading, type AffiliateAccessProps } from './Screen';
 import { affiliateUrl, type AffiliatePortal, samplePortal } from './model';
 import { CopyButton } from './ShareTools';
 
 const PAGE_SIZE = 4;
 
-export function AffiliateAgentsScreen() {
-  return <AffiliateAccess>{props => props.isPreview ? <AgentsContent {...props} portal={samplePortal} /> : <LiveAgents {...props} />}</AffiliateAccess>;
+type Recruit = AffiliatePortal['recruits'][number];
+
+/** Demo metadata changes the illustrated track only, never the actual period or eligibility. */
+export function agentProgress(recruit: Recruit) {
+  const demo = recruit.demoMonthsLeft;
+  const simulated = typeof demo === 'number' && Number.isFinite(demo) && Number.isInteger(demo) && demo >= 0 && demo <= 12;
+  const months = simulated ? demo : Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
+  return { months, simulated };
 }
 
-function LiveAgents(props: AffiliateAccessProps) {
-  const portal = useQuery(api.affiliates.portal, props.isAuthenticated ? {} : 'skip');
-  return <AgentsContent {...props} portal={portal} />;
+export function AgentProgressTrack({ recruit, large = false }: { recruit: Recruit; large?: boolean }) {
+  const { months, simulated } = agentProgress(recruit);
+  const until = recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })}` : 'Commission period ended';
+  return <View style={[styles.track, large && styles.largeTrack]} testID={`affiliate-agent-track-${recruit._id}`} accessibilityRole="progressbar"
+    accessibilityLabel={simulated
+      ? `${recruit.referredName}, simulated progress, ${months} of 12 months remaining in this example`
+      : `${recruit.referredName}, ${months} of 12 months remaining`}
+    accessibilityHint={simulated ? 'Example progress only. The actual commission period and expiry date are unchanged.' : until}
+    accessibilityValue={{ min: 0, max: 12, now: months }}>
+    <View testID={`affiliate-agent-progress-${recruit._id}`} style={[styles.trackFill, { width: `${months / 12 * 100}%` }]} />
+  </View>;
 }
 
-export function AgentsContent({ account, isPreview, isOffline, portal }: AffiliateAccessProps & { portal: AffiliatePortal | undefined }) {
+export function AffiliateAgentsScreen({ month }: { month?: string } = {}) {
+  return <AffiliateAccess>{props => props.isPreview ? <AgentsContent {...props} portal={samplePortal} /> : <LiveAgents {...props} month={month} />}</AffiliateAccess>;
+}
+
+function LiveAgents({ month, ...props }: AffiliateAccessProps & { month?: string }) {
+  const portal = useQuery(api.affiliates.portal, props.isAuthenticated ? month ? { month } : {} : 'skip');
+  return <AgentsContent {...props} portal={portal} month={month} />;
+}
+
+export function AgentsContent({ account, isPreview, isOffline, portal, month }: AffiliateAccessProps & { portal: AffiliatePortal | undefined; month?: string }) {
+  const router = useGuardedRouter();
   const { width, fontScale } = useWindowDimensions();
   const [page, setPage] = useState(0);
   const [inviting, setInviting] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'ended'>('all');
   const [error, setError] = useState('');
   const sharing = useRef(false);
   const recruits = portal?.recruits ?? [];
-  const pages = Math.max(1, Math.ceil(recruits.length / PAGE_SIZE));
+  const filtered = filter === 'ended' ? recruits.filter(recruit => !recruit.earning) : recruits;
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pages - 1);
   const disabled = isPreview || account.status !== 'active';
+  const portalMonth = portal?.month ? new Date(portal.month.start + 8 * 60 * 60 * 1000) : undefined;
+  const resolvedMonth = month ?? (portalMonth ? `${portalMonth.getUTCFullYear()}-${String(portalMonth.getUTCMonth() + 1).padStart(2, '0')}` : undefined);
+  const monthLabel = resolvedMonth ? new Date(`${resolvedMonth}-01T00:00:00Z`).toLocaleDateString('en-PH', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : 'This month';
+  const summaryUnits = [...(portal?.income?.teamThisMonth === undefined ? 'Loading…' : formatPHP(portal.income.teamThisMonth))].reduce((sum, character) => sum + (/[.,]/.test(character) ? 0.34 : 0.7), 0);
+  const summarySize = Math.max(16, Math.min(38, Math.floor((width - 48) / (summaryUnits * Math.max(1, fontScale)))));
+  const changeFilter = (next: 'all' | 'ended') => { setFilter(next); setPage(0); };
   const invite = async () => {
     if (disabled || !account.affiliateHandle || sharing.current) return;
     sharing.current = true;
@@ -40,43 +73,47 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
     finally { sharing.current = false; }
   };
   return <AffiliateFrame preview={isPreview}
-    suspended={account.status !== 'active'} offline={isOffline}>
+    suspended={account.status !== 'active'} offline={isOffline}
+    footer={<Pressable accessibilityRole="button" accessibilityLabel="Invite field agents" accessibilityState={{ expanded: inviting }} onPress={() => setInviting(value => !value)} style={styles.inviteAction}><Ionicons name="people-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.inviteActionText}>Invite a field agent</Text></Pressable>}>
     <View style={styles.header}>
-      <Text variant="display" accessibilityRole="header" style={styles.title}>My agents</Text>
-      <Text tone="muted" style={styles.subtitle}>This month</Text>
+      <Text variant="display" accessibilityRole="header" style={[styles.title, styles.flex]}>Your agents</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Invite an agent" accessibilityState={{ expanded: inviting }} onPress={() => setInviting(value => !value)} style={styles.round}>
+        <Ionicons name="add" size={25} color={colors.ink} />
+      </Pressable>
+    </View>
+    <View style={[styles.summary, fontScale > 1.2 && styles.stackedAgent]}>
+      <View style={styles.flex}><Text variant="label" tone="muted">Your 5% share · {monthLabel}</Text><Text variant="hero" tabular style={[styles.summaryAmount, { fontSize: summarySize, lineHeight: Math.ceil(summarySize * 1.22) }]} accessibilityLabel={portal?.income?.teamThisMonth === undefined ? 'Your monthly team share, loading' : `Your monthly team share, ${formatPHP(portal.income.teamThisMonth)}`}>{portal?.income?.teamThisMonth === undefined ? 'Loading…' : formatPHP(portal.income.teamThisMonth)}</Text></View>
+      {portal ? <Text variant="label" tone="muted">{recruits.length} {recruits.length === 1 ? 'agent' : 'agents'}</Text> : null}
+    </View>
+    <View style={styles.filters}>
+      <Pressable accessibilityRole="button" accessibilityLabel="All agents" accessibilityState={{ selected: filter === 'all' }} onPress={() => changeFilter('all')} style={[styles.filter, filter === 'all' && styles.filterOn]}><Text weight="semibold" tone={filter === 'all' ? 'onDark' : 'ink'}>All</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Agents whose period ended" accessibilityState={{ selected: filter === 'ended' }} onPress={() => changeFilter('ended')} style={[styles.filter, filter === 'ended' && styles.filterOn]}><Text weight="semibold" tone={filter === 'ended' ? 'onDark' : 'ink'}>Period ended</Text></Pressable>
     </View>
     {portal === undefined ? <AffiliateLoading inline label="Loading your agents" /> : recruits.length ? <>
-      <Card style={styles.agentList} testID="affiliate-agent-list">
-        {recruits.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((recruit, index) => {
-          const demoMonthsLeft = recruit.demoMonthsLeft;
-          const simulated = typeof demoMonthsLeft === 'number' && Number.isFinite(demoMonthsLeft) &&
-            Number.isInteger(demoMonthsLeft) && demoMonthsLeft >= 0 && demoMonthsLeft <= 12;
-          const months = simulated ? demoMonthsLeft : Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
+      {filtered.length ? <Card style={styles.agentList} testID="affiliate-agent-list">
+        {filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((recruit, index) => {
+          const { months, simulated } = agentProgress(recruit);
           const amount = recruit.monthEarned;
           const formatted = amount === undefined ? '—' : formatPHP(amount);
-          const until = recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Commission period ended';
+          const timeLabel = months ? `${months} ${months === 1 ? 'month' : 'months'} left` : 'Period ended';
           const stack = width < 360 || fontScale > 1.2 || formatted.length > 8;
-          return <View key={recruit._id} testID={`affiliate-agent-row-${recruit._id}`} style={[styles.agent, index > 0 && styles.divider, stack && styles.stackedAgent]}>
-            <View style={[styles.identity, stack && styles.stackedIdentity]}>
-              <Avatar name={recruit.referredName} uri={recruit.photo ?? undefined} size={52} />
-              <View style={styles.meta}>
-                <Text variant="bodyLg" weight="bold" style={styles.name}>{recruit.referredName}</Text>
-                <View style={styles.months} accessibilityRole="progressbar"
-                  accessibilityLabel={simulated
-                    ? `${recruit.referredName}, simulated progress, ${months} of 12 months remaining in this example`
-                    : `${recruit.referredName}, ${months} of 12 months remaining`}
-                  accessibilityHint={simulated ? 'Example progress only. The actual commission period and expiry date are unchanged.' : until}
-                  accessibilityValue={{ min: 0, max: 12, now: months }}>
-                  {Array.from({ length: 12 }, (_, i) => <View key={i} testID={`affiliate-agent-month-${recruit._id}-${i}`} style={[styles.month, i < months && styles.monthOn]} />)}
-                </View>
-                {simulated ? <Text variant="label" tone="muted">Simulated progress</Text> : null}
+          return <Pressable key={recruit._id} testID={`affiliate-agent-row-${recruit._id}`} accessibilityRole="button" accessibilityLabel={`View ${recruit.referredName}`}
+            accessibilityHint={`${formatted} share for ${monthLabel}. ${simulated ? 'Simulated progress: ' : ''}${timeLabel}. Opens the actual commission period and earnings.`}
+            onPress={() => router.push({ pathname: '/(app)/affiliate/agent/[agentId]', params: { agentId: recruit._id, ...(resolvedMonth ? { month: resolvedMonth } : {}) } })}
+            style={[styles.agent, index > 0 && styles.divider]}>
+            <View style={[styles.agentLine, stack && styles.stackedAgent]}>
+              <View style={[styles.identity, stack && styles.stackedIdentity]}>
+                <Avatar name={recruit.referredName} uri={recruit.photo ?? undefined} size={40} />
+                <Text variant="bodyLg" weight="bold" style={[styles.name, styles.flex]}>{recruit.referredName}</Text>
               </View>
+              <Text variant="bodyLg" weight="bold" tabular testID={`affiliate-agent-amount-${recruit._id}`}
+                style={[styles.amount, stack && styles.stackedAmount]}>{formatted}</Text>
             </View>
-            <Text variant="bodyLg" weight="extrabold" tabular testID={`affiliate-agent-amount-${recruit._id}`}
-              style={[styles.amount, stack && styles.stackedAmount]}>{formatted}</Text>
-          </View>;
+            <View style={[styles.time, fontScale > 1.2 && styles.stackedTime]}><AgentProgressTrack recruit={recruit} large={fontScale > 1.2} /><Text variant="label" tone="muted">{timeLabel}</Text></View>
+            {simulated ? <Text variant="label" tone="muted" style={styles.simulated}>Simulated progress</Text> : null}
+          </Pressable>;
         })}
-      </Card>
+      </Card> : <EmptyState icon="checkmark-circle-outline" title="No ended periods" body="Your agents’ commission periods are still active." />}
       {pages > 1 ? <View style={styles.pagination}>
         <Pressable accessibilityRole="button" accessibilityLabel="Previous agents" accessibilityState={{ disabled: currentPage === 0 }}
           disabled={currentPage === 0} onPress={() => setPage(currentPage - 1)} style={[styles.pageButton, currentPage === 0 && styles.disabled]}>
@@ -86,17 +123,9 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
           disabled={currentPage === pages - 1} onPress={() => setPage(currentPage + 1)} style={[styles.pageButton, currentPage === pages - 1 && styles.disabled]}>
           <Ionicons name="chevron-forward" size={24} color={colors.ink} /></Pressable>
       </View> : null}
-      <Text variant="label" tone="muted">Your 5% share this month. Bars show time left out of 12 months.</Text>
     </> : <EmptyState icon="people-outline" title="Your team starts here"
       body="Field agents appear here after joining with your link or code." />}
 
-    <Pressable accessibilityRole="button" accessibilityLabel="Invite field agents" accessibilityState={{ expanded: inviting }}
-      accessibilityHint={inviting ? 'Hide your invitation tools' : 'Show your invitation code and share tools'}
-      onPress={() => setInviting(value => !value)} style={styles.inviteToggle}>
-      <Ionicons name="person-add-outline" size={24} color={colors.ink} />
-      <Text weight="bold" style={styles.flex}>Invite field agents</Text>
-      <Ionicons name={inviting ? 'chevron-up' : 'chevron-down'} size={22} color={colors.ink} />
-    </Pressable>
     {inviting ? <Card variant="tint" style={styles.invite} testID="affiliate-agent-invite-tools">
       <SectionLabel>Invite field agents</SectionLabel>
       <Text tone="ink2">Earn 5% of their sales for 12 months, after each shop has paid in full.</Text>
@@ -122,26 +151,35 @@ export function AgentsContent({ account, isPreview, isOffline, portal }: Affilia
 
 const styles = StyleSheet.create({
   list: { gap: space.md },
-  header: { gap: 4, marginBottom: 4 },
-  title: { fontSize: 30, lineHeight: 36 },
-  subtitle: { fontSize: 18, lineHeight: 26 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  title: { fontSize: 28, lineHeight: 36 },
+  round: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  summary: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: -6 },
+  summaryAmount: { fontSize: 38, lineHeight: 46, marginTop: 5 },
+  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  filter: { minHeight: 44, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.pill, backgroundColor: colors.bg2, justifyContent: 'center' },
+  filterOn: { backgroundColor: colors.ink },
   flex: { flex: 1, minWidth: 0 },
-  agentList: { borderRadius: 24, paddingHorizontal: 18, paddingVertical: 4 },
-  agent: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16 },
+  agentList: { borderRadius: 24, paddingHorizontal: 17, paddingVertical: 0 },
+  agent: { paddingVertical: 12 },
+  agentLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule },
-  identity: { flexGrow: 1, flexShrink: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  meta: { flex: 1, minWidth: 0, gap: 9 },
-  name: { fontSize: 18, lineHeight: 22 },
-  amount: { flexShrink: 0, fontSize: 19, lineHeight: 24, textAlign: 'right' },
+  identity: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stackedIdentity: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: '100%' },
+  name: { fontSize: 17, lineHeight: 23 },
+  amount: { flexShrink: 0, fontSize: 20, lineHeight: 26, textAlign: 'right' },
   stackedAgent: { flexDirection: 'column', alignItems: 'stretch', gap: space.sm },
-  stackedIdentity: { flexGrow: 0, flexShrink: 0, width: '100%' },
   stackedAmount: { alignSelf: 'flex-end', maxWidth: '100%' },
-  months: { flexDirection: 'row', gap: 3, height: 6, maxWidth: 150 },
-  month: { flex: 1, borderRadius: radius.pill, backgroundColor: colors.bg2 },
-  monthOn: { backgroundColor: colors.ink },
+  time: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginLeft: 50 },
+  stackedTime: { flexDirection: 'column', alignItems: 'stretch', gap: 8, marginLeft: 0 },
+  track: { flex: 1, minWidth: 0, height: 5, borderRadius: radius.pill, backgroundColor: colors.ruleStrong, overflow: 'hidden' },
+  trackFill: { height: '100%', borderRadius: radius.pill, backgroundColor: colors.ink },
+  largeTrack: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 7, width: '100%' },
+  simulated: { marginTop: 5, marginLeft: 50 },
   pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.lg },
   pageButton: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
-  inviteToggle: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56, paddingHorizontal: space.md, backgroundColor: colors.card, borderRadius: radius.card },
   invite: { gap: space.md },
+  inviteAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  inviteActionText: { flexShrink: 1, textAlign: 'center' },
 });

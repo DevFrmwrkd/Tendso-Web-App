@@ -21,6 +21,7 @@ const mockRouter = { push: jest.fn() };
 
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
@@ -61,8 +62,8 @@ describe('native affiliate access and live data', () => {
     const home = render(<AffiliateHomeScreen />);
     expect(home.getByText(/Admin preview/)).toBeTruthy();
     expect(home.getByText('₱2,500')).toBeTruthy();
-    fireEvent.press(home.getByLabelText('Preview sales'));
-    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/sales');
+    fireEvent.press(home.getByLabelText('Sales'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith({ pathname: '/(app)/affiliate/sales', params: { month: '2026-10' } });
     home.unmount();
     const sales = render(<AffiliateSalesScreen />);
     expect(sales.getByText('Sample barbershop')).toBeTruthy();
@@ -85,10 +86,10 @@ describe('native affiliate access and live data', () => {
     const props = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true };
     const zeroPortal = { ...samplePortal, income: { directThisMonth: 0, teamThisMonth: 0, totalThisMonth: 0 } };
     const view = render(<HomeContent {...props} portal={zeroPortal} />);
-    expect(view.getAllByText('₱0')).toHaveLength(2);
+    expect(view.getAllByText('₱0')).toHaveLength(3);
     view.rerender(<HomeContent {...props} portal={undefined} />);
     expect(view.queryByText('₱0')).toBeNull();
-    expect(view.getAllByText('Loading…')).toHaveLength(2);
+    expect(view.getAllByText('Loading…')).toHaveLength(3);
   });
 
   it('shows team commissions alongside earlier one-time referral bonuses', () => {
@@ -98,8 +99,8 @@ describe('native affiliate access and live data', () => {
     };
     const view = render(<AgentsContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={portal} />);
     expect(view.getByText('New Team Agent')).toBeTruthy();
-    expect(view.getByText('My agents')).toBeTruthy();
-    expect(view.getByText(/5% share this month/)).toBeTruthy();
+    expect(view.getByText('Your agents')).toBeTruthy();
+    expect(view.getByText(/Your 5% share · October/)).toBeTruthy();
     expect(view.getByText('Earlier ₱1,000 referrals · 1')).toBeTruthy();
     expect(view.getByText('Alex Reyes')).toBeTruthy();
   });
@@ -110,16 +111,17 @@ describe('native affiliate access and live data', () => {
     expect(view.getByLabelText('From your link, ₱6,000')).toBeTruthy();
     expect(view.getByLabelText('From your agents, ₱450')).toBeTruthy();
     expect(view.queryByText('₱2,500')).toBeNull();
-    expect(view.getByText('October')).toBeTruthy();
+    expect(view.getByText('October earnings')).toBeTruthy();
+    expect(view.getByLabelText('October 2026 earnings, ₱6,450')).toBeTruthy();
   });
 
-  it('opens the real page and profile from the board layout without utility links crowding Home', () => {
+  it('opens the real page, sales and profile from the approved Home layout', () => {
     const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={samplePortal} />);
-    fireEvent.press(view.getByLabelText('Edit my creator page'));
-    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/page');
+    fireEvent.press(view.getByLabelText('My page'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/affiliate/page');
     fireEvent.press(view.getByLabelText('Open my profile'));
     expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/profile');
-    expect(view.queryByText('Sales')).toBeNull();
+    expect(view.getByText('Sales')).toBeTruthy();
   });
 
   it('paginates every recruited agent without hiding their current-month credit', () => {
@@ -132,7 +134,7 @@ describe('native affiliate access and live data', () => {
     expect(view.getByLabelText('Agent 1, 12 of 12 months remaining')).toBeTruthy();
     fireEvent.press(view.getByLabelText('Next agents'));
     expect(view.getByText('Agent 5')).toBeTruthy();
-    expect(view.getByText('₱250')).toBeTruthy();
+    expect(view.getByTestId('affiliate-agent-amount-agent-4').props.children).toBe('₱250');
     expect(view.queryByText('Agent 1')).toBeNull();
     fireEvent.press(view.getByLabelText('Previous agents'));
     expect(view.getByText('Agent 1')).toBeTruthy();
@@ -142,12 +144,12 @@ describe('native affiliate access and live data', () => {
     const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: Share.sharedAction });
     const props = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true, portal: samplePortal };
     const view = render(<HomeContent {...props} />);
-    fireEvent.press(view.getByLabelText('Share my link'));
+    fireEvent.press(view.getByLabelText('Share my shop link'));
     await waitFor(() => expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://tendso.com/v2/a/sample-affiliate' })));
     view.rerender(<HomeContent {...props} account={{ ...sampleAffiliate, status: 'suspended' }} />);
-    expect(view.getByLabelText('Share my link').props.accessibilityState.disabled).toBe(true);
+    expect(view.getByLabelText('Share my shop link').props.accessibilityState.disabled).toBe(true);
     view.rerender(<HomeContent {...props} isPreview />);
-    expect(view.getByLabelText('Share my link').props.accessibilityState.disabled).toBe(true);
+    expect(view.getByLabelText('Share my shop link').props.accessibilityState.disabled).toBe(true);
     share.mockRestore();
   });
 
@@ -166,7 +168,7 @@ describe('native affiliate access and live data', () => {
     const view = render(<AffiliateSalesScreen />);
     expect(mockPaginated).toHaveBeenCalledWith('affiliates:sales', {}, { initialNumItems: 10 });
     expect(view.getByText('₱999')).toBeTruthy();
-    expect(view.getByText('+₱500')).toBeTruthy();
+    expect(view.getByText('₱500')).toBeTruthy();
     fireEvent.press(view.getByLabelText('Show more sales'));
     expect(loadMore).toHaveBeenCalledWith(10);
   });

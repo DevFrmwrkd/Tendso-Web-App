@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
@@ -17,7 +18,7 @@ export function QrCode({ value, size = 192 }: { value: string; size?: number }) 
   return <SharedQrCode value={value} size={size} accessibilityLabel="QR code for your creator page" />;
 }
 
-export function CopyButton({ value, label, disabled = false }: { value: string; label: string; disabled?: boolean }) {
+export function CopyButton({ value, label, disabled = false, compact = false }: { value: string; label: string; disabled?: boolean; compact?: boolean }) {
   const [message, setMessage] = useState('');
   async function copy() {
     if (disabled || !value) return;
@@ -25,7 +26,9 @@ export function CopyButton({ value, label, disabled = false }: { value: string; 
     catch { setMessage('Could not copy. Please try again.'); }
   }
   return <View style={{ gap: 4 }}>
-    <Button variant="ghost" size="md" icon="copy-outline" title={label} disabled={disabled || !value} onPress={copy} />
+    {compact ? <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: disabled || !value }} disabled={disabled || !value} onPress={copy} style={styles.compactCopy}>
+      <Ionicons name="copy-outline" size={20} color={colors.ink} />
+    </Pressable> : <Button variant="ghost" size="md" icon="copy-outline" title={label} disabled={disabled || !value} onPress={copy} />}
     <V2Text variant="label" tone="muted" accessibilityLiveRegion="polite" style={message ? undefined : { height: 0 }}>{message}</V2Text>
   </View>;
 }
@@ -81,4 +84,5 @@ export function ShareTools({ handle, displayName, price, disabled }: { handle: s
 
 const styles = StyleSheet.create({
   card: { gap: space.md },
+  compactCopy: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
 });

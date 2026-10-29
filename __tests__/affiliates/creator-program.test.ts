@@ -405,7 +405,7 @@ describe('creator portal', () => {
         expect(portal.referralStats).toEqual({ total: 1, pending: 1, qualified: 0, paid: 0, totalEarned: 0 });
         expect(portal.recruits).toEqual([{
             _id: newAgent, referredName: 'new-agent', createdAt: NOW,
-            endsAt: creatorOverrideEndsAt(NOW), earning: true, totalEarned: 150,
+            endsAt: creatorOverrideEndsAt(NOW), earning: true, totalEarned: 150, creditedTotalEarned: 150,
             photo: null, monthEarned: 150, monthsLeft: 12,
         }]);
         expect(portal.recruitStats).toEqual({ total: 1, earning: 1, totalEarned: 150 });

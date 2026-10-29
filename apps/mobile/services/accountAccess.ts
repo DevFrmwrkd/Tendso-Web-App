@@ -36,10 +36,11 @@ const SHARED_ROUTES = new Set([
 /** Returns a redirect for a wrong-role deep link before mounting its screen. */
 export function accountRouteRedirect(view: MobileView, route: string | undefined, preview = false): string | null {
   if (!route || route === 'account-setup' || route === 'account-unavailable') return mobileHome(view);
-  if (preview && route !== (view === 'affiliate' ? '(affiliate-tabs)' : '(tabs)')) return mobileHome(view);
+  if (preview && route !== (view === 'affiliate' ? '(affiliate-tabs)' : '(tabs)')
+    && !(view === 'affiliate' && route === 'affiliate')) return mobileHome(view);
   if (SHARED_ROUTES.has(route)) return null;
-  if (view === 'affiliate') return route === '(affiliate-tabs)' ? null : mobileHome(view);
+  if (view === 'affiliate') return route === '(affiliate-tabs)' || route === 'affiliate' ? null : mobileHome(view);
   if (view === 'admin') return route === 'admin' ? null : mobileHome(view);
-  if (route === 'admin' || route === '(affiliate-tabs)') return mobileHome(view);
+  if (route === 'admin' || route === '(affiliate-tabs)' || route === 'affiliate') return mobileHome(view);
   return null;
 }

@@ -19,10 +19,12 @@ let mockPreview: boolean;
 
 jest.mock('@clerk/clerk-expo', () => ({
   useUser: () => ({ user: mockUser, isLoaded: true }),
-  useClerk: () => ({ signOut: mockSignOut }),
+  useClerk: () => ({ signOut: mockSignOut, user: mockUser, session: { id: 'profile-test-session' } }),
 }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => ({
   isPreview: mockPreview, account: mockUser ? mockAccounts[mockUser.id] : null,
+  isLoading: false, isAuthenticated: true, isOffline: !mockConnected, isAdmin: false,
+  view: mockUser ? mockAccounts[mockUser.id]?.role : 'creator',
 }) }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
@@ -321,26 +323,27 @@ it('does not sign out a different account through a stale confirmation', async (
   expect(mockRouter.replace).not.toHaveBeenCalled();
 });
 
-it('preserves the affiliate profile’s trimmed menu and real financial stats through its existing reexport', () => {
+it('opens the redesigned affiliate Me tools without field-agent training or duplicated wallet totals', () => {
   mockAccounts['clerk-mika'].role = 'affiliate';
   const view = render(<AffiliateProfileScreen />);
-  expect(view.getByText('Creator')).toBeTruthy();
-  expect(view.getByLabelText('Balance ₱3,750.25')).toBeTruthy();
+  expect(view.getByRole('header', { name: 'Me' })).toBeTruthy();
+  expect(view.getByText('Mika Santos')).toBeTruthy();
+  expect(view.getByText(/Creator · Code MIKA8K2Q/)).toBeTruthy();
   expect(view.queryByText('Submitted')).toBeNull();
   expect(view.queryByText('Certified')).toBeNull();
   expect(view.queryByRole('button', { name: 'Dashboard' })).toBeNull();
   expect(view.queryByRole('button', { name: 'Show my certificate' })).toBeNull();
   expect(view.queryByRole('button', { name: 'Enter referral code' })).toBeNull();
   expect(view.getByRole('button', { name: 'Edit profile' })).toBeTruthy();
-  expect(view.getByRole('button', { name: 'Privacy policy' })).toBeTruthy();
+  expect(view.getByRole('button', { name: 'Help & account' })).toBeTruthy();
   fireEvent.press(view.getByRole('button', { name: 'My creator page' }));
-  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/page');
-  fireEvent.press(view.getByRole('button', { name: 'Sales' }));
-  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/(affiliate-tabs)/sales');
+  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/affiliate/page');
+  fireEvent.press(view.getByRole('button', { name: 'Your sales' }));
+  expect(mockRouter.push).toHaveBeenLastCalledWith('/(app)/affiliate/sales');
   expect(mockSubmissionsLookup).not.toHaveBeenCalled();
   mockAccounts['clerk-mika'].status = 'suspended';
   view.rerender(<AffiliateProfileScreen />);
-  expect(view.queryByRole('button', { name: 'Edit profile' })).toBeNull();
+  expect(view.getByRole('button', { name: 'Edit profile' })).toBeDisabled();
 });
 
 it('preserves the admin profile preview without fetching personal captures', () => {

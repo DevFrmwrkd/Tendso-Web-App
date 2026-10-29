@@ -197,7 +197,7 @@ agents' contact details. Earlier referral bonuses are not migrated or reset.
 
 ### Additive native portal month and team fields
 
-`affiliates.portal` also returns `month: { start, end, label }`, the current Asia/Manila calendar month (`[start, end)`, label `YYYY-MM`), and:
+`affiliates.portal` accepts `{ month?: string }`, where `month` is `YYYY-MM`. Omitting it selects the current Asia/Manila calendar month. A supplied month must be January 2000 or later and cannot be in the future; invalid values throw a `ConvexError`. It returns the selected `month: { start, end, label }` (`[start, end)`, label `YYYY-MM`), and:
 
 ```ts
 income: {
@@ -211,7 +211,36 @@ These new totals use each earning's `createdAt` and count `available` and `withd
 
 Each `recruits` row adds `photo: string | null` (the agent's public profile image only), `monthEarned: number` (this creator's credited team share in that month), and `monthsLeft: number` (a display estimate clamped to 0–12, zero after expiry). Existing `createdAt` and `endsAt` remain the exact join timestamp and end of the 12-calendar-month commission period. No contact details or shop-capture photos are exposed through these additions.
 
+The redesigned detail view additionally reads optional `creditedTotalEarned: number`, the lifetime sum of this agent's `available` and `withdrawn` override earnings. The server returns zero for an agent without credited overrides. Existing `totalEarned` and `recruitStats.totalEarned` retain their legacy all-status semantics; clients must not present those as credited cash when pending rows exist. Month selection never changes this lifetime value.
+
+Selecting a month changes the returned month, `income` totals and each recruit's `monthEarned` only. Available balance, pending commission, in-flight withdrawals, lifetime totals, histories, referral statistics and commission eligibility do not change. `earning`, `monthsLeft` and the exact commission expiry continue to use the actual current time.
+
 For development visual testing only, a recruit may additionally have `demoMonthsLeft?: number` (integer 0–12, including zero). This optional display value never changes `monthsLeft`, `endsAt`, `earning`, income, recruitment dates or commission eligibility. Clients must label it as simulated progress and must not infer real expiry from it. The field is omitted unless the automatic `CONVEX_CLOUD_URL` exactly matches the development deployment `https://diligent-ibex-454.convex.cloud`, the signed-in affiliate matches both configured IDs and has an email ending `+clerk_test@example.com`, and the owned post-cutover recruit has role `creator` and a synthetic `dev_affiliate_…:agent:…` Clerk subject. The server-only `DEV_AFFILIATE_BAR_PREVIEW` setting accepts exactly `{ "clerkId": "<test subject>", "creatorId": "<test creators id>", "monthsLeftByRecruit": { "<synthetic recruit id>": 9, "<another recruit id>": 0 } }`. Invalid configuration, any invalid map value, a different deployment/account or an unset setting omits the metadata; ordinary account and settlement behavior remains unchanged.
+
+### Native affiliate sales — `affiliates.sales`
+
+Authenticated active and suspended affiliates can read their own paginated sales. Pending, deleted and other-role accounts are rejected.
+
+```ts
+args: {
+  paginationOpts: PaginationOptions;
+  month?: string;  // YYYY-MM, Asia/Manila; same validation as affiliates.portal
+  status?: "paid"; // includes both paid and completed submissions
+};
+// Standard Convex pagination metadata plus:
+page: Array<{
+  _id: Id<"submissions">;
+  businessName: string;
+  price: number;
+  commission: number;
+  status: string;
+  createdAt: number; // original submission creation time
+}>;
+```
+
+Without `month`, the query covers the affiliate's full sales history. With `month`, it includes owned orders created in that Manila calendar month **or** owned orders with a direct `submission_approved` earning credited in that month. The credit must have status `available` or `withdrawn`; pending credits and team overrides do not add orders to this set. This allows an earlier order credited in the selected earnings month to appear with its original order date.
+
+The ownership, month and optional Paid filters apply **before pagination**. Results remain ordered by submission creation time descending. `status: "paid"` includes current `paid` and `completed` orders; omitting it returns all statuses. Price and commission come from the order's saved amounts, so changing the creator's current page price affects future orders only. The response exposes no owner contact details, raw capture photos or private asset URLs; clients use a storefront fallback when no permitted public image is available.
 
 ### Native confirmation status
 

@@ -5,12 +5,13 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { AgentsContent } from '../components/affiliate/Agents';
 import { sampleAffiliate, samplePortal, type AffiliatePortal } from '../components/affiliate/model';
 
+const mockPush = jest.fn();
+jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => ({ push: mockPush }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('convex/react', () => ({ useQuery: () => undefined }));
 jest.mock('../components/affiliate/Screen', () => ({
   AffiliateAccess: () => null,
-  AffiliateFrame: ({ children, title, sub }: { children: React.ReactNode; title: string; sub: string }) => require('react').createElement(require('react-native').View, null,
-    require('react').createElement(require('react-native').Text, null, title), require('react').createElement(require('react-native').Text, null, sub), children),
+  AffiliateFrame: ({ children, footer }: { children: React.ReactNode; footer: React.ReactNode }) => require('react').createElement(require('react-native').View, null, children, footer),
   AffiliateLoading: ({ label }: { label: string }) => require('react').createElement(require('react-native').Text, null, label),
 }));
 jest.mock('../components/affiliate/ShareTools', () => ({
@@ -25,11 +26,12 @@ const recruits = Array.from({ length: 5 }, (_, index) => ({
   monthEarned: index === 0 ? 0 : index * 100, monthsLeft: index === 0 ? 5 : 12,
 }));
 const portal: AffiliatePortal = { ...samplePortal, recruits, referrals: [], recruitStats: { total: 5, earning: 5, totalEarned: 1000 } };
-function screen(data: AffiliatePortal | undefined = portal, props: { isPreview?: boolean } = {}) {
+function screen(data: AffiliatePortal | undefined = portal, props: { isPreview?: boolean; month?: string } = {}) {
   return render(<AgentsContent account={sampleAffiliate} isPreview={false} isAuthenticated isOffline={false} portal={data} {...props} />);
 }
 
 beforeEach(() => {
+  jest.clearAllMocks();
   jest.restoreAllMocks();
   jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
 });
@@ -42,8 +44,31 @@ it('shows four real agents, zero earnings and the actual accessible months remai
   const progress = result.getByLabelText('Agent 1, 5 of 12 months remaining');
   expect(progress.props.accessibilityValue).toEqual({ min: 0, max: 12, now: 5 });
   expect(progress.props.accessibilityHint).toMatch(/^Until/);
+  expect(result.getByText('5 months left')).toBeTruthy();
+  expect(result.getByTestId('affiliate-agent-progress-agent-0')).toHaveStyle({ width: `${5 / 12 * 100}%` });
+  expect(result.queryByTestId('affiliate-agent-month-agent-0-0')).toBeNull();
+  expect(result.getByLabelText('Your monthly team share, ₱250')).toBeTruthy();
   expect(result.queryByText(/^Until/)).toBeNull();
   expect(result.queryByText('Simulated progress')).toBeNull();
+});
+
+it('opens the owned recruit details with the selected earnings month', () => {
+  const result = screen(portal, { month: '2026-09' });
+  fireEvent.press(result.getByLabelText('View Agent 1'));
+  expect(mockPush).toHaveBeenCalledWith({ pathname: '/(app)/affiliate/agent/[agentId]', params: { agentId: 'agent-0', month: '2026-09' } });
+});
+
+it('filters ended periods by actual eligibility rather than simulated progress', () => {
+  const result = screen({ ...portal, recruits: [
+    { ...recruits[0], referredName: 'Active example', demoMonthsLeft: 0, earning: true },
+    { ...recruits[1], referredName: 'Ended agent', monthsLeft: 0, earning: false },
+  ] });
+  fireEvent.press(result.getByLabelText('Agents whose period ended'));
+  expect(result.getByText('Ended agent')).toBeTruthy();
+  expect(result.queryByText('Active example')).toBeNull();
+  expect(result.getByLabelText('Agents whose period ended').props.accessibilityState.selected).toBe(true);
+  fireEvent.press(result.getByLabelText('All agents'));
+  expect(result.getByText('Active example')).toBeTruthy();
 });
 
 it.each([0, 3, 6, 9, 12])('labels %s demo months as simulated without claiming a real expiry', demoMonthsLeft => {
