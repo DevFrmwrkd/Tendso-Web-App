@@ -153,10 +153,6 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     preview={isPreview}
     suspended={account.status !== 'active'}
     offline={isOffline}
-    footer={<>
-      {status ? <Text testID="affiliate-save-status" variant="label" tone="muted" align="center">{status}</Text> : null}
-      <Button title={mode === 'page' ? 'Save page' : 'Save page and price'} disabled={locked || !dirty} loading={saving} onPress={save} />
-    </>}
   >
     {mode === 'page' ? <Text variant="title" accessibilityRole="header">Make it yours.</Text> : <SectionLabel>What shows on your page</SectionLabel>}
     <Field label="Display name" icon="person-outline" value={draft.displayName} placeholder={defaultName} maxLength={100} editable={!locked} helper="The name shown on your public page." onChangeText={(displayName) => change({ displayName })} />
@@ -193,6 +189,10 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     </Card></> : null}
 
     {error ? <Notice error>{error}</Notice> : null}
+    <View style={styles.saveSection}>
+      {status ? <Text testID="affiliate-save-status" variant="label" tone="muted" align="center" accessibilityLiveRegion="polite">{status}</Text> : null}
+      <Button title={mode === 'page' ? 'Save page' : 'Save page and price'} disabled={locked || !dirty} loading={saving} onPress={save} />
+    </View>
 
     {mode === 'all' ? <><SectionLabel>{dirty ? 'What shop owners see · Unsaved changes' : 'What shop owners see'}</SectionLabel>
     <OfferPreview photo={shows('photo') ? draft.photo : undefined} displayName={previewName} message={shows('message') ? draft.message.trim() : undefined} socialLinks={showsSocialLinks ? draft.socialLinks : {}} socialDisabled={isPreview || account.status !== 'active'} price={price} code={account.referralCode} />
@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
   photoButton: { flex: 1 },
   handle: { paddingHorizontal: space.xs },
   socialFields: { gap: space.lg },
+  saveSection: { gap: space.md, paddingTop: space.sm },
   priceCard: { gap: space.lg },
   tiles: { flexDirection: 'row', gap: space.sm },
   tile: { flex: 1, minWidth: 0, borderRadius: radius.field, padding: space.md, backgroundColor: colors.bg },
