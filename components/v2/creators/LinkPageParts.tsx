@@ -13,7 +13,7 @@ export function GetTheApp({ card, label = "Creator code", instructions = "Enter 
             {card.code ? (
                 <>
                     <div className="cp-yourcode">
-                        {label} <b>{card.code}</b>
+                        <span className="cp-code-label">{label}</span> <b>{card.code}</b>
                         <CopyButton text={card.code}>Copy</CopyButton>
                     </div>
                     <p>{instructions}</p>

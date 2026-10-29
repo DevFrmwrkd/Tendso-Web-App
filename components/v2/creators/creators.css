@@ -513,11 +513,11 @@
   .cr .su-preview div { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 .cr .as-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(28px, 5vw, 88px); align-items: center; padding-top: clamp(16px, 3vw, 40px); }
-.cr .as-copy { display: grid; gap: 26px; justify-items: start; }
+.cr .as-copy { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; justify-items: start; min-width: 0; overflow-wrap: anywhere; }
 .cr .as-note { display: grid; gap: 8px; width: 100%; padding: 20px 24px; border-radius: 24px; background: var(--canvas); }
 .cr .as-note-label { font-size: 14px; font-weight: 600; color: var(--muted); }
 .cr .as-note-message { font-size: 19px; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
-.cr .as-socials { display: grid; gap: 12px; min-width: 0; }
+.cr .as-socials { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; max-width: 100%; }
 .cr .as-socials > p { font-size: 14px; font-weight: 600; color: var(--muted); }
 .cr .as-socials > div { display: flex; flex-wrap: wrap; gap: 10px; }
 .cr .as-socials a { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--canvas); font-size: 15px; font-weight: 500; text-decoration: none; }
@@ -532,13 +532,14 @@
 .cr .as-price s { font-size: clamp(26px, 2.4vw, 34px); color: var(--muted); font-weight: 500; letter-spacing: -0.03em; }
 .cr .as-price b { font-size: clamp(56px, 5.6vw, 84px); font-weight: 600; letter-spacing: -0.055em; line-height: 1; }
 .cr .as-price span { font-size: 19px; color: var(--ink-2); flex-basis: 100%; }
-.cr .as-cta { display: grid; gap: 14px; justify-items: start; }
+.cr .as-cta { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; justify-items: start; width: 100%; max-width: 480px; min-width: 0; }
 .cr .as-photo { position: relative; margin: 0; border-radius: var(--ag-r); overflow: hidden; aspect-ratio: 4 / 4.8; background: var(--line); }
 .cr .as-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; }
-.cr .as-photo-tag { position: absolute; left: 18px; bottom: 18px; right: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-radius: 22px; background: var(--canvas); box-shadow: var(--shadow-object); }
+.cr .as-photo-tag { position: absolute; left: 18px; bottom: 18px; right: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-radius: 22px; background: var(--canvas); box-shadow: var(--shadow-object); }
+.cr .as-photo-tag > span:first-child { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; }
 .cr .as-photo-tag b { display: block; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
 .cr .as-photo-tag span { display: block; font-size: 16px; color: var(--ink-2); }
-.cr .as-photo-tag .code { font-size: 22px; font-weight: 700; letter-spacing: .1em; padding: 10px 16px; border-radius: 14px; background: var(--accent); color: var(--on-accent); }
+.cr .as-photo-tag .code { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 22px; font-weight: 700; letter-spacing: .1em; padding: 10px 16px; border-radius: 14px; background: var(--accent); color: var(--on-accent); }
 .cr .as-sec { padding-top: clamp(80px, 9vw, 136px); }
 .cr .as-h2 { font-size: clamp(38px, 4.6vw, 68px); letter-spacing: -0.05em; line-height: .98; max-width: 16ch; margin-bottom: clamp(28px, 3.4vw, 48px); }
 .cr .as-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); counter-reset: s; }
@@ -594,6 +595,10 @@
   .cr .as-end { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 760px) {
+  .cr .as-cta .cp-yourcode { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; height: auto; min-height: 60px; max-width: 100%; padding: 12px 16px; white-space: normal; }
+  .cr .as-cta .cp-code-label { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
+  .cr .as-cta .cp-yourcode b { min-width: 0; overflow-wrap: anywhere; }
+  .cr .as-cta .cp-yourcode button { grid-column: 2; grid-row: 2; }
   .cr .cp-bar-in { height: 64px; }
   .cr .as-h { font-size: clamp(46px, 13vw, 62px); max-width: none; }
   .cr .as-h--shop { font-size: clamp(40px, 10.6vw, 62px); }

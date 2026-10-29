@@ -136,10 +136,10 @@ function Found({ card }: { card: CreatorCard }) {
                     <li className="as-step">
                         <figure className="as-grid4" aria-hidden="true">
                             {/* eslint-disable @next/next/no-img-element */}
-                            <img src="/v2/creators/photos/forge-headshot.jpg" alt="" />
-                            <img src="/v2/creators/photos/tailor-owner.jpg" alt="" />
-                            <img src="/v2/creators/photos/hela-owner.jpg" alt="" />
-                            <img src="/v2/creators/photos/vulca-owner.jpg" alt="" />
+                            <img src="/v2/sites/forge-m.jpg" alt="" />
+                            <img src="/v2/sites/domingo-m.jpg" alt="" />
+                            <img src="/v2/sites/hela-m.jpg" alt="" />
+                            <img src="/v2/sites/vulca-m.jpg" alt="" />
                             {/* eslint-enable @next/next/no-img-element */}
                         </figure>
                         <div className="as-step-t">
