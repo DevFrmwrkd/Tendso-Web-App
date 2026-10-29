@@ -71,8 +71,9 @@ describe('public affiliate offer lookup', () => {
         expect(offer).toEqual({
             handle, photo: 'https://example.com/photo.jpg', displayName: 'Alex Websites',
             message: 'A website for your shop.', socialLink: 'https://m.me/alex', referralCode: 'AFFALEX', price: 1999,
+            socialLinks: { messenger: 'https://m.me/alex' },
         });
-        expect(Object.keys(offer!).sort()).toEqual(['displayName', 'handle', 'message', 'photo', 'price', 'referralCode', 'socialLink']);
+        expect(Object.keys(offer!).sort()).toEqual(['displayName', 'handle', 'message', 'photo', 'price', 'referralCode', 'socialLink', 'socialLinks']);
     });
 
     it('returns null for invalid handles and inactive, deleted or nonaffiliate accounts', async () => {

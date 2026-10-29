@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
 
 // ==================== KNOWLEDGE BASE ====================
 // Article body is a sequence of typed blocks (mirrors the Claude Design
@@ -105,6 +106,7 @@ export default defineSchema({
         affiliateDisplayName: v.optional(v.string()),
         affiliateMessage: v.optional(v.string()),
         affiliateSocialLink: v.optional(v.string()),
+        affiliateSocialLinks: v.optional(affiliateSocialLinksValidator),
         affiliatePrice: v.optional(v.number()),
         // Creator program (2026-10-21, docs/v2-api-creators.md). A field agent
         // who joined through a creator's link or code: the creator, when, and

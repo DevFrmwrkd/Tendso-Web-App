@@ -4,7 +4,7 @@ import { useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { api } from '@tendso/convex-client';
 import { BASE_PRICE, PRICE_CEILING, COMMISSION_RATE, clampSellPrice, commissionFor, creatorDiscount, formatPHP, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
-import { affiliatePhotoError, affiliateSocialLinkError } from '../../../../lib/affiliates';
+import { AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../../../../lib/affiliates';
 import { Avatar, Button, Card, Chip, Field, Text } from '../v2';
 import { PriceSlider } from '../PriceSlider';
 import { colors, radius, space } from '../../theme/v2';
@@ -88,12 +88,11 @@ export function OfferPrice({ price, large = false }: { price: number; large?: bo
 }
 
 /**
- * What a shop owner sees on the creator's page (board `publicPage`): who sent it, "<name> saved you ₱X",
- * the code applied, the price, and one button. Preview only: the button does nothing here.
+ * Compact preview of the saved creator's offer, including the code visitors enter before paying.
+ * The main action is decorative inside this editor preview.
  */
-export function OfferPreview({ photo, displayName, message, socialLink, price, code, commission = false }: { photo?: string; displayName: string; message?: string; socialLink?: string; price: number; code?: string; commission?: boolean }) {
+export function OfferPreview({ photo, displayName, message, socialLinks, socialLink, socialDisabled = false, price, code, commission = false }: { photo?: string; displayName: string; message?: string; socialLinks?: AffiliateSocialLinks; socialLink?: string; socialDisabled?: boolean; price: number; code?: string; commission?: boolean }) {
   const safePhoto = photo && !affiliatePhotoError(photo) ? photo : undefined;
-  const safeSocial = socialLink && !affiliateSocialLinkError(socialLink) ? socialLink.trim() : undefined;
   const discount = creatorDiscount(price, WEBSITE_PRICE);
   const firstName = displayName.trim().split(/\s+/)[0] || displayName;
   return <Card variant="lg" style={styles.card}>
@@ -106,17 +105,30 @@ export function OfferPreview({ photo, displayName, message, socialLink, price, c
     </View>
     {message ? <Text variant="body" tone="ink2">{message}</Text> : null}
     <View style={styles.offer}>
-      <Text variant="heading">{discount ? `${firstName} saved you ${formatPHP(discount.listPrice - discount.price)}` : 'A website for your shop'}</Text>
-      {discount && code ? <Chip tone="ok" label={`Code ${code} applied`} /> : null}
+      <Text variant="heading">{discount ? `Save ${formatPHP(discount.listPrice - discount.price)} with ${firstName}'s code` : 'A website for your shop'}</Text>
+      {code ? <Chip tone="ok" label={`Creator code: ${code}`} /> : null}
       <OfferPrice price={price} large />
       <Text variant="label" tone="muted">One-time payment for your website.</Text>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.fakeButton}>
         <Text variant="button" tone="onAccent">Get my website</Text>
       </View>
-      {safeSocial ? <Button title="Message on Facebook" variant="ghost" size="md" onPress={() => { void Linking.openURL(safeSocial).catch(() => {}); }} /> : null}
+      <AffiliateSocialButtons socialLinks={socialLinks} socialLink={socialLink} disabled={socialDisabled} />
     </View>
     {commission ? <Text variant="label" tone="muted">You keep {formatPHP(commissionFor(price))} when this sells.</Text> : null}
   </Card>;
+}
+
+/** Each public profile keeps its own platform label; only validated public URLs can open. */
+export function AffiliateSocialButtons({ socialLinks, socialLink, disabled = false }: { socialLinks?: AffiliateSocialLinks; socialLink?: string; disabled?: boolean }) {
+  const links = getAffiliateSocialLinks(socialLinks, socialLink);
+  const platforms = AFFILIATE_SOCIAL_PLATFORMS.filter(platform => !!links[platform]);
+  if (!platforms.length) return null;
+  return <View style={styles.socialButtons}>
+    {platforms.map(platform => <Button key={platform} title={AFFILIATE_SOCIAL_LABELS[platform]} accessibilityHint={`Opens your ${AFFILIATE_SOCIAL_LABELS[platform]} link`} variant="ghost" size="md" icon="open-outline" disabled={disabled} onPress={() => {
+      const url = links[platform];
+      if (!disabled && url) void Linking.openURL(url).catch(() => {});
+    }} />)}
+  </View>;
 }
 
 const styles = StyleSheet.create({
@@ -131,5 +143,6 @@ const styles = StyleSheet.create({
   who: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   whoText: { flex: 1, gap: 2 },
   offer: { gap: space.md, padding: space.lg, borderRadius: radius.card, backgroundColor: colors.bg },
+  socialButtons: { gap: space.sm },
   fakeButton: { minHeight: 56, borderRadius: radius.pill, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xl },
 });

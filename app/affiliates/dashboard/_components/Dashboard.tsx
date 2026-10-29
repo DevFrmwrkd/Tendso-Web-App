@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { affiliateSocialLinkError } from "@/lib/affiliates";
+import { getAffiliateSocialLinks } from "@/lib/affiliates";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { WEBSITE_PRICE, clampSellPrice } from "@/lib/pricing";
 
@@ -18,7 +18,7 @@ function pageValues(account: Doc<"creators">): AffiliatePageDraft {
         photo: account.affiliatePhoto ?? "",
         displayName: account.affiliateDisplayName ?? "",
         message: account.affiliateMessage ?? "",
-        socialLink: account.affiliateSocialLink ?? "",
+        socialLinks: getAffiliateSocialLinks(account.affiliateSocialLinks, account.affiliateSocialLink),
     };
 }
 
@@ -52,7 +52,6 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
     const suspended = account.status !== "active";
     const previewPrice = priceValue.trim() && Number.isFinite(Number(priceValue)) ? clampSellPrice(Number(priceValue)) : priceBaseline;
     const previewName = pageDraft.displayName.trim() || defaultName;
-    const previewSocial = affiliateSocialLinkError(pageDraft.socialLink) ? undefined : pageDraft.socialLink.trim() || undefined;
 
     return (
         <>
@@ -85,7 +84,7 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                             <h2 id="offer-preview-title" className="t-h2">Page preview</h2>
                             <p className="t-meta">{pageDirty || priceDirty ? "Preview includes unsaved changes" : "Your saved offer"}</p>
                         </div>
-                        <OfferPreview photo={pageDraft.photo || undefined} displayName={previewName} message={pageDraft.message.trim() || undefined} socialLink={previewSocial} price={previewPrice} />
+                        <OfferPreview photo={pageDraft.photo || undefined} displayName={previewName} message={pageDraft.message.trim() || undefined} socialLinks={pageDraft.socialLinks} price={previewPrice} />
                     </section>
                     {account.affiliateHandle ? (
                         <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} price={priceBaseline} disabled={suspended || preview} />

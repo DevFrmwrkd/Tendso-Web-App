@@ -5,7 +5,9 @@
  * calendar month in Asia/Manila.
  */
 
-/** The public face of a creator. No contact or payout data. */
+import type { AffiliateSocialLinks } from '../affiliates';
+
+/** The public face of a creator. No private contact or payout data. */
 export interface CreatorCard {
     /** "mika": links /a/mika and /a/mika/earn */
     handle: string;
@@ -19,6 +21,10 @@ export interface CreatorCard {
     /** listPrice - price, e.g. 1500 ("you save ₱1,500"). */
     saving: number;
     percentOff: number;
+    /** Optional introduction explicitly saved for the public creator page. */
+    message?: string | null;
+    /** Explicit public page links, never the private application social handles. */
+    socialLinks?: AffiliateSocialLinks;
 }
 
 export type ShopStatus = "paid" | "paying" | "waiting" | "not_paid";

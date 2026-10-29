@@ -119,11 +119,13 @@ describe('affiliate dashboard page settings', () => {
         expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(4999);
     });
 
-    it('saves allowed Facebook/Messenger links and rejects credentials, lookalikes and other platforms', async () => {
+    it('saves supported public social links and rejects credentials, lookalikes and unrelated hosts', async () => {
         const { t, affiliate, id } = await setup();
         const allowed = [
             'https://facebook.com/alex', 'https://www.facebook.com/alex', 'https://m.facebook.com/alex',
             'https://messenger.com/t/alex', 'https://www.messenger.com/t/alex', 'https://m.me/alex',
+            'https://www.instagram.com/alex', 'https://www.tiktok.com/@alex', 'https://vm.tiktok.com/alex',
+            'https://youtube.com/@alex', 'https://www.youtube.com/channel/alex', 'https://youtu.be/alex',
         ];
         for (const socialLink of allowed) {
             expect(affiliateSocialLinkError(socialLink)).toBeNull();
@@ -134,7 +136,8 @@ describe('affiliate dashboard page settings', () => {
             'http://facebook.com/alex', 'javascript:alert(1)', 'https://facebook.com.evil.test/alex',
             'https://evilfacebook.com/alex', 'https://messenger.com.evil.test/alex', 'https://m.me.evil.test/alex',
             'https://user:secret@facebook.com/alex', 'https://facebook.com@evil.test/alex',
-            'https://instagram.com/alex', 'https://example.com/alex', 'https://subdomain.m.me/alex',
+            'https://example.com/alex', 'https://subdomain.m.me/alex', 'https://youtube.com.evil.test/alex',
+            'https://instagram.com.evil.test/alex', 'https://tiktok.com@evil.test/alex', 'https://subdomain.youtu.be/alex',
             'https://facebook.com:444/alex',
         ];
         for (const socialLink of invalid) {

@@ -85,7 +85,7 @@ function Found({ card }: { card: CreatorCard }) {
                             <b>{peso(week)}</b>
                         </div>
                     </div>
-                    <GetTheApp card={card} label="Who sent you?" />
+                    <GetTheApp card={card} label="Who sent you?" instructions="Enter this code in ‘Who sent you?’ when you join as a field agent." />
                 </div>
                 <figure className="as-photo">
                     <Photo name="barber.jpg" alt="A field agent films a barber talking about his shop" sizes="(max-width: 900px) 90vw, 40vw" position="62% 40%" priority />
@@ -211,7 +211,7 @@ function Found({ card }: { card: CreatorCard }) {
                                 <span>4</span>Visit your first shop
                             </li>
                         </ol>
-                        <GetTheApp card={card} label="Who sent you?" />
+                        <GetTheApp card={card} label="Who sent you?" instructions="Enter this code in ‘Who sent you?’ when you join as a field agent." />
                     </div>
                     <figure className="ag-end-photo">
                         <Photo name="scooter.jpg" alt="A field agent rides to a visit" sizes="(max-width: 900px) 90vw, 36vw" position="50% 50%" />

@@ -6,12 +6,15 @@ import { requireAdmin, requireAuth } from './lib/auth';
 import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliateHandleError, affiliatePhoneError,
     affiliatePhotoError, affiliatePriceError, affiliateSocialLinkError,
+    AFFILIATE_SOCIAL_PLATFORMS, affiliateSocialPlatformLinkError, getAffiliateSocialLinks,
+    type AffiliateSocialPlatform,
 } from '../lib/affiliates';
 import { clampSellPrice, creatorOverrideEndsAt, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
 import { manilaMonth } from './creatorPortal';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
 import { insertAffiliateAccount } from './lib/affiliateSignup';
+import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
 
 /** Calendar selection affects displayed income only, never balances or eligibility. */
 function selectedManilaMonth(value: string | undefined, now: number) {
@@ -67,6 +70,7 @@ export const publicPage = query({
                 || [affiliate.firstName, affiliate.lastName].filter(Boolean).join(' ') || args.handle,
             message: affiliate.affiliateMessage,
             socialLink: affiliate.affiliateSocialLink,
+            socialLinks: getAffiliateSocialLinks(affiliate.affiliateSocialLinks, affiliate.affiliateSocialLink),
             referralCode: affiliate.referralCode,
             price,
         };
@@ -126,6 +130,7 @@ export const updatePage = mutation({
         displayName: v.optional(v.string()),
         message: v.optional(v.string()),
         socialLink: v.optional(v.string()),
+        socialLinks: v.optional(affiliateSocialLinksValidator),
         price: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
@@ -144,7 +149,25 @@ export const updatePage = mutation({
         if (args.photo !== undefined) updates.affiliatePhoto = optionalUrl(args.photo, 'Photo', affiliatePhotoError);
         if (args.displayName !== undefined) updates.affiliateDisplayName = optionalText(args.displayName, 100, 'Display name');
         if (args.message !== undefined) updates.affiliateMessage = optionalText(args.message, AFFILIATE_MESSAGE_MAX_LENGTH, 'Short message');
-        if (args.socialLink !== undefined) updates.affiliateSocialLink = optionalUrl(args.socialLink, 'Social link', affiliateSocialLinkError);
+        if (args.socialLinks !== undefined) {
+            for (const platform of AFFILIATE_SOCIAL_PLATFORMS) {
+                const error = affiliateSocialPlatformLinkError(platform, args.socialLinks[platform] ?? '');
+                if (error) throw new ConvexError(error);
+            }
+            const links = getAffiliateSocialLinks(args.socialLinks);
+            updates.affiliateSocialLinks = links;
+            // Keep older clients readable without mirroring a non-messaging URL as Messenger.
+            updates.affiliateSocialLink = links.messenger || links.facebook || undefined;
+        } else if (args.socialLink !== undefined) {
+            const link = optionalUrl(args.socialLink, 'Social link', affiliateSocialLinkError);
+            updates.affiliateSocialLink = link;
+            if (affiliate.affiliateSocialLinks !== undefined) {
+                // A legacy editor changes its one link without dropping the other saved platforms.
+                const links = getAffiliateSocialLinks(affiliate.affiliateSocialLinks);
+                for (const platform of Object.keys(getAffiliateSocialLinks(undefined, affiliate.affiliateSocialLink)) as AffiliateSocialPlatform[]) delete links[platform];
+                updates.affiliateSocialLinks = { ...links, ...getAffiliateSocialLinks(undefined, link) };
+            }
+        }
         if (args.price !== undefined) updates.affiliatePrice = clampSellPrice(args.price);
         await ctx.db.patch(affiliate._id, updates);
     },

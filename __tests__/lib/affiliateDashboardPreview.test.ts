@@ -130,7 +130,7 @@ describe("affiliate dashboard preview", () => {
 
     it("keeps the sample page and price editors usable", () => {
         const pageHtml = renderToStaticMarkup(createElement(PageSettings, {
-            draft: { photo: "", displayName: "Edited preview", message: "Sample offer", socialLink: "" },
+            draft: { photo: "", displayName: "Edited preview", message: "Sample offer", socialLinks: {} },
             defaultName: "Ana Cruz",
             handle: account.affiliateHandle,
             dirty: true,
@@ -187,6 +187,29 @@ describe("affiliate dashboard preview", () => {
         expect(html.match(/<input\b[^>]*type="file"[^>]*>/)?.[0]).not.toContain("disabled");
     });
 
+    it("keeps an existing Messenger link while offering each optional platform", () => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
+
+        expect(html).toContain(`value="${account.affiliateSocialLink}"`);
+        expect(html).toContain(`href="${account.affiliateSocialLink}"`);
+        expect(html).toContain("Message on Messenger");
+        for (const platform of ["Messenger", "Facebook", "Instagram", "TikTok", "YouTube"]) {
+            expect(html).toContain(`${platform} link`);
+        }
+        expect(html).not.toContain("Facebook or Messenger link");
+    });
+
+    it("shows saved canonical links without reviving a cleared legacy Messenger link", () => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, {
+            account: { ...account, affiliateSocialLinks: { instagram: "https://www.instagram.com/ana" } },
+        }));
+
+        expect(html).toContain('href="https://www.instagram.com/ana"');
+        expect(html).toContain("View Instagram");
+        expect(html).not.toContain(`href="${account.affiliateSocialLink}"`);
+        expect(html).not.toContain(`value="${account.affiliateSocialLink}"`);
+    });
+
 });
 
 describe("affiliate preview form saves", () => {
@@ -194,13 +217,24 @@ describe("affiliate preview form saves", () => {
         photo: "  https://photos.example.com/preview.jpg  ",
         displayName: "  Ana's sample offer  ",
         message: "  Helping your shop get online.  ",
-        socialLink: "  https://m.me/demo-affiliate  ",
+        socialLinks: {
+            messenger: "  https://m.me/demo-affiliate  ",
+            instagram: "  https://www.instagram.com/demo-affiliate  ",
+            tiktok: "  https://www.tiktok.com/@demo-affiliate  ",
+            youtube: "  https://www.youtube.com/@demo-affiliate  ",
+            facebook: "",
+        },
     };
     const normalized = {
         photo: "https://photos.example.com/preview.jpg",
         displayName: "Ana's sample offer",
         message: "Helping your shop get online.",
-        socialLink: "https://m.me/demo-affiliate",
+        socialLinks: {
+            messenger: "https://m.me/demo-affiliate",
+            instagram: "https://www.instagram.com/demo-affiliate",
+            tiktok: "https://www.tiktok.com/@demo-affiliate",
+            youtube: "https://www.youtube.com/@demo-affiliate",
+        },
     };
 
     it("saves normalized preview page values locally without a mutation or upload", async () => {
@@ -263,6 +297,32 @@ describe("affiliate preview form saves", () => {
         expect(updatePage).toHaveBeenCalledWith(normalized);
         expect(onSaved).toHaveBeenCalledWith(normalized);
         expect(generateUploadUrl).not.toHaveBeenCalled();
+    });
+
+    it("sends an explicit empty social map when all public links are removed", async () => {
+        const onSaved = jest.fn();
+        const submit = captureSubmit(() => PageSettings({
+            draft: { ...draft, socialLinks: {} }, defaultName: "Ana Cruz", dirty: true, disabled: false,
+            onChange: jest.fn(), onSaved,
+        }));
+        await submit();
+        expect(updatePage).toHaveBeenCalledWith({ ...normalized, socialLinks: {} });
+        expect(onSaved).toHaveBeenCalledWith({ ...normalized, socialLinks: {} });
+    });
+
+    it.each([
+        ["instagram", "https://instagram.com.evil.test/ana"],
+        ["youtube", "https://www.tiktok.com/@ana"],
+        ["tiktok", "javascript:alert(1)"],
+    ])("does not save an unsafe or mismatched %s link", async (platform, value) => {
+        const onSaved = jest.fn();
+        const submit = captureSubmit(() => PageSettings({
+            draft: { ...draft, socialLinks: { [platform]: value } }, defaultName: "Ana Cruz", dirty: true,
+            disabled: false, onChange: jest.fn(), onSaved,
+        }));
+        await submit();
+        expect(updatePage).not.toHaveBeenCalled();
+        expect(onSaved).not.toHaveBeenCalled();
     });
 
     it("keeps the default live price save calling the backend with the rounded price", async () => {

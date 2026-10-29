@@ -5,8 +5,8 @@ import type { CreatorCard } from "@/lib/v2/creatorData";
 import { CopyButton } from "./CopyButton";
 import { StoreRow } from "./Stores";
 
-/** The black store buttons plus "Your code MIKA [Copy]". `label` is "Your code" for shops, "Who sent you?" for agents. */
-export function GetTheApp({ card, label = "Your code" }: { card: CreatorCard; label?: string }) {
+/** Store buttons and the creator's referral code, with instructions for the destination flow. */
+export function GetTheApp({ card, label = "Creator code", instructions = "Enter this code before you pay to use this website price." }: { card: CreatorCard; label?: string; instructions?: string }) {
     return (
         <div className="as-cta">
             <StoreRow />
@@ -16,7 +16,7 @@ export function GetTheApp({ card, label = "Your code" }: { card: CreatorCard; la
                         {label} <b>{card.code}</b>
                         <CopyButton text={card.code}>Copy</CopyButton>
                     </div>
-                    <p>Copy this code and enter it in the app when asked.</p>
+                    <p>{instructions}</p>
                 </>
             ) : null}
         </div>

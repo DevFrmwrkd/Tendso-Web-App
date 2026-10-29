@@ -2,7 +2,7 @@ import type { FunctionReturnType } from 'convex/server';
 import { api, type Doc, type Id } from '@tendso/convex-client';
 import { clampSellPrice, commissionFor, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
 import type { ChipTone } from '../v2';
-import { AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError, affiliateSocialLinkError } from '../../../../lib/affiliates';
+import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, affiliateSocialPlatformLinkError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../../../../lib/affiliates';
 
 /** The default creator code takes 30% off the list price: ₱3,499, of which the creator keeps ₱1,750. */
 export const DEFAULT_CODE_DISCOUNT = 0.3;
@@ -13,12 +13,12 @@ export const RECRUIT_SHARE_PERCENT = 5;
 
 export type AffiliatePortal = FunctionReturnType<typeof api.affiliates.portal>;
 export type AffiliateSale = FunctionReturnType<typeof api.affiliates.sales>['page'][number];
-export type AffiliateDraft = { photo: string; displayName: string; message: string; socialLink: string; price: string };
+export type AffiliateDraft = { photo: string; displayName: string; message: string; socialLinks: AffiliateSocialLinks; price: string };
 
 export function affiliateDraft(account: Doc<'creators'>): AffiliateDraft {
   return {
     photo: account.affiliatePhoto ?? '', displayName: account.affiliateDisplayName ?? '',
-    message: account.affiliateMessage ?? '', socialLink: account.affiliateSocialLink ?? '',
+    message: account.affiliateMessage ?? '', socialLinks: getAffiliateSocialLinks(account.affiliateSocialLinks, account.affiliateSocialLink),
     price: String(clampSellPrice(account.affiliatePrice ?? WEBSITE_PRICE)),
   };
 }
@@ -32,12 +32,17 @@ export function affiliateName(account: Doc<'creators'>): string {
 }
 
 export function affiliatePagePayload(draft: AffiliateDraft) {
-  const page = { photo: draft.photo.trim(), displayName: draft.displayName.trim(), message: draft.message.trim(), socialLink: draft.socialLink.trim() };
+  const page = { photo: draft.photo.trim(), displayName: draft.displayName.trim(), message: draft.message.trim(), socialLinks: {} as AffiliateSocialLinks };
   if (page.displayName.length > 100) throw new Error('Use a display name of 100 characters or fewer.');
   if (page.message.length > AFFILIATE_MESSAGE_MAX_LENGTH) throw new Error(`Use a message of ${AFFILIATE_MESSAGE_MAX_LENGTH} characters or fewer.`);
   const photoError = affiliatePhotoError(page.photo);
-  const socialError = affiliateSocialLinkError(page.socialLink);
-  if (photoError || socialError) throw new Error(photoError || socialError!);
+  if (photoError) throw new Error(photoError);
+  for (const platform of AFFILIATE_SOCIAL_PLATFORMS) {
+    const value = draft.socialLinks[platform]?.trim() ?? '';
+    const error = affiliateSocialPlatformLinkError(platform, value);
+    if (error) throw new Error(error);
+    if (value) page.socialLinks[platform] = value;
+  }
   if (!draft.price.trim() || !Number.isFinite(Number(draft.price))) throw new Error('Enter your website price in whole pesos.');
   return { ...page, price: clampSellPrice(Number(draft.price)) };
 }

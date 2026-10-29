@@ -2,7 +2,18 @@
 
 import { Avatar, ButtonLink } from "@/components/r1";
 import { creatorDiscount, formatPHP, WEBSITE_PRICE } from "@/lib/pricing";
-import { affiliateSocialLinkError } from "@/lib/affiliates";
+import { AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, getAffiliateSocialLinks, type AffiliateSocialLinks } from "@/lib/affiliates";
+
+export function CreatorSocialLinks({ socialLinks, socialLink }: { socialLinks?: AffiliateSocialLinks; socialLink?: string }) {
+    const links = getAffiliateSocialLinks(socialLinks, socialLink);
+    const platforms = AFFILIATE_SOCIAL_PLATFORMS.filter((platform) => links[platform]);
+    if (!platforms.length) return null;
+    return (
+        <nav className="flex min-w-0 flex-wrap gap-2" aria-label="Creator social links">
+            {platforms.map((platform) => <ButtonLink key={platform} href={links[platform]!} target="_blank" rel="noopener noreferrer">{platform === "messenger" ? "Message on Messenger" : `View ${AFFILIATE_SOCIAL_LABELS[platform]}`}</ButtonLink>)}
+        </nav>
+    );
+}
 
 export function OfferPrice({ price }: { price: number }) {
     const discount = creatorDiscount(price, WEBSITE_PRICE);
@@ -16,14 +27,14 @@ export function OfferPrice({ price }: { price: number }) {
 }
 
 /** Fixed text and plain strings keep the offer outside the page editor. */
-export function OfferPreview({ photo, displayName, message, socialLink, price }: {
+export function OfferPreview({ photo, displayName, message, socialLink, socialLinks, price }: {
     photo?: string;
     displayName: string;
     message?: string;
     socialLink?: string;
+    socialLinks?: AffiliateSocialLinks;
     price: number;
 }) {
-    const safeSocial = socialLink && !affiliateSocialLinkError(socialLink) ? socialLink.trim() : null;
     return (
         <article className="t-card flex flex-col gap-5 overflow-hidden p-5 sm:p-6" aria-label="Your page preview">
             <div className="flex items-center gap-3">
@@ -33,7 +44,7 @@ export function OfferPreview({ photo, displayName, message, socialLink, price }:
                     <img src={photo} alt="" className="t-avatar t-avatar-lg shrink-0 object-cover" />
                 ) : <Avatar name={displayName} size="lg" />}
                 <div className="min-w-0">
-                    <p className="t-label">Your Tendso affiliate</p>
+                    <p className="t-label">Your Tendso creator</p>
                     <p className="t-row-title wrap-anywhere">{displayName || "Your name"}</p>
                 </div>
             </div>
@@ -44,7 +55,7 @@ export function OfferPreview({ photo, displayName, message, socialLink, price }:
                 <OfferPrice price={price} />
                 <p className="t-meta">See it first. Pay once to publish your business website.</p>
             </div>
-            {safeSocial && <ButtonLink href={safeSocial} target="_blank" rel="noopener noreferrer" className="self-start">Message on Facebook</ButtonLink>}
+            <CreatorSocialLinks socialLinks={socialLinks} socialLink={socialLink} />
         </article>
     );
 }

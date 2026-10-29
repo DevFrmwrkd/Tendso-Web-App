@@ -30,6 +30,8 @@ type CreatorCard = {
   handle: string;        // "mika"  → links /a/mika and /a/mika/earn
   name: string;          // display name, else first + last name
   photo: string | null;  // https URL
+  message?: string;     // optional public personal message saved in My page
+  socialLinks?: { messenger?: string; facebook?: string; instagram?: string; tiktok?: string; youtube?: string }; // optional, validated public HTTPS links
   code: string | null;   // "MIKA30" — what people type
   listPrice: number;     // 4999
   price: number;         // the creator's price for a shop, e.g. 3499
@@ -39,6 +41,8 @@ type CreatorCard = {
 ```
 
 Only **active** creators resolve. A pending (not yet approved), suspended or deleted creator gives `null` everywhere.
+
+Public messages and social links come only from the creator's saved page settings. Application social accounts, account email, phone and payout details remain private. An existing Facebook or Messenger page link is used when no newer social-link map has been saved; an explicitly empty map hides every social button.
 
 ---
 

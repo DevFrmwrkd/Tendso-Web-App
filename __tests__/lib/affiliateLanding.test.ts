@@ -69,6 +69,41 @@ describe("public affiliate offer", () => {
         expect(html).not.toContain("% off");
     });
 
+    it("shows several saved platforms with labels that match their destinations", () => {
+        const socialLinks = {
+            messenger: "https://m.me/maria",
+            facebook: "https://www.facebook.com/maria",
+            instagram: "https://www.instagram.com/maria",
+            tiktok: "https://www.tiktok.com/@maria",
+            youtube: "https://www.youtube.com/@maria",
+        };
+        const html = renderToStaticMarkup(createElement(AffiliateOffer, {
+            handle: "maria", affiliate: { ...affiliate, socialLinks },
+        }));
+        for (const link of Object.values(socialLinks)) expect(html).toContain(`href="${link}"`);
+        expect(html).toContain("Message on Messenger");
+        for (const label of ["Facebook", "Instagram", "TikTok", "YouTube"]) expect(html).toContain(`View ${label}`);
+        expect(html.match(/rel="noopener noreferrer"/g)?.length).toBeGreaterThanOrEqual(5);
+        expect(html).not.toContain("Message on Facebook");
+        expect(html).toContain("Field agents visit shops");
+        expect(html).not.toContain("Creators visit shops");
+    });
+
+    it("hides a cleared legacy link and unsafe canonical links", () => {
+        for (const socialLinks of [{}, {
+            instagram: "https://instagram.com.evil.test/maria",
+            youtube: "javascript:alert(1)",
+        }]) {
+            const html = renderToStaticMarkup(createElement(AffiliateOffer, {
+                handle: "maria", affiliate: { ...affiliate, socialLinks },
+            }));
+            expect(html).not.toContain('href="https://m.me/maria"');
+            expect(html).not.toContain("Creator social links");
+            expect(html).not.toContain("instagram.com.evil.test");
+            expect(html).not.toContain("javascript:");
+        }
+    });
+
     it("renders page text plainly and refuses unsafe photo or social URLs", () => {
         const html = renderToStaticMarkup(createElement(AffiliateOffer, {
             handle: "maria",

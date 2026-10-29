@@ -514,9 +514,20 @@
 }
 .cr .as-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(28px, 5vw, 88px); align-items: center; padding-top: clamp(16px, 3vw, 40px); }
 .cr .as-copy { display: grid; gap: 26px; justify-items: start; }
+.cr .as-note { display: grid; gap: 8px; width: 100%; padding: 20px 24px; border-radius: 24px; background: var(--canvas); }
+.cr .as-note-label { font-size: 14px; font-weight: 600; color: var(--muted); }
+.cr .as-note-message { font-size: 19px; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.cr .as-socials { display: grid; gap: 12px; min-width: 0; }
+.cr .as-socials > p { font-size: 14px; font-weight: 600; color: var(--muted); }
+.cr .as-socials > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.cr .as-socials a { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--canvas); font-size: 15px; font-weight: 500; text-decoration: none; }
+.cr .as-socials a:hover { border-color: var(--ink); }
+.cr .as-socials a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.cr .as-socials a span { font-size: 18px; }
 .cr .as-from { display: flex; align-items: center; gap: 14px; font-size: 19px; font-weight: 500; }
 .cr .as-from .cp-g-face { --sz: 64px; box-shadow: 0 0 0 4px var(--canvas), 0 6px 18px rgba(12,10,8,.12); }
 .cr .as-h { font-size: clamp(50px, 6vw, 96px); letter-spacing: -0.06em; line-height: .92; max-width: 10ch; }
+.cr .as-h--shop { font-size: clamp(42px, 4.8vw, 72px); line-height: 1.04; max-width: none; }
 .cr .as-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 18px; }
 .cr .as-price s { font-size: clamp(26px, 2.4vw, 34px); color: var(--muted); font-weight: 500; letter-spacing: -0.03em; }
 .cr .as-price b { font-size: clamp(56px, 5.6vw, 84px); font-weight: 600; letter-spacing: -0.055em; line-height: 1; }
@@ -542,11 +553,11 @@
 .cr .as-fig-wash { display: grid; place-items: center; background: color-mix(in oklab, var(--accent) 18%, #FFFFFF) !important; }
 .cr .as-big { font-size: clamp(64px, 6vw, 96px); font-weight: 500; letter-spacing: -0.06em; line-height: 1; color: #fff; }
 .cr .as-big small { display: block; font-size: 20px; letter-spacing: -0.01em; text-align: center; margin-top: 6px; color: rgba(255,255,255,.7); }
-.cr .as-pay { display: grid; gap: 10px; justify-items: center; }
+.cr .as-pay { display: grid; gap: 10px; justify-items: center; min-width: 0; max-width: 100%; }
 .cr .as-pay .p { display: flex; align-items: baseline; gap: 12px; }
 .cr .as-pay s { font-size: 24px; color: var(--muted); }
 .cr .as-pay b { font-size: 52px; font-weight: 600; letter-spacing: -0.05em; }
-.cr .as-pay .k { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--r-pill); background: var(--ink); color: #fff; font-size: 16px; font-weight: 500; }
+.cr .as-pay .k { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; max-width: 100%; padding: 8px 16px; border-radius: var(--r-pill); background: var(--ink); color: #fff; font-size: 16px; font-weight: 500; text-align: center; overflow-wrap: anywhere; }
 .cr .as-sites { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
 .cr .as-site { display: grid; gap: 16px; justify-items: center; padding: clamp(24px, 3vw, 40px) 16px 26px; border-radius: 32px; background: var(--canvas); }
 .cr .as-site .v2-phone { --pw: clamp(200px, 17vw, 250px); }
@@ -585,6 +596,7 @@
 @media (max-width: 760px) {
   .cr .cp-bar-in { height: 64px; }
   .cr .as-h { font-size: clamp(46px, 13vw, 62px); max-width: none; }
+  .cr .as-h--shop { font-size: clamp(40px, 10.6vw, 62px); }
   .cr .as-from { font-size: 18px; }
   .cr .as-steps { grid-template-columns: minmax(0, 1fr); }
   .cr .as-step { border-radius: 28px; }

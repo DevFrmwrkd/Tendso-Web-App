@@ -62,6 +62,7 @@ import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
 import type * as lib_affiliateOffer from "../lib/affiliateOffer.js";
 import type * as lib_affiliateSignup from "../lib/affiliateSignup.js";
+import type * as lib_affiliateSocialLinks from "../lib/affiliateSocialLinks.js";
 import type * as lib_attribution from "../lib/attribution.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_availability from "../lib/availability.js";
@@ -180,6 +181,7 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   "lib/affiliateOffer": typeof lib_affiliateOffer;
   "lib/affiliateSignup": typeof lib_affiliateSignup;
+  "lib/affiliateSocialLinks": typeof lib_affiliateSocialLinks;
   "lib/attribution": typeof lib_attribution;
   "lib/auth": typeof lib_auth;
   "lib/availability": typeof lib_availability;

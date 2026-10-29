@@ -6,15 +6,15 @@ import { ArrowRight, Check } from "lucide-react";
 import { Component, useEffect, useSyncExternalStore, type ReactNode } from "react";
 
 import { CopyButton } from "@/app/affiliates/dashboard/_components/CopyButton";
-import { OfferPrice } from "@/app/affiliates/dashboard/_components/OfferPreview";
+import { CreatorSocialLinks, OfferPrice } from "@/app/affiliates/dashboard/_components/OfferPreview";
 import { Avatar, ButtonLink, ErrorState, FunnelHeader, Icon, Loading, PublicFooter, PublicPage, Skeleton } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { affiliateBuyHref, creatorPlatform, creatorStoreButtons, type CreatorPlatform } from "@/lib/affiliateLanding";
-import { affiliatePhotoError, affiliateSocialLinkError } from "@/lib/affiliates";
+import { affiliatePhotoError, type AffiliateSocialLinks } from "@/lib/affiliates";
 import { rememberAffiliate } from "@/lib/campaign";
 import { WEBSITE_PRICE } from "@/lib/pricing";
 
-type PublicAffiliate = FunctionReturnType<typeof api.affiliates.publicPage>;
+type PublicAffiliate = (Omit<NonNullable<FunctionReturnType<typeof api.affiliates.publicPage>>, "socialLinks"> & { socialLinks?: AffiliateSocialLinks }) | null;
 const subscribe = () => () => {};
 const serverPlatform = (): CreatorPlatform => "other";
 const browserPlatform = (): CreatorPlatform => creatorPlatform(navigator.userAgent, /macintosh/i.test(navigator.userAgent) && "ontouchend" in document);
@@ -72,7 +72,6 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
 }) {
     const price = affiliate?.price ?? WEBSITE_PRICE;
     const photo = affiliate?.photo && !affiliatePhotoError(affiliate.photo) ? affiliate.photo : null;
-    const social = affiliate?.socialLink && !affiliateSocialLinkError(affiliate.socialLink) ? affiliate.socialLink : null;
     const stores = creatorStoreButtons(platform, playUrl, iosUrl);
 
     return (
@@ -87,7 +86,7 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
                                 <img src={photo} alt="" className="t-avatar t-avatar-lg shrink-0 object-cover" />
                             ) : <Avatar name={affiliate.displayName} size="lg" />}
                             <div className="min-w-0">
-                                <p className="t-label">Your Tendso affiliate</p>
+                                <p className="t-label">Your Tendso creator</p>
                                 <p className="t-row-title wrap-anywhere">{affiliate.displayName}</p>
                             </div>
                         </div>
@@ -102,7 +101,7 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
                 </div>
                 <div className="flex flex-col gap-2">
                     <OfferPrice price={price} />
-                    <p className="t-body">See it first. Pay once to publish. Nothing to pay today.</p>
+                    <p className="t-body">Review your website first. Pay once when you choose to publish.</p>
                 </div>
                 <ButtonLink variant="primary" size="lg" href={affiliateBuyHref(handle)} block>
                     Get my website <Icon icon={ArrowRight} />
@@ -110,12 +109,12 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
                 <ul className="flex flex-col gap-2.5" aria-label="What your website includes">
                     {INCLUDED.map((item) => <li key={item} className="t-body flex items-start gap-2.5"><Icon icon={Check} className="mt-0.5 shrink-0" /><span>{item}</span></li>)}
                 </ul>
-                {social && <ButtonLink href={social} target="_blank" rel="noopener noreferrer" className="self-start">Message on Facebook</ButtonLink>}
+                {affiliate ? <CreatorSocialLinks socialLinks={affiliate.socialLinks} socialLink={affiliate.socialLink} /> : null}
             </article>
             <section className="t-card t-card-pad flex min-w-0 flex-col gap-5" aria-labelledby="affiliate-earn-title">
                 <div className="flex flex-col gap-2">
                     <h2 id="affiliate-earn-title" className="t-h2">Earn with Tendso</h2>
-                    <p className="t-body">Creators visit shops, take photos, and interview owners. Get paid to help local shops get online.</p>
+                    <p className="t-body">Field agents visit shops, take photos, and interview owners. Apply to help local shops get online.</p>
                 </div>
                 {affiliate?.referralCode && (
                     <>

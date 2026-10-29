@@ -182,7 +182,7 @@ describe('native affiliate access and live data', () => {
     view.rerender(<AffiliatePageScreen />);
     expect(view.getByLabelText('Display name').props.value).toBe('  My shop offer  ');
     fireEvent.press(view.getByLabelText('Save page and price'));
-    await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ photo: '', displayName: 'My shop offer', message: sampleAffiliate.affiliateMessage, socialLink: '', price: 999 }));
+    await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ photo: '', displayName: 'My shop offer', message: sampleAffiliate.affiliateMessage, socialLinks: {}, price: 999 }));
     expect(view.getByText('Page and price saved.')).toBeTruthy();
     expect(view.getByText('Saved share price: 999')).toBeTruthy();
   });
@@ -203,7 +203,7 @@ describe('native affiliate pricing and page validation', () => {
     const draft = affiliateDraft(sampleAffiliate);
     for (const price of ['', 'NaN', 'Infinity']) expect(() => affiliatePagePayload({ ...draft, price })).toThrow();
     expect(() => affiliatePagePayload({ ...draft, message: 'x'.repeat(201) })).toThrow(/200/);
-    expect(() => affiliatePagePayload({ ...draft, socialLink: 'https://facebook.com.attacker.test/name' })).toThrow(/Facebook/);
-    expect(affiliatePagePayload({ ...draft, message: 'x'.repeat(200), socialLink: 'https://m.me/my-page' }).socialLink).toBe('https://m.me/my-page');
+    expect(() => affiliatePagePayload({ ...draft, socialLinks: { facebook: 'https://facebook.com.attacker.test/name' } })).toThrow(/Facebook/);
+    expect(affiliatePagePayload({ ...draft, message: 'x'.repeat(200), socialLinks: { messenger: 'https://m.me/my-page' } }).socialLinks).toEqual({ messenger: 'https://m.me/my-page' });
   });
 });

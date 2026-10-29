@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, getAffiliateSocialLinks } from "@/lib/affiliates";
 import { rememberAffiliate } from "@/lib/campaign";
 import { useCreatorCard, useRecordClick, type CreatorCard } from "@/lib/v2/creatorData";
 import { firstName, peso } from "@/lib/v2/creatorProgram";
@@ -76,20 +77,34 @@ function Missing() {
 function Found({ card }: { card: CreatorCard }) {
     const name = firstName(card.name);
     const saves = card.saving > 0;
+    const message = card.message?.trim();
+    const socialLinks = getAffiliateSocialLinks(card.socialLinks);
+    const platforms = AFFILIATE_SOCIAL_PLATFORMS.filter((platform) => socialLinks[platform]);
     return (
         <>
             <section className="as-hero" aria-labelledby="as-h">
                 <div className="as-copy">
-                    <p className="ag-eyebrow">{name} sent you</p>
-                    <h1 className="as-h" id="as-h">
-                        {saves ? `With ${name}, you save ${peso(card.saving)}.` : `${name} sent you to Tendso.`}
+                    <p className="ag-eyebrow">Shared by {card.name}</p>
+                    <h1 className="as-h as-h--shop" id="as-h">
+                        Your shop online.<br />Pay once, own it.
                     </h1>
+                    {message ? <div className="as-note">
+                        <p className="as-note-label">A note from {name}</p>
+                        <p className="as-note-message">{message}</p>
+                    </div> : null}
                     <div className="as-price">
                         {saves ? <s>{peso(card.listPrice)}</s> : null}
                         <b>{peso(card.price)}</b>
-                        <span>Your shop&apos;s website. Pay once. No monthly fee.</span>
+                        <span>{saves ? `Save ${peso(card.saving)} with ${name}'s code.` : "One-time website price."} See it first. Pay to publish.</span>
                     </div>
                     <GetTheApp card={card} />
+                    {platforms.length ? <nav className="as-socials" aria-label={`${card.name}'s social links`}>
+                        <p>Find {name} online</p>
+                        <div>{platforms.map((platform) => <a key={platform} href={socialLinks[platform]} target="_blank" rel="noopener noreferrer">
+                            {platform === "messenger" ? "Message on Messenger" : AFFILIATE_SOCIAL_LABELS[platform]}
+                            <span aria-hidden="true">↗</span>
+                        </a>)}</div>
+                    </nav> : null}
                 </div>
                 <figure className="as-photo">
                     <CreatorPhoto card={card} />
@@ -129,7 +144,7 @@ function Found({ card }: { card: CreatorCard }) {
                         </figure>
                         <div className="as-step-t">
                             <span>2</span>
-                            <b>Pick what you sell.</b>
+                            <b>Choose your website design.</b>
                         </div>
                     </li>
                     <li className="as-step">
@@ -138,18 +153,18 @@ function Found({ card }: { card: CreatorCard }) {
                         </figure>
                         <div className="as-step-t">
                             <span>3</span>
-                            <b>A friend interviews you and takes 10 photos.</b>
+                            <b>Record your story and take 10 shop photos.</b>
                         </div>
                     </li>
                     <li className="as-step">
                         <figure className="as-fig-ink">
                             <p className="as-big">
-                                20<small>minutes</small>
+                                Your<small>shop. Your story.</small>
                             </p>
                         </figure>
                         <div className="as-step-t">
                             <span>4</span>
-                            <b>We build it in about 20 minutes.</b>
+                            <b>We turn your story into a website.</b>
                         </div>
                     </li>
                     <li className="as-step">
@@ -158,7 +173,7 @@ function Found({ card }: { card: CreatorCard }) {
                         </figure>
                         <div className="as-step-t">
                             <span>5</span>
-                            <b>See it first.</b>
+                            <b>Preview it and request changes.</b>
                         </div>
                     </li>
                     <li className="as-step as-step--accent">
@@ -168,7 +183,7 @@ function Found({ card }: { card: CreatorCard }) {
                                     {saves ? <s>{peso(card.listPrice)}</s> : null}
                                     <b>{peso(card.price)}</b>
                                 </span>
-                                <span className="k">Enter {name}&apos;s code</span>
+                                {card.code ? <span className="k">Use {name}&apos;s code before you pay</span> : null}
                             </div>
                         </figure>
                         <div className="as-step-t">
@@ -196,7 +211,7 @@ function Found({ card }: { card: CreatorCard }) {
 
             <section className="as-sec" id="get" aria-labelledby="as-end-h">
                 <div className="as-end">
-                    <h2 id="as-end-h">Get the app. Enter {name}&apos;s code.</h2>
+                    <h2 id="as-end-h">Your shop. Your website.</h2>
                     <div className="as-end-r">
                         <GetTheApp card={card} />
                     </div>

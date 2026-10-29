@@ -1,7 +1,7 @@
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { isCreatorAccount } from '../../lib/accounts';
-import { affiliateHandleError } from '../../lib/affiliates';
+import { affiliateHandleError, getAffiliateSocialLinks } from '../../lib/affiliates';
 import { isComped, WEBSITE_PRICE, clampSellPrice } from '../../lib/pricing';
 import { resolveAffiliateOffer } from './affiliateOffer';
 import { isPaidInFull as ownerPaidInFull } from './ownerApp';
@@ -141,6 +141,8 @@ export function creatorName(creator: Doc<'creators'>): string {
 export function creatorCard(creator: Doc<'creators'>, price: number) {
     const listPrice = WEBSITE_PRICE;
     const saving = Math.max(0, listPrice - price);
+    const message = creator.affiliateMessage?.trim();
+    const socialLinks = getAffiliateSocialLinks(creator.affiliateSocialLinks, creator.affiliateSocialLink);
     return {
         handle: creator.affiliateHandle!,
         name: creatorName(creator),
@@ -150,6 +152,8 @@ export function creatorCard(creator: Doc<'creators'>, price: number) {
         price,
         saving,
         percentOff: saving > 0 ? Math.round((saving / listPrice) * 100) : 0,
+        ...(message ? { message } : {}),
+        ...(Object.keys(socialLinks).length > 0 ? { socialLinks } : {}),
     };
 }
 

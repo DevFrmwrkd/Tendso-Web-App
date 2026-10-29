@@ -10,6 +10,7 @@ import { AffiliateAccess, Notice, type AffiliateAccessProps } from './Screen';
 import { AffiliateToolFrame } from './AffiliateToolFrame';
 import { affiliateDraft, affiliateName, affiliateUrl } from './model';
 import { CopyButton, ShareTools } from './ShareTools';
+import { AffiliateSocialButtons } from './Offer';
 
 export function AffiliatePageScreen() {
   return <AffiliateAccess>{props => <PageOverviewContent {...props} />}</AffiliateAccess>;
@@ -59,6 +60,7 @@ export function PageOverviewContent({ account, isPreview, isOffline }: Affiliate
           </View>
           {savings > 0 ? <Chip label={`Save ${formatPHP(savings)}`} tone="ok" /> : null}
         </View>
+        <AffiliateSocialButtons socialLinks={saved.socialLinks} disabled={isPreview || suspended} />
       </View>
     </Card>
     {url ? <View style={styles.link}>

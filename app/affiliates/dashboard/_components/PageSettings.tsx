@@ -8,12 +8,19 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { AuthAlert } from "@/app/auth/_components/AuthParts";
 import { Button, Field, Icon, Input, Textarea, initialsOf } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
-import { AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError, affiliateSocialLinkError } from "@/lib/affiliates";
+import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, affiliateSocialPlatformLinkError, getAffiliateSocialLinks, type AffiliateSocialLinks, type AffiliateSocialPlatform } from "@/lib/affiliates";
 
-export type AffiliatePageDraft = { photo: string; displayName: string; message: string; socialLink: string };
-type FieldErrors = { displayName?: string; message?: string; socialLink?: string };
+export type AffiliatePageDraft = { photo: string; displayName: string; message: string; socialLinks: AffiliateSocialLinks };
+type FieldErrors = { displayName?: string; message?: string; socialLinks?: Partial<Record<AffiliateSocialPlatform, string>> };
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const SOCIAL_PLACEHOLDERS: Record<AffiliateSocialPlatform, string> = {
+    messenger: "https://m.me/yourname",
+    facebook: "https://www.facebook.com/yourpage",
+    instagram: "https://www.instagram.com/yourname",
+    tiktok: "https://www.tiktok.com/@yourname",
+    youtube: "https://www.youtube.com/@yourchannel",
+};
 
 export function PageSettings({ draft, defaultName, handle, dirty, disabled, preview = false, onChange, onSaved }: {
     draft: AffiliatePageDraft;
@@ -31,7 +38,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
     const photoButtonRef = useRef<HTMLButtonElement>(null);
     const nameRef = useRef<HTMLInputElement>(null);
     const messageRef = useRef<HTMLTextAreaElement>(null);
-    const socialRef = useRef<HTMLInputElement>(null);
+    const socialRefs = useRef<Partial<Record<AffiliateSocialPlatform, HTMLInputElement | null>>>({});
     const [uploading, setUploading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [photoError, setPhotoError] = useState<string>();
@@ -83,19 +90,27 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
             photo: draft.photo.trim(),
             displayName: draft.displayName.trim(),
             message: draft.message.trim(),
-            socialLink: draft.socialLink.trim(),
+            socialLinks: getAffiliateSocialLinks(draft.socialLinks),
         };
         const next: FieldErrors = {
             displayName: page.displayName.length > 100 ? "Use 100 characters or fewer." : undefined,
             message: page.message.length > AFFILIATE_MESSAGE_MAX_LENGTH ? `Use ${AFFILIATE_MESSAGE_MAX_LENGTH} characters or fewer.` : undefined,
-            socialLink: affiliateSocialLinkError(page.socialLink) ?? undefined,
+            socialLinks: {},
         };
+        for (const platform of AFFILIATE_SOCIAL_PLATFORMS) {
+            const problem = affiliateSocialPlatformLinkError(platform, draft.socialLinks[platform] ?? "");
+            if (problem) next.socialLinks![platform] = problem;
+        }
+        const firstSocialError = AFFILIATE_SOCIAL_PLATFORMS.find((platform) => next.socialLinks?.[platform]);
         const imageProblem = affiliatePhotoError(page.photo);
         setErrors(next);
         setPhotoError(imageProblem ?? undefined);
         setSaveError(undefined);
-        if (next.displayName || next.message || next.socialLink || imageProblem) {
-            (next.displayName ? nameRef : next.message ? messageRef : next.socialLink ? socialRef : photoButtonRef).current?.focus();
+        if (next.displayName || next.message || firstSocialError || imageProblem) {
+            if (next.displayName) nameRef.current?.focus();
+            else if (next.message) messageRef.current?.focus();
+            else if (firstSocialError) socialRefs.current[firstSocialError]?.focus();
+            else photoButtonRef.current?.focus();
             return;
         }
         if (preview) {
@@ -118,8 +133,8 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
     return (
         <section id="page-settings" className="t-card t-card-pad flex min-w-0 flex-col gap-5 wrap-anywhere" aria-labelledby="page-settings-title">
             <div className="flex flex-col gap-1">
-                <h2 id="page-settings-title" className="t-h2">Your page</h2>
-                <p className="t-meta">Make your offer personal. Changes appear in the preview before you save.</p>
+                <h2 id="page-settings-title" className="t-h2">Your public page</h2>
+                <p className="t-meta">Introduce yourself to shop owners. Save your changes to update the page people see from your link.</p>
             </div>
             <form onSubmit={save} noValidate className="flex flex-col gap-5">
                 {saveError && <AuthAlert>{saveError}</AuthAlert>}
@@ -147,12 +162,18 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
                 <Field label="Display name" help={`Optional. Leave blank to use ${defaultName}.`} error={errors.displayName}>
                     <Input ref={nameRef} value={draft.displayName} placeholder={defaultName} maxLength={100} autoComplete="name" disabled={disabled || saving} onChange={(event) => change({ displayName: event.target.value })} />
                 </Field>
-                <Field label="Short message" help={`Optional. ${draft.message.length}/${AFFILIATE_MESSAGE_MAX_LENGTH} characters.`} error={errors.message}>
-                    <Textarea ref={messageRef} value={draft.message} placeholder="A personal message for shop owners" maxLength={AFFILIATE_MESSAGE_MAX_LENGTH} rows={3} disabled={disabled || saving} onChange={(event) => change({ message: event.target.value })} />
+                <Field label="Personal message" help={`Optional. Shown on your public page. ${draft.message.length}/${AFFILIATE_MESSAGE_MAX_LENGTH} characters.`} error={errors.message}>
+                    <Textarea ref={messageRef} value={draft.message} placeholder="Tell shop owners how you can help" maxLength={AFFILIATE_MESSAGE_MAX_LENGTH} rows={3} disabled={disabled || saving} onChange={(event) => change({ message: event.target.value })} />
                 </Field>
-                <Field label="Facebook or Messenger link" help="Optional. Use a Facebook, Messenger, or m.me link starting with https://." error={errors.socialLink}>
-                    <Input ref={socialRef} type="url" value={draft.socialLink} placeholder="https://m.me/yourname" autoCapitalize="none" autoComplete="url" spellCheck={false} maxLength={2048} disabled={disabled || saving} onChange={(event) => change({ socialLink: event.target.value })} />
-                </Field>
+                <fieldset className="flex min-w-0 flex-col gap-4">
+                    <legend className="t-label mb-2">Social links</legend>
+                    <p className="t-help">Optional. Add the accounts you want visitors to find. Each saved link appears on your public page. Use full links starting with https://.</p>
+                    {AFFILIATE_SOCIAL_PLATFORMS.map((platform) => (
+                        <Field key={platform} label={`${AFFILIATE_SOCIAL_LABELS[platform]} link`} error={errors.socialLinks?.[platform]}>
+                            <Input ref={(element) => { socialRefs.current[platform] = element; }} type="url" value={draft.socialLinks[platform] ?? ""} placeholder={SOCIAL_PLACEHOLDERS[platform]} autoCapitalize="none" autoComplete="url" spellCheck={false} maxLength={2048} disabled={disabled || saving} onChange={(event) => change({ socialLinks: { ...draft.socialLinks, [platform]: event.target.value } })} />
+                        </Field>
+                    ))}
+                </fieldset>
                 <p className="t-meta">Page handle: <strong className="break-all text-r1-ink">@{handle || "unavailable"}</strong>. Your handle stays the same.</p>
                 <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit" variant="primary" disabled={disabled || saving || uploading || !dirty} aria-busy={saving}>{saving ? "Saving…" : "Save page"}</Button>
