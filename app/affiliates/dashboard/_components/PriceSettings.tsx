@@ -65,7 +65,7 @@ export function PriceSettings({ value, previewPrice, dirty, disabled, preview = 
     }
 
     return (
-        <section id="price-settings" className="t-card t-card-pad flex min-w-0 flex-col gap-5" aria-labelledby="price-settings-title">
+        <section id="price-settings" className="ap-price-settings t-card t-card-pad flex min-w-0 flex-col gap-5" aria-labelledby="price-settings-title">
             <div className="flex flex-col gap-1">
                 <h2 id="price-settings-title" className="t-h2">Your price</h2>
                 <p className="t-meta">Choose {formatPHP(BASE_PRICE)}–{formatPHP(PRICE_CEILING)}. Your new price applies to future orders.</p>
@@ -80,7 +80,7 @@ export function PriceSettings({ value, previewPrice, dirty, disabled, preview = 
                     <input id={rangeId} type="range" min={BASE_PRICE} max={PRICE_CEILING} step={1} value={previewPrice} disabled={disabled || saving} onChange={(event) => change(event.target.value)} aria-valuetext={formatPHP(previewPrice)} className="h-8 w-full accent-r1-ink disabled:opacity-45" />
                     <div className="flex justify-between t-help"><span>{formatPHP(BASE_PRICE)}</span><span>{formatPHP(PRICE_CEILING)}</span></div>
                 </div>
-                <div className="flex flex-col gap-2 rounded-r1 bg-r1-fill-2 p-4" aria-live="polite">
+                <div className="ap-price-summary flex flex-col gap-2 rounded-r1 bg-r1-fill-2 p-4" aria-live="polite">
                     <p className="t-label">Shop owners see</p>
                     <p className="flex flex-wrap items-baseline gap-2">
                         {discount && <del className="t-meta">{formatPHP(discount.listPrice)}</del>}
@@ -89,7 +89,7 @@ export function PriceSettings({ value, previewPrice, dirty, disabled, preview = 
                     </p>
                     <p className="t-body">Your commission: <strong>{formatPHP(commissionFor(previewPrice))}</strong> ({Math.round(COMMISSION_RATE * 100)}% of the website price).</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="ap-save-row flex flex-wrap items-center gap-3">
                     <Button type="submit" disabled={disabled || saving || !dirty} aria-busy={saving}>{saving ? "Saving…" : "Save price"}</Button>
                     <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? preview ? "Price saved in this preview." : "Price saved." : dirty ? "Unsaved price change" : ""}</p>
                 </div>

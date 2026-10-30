@@ -46,10 +46,10 @@ export function ShareTools({ handle, displayName, price, disabled = false }: {
                 <p className="t-meta">Share your page with shop owners. The QR opens the same link.</p>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-r1 bg-r1-fill-2 p-3">
-                <span className="min-w-0 select-all break-all text-sm text-r1-ink">{url.replace("https://", "")}</span>
+                <span className="ap-share-url min-w-0 select-all break-all text-sm text-r1-ink">{url.replace("https://", "")}</span>
                 <CopyButton value={url} label="Copy your affiliate page link" disabled={disabled} />
             </div>
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+            <div className="ap-qr-body flex flex-col items-center gap-4 sm:flex-row sm:items-center">
                 <QRCodeCanvas ref={qr} value={url} size={768} marginSize={4} level="M" bgColor="#FFFFFF" fgColor="#111111" role="img" aria-label={`QR code for ${url}`} style={{ width: "192px", height: "192px", maxWidth: "100%" }} />
                 <div className="flex w-full flex-col gap-3 sm:w-auto">
                     <Button onClick={download} disabled={disabled}><Icon icon={Download} />Download QR PNG</Button>

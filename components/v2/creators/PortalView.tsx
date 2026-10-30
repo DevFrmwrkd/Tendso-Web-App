@@ -117,6 +117,8 @@ export interface PortalViewProps {
     idPrefix?: string;
     /** Sample only: the payout address shown on the balance. */
     payoutTo?: string;
+    /** Standalone portal: use income disclosures on phones while keeping desktop rows. */
+    compactIncome?: boolean;
 }
 
 /**
@@ -125,7 +127,7 @@ export interface PortalViewProps {
  * (/v2/creators/portal) and for the sample on /v2/creators, so what people see in the sample is
  * exactly what they get.
  */
-export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo }: PortalViewProps) {
+export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo, compactIncome = false }: PortalViewProps) {
     const { creator, now, monthly, recruits, shops, payouts } = data;
     const id = (s: string) => `${idPrefix}-${s}`;
 
@@ -199,6 +201,28 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
     );
 
     const payoutDone = (status: PortalSummary["payouts"]["history"][number]["status"]) => (status === "completed" ? "Done" : status === "failed" ? "Failed" : "On its way");
+    const shopIncome = now.shops.length > 0 ? (
+        <div className="pt-incc-list">
+            {now.shops.slice(0, 3).map((s) => (
+                <div key={s.submissionId}>
+                    <ShopThumb src={shopPic(s.businessName)} name={s.businessName} size={32} />
+                    <b>{s.businessName}</b>
+                    <span className="r">{peso(s.kept)}<small>{fmtDay(s.paidAt ?? s.date)}</small></span>
+                </div>
+            ))}
+        </div>
+    ) : <p className="pt-incc-empty">No shop has paid with your code this month yet.</p>;
+    const agentIncome = active.length > 0 ? (
+        <div className="pt-incc-list">
+            {active.slice(0, 3).map((r) => (
+                <div key={r.creatorId}>
+                    <Face src={faceOf(r.name)} name={r.name} size={32} />
+                    <b>{r.name}</b>
+                    <span className="r">{plural(r.salesThisMonth, "sale", "sales")}<small>ends {fmtDate(r.endsAt)}</small></span>
+                </div>
+            ))}
+        </div>
+    ) : <p className="pt-incc-empty">No agent of yours has sold this month yet.</p>;
 
     return (
         <div className="pt-view">
@@ -212,22 +236,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     <p className="pt-sub">
                         {plural(now.shopsThisMonth, "shop", "shops")} this month{keptEach !== null ? ` · ${peso(keptEach)} each` : ""}
                     </p>
-                    {now.shops.length > 0 ? (
-                        <div className="pt-incc-list">
-                            {now.shops.slice(0, 3).map((s) => (
-                                <div key={s.submissionId}>
-                                    <ShopThumb src={shopPic(s.businessName)} name={s.businessName} size={32} />
-                                    <b>{s.businessName}</b>
-                                    <span className="r">
-                                        {peso(s.kept)}
-                                        <small>{fmtDay(s.paidAt ?? s.date)}</small>
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="pt-incc-empty">No shop has paid with your code this month yet.</p>
-                    )}
+                    {compactIncome ? <div className="pt-income-inline">{shopIncome}</div> : shopIncome}
                 </article>
                 <article className="pt-incc pt-incc--monthly">
                     <div className="pt-incc-top">
@@ -239,23 +248,18 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         {plural(monthly.activeAgents, "agent", "agents")} active · {plural(salesThisMonth, "sale", "sales")}
                         {monthly.nextEndDate ? ` · next ends ${fmtDate(monthly.nextEndDate)}` : ""}
                     </p>
-                    {active.length > 0 ? (
-                        <div className="pt-incc-list">
-                            {active.slice(0, 3).map((r) => (
-                                <div key={r.creatorId}>
-                                    <Face src={faceOf(r.name)} name={r.name} size={32} />
-                                    <b>{r.name}</b>
-                                    <span className="r">
-                                        {plural(r.salesThisMonth, "sale", "sales")}
-                                        <small>ends {fmtDate(r.endsAt)}</small>
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="pt-incc-empty">No agent of yours has sold this month yet.</p>
-                    )}
+                    {compactIncome ? <div className="pt-income-inline">{agentIncome}</div> : agentIncome}
                 </article>
+                {compactIncome ? <>
+                    <details className="pt-income-details">
+                        <summary><span>Recent shop earnings</span><span className="pt-details-toggle" aria-hidden="true">+</span></summary>
+                        {shopIncome}
+                    </details>
+                    <details className="pt-income-details">
+                        <summary><span>Recent agent sales</span><span className="pt-details-toggle" aria-hidden="true">+</span></summary>
+                        {agentIncome}
+                    </details>
+                </> : null}
             </section>
 
             <div className="pt-row2">
@@ -273,7 +277,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         <div className="pt-link">
                             <span className="l">For shops</span>
                             <span className="v">{shopLink}</span>
-                            <div className="acts">
+                            <div className="acts" role="group" aria-label="Shop link actions">
                                 <CopyButton className="pt-btn" text={`https://${shopLink}`}>
                                     <CopyIcon />
                                     Copy
@@ -284,7 +288,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         <div className="pt-link">
                             <span className="l">For field agents</span>
                             <span className="v">{earnLink}</span>
-                            <div className="acts">
+                            <div className="acts" role="group" aria-label="Agent link actions">
                                 <CopyButton className="pt-btn" text={`https://${earnLink}`}>
                                     <CopyIcon />
                                     Copy
@@ -295,7 +299,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         <div className="pt-link">
                             <span className="l">Your code · {creator.percentOff}% off</span>
                             <span className="v pt-code">{creator.code ?? "—"}</span>
-                            <div className="acts">
+                            <div className="acts" role="group" aria-label="Discount code actions">
                                 {creator.code ? (
                                     <CopyButton className="pt-btn" text={creator.code}>
                                         <CopyIcon />
@@ -345,8 +349,8 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                             </table>
                         </div>
                         <div className="pt-cards">
-                            {active.map((r) => (
-                                <div className="pt-c" key={r.creatorId}>
+                            {[...active, ...quiet].map((r) => (
+                                <div className={`pt-c pt-agent-card${r.salesThisMonth > 0 ? '' : ' is-quiet'}`} key={r.creatorId}>
                                     <div className="pt-who">
                                         <Face src={faceOf(r.name)} name={r.name} size={40} />
                                         <div>
@@ -356,20 +360,16 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                                     </div>
                                     <div className="r">
                                         {r.overrideThisMonth ? peso(r.overrideThisMonth) : "—"}
-                                        <small>{plural(r.salesThisMonth, "sale", "sales")}</small>
+                                        <small>Your 5% · {plural(r.salesThisMonth, "sale", "sales")}</small>
                                     </div>
                                     <div className="meta">
                                         <span>Joined {fmtDate(r.joinedAt)}</span>
-                                        <span>{monthsLeftLabel(r.monthsLeft)}</span>
+                                        <span>{r.earning ? "Ends" : "Ended"} {fmtDate(r.endsAt)}</span>
                                     </div>
+                                    <div className="pt-agent-period"><Months left={r.monthsLeft} /><span>{r.earning ? monthsLeftLabel(r.monthsLeft) : "Period ended"}</span></div>
                                 </div>
                             ))}
                         </div>
-                        {quiet.length > 0 ? (
-                            <p className="pt-more pt-cards">
-                                {plural(quiet.length, "more agent", "more agents")} with no sale this month. You earn when they sell.
-                            </p>
-                        ) : null}
                     </>
                 )}
             </section>

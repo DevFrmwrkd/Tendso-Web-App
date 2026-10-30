@@ -1,0 +1,135 @@
+.frame {
+    min-width: 0;
+}
+
+.frame :global(.cp-bar-in) {
+    height: auto;
+    min-height: 76px;
+    flex-wrap: wrap;
+    column-gap: 20px;
+    row-gap: 10px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+.frame :global(.cp-bar-r) {
+    min-width: 0;
+    max-width: 260px;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+    margin-left: 12px;
+}
+
+.nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: var(--r-pill);
+    color: var(--ink-2);
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 500;
+    text-align: center;
+}
+
+.nav a:hover {
+    color: var(--ink);
+    background: var(--tile-quiet);
+}
+
+.nav a.current {
+    color: var(--canvas);
+    background: var(--ink);
+}
+
+.identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.main {
+    display: grid;
+    gap: 24px;
+    min-width: 0;
+    padding-top: 28px;
+    padding-bottom: 64px;
+}
+
+.main > * {
+    min-width: 0;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: start;
+    min-height: 44px;
+    color: var(--ink-2);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.back:hover {
+    color: var(--ink);
+}
+
+@media (max-width: 1100px) {
+    .nav {
+        order: 3;
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 760px) {
+    .frame :global(.cp-bar-in) {
+        min-height: 64px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .name {
+        display: none;
+    }
+
+    .nav {
+        flex-wrap: nowrap;
+        max-width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar { display: none; }
+
+    .nav a {
+        flex-shrink: 0;
+        min-height: 44px;
+    }
+
+    .main {
+        gap: 20px;
+        padding-top: 20px;
+        padding-bottom: 40px;
+    }
+}

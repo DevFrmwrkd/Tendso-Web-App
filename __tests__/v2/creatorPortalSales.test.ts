@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { PortalView } from '@/components/v2/creators/PortalView';
 import { SAMPLE_PORTAL } from '@/lib/v2/creatorSample';
-import type { PortalShop, PortalSummary } from '@/lib/v2/creatorTypes';
+import type { PortalRecruit, PortalShop, PortalSummary } from '@/lib/v2/creatorTypes';
 import { saleStatusLabel } from '@/packages/shared/affiliateSales';
 
 const base: PortalShop = {
@@ -123,5 +123,50 @@ describe('existing creator page editor entry', () => {
         const html = render([base], true);
         expect(html).toContain('href="#sample-links">Edit your page</a>');
         expect(html).not.toContain('href="/affiliates/dashboard/my-page"');
+    });
+});
+
+describe('standalone portal phone details', () => {
+    it('keeps zero-sale and ended agents discoverable with their actual commission period', () => {
+        const baseRecruit: PortalRecruit = {
+            creatorId: 'agent-with-sales', name: 'Agent with sales', area: 'Manila', joinedAt: Date.UTC(2026, 9, 22),
+            salesThisMonth: 1, overrideThisMonth: 150, overrideTotal: 150, endsAt: Date.UTC(2027, 9, 22), monthsLeft: 12, earning: true,
+        };
+        const data = { ...portal([]), recruits: [baseRecruit,
+            { ...baseRecruit, creatorId: 'quiet-agent', name: 'Agent without sales', salesThisMonth: 0, overrideThisMonth: 0, monthsLeft: 4 },
+            { ...baseRecruit, creatorId: 'ended-agent', name: 'Agent whose period ended', salesThisMonth: 0, overrideThisMonth: 0,
+                endsAt: Date.UTC(2026, 9, 22), monthsLeft: 0, earning: false },
+        ] };
+        const html = renderToStaticMarkup(createElement(PortalView, { data, compactIncome: true }));
+        const section = html.match(/<section[^>]*aria-label="Your field agents"[^>]*>([\s\S]*?)<\/section>/)?.[1];
+        const cards = section?.slice(section.indexOf('<div class="pt-cards">'));
+        expect(cards).toContain('Agent with sales');
+        expect(cards).toContain('Agent without sales');
+        expect(cards).toContain('Agent whose period ended');
+        expect(cards).toContain('12 months left');
+        expect(cards).toContain('4 months left');
+        expect(cards).toContain('Ends 22 Oct 2027');
+        expect(cards).toContain('Ended 22 Oct 2026');
+        expect(cards).toContain('Period ended');
+        expect(cards).not.toContain('more agents with no sale');
+    });
+
+    it('retains desktop income rows and exposes the same recent shop earnings in a phone disclosure', () => {
+        const data = { ...portal([base]), now: { thisMonth: 1750, shopsThisMonth: 1, shops: [base] } };
+        const html = renderToStaticMarkup(createElement(PortalView, { data, compactIncome: true }));
+        const income = html.match(/<section[^>]*aria-label="This month&#x27;s income"[^>]*>([\s\S]*?)<\/section>/)?.[1];
+        const desktopRows = income?.match(/<div class="pt-income-inline">([\s\S]*?)<\/article>/)?.[1];
+        const disclosure = income?.match(/<details class="pt-income-details">([\s\S]*?)<\/details>/)?.[1];
+        expect(desktopRows).toContain('Sam’s Barbershop');
+        expect(desktopRows).toContain('₱1,750');
+        expect(disclosure).toContain('<summary>');
+        expect(disclosure).toContain('Recent shop earnings');
+        expect(disclosure).toContain('Sam’s Barbershop');
+        expect(disclosure).toContain('₱1,750');
+        expect(html).toContain('Recent agent sales');
+
+        const sample = renderToStaticMarkup(createElement(PortalView, { data, sample: true }));
+        expect(sample).not.toContain('pt-income-details');
+        expect(sample).toContain('Sam’s Barbershop');
     });
 });

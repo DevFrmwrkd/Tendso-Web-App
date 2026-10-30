@@ -53,14 +53,15 @@ function PortalInner() {
     const ready = state.status === "ready" ? state : null;
     const name = ready?.data.creator.name ?? "";
     return (
-        <>
+        <div className="pt-shell">
             <SoloBar
                 right={
                     ready ? (
-                        <span className="pt-me">
-                            <Face src={ready.pictures?.creator ?? ready.data.creator.photo} name={name} size={40} />
+                        <Link className="pt-me" href="/affiliates/dashboard/my-page" aria-label="Edit your creator page">
+                            <Face src={ready.pictures?.creator ?? ready.data.creator.photo} name={name} size={32} />
                             <span>{name}</span>
-                        </span>
+                            <span className="pt-me-link">My page</span>
+                        </Link>
                     ) : state.status === "loading" ? null : (
                         <Link className="btn btn--line btn--sm" href="/v2/creators/signup">
                             Log in
@@ -70,8 +71,8 @@ function PortalInner() {
             >
                 {ready ? (
                     <nav className="pt-nav" aria-label="Portal">
-                        {PORTAL_NAV.map((n, i) => (
-                            <a key={n.id} href={`#${n.id}`} className={i === 0 ? "is-on" : undefined} aria-current={i === 0 ? "page" : undefined}>
+                        {PORTAL_NAV.map((n) => (
+                            <a key={n.id} href={`#${n.id}`}>
                                 {n.label}
                             </a>
                         ))}
@@ -143,7 +144,7 @@ function PortalInner() {
                                 <p>Your creator account is paused. What you already earned is still here, and you can still send it.</p>
                             </div>
                         )}
-                        <PortalView data={ready.data} pictures={ready.pictures} sample={CREATORS_SAMPLE} payoutTo={CREATORS_SAMPLE ? "mika.santos@gmail.com" : undefined} />
+                        <PortalView data={ready.data} pictures={ready.pictures} sample={CREATORS_SAMPLE} compactIncome payoutTo={CREATORS_SAMPLE ? "mika.santos@gmail.com" : undefined} />
                     </>
                 )}
 
@@ -156,6 +157,6 @@ function PortalInner() {
                     note="Paid on real sales only. Your 5% is paid once the shop has paid in full."
                 />
             </main>
-        </>
+        </div>
     );
 }

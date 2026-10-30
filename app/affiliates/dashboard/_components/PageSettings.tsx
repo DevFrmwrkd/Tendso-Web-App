@@ -131,14 +131,14 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
     }
 
     return (
-        <section id="page-settings" className="t-card t-card-pad flex min-w-0 flex-col gap-5 wrap-anywhere" aria-labelledby="page-settings-title">
-            <div className="flex flex-col gap-1">
+        <section id="page-settings" className="ap-page-settings t-card t-card-pad flex min-w-0 flex-col gap-5 wrap-anywhere" aria-labelledby="page-settings-title">
+            <div className="ap-section-heading flex flex-col gap-1">
                 <h2 id="page-settings-title" className="t-h2">Your public page</h2>
                 <p className="t-meta">Introduce yourself to shop owners. Save your changes to update the page people see from your link.</p>
             </div>
             <form onSubmit={save} noValidate className="flex flex-col gap-5">
                 {saveError && <AuthAlert>{saveError}</AuthAlert>}
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="ap-photo-row flex flex-wrap items-center gap-4">
                     {draft.photo ? (
                         // R2 photos are outside next/image's configured hosts.
                         // eslint-disable-next-line @next/next/no-img-element
@@ -165,7 +165,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
                 <Field label="Personal message" help={`Optional. Shown on your public page. ${draft.message.length}/${AFFILIATE_MESSAGE_MAX_LENGTH} characters.`} error={errors.message}>
                     <Textarea ref={messageRef} value={draft.message} placeholder="Tell shop owners how you can help" maxLength={AFFILIATE_MESSAGE_MAX_LENGTH} rows={3} disabled={disabled || saving} onChange={(event) => change({ message: event.target.value })} />
                 </Field>
-                <fieldset className="flex min-w-0 flex-col gap-4">
+                <fieldset className="ap-social-fields flex min-w-0 flex-col gap-4">
                     <legend className="t-label mb-2">Social links</legend>
                     <p className="t-help">Optional. Add the accounts you want visitors to find. Each saved link appears on your public page. Use full links starting with https://.</p>
                     {AFFILIATE_SOCIAL_PLATFORMS.map((platform) => (
@@ -175,7 +175,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
                     ))}
                 </fieldset>
                 <p className="t-meta">Page handle: <strong className="break-all text-r1-ink">@{handle || "unavailable"}</strong>. Your handle stays the same.</p>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="ap-save-row flex flex-wrap items-center gap-3">
                     <Button type="submit" variant="primary" disabled={disabled || saving || uploading || !dirty} aria-busy={saving}>{saving ? "Saving…" : "Save page"}</Button>
                     <p className="t-meta" role="status" aria-live="polite">{saved && !dirty ? preview ? "Page saved in this preview." : "Page saved." : dirty ? "Unsaved page changes" : ""}</p>
                 </div>

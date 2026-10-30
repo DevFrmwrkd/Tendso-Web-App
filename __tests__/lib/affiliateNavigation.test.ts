@@ -23,6 +23,9 @@ jest.mock("next/navigation", () => ({
     usePathname: () => state.pathname,
     useRouter: () => ({ replace: state.replace, push: state.push }),
 }));
+jest.mock("@/components/v2/fonts", () => ({ v2Fonts: "test-v2-fonts" }));
+jest.mock("@/components/v2/creators/creators.css", () => ({}));
+jest.mock("@/app/affiliates/dashboard/_components/AffiliatePageFrame.module.css", () => ({}));
 
 const account: Doc<"creators"> = {
     _id: "own-affiliate" as Doc<"creators">["_id"],
@@ -59,7 +62,8 @@ const destinations = [
 ] as const;
 
 function linksIn(html: string): string[] {
-    return [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1].replaceAll("&amp;", "&"));
+    // React can add image preload <link>s; only anchors are navigation.
+    return [...html.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((match) => match[1].replaceAll("&amp;", "&"));
 }
 function sidebarHtml(html: string): string {
     const nav = html.match(/<aside\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/aside>/)?.[1];
@@ -73,6 +77,16 @@ function mobileTabsHtml(html: string): string {
     const nav = html.match(/<nav\b[^>]*class="[^"]*t-tabbar[^"]*"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
     expect(nav).toBeDefined();
     return nav!;
+}
+function creatorPortalNavHtml(html: string): string {
+    const nav = html.match(/<nav\b[^>]*aria-label="Creator portal"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+    expect(nav).toBeDefined();
+    return nav!;
+}
+function pageMainHtml(html: string): string {
+    const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1];
+    expect(main).toBeDefined();
+    return main!;
 }
 
 let mounted = 0;
@@ -155,7 +169,7 @@ describe("affiliate navigation", () => {
         expect(tabs).not.toContain("t-tabbar-new");
     });
 
-    it.each(destinations)("marks only %s current, including after client navigation", (_label, pathname) => {
+    it.each(destinations.filter(([label]) => label !== "My page"))("marks only %s current, including after client navigation", (_label, pathname) => {
         state.pathname = pathname;
         const html = renderToStaticMarkup(createElement(AffiliateShellView, { account }));
         const nav = sidebarHtml(html);
@@ -167,7 +181,7 @@ describe("affiliate navigation", () => {
         if (mobileCurrent.length) expect(mobileCurrent[0]).toContain(`href="${pathname}"`);
     });
 
-    it.each(AFFILIATE_SECTIONS)("keeps preview destinations protected and marks %s current despite the shared pathname", (section) => {
+    it.each(AFFILIATE_SECTIONS.filter(section => section !== "my-page"))("keeps preview destinations protected and marks %s current despite the shared pathname", (section) => {
         state.pathname = "/admin/preview/affiliate";
         const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, preview: true, section }));
         const nav = sidebarHtml(html);
@@ -182,6 +196,68 @@ describe("affiliate navigation", () => {
         if (mobileCurrent.length) expect(mobileCurrent[0]).toContain(`href="${affiliateHref(section, true)}"`);
         expect(useQuery).not.toHaveBeenCalled();
         expect(useUser).not.toHaveBeenCalled();
+    });
+
+    it.each(["/affiliates/dashboard/my-page", "/affiliates/dashboard/my-page/"])("uses the real creator page frame for the exact live route %s", (pathname) => {
+        state.pathname = pathname;
+        const html = renderToStaticMarkup(createElement(AffiliateShellView, { account }, "page-editor-content"));
+        const nav = creatorPortalNavHtml(html);
+        expect(linksIn(nav)).toEqual([
+            "/affiliates/dashboard/my-page",
+            "/v2/creators/portal#top", "/v2/creators/portal#pt-links", "/v2/creators/portal#pt-agents",
+            "/v2/creators/portal#pt-shops", "/v2/creators/portal#pt-pay",
+        ]);
+        const current = nav.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
+        expect(current).toHaveLength(1);
+        expect(current[0]).toContain('href="/affiliates/dashboard/my-page"');
+        expect(current[0]).toContain("My page");
+        const main = pageMainHtml(html);
+        expect(main).toContain('href="/v2/creators/portal"');
+        expect(main).toContain("Back to portal");
+        expect(main).toContain("page-editor-content");
+        expect(html).toContain('class="v2 test-v2-fonts cr ag cp cp-solo pt"');
+        expect(html).not.toContain('aria-label="Main navigation"');
+        expect(html).not.toContain("t-tabbar");
+        expect(useUser).not.toHaveBeenCalled();
+        expect(useConvexAuth).not.toHaveBeenCalled();
+        expect(useQuery).not.toHaveBeenCalled();
+    });
+
+    it.each(["/affiliates/dashboard", "/affiliates/dashboard/my-page/extra", "/affiliates/dashboard/my-page-other"])("keeps the existing shell for a non-editor route %s", (pathname) => {
+        state.pathname = pathname;
+        const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, section: "my-page" }));
+        expect(sidebarHtml(html)).toContain('href="/affiliates/dashboard/my-page"');
+        expect(mobileTabsHtml(html)).toBeDefined();
+        expect(html).not.toContain('aria-label="Creator portal"');
+    });
+
+    it.each(["/admin/preview/affiliate", "/affiliates/dashboard/my-page"])("keeps the My page preview inside protected preview destinations at %s", (pathname) => {
+        state.pathname = pathname;
+        const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, preview: true, section: "my-page" }, "sample-editor-content"));
+        const nav = creatorPortalNavHtml(html);
+        expect(linksIn(nav)).toEqual([
+            "/admin/preview/affiliate?section=my-page",
+            "/admin/preview/affiliate", "/admin/preview/affiliate", "/admin/preview/affiliate?section=referrals",
+            "/admin/preview/affiliate?section=sales", "/admin/preview/affiliate?section=wallet",
+        ]);
+        const current = nav.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
+        expect(current).toHaveLength(1);
+        expect(current[0]).toContain('href="/admin/preview/affiliate?section=my-page"');
+        expect(linksIn(html).every(href => AFFILIATE_SECTIONS.some(section => affiliateHref(section, true) === href))).toBe(true);
+        const main = pageMainHtml(html);
+        expect(main).toContain('href="/admin/preview/affiliate"');
+        expect(main).toContain("Back to portal");
+        expect(main).toContain("sample-editor-content");
+        expect(html).not.toContain('aria-label="Main navigation"');
+        expect(useQuery).not.toHaveBeenCalled();
+        expect(useUser).not.toHaveBeenCalled();
+    });
+
+    it("uses the selected preview section instead of the live pathname to choose the frame", () => {
+        state.pathname = "/affiliates/dashboard/my-page";
+        const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, preview: true, section: "wallet" }));
+        expect(currentSidebarLinks(sidebarHtml(html))[0]).toContain('href="/admin/preview/affiliate?section=wallet"');
+        expect(html).not.toContain('aria-label="Creator portal"');
     });
 });
 
@@ -198,6 +274,33 @@ describe("affiliate dashboard account boundary", () => {
         state.session!.creator!.status = "suspended";
         expect(renderBoundary()).toContain("protected-affiliate-content:current-user");
         expect(mounted).toBe(1);
+    });
+
+    it.each(["active", "suspended"])("keeps the redesigned My page behind the verified %s affiliate boundary", (status) => {
+        state.pathname = "/affiliates/dashboard/my-page";
+        state.session!.creator!.status = status;
+        const html = renderBoundary();
+        expect(creatorPortalNavHtml(html)).toContain('href="/affiliates/dashboard/my-page"');
+        expect(pageMainHtml(html)).toContain("protected-affiliate-content:current-user");
+        expect(mounted).toBe(1);
+        expect((useQuery as jest.Mock).mock.calls.map(([reference, args]) => [getFunctionName(reference), args])).toEqual([
+            ["adminAccess:me", {}],
+        ]);
+        if (status === "suspended") expect(pageMainHtml(html)).toContain("Page changes, sharing, and payouts are paused.");
+    });
+
+    it.each(["pending", "wrong role", "deleted", "previous identity", "signed out"])("does not bypass the My page boundary for %s", (condition) => {
+        state.pathname = "/affiliates/dashboard/my-page";
+        if (condition === "pending") state.session!.creator!.status = "pending";
+        if (condition === "wrong role") state.session!.creator!.role = "creator";
+        if (condition === "deleted") state.session!.creator!.isDeleted = true;
+        if (condition === "previous identity") state.session!.clerkId = "previous-user";
+        if (condition === "signed out") { state.user = null; state.signedIn = false; }
+        const html = renderBoundary();
+        expect(html).not.toContain("protected-affiliate-content");
+        expect(html).not.toContain('aria-label="Creator portal"');
+        expect(mounted).toBe(0);
+        if (condition === "signed out") expect((useQuery as jest.Mock).mock.calls.every(([, args]) => args === "skip")).toBe(true);
     });
 
     it.each(destinations)("shows awaiting approval before mounting a pending affiliate's %s deep link", (_label, pathname) => {

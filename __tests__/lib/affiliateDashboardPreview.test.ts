@@ -23,6 +23,7 @@ jest.mock("@/convex/_generated/api", () => ({
     },
 }));
 jest.mock("@/app/affiliates/dashboard/_components/ShareTools.module.css", () => ({}));
+jest.mock("@/app/affiliates/dashboard/_components/MyPage.module.css", () => ({}));
 
 const account: Doc<"creators"> = {
     _id: "preview-affiliate" as Doc<"creators">["_id"],
@@ -102,6 +103,32 @@ beforeEach(() => {
 });
 
 describe("affiliate dashboard preview", () => {
+    it("connects page sections and the saved public page without mixing price and page forms", () => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
+        expect(html).toContain('aria-label="Page settings"');
+        for (const id of ["page-settings", "price-settings", "affiliate-share-heading"]) {
+            expect(html).toContain(`href="#${id}"`);
+            expect(html).toContain(`id="${id}"`);
+        }
+        expect(html).toContain(`href="/v2/a/${account.affiliateHandle}"`);
+        expect(html).toContain("View saved page");
+        expect(html.match(/<form\b/g)).toHaveLength(2);
+        expect(html).toContain("This is the offer shop owners see from your link.");
+        expect(usePaginatedQuery).not.toHaveBeenCalled();
+        const previewHtml = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
+        expect(previewHtml).not.toContain("View saved page");
+    });
+
+    it("keeps a suspended creator's page, offer, uploads and share materials read-only", () => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, { account: { ...account, status: "suspended" } }));
+        for (const label of ["Change photo", "Remove", "Save page", "Save price", "Download QR PNG", "Print A4 poster"]) {
+            expect(buttonTag(html, label)).toContain('disabled=""');
+        }
+        for (const control of html.match(/<(?:input|textarea)\b[^>]*>/g) ?? []) expect(control).toContain('disabled=""');
+        expect(updatePage).not.toHaveBeenCalled();
+        expect(generateUploadUrl).not.toHaveBeenCalled();
+    });
+
     it("renders only the page editor and offer without subscribing to sales or payouts", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
 

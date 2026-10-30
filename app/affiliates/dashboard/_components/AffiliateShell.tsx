@@ -3,7 +3,7 @@
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { useConvexAuth, useQuery } from "convex/react";
 import { Gift, Home, ShoppingBag, Store, User, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import { AUTH_BODY, AuthFrame } from "@/app/auth/_components/AuthFrame";
@@ -15,6 +15,7 @@ import { SUPPORT_EMAIL } from "@/lib/contact";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../../_components/AccountState";
 import { affiliateHref, type AffiliateSection } from "../_lib/navigation";
+import { AffiliatePageFrame } from "./AffiliatePageFrame";
 
 const AffiliateAccount = createContext<Doc<"creators"> | null>(null);
 
@@ -89,6 +90,9 @@ export function AffiliateShellView({ account, children, preview = false, section
     preview?: boolean;
     section?: AffiliateSection;
 }) {
+    const pathname = usePathname();
+    const pageRoute = preview ? section === "my-page" : pathname?.replace(/\/$/, "") === "/affiliates/dashboard/my-page";
+    if (pageRoute) return <AffiliatePageFrame account={account} preview={preview}>{children}</AffiliatePageFrame>;
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
     const entry = (key: AffiliateSection, label: string, icon: NavLinkEntry["icon"]): NavLinkEntry => ({
         href: affiliateHref(key, preview), label, icon, exact: key === "home",

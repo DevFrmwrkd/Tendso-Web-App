@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { PageHeader } from "@/components/r1";
+import { ArrowUpRight, Check, Eye } from "lucide-react";
+import Link from "next/link";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { getAffiliateSocialLinks } from "@/lib/affiliates";
 import { SUPPORT_EMAIL } from "@/lib/contact";
@@ -12,6 +13,7 @@ import { OfferPreview } from "./OfferPreview";
 import { PageSettings, type AffiliatePageDraft } from "./PageSettings";
 import { PriceSettings } from "./PriceSettings";
 import { ShareTools } from "./ShareTools";
+import styles from "./MyPage.module.css";
 
 function pageValues(account: Doc<"creators">): AffiliatePageDraft {
     return {
@@ -54,10 +56,22 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
     const previewName = pageDraft.displayName.trim() || defaultName;
 
     return (
-        <>
-            <PageHeader title="My page" sub="Personalize your page, set your offer, and share your link." />
-            <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-                <div className="flex min-w-0 flex-col gap-6">
+        <div className={styles.editor}>
+            <header className={styles.heading}>
+                <div>
+                    <span className={styles.eyebrow}>YOUR CREATOR PAGE</span>
+                    <h1>My page.</h1>
+                    <p>Introduce yourself, set your offer, and make your link ready to share.</p>
+                </div>
+                {!preview && account.affiliateHandle && <Link className={styles.visit} href={`/v2/a/${encodeURIComponent(account.affiliateHandle)}`} target="_blank" rel="noopener noreferrer">View saved page <ArrowUpRight size={18} aria-hidden="true" /></Link>}
+            </header>
+            <nav className={styles.sections} aria-label="Page settings">
+                <a href="#page-settings"><span>01</span> Page details</a>
+                <a href="#price-settings"><span>02</span> Your offer</a>
+                <a href="#affiliate-share-heading"><span>03</span> Share your page</a>
+            </nav>
+            <div className={styles.layout}>
+                <div className={styles.forms}>
                     <PageSettings
                         draft={pageDraft}
                         defaultName={defaultName}
@@ -78,22 +92,23 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                         onSaved={(price) => { setPriceValue(String(price)); setPriceBaseline(price); }}
                     />
                 </div>
-                <div className="flex min-w-0 flex-col gap-6">
-                    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="offer-preview-title">
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                            <h2 id="offer-preview-title" className="t-h2">Page preview</h2>
-                            <p className="t-meta">{pageDirty || priceDirty ? "Preview includes unsaved changes" : "Your saved offer"}</p>
+                <div className={styles.aside}>
+                    <section className={styles.preview} aria-labelledby="offer-preview-title">
+                        <div className={styles.previewHeading}>
+                            <h2 id="offer-preview-title"><Eye size={18} aria-hidden="true" /> Page preview</h2>
+                            <span>{pageDirty || priceDirty ? "Unsaved changes" : <><Check size={14} aria-hidden="true" /> Saved offer</>}</span>
                         </div>
                         <OfferPreview photo={pageDraft.photo || undefined} displayName={previewName} message={pageDraft.message.trim() || undefined} socialLinks={pageDraft.socialLinks} price={previewPrice} />
+                        <p className={styles.previewNote}>{pageDirty || priceDirty ? "Preview includes unsaved changes. Visitors still see your saved page." : "This is the offer shop owners see from your link."}</p>
                     </section>
                     {account.affiliateHandle ? (
                         <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} price={priceBaseline} disabled={suspended || preview} />
                     ) : (
                         <div className="t-card t-card-pad"><p className="t-body">Your page handle is unavailable. Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help.</p></div>
                     )}
-                    {(pageDirty || priceDirty) && <p className="t-meta">Sharing uses your saved offer. Save your changes before downloading new materials.</p>}
+                    {(pageDirty || priceDirty) && <p className={styles.previewNote}>Sharing uses your saved offer. Save your changes before downloading new materials.</p>}
                 </div>
             </div>
-        </>
+        </div>
     );
 }
