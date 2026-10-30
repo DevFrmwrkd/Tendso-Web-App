@@ -1,10 +1,11 @@
 import React from 'react';
-import { Share } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text as NativeText } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AffiliateHomeScreen, HomeContent } from '../components/affiliate/Home';
 import { AffiliateAgentsScreen, AgentsContent } from '../components/affiliate/Agents';
 import { AffiliatePageScreen } from '../components/affiliate/PageEditor';
 import { AffiliateSalesScreen } from '../components/affiliate/Sales';
+import { AffiliateFrame } from '../components/affiliate/Screen';
 import { affiliateDraft, affiliatePagePayload, sampleAffiliate, samplePortal } from '../components/affiliate/model';
 import { CREATOR_CODE_PRICE, commissionFor, creatorDiscount, WEBSITE_PRICE } from '../../../packages/shared/pricing';
 
@@ -18,6 +19,17 @@ const mockMutation = jest.fn();
 const mockSave = jest.fn();
 const mockAction = jest.fn();
 const mockRouter = { push: jest.fn() };
+
+type RenderedNode = ReturnType<typeof render>['UNSAFE_root'];
+/** Find the action's layout branch beside the real scroll body, through native wrappers. */
+function footerBeside(body: RenderedNode, action: RenderedNode): RenderedNode {
+  const bodyAncestors = new Set<RenderedNode>();
+  for (let node: RenderedNode | null = body; node; node = node.parent) bodyAncestors.add(node);
+  let branch = action;
+  while (branch.parent && !bodyAncestors.has(branch.parent)) branch = branch.parent;
+  if (!branch.parent) throw new Error('The action does not share the screen layout with its body');
+  return branch;
+}
 
 jest.mock('@clerk/clerk-expo', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -57,6 +69,29 @@ beforeEach(() => {
 });
 
 describe('native affiliate access and live data', () => {
+  it('reserves normal layout space for the Home share action outside the card scroll body', () => {
+    const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={samplePortal} />);
+    const body = view.UNSAFE_getAllByType(ScrollView).find(node => node.findAllByProps({ accessibilityLabel: 'Copy shop link' }).length > 0);
+    if (!body) throw new Error('Expected the real Home card scroll body');
+    const action = view.getByLabelText('Share my shop link');
+    expect(body.findAllByProps({ accessibilityLabel: 'Share my shop link' })).toHaveLength(0);
+    const footer = footerBeside(body, action);
+    expect(footer.props.pointerEvents).toBe('auto');
+    expect(footer.props.style).toBeDefined();
+    expect(StyleSheet.flatten(footer.props.style).position).not.toBe('absolute');
+    expect(view.getByText('Share with shop owners')).toBeTruthy();
+  });
+
+  it('keeps the default floating footer behavior for other affiliate screens', () => {
+    const view = render(<AffiliateFrame footer={<Pressable accessibilityRole="button" accessibilityLabel="Default creator action"><NativeText>Continue</NativeText></Pressable>}>
+      <NativeText>Another creator screen</NativeText>
+    </AffiliateFrame>);
+    const body = view.UNSAFE_getByType(ScrollView);
+    const footer = footerBeside(body, view.getByLabelText('Default creator action'));
+    expect(footer.props.pointerEvents).toBe('box-none');
+    expect(StyleSheet.flatten(footer.props.style).position).toBe('absolute');
+  });
+
   it('keeps admin affiliate previews off every affiliate-only hook', () => {
     Object.assign(mockAccount, { account: { ...sampleAffiliate, role: 'admin' }, isAdmin: true, isPreview: true });
     const home = render(<AffiliateHomeScreen />);

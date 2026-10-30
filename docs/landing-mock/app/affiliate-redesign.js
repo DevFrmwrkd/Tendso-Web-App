@@ -180,7 +180,7 @@
     return body(`${back('page','Share your page')}<h1>Put your link<br>in their hands.</h1><div class="ar-card ar-detail-amount ar-mt"><img src="${P}brand/mark-ink-256.png" alt="Tendso" style="height:72px;width:72px;margin:0 auto 20px"><h2>${esc(s.pageSaved.displayName||'Mika Santos')}</h2><p class="ar-caption ar-mt">tendso.com/v2/a/mika</p></div>${help('The app can share your saved QR image or printable poster.')}`, 'ar-pushed ar-has-action')+footer(action('poster','Share QR or poster','ar-btn'),true);
   }
   const screens = {
-    home:{title:'Home',group:'overview',render:home,note:'One dark card combines monthly earnings and both clickable sources. Clear tool tiles open Sales and My page; the shop-link card explains the fixed 30% offer.'},
+    home:{title:'Home',group:'overview',render:home,note:'One dark card combines monthly earnings and both clickable sources. Sales and My page tiles lead to the tools; a docked Share action keeps the shop-link card visible above it.'},
     agents:{title:'Your agents',group:'team',render:agents,note:'Your commission appears beside each name. Remaining months are written out; the track explains time, not performance.'},
     agent:{title:'Agent details',group:'team',render:agent,note:'Owned-agent details show credited totals and exact dates. Commission expiry and the 5% rule sit together.'},
     money:{title:'Your money',group:'money',render:money,note:'Available cash leads. Lifetime totals and uncredited commission stay separate, with a floating cash-out action.'},

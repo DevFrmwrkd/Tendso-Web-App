@@ -96,7 +96,7 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
     catch { setCopyMessage('Could not copy. Please try again.'); }
   };
 
-  return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline}
+  return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline} floatingFooter={false}
     footer={<>
       {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
       <Pressable accessibilityRole="button" accessibilityLabel="Share my shop link" accessibilityState={{ disabled: !url || disabled }} onPress={share} disabled={!url || disabled} style={[styles.shareAction, (!url || disabled) && styles.disabled]}><Ionicons name="share-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.shareActionText}>Share my shop link</Text></Pressable>

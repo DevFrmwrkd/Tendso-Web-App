@@ -85,6 +85,9 @@
 .ar-dialog-header .ar-round svg{width:22px;height:22px}
 
 /* Home: one monthly earnings card, useful tools, and a saved shop-link card. */
+.ar-app[data-view="home"]>.ar-body{bottom:185px;padding-bottom:24px}
+.ar-app[data-view="home"]>.ar-action{left:0;right:0;bottom:85px;min-height:100px;box-sizing:border-box;padding:16px 22px 24px;background:#F5F5F0}
+.ar-app[data-view="home"]>.ar-action>.ar-btn{min-height:60px;box-shadow:none}
 .ar-app[data-view="home"] .ar-topline{margin-bottom:18px}
 .ar-app[data-view="home"] .ar-greeting .cl-face{--sz:48px!important}
 .ar-app[data-view="home"] .ar-earn-card{padding:20px;border-radius:26px;background:#0C0A08;color:#fff;container-type:inline-size}
