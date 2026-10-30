@@ -2,6 +2,18 @@ export const AFFILIATE_HANDLE_MIN_LENGTH = 3;
 export const AFFILIATE_HANDLE_MAX_LENGTH = 30;
 export const AFFILIATE_MESSAGE_MAX_LENGTH = 200;
 
+export const AFFILIATE_SOCIAL_PLATFORMS = ['messenger', 'facebook', 'instagram', 'tiktok', 'youtube'] as const;
+export type AffiliateSocialPlatform = typeof AFFILIATE_SOCIAL_PLATFORMS[number];
+export type AffiliateSocialLinks = Partial<Record<AffiliateSocialPlatform, string>>;
+export const AFFILIATE_SOCIAL_LABELS: Record<AffiliateSocialPlatform, string> = {
+    messenger: 'Messenger', facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube',
+};
+
+const SOCIAL_HOSTS: Record<AffiliateSocialPlatform, readonly string[]> = {
+    messenger: ['messenger.com', 'm.me'], facebook: ['facebook.com'], instagram: ['instagram.com'],
+    tiktok: ['tiktok.com'], youtube: ['youtube.com', 'youtu.be'],
+};
+
 /** Reserved routes and Tendso identities cannot become an affiliate address. */
 export const AFFILIATE_RESERVED_HANDLES = [
     '100-pages-giveaway', 'about', 'admin', 'affiliate', 'affiliates', 'api', 'app',
@@ -58,14 +70,40 @@ export function affiliatePhotoError(value: string): string | null {
     return httpsUrlError(value, 'Photo');
 }
 
-/** An empty value clears the link; otherwise it must point to Facebook/Messenger. */
-export function affiliateSocialLinkError(value: string): string | null {
-    const urlError = httpsUrlError(value, 'Social link');
+/** Match a platform domain, never a lookalike suffix or a credential-bearing URL. */
+function socialPlatformForLink(value: string): AffiliateSocialPlatform | null {
+    if (!value.trim() || httpsUrlError(value, 'Social link')) return null;
+    const url = new URL(value.trim());
+    if (url.port) return null;
+    return AFFILIATE_SOCIAL_PLATFORMS.find((platform) => SOCIAL_HOSTS[platform].some((domain) =>
+        url.hostname === domain || (domain !== 'm.me' && domain !== 'youtu.be' && url.hostname.endsWith(`.${domain}`)),
+    )) ?? null;
+}
+
+/** An empty input removes this platform from the public creator page. */
+export function affiliateSocialPlatformLinkError(platform: AffiliateSocialPlatform, value: string): string | null {
+    const label = AFFILIATE_SOCIAL_LABELS[platform];
+    const urlError = httpsUrlError(value, `${label} link`);
     if (urlError) return urlError;
     if (!value.trim()) return null;
-    const url = new URL(value.trim());
-    const allowedHost = ['facebook.com', 'messenger.com'].some((domain) =>
-        url.hostname === domain || url.hostname.endsWith(`.${domain}`));
-    if ((allowedHost || url.hostname === 'm.me') && !url.port) return null;
-    return 'Use a Facebook or Messenger link, like https://facebook.com/yourpage or https://m.me/yourpage.';
+    return socialPlatformForLink(value) === platform ? null : `Use a ${label} link starting with https://.`;
+}
+
+/** Legacy single-link clients may still save any supported public social URL. */
+export function affiliateSocialLinkError(value: string): string | null {
+    const urlError = httpsUrlError(value, 'Social link');
+    if (urlError || !value.trim()) return urlError;
+    return socialPlatformForLink(value) ? null : 'Use a Messenger, Facebook, Instagram, TikTok, or YouTube link starting with https://.';
+}
+
+/** A saved map is authoritative, including {}. Old accounts fall back to their single saved link. */
+export function getAffiliateSocialLinks(links?: AffiliateSocialLinks, legacy?: string): AffiliateSocialLinks {
+    if (links !== undefined) {
+        return Object.fromEntries(AFFILIATE_SOCIAL_PLATFORMS.flatMap((platform) => {
+            const value = links[platform]?.trim();
+            return value && !affiliateSocialPlatformLinkError(platform, value) ? [[platform, value]] : [];
+        }));
+    }
+    const platform = legacy ? socialPlatformForLink(legacy) : null;
+    return platform && legacy ? { [platform]: legacy.trim() } : {};
 }

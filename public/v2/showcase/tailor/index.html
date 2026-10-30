@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Santos Tailoring · Taytay, Rizal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#101A2C;--bg2:#16223A;--ivory:#F4EEE3;--mute:#A9B0BE;--line:#2A3650;--gold:#D2AC66}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ivory);font:400 16px/1.65 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}a{color:inherit;text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:0 48px}
+.bd{font-family:"Bodoni Moda",Georgia,serif;font-weight:400;letter-spacing:-.01em}
+.bd em{font-style:italic;color:var(--gold)}
+.lab{font-size:12.5px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 30px;border-radius:2px;font-weight:500;font-size:15px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.btn-g{background:var(--gold);color:#101A2C}.btn-o{border:1px solid #56627C;color:var(--ivory)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:92px;border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:14px}
+.logo .m{width:46px;height:46px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;font:italic 400 22px "Bodoni Moda",serif;color:var(--gold)}
+.logo b{display:block;font:400 22px/1 "Bodoni Moda",serif;letter-spacing:.02em}
+.logo small{display:block;font-size:10.5px;letter-spacing:.3em;color:var(--mute);margin-top:5px}
+.links{display:flex;gap:36px;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#D6D9E0}
+.navr{display:flex;align-items:center;gap:22px;font-size:15px}
+.navr .btn{height:46px;padding:0 22px;font-size:13px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:72px;align-items:center;padding-top:44px;padding-bottom:64px}
+.hero h1{font-size:86px;line-height:1.02;margin:26px 0 28px;font-weight:500}.hero h1 em{white-space:nowrap}
+.hero p{font-size:19px;color:var(--mute);max-width:480px;font-weight:300}
+.hero .cta{display:flex;gap:12px;margin:38px 0 46px}
+.hero .meta{display:flex;gap:44px;border-top:1px solid var(--line);padding-top:26px}
+.hero .meta b{display:block;font:400 32px/1 "Bodoni Moda",serif;color:var(--ivory)}
+.hero .meta span{font-size:13.5px;color:var(--mute)}
+.frame{position:relative;height:690px}
+.frame img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.frame::after{content:"";position:absolute;inset:18px;border:1px solid rgba(244,238,227,.55);pointer-events:none}
+section{padding:120px 0}
+.sh{display:flex;justify-content:space-between;align-items:end;gap:40px;margin-bottom:56px}
+.sh h2{font-size:64px;line-height:1.04;margin-top:16px}
+.sh p{max-width:390px;color:var(--mute);font-weight:300}
+.price{background:var(--bg2)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 80px}
+.pr{display:flex;align-items:baseline;gap:16px;padding:26px 0;border-bottom:1px solid var(--line)}
+.pr h3{font:400 28px/1.15 "Bodoni Moda",serif}
+.pr p{font-size:14.5px;color:var(--mute);font-weight:300;margin-top:4px}
+.pr .d{flex:1}
+.pr b{font:400 26px "Bodoni Moda",serif;color:var(--gold);white-space:nowrap}
+.pr b small{display:block;font:400 12px Jost;color:var(--mute);text-align:right;letter-spacing:.06em}
+.duo{display:grid;grid-template-columns:1fr 1.3fr;gap:24px;margin-top:64px}
+.duo img{width:100%;height:440px;object-fit:cover}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:56px}
+.step .n{font:italic 400 64px/1 "Bodoni Moda",serif;color:var(--gold);margin-bottom:18px}
+.step h3{font:400 28px/1.2 "Bodoni Moda",serif;margin-bottom:10px}
+.step p{color:var(--mute);font-weight:300}
+.about .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:88px;align-items:center}
+.about .frame{height:640px}
+.about h2{font-size:60px;line-height:1.05;margin:16px 0 26px}
+.about .q{font:italic 400 27px/1.4 "Bodoni Moda",serif;margin-bottom:20px}
+.about p{color:var(--mute);font-weight:300}
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:80px}
+.rev{border-top:1px solid var(--gold);padding-top:24px}
+.rev p{font:400 21px/1.45 "Bodoni Moda",serif;margin-bottom:14px}
+.rev span{font-size:13.5px;color:var(--mute);letter-spacing:.06em}
+.visit{background:var(--ivory);color:#101A2C}
+.visit .wrap{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.visit .lab{color:#9A7533}
+.visit h2{font-size:60px;line-height:1.05;margin:16px 0 26px}
+.visit p.ad{font-size:18px;margin-bottom:6px}
+.visit small{color:#5D6577;font-size:15px}
+.visit table{width:100%;border-collapse:collapse;font-size:16px}
+.visit td{padding:16px 0;border-bottom:1px solid #DCD3C3}.visit td:last-child{text-align:right;font-weight:500}
+.visit .btn-g{background:#101A2C;color:var(--ivory);margin-top:30px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;height:90px;font-size:13.5px;color:var(--mute);letter-spacing:.06em}
+@media (max-width:820px){
+  .wrap{padding:0 20px}
+  nav .wrap{height:72px}.links,.navr .tel{display:none}
+  .logo .m{width:36px;height:36px;font-size:17px}.logo{gap:10px}.logo b{font-size:17px}.logo small{display:none}
+  .navr .btn{height:42px;padding:0 16px;font-size:12px}
+  .hero .wrap{grid-template-columns:1fr;gap:32px;padding-top:26px;padding-bottom:48px}
+  .hero h1{font-size:50px;margin:16px 0 18px}.hero h1 em{white-space:normal}
+  .hero p{font-size:17px}.hero .cta{margin:26px 0 0}.hero .cta .btn{height:52px;padding:0 22px;font-size:13px}
+  .hero .meta{display:none}
+  .frame{height:auto;aspect-ratio:4/4.6}.frame::after{inset:12px}
+  section{padding:76px 0}
+  .sh{display:block;margin-bottom:28px}.sh h2{font-size:42px;margin-bottom:12px}
+  .pgrid{grid-template-columns:1fr}.pr h3{font-size:23px}.pr b{font-size:22px}
+  .duo{grid-template-columns:1fr;margin-top:36px}.duo img{height:300px}
+  .steps{grid-template-columns:1fr;gap:34px}.step .n{font-size:48px;margin-bottom:8px}
+  .about .wrap,.visit .wrap{grid-template-columns:1fr;gap:34px}
+  .about .frame{height:auto;aspect-ratio:4/4.4}.about h2,.visit h2{font-size:42px}.about .q{font-size:22px}
+  .revs{grid-template-columns:1fr;margin-top:50px}
+  footer .wrap{flex-direction:column;justify-content:center;gap:6px;height:auto;padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#"><span class="m">S</span><span><b>Santos Tailoring</b><small>TAYTAY · RIZAL · EST. 1981</small></span></a>
+  <div class="links"><a href="#prices">Prices</a><a href="#fitting">Fitting</a><a href="#about">The tailor</a><a href="#visit">Visit</a></div>
+  <div class="navr"><a class="tel" href="tel:09175550198">0917 555 0198</a><a class="btn btn-g" href="#visit">Book a fitting</a></div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <div class="lab">Barong &amp; suits · Taytay, Rizal</div>
+    <h1 class="bd">Barong, <em>made to measure.</em></h1>
+    <p>Hand-sewn barong tagalog and suits for weddings, graduations and big days. Cut for your shoulders, not a size chart.</p>
+    <div class="cta"><a class="btn btn-g" href="#visit">Book a fitting</a><a class="btn btn-o" href="#prices">See prices</a></div>
+    <div class="meta"><div><b>45 yrs</b><span>Sewing in Taytay</span></div><div><b>2 weeks</b><span>Typical finish</span></div><div><b>Free</b><span>Alteration after</span></div></div>
+  </div>
+  <div class="frame"><img src="/v2/showcase/tailor/img/tailor-fit.jpg" alt="Mang Celso measuring a groom for his barong"></div>
+</div></header>
+
+<section class="price" id="prices"><div class="wrap">
+  <div class="sh"><div><div class="lab">Prices</div><h2 class="bd">Tailored, <em>not overpriced</em></h2></div><p>Price includes fabric, two fittings and pressing. Bring your own fabric and save 30%.</p></div>
+  <div class="pgrid">
+    <div class="pr"><div><h3>Jusi barong</h3><p>Embroidered, with camisa de chino</p></div><span class="d"></span><b>₱4,500<small>from</small></b></div>
+    <div class="pr"><div><h3>Piña-jusi barong</h3><p>Hand-embroidered calado</p></div><span class="d"></span><b>₱9,500<small>from</small></b></div>
+    <div class="pr"><div><h3>Two-piece suit</h3><p>Wool blend, fully lined</p></div><span class="d"></span><b>₱12,000<small>from</small></b></div>
+    <div class="pr"><div><h3>Slacks</h3><p>Made to your measurements</p></div><span class="d"></span><b>₱1,800</b></div>
+    <div class="pr"><div><h3>Alterations</h3><p>Hem, taper, take in</p></div><span class="d"></span><b>₱150<small>from</small></b></div>
+    <div class="pr"><div><h3>Entourage package</h3><p>6 barong, matching embroidery</p></div><span class="d"></span><b>₱25,000<small>from</small></b></div>
+  </div>
+  <div class="duo">
+    <img src="/v2/showcase/tailor/img/tailor-barong.jpg" alt="Embroidered piña barong on a hanger" style="object-position:50% 30%">
+    <img src="/v2/showcase/tailor/img/tailor-sew.jpg" alt="Sewing a barong by the window" style="object-position:60% 40%">
+  </div>
+</div></section>
+
+<section id="fitting"><div class="wrap">
+  <div class="sh"><div><div class="lab">The fitting</div><h2 class="bd">Three visits, <em>one perfect fit</em></h2></div></div>
+  <div class="steps">
+    <div class="step"><div class="n">i.</div><h3>Measure</h3><p>Twenty measurements, your choice of fabric and embroidery. About 30 minutes.</p></div>
+    <div class="step"><div class="n">ii.</div><h3>First fitting</h3><p>One week later, we pin and adjust the basted garment on you.</p></div>
+    <div class="step"><div class="n">iii.</div><h3>Pick up</h3><p>Pressed and ready. Small changes after the event are free.</p></div>
+  </div>
+</div></section>
+
+<section class="about" id="about" style="padding-top:0"><div class="wrap">
+  <div class="frame"><img src="/v2/showcase/tailor/img/tailor-owner.jpg" alt="Celso Santos in his tailoring shop" style="object-position:50% 30%"></div>
+  <div>
+    <div class="lab">The tailor</div>
+    <h2 class="bd">Mang Celso, <em>since 1981</em></h2>
+    <p class="q">“A good barong should feel like it was always yours. That only happens when we measure you, not a mannequin.”</p>
+    <p>Celso Santos apprenticed in Taytay’s garment shops at sixteen. He has dressed grooms, fathers of grooms, and now their sons.</p>
+  </div>
+</div>
+<div class="wrap"><div class="revs">
+  <div class="rev"><p>“My barong fit better than my rented suit ever did. Everyone asked where it was from.”</p><span>JOSHUA R. · ANTIPOLO</span></div>
+  <div class="rev"><p>“Eight barong for the entourage, all ready a week early. Stress-free.”</p><span>KRISTINE &amp; MARK · CAINTA</span></div>
+  <div class="rev"><p>“He altered my late father’s barong for my wedding. Perfect.”</p><span>DANIEL S. · PASIG</span></div>
+</div></div></section>
+
+<section class="visit" id="visit"><div class="wrap">
+  <div>
+    <div class="lab">Visit</div>
+    <h2 class="bd">Come in for a <em style="color:#9A7533">fitting</em></h2>
+    <p class="ad">204 Manila East Road, San Juan, Taytay, Rizal</p>
+    <small>Second floor, above the fabric store. Walk-ins welcome; appointments get coffee.</small><br>
+    <a class="btn btn-g" href="tel:09175550198">Call 0917 555 0198</a>
+  </div>
+  <table><tr><td>Monday – Saturday</td><td>9:00 AM – 7:00 PM</td></tr><tr><td>Sunday</td><td>Appointments only</td></tr><tr><td>Rush orders</td><td>5 days, +20%</td></tr><tr><td>Viber &amp; Messenger</td><td>0917 555 0198</td></tr></table>
+</div></section>
+<footer><div class="wrap"><span>© 2026 SANTOS TAILORING · TAYTAY, RIZAL</span><span>BARONG · SUITS · ALTERATIONS</span></div></footer>
+</body>
+</html>

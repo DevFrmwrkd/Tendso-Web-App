@@ -1,10 +1,22 @@
+import { receiveUpload } from './ownerSiteEdits';
 import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { verifyWiseWebhook, WISE_SIGNATURE_HEADER } from './lib/wiseWebhookVerify';
+import { clientIpFromHeaders, hashIp } from './lib/attribution';
 import nacl from 'tweetnacl';
 
 const http = httpRouter();
+
+http.route({ path: '/owner-site-upload', method: 'POST', handler: receiveUpload });
+http.route({
+    path: '/owner-site-upload', method: 'OPTIONS',
+    handler: httpAction(async () => new Response(null, { status: 204, headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    } })),
+});
 
 // ---- Discord Ed25519 request-signature verification ----
 function hexToBytes(hex: string): Uint8Array {
@@ -267,6 +279,37 @@ http.route({
     }),
 });
 
+// POST /xendit-webhook
+// Xendit invoice callbacks (GCash, Maya, card). Every request must carry the
+// account's verification token in `x-callback-token`, compared against
+// XENDIT_CALLBACK_TOKEN. Feature-off (503) when that env var is missing.
+// Settles the pay token through the same shared path as Wise; idempotent.
+http.route({
+    path: '/xendit-webhook',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const expected = process.env.XENDIT_CALLBACK_TOKEN;
+        if (!expected || !process.env.XENDIT_SECRET_KEY) return jsonResponse({ status: 'disabled' }, 503);
+        const { safeEqual, parseInvoiceCallback } = await import('../lib/payments/xendit');
+        const got = request.headers.get('x-callback-token');
+        if (!got || !safeEqual(got, expected)) return jsonResponse({ error: 'unauthorized' }, 401);
+
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return jsonResponse({ error: 'bad json' }, 400);
+        }
+        const callback = parseInvoiceCallback(body);
+        if (!callback) {
+            // Not an invoice event (or a dashboard test ping). Acknowledge it.
+            return jsonResponse({ status: 'ignored' });
+        }
+        const result = await ctx.runMutation(internal.xendit.handleInvoiceCallback, callback);
+        return jsonResponse({ status: 'ok', result: result.result });
+    }),
+});
+
 // POST /hyperagent-callback
 // Tendso Studio (Hyperagent) posts the rendered images + copy here.
 http.route({
@@ -428,6 +471,81 @@ http.route({
             },
             200,
         );
+    }),
+});
+
+// ---- Creator-link attribution (docs/v2-api-creators.md) ----
+// Called straight from the browser and the app, so they allow any origin and
+// carry no cookies. The caller's IP is read here, salted and hashed with
+// ATTRIBUTION_IP_SALT, and only the hash goes further. Without the salt the
+// network match is simply off; nothing raw is ever stored.
+const attributionCors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+};
+const attributionJson = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...attributionCors } });
+const attributionPreflight = httpAction(async () => new Response(null, { status: 204, headers: attributionCors }));
+
+async function readAttributionBody(request: Request): Promise<Record<string, unknown> | null> {
+    try {
+        const raw = await request.text();
+        if (raw.length > 4096) return null;
+        const body = raw ? JSON.parse(raw) : {};
+        return body && typeof body === 'object' && !Array.isArray(body) ? body : null;
+    } catch {
+        return null;
+    }
+}
+
+const optionalString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+
+// POST /attribution/click  { handle, kind: "shop" | "earn", cookieId? }
+http.route({ path: '/attribution/click', method: 'OPTIONS', handler: attributionPreflight });
+http.route({
+    path: '/attribution/click',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const body = await readAttributionBody(request);
+        const handle = optionalString(body?.handle);
+        const kind = body?.kind;
+        if (!handle || (kind !== 'shop' && kind !== 'earn')) return attributionJson({ error: 'handle and kind are required' }, 400);
+        const ipHash = await hashIp(clientIpFromHeaders(request.headers), process.env.ATTRIBUTION_IP_SALT);
+        const result = await ctx.runMutation(internal.attribution.recordClickInternal, {
+            handle,
+            kind,
+            cookieId: optionalString(body?.cookieId),
+            ipHash: ipHash ?? undefined,
+            userAgent: request.headers.get('user-agent') ?? undefined,
+        });
+        return attributionJson(result);
+    }),
+});
+
+// POST /attribution/suggest  { cookieId? }  (optional Authorization: Bearer <Clerk JWT>)
+// Read-only: returns who to ASK about, never attributes.
+http.route({ path: '/attribution/suggest', method: 'OPTIONS', handler: attributionPreflight });
+http.route({
+    path: '/attribution/suggest',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const body = await readAttributionBody(request);
+        if (!body) return attributionJson({ error: 'invalid body' }, 400);
+        const ipHash = await hashIp(clientIpFromHeaders(request.headers), process.env.ATTRIBUTION_IP_SALT);
+        let clerkId: string | undefined;
+        try {
+            clerkId = (await ctx.auth.getUserIdentity())?.subject;
+        } catch {
+            clerkId = undefined;
+        }
+        const suggestion = await ctx.runQuery(internal.attribution.suggestInternal, {
+            cookieId: optionalString(body.cookieId),
+            ipHash: ipHash ?? undefined,
+            clerkId,
+        });
+        return attributionJson({ suggestion });
     }),
 });
 

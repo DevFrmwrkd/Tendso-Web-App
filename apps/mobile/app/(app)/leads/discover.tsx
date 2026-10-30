@@ -1,26 +1,36 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
+  Pressable,
   Linking,
   Platform,
   BackHandler,
   ScrollView,
   Alert,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useWorkAreaLocation } from '../../../hooks/useWorkAreaLocation';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { colors, fonts, radius } from '../../../theme/tokens';
+import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections } from '../../../services/links';
-import { Display, Body, Label, Door, Card, Rule } from '../../../components/ui/primitives';
+import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
+import {
+  Banner,
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Loading,
+  ScreenShell,
+  Text,
+  TextLink,
+} from '../../../components/v2';
 
 const FALLBACK_REGION: Region = {
   latitude: 14.5995,
@@ -31,18 +41,34 @@ const FALLBACK_REGION: Region = {
 
 type CategoryKey = 'barbershop' | 'restaurant' | 'sari-sari' | 'auto' | 'medical' | 'other';
 
+// One ink icon per category. Pins are never colour-coded: the ring tells the state.
 const CATEGORY_STYLES: Record<CategoryKey, {
   label: string;
-  color: string;
   icon: keyof typeof Ionicons.glyphMap;
 }> = {
-  'barbershop': { label: 'Barbershop · Salon', color: '#7C3AED', icon: 'cut-outline' },
-  'restaurant': { label: 'Restaurant · Cafe',  color: '#C68A12', icon: 'restaurant-outline' },
-  'sari-sari':  { label: 'Sari-sari · Grocery', color: '#E4B05E', icon: 'storefront-outline' },
-  'auto':       { label: 'Auto · Mechanic',     color: '#1F3654', icon: 'car-outline' },
-  'medical':    { label: 'Pharmacy · Clinic',   color: '#B43A1F', icon: 'medkit-outline' },
-  'other':      { label: 'Other',               color: '#3C3F4A', icon: 'business-outline' },
+  'barbershop': { label: 'Barber · Salon', icon: 'cut-outline' },
+  'auto':       { label: 'Auto · Mechanic', icon: 'car-outline' },
+  'sari-sari':  { label: 'Sari-sari · Store', icon: 'storefront-outline' },
+  'medical':    { label: 'Pharmacy · Clinic', icon: 'medkit-outline' },
+  'restaurant': { label: 'Restaurant · Cafe', icon: 'restaurant-outline' },
+  'other':      { label: 'Shop', icon: 'business-outline' },
 };
+
+/** Quiet Google map: land #E9E9E3, white roads, water #D3DCE3, no points of interest. */
+const QUIET_MAP_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#E9E9E3' }] },
+  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#6B6A63' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#F6F6F3' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#FFFFFF' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#D3DCE3' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6B6A63' }] },
+];
 
 function categorize(categoryText: string | null | undefined): CategoryKey {
   const c = (categoryText ?? '').toLowerCase();
@@ -66,13 +92,6 @@ function haversineKm(a: { latitude: number; longitude: number }, b: { latitude: 
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(v)));
 }
 
-function formatDistance(km: number | null): string {
-  if (km == null) return '—';
-  if (km < 1) return `${Math.round(km * 1000)} m`;
-  if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
-}
-
 type PinnedBiz = {
   leadId: string;
   /**
@@ -94,6 +113,7 @@ type PinnedBiz = {
   longitude: number;
   category: CategoryKey;
   distanceKm: number | null;
+  distanceLabel: string;
   scrapedAt: number;
 };
 
@@ -127,9 +147,12 @@ export default function DiscoverLeadsScreen() {
     directBusinesses.length > 0 ? "skip" : ({} as any),
   );
 
-  const [permissionStatus, setPermissionStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const { area, currentLocation, permissionStatus, requestCurrentLocation, isLocating, isLoading: locationLoading } = useWorkAreaLocation();
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
+  const [view, setView] = useState<'map' | 'list'>('map');
+  // Pool rows you reserved this visit. The search hides reserved rows, so we remember them
+  // here to keep the pin and the sheet on "Yours".
+  const [reservedIds, setReservedIds] = useState<string[]>([]);
 
   const categoryQuery = (Array.isArray(params.category) ? params.category[0] : params.category) ?? '';
   const radiusKm = Number(Array.isArray(params.radiusKm) ? params.radiusKm[0] : params.radiusKm) || 5;
@@ -147,10 +170,10 @@ export default function DiscoverLeadsScreen() {
   // Function references and result types come from the canonical backend.
   const poolProspects = useQuery(
     api.prospects.searchNearby,
-    userLocation
+    area
       ? {
-          lat: userLocation.latitude,
-          lng: userLocation.longitude,
+          lat: area.latitude,
+          lng: area.longitude,
           radiusKm,
           limit: 100,
         }
@@ -173,28 +196,6 @@ export default function DiscoverLeadsScreen() {
       return () => sub.remove();
     }, [router]),
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setPermissionStatus('requesting');
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (cancelled) return;
-        if (status !== 'granted') {
-          setPermissionStatus('denied');
-          return;
-        }
-        setPermissionStatus('granted');
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (cancelled) return;
-        setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-      } catch (err) {
-        if (!cancelled) setPermissionStatus('denied');
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   // Diagnostic snapshot — surfaces in the empty state so we can tell at a
   // glance whether the issue is upstream (Outscraper) or downstream (mobile).
@@ -242,7 +243,7 @@ export default function DiscoverLeadsScreen() {
     // Primary path: businesses passed directly from the scrape modal.
     // Render pins from these immediately, no DB query needed.
     if (directBusinesses.length > 0) {
-      return directBusinesses
+      const directPins = directBusinesses
         .filter((b: any) =>
           typeof b.businessLatitude === 'number' &&
           typeof b.businessLongitude === 'number',
@@ -250,7 +251,7 @@ export default function DiscoverLeadsScreen() {
         .map((b: any, idx: number) => ({
           leadId: b.placeId ?? `direct-${idx}`,
           source: 'direct' as const,
-          businessName: b.businessName ?? 'Unnamed business',
+          businessName: b.businessName ?? 'Unnamed shop',
           businessAddress: b.businessAddress ?? null,
           businessCity: b.businessCity ?? null,
           businessCategory: b.businessCategory ?? null,
@@ -261,22 +262,27 @@ export default function DiscoverLeadsScreen() {
           latitude: b.businessLatitude as number,
           longitude: b.businessLongitude as number,
           category: categorize(b.businessCategory),
-          distanceKm: userLocation
-            ? haversineKm(userLocation, { latitude: b.businessLatitude, longitude: b.businessLongitude })
+          distanceKm: area
+            ? haversineKm(area, { latitude: b.businessLatitude, longitude: b.businessLongitude })
             : null,
+          distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: b.businessLatitude, longitude: b.businessLongitude }) : null, area),
           scrapedAt: Date.now(),
         }))
         // Hard distance filter — the scrape can surface businesses beyond the
         // requested radius (Outscraper relevance ranking + Places returning
         // 20 nearest regardless of radius hint). Cap by the user's choice so
         // the header copy ("X businesses within Y km") is honest.
-        // Only filter when we know user location AND the radius is set.
+        // The saved work area or explicitly requested GPS fix sets the origin.
         .filter((b) => {
-          if (!userLocation) return true;
+          if (!area) return true;
           if (b.distanceKm == null) return true;
           return b.distanceKm <= radiusKm;
         })
         .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+      // An explicit GPS recenter can move outside the original scrape area.
+      // In that case show the prospect pool at the new center instead of
+      // keeping an empty direct-data branch over valid nearby pool results.
+      if (directPins.length > 0 || !currentLocation) return directPins;
     }
 
     // Fallback path: dual-read from pool prospects (preferred) + legacy
@@ -292,7 +298,7 @@ export default function DiscoverLeadsScreen() {
         merged.set(placeKey, {
           leadId: String(p._id),
           source: 'pool' as const,
-          businessName: p.businessName ?? 'Unnamed business',
+          businessName: p.businessName ?? 'Unnamed shop',
           businessAddress: p.address ?? null,
           businessCity: p.city ?? null,
           businessCategory: p.category ?? null,
@@ -303,7 +309,8 @@ export default function DiscoverLeadsScreen() {
           latitude: p.latitude,
           longitude: p.longitude,
           category: categorize(p.category),
-          distanceKm: userLocation ? haversineKm(userLocation, { latitude: p.latitude, longitude: p.longitude }) : null,
+          distanceKm: area ? haversineKm(area, { latitude: p.latitude, longitude: p.longitude }) : null,
+          distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: p.latitude, longitude: p.longitude }) : null, area),
           scrapedAt: p.scrapedAt ?? 0,
         });
       }
@@ -327,7 +334,7 @@ export default function DiscoverLeadsScreen() {
       merged.set(placeKey, {
         leadId: String(l._id),
         source: 'legacy' as const,
-        businessName: l.businessName ?? 'Unnamed business',
+        businessName: l.businessName ?? 'Unnamed shop',
         businessAddress: l.businessAddress ?? null,
         businessCity: l.businessCity ?? null,
         businessCategory: l.businessCategory ?? null,
@@ -338,7 +345,8 @@ export default function DiscoverLeadsScreen() {
         latitude: l.businessLatitude,
         longitude: l.businessLongitude,
         category: categorize(l.businessCategory),
-        distanceKm: userLocation ? haversineKm(userLocation, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null,
+        distanceKm: area ? haversineKm(area, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null,
+        distanceLabel: mapDistanceLabel(area ? haversineKm(area, { latitude: l.businessLatitude, longitude: l.businessLongitude }) : null, area),
         scrapedAt: l.scrapedAt ?? l.createdAt ?? 0,
       });
     }
@@ -348,32 +356,25 @@ export default function DiscoverLeadsScreen() {
       // branch above. We deliberately do NOT drop pool prospects whose
       // distance is null (no user location) so the map still shows them.
       .filter((b) => {
-        if (!userLocation) return true;
+        if (!area) return true;
         if (b.distanceKm == null) return true;
         return b.distanceKm <= radiusKm;
       })
       .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-  }, [directBusinesses, scrapedLeads, poolProspects, userLocation, radiusKm]);
-
-  // Categories actually present on the map (for the legend)
-  const activeCategories = useMemo(() => {
-    const set = new Set<CategoryKey>();
-    pinned.forEach((p) => set.add(p.category));
-    return Array.from(set);
-  }, [pinned]);
+  }, [directBusinesses, scrapedLeads, poolProspects, area, currentLocation, radiusKm]);
 
   useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+    if (!mapRef.current || !area) return;
     mapRef.current.animateToRegion(
       {
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
+        latitude: area.latitude,
+        longitude: area.longitude,
         latitudeDelta: 0.08,
         longitudeDelta: 0.08,
       },
       400,
     );
-  }, [userLocation]);
+  }, [area]);
 
   const goToDirections = (biz: PinnedBiz) => {
     void openDirections({
@@ -409,6 +410,7 @@ export default function DiscoverLeadsScreen() {
           address: biz.businessAddress ?? '',
           city: biz.businessCity ?? '',
           category: biz.businessCategory ?? '',
+          ...(validMapCoordinate(biz) ? { latitude: String(biz.latitude), longitude: String(biz.longitude) } : {}),
         },
       } as any);
     },
@@ -427,22 +429,23 @@ export default function DiscoverLeadsScreen() {
       // the v.id('prospects') validator as a generic "Couldn't reserve".
       if (biz.source !== 'pool') {
         Alert.alert(
-          'Not yet in pool',
-          "This business hasn't been added to the prospect pool yet. Pool prospects appear here after a background scrape runs. Try opening Discover from the main Leads tab.",
+          'Not reservable yet',
+          "You can still interview this shop. Tap Start with these details.",
         );
         return;
       }
       setReservingId(biz.leadId);
       try {
         await reserveProspect({ prospectId: biz.leadId as any });
+        setReservedIds((ids) => (ids.includes(biz.leadId) ? ids : [...ids, biz.leadId]));
         Alert.alert(
           "Reserved",
-          `${biz.businessName} is yours for the next 24 hours. Tap Directions to go interview them.`,
+          `${biz.businessName} is yours for the next 24 hours. Tap Route to go interview them.`,
         );
       } catch (err: any) {
-        const msg = err?.message ?? "Could not reserve this prospect.";
+        const msg = err?.message ?? "Could not reserve this shop.";
         if (/Cannot reserve.*reserved/.test(msg)) {
-          Alert.alert("Already taken", "Another creator reserved this prospect just now. Try a different one.");
+          Alert.alert("Already taken", "Another field agent reserved this shop just now. Try a different one.");
         } else if (/not authenticated/i.test(msg)) {
           Alert.alert("Please sign in", "Your session expired — log out and back in.");
         } else {
@@ -455,343 +458,599 @@ export default function DiscoverLeadsScreen() {
     [reserveProspect],
   );
 
-  const initialRegion: Region = userLocation
-    ? { latitude: userLocation.latitude, longitude: userLocation.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
+  const initialRegion: Region = area
+    ? { latitude: area.latitude, longitude: area.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 }
     : FALLBACK_REGION;
 
   const activeLead = activeLeadId ? pinned.find((l) => l.leadId === activeLeadId) ?? null : null;
   // Loading only matters when we DON'T have direct data. If the scrape passed
   // businesses via URL params, we already have everything we need.
   const isLoading =
-    permissionStatus === 'requesting' ||
+    locationLoading ||
     (directBusinesses.length === 0 && scrapedLeads === undefined);
 
   const headerSub = useMemo(() => {
-    if (isLoading) return 'Loading nearby businesses to interview…';
-    if (pinned.length === 0) return `No nearby businesses yet — try widening the radius or a different category.`;
+    if (isLoading) return 'Finding shops to interview…';
+    if (pinned.length === 0) return 'No shops yet. Try a wider radius.';
     const cat = categoryQuery && categoryQuery !== 'businesses' ? ` ${categoryQuery}` : '';
     const radiusLabel = radiusKm < 1 ? `${Math.round(radiusKm * 1000)} m` : `${radiusKm} km`;
-    return `${pinned.length}${cat} business${pinned.length === 1 ? '' : 'es'} within ${radiusLabel}. Pin colors show categories.`;
-  }, [isLoading, pinned.length, categoryQuery, radiusKm]);
+    return `${pinned.length}${cat} shop${pinned.length === 1 ? '' : 's'} within ${radiusLabel}${area?.source === 'work' ? ` of ${area.label}` : ''}.`;
+  }, [isLoading, pinned.length, categoryQuery, radiusKm, area]);
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      {/* Editorial header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <TouchableOpacity
-            onPress={() => router.replace('/(app)/leads')}
-            style={{
-              width: 36, height: 36, borderRadius: 18,
-              backgroundColor: colors.paper3,
-              borderWidth: 1, borderColor: colors.rule,
-              alignItems: 'center', justifyContent: 'center',
-            }}
-            accessibilityLabel="Back to leads"
-            accessibilityRole="button"
-          >
-            <Ionicons name="arrow-back" size={18} color={colors.ink} />
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Label tracking={1.8}>NEARBY TO INTERVIEW</Label>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-          <Display size="md">Fresh finds </Display>
-          <Display size="md" italic color={colors.accent}>around you.</Display>
-        </View>
-        <Body size="sm" color={colors.ink2} style={{ marginTop: 6 }}>
-          {headerSub}
-        </Body>
+
+  const insets = useSafeAreaInsets();
+  const emptyCopy = useMemo(() => {
+    if (dataShape.outscraperRows > 0 && dataShape.withCoords === 0) {
+      return {
+        icon: 'alert-circle-outline' as const,
+        title: 'No pins yet',
+        body: `We found ${dataShape.outscraperRows} shop${dataShape.outscraperRows === 1 ? '' : 's'}, but none has a map spot yet.`,
+      };
+    }
+    return {
+      icon: 'search-outline' as const,
+      title: 'No shops yet',
+      body: 'Go back and search again with a wider radius.',
+    };
+  }, [dataShape.outscraperRows, dataShape.withCoords]);
+
+  const goBack = () => router.replace('/(app)/leads');
+
+  const focusBiz = (biz: PinnedBiz) => {
+    setActiveLeadId(biz.leadId);
+    // Aim a little south of the shop so the pin sits above the bottom sheet.
+    mapRef.current?.animateToRegion(
+      { latitude: biz.latitude - 0.004, longitude: biz.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 },
+      500,
+    );
+  };
+
+  const isYours = (biz: PinnedBiz) => reservedIds.includes(biz.leadId);
+  const yoursCount = pinned.filter(isYours).length;
+  const needsCount = pinned.length - yoursCount;
+  const locationBanner =
+    permissionStatus === 'denied' ? (
+      <Banner
+        tone="warn"
+        icon="location-outline"
+        title="Location is off"
+        body={area?.source === 'work' ? `Showing shops near ${area.label}. Turn location on to use your current position.` : 'Turn it on to sort shops by distance.'}
+        action={<TextLink label="Open settings" align="left" onPress={() => Linking.openSettings()} />}
+      />
+    ) : (
+      <View style={[styles.legendPill, shadow.soft]}>
+        <TextLink
+          label={isLocating ? 'Finding your location…' : 'Use my location'}
+          align="left"
+          onPress={() => { void requestCurrentLocation(); }}
+        />
       </View>
+    );
 
-      <Rule strong />
-
-      {/* Map area */}
-      <View style={{ width: '100%', height: 340, backgroundColor: colors.paper2 }}>
-        {isLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator size="large" color={colors.accent} />
-          </View>
-        ) : (
-          <>
-            <MapView
-              ref={(r) => { mapRef.current = r; }}
-              provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-              style={{ width: '100%', height: '100%' }}
-              initialRegion={initialRegion}
-              showsUserLocation={permissionStatus === 'granted'}
-              showsMyLocationButton={false}
-            >
-              {pinned.map((biz) => {
-                const style = CATEGORY_STYLES[biz.category];
-                return (
-                  <Marker
-                    key={biz.leadId}
-                    coordinate={{ latitude: biz.latitude, longitude: biz.longitude }}
-                    onPress={() => setActiveLeadId(biz.leadId)}
-                    title={biz.businessName}
-                    description={biz.businessCategory ?? undefined}
-                  >
-                    <View style={{ alignItems: 'center' }}>
-                      <View style={{
-                        width: 34, height: 34, borderRadius: 17,
-                        backgroundColor: style.color,
-                        borderWidth: 2, borderColor: '#FFFFFF',
-                        alignItems: 'center', justifyContent: 'center',
-                        shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 },
-                        elevation: 4,
-                      }}>
-                        <Ionicons name={style.icon} size={16} color="#FFFFFF" />
-                      </View>
-                      <View style={{
-                        width: 0, height: 0,
-                        borderLeftWidth: 6, borderRightWidth: 6,
-                        borderTopWidth: 8,
-                        borderLeftColor: 'transparent', borderRightColor: 'transparent',
-                        borderTopColor: style.color,
-                        marginTop: -2,
-                      }} />
-                    </View>
-                  </Marker>
-                );
-              })}
-            </MapView>
-
-            {/* Sticky legend top-right */}
-            {activeCategories.length > 0 && (
-              <View style={{
-                position: 'absolute', top: 12, right: 12,
-                backgroundColor: 'rgba(252, 250, 245, 0.96)',
-                borderColor: colors.rule, borderWidth: 1,
-                borderRadius: radius.sm,
-                paddingVertical: 8, paddingHorizontal: 10,
-                maxWidth: 180,
-              }}>
-                <Text style={{
-                  fontFamily: fonts.monoMed, fontSize: 9, letterSpacing: 1.2,
-                  color: colors.ink3, textTransform: 'uppercase', marginBottom: 6,
-                }}>
-                  Categories
-                </Text>
-                {activeCategories.map((cat) => {
-                  const s = CATEGORY_STYLES[cat];
-                  return (
-                    <View key={cat} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <View style={{
-                        width: 14, height: 14, borderRadius: 7,
-                        backgroundColor: s.color,
-                        alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <Ionicons name={s.icon} size={8} color="#FFFFFF" />
-                      </View>
-                      <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink2, letterSpacing: 0.3 }} numberOfLines={1}>
-                        {s.label}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-          </>
-        )}
-      </View>
-
-      {/* Permission off banner */}
-      {permissionStatus === 'denied' ? (
-        <View style={{ marginHorizontal: 20, marginTop: 10 }}>
-          <Door
-            caption="LOCATION"
-            label="Enable location to sort by distance"
-            variant="ghost"
-            onPress={() => Linking.openSettings()}
-            rightIcon={<Ionicons name="settings-outline" size={18} color={colors.ink} style={{ marginLeft: 12 }} />}
-          />
-        </View>
-      ) : null}
-
-      {/* List below map */}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 10 }}
-        showsVerticalScrollIndicator={false}
+  // ---- List view ----------------------------------------------------------
+  if (view === 'list') {
+    const ordered = activeLead ? [activeLead, ...pinned.filter((l) => l.leadId !== activeLead.leadId)] : pinned;
+    return (
+      <ScreenShell
+        title={area?.source === 'work' ? `Shops near ${area.label}` : 'Shops near you'}
+        subtitle={headerSub}
+        onBack={goBack}
+        headerRight={<ViewToggle label="Map" icon="map-outline" onPress={() => setView('map')} />}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Label tracking={1.8}>{permissionStatus === 'granted' ? 'NEAREST FIRST' : 'ALL NEARBY'}</Label>
-          {pinned.length > 0 ? (
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, letterSpacing: 0.6 }}>
-              {pinned.length} pinned
-            </Text>
+        <View style={styles.listGap}>
+          {locationBanner}
+
+          {!isLoading && pinned.length === 0 ? (
+            <Card variant="lg">
+              <EmptyState
+                icon={emptyCopy.icon}
+                title={emptyCopy.title}
+                body={emptyCopy.body}
+                actionLabel="Back to leads"
+                onAction={goBack}
+              />
+            </Card>
           ) : null}
-        </View>
 
-        {!isLoading && pinned.length === 0 ? (
-          <Card large style={{ padding: 22, alignItems: 'center' }}>
-            <View style={{
-              width: 56, height: 56, borderRadius: 28,
-              backgroundColor: colors.paper2,
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Ionicons
-                name={dataShape.outscraperRows > 0 ? 'alert-circle-outline' : 'search-outline'}
-                size={26}
-                color={dataShape.outscraperRows > 0 ? colors.warn : colors.ink3}
-              />
-            </View>
-            <View style={{ marginTop: 10, alignItems: 'center' }}>
-              {dataShape.outscraperRows > 0 && dataShape.withCoords === 0 ? (
-                <>
-                  <Display size="sm">Backend missing </Display>
-                  <Display size="sm" italic color={colors.warn}>coordinates.</Display>
-                </>
-              ) : (
-                <>
-                  <Display size="sm">Nothing to interview </Display>
-                  <Display size="sm" italic color={colors.accent}>yet.</Display>
-                </>
-              )}
-            </View>
-            <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 280 }}>
-              {dataShape.outscraperRows > 0 && dataShape.withCoords === 0
-                ? `The team found ${dataShape.outscraperRows} scraped business${dataShape.outscraperRows === 1 ? '' : 'es'}, but the backend isn't returning latitude/longitude fields. Ask the web team to restore the listScrapedLeads return shape.`
-                : 'Tap Find Local Business again with a wider radius or a different category to add more pins here.'}
-            </Body>
-            <View style={{ marginTop: 14, alignSelf: 'stretch' }}>
-              <Door
-                caption="TRY AGAIN"
-                label="Back to leads"
-                variant="solid"
-                onPress={() => router.replace('/(app)/leads')}
-                rightIcon={<Ionicons name="arrow-back" size={16} color={colors.paper3} style={{ marginLeft: 8 }} />}
-              />
-            </View>
-          </Card>
-        ) : null}
-
-        {(activeLead ? [activeLead, ...pinned.filter((l) => l.leadId !== activeLead.leadId)] : pinned).map((biz) => {
-          const isActive = activeLeadId === biz.leadId;
-          const style = CATEGORY_STYLES[biz.category];
-          return (
-            <TouchableOpacity
-              key={biz.leadId}
-              onPress={() => {
-                setActiveLeadId(biz.leadId);
-                mapRef.current?.animateToRegion(
-                  { latitude: biz.latitude, longitude: biz.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 },
-                  500,
-                );
-              }}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`${biz.businessName}, ${formatDistance(biz.distanceKm)} away`}
-            >
-              <Card padded={false} large style={{
-                padding: 14,
-                borderColor: isActive ? colors.ink : colors.rule,
-                borderLeftWidth: isActive ? 3 : 1,
-                borderLeftColor: isActive ? style.color : colors.rule,
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{
-                    width: 44, height: 44, borderRadius: radius.sm,
-                    backgroundColor: style.color,
-                    alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Ionicons name={style.icon} size={20} color="#FFFFFF" />
+          {ordered.map((biz) => {
+            const isActive = activeLeadId === biz.leadId;
+            const style = CATEGORY_STYLES[biz.category];
+            const yours = isYours(biz);
+            return (
+              <Card key={biz.leadId} style={[styles.listCard, isActive ? styles.listCardOn : null]}>
+                <Pressable
+                  onPress={() => focusBiz(biz)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${biz.businessName}, ${biz.distanceLabel}`}
+                  accessibilityState={{ expanded: isActive }}
+                  style={styles.listHead}
+                >
+                  <View style={[styles.listIcon, yours ? styles.listIconYours : null]}>
+                    <Ionicons name={style.icon} size={24} color={colors.ink} />
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>
+                  <View style={styles.flex1}>
+                    <Text variant="body" weight="bold" numberOfLines={1}>
                       {biz.businessName}
-                    </Body>
-                    <Body size="xs" color={colors.ink3} numberOfLines={1} style={{ marginTop: 1 }}>
-                      {[biz.businessCategory, biz.businessCity].filter(Boolean).join(' · ') || biz.businessAddress || '—'}
-                    </Body>
+                    </Text>
+                    <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+                      {[biz.businessCategory, biz.businessCity].filter(Boolean).join(' · ') || biz.businessAddress || style.label}
+                    </Text>
                     {biz.businessRating != null ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                        <Ionicons name="star" size={11} color={colors.warn} />
-                        <Text style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.ink2, letterSpacing: 0.3 }}>
+                      <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={16} color={colors.ink} />
+                        <Text variant="label" tone="ink2">
                           {biz.businessRating.toFixed(1)}
                           {biz.businessReviewCount != null ? ` · ${biz.businessReviewCount}` : ''}
                         </Text>
                       </View>
                     ) : null}
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{
-                      fontFamily: fonts.serif,
-                      fontSize: 18,
-                      color: colors.ink,
-                      letterSpacing: -0.2,
-                    }}>
-                      {formatDistance(biz.distanceKm)}
+                  <View style={styles.listDist}>
+                    <Text variant={area?.source === 'work' ? 'label' : 'bodyLg'} weight="bold">
+                      {biz.distanceLabel}
                     </Text>
-                    {biz.distanceKm == null ? (
-                      <Text style={{ fontFamily: fonts.mono, fontSize: 9, color: colors.ink3, letterSpacing: 0.6, marginTop: 2 }}>
-                        DISTANCE OFF
-                      </Text>
-                    ) : null}
+                    {yours ? <Chip label="Yours" tone="ok" /> : null}
                   </View>
-                </View>
+                </Pressable>
 
-                {/* Inline actions when this row is active */}
                 {isActive ? (
-                  <>
-                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-                      <View style={{ flex: 1 }}>
-                        <Door
-                          caption="GO"
-                          label="Directions"
-                          variant="solid"
-                          onPress={() => goToDirections(biz)}
-                          rightIcon={<Ionicons name="navigate" size={16} color={colors.paper3} style={{ marginLeft: 8 }} />}
-                        />
-                      </View>
+                  <View style={styles.listActions}>
+                    {yours ? (
+                      <Button title="Start interview" size="md" onPress={() => startInterview(biz)} accessibilityLabel="Start with these details" />
+                    ) : (
+                      <Button
+                        title="I'll interview this"
+                        size="md"
+                        loading={reservingId === biz.leadId}
+                        onPress={() => handleReserve(biz)}
+                      />
+                    )}
+                    <View style={styles.rowGap}>
+                      <Button
+                        title="Route"
+                        variant="ghost"
+                        size="md"
+                        icon="navigate"
+                        style={styles.flex1}
+                        onPress={() => goToDirections(biz)}
+                        accessibilityLabel="Directions"
+                      />
                       {biz.businessPhone ? (
-                        <View style={{ flex: 1 }}>
-                          <Door
-                            caption="CALL"
-                            label="Phone"
-                            variant="ghost"
-                            onPress={() => callBusiness(biz)}
-                            rightIcon={<Ionicons name="call-outline" size={16} color={colors.ink} style={{ marginLeft: 8 }} />}
-                          />
-                        </View>
+                        <Button
+                          title="Call"
+                          variant="ghost"
+                          size="md"
+                          icon="call-outline"
+                          style={styles.flex1}
+                          onPress={() => callBusiness(biz)}
+                          accessibilityLabel="Phone"
+                        />
                       ) : null}
                     </View>
-                    {/* P2 — Reserve action. Renders for pool-backed prospects; URL-data
-                       businesses get a hint that they need a pool entry to be reservable. */}
-                    <View style={{ marginTop: 8 }}>
-                      <Door
-                        caption={reservingId === biz.leadId ? "RESERVING…" : "RESERVE"}
-                        label="I'll interview this"
-                        variant="accent"
-                        loading={reservingId === biz.leadId}
-                        disabled={reservingId === biz.leadId}
-                        onPress={() => handleReserve(biz)}
-                        rightIcon={<Ionicons name="bookmark-outline" size={16} color="#fff" style={{ marginLeft: 8 }} />}
-                      />
-                    </View>
-                    {/* Start the interview with this business's scraped details
-                       already filled in, instead of retyping them on a phone in
-                       front of the owner. Legacy-leads rows also carry
-                       prospectLeadId so the backend attaches the interview to
-                       THIS record rather than inserting a duplicate lead. */}
-                    <View style={{ marginTop: 8 }}>
-                      <Door
-                        caption="INTERVIEW"
-                        label="Start with these details"
-                        variant="ghost"
-                        onPress={() => startInterview(biz)}
-                        rightIcon={<Ionicons name="arrow-forward" size={16} color={colors.ink} style={{ marginLeft: 8 }} />}
-                      />
-                    </View>
-                  </>
+                    {!yours ? (
+                      <TextLink label="Start with these details" onPress={() => startInterview(biz)} />
+                    ) : null}
+                  </View>
                 ) : null}
               </Card>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </SafeAreaView>
+            );
+          })}
+        </View>
+      </ScreenShell>
+    );
+  }
+
+  // ---- Map view -----------------------------------------------------------
+  const headerTitle = isLoading
+    ? 'Finding shops…'
+    : pinned.length === 0
+      ? 'No shops yet'
+      : `${pinned.length} shop${pinned.length === 1 ? '' : 's'} near ${area?.label ?? 'you'}`;
+
+  return (
+    <View style={styles.root}>
+      {isLoading ? (
+        <Loading label="Finding shops to interview…" />
+      ) : (
+        <MapView
+          ref={(r) => { mapRef.current = r; }}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          customMapStyle={QUIET_MAP_STYLE}
+          mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+          userInterfaceStyle="light"
+          showsPointsOfInterest={false}
+          style={StyleSheet.absoluteFill}
+          initialRegion={initialRegion}
+          showsUserLocation={!!currentLocation}
+          showsMyLocationButton={false}
+          toolbarEnabled={false}
+          onPress={() => setActiveLeadId(null)}
+        >
+          {pinned.map((biz) => (
+            <Marker
+              key={biz.leadId}
+              coordinate={{ latitude: biz.latitude, longitude: biz.longitude }}
+              onPress={() => focusBiz(biz)}
+              anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={activeLeadId === biz.leadId ? 2 : 1}
+            >
+              <ShopPin biz={biz} selected={activeLeadId === biz.leadId} yours={isYours(biz)} />
+            </Marker>
+          ))}
+        </MapView>
+      )}
+
+      {/* Floating round back + white pill header + list toggle */}
+      <View style={[styles.topBar, { top: insets.top + space.sm }]} pointerEvents="box-none">
+        <Pressable
+          onPress={goBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back to leads"
+          style={[styles.round, shadow.soft]}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.ink} />
+        </Pressable>
+        <View style={[styles.headerPill, shadow.soft]} accessibilityRole="header">
+          <Text variant="body" weight="bold" numberOfLines={1}>
+            {headerTitle}
+          </Text>
+        </View>
+        <ViewToggle label="List" icon="list" onPress={() => setView('list')} />
+      </View>
+
+      {/* Legend (read-only) + location note */}
+      <View style={[styles.floatCol, { top: insets.top + space.sm + 48 + space.md }]} pointerEvents="box-none">
+        {!isLoading && pinned.length > 0 ? (
+          <View style={styles.legend}>
+            <View style={[styles.legendPill, shadow.soft, styles.legendOn]} accessible accessibilityLabel={`Needs a site, ${needsCount}`}>
+              <View style={styles.legendRing} />
+              <Text variant="chip" tone="onDark">{`Needs a site · ${needsCount}`}</Text>
+            </View>
+            <View style={[styles.legendPill, shadow.soft]} accessible accessibilityLabel={`Yours, ${yoursCount}`}>
+              <View style={styles.legendDot} />
+              <Text variant="chip">{`Yours · ${yoursCount}`}</Text>
+            </View>
+          </View>
+        ) : null}
+        {locationBanner}
+      </View>
+
+      {/* Bottom sheet: the selected shop, or the nearest ones, or nothing found */}
+      <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, space.lg) + space.sm }]}>
+        {activeLead ? (
+          <Pressable
+            onPress={() => setActiveLeadId(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Close shop details"
+            hitSlop={12}
+            style={styles.grabHit}
+          >
+            <View style={styles.grab} />
+          </Pressable>
+        ) : (
+          <View style={styles.grabHit}>
+            <View style={styles.grab} />
+          </View>
+        )}
+
+        {activeLead ? (
+          <View style={styles.sheetBody}>
+            <View style={styles.sheetTop}>
+              <View style={styles.flex1}>
+                <Text variant="heading" numberOfLines={2}>
+                  {activeLead.businessName}
+                </Text>
+                <Text variant="label" tone="muted" weight="medium" style={styles.sheetMeta}>
+                  {`${activeLead.distanceLabel} · ${CATEGORY_STYLES[activeLead.category].label}`}
+                </Text>
+              </View>
+              <Chip label={isYours(activeLead) ? 'Yours' : 'Needs a site'} tone={isYours(activeLead) ? 'ok' : 'info'} />
+            </View>
+
+            <View style={styles.whoRow}>
+              <Ionicons name="location-outline" size={20} color={colors.ink3} />
+              <Text variant="body" tone="ink2" numberOfLines={1} style={styles.flex1}>
+                {[activeLead.businessCategory, activeLead.businessCity].filter(Boolean).join(' · ') ||
+                  activeLead.businessAddress ||
+                  'Spotted nearby'}
+              </Text>
+            </View>
+
+            <Card style={styles.earnCard}>
+              <View style={styles.earnIcon}>
+                <Ionicons name="cash-outline" size={22} color={colors.onAccent} />
+              </View>
+              <View style={styles.flex1}>
+                <Text variant="body" weight="bold">
+                  Earn up to ₱2,500
+                </Text>
+                <Text variant="label" tone="muted" weight="medium">
+                  You set the price, ₱999–₱4,999. You keep half.
+                </Text>
+              </View>
+            </Card>
+
+            <View style={styles.rowGap}>
+              {isYours(activeLead) ? (
+                <Button
+                  title="Start interview"
+                  size="md"
+                  style={styles.flex1}
+                  onPress={() => startInterview(activeLead)}
+                  accessibilityLabel="Start with these details"
+                />
+              ) : (
+                <Button
+                  title="I'll interview this"
+                  size="md"
+                  style={[styles.flex1, styles.tightBtn]}
+                  loading={reservingId === activeLead.leadId}
+                  onPress={() => handleReserve(activeLead)}
+                />
+              )}
+              <Button
+                title="Route"
+                variant="ghost"
+                size="md"
+                fullWidth={false}
+                style={styles.tightBtn}
+                onPress={() => goToDirections(activeLead)}
+                accessibilityLabel="Directions"
+              />
+            </View>
+
+            <View style={styles.linkRow}>
+              {!isYours(activeLead) ? (
+                <TextLink label="Start with these details" onPress={() => startInterview(activeLead)} />
+              ) : null}
+              {activeLead.businessPhone ? (
+                <TextLink label="Call" onPress={() => callBusiness(activeLead)} accessibilityHint="Phone the shop" />
+              ) : null}
+            </View>
+          </View>
+        ) : !isLoading && pinned.length === 0 ? (
+          <EmptyState
+            icon={emptyCopy.icon}
+            title={emptyCopy.title}
+            body={emptyCopy.body}
+            actionLabel="Back to leads"
+            onAction={goBack}
+          />
+        ) : !isLoading ? (
+          <View>
+            <Text variant="body" weight="bold" style={styles.peekTitle}>
+              {`Shops near ${area?.label ?? 'you'}`}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.peekRow}
+            >
+              {pinned.slice(0, 12).map((biz) => (
+                <Pressable
+                  key={biz.leadId}
+                  onPress={() => focusBiz(biz)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${biz.businessName}, ${biz.distanceLabel}`}
+                  style={[styles.peekCard, shadow.soft]}
+                >
+                  <View style={[styles.listIcon, isYours(biz) ? styles.listIconYours : null]}>
+                    <Ionicons name={CATEGORY_STYLES[biz.category].icon} size={24} color={colors.ink} />
+                  </View>
+                  <Text variant="body" weight="bold" numberOfLines={1} style={styles.peekName}>
+                    {biz.businessName}
+                  </Text>
+                  <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
+                    {`${biz.distanceLabel} · ${isYours(biz) ? 'Yours' : 'Needs a site'}`}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+      </View>
+    </View>
   );
 }
+
+/** White round-pill toggle between the map and the list. */
+function ViewToggle({
+  label,
+  icon,
+  onPress,
+}: {
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Show ${label.toLowerCase()}`}
+      style={[styles.toggle, shadow.soft]}
+    >
+      <Ionicons name={icon} size={20} color={colors.ink} />
+      <Text variant="chip">{label}</Text>
+    </Pressable>
+  );
+}
+
+/**
+ * Map pin. Dashed ink ring = needs a site. Accent ring with an ink hairline = yours.
+ * Selected = bigger solid ink ring with an ink label. Labels are only drawn for the
+ * selected pin, so the map stays quiet.
+ */
+const PIN_LABEL_SPACE = 36;
+function ShopPin({ biz, selected, yours }: { biz: PinnedBiz; selected: boolean; yours: boolean }) {
+  const size = selected ? 60 : 46;
+  const ring = selected
+    ? { borderWidth: 4, borderColor: colors.ink }
+    : yours
+      ? { borderWidth: 4, borderColor: colors.accent }
+      : { borderWidth: 3, borderColor: colors.ink, borderStyle: 'dashed' as const };
+  const disc = (
+    <View style={[styles.pinDisc, { width: size, height: size, borderRadius: size / 2 }, ring]}>
+      <Ionicons name={CATEGORY_STYLES[biz.category].icon} size={selected ? 26 : 22} color={colors.ink} />
+    </View>
+  );
+  return (
+    <View style={styles.pinWrap}>
+      {/* The spacer above mirrors the label below, so the disc stays on the coordinate. */}
+      {selected ? <View style={{ height: PIN_LABEL_SPACE }} /> : null}
+      {yours && !selected ? <View style={styles.pinHairline}>{disc}</View> : disc}
+      {selected ? (
+        <View style={[styles.pinLabel, { height: PIN_LABEL_SPACE }]}>
+          <Text variant="chip" tone="onDark" numberOfLines={1} style={styles.pinLabelText}>
+            {`${biz.businessName} · ${biz.distanceLabel}`}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg },
+  flex1: { flex: 1 },
+  rowGap: { flexDirection: 'row', gap: space.md, alignItems: 'center' },
+
+  // Map chrome
+  topBar: {
+    position: 'absolute',
+    left: space.lg,
+    right: space.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  round: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerPill: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    paddingHorizontal: space.lg,
+    justifyContent: 'center',
+  },
+  toggle: {
+    minHeight: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    paddingHorizontal: space.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  floatCol: { position: 'absolute', left: space.lg, right: space.lg, gap: space.sm },
+  legend: { flexDirection: 'row', gap: space.sm },
+  legendPill: {
+    minHeight: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    paddingHorizontal: space.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  legendOn: { backgroundColor: colors.ink },
+  legendRing: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: colors.onDark,
+  },
+  legendDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.accent,
+    borderWidth: 1.5,
+    borderColor: colors.ink,
+  },
+
+  // Pins
+  pinWrap: { alignItems: 'center', padding: 4 },
+  pinDisc: { backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  pinHairline: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 999, padding: 0 },
+  pinLabel: { justifyContent: 'center', paddingTop: 6 },
+  pinLabelText: {
+    backgroundColor: colors.ink,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: 5,
+    overflow: 'hidden',
+    maxWidth: 220,
+  },
+
+  // Bottom sheet
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: space.lg,
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 15,
+    elevation: 12,
+  },
+  grabHit: { height: 28, alignItems: 'center', justifyContent: 'center' },
+  grab: { width: 40, height: 5, borderRadius: 3, backgroundColor: colors.ruleStrong },
+  sheetBody: { gap: space.md },
+  sheetTop: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md },
+  sheetMeta: { marginTop: 2 },
+  whoRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  earnCard: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md },
+  earnIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tightBtn: { paddingHorizontal: space.lg },
+  linkRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  peekTitle: { marginBottom: space.md, marginTop: space.xs },
+  peekRow: { gap: space.md, paddingRight: space.lg },
+  peekCard: {
+    width: 196,
+    backgroundColor: colors.card,
+    borderRadius: 22,
+    padding: space.md,
+    gap: space.xs,
+  },
+  peekName: { marginTop: space.sm },
+
+  // List view
+  listGap: { gap: space.md },
+  listCard: { borderWidth: 2, borderColor: 'transparent' },
+  listCardOn: { borderColor: colors.ink },
+  listHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 56 },
+  listIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.bg2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listIconYours: { backgroundColor: colors.accent },
+  listDist: { alignItems: 'flex-end', gap: space.xs, maxWidth: 115, flexShrink: 1 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginTop: 2 },
+  listActions: { gap: space.sm, marginTop: space.md },
+});

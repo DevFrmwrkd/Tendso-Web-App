@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
 
 // ==================== KNOWLEDGE BASE ====================
 // Article body is a sequence of typed blocks (mirrors the Claude Design
@@ -13,7 +14,7 @@ const kbBlock = v.union(
     v.object({ t: v.literal('callout'), kind: v.string(), text: v.string() }), // kind: "note" | "warn"
     v.object({ t: v.literal('code'), lang: v.string(), text: v.string() }),
     v.object({ t: v.literal('quote'), text: v.string(), who: v.string() }),
-    v.object({ t: v.literal('image'), caption: v.string() }),
+    v.object({ t: v.literal('image'), caption: v.string(), url: v.optional(v.string()), alt: v.optional(v.string()) }),
 );
 
 // ==================== OUTREACH TRACKER ====================
@@ -37,6 +38,13 @@ export const outreachChannel = v.union(
 );
 
 export default defineSchema({
+    // Immutable landing receipts: never patched/deleted when admin leads change.
+    landingVisitRequests: defineTable({
+        phone: v.string(), caller: v.string(), createdAt: v.number(),
+    }).index('by_phone_time', ['phone', 'createdAt'])
+        .index('by_caller_time', ['caller', 'createdAt'])
+        .index('by_time', ['createdAt']),
+
     // Accounts share a creators id for submissions, referrals and payouts.
     creators: defineTable({
         clerkId: v.string(),
@@ -60,6 +68,7 @@ export default defineSchema({
         updatedAt: v.optional(v.number()),
         lastActiveAt: v.optional(v.number()),
         referralCode: v.optional(v.string()), // Optional (mobile has optional)
+        creatorCodeChosenAt: v.optional(v.number()), // Affiliate's one-time code choice; generated fallback has no stamp.
         referredByCode: v.optional(v.string()),
         role: v.optional(v.string()),    // v.string() for cross-deploy safety (mobile uses string)
         status: v.optional(v.string()),  // v.string() for cross-deploy safety
@@ -67,6 +76,9 @@ export default defineSchema({
         wiseEmail: v.optional(v.string()),
         certifiedAt: v.optional(v.number()),     // Timestamp when admin APPROVED the creator
         quizPassedAt: v.optional(v.number()),    // Timestamp when creator passed onboarding quiz (awaiting admin approval)
+        // Latest corrected profile submitted for review. The original quiz pass
+        // stays intact; legacy first reviews use quizPassedAt as their episode.
+        reviewSubmittedAt: v.optional(v.number()),
         rejectedAt: v.optional(v.number()),      // Timestamp when admin REJECTED the creator (mutex with certifiedAt)
         rejectionReason: v.optional(v.string()), // Optional reason shown to creator on /verification-rejected (max 500 chars enforced in mutation)
         rejectedBy: v.optional(v.string()),      // Clerk ID of admin who rejected
@@ -75,6 +87,17 @@ export default defineSchema({
         // Admin-only extras (kept as optional, mobile doesn't have these)
         referredBy: v.optional(v.id('creators')),
         referredByName: v.optional(v.string()),
+        // Mobile field-agent onboarding. Optional for existing rows and clients.
+        workCity: v.optional(v.string()),
+        workLatitude: v.optional(v.number()),
+        workLongitude: v.optional(v.number()),
+        workLocationSource: v.optional(v.union(v.literal('city'), v.literal('device'))),
+        discoverySource: v.optional(v.union(
+            v.literal('friend'), v.literal('facebook'), v.literal('tiktok'),
+            v.literal('shop_website'), v.literal('job_post'),
+        )),
+        fieldAgentOnboardingRequired: v.optional(v.boolean()),
+        fieldAgentOnboardingCompletedAt: v.optional(v.number()),
         payoutMethod: v.optional(v.string()),
         payoutDetails: v.optional(v.string()),
         // Affiliate-only page settings. Optional because the mobile app shares
@@ -84,14 +107,36 @@ export default defineSchema({
         affiliateDisplayName: v.optional(v.string()),
         affiliateMessage: v.optional(v.string()),
         affiliateSocialLink: v.optional(v.string()),
+        affiliateSocialLinks: v.optional(affiliateSocialLinksValidator),
         affiliatePrice: v.optional(v.number()),
+        // Creator program (2026-10-21, docs/v2-api-creators.md). A field agent
+        // who joined through a creator's link or code: the creator, when, and
+        // how it was confirmed. Drives the 5% override for 12 months.
+        recruitedByCreatorId: v.optional(v.id('creators')),
+        recruitedAt: v.optional(v.number()),
+        recruitedVia: v.optional(v.string()), // 'code' | 'install_referrer' | 'confirmed'
+        // Creator application extras (role 'affiliate'), shown to the admin
+        // who approves the account. Optional: existing rows never carry them.
+        creatorSocials: v.optional(v.array(v.object({ platform: v.string(), handle: v.string() }))),
+        creatorAudienceSize: v.optional(v.number()),
+        creatorAppliedAt: v.optional(v.number()),
     })
         // Use mobile's index names (by_clerk_id, not by_clerkId)
         .index('by_clerk_id', ['clerkId'])
         .index('by_email', ['email'])
         .index('by_referral_code', ['referralCode'])
         .index('by_affiliate_handle', ['affiliateHandle'])
-        .index('by_status', ['status']),
+        .index('by_status', ['status'])
+        .index('by_recruited_by', ['recruitedByCreatorId']),
+
+    // Permanent code ownership. Old printed/shared codes keep resolving to the
+    // same creator after a rename, and stay reserved after account deletion.
+    creatorCodeAliases: defineTable({
+        creatorId: v.id('creators'),
+        code: v.string(),
+        createdAt: v.number(),
+    }).index('by_code', ['code'])
+        .index('by_creator', ['creatorId']),
 
     // Business submissions
     submissions: defineTable({
@@ -145,7 +190,9 @@ export default defineSchema({
 
         // Status — v.string() for cross-deploy safety (mobile uses v.string(), admin used v.union())
         // Valid values: draft, pending, submitted, in_review, approved, rejected, deployed,
-        // pending_payment, paid, completed, website_generated, unpublished
+        // pending_payment, paid, completed, website_generated, unpublished,
+        // deposit_paid (v2: down payment received, balance due — NOT paid in
+        // full; see docs/v2-api-owners.md)
         status: v.string(),
 
         // Payment
@@ -292,6 +339,92 @@ export default defineSchema({
         // sets the reverse pointer leads.submissionId and marks the prospect
         // converted. Dies with the prospects-pool consolidation.
         prospectLeadId: v.optional(v.id('leads')),
+
+        // ==================== OWNER APP v2 (2026-10-21, additive) ====================
+        // Written only by convex/ownerApp.ts (contentSource 'owner_app'), the
+        // build-progress contract (convex/buildProgress.ts) and the payment
+        // path (convex/ownerPayments.ts + payments.creditCreatorForPayment).
+        // Contract for app + pipeline: docs/v2-api-owners.md.
+        //
+        // Interview answers, one per question index (0-9 = the ten questions,
+        // 10 = "Anything else?"). Text and/or a recording (R2 public URL).
+        ownerInterview: v.optional(v.array(v.object({
+            index: v.number(),
+            questionEn: v.string(),
+            questionTl: v.string(),
+            lang: v.string(), // 'en' | 'tl'
+            answerText: v.optional(v.string()),
+            mediaUrl: v.optional(v.string()),
+            mediaType: v.optional(v.string()), // 'video' | 'audio'
+            durationSec: v.optional(v.number()),
+            updatedAt: v.number(),
+        }))),
+        // Guided photos (index 0-9, in shot-list order) plus extras (extra: true).
+        ownerShots: v.optional(v.array(v.object({
+            index: v.number(),
+            url: v.string(),
+            label: v.optional(v.string()),
+            extra: v.boolean(),
+            updatedAt: v.number(),
+        }))),
+        // Which shot list the app used (e.g. 'barber', 'repair', 'salon').
+        shotListKey: v.optional(v.string()),
+        // Design choices. templateId = the design the owner picked (a template
+        // code such as 'barbershop:BP'); templateIds = all picks (1-3) when the
+        // picker allows several. Font and colour come later.
+        templateId: v.optional(v.string()),
+        templateIds: v.optional(v.array(v.string())),
+        fontChoice: v.optional(v.string()),
+        colorChoice: v.optional(v.string()),
+        styleUpdatedAt: v.optional(v.number()),
+        // Four build steps the owner watches. Set ONLY through
+        // internal.buildProgress.setStep.
+        buildSteps: v.optional(v.object({
+            reading_interview: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            writing_pages: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            polishing_photos: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+            building_site: v.optional(v.object({
+                status: v.string(), // 'pending' | 'running' | 'done' | 'failed'
+                startedAt: v.optional(v.number()),
+                finishedAt: v.optional(v.number()),
+                updatedAt: v.number(),
+                error: v.optional(v.string()),
+            })),
+        })),
+        buildStartedAt: v.optional(v.number()),
+        previewReadyAt: v.optional(v.number()),
+        // Owner said "Looks good" on the private preview.
+        ownerApprovedAt: v.optional(v.number()),
+        // Money received so far, for down payments. `status` 'deposit_paid'
+        // mirrors depositPaidAt-without-paidInFullAt, but these fields are the
+        // source of truth (some app/api routes rewrite `status`).
+        amountPaid: v.optional(v.number()),
+        balanceDue: v.optional(v.number()),
+        depositAmount: v.optional(v.number()),
+        depositPaidAt: v.optional(v.number()),
+        paidInFullAt: v.optional(v.number()),
+        // Owner app invite ("Sign in with this email to see your website").
+        ownerInviteSentAt: v.optional(v.number()),
+        // "Your site is live" email for owner-app sites.
+        ownerLiveEmailSentAt: v.optional(v.number()),
     })
         // Use mobile's index name (by_creator_id, not by_creatorId)
         .index('by_creator_id', ['creatorId'])
@@ -429,7 +562,7 @@ export default defineSchema({
         creatorId: v.id('creators'),
         submissionId: v.id('submissions'),
         amount: v.number(),
-        type: v.string(),   // "submission_approved" | "referral_bonus" | "lead_bonus"
+        type: v.string(),   // "submission_approved" | "referral_bonus" | "lead_bonus" | "creator_override"
         status: v.string(), // "pending" | "available" | "withdrawn"
         createdAt: v.number(),
     })
@@ -606,7 +739,7 @@ export default defineSchema({
         submissionId: v.optional(v.id('submissions')), // Optional — standalone leads don't need a submission
         creatorId: v.optional(v.id('creators')),        // Optional — auto-filled from submission if linked
         businessOwnerId: v.optional(v.string()),
-        source: v.string(), // "website" | "qr_code" | "direct" | "outscraper"
+        source: v.string(), // "website" | "qr_code" | "direct" | "outscraper" | "community"
         // name + phone are optional — Outscraper-scraped prospect businesses
         // use businessName + (optional) businessPhone instead. Existing
         // customer leads continue to populate these as before.
@@ -640,6 +773,20 @@ export default defineSchema({
         // Auto-cleared by the releaseStaleClaimsInternal cron after 24h.
         claimedByCreatorId: v.optional(v.id('creators')),
         claimedAt: v.optional(v.number()),
+        // Community finds keep the original spotter even when an interview
+        // later attributes creatorId to the field agent who captured it.
+        spottedByCreatorId: v.optional(v.id('creators')),
+        spottedAt: v.optional(v.number()),
+        communityPhotoUrl: v.optional(v.string()),
+        communityKind: v.optional(v.union(
+            v.literal('food'), v.literal('sari_sari'), v.literal('beauty'),
+            v.literal('repair'), v.literal('other'),
+        )),
+        needsWebsite: v.optional(v.boolean()),
+        requestId: v.optional(v.string()),
+        // Community visits are exclusive for 24h. Legacy Outscraper claims
+        // retain their existing informational behavior.
+        claimExpiresAt: v.optional(v.number()),
 
         // ==================== PROSPECT POOL MIGRATION (2026-06-01 — P0 schema only) ====================
         // Set by migration.backfillProspects when an Outscraper-source lead
@@ -654,7 +801,8 @@ export default defineSchema({
         // Outscraper dedup index — scrapeNearby checks this before inserting
         // so re-scraping the same area doesn't create duplicate leads.
         .index('by_place_id', ['businessGooglePlaceId'])
-        .index('by_claimed_creator', ['claimedByCreatorId']),
+        .index('by_claimed_creator', ['claimedByCreatorId'])
+        .index('by_spotter_request', ['spottedByCreatorId', 'requestId']),
 
     // ==================== PROSPECT POOL (2026-06-01 — P0 schema only) ====================
     // New global inventory of businesses, scraped ONCE and shared across
@@ -860,6 +1008,44 @@ export default defineSchema({
     })
         .index('by_creator', ['creatorId'])
         .index('by_token', ['token']),
+
+    // ==================== CREATOR ATTRIBUTION ====================
+    // One row per visit to a creator's link (/a/<handle> = 'shop',
+    // /a/<handle>/earn = 'earn'). ipHash is a salted SHA-256 of the visitor's
+    // IP (ATTRIBUTION_IP_SALT); the raw IP is never stored. Used only to ASK
+    // "Did <name> send you?" — never to attribute on its own.
+    attributionClicks: defineTable({
+        creatorId: v.id('creators'),
+        handle: v.string(),
+        kind: v.union(v.literal('shop'), v.literal('earn')),
+        cookieId: v.optional(v.string()),
+        ipHash: v.optional(v.string()),
+        userAgent: v.optional(v.string()),
+        channel: v.optional(v.string()), // 'web' | 'http'
+        createdAt: v.number(),
+    })
+        .index('by_creator_kind', ['creatorId', 'kind'])
+        .index('by_cookie', ['cookieId', 'createdAt'])
+        .index('by_ip_hash', ['ipHash', 'createdAt']),
+
+    // A signed-in person's confirmed answer to "who sent you?". First claim
+    // wins. For a field agent it also sets creators.recruitedByCreatorId (see
+    // convex/lib/creatorRecruits.ts); for an owner it pre-fills the code.
+    creatorAttributions: defineTable({
+        clerkId: v.string(),
+        creatorId: v.id('creators'),
+        handle: v.string(),
+        kind: v.union(v.literal('agent'), v.literal('owner')),
+        source: v.union(v.literal('install_referrer'), v.literal('confirmed'), v.literal('code')),
+        // 'pending' until a field agent's account exists; 'applied' once linked;
+        // 'not_applied' when the link was refused (reason says why).
+        status: v.string(),
+        reason: v.optional(v.string()),
+        createdAt: v.number(),
+        appliedAt: v.optional(v.number()),
+    })
+        .index('by_clerk_id', ['clerkId'])
+        .index('by_creator_kind', ['creatorId', 'kind']),
 
     // ==================== REFERRALS ====================
     referrals: defineTable({
@@ -1150,12 +1336,52 @@ export default defineSchema({
         
         wiseTransactionId: v.optional(v.string()),      // Wise transaction ID when paid
         adminNotes: v.optional(v.string()),
+
+        // ---- v2 (additive). Absent kind = a legacy whole-order token ('full').
+        kind: v.optional(v.string()),                   // 'full' | 'deposit' | 'balance'
+        provider: v.optional(v.string()),               // who settled it: 'wise' | 'xendit' | 'manual'
+        paidAmount: v.optional(v.number()),             // amount the provider reported
+        externalPaymentId: v.optional(v.string()),      // provider's payment/invoice id
+        xenditInvoiceId: v.optional(v.string()),
+        xenditInvoiceUrl: v.optional(v.string()),
+        xenditExpiresAt: v.optional(v.number()),
+        createdBy: v.optional(v.string()),              // 'owner:<id>' | 'admin:<clerk>' | 'creator:<id>'
     })
         .index('by_token', ['token'])
         .index('by_reference', ['referenceCode'])
         .index('by_submissionId', ['submissionId'])
         .index('by_status', ['status'])
         .index('by_expiresAt', ['expiresAt']),
+
+    // ==================== OWNER APP v2: CHANGE REQUESTS ====================
+    // "Ask for a change" on the private preview (owner app) — shown on the
+    // admin submission page. status: 'open' | 'done' | 'dismissed'.
+    changeRequests: defineTable({
+        submissionId: v.id('submissions'),
+        text: v.string(),
+        status: v.string(),
+        requestedBy: v.string(),           // 'owner:<businessOwnerId>'
+        createdAt: v.number(),
+        resolvedAt: v.optional(v.number()),
+        resolvedBy: v.optional(v.string()),
+        adminNote: v.optional(v.string()),
+    })
+        .index('by_submission', ['submissionId'])
+        .index('by_status', ['status']),
+
+    // ==================== OWNER APP v2: INVITES ====================
+    // A field agent's sale with an owner email: the owner is invited to sign
+    // in with that email; owners.ensure links the site on first sign-in.
+    ownerInvites: defineTable({
+        email: v.string(),                 // normalized (trim + lowercase)
+        submissionId: v.id('submissions'),
+        createdAt: v.number(),
+        emailSentAt: v.optional(v.number()),
+        linkedAt: v.optional(v.number()),
+        businessOwnerId: v.optional(v.id('businessOwners')),
+    })
+        .index('by_email', ['email'])
+        .index('by_submission', ['submissionId']),
 
     // ==================== RATE LIMITS (from mobile) ====================
     rateLimits: defineTable({
@@ -1366,11 +1592,11 @@ export default defineSchema({
     // reads reactions and drives creators.approveCreatorInternal / rejectCreatorInternal.
     approvalRequests: defineTable({
         creatorId: v.id('creators'),
-        // The creator's quizPassedAt at post time — the "pending episode" key.
-        // Dedup is per-episode: a retired (expired/error/denied) row blocks
-        // re-posting the SAME episode, but a re-certification gives the creator a
-        // fresh quizPassedAt (no matching row) so it posts again.
+        // The actual quiz pass is preserved when a profile is corrected.
         quizPassedAt: v.number(),
+        // Optional for existing posts: reviewSubmittedAt ?? quizPassedAt is the
+        // episode key, so each corrected profile gets its own review request.
+        reviewSubmittedAt: v.optional(v.number()),
         status: v.union(
             v.literal('pending'), // posted to Discord, awaiting a reaction
             v.literal('approved'), // ✅ → creator certified
@@ -1457,4 +1683,74 @@ export default defineSchema({
         lastSyncDeactivated: v.optional(v.number()),
         lastSyncError: v.optional(v.string()),
     }).index('by_key', ['key']),
+
+    // ==================== AI SITE PIPELINE (v2, additive) ====================
+    // One row per automatic build of a submission's site (brief §4C,
+    // docs/v2-ai-pipeline.md). Holds each step's output so a retried step skips
+    // finished work, plus the reports an admin needs when it fails. Only the
+    // pipeline (convex/aiPipeline/*) writes it. New table; nothing else reads it.
+    aiPipelineRuns: defineTable({
+        submissionId: v.id('submissions'),
+        status: v.union(v.literal('running'), v.literal('done'), v.literal('failed'), v.literal('canceled')),
+        step: v.string(), // current StepKey
+        attempt: v.number(), // attempt of the current step, 1-based
+        reason: v.optional(v.string()), // what started it: submitted | owner_app | admin | rebuild
+        force: v.optional(v.boolean()),
+        startedAt: v.number(),
+        deadlineAt: v.number(),
+        updatedAt: v.number(),
+        finishedAt: v.optional(v.number()),
+        steps: v.optional(v.any()), // { [step]: { status, startedAt?, finishedAt?, attempts, error? } }
+        input: v.optional(v.any()), // PipelineInput after transcription
+        facts: v.optional(v.any()),
+        copy: v.optional(v.any()),
+        content: v.optional(v.any()),
+        templateCode: v.optional(v.string()),
+        clipTranscripts: v.optional(v.any()),
+        photos: v.optional(v.any()), // { [shotIndex]: PhotoResult }
+        enhancedImages: v.optional(v.any()),
+        reports: v.optional(v.any()), // { [step]: report }
+        usage: v.optional(v.any()), // UsageTotals
+        error: v.optional(v.string()),
+        fallback: v.optional(v.string()), // 'studio' when handed to Tendso Studio
+    })
+        .index('by_submission', ['submissionId', 'startedAt'])
+        .index('by_status', ['status']),
+
+    // ── v2 owner editing (convex/ownerSiteEdits.ts) ─────────────────────────
+    // An owner's PRIVATE working copy of their site: the content + design they
+    // are editing in /v2/my-site. It never touches the live site until the owner
+    // presses "Publish changes" (the build then runs on this copy and the result
+    // is committed to generatedWebsites). One row per submission. Additive table;
+    // nothing else reads it.
+    // Upload capabilities are consumed before storing; only the server records IDs.
+    ownerSiteUploads: defineTable({
+        submissionId: v.id('submissions'),
+        businessOwnerId: v.id('businessOwners'),
+        token: v.optional(v.string()),
+        expiresAt: v.optional(v.number()),
+        storageId: v.optional(v.id('_storage')),
+    })
+        .index('by_token', ['token'])
+        .index('by_storage', ['storageId']),
+
+    ownerSiteDrafts: defineTable({
+        submissionId: v.id('submissions'),
+        businessOwnerId: v.id('businessOwners'),
+        // Full extractedContent copy (sanitised) and customizations (template,
+        // colour scheme, font pairing, section order) — same shapes the admin
+        // editor saves, so the build path is unchanged.
+        content: v.any(),
+        customizations: v.any(),
+        // generatedWebsites row this draft was started from (detects a stale base).
+        websiteId: v.id('generatedWebsites'),
+        updatedAt: v.number(),
+        // Set when a build of this draft was committed to the site.
+        lastPublishedAt: v.optional(v.number()),
+        // Set while the live site could not be refreshed (custom-domain Worker):
+        // the new HTML is stored, an admin Republish puts it live.
+        pendingWorkerRepublish: v.optional(v.boolean()),
+    })
+        .index('by_submission', ['submissionId'])
+        .index('by_owner', ['businessOwnerId']),
 });

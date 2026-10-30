@@ -8,6 +8,15 @@ import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGi
 import { requireAccountOwner, requireAdmin, requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 import { resolveGiveawayReviewSource } from './lib/submissionReview';
+import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
+import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
+import { validCaptureDesignCode } from '../lib/captureDesign';
+
+function requireCaptureOwnerEmail(value: string | undefined): string {
+    const error = captureEmailError(value);
+    if (error) throw new Error(error);
+    return normalizeCaptureEmail(value);
+}
 
 /** Capture edits belong to their creator; admin publishing can edit any account's content. */
 async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>) {
@@ -339,19 +348,25 @@ export const getCreatorPricingSummary = query({
 /**
  * Validate an incoming ?prospectLeadId= before we store it on a submission.
  *
- * NEVER throws. The creator is standing in front of the business on a phone —
- * a stale, already-interviewed, or hand-edited id must degrade to a normal
- * unlinked submission, not block the interview. Returns undefined when the id
- * can't be linked, and the caller just omits the field.
+ * Legacy scraped links degrade to an unlinked submission when stale. Community
+ * finds enforce certification and active visits rather than silently creating
+ * another lead when a different agent already owns or completed the visit.
  */
 async function resolveProspectLead(
     ctx: MutationCtx,
     leadId: Id<'leads'> | undefined,
+    creatorId: Id<'creators'>,
 ): Promise<Id<'leads'> | undefined> {
     if (!leadId) return undefined;
     const lead = await ctx.db.get(leadId);
     if (!lead) return undefined;
-    // Only scraped prospects convert — never a real customer lead.
+    if (lead.source === 'community') {
+        const { me } = await requireCertifiedFieldAgent(ctx);
+        if (me._id !== creatorId) throw new Error('You can only capture a shop for your own field-agent account');
+        assertCommunityFindAvailable(lead, me._id, Date.now());
+        return leadId;
+    }
+    // Only business prospects convert — never a real customer inquiry.
     if (lead.source !== 'outscraper') return undefined;
     // Someone already interviewed it; don't steal their link.
     if (lead.submissionId) return undefined;
@@ -410,13 +425,23 @@ export const create = mutation({
         if (args.status && args.status !== 'draft' && args.status !== 'submitted' && me.role !== 'admin') {
             throw new Error('Forbidden: admin access required to set submission status');
         }
+        // Incomplete captures stay saveable as drafts. Direct callers cannot
+        // bypass the final-submit requirement by creating a submitted row.
+        const ownerEmail = args.status && args.status !== 'draft'
+            ? requireCaptureOwnerEmail(args.ownerEmail)
+            : args.ownerEmail?.trim();
+        const prospectLeadId = await resolveProspectLead(ctx, args.prospectLeadId, args.creatorId);
+        const prospectLead = prospectLeadId ? await ctx.db.get(prospectLeadId) : null;
+        if (prospectLead?.source === 'community' && args.status && args.status !== 'draft') {
+            throw new Error('Start a community shop capture as a draft, then submit the completed interview');
+        }
         const submissionId = await ctx.db.insert('submissions', {
             creatorId: args.creatorId,
             businessName: args.businessName,
             businessType: args.businessType,
             ownerName: args.ownerName,
             ownerPhone: args.ownerPhone,
-            ownerEmail: args.ownerEmail,
+            ownerEmail,
             address: args.address,
             city: args.city,
             province: args.province,
@@ -431,7 +456,7 @@ export const create = mutation({
             status: args.status ?? 'draft',
             amount: args.amount ?? STANDARD_PRICE,
             creatorPayout: args.creatorPayout ?? commissionFor(BASE_PRICE),
-            prospectLeadId: await resolveProspectLead(ctx, args.prospectLeadId),
+            prospectLeadId,
         });
 
         // Increment creator's submissionCount and lastActiveAt
@@ -444,6 +469,31 @@ export const create = mutation({
         }
 
         return submissionId;
+    },
+});
+
+/** Save a field agent's design preference without submitting or building the site. */
+export const chooseDesign = mutation({
+    args: { id: v.id('submissions'), templateId: v.string() },
+    handler: async (ctx, args) => {
+        const { me } = await requireCertifiedFieldAgent(ctx);
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.creatorId !== me._id) {
+            throw new Error('Forbidden: you can only choose a design for your own draft');
+        }
+        if (submission.status !== 'draft') throw new Error('Design choices can only be changed on a draft');
+        if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake') {
+            throw new Error('Choose the design in the owner submission flow');
+        }
+        const templateId = validCaptureDesignCode(args.templateId);
+        if (!templateId) throw new Error('Choose a valid website design');
+        await ctx.db.patch(args.id, {
+            templateId,
+            templateIds: [templateId],
+            styleUpdatedAt: Date.now(),
+        });
+        return { ok: true };
     },
 });
 
@@ -499,6 +549,7 @@ export const update = mutation({
         const filteredUpdates: Record<string, unknown> = Object.fromEntries(
             Object.entries(updates).filter(([, value]) => value !== undefined)
         );
+        if (updates.ownerEmail !== undefined) filteredUpdates.ownerEmail = updates.ownerEmail.trim();
 
         const submission = await ctx.db.get(id);
         if (!submission) throw new Error('Submission not found');
@@ -534,7 +585,7 @@ export const update = mutation({
             const existing = await ctx.db.get(id);
             // Only ever SET the link — never overwrite one that's already there.
             if (existing && !existing.prospectLeadId) {
-                const resolved = await resolveProspectLead(ctx, prospectLeadId);
+                const resolved = await resolveProspectLead(ctx, prospectLeadId, submission.creatorId);
                 if (resolved) filteredUpdates.prospectLeadId = resolved;
             }
         }
@@ -745,6 +796,10 @@ export const submit = mutation({
         // Studio render. Applies to every submission, not just prospect ones.
         if (submission.status !== 'draft') return;
 
+        // Legacy rows remain readable/editable. Every capture needs the owner's
+        // email before processing starts or its shared lead is created.
+        const ownerEmail = requireCaptureOwnerEmail(submission.ownerEmail);
+
         // Validate: at least 3 photos
         if (!submission.photos || submission.photos.length < 3) {
             throw new Error('At least 3 photos are required');
@@ -758,6 +813,7 @@ export const submit = mutation({
             : 'standard';
         await ctx.db.patch(args.id, {
             status: 'submitted',
+            ownerEmail,
             // Preserve the creator-set amount (from setDomainTier / create);
             // only fall back to the base tier price if it was never set.
             amount: submission.amount ?? ownerTotal(BASE_PRICE, tier),
@@ -776,7 +832,14 @@ export const submit = mutation({
         let converted = false;
         if (submission.prospectLeadId) {
             const prospect = await ctx.db.get(submission.prospectLeadId);
-            if (prospect && prospect.source === 'outscraper') {
+            if (prospect && (prospect.source === 'outscraper' || prospect.source === 'community')) {
+                if (prospect.source === 'community') {
+                    const { me } = await requireCertifiedFieldAgent(ctx);
+                    if (me._id !== submission.creatorId) throw new Error('You can only capture a shop for your own field-agent account');
+                    // Recheck at submit: a draft can outlive a 24h visit. A new
+                    // active reservation or completed interview must win.
+                    assertCommunityFindAvailable(prospect, me._id, Date.now());
+                }
                 if (!prospect.submissionId) {
                     await ctx.db.patch(prospect._id, {
                         submissionId: args.id,
@@ -787,12 +850,13 @@ export const submit = mutation({
                         creatorId: submission.creatorId,
                         status: 'converted',
                         name: submission.ownerName,
-                        email: submission.ownerEmail,
+                        email: ownerEmail,
                         // phone deliberately left as the scraped listing number;
                         // the owner's direct number is exposed separately as
                         // ownerPhone through the submission join.
                         claimedByCreatorId: undefined,
                         claimedAt: undefined,
+                        claimExpiresAt: undefined,
                     });
                     converted = true;
                 } else if (String(prospect.submissionId) === String(args.id)) {
@@ -809,7 +873,7 @@ export const submit = mutation({
                 source: 'direct',
                 name: submission.ownerName,
                 phone: submission.ownerPhone,
-                email: submission.ownerEmail,
+                email: ownerEmail,
                 status: 'new',
                 createdAt: Date.now(),
             });
@@ -838,6 +902,12 @@ export const submit = mutation({
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.id,
         });
+
+        // 5. Owner app v2: invite the owner ("Sign in with this email to see
+        // your website"). Once per order; also tried again at payment.
+        if (ownerEmail) {
+            await ctx.scheduler.runAfter(0, internal.owners.inviteForSubmission, { submissionId: args.id });
+        }
     },
 });
 
@@ -878,11 +948,18 @@ export const markPaid = mutation({
         if (submission.giveawayApplication) {
             throw new Error('Giveaway websites must be given away rather than marked paid.');
         }
+        const now = Date.now();
         await ctx.db.patch(args.id, {
             status: 'paid',
             paymentReference: args.paymentReference,
-            paidAt: Date.now(),
+            paidAt: now,
+            // An admin marking the order paid means the whole price is in
+            // (convex/lib/ownerApp.ts isPaidInFull reads this field first).
+            paidInFullAt: submission.paidInFullAt ?? now,
+            ...(submission.depositPaidAt ? { balanceDue: 0 } : {}),
         });
+        // Paid in full: the recruiting creator's 5% override (idempotent).
+        await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, { submissionId: args.id });
     },
 });
 

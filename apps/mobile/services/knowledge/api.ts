@@ -26,7 +26,7 @@ export type Block =
   | { t: 'callout'; kind: string; text: string }
   | { t: 'code'; lang: string; text: string }
   | { t: 'quote'; text: string; who: string }
-  | { t: 'image'; caption: string };
+  | { t: 'image'; caption: string; url?: string; alt?: string };
 
 export type Category = {
   _id: string;

@@ -47,7 +47,7 @@ export function RejectedBody({ creator, titleId, now, onClose }: { creator: Doc<
                     </DefList>
                 </Section>
 
-                <p className="t-meta">They can retake the quiz or contact support. If they pass again, they come back to Waiting for approval.</p>
+                <p className="t-meta">They can correct their profile in the app and resend it, or contact support. Resubmitting keeps their quiz pass and returns them to Waiting for approval.</p>
             </div>
         </>
     );

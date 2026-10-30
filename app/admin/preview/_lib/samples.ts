@@ -28,12 +28,14 @@ export const sampleAffiliate: Doc<"creators"> = {
 };
 
 export const sampleAffiliateSales: readonly AffiliateSale[] = [
-    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", createdAt: Date.UTC(2026, 9, 8, 3) },
-    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", createdAt: Date.UTC(2026, 9, 7, 6) },
-    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", createdAt: Date.UTC(2026, 9, 6, 1) },
+    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", workflowStatus: "completed", paymentStatus: "paid_in_full", commissionCredited: true, createdAt: Date.UTC(2026, 9, 8, 3) },
+    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", workflowStatus: "pending_payment", paymentStatus: "unpaid", commissionCredited: false, createdAt: Date.UTC(2026, 9, 7, 6) },
+    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", workflowStatus: "submitted", paymentStatus: "unpaid", commissionCredited: false, createdAt: Date.UTC(2026, 9, 6, 1) },
 ];
 
 export const sampleAffiliatePortal: AffiliatePortal = {
+    month: { start: Date.UTC(2026, 8, 30, 16), end: Date.UTC(2026, 9, 31, 16), label: "October 2026" },
+    income: { directThisMonth: 1600, teamThisMonth: 0, totalThisMonth: 1600 },
     summary: { balance: 1600, totalEarned: 2600, totalWithdrawn: 500, pendingCommission: 1000, inFlight: 500 },
     earnings: [
         { _id: "preview-affiliate-sale" as Id<"earnings">, amount: 1100, type: "website_sale", status: "available", createdAt: Date.UTC(2026, 9, 8, 3), businessName: "Luna's Salon" },
@@ -49,6 +51,8 @@ export const sampleAffiliatePortal: AffiliatePortal = {
         { _id: "preview-referral-pending" as Id<"referrals">, referredName: "Jamie Cruz", status: "pending", bonusAmount: 0, createdAt: Date.UTC(2026, 9, 5, 2) },
     ],
     referralStats: { total: 2, pending: 1, qualified: 0, paid: 1, totalEarned: 1000 },
+    recruits: [{ _id: "preview-team-agent" as Id<"creators">, referredName: "Taylor Santos", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 0, photo: null, monthsLeft: 12, monthEarned: 0 }],
+    recruitStats: { total: 1, earning: 1, totalEarned: 0 },
 };
 
 export const sampleCreator: Doc<"creators"> = {
@@ -125,6 +129,17 @@ export const sampleLeads: FeedLead[] = [{
     ownerPhone: null,
     interviewerCount: 0,
     websiteUrl: null,
+    businessWebsite: null,
+    photoUrl: null,
+    hasLiveWebsite: false,
+    needsWebsite: null,
+    communityKind: null,
+    spottedBy: null,
+    spottedAt: null,
+    claimedBy: null,
+    claimExpiresAt: null,
+    canUpdateStatus: true,
+    canMarkConverted: true,
     submissionStatus: null,
     isHot: false,
     submittedBy: null,

@@ -105,6 +105,50 @@ describe('leads.getAll loading', () => {
     });
 });
 
+describe('mobile CRM stored map coordinates', () => {
+    it('preserves a complete valid lead position ahead of linked submission coordinates', async () => {
+        const { t, ids } = await setup();
+        await t.run(async (ctx) => {
+            const lead = await ctx.db.get(ids.linked);
+            await ctx.db.patch(lead!.submissionId!, { coordinates: { lat: 14.66, lng: 121.11 } });
+            await ctx.db.patch(ids.linked, { businessLatitude: 14.6, businessLongitude: 121.0 });
+        });
+        const result = await t.withIdentity({ subject: 'creator' }).query(api.leads.listForMobileCRM, {});
+        expect(result.leads.find((lead) => lead._id === ids.linked)).toMatchObject({ businessLatitude: 14.6, businessLongitude: 121.0 });
+    });
+
+    it.each([
+        {},
+        { businessLatitude: 14.1 },
+        { businessLongitude: 120.1 },
+        { businessLatitude: NaN, businessLongitude: 121 },
+        { businessLatitude: 14, businessLongitude: Infinity },
+        { businessLatitude: 91, businessLongitude: 121 },
+        { businessLatitude: 14, businessLongitude: -181 },
+    ])('uses the whole submission position when lead coordinates are missing or invalid: %j', async (coordinates) => {
+        const { t, ids } = await setup();
+        await t.run(async (ctx) => {
+            const lead = await ctx.db.get(ids.linked);
+            await ctx.db.patch(lead!.submissionId!, { coordinates: { lat: 14.66, lng: 121.11 } });
+            await ctx.db.patch(ids.linked, coordinates);
+        });
+        const result = await t.withIdentity({ subject: 'creator' }).query(api.leads.listForMobileCRM, {});
+        expect(result.leads.find((lead) => lead._id === ids.linked)).toMatchObject({ businessLatitude: 14.66, businessLongitude: 121.11 });
+    });
+
+    it('returns two nulls when neither source has a usable coordinate pair', async () => {
+        const { t, ids } = await setup();
+        await t.run(async (ctx) => {
+            const lead = await ctx.db.get(ids.linked);
+            await ctx.db.patch(lead!.submissionId!, { coordinates: { lat: 14.66, lng: 181 } });
+            await ctx.db.patch(ids.linked, { businessLatitude: 14.1 });
+        });
+        const result = await t.withIdentity({ subject: 'creator' }).query(api.leads.listForMobileCRM, {});
+        expect(result.leads.find((lead) => lead._id === ids.linked)).toMatchObject({ businessLatitude: null, businessLongitude: null });
+        expect(result.leads.find((lead) => lead._id === ids.unlinked)).toMatchObject({ businessLatitude: null, businessLongitude: null });
+    });
+});
+
 describe('shared authorization helpers in action contexts', () => {
     // Inline local actions exercise the real helpers and internal creator
     // queries without exporting test-only functions or calling a deployment.

@@ -15,7 +15,7 @@ import { WEBSITE_PRICE, formatPHP } from "@/lib/pricing";
  */
 export const metadata: Metadata = {
     title: "Get your website — Tendso",
-    description: `Tell us about your business, answer a few questions, and send us photos. We build your website and email it to you within 48–72 hours. ${formatPHP(WEBSITE_PRICE)} one-time, paid only when it's live.`,
+    description: `Tell us about your business, answer a few questions, and send us photos. We build your website the same day, in about 20 minutes, and email it to you. ${formatPHP(WEBSITE_PRICE)}, or a down payment from ₱500. See it first, pay once to publish.`,
     alternates: { canonical: "/start" },
 };
 

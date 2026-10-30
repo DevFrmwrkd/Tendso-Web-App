@@ -14,7 +14,8 @@ import { PayoutDialog, type PayoutStep } from "@/app/wallet/_components/PayoutDi
 import { amountInput, checkAmount, shortDate, type LedgerRow, type Retry } from "@/app/wallet/_lib/ledger";
 import { Button, ButtonLink, DefList, DefRow, EmptyState, Fold, Highlight, Icon, Loading, PageHeader, ShowAllList, Skeleton, SkeletonRows, Status, formatMoney } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { COMMISSION_RATE, REFERRAL_BONUS } from "@/lib/pricing";
+import { COMMISSION_RATE, CREATOR_CODE_DISCOUNT, REFERRAL_BONUS } from "@/lib/pricing";
+import { AFFILIATE_RECRUIT_REWARD, AFFILIATE_RECRUIT_TERMS } from "@/lib/affiliateReferralProgram";
 
 import { affiliateLedger, type AffiliatePortal } from "../_lib/portal";
 import { CopyButton } from "./CopyButton";
@@ -50,13 +51,13 @@ export function AffiliateHomeView({ account, portal, preview = false, hrefFor = 
         <div className="grid min-w-0 gap-4 md:grid-cols-3">
             <Figure label="Available in your wallet" amount={portal?.summary.balance} note="Money already earned, ready for a payout." />
             <Figure label="Pending commission" amount={portal?.summary.pendingCommission} note="Lands in your wallet when shop owners pay." />
-            <Figure label="Total earned" amount={portal?.summary.totalEarned} note="Your lifetime commissions and creator referral bonuses." />
+            <Figure label="Total earned" amount={portal?.summary.totalEarned} note="Your lifetime sales commissions, team commissions and earlier referral bonuses." />
         </div>
         <Highlight className="flex flex-col gap-4 p-5 sm:p-6">
             <div className="flex flex-col gap-2">
                 <p className="t-label">Share your offer</p>
                 <h2 className="t-h2">Your page does the introduction.</h2>
-                <p className="t-body max-w-[64ch]">Set your price, share your link, and earn {Math.round(COMMISSION_RATE * 100)}% of each website sale. Creators take photos and interview shop owners; your role is to share your offer.</p>
+                <p className="t-body max-w-[64ch]">Share your {Math.round(CREATOR_CODE_DISCOUNT * 100)}% creator-code offer and earn {Math.round(COMMISSION_RATE * 100)}% of each website sale. Field agents take photos and interview shop owners; your role is to share your offer.</p>
             </div>
             <div className="flex flex-wrap gap-3">
                 <ButtonLink variant="primary" href={hrefFor("my-page")}>My page <Icon icon={ArrowRight} /></ButtonLink>
@@ -67,16 +68,16 @@ export function AffiliateHomeView({ account, portal, preview = false, hrefFor = 
         <div className="t-card t-card-pad flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
                 <h2 className="t-h2">Know someone who would make a good creator?</h2>
-                <p className="t-meta">Earn {formatMoney(REFERRAL_BONUS)} after their first website is paid for by its owner.</p>
+                <p className="t-meta">{AFFILIATE_RECRUIT_REWARD}</p>
             </div>
             <ButtonLink href={hrefFor("referrals")} className="shrink-0">Creator referrals</ButtonLink>
         </div>
     </div>;
 }
 
-export function AffiliateWalletView(props: AffiliatePortalViewProps) {
+export function AffiliateWalletView({ title = "Wallet", ...props }: AffiliatePortalViewProps & { title?: string }) {
     return <div className="flex min-w-0 flex-col gap-6">
-        <PageHeader title="Wallet" sub="Your commissions and payouts, all in one place." />
+        <PageHeader title={title} sub="Your commissions and payouts, all in one place." />
         <ReadOnlyNote preview={props.preview} />
         {props.portal === undefined ? <Loading label="Loading your affiliate wallet" className="flex flex-col gap-6">
             <div className="t-card t-card-pad flex flex-col gap-4" aria-hidden="true"><Skeleton width={160} height={14} /><Skeleton width={200} height={48} /><Skeleton width="60%" height={16} /><Skeleton width={130} height={44} /></div>
@@ -132,7 +133,7 @@ function WalletContent({ account, portal, preview }: { account: Doc<"creators">;
                         <p id={reasonId} className="t-meta wrap-anywhere">{reason ?? (payoutEmail ? `To Wise · ${payoutEmail}` : "Add your Wise email first, then choose an amount.")}</p>
                     </div>
                 </section>
-                <Ledger rows={rows} canRetry={canWithdraw} onRetry={retryWithdrawal} emptyBody="When an owner pays through your page, your commission appears here. Creator referral bonuses and every withdrawal appear here too." />
+                <Ledger rows={rows} canRetry={canWithdraw} onRetry={retryWithdrawal} emptyBody="Sales commissions, team commissions, earlier referral bonuses and every withdrawal appear here." />
             </div>
             <div className="flex min-w-0 flex-col gap-6 xl:w-[352px] xl:flex-none">
                 <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby={destinationId}>
@@ -172,8 +173,16 @@ function WalletContent({ account, portal, preview }: { account: Doc<"creators">;
 export function AffiliateReferralsView({ account, portal, preview = false }: AffiliatePortalViewProps) {
     const codeId = useId();
     const referralsId = useId();
+    const recruitsId = useId();
     const code = account.referralCode || "";
     const readonly = preview || account.status !== "active";
+    // The fields are additive: an older backend or cached response may omit them.
+    const recruits = portal?.recruits ?? [];
+    const recruitStats = portal?.recruitStats ?? {
+        total: recruits.length,
+        earning: recruits.filter((recruit) => recruit.earning).length,
+        totalEarned: recruits.reduce((sum, recruit) => sum + recruit.totalEarned, 0),
+    };
     return <div className="flex min-w-0 flex-col gap-6">
         <PageHeader title="Creator referrals" sub="Invite someone to create websites for local shops." />
         <ReadOnlyNote preview={preview} />
@@ -185,24 +194,34 @@ export function AffiliateReferralsView({ account, portal, preview = false }: Aff
                 {code && <CopyButton value={code} label="Copy your creator referral code" disabled={readonly} />}
             </div>
             <div className="flex flex-col gap-1 border-t border-r1-gold-line pt-4">
-                <p className="t-body">Earn {formatMoney(REFERRAL_BONUS)} when a creator who joins with your code has their first website paid for by its owner.</p>
-                <p className="t-meta">Once per creator. Free promo sites do not count. Your code invites creators, not affiliates.</p>
+                <p className="t-body">{AFFILIATE_RECRUIT_REWARD}</p>
+                <p className="t-meta">{AFFILIATE_RECRUIT_TERMS} Your code invites field agents, not affiliates.</p>
             </div>
         </section>
         <div className="grid gap-4 md:grid-cols-2">
-            <Figure label="Earned from creator referrals" amount={portal?.referralStats.totalEarned} note="Bonuses go into the same wallet as your commissions." />
+            <Figure label="Earned from your invitations" amount={portal === undefined ? undefined : portal.referralStats.totalEarned + recruitStats.totalEarned} note="Team commissions and earlier bonuses go into the same wallet as your sales commissions." />
             <div className="t-card t-card-pad flex flex-col gap-3"><h2 className="t-h2">Your invitations</h2>
                 {portal === undefined ? <Skeleton width="75%" height={24} /> : <DefList>
-                    <DefRow term="Creators invited">{portal.referralStats.total}</DefRow>
-                    <DefRow term="Awaiting a first paid website">{portal.referralStats.pending}</DefRow>
-                    <DefRow term="Bonuses earned">{portal.referralStats.qualified + portal.referralStats.paid}</DefRow>
+                    <DefRow term="Field agents invited">{portal.referralStats.total + recruitStats.total}</DefRow>
+                    <DefRow term="Within their 12-month commission period">{recruitStats.earning}</DefRow>
+                    <DefRow term="Earlier referrals awaiting a first paid website">{portal.referralStats.pending}</DefRow>
+                    <DefRow term="Earlier bonuses earned">{portal.referralStats.qualified + portal.referralStats.paid}</DefRow>
                 </DefList>}
             </div>
         </div>
+        <section className="flex min-w-0 flex-col gap-3" aria-labelledby={recruitsId}>
+            <h2 id={recruitsId} className="t-h2">Your team · 5% commissions</h2>
+            {portal === undefined ? <Loading label="Loading your team"><SkeletonRows count={3} /></Loading>
+                : recruits.length === 0 ? <div className="t-card"><EmptyState icon={<Icon icon={Users} />} title="No field agents on your team yet" body="Share your code with someone who can take photos and interview shop owners. Their invitation appears here after they join with it." /></div>
+                    : <ShowAllList items={recruits} initial={5} renderItem={(recruit) => <div key={recruit._id} className="t-row items-start">
+                        <div className="flex min-w-0 flex-1 flex-col gap-1"><p className="t-row-title wrap-anywhere">{shortName(recruit.referredName)}</p><p className="t-meta">Joined {shortDate(recruit.createdAt)} · Commission period ends {shortDate(recruit.endsAt)}</p><Status tone={recruit.earning ? "progress" : "off"} word={recruit.earning ? "Earning period active" : "Earning period ended"} /></div>
+                        <div className="flex shrink-0 flex-col items-end gap-1"><p className="t-num text-sm font-medium text-r1-ink">{formatMoney(recruit.totalEarned)}</p><p className="t-meta">Earned from their sales</p></div>
+                    </div>} />}
+        </section>
         <section className="flex min-w-0 flex-col gap-3" aria-labelledby={referralsId}>
-            <h2 id={referralsId} className="t-h2">Creators you invited</h2>
+            <h2 id={referralsId} className="t-h2">Earlier ₱1,000 referrals</h2>
             {portal === undefined ? <Loading label="Loading creators you invited"><SkeletonRows count={3} /></Loading>
-                : portal.referrals.length === 0 ? <div className="t-card"><EmptyState icon={<Icon icon={Users} />} title="No creators invited yet" body="Share your code with someone who can take photos and interview shop owners. Their invitation appears here after they join with it." /></div>
+                : portal.referrals.length === 0 ? <p className="t-meta">No referrals from the earlier bonus program.</p>
                     : <ShowAllList items={portal.referrals} initial={5} renderItem={(referral) => <div key={referral._id} className="t-row items-start">
                         <div className="flex min-w-0 flex-1 flex-col gap-1"><p className="t-row-title wrap-anywhere">{shortName(referral.referredName)}</p><p className="t-meta">Joined {shortDate(referral.createdAt)}</p><Status {...referralStatus(referral.status)} /></div>
                         <div className="flex shrink-0 flex-col items-end gap-1"><p className="t-num text-sm font-medium text-r1-ink">{formatMoney(referral.status === "pending" ? REFERRAL_BONUS : referral.bonusAmount)}</p><p className="t-meta max-w-[130px] text-right">{referral.status === "pending" ? "After their first paid website" : "In your wallet"}</p></div>
@@ -211,7 +230,7 @@ export function AffiliateReferralsView({ account, portal, preview = false }: Aff
     </div>;
 }
 
-export function AffiliateAccountView({ account, preview = false, hrefFor = defaultHref }: AffiliatePortalViewProps) {
+export function AffiliateAccountView({ account, preview = false, hrefFor = defaultHref, signOutHref = "/affiliates" }: AffiliatePortalViewProps & { signOutHref?: string }) {
     const headingId = useId();
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Your affiliate account";
     return <div className="flex min-w-0 flex-col gap-6">
@@ -227,10 +246,10 @@ export function AffiliateAccountView({ account, preview = false, hrefFor = defau
                 <DefRow term="Status"><Status tone={account.status === "active" ? "done" : "off"} word={account.status === "active" ? "Active" : "Suspended"} /></DefRow>
                 <DefRow term="Page handle">{account.affiliateHandle ? `/${account.affiliateHandle}` : "Not available"}</DefRow>
             </DefList>
-            <p className="t-meta">One login has one account type. Use a different email to sign up as a creator.</p>
+            <p className="t-meta">One login has one account type. Use a different email to sign up as a field agent or business owner.</p>
         </section>
-        {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} />}
-        <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message, and price that shop owners see from My page.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>
+        {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} signOutHref={signOutHref} />}
+        <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message and social links that shop owners see from My page. Creator codes always give {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off the website price.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>
     </div>;
 }
 
@@ -239,7 +258,7 @@ function AccountActionCard({ children }: { children: ReactNode }) {
 }
 
 /** The preview never mounts Clerk or the profile mutation drawers. */
-function LiveAccountActions({ account }: { account: Doc<"creators"> }) {
+function LiveAccountActions({ account, signOutHref }: { account: Doc<"creators">; signOutHref: string }) {
     const { user, isLoaded } = useUser();
     const [overlay, setOverlay] = useState<"profile" | "password" | null>(null);
     const editable = account.status === "active" && isLoaded && Boolean(user);
@@ -248,7 +267,7 @@ function LiveAccountActions({ account }: { account: Doc<"creators"> }) {
         <AccountActionCard>
             <Button variant="primary" disabled={!editable} onClick={() => setOverlay("profile")}>Edit profile</Button>
             <Button disabled={!editable || !hasPassword} onClick={() => setOverlay("password")}>Change password</Button>
-            <SignOutButton redirectUrl="/affiliates"><Button>Sign out</Button></SignOutButton>
+            <SignOutButton redirectUrl={signOutHref}><Button>Sign out</Button></SignOutButton>
         </AccountActionCard>
         {isLoaded && user && !hasPassword && <p className="t-meta">Your sign-in provider manages this login. There is no Tendso password to change.</p>}
         {editable && <EditProfileDrawer open={overlay === "profile"} onClose={() => setOverlay(null)} creator={account} why="How Tendso knows and reaches you." emailLine={maskEmail(account.email)} />}

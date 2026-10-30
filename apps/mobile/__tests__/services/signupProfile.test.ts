@@ -111,6 +111,43 @@ it('creates an affiliate with a lowercase handle and no incoming referral fields
   expect(calls.createCreator).not.toHaveBeenCalled();
 });
 
+it('persists and sends a chosen own creator code without forwarding an incoming agent invitation', async () => {
+  const calls = mutations();
+  const profile = normalizeSignupProfile({ ...affiliate, creatorCode: ' alex30 ', referredByCode: 'INVITE999' });
+  await savePendingSignupProfile(profile, identity);
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'affiliate', creatorCode: 'ALEX30', referredByCode: '' });
+  await createSignupAccount(profile, identity, { isAuthenticated: true, hasAccount: false }, calls);
+  expect(calls.createAffiliate).toHaveBeenCalledWith({
+    email: identity.email, firstName: 'Alex', lastName: 'Cruz', phone: '09171234567', handle: 'alex-shop', code: 'ALEX30',
+  });
+  expect(calls.createCreator).not.toHaveBeenCalled();
+  expect(await loadPendingSignupProfile(identity)).toBeNull();
+});
+
+it('keeps an old affiliate draft without a creator code compatible and never sends an own creator code to agent signup', async () => {
+  await savePendingSignupProfile(affiliate, identity);
+  for (const key of await AsyncStorage.getAllKeys()) {
+    const draft = JSON.parse((await AsyncStorage.getItem(key))!);
+    delete draft.profile.creatorCode;
+    await AsyncStorage.setItem(key, JSON.stringify(draft));
+  }
+  expect(await loadPendingSignupProfile(identity)).toMatchObject({ accountType: 'affiliate', creatorCode: '' });
+  const calls = mutations();
+  const profile = normalizeSignupProfile({ ...creator, creatorCode: 'NEVER30' });
+  expect(profile.creatorCode).toBe('');
+  await createSignupAccount(profile, identity, { isAuthenticated: true, hasAccount: false }, calls);
+  expect(calls.createCreator).toHaveBeenCalledWith(expect.objectContaining({ referredByCode: 'AFF123' }));
+  expect(calls.createCreator.mock.calls[0][0]).not.toHaveProperty('code');
+  expect(calls.createAffiliate).not.toHaveBeenCalled();
+});
+
+it.each(['BAD-CODE', 'ABC', 'OTR30'])('rejects an invalid own creator code %s before account creation', async creatorCode => {
+  const calls = mutations();
+  await expect(createSignupAccount({ ...affiliate, creatorCode }, identity, { isAuthenticated: true, hasAccount: false }, calls)).rejects.toThrow();
+  expect(calls.createAffiliate).not.toHaveBeenCalled();
+  expect(calls.createCreator).not.toHaveBeenCalled();
+});
+
 it('retains the scoped draft when backend validation refuses a referral or handle', async () => {
   const calls = mutations();
   calls.createAffiliate.mockRejectedValue(new Error('That page handle is already taken.'));

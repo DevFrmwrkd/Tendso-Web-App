@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendso Landing Mock</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/phone.css">
+<link rel="stylesheet" href="css/app-kit.css">
+<link rel="stylesheet" href="css/screens.css">
+<link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/tiles.css">
+<link rel="stylesheet" href="css/steps.css">
+<link rel="stylesheet" href="css/paths.css">
+<link rel="stylesheet" href="css/people.css">
+<link rel="stylesheet" href="css/work.css">
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Tendso home"><img src="assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#people">People</a>
+      <a href="#work" data-open-work>Work</a>
+      <a href="pages/business.html">For businesses</a>
+      <a href="pages/creators.html">For field agents</a>
+      <a href="pages/help.html">Help</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--line btn--sm" href="#hire">Hire an agent</a>
+      <a class="btn btn--accent btn--sm" href="#download">Download the app</a>
+      <button class="nav-menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- 1. Hero stage. On scroll it shrinks into the first grid tile (#slot-stage). -->
+  <section class="hero" id="hero" data-mount></section>
+
+  <!-- 2. Grid of living tiles: what goes into a homepage -->
+  <section class="grid-sec" id="grid" data-mount></section>
+
+  <!-- 3. The people behind the sites (Theo 2026-10-21: people first, ways in last) -->
+  <section class="people" id="people" data-mount></section>
+
+  <!-- 4. Five steps, pinned phone -->
+  <section class="steps" id="how" data-mount></section>
+
+  <!-- 5. Paths: download / hire / join — always last before the footer -->
+  <section class="paths" id="paths" data-mount></section>
+</main>
+
+<footer class="foot" id="foot" data-mount></footer>
+
+<!-- Case studies overlay (Work) -->
+<div class="work" id="work" data-mount hidden></div>
+
+<button class="review-switch" id="review-switch" type="button" aria-pressed="false"><i></i>Review mode</button>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/tiles.js"></script>
+<script src="js/steps.js"></script>
+<script src="js/paths.js"></script>
+<script src="js/people.js"></script>
+<script src="js/work.js"></script>
+<script src="js/foot.js"></script>
+<script>
+  // Boot order: each section renders into its mount, then core starts scroll + reveals.
+  const mods = ['Hero', 'Tiles', 'Steps', 'Paths', 'People', 'Work', 'Foot'];
+  mods.forEach((m) => { try { window['Tendso' + m]?.init(); } catch (e) { console.error(m, e); } });
+  T.init();
+  mods.forEach((m) => { try { window['Tendso' + m]?.ready?.(); } catch (e) { console.error(m, e); } });
+  const rs = document.getElementById('review-switch');
+  const setReview = (on) => { document.documentElement.classList.toggle('review', on); rs.setAttribute('aria-pressed', on); };
+  rs.addEventListener('click', () => setReview(!document.documentElement.classList.contains('review')));
+  addEventListener('keydown', (e) => { if (e.key === 'r' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) setReview(!document.documentElement.classList.contains('review')); });
+</script>
+</body>
+</html>

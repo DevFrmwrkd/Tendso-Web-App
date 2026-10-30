@@ -21,6 +21,8 @@ import { internal } from './_generated/api';
 import { mergeEnhancedImages } from './lib/enhancedImages';
 import { requireAdmin } from './lib/auth';
 import { giveawayCanRender } from './lib/giveaway';
+import { aiPipelineEnabled } from '../lib/aiPipeline/config';
+import { validCaptureDesignCode } from '../lib/captureDesign';
 
 // Tendso's fixed photo order → roles. Products only when hasProducts.
 const PHOTO_ROLES = ['headshot', 'interior_1', 'interior_2', 'exterior', 'product_1', 'product_2'];
@@ -61,6 +63,7 @@ export const triggerStudioRenderPublic = mutation({
         await ctx.db.patch(args.submissionId, { airtableSyncStatus: 'pending_push' });
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.submissionId,
+            viaStudio: true, // the admin asked for Studio by name
         });
         return { success: true };
     },
@@ -71,7 +74,9 @@ export const triggerStudioRenderPublic = mutation({
  * payload, and POSTs it to the agent's webhook so a fresh thread runs the skill.
  */
 export const triggerStudioRender = internalAction({
-    args: { submissionId: v.id('submissions') },
+    // viaStudio: always use Studio, even when the AI pipeline is on (the admin's
+    // Enhance Images button, and the pipeline's own fallback).
+    args: { submissionId: v.id('submissions'), viaStudio: v.optional(v.boolean()) },
     handler: async (ctx, args) => {
         const submission = await ctx.runQuery(internal.hyperagent.getSubmissionForStudio, {
             submissionId: args.submissionId,
@@ -81,6 +86,18 @@ export const triggerStudioRender = internalAction({
         // Ignore an old job if eligibility has not been approved or the owner
         // was rejected before the job started. No webhook or paid work is sent.
         if (!giveawayCanRender(submission)) return;
+
+        // AI pipeline (v2, docs/v2-ai-pipeline.md). Every automatic trigger —
+        // submissions.submit, ownerIntake.submitOwnerIntake, giveaway approval —
+        // lands here, so this one switch moves them all. Off unless
+        // AI_PIPELINE_ENABLED is set; Studio stays the fallback when it fails.
+        if (!args.viaStudio && aiPipelineEnabled(process.env)) {
+            await ctx.runMutation(internal.aiPipeline.orchestrator.start, {
+                submissionId: args.submissionId,
+                reason: 'submitted',
+            });
+            return;
+        }
 
         const webhookUrl = process.env.HYPERAGENT_WEBHOOK_URL;
         const token = process.env.HYPERAGENT_WEBHOOK_TOKEN;
@@ -111,8 +128,10 @@ export const triggerStudioRender = internalAction({
             if (url) photos.push({ role, url });
         }
 
+        const templateId = validCaptureDesignCode(submission.templateId);
         const payload = {
             submissionId: args.submissionId,
+            ...(templateId ? { templateId } : {}),
             business: {
                 name: submission.businessName,
                 type: submission.businessType,

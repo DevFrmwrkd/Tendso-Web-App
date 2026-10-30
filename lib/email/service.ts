@@ -166,7 +166,7 @@ interface IntakeReceivedEmailData {
  * of them finishing /start, before any admin has touched the row.
  *
  * Everything else in this file fires from the admin's own clicks, which on the
- * owner path is 48-72h away. Without this one the owner's first contact from us
+ * owner path is some hours away. Without this one the owner's first contact from us
  * is a bill. See getIntakeReceivedEmailHtml for what it does and does not
  * promise.
  */

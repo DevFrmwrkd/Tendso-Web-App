@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Stack, useSegments } from 'expo-router';
 import { useAuth, useClerk } from '@clerk/clerk-expo';
@@ -9,11 +9,14 @@ import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { useNetwork } from '../../providers/NetworkProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
-import { accountRouteRedirect, affiliateNeedsApproval } from '../../services/accountAccess';
+import { accountBlocked, accountRouteRedirect, affiliateNeedsApproval, fieldAgentNeedsOnboarding } from '../../services/accountAccess';
 import { clearPendingSignupProfiles } from '../../services/signupProfile';
 import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
 import { PendingAffiliateApproval } from '../../components/affiliate/PendingApproval';
 import { colors, fonts } from '../../theme/tokens';
+import { hasOwnerIntent } from '../../lib/v2/ownerIntake';
+import { fieldAgentWorkspaceRedirect } from '../../services/fieldAgentFinds';
+import { NotificationResponseOpener } from '../../hooks/useNotificationOpen';
 
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
 
@@ -26,11 +29,17 @@ export default function AppLayout() {
   const updateLastActive = useMutation(api.creators.updateLastActive);
   const [cachedAuth, setCachedAuth] = useState<boolean | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const readySpotActor = useRef<{ subject: string; accountId: string } | null>(null);
+  // "I have a business" on the welcome screen: a new account with no agent profile is an owner.
+  const [ownerIntent, setOwnerIntentState] = useState<boolean | null>(null);
+  useEffect(() => { void hasOwnerIntent().then(setOwnerIntentState); }, []);
 
   // Auto-sync offline data when connectivity returns
   useOfflineSync({
     enabled: mobileAccount.isAuthenticated && !mobileAccount.isOffline && !mobileAccount.isBlocked
-      && mobileAccount.role === 'creator' && !mobileAccount.isPreview,
+      && mobileAccount.role === 'creator' && !mobileAccount.isPreview
+      && !!mobileAccount.account?.certifiedAt && !mobileAccount.account?.rejectedAt
+      && ((segments as string[])[1] !== 'submit' || (segments as string[])[2] === 'success'),
     creatorId: mobileAccount.account?._id,
   });
 
@@ -71,6 +80,28 @@ export default function AppLayout() {
     }
   }, [mobileAccount.isAuthenticated, mobileAccount.account?._id, mobileAccount.isOffline, userId, updateLastActive]);
 
+  // An already-open, validated Spot/capture form may retain its local draft while
+  // Convex reconnects. A cold deep link and every explicit access change still
+  // use the normal account gate below; retained state never authorizes writes.
+  const openSpot = ((segments as string[])[1] === 'leads' && (segments as string[])[2] === 'spot')
+    || (segments as string[])[1] === 'submit';
+  const spotAccount = mobileAccount.account;
+  const spotAccountApproved = !!spotAccount && !mobileAccount.isBlocked && !accountBlocked(spotAccount)
+    && !fieldAgentNeedsOnboarding(spotAccount) && fieldAgentWorkspaceRedirect(spotAccount) === null;
+  if (!openSpot || !isLoaded || isSignedIn !== true || !userId || mobileAccount.isPreview || mobileAccount.isBlocked
+    || (mobileAccount.role != null && mobileAccount.role !== 'creator')
+    || (readySpotActor.current && readySpotActor.current.subject !== userId) || spotAccount === null
+    || (spotAccount && (!spotAccountApproved || spotAccount.clerkId !== userId))) {
+    readySpotActor.current = null;
+  }
+  if (openSpot && effectivelyLoaded && authChecked && isLoaded && isSignedIn === true && userId
+    && spotAccount && spotAccount.clerkId === userId && spotAccountApproved && !mobileAccount.isPreview
+    && !mobileAccount.isLoading && mobileAccount.isAuthenticated && !mobileAccount.isOffline) {
+    readySpotActor.current = { subject: userId, accountId: String(spotAccount._id) };
+  }
+  const retainingSpot = openSpot && !!userId && !!readySpotActor.current && readySpotActor.current.subject === userId
+    && (!spotAccount || String(spotAccount._id) === readySpotActor.current.accountId);
+
   if (!effectivelyLoaded || !authChecked) return null;
 
   // Offline with cached auth → stay in the app (draft mode)
@@ -80,12 +111,19 @@ export default function AppLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  if (mobileAccount.isLoading) return (
+  if (mobileAccount.isLoading && !retainingSpot) return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
       <ActivityIndicator accessibilityLabel="Loading account" color={colors.accent} />
     </View>
   );
-  if (mobileAccount.isBlocked || mobileAccount.isOwner || (mobileAccount.isOffline && mobileAccount.role !== 'creator')
+  // Shop owners have their own app section (replaces the old "Continue on the web" dead end).
+  // Agents, creators and admins are routed exactly as before.
+  if (!mobileAccount.isOffline && mobileAccount.isOwner) return <Redirect href={'/(owner)' as never} />;
+  if (!mobileAccount.isOffline && mobileAccount.account === null) {
+    if (ownerIntent === null) return null;
+    if (ownerIntent) return <Redirect href={'/(owner)' as never} />;
+  }
+  if (mobileAccount.isBlocked || (mobileAccount.isOffline && mobileAccount.role !== 'creator')
     || (!mobileAccount.isOffline && mobileAccount.account && !mobileAccount.role)) {
     return (
       <View style={{ flex: 1, padding: 24, justifyContent: 'center', backgroundColor: colors.paper, gap: 16 }}>
@@ -107,6 +145,12 @@ export default function AppLayout() {
   if (affiliateNeedsApproval(mobileAccount.account)) return <PendingAffiliateApproval />;
 
   const route = (segments as string[])[1];
+  // Persisted progress protects this flow across restarts and deep links. Older
+  // accounts have no required flag; admin previews and offline drafts keep working.
+  if (!mobileAccount.isOffline && !mobileAccount.isPreview && fieldAgentNeedsOnboarding(mobileAccount.account)
+    && route !== 'agent-onboarding') {
+    return <Redirect href={'/(app)/agent-onboarding' as never} />;
+  }
   if (!mobileAccount.isOffline && mobileAccount.account === null) {
     if (route !== 'account-setup') return <Redirect href={'/(app)/account-setup' as never} />;
   } else {
@@ -135,12 +179,19 @@ export default function AppLayout() {
       {/* Reached via <Redirect> for a social sign-up missing a name. Disable the
           edge-swipe so it can't be dismissed without entering one. */}
       <Stack.Screen name="complete-profile" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="agent-onboarding" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/info" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/photos" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/interview" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="submit/design" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/review" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/success" options={{ gestureEnabled: false }} />
     </Stack>
+    {isLoaded && isSignedIn === true && userId && mobileAccount.isAuthenticated && !mobileAccount.isOffline
+      && !mobileAccount.isPreview && mobileAccount.account?.clerkId === userId && mobileAccount.role
+      && !fieldAgentNeedsOnboarding(mobileAccount.account)
+      && (mobileAccount.role !== 'affiliate' || ['active', 'suspended'].includes(mobileAccount.account.status ?? ''))
+      ? <NotificationResponseOpener key={`${userId}:${mobileAccount.account._id}`} subject={userId} creatorId={mobileAccount.account._id} /> : null}
     </View>
   );
 }

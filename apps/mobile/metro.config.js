@@ -10,6 +10,8 @@ config.watchFolders = [
     ...(config.watchFolders ?? []),
     path.resolve(__dirname, '../../convex/_generated'),
     path.resolve(__dirname, '../../lib'),
+    // Field-agent design choices use the canonical, framework-free catalog.
+    path.resolve(__dirname, '../../components/editor'),
   ]),
 ];
 

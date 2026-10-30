@@ -1,8 +1,17 @@
 import { v } from 'convex/values';
 import { mutation, query, internalQuery, action, internalAction } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
+import { isOwnerApp } from './lib/ownerApp';
+import { getOwner, ownsSubmission, ownerAppPublishBlockReason } from './lib/ownerAuth';
+
+async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissions'>) {
+    const submission = await ctx.db.get(submissionId);
+    const blocked = submission && await ownerAppPublishBlockReason(ctx, submission);
+    if (blocked) throw new Error(`This owner made the site in the app: publish after they pay in full and approve with no open changes (${blocked}).`);
+}
 
 // Get generated website by submission ID.
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
@@ -16,6 +25,11 @@ export const getBySubmissionId = query({
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
             .first();
         if (!doc) return null;
+        const submission = await ctx.db.get(args.submissionId);
+        if (isOwnerApp(submission) && (doc.status !== 'published' || doc.offlineAt)) {
+            const owner = await getOwner(ctx);
+            if (!owner || !(await ownsSubmission(ctx, owner._id, args.submissionId))) await requireAdmin(ctx);
+        }
         const htmlUrl = doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null;
         return { ...doc, htmlUrl };
     },
@@ -73,45 +87,67 @@ export const upsert = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
-        // Check if website already exists for this submission
-        const existing = await ctx.db
-            .query('generatedWebsites')
-            .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
-            .first();
-
-        if (existing) {
-            const oldBlob = existing.htmlStorageId;
-            // Update existing
-            await ctx.db.patch(existing._id, {
-                templateName: args.templateName,
-                extractedContent: args.extractedContent,
-                customizations: args.customizations,
-                htmlContent: args.htmlContent,
-                cssContent: args.cssContent,
-                htmlStorageId: args.htmlStorageId,
-                status: args.status || existing.status,
-            });
-            // GC the superseded HTML blob AFTER the new reference is committed
-            // (covers both replace → new id and remove → undefined).
-            if (oldBlob && oldBlob !== args.htmlStorageId) {
-                await ctx.scheduler.runAfter(0, internal.generatedWebsites.deleteBlob, { storageId: oldBlob });
-            }
-            return existing._id;
-        } else {
-            // Create new
-            return await ctx.db.insert('generatedWebsites', {
-                submissionId: args.submissionId,
-                templateName: args.templateName,
-                extractedContent: args.extractedContent,
-                customizations: args.customizations,
-                htmlContent: args.htmlContent,
-                cssContent: args.cssContent,
-                htmlStorageId: args.htmlStorageId,
-                status: args.status || 'draft',
-            });
-        }
+        if (args.status === 'published') await requirePublishReady(ctx, args.submissionId);
+        return await upsertGeneratedWebsiteRow(ctx, args);
     },
 });
+
+/**
+ * The write behind `upsert`, without the admin check. Shared with the AI
+ * pipeline (convex/aiPipeline/persist.ts), which saves the same build from the
+ * server with no admin session. Callers authorize before calling this.
+ */
+export async function upsertGeneratedWebsiteRow(
+    ctx: MutationCtx,
+    args: {
+        submissionId: Id<'submissions'>;
+        templateName: string;
+        extractedContent: unknown;
+        customizations?: unknown;
+        htmlContent?: string;
+        cssContent?: string;
+        htmlStorageId?: Id<'_storage'>;
+        status?: 'draft' | 'published';
+    },
+): Promise<Id<'generatedWebsites'>> {
+    // Check if website already exists for this submission
+    const existing = await ctx.db
+        .query('generatedWebsites')
+        .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
+        .first();
+
+    if (existing) {
+        const oldBlob = existing.htmlStorageId;
+        // Update existing
+        await ctx.db.patch(existing._id, {
+            templateName: args.templateName,
+            extractedContent: args.extractedContent,
+            customizations: args.customizations,
+            htmlContent: args.htmlContent,
+            cssContent: args.cssContent,
+            htmlStorageId: args.htmlStorageId,
+            status: args.status || existing.status,
+        });
+        // GC the superseded HTML blob AFTER the new reference is committed
+        // (covers both replace → new id and remove → undefined).
+        if (oldBlob && oldBlob !== args.htmlStorageId) {
+            await ctx.scheduler.runAfter(0, internal.generatedWebsites.deleteBlob, { storageId: oldBlob });
+        }
+        return existing._id;
+    } else {
+        // Create new
+        return await ctx.db.insert('generatedWebsites', {
+            submissionId: args.submissionId,
+            templateName: args.templateName,
+            extractedContent: args.extractedContent,
+            customizations: args.customizations,
+            htmlContent: args.htmlContent,
+            cssContent: args.cssContent,
+            htmlStorageId: args.htmlStorageId,
+            status: args.status || 'draft',
+        });
+    }
+}
 
 // Update website status and publishing info
 export const updatePublishingInfo = mutation({
@@ -124,6 +160,7 @@ export const updatePublishingInfo = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        if (args.status === 'published') await requirePublishReady(ctx, args.submissionId);
         const website = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -351,6 +388,8 @@ export const publish = mutation({
         if (!website) {
             throw new Error('Generated website not found');
         }
+
+        await requirePublishReady(ctx, args.submissionId);
 
         await ctx.db.patch(website._id, {
             status: 'published',

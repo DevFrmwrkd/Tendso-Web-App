@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liwanag Photo · Wedding &amp; portrait photographer, Tagaytay</title>
+<meta name="description" content="Wedding, engagement and portrait photography in Tagaytay, Cavite. Natural light, honest moments.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;0,6..96,800;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10201a;
+  --leaf:#2d6a4a;
+  --gold:#b98a2c;
+  --mist:#eef4ef;
+  --pad:clamp(20px,4.5vw,64px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',system-ui,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6;font-size:17px}
+img{display:block;max-width:100%}
+a{color:inherit}
+.serif{font-family:'Bodoni Moda','Didot',serif}
+.pack .price,.cover h2,.quote blockquote,.intro p.big,.pack h3,h2.h,.about .sig,.visit h2{font-variation-settings:'opsz' 20;font-optical-sizing:none}
+.sc{text-transform:uppercase;letter-spacing:.2em;font-size:11px;font-weight:700}
+
+/* ---------- cover / hero ---------- */
+.hero{position:relative;height:100svh;min-height:640px;overflow:hidden;background:#cfe0ea;color:#fff}
+.hero picture,.hero img{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero img{object-fit:cover;object-position:0% 50%}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;background:
+  linear-gradient(180deg,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 32%),
+  linear-gradient(0deg,rgba(8,32,20,.62) 0%,rgba(8,32,20,.3) 26%,rgba(8,32,20,0) 48%)}
+.hero>*{position:relative;z-index:3}
+.mast{position:absolute;left:var(--pad);right:var(--pad);top:22px;color:var(--ink)}
+.mast .line{display:flex;justify-content:space-between;border-bottom:1px solid var(--ink);padding-bottom:10px}
+.mast h1{font-family:'Bodoni Moda',serif;font-weight:800;font-size:clamp(70px,15.2vw,250px);line-height:.82;letter-spacing:.035em;text-transform:uppercase;text-align:center;margin-top:16px;font-optical-sizing:auto}
+.mast .line2{display:flex;justify-content:space-between;border-top:1px solid var(--ink);margin-top:14px;padding-top:9px}
+.cover{position:absolute;left:calc(var(--pad) + 28vw);bottom:clamp(30px,5vh,56px);max-width:38vw}
+.cover .kick{display:block;margin-bottom:12px;color:#fff}
+.cover h2{font-family:'Bodoni Moda',serif;font-style:italic;font-weight:500;font-size:clamp(40px,4.6vw,72px);line-height:1;letter-spacing:-.01em;text-shadow:0 2px 24px rgba(5,30,18,.35)}
+.btn{display:inline-block;margin-top:24px;background:#fff;color:var(--ink);font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12px;padding:19px 34px;text-decoration:none;transition:background .2s,color .2s}
+.btn:hover{background:var(--gold);color:#fff}
+.side{position:absolute;right:var(--pad);bottom:clamp(30px,5vh,56px);text-align:right;display:none}
+.top-nav{position:absolute;top:auto}
+
+/* ---------- body ---------- */
+section{padding:clamp(70px,9vw,140px) var(--pad)}
+.wrap{max-width:1360px;margin:0 auto}
+.intro{display:grid;grid-template-columns:4fr 8fr;gap:clamp(28px,6vw,100px);align-items:start}
+.intro .sc{color:var(--leaf);border-top:1px solid var(--ink);padding-top:16px}
+.intro p.big{font-family:'Bodoni Moda',serif;font-weight:400;font-size:clamp(28px,3.5vw,52px);line-height:1.14;letter-spacing:-.01em}
+.intro p.big::first-letter{font-weight:800;font-size:2.4em;float:left;line-height:.82;padding:.06em .1em 0 0;color:var(--leaf)}
+.intro .cols{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:36px;font-size:16px}
+.intro .cols p{opacity:.88}
+
+.plate{padding:0;position:relative}
+.plate img{width:100%;height:min(92vh,860px);object-fit:cover;object-position:50% 45%}
+.plate figcaption{display:flex;justify-content:space-between;gap:20px;padding:14px var(--pad);border-bottom:1px solid var(--ink);font-size:13px}
+
+h2.h{font-family:'Bodoni Moda',serif;font-weight:400;font-size:clamp(40px,5.6vw,88px);line-height:.96;letter-spacing:-.015em}
+h2.h i{color:var(--leaf)}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:24px;border-bottom:1px solid var(--ink);padding-bottom:22px}
+.sec-head .sc{padding-bottom:8px;text-align:right}
+.pk{display:grid;grid-template-columns:repeat(3,1fr)}
+.pack{padding:34px clamp(18px,2.6vw,40px) 40px;border-right:1px solid var(--ink);display:flex;flex-direction:column}
+.pack:first-child{padding-left:0}
+.pack:last-child{border-right:0;padding-right:0}
+.pack .sc{color:var(--gold)}
+.pack h3{font-family:'Bodoni Moda',serif;font-weight:600;font-size:clamp(28px,2.8vw,40px);line-height:1.05;margin:12px 0 10px}
+.pack .price{font-family:'Bodoni Moda',serif;font-style:italic;font-size:clamp(34px,3.4vw,52px);line-height:1;margin:10px 0 22px;color:var(--leaf)}
+.pack ul{list-style:none;font-size:16px;border-top:1px solid rgba(16,32,26,.25)}
+.pack li{padding:10px 0;border-bottom:1px solid rgba(16,32,26,.15)}
+.pack p{font-size:15px;opacity:.85;margin-bottom:6px}
+.note{border-top:1px solid var(--ink);padding-top:16px;font-size:15px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+.quote{background:var(--mist);text-align:center}
+.quote blockquote{font-family:'Bodoni Moda',serif;font-style:italic;font-weight:400;font-size:clamp(30px,4.2vw,64px);line-height:1.12;max-width:20em;margin:22px auto 28px;letter-spacing:-.01em}
+.quote .sc{color:var(--leaf)}
+
+.about{display:grid;grid-template-columns:5fr 7fr;gap:clamp(28px,6vw,100px);align-items:center}
+.about img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%}
+.about h2{margin:14px 0 24px}
+.about p{margin-bottom:16px;max-width:34em}
+.about .sig{font-family:'Bodoni Moda',serif;font-style:italic;font-size:30px;margin-top:20px}
+
+.visit{background:var(--ink);color:#fff}
+.visit .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,6vw,100px);align-items:end}
+.visit h2{font-family:'Bodoni Moda',serif;font-weight:400;font-size:clamp(42px,6vw,92px);line-height:.96}
+.visit h2 i{color:#e6c274}
+.visit dl{display:grid;grid-template-columns:auto 1fr;gap:14px 28px;font-size:17px}
+.visit dt{opacity:.6;padding-top:4px}
+.visit .btn{margin-top:30px;grid-column:1/-1;justify-self:start;background:#e6c274}
+.visit .btn:hover{background:#fff;color:var(--ink)}
+footer{background:var(--ink);color:#fff;padding:0 var(--pad) 30px}
+footer div{max-width:1360px;margin:0 auto;border-top:1px solid rgba(255,255,255,.3);padding-top:16px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px;opacity:.75}
+
+.rv{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+@media (max-width:900px){
+  .pk{grid-template-columns:1fr}
+  .pack,.pack:first-child,.pack:last-child{border-right:0;border-bottom:1px solid var(--ink);padding:28px 0}
+}
+@media (max-width:820px){
+  .hero img{object-position:50% 50%}
+  .hero::after{background:
+    linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 26%),
+    linear-gradient(0deg,rgba(8,32,20,.78) 0%,rgba(8,32,20,.55) 30%,rgba(8,32,20,0) 56%)}
+  .mast{top:16px}
+  .mast .line span:nth-child(n+2){display:none}
+  .mast h1{font-size:16.4vw;margin-top:14px;letter-spacing:-.01em}
+  .hero{background:#dce8ef}
+  .hero picture{top:62px;height:auto;bottom:0}
+  .hero img{top:0;height:100%;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 90px);mask-image:linear-gradient(180deg,transparent 0,#000 90px)}
+  .cover{left:var(--pad);right:var(--pad);max-width:none;bottom:30px}
+  .cover h2{font-size:clamp(38px,11.2vw,50px)}
+  .intro,.about,.visit .wrap{grid-template-columns:1fr}
+  .intro .cols{grid-template-columns:1fr;gap:16px}
+  .plate img{height:64vh}
+  .plate figcaption{flex-direction:column;gap:2px}
+  .sec-head{flex-direction:column;align-items:flex-start}
+  .sec-head .sc{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <picture>
+    <source media="(max-width:820px)" srcset="../assets/photos/showcase/photo-owner.jpg">
+    <img src="../assets/photos/showcase/photo-hero.jpg" alt="The photographer crouching to shoot a laughing couple on a green hillside above Taal Lake, Tagaytay">
+  </picture>
+  <div class="mast">
+    <div class="line sc"><span>Wedding &amp; portrait photography</span><span class="mid">Now booking 2027</span><span>Tagaytay · Cavite</span></div>
+    <h1>Liwanag</h1>
+  </div>
+  <div class="cover">
+    <span class="sc kick">The wedding issue</span>
+    <h2>Weddings,<br>in good light.</h2>
+    <a class="btn" href="#visit">Check my dates</a>
+  </div>
+</header>
+
+<section>
+  <div class="wrap intro">
+    <div class="sc rv">Editor's note</div>
+    <div class="rv">
+      <p class="big">I photograph the in-between moments, the nervous laugh before the aisle and the quiet minute after the vows, in the soft light that Tagaytay is known for.</p>
+      <div class="cols">
+        <p>Liwanag means light. It is also the name my grandmother gave our family's little photo shop in Silang, where I learned to load film before I learned to ride a bike.</p>
+        <p>Today it is just me and one assistant. I take a limited number of weddings each year, so I can give every couple the same calm, unhurried day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<figure class="plate">
+  <img src="../assets/photos/showcase/photo-couple.jpg" alt="A bride in a white gown and a groom in a cream barong walking hand in hand through a sunny garden" loading="lazy">
+  <figcaption><span class="sc">Plate 02</span><span>Mia &amp; Paolo · Garden ceremony, Tagaytay</span></figcaption>
+</figure>
+
+<section id="packages">
+  <div class="wrap">
+    <div class="sec-head rv"><h2 class="h">The <i>packages</i></h2><span class="sc">Prices in pesos</span></div>
+    <div class="pk">
+      <article class="pack rv"><span class="sc">I · Portraits</span><h3>Engagement &amp; portrait session</h3><div class="price">₱6,500</div>
+        <ul><li>1 hour at Taal view deck or Sonya's Garden</li><li>30 edited photos, online gallery</li><li>Outfit change and styling tips</li></ul></article>
+      <article class="pack rv"><span class="sc">II · Elopement</span><h3>Small wedding, half day</h3><div class="price">₱18,000</div>
+        <ul><li>3 hours, one photographer</li><li>150 edited photos in 10 days</li><li>Printed 5×7 set of 20 photos</li></ul></article>
+      <article class="pack rv"><span class="sc">III · The full day</span><h3>Wedding, whole story</h3><div class="price">₱48,000</div>
+        <ul><li>8 hours, two photographers</li><li>500 edited photos in 3 weeks</li><li>30-page linen album</li></ul></article>
+    </div>
+    <p class="note rv"><span>A ₱5,000 reservation fee holds your date.</span><span>Travel within Cavite and Batangas is free.</span></p>
+  </div>
+</section>
+
+<section class="quote">
+  <div class="sc rv">Kind words</div>
+  <blockquote class="rv">“Our wedding was a loud, messy, happy day, and somehow every photo feels calm.”</blockquote>
+  <div class="sc rv">Mia &amp; Paolo Reyes · Married in Tagaytay, February</div>
+</section>
+
+<section>
+  <div class="wrap about">
+    <img class="rv" src="../assets/photos/showcase/photo-owner.jpg" alt="Portrait of Gabriel Villanueva holding his camera with Taal Lake behind him" loading="lazy">
+    <div class="rv">
+      <span class="sc" style="color:var(--leaf)">About the photographer</span>
+      <h2 class="h">Hello, I'm <i>Gabriel.</i></h2>
+      <p>I have photographed more than 180 weddings and portrait sessions since 2014, mostly around Tagaytay, Alfonso and Nasugbu. I shoot in natural light, and I rarely ask you to pose. I would rather you forget I'm there.</p>
+      <p>Send me your date and venue, and I will reply the same day with whether I'm free and a short plan for your timeline.</p>
+      <div class="sig">Gabriel Villanueva</div>
+    </div>
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <div class="wrap">
+    <h2>Let's talk<br>about <i>your day.</i></h2>
+    <dl>
+      <dt class="sc">Studio</dt><dd>2F Aguinaldo Highway, Brgy. Silang Crossing, Tagaytay City 4120</dd>
+      <dt class="sc">Hours</dt><dd>Mon – Sat, 9:00 am – 6:00 pm<br>Sundays by appointment</dd>
+      <dt class="sc">Call or Viber</dt><dd>0917 555 0188</dd>
+      <dt class="sc">Email</dt><dd>hello@liwanagphoto.ph</dd>
+      <a class="btn" href="tel:09175550188">Message about my date</a>
+    </dl>
+  </div>
+</section>
+<footer><div><span>© Liwanag Photo · Tagaytay City, Cavite</span><span>All photographs © Gabriel Villanueva</span></div></footer>
+
+<script>
+(function(){
+  var els=[].slice.call(document.querySelectorAll('.rv'));
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { AffiliateOffer } from "@/app/a/[handle]/_components/AffiliateLanding";
 import { affiliateBuyHref, creatorPlatform, creatorStoreButtons } from "@/lib/affiliateLanding";
-import { WEBSITE_PRICE } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE } from "@/lib/pricing";
 
 // The offer view does not fetch data. The generated ESM client is replaced only
 // so Jest's CommonJS renderer can import the same module as the public route.
@@ -31,8 +31,9 @@ describe("public affiliate offer", () => {
         expect(html).toContain(affiliate.message);
         expect(html).toContain(`src="${affiliate.photo}"`);
         expect(html).toMatch(/<del[^>]*>₱4,999<\/del>/);
-        expect(html).toContain("₱1,999");
-        expect(html).toContain("60% off");
+        expect(html).toContain("₱3,499");
+        expect(html).toContain("30% off");
+        expect(html).not.toContain("₱1,999");
         expect(html).toContain('href="/start?affiliate=maria"');
         expect(html).toContain("Get my website");
         expect(html).toContain("MARIA2026");
@@ -59,14 +60,50 @@ describe("public affiliate offer", () => {
         expect(html).toContain("Get my website");
     });
 
-    it("shows a plain full-price affiliate offer without a strike-through", () => {
+    it.each([0, 999, 1999.6, WEBSITE_PRICE, 99999, NaN])("ignores a legacy affiliate price of %s for the fixed code offer", (price) => {
         const html = renderToStaticMarkup(createElement(AffiliateOffer, {
-            handle: "maria", affiliate: { ...affiliate, price: WEBSITE_PRICE },
+            handle: "maria", affiliate: { ...affiliate, price },
         }));
         expect(html).toContain("Maria Cruz");
-        expect(html).toContain("₱4,999");
-        expect(html).not.toContain("<del");
-        expect(html).not.toContain("% off");
+        expect(html).toContain("₱3,499");
+        expect(html).toMatch(/<del[^>]*>₱4,999<\/del>/);
+        expect(html).toContain("30% off");
+        expect(CREATOR_CODE_PRICE).toBe(3499);
+    });
+
+    it("shows several saved platforms with labels that match their destinations", () => {
+        const socialLinks = {
+            messenger: "https://m.me/maria",
+            facebook: "https://www.facebook.com/maria",
+            instagram: "https://www.instagram.com/maria",
+            tiktok: "https://www.tiktok.com/@maria",
+            youtube: "https://www.youtube.com/@maria",
+        };
+        const html = renderToStaticMarkup(createElement(AffiliateOffer, {
+            handle: "maria", affiliate: { ...affiliate, socialLinks },
+        }));
+        for (const link of Object.values(socialLinks)) expect(html).toContain(`href="${link}"`);
+        expect(html).toContain("Message on Messenger");
+        for (const label of ["Facebook", "Instagram", "TikTok", "YouTube"]) expect(html).toContain(`View ${label}`);
+        expect(html.match(/rel="noopener noreferrer"/g)?.length).toBeGreaterThanOrEqual(5);
+        expect(html).not.toContain("Message on Facebook");
+        expect(html).toContain("Field agents visit shops");
+        expect(html).not.toContain("Creators visit shops");
+    });
+
+    it("hides a cleared legacy link and unsafe canonical links", () => {
+        for (const socialLinks of [{}, {
+            instagram: "https://instagram.com.evil.test/maria",
+            youtube: "javascript:alert(1)",
+        }]) {
+            const html = renderToStaticMarkup(createElement(AffiliateOffer, {
+                handle: "maria", affiliate: { ...affiliate, socialLinks },
+            }));
+            expect(html).not.toContain('href="https://m.me/maria"');
+            expect(html).not.toContain("Creator social links");
+            expect(html).not.toContain("instagram.com.evil.test");
+            expect(html).not.toContain("javascript:");
+        }
     });
 
     it("renders page text plainly and refuses unsafe photo or social URLs", () => {

@@ -1,0 +1,16 @@
+.dialog { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border-radius: 28px; background: #fff; color: #0c0a08; font-family: var(--font-v2-onest, "Onest", system-ui, sans-serif); }
+.dialog:global([open]) { gap: 20px; padding: 28px; }
+.dialog:global(.t-dialog) > :global(.t-h2) { font: 600 26px/1.2 var(--font-v2-onest, "Onest", system-ui, sans-serif); letter-spacing: -.035em; }
+.codeBox { min-width: 0; padding: 18px 20px; border: 1px solid #e6e7dd; border-radius: 18px; background: #f5f6ef; }
+.codeBox span { display: block; margin-bottom: 7px; color: #66665f; font-size: 14px; line-height: 1.4; }
+.codeBox strong { display: block; color: #0c0a08; font-size: clamp(24px, 6.4vw, 34px); font-weight: 700; line-height: 1.25; letter-spacing: .035em; overflow-wrap: anywhere; }
+.warning { margin: 0; color: #25251f; font-size: 16px; line-height: 1.5; font-weight: 500; }
+.note { display: flex; align-items: flex-start; gap: 10px; margin: 0; color: #686861; font-size: 14px; line-height: 1.5; }
+.note svg { flex: none; margin-top: 2px; }
+.dialog :global(.t-dialog-foot) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding-top: 2px; }
+.dialog :global(.t-dialog-foot) .primary, .dialog :global(.t-dialog-foot) .secondary { min-height: 48px; height: auto; padding: 12px 18px; border-radius: 999px; font-family: inherit; font-size: 15px; font-weight: 600; line-height: 1.4; white-space: normal; }
+.dialog :global(.t-dialog-foot) .primary { border-color: transparent; background: #e4f222; color: #0c0a08; }
+.dialog :global(.t-dialog-foot) .primary:hover:not(:disabled) { background: #d8e51d; }
+.dialog :global(.t-dialog-foot) .secondary { border: 1px solid #e4e5dc; background: #fff; color: #4a4943; }
+.dialog :global(.t-dialog-foot) button:focus-visible { outline: 2px solid #0c0a08; outline-offset: 3px; }
+@media (max-width: 480px) { .dialog:global([open]) { padding: 24px; } }

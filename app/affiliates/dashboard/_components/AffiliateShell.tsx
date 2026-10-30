@@ -3,7 +3,7 @@
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { useConvexAuth, useQuery } from "convex/react";
 import { Gift, Home, ShoppingBag, Store, User, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import { AUTH_BODY, AuthFrame } from "@/app/auth/_components/AuthFrame";
@@ -12,9 +12,11 @@ import { AppShell, Button, TabBar, type NavLinkEntry, type SidebarProps } from "
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PAYOUTS_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../../_components/AccountState";
 import { affiliateHref, type AffiliateSection } from "../_lib/navigation";
+import { AffiliatePageFrame } from "./AffiliatePageFrame";
 
 const AffiliateAccount = createContext<Doc<"creators"> | null>(null);
 
@@ -27,6 +29,8 @@ export function useAffiliateAccount() {
 /** One session-derived account gate protects every section, including direct URLs. */
 export function AffiliateDashboardBoundary({ children }: { children?: ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const canonicalPage = [CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
     const { user, isLoaded, isSignedIn } = useUser();
     const { isAuthenticated, isLoading } = useConvexAuth();
     const ready = isLoaded && isSignedIn && !isLoading && isAuthenticated && !!user;
@@ -35,8 +39,13 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
     const account = current ? session.creator : undefined;
 
     useEffect(() => {
-        if (isLoaded && (!isSignedIn || (current && account === null && !session.isOwner))) router.replace("/affiliates/join");
-    }, [isLoaded, isSignedIn, current, account, session, router]);
+        if (isLoaded && (!isSignedIn || (current && account === null && !session.isOwner))) {
+            const destination = canonicalPage
+                ? isSignedIn ? "/v2/creators/signup" : "/v2/creators/signup?login=1"
+                : "/affiliates/join";
+            router.replace(destination);
+        }
+    }, [isLoaded, isSignedIn, current, account, session, canonicalPage, router]);
 
     if (!current || account === undefined) return <AffiliateAccountLoading />;
     if (account === null) return session.isOwner ? <DifferentAccount role="owner" /> : <AffiliateAccountLoading />;
@@ -89,6 +98,12 @@ export function AffiliateShellView({ account, children, preview = false, section
     preview?: boolean;
     section?: AffiliateSection;
 }) {
+    const pathname = usePathname();
+    const canonicalPath = pathname?.replace(/\/$/, "") ?? "";
+    const portalPage = canonicalPath === CREATOR_ACCOUNT_HREF ? "account" : canonicalPath === CREATOR_PAYOUTS_HREF ? "payouts" : "my-page";
+    const pageRoute = preview ? section === "my-page"
+        : ["/affiliates/dashboard/my-page", CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(canonicalPath);
+    if (pageRoute) return <AffiliatePageFrame account={account} preview={preview} currentPage={preview ? "my-page" : portalPage}>{children}</AffiliatePageFrame>;
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
     const entry = (key: AffiliateSection, label: string, icon: NavLinkEntry["icon"]): NavLinkEntry => ({
         href: affiliateHref(key, preview), label, icon, exact: key === "home",

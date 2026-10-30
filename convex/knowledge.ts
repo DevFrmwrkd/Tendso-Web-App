@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { knowledgeSlugError } from '../lib/knowledgeArticle';
+import { knowledgeImageUrl, knowledgeSlugError } from '../lib/knowledgeArticle';
 import { query, mutation, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin } from './lib/auth';
@@ -238,6 +238,11 @@ export const upsertArticle = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        for (const block of args.body) {
+            if (block?.t === 'image' && block.url !== undefined && !knowledgeImageUrl(block.url)) {
+                throw new Error('Article photos must use a valid HTTPS image URL.');
+            }
+        }
         const category = await ctx.db
             .query('knowledgeCategories')
             .withIndex('by_slug', (q) => q.eq('slug', args.categorySlug))

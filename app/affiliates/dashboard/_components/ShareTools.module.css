@@ -1,34 +1,32 @@
+.posterPreview { display: flex; min-width: 0; flex-direction: column; gap: 14px; padding-top: 22px; border-top: 1px solid #E7E8DF; }
+.posterHeading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.posterHeading h3 { margin: 0; color: #0C0A08; font-size: 18px; font-weight: 600; letter-spacing: -.025em; line-height: 1.3; }
+.posterHeading > span { padding: 5px 10px; border-radius: 999px; background: #F1F3E8; color: #606357; font-size: 13px; font-weight: 500; line-height: 1.4; }
+.artwork { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 595.276 / 841.89; border: 1px solid #E1E3D9; background: #FFF; }
+.printHint { margin: 0; color: #686861; font-size: 14px; line-height: 1.5; }
 .poster { display: none; }
 
 @media print {
-    @page { size: A4 portrait; margin: 14mm; }
+    @page { size: A4 portrait; margin: 0; }
+    :global(html):has(.poster) { height: 297mm !important; min-height: 0 !important; }
     :global(body):has(.poster) > :not(.poster) { display: none !important; }
-    :global(body):has(.poster) { background: white !important; margin: 0 !important; }
+    :global(body):has(.poster) { height: 297mm !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: #FFF !important; }
     .poster {
-        display: flex !important;
-        flex-direction: column;
-        align-items: center;
-        gap: 5mm;
-        width: 100%;
-        min-height: 258mm;
-        padding: 8mm;
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden;
         box-sizing: border-box;
-        border: 0.4mm solid #111;
-        color: #111;
-        background: white;
-        text-align: center;
+        background: #FFF;
+        font-size: 0;
+        line-height: 0;
         break-inside: avoid;
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
-    .brand { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -1.5px; }
-    .byline { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
-    .headline { margin: 3mm 0 0; font-size: 64px; line-height: 1; letter-spacing: -2px; font-weight: 600; }
-    .intro { margin: 0; font-size: 18px; }
-    .price { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
-    .price > div { justify-content: center; }
-    .price > p { margin: 0; font-size: 13px; color: #444; }
-    .qr { width: 76mm; height: 76mm; flex-shrink: 0; }
-    .scan { margin: 0; font-size: 19px; font-weight: 600; }
-    .url { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+    .poster > svg { display: block; width: 210mm !important; height: 297mm !important; max-width: none !important; margin: 0 !important; }
 }

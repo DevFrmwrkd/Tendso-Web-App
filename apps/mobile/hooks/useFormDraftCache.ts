@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { captureStorageKey, type CaptureActor } from '../services/captureSession';
 
-const DRAFT_KEY = 'submission_draft_form';
 const DEBOUNCE_MS = 500;
 
 export interface SubmissionFormData {
@@ -12,13 +12,17 @@ export interface SubmissionFormData {
   ownerEmail: string;
   address: string;
   city: string;
+  coordinates?: { lat: number; lng: number };
+  prospectLeadId?: string;
   savedAt: number;
 }
 
-export function useFormDraftCache() {
+export function useFormDraftCache(actor?: CaptureActor | null) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const key = actor ? captureStorageKey(actor.creatorId, 'submission_draft_form') : null;
 
   const saveDraft = useCallback((data: Omit<SubmissionFormData, 'savedAt'>) => {
+    if (!key) return;
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
@@ -28,21 +32,22 @@ export function useFormDraftCache() {
           ...data,
           savedAt: Date.now(),
         };
-        await AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+        await AsyncStorage.setItem(key, JSON.stringify(payload));
       } catch (err) {
         console.error('[FormDraftCache] Save error:', err);
       }
     }, DEBOUNCE_MS);
-  }, []);
+  }, [key]);
 
   const loadDraft = useCallback(async (): Promise<SubmissionFormData | null> => {
+    if (!key) return null;
     try {
-      const raw = await AsyncStorage.getItem(DRAFT_KEY);
+      const raw = await AsyncStorage.getItem(key);
       if (!raw) return null;
       const data = JSON.parse(raw) as SubmissionFormData;
       // Expire drafts older than 7 days
       if (Date.now() - data.savedAt > 7 * 24 * 60 * 60 * 1000) {
-        await AsyncStorage.removeItem(DRAFT_KEY);
+        await AsyncStorage.removeItem(key);
         return null;
       }
       return data;
@@ -50,21 +55,23 @@ export function useFormDraftCache() {
       console.error('[FormDraftCache] Load error:', err);
       return null;
     }
-  }, []);
+  }, [key]);
 
   const clearDraft = useCallback(async () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    if (!key) return;
     try {
-      await AsyncStorage.removeItem(DRAFT_KEY);
+      await AsyncStorage.removeItem(key);
     } catch (err) {
       console.error('[FormDraftCache] Clear error:', err);
     }
-  }, []);
+  }, [key]);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [key]);
 
   return { saveDraft, loadDraft, clearDraft };
 }

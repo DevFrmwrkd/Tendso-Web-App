@@ -9,9 +9,9 @@ import { PAGE_ROWS, avatarName, fullName, matchesSearch, pageOf, pageText, short
 
 /**
  * The "Rejected" tab (board Creators): creators an admin rejected who have
- * not retaken the quiz yet, newest first (`listRejected`'s order). Retaking
- * the quiz clears the rejection, so they leave this list on their own and,
- * if they pass again, come back to Waiting for approval.
+ * not resubmitted their corrected profile yet, newest first (`listRejected`'s
+ * order). Resubmitting clears rejection and returns them to Waiting for
+ * approval, preserving their original quiz pass.
  *
  * A row opens the drawer with the reason they see. Search (name, email,
  * phone or reason, as the old view had) shows once the list runs past a page.
@@ -42,7 +42,7 @@ export default function RejectedCreatorsView({
             <div className="t-card">
                 <EmptyState
                     title="Nobody is rejected"
-                    body="Creators you reject show up here with the reason they see. Anyone who retakes the quiz leaves this list."
+                    body="Creators you reject show up here with the reason they see. Anyone who resubmits their corrected profile returns to Waiting for approval."
                 />
             </div>
         );
@@ -52,7 +52,7 @@ export default function RejectedCreatorsView({
 
     return (
         <div className="flex flex-col gap-3">
-            <Lede>They see the reason on their rejection screen and can retake the quiz or contact support.</Lede>
+            <Lede>They see your reason and can fix their profile in the app and resend it without retaking the quiz, or contact support.</Lede>
 
             {/* A short list needs no search box; one that runs past a page does. */}
             {rows.length > PAGE_ROWS || search ? (

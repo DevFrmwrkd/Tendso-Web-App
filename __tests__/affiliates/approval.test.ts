@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
+import { CREATOR_OVERRIDE_CUTOVER } from '../../lib/pricing';
 
 const modules = {
     './_generated/server.js': () => import('../../convex/_generated/server'),
@@ -57,8 +58,8 @@ describe('affiliate admin approval', () => {
         expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBeUndefined();
 
         await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 1999 });
-        expect(await t.query(api.affiliates.publicPage, { handle: signup.handle })).toMatchObject({ handle: signup.handle, price: 1999 });
+        await affiliate.mutation(api.affiliates.updatePage, { displayName: 'My approved page' });
+        expect(await t.query(api.affiliates.publicPage, { handle: signup.handle })).toMatchObject({ handle: signup.handle, price: 3499 });
         expect((await affiliate.query(api.affiliates.sales, { paginationOpts })).page).toEqual([]);
         expect((await affiliate.query(api.affiliates.portal, {})).summary.balance).toBe(0);
         expect((await t.run((ctx) => ctx.db.get(id)))?.certifiedAt).toBeUndefined();
@@ -73,6 +74,8 @@ describe('affiliate admin approval', () => {
     });
 
     it('rejects unapproved codes at lookup, creator signup, application and internal creation; approval enables them', async () => {
+        // Legacy ₱1,000 track: creator recruits before the override cut-over.
+        vi.setSystemTime(CREATOR_OVERRIDE_CUTOVER - 1);
         const { t, affiliate, admin, id } = await setup();
         const code = (await t.run((ctx) => ctx.db.get(id)))!.referralCode!;
         const creator = t.withIdentity({ subject: 'new-creator' });

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
 import { INTAKE_QUESTIONS } from '../../lib/narrativeFromQa';
-import { BASE_PRICE, CUSTOM_DOMAIN_ADDON, WEBSITE_PRICE, campaignSellPrice, commissionFor } from '../../lib/pricing';
+import { BASE_PRICE, CREATOR_CODE_PRICE, CUSTOM_DOMAIN_ADDON, WEBSITE_PRICE, campaignSellPrice, commissionFor } from '../../lib/pricing';
 import type { Doc } from '../../convex/_generated/dataModel';
 
 const modules = {
@@ -12,6 +12,7 @@ const modules = {
     './affiliates.ts': () => import('../../convex/affiliates'),
     './ownerIntake.ts': () => import('../../convex/ownerIntake'),
     './payments.ts': () => import('../../convex/payments'),
+    './ownerPayments.ts': () => import('../../convex/ownerPayments'), // Wise deposits settle through applyTokenPayment
     './earnings.ts': () => import('../../convex/earnings'),
     './paymentTokens.ts': () => import('../../convex/paymentTokens'),
     './submissions.ts': () => import('../../convex/submissions'),
@@ -69,9 +70,10 @@ describe('public affiliate offer lookup', () => {
         const offer = await t.query(api.affiliates.publicPage, { handle });
         expect(offer).toEqual({
             handle, photo: 'https://example.com/photo.jpg', displayName: 'Alex Websites',
-            message: 'A website for your shop.', socialLink: 'https://m.me/alex', referralCode: 'AFFALEX', price: 1999,
+            message: 'A website for your shop.', socialLink: 'https://m.me/alex', referralCode: 'AFFALEX', price: CREATOR_CODE_PRICE,
+            socialLinks: { messenger: 'https://m.me/alex' },
         });
-        expect(Object.keys(offer!).sort()).toEqual(['displayName', 'handle', 'message', 'photo', 'price', 'referralCode', 'socialLink']);
+        expect(Object.keys(offer!).sort()).toEqual(['displayName', 'handle', 'message', 'photo', 'price', 'referralCode', 'socialLink', 'socialLinks']);
     });
 
     it('returns null for invalid handles and inactive, deleted or nonaffiliate accounts', async () => {
@@ -85,15 +87,15 @@ describe('public affiliate offer lookup', () => {
         }
     });
 
-    it('uses the same clamped stored price at lookup and checkout and defaults an absent price to the list price', async () => {
+    it('uses the fixed creator-code price at lookup and new checkout regardless of a legacy account price', async () => {
         const { t, affiliateId } = await setup();
-        const prices = [[undefined, WEBSITE_PRICE], [BASE_PRICE, BASE_PRICE], [998, BASE_PRICE], [7000, WEBSITE_PRICE], [1234.6, 1235], [NaN, BASE_PRICE]];
-        for (const [index, [affiliatePrice, expected]] of prices.entries()) {
+        const prices = [undefined, BASE_PRICE, 998, 7000, 1234.6, NaN];
+        for (const [index, affiliatePrice] of prices.entries()) {
             await t.run((ctx) => ctx.db.patch(affiliateId, { affiliatePrice }));
-            expect((await t.query(api.affiliates.publicPage, { handle }))?.price).toBe(expected);
+            expect((await t.query(api.affiliates.publicPage, { handle }))?.price).toBe(CREATOR_CODE_PRICE);
             const id = await t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(index + 1), affiliateHandle: handle });
             expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
-                creatorId: affiliateId, amount: expected, creatorPayout: commissionFor(expected!), websiteListPrice: WEBSITE_PRICE,
+                creatorId: affiliateId, amount: CREATOR_CODE_PRICE, creatorPayout: commissionFor(CREATOR_CODE_PRICE), websiteListPrice: WEBSITE_PRICE,
             });
         }
         await t.run((ctx) => ctx.db.patch(affiliateId, { affiliateDisplayName: undefined }));
@@ -110,7 +112,7 @@ describe('affiliate-attributed owner intake', () => {
         const id = await t.mutation(api.ownerIntake.submitOwnerIntake, args);
         const stored = await t.run((ctx) => ctx.db.get(id));
         expect(stored).toMatchObject({
-            creatorId: affiliateId, amount: 1999, creatorPayout: 1000, websiteListPrice: WEBSITE_PRICE,
+            creatorId: affiliateId, amount: CREATOR_CODE_PRICE, creatorPayout: commissionFor(CREATOR_CODE_PRICE), websiteListPrice: WEBSITE_PRICE,
             source: 'affiliate_qr', status: 'submitted', contentSource: 'owner_intake',
             affiliateHandle: handle,
             photos: args.photos, interviewQa: args.qa, submissionType: 'standard', domainStatus: 'not_requested', domainChargedPHP: 0,
@@ -165,11 +167,13 @@ describe('affiliate-attributed owner intake', () => {
         expect(row?.websiteListPrice).toBeUndefined();
     });
 
-    it('matches deposits against the stored order amount and pays the frozen affiliate commission only once', async () => {
+    it('matches deposits against a historical stored order amount and pays its frozen affiliate commission only once', async () => {
         const { t, affiliateId } = await setup({ affiliatePrice: 2199.5 });
         const id = await t.mutation(api.ownerIntake.submitOwnerIntake, {
             ...intake(), affiliateHandle: handle, submissionType: 'with_custom_domain', requestedDomain: 'shopcorner.com',
         });
+        // An already quoted order from before the fixed-code policy is not repriced.
+        await t.run((ctx) => ctx.db.patch(id, { amount: 2700, creatorPayout: 1100 }));
         const referenceCode = 'ND-7K3M-X9P2';
         const token = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: id, referenceCode, amount: 1,
@@ -230,20 +234,20 @@ describe('affiliate-attributed owner intake', () => {
         ]);
     });
 
-    it('excludes custom-domain add-ons from the frozen commission and credits the affiliate ledger once after payment', async () => {
+    it('excludes custom-domain add-ons from new fixed-code commissions and credits the ledger once after payment', async () => {
         const { t, affiliateId, houseId } = await setup({ affiliatePrice: 2199.5 });
         const id = await t.mutation(api.ownerIntake.submitOwnerIntake, {
             ...intake(), affiliateHandle: handle, submissionType: 'with_custom_domain', requestedDomain: 'shopcorner.com',
         });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
-            creatorId: affiliateId, amount: 2200 + CUSTOM_DOMAIN_ADDON, creatorPayout: 1100,
+            creatorId: affiliateId, amount: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON, creatorPayout: commissionFor(CREATOR_CODE_PRICE),
             websiteListPrice: WEBSITE_PRICE, requestedDomain: 'shopcorner.com', domainStatus: 'pending_payment', domainChargedPHP: CUSTOM_DOMAIN_ADDON,
         });
         const token = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: id, referenceCode: 'AFFILIATE-ORDER', amount: 1,
         });
-        expect(token).toMatchObject({ submissionId: id, amount: 2700 });
-        expect(await t.query(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: id })).toMatchObject({ amount: 2700 });
+        expect(token).toMatchObject({ submissionId: id, amount: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON });
+        expect(await t.query(internal.paymentTokens.getBySubmissionIdInternal, { submissionId: id })).toMatchObject({ amount: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON });
         await t.run(async (ctx) => {
             await ctx.db.patch(affiliateId, { affiliatePrice: WEBSITE_PRICE, status: 'suspended' });
             await ctx.db.patch(id, { status: 'paid', paidAt: NOW });
@@ -251,30 +255,30 @@ describe('affiliate-attributed owner intake', () => {
         const args = { submissionId: id, triggeredBy: 'admin:reviewer' };
         await t.mutation(internal.payments.creditCreatorForPayment, args);
         await t.mutation(internal.payments.creditCreatorForPayment, args);
-        expect(await t.run((ctx) => ctx.db.get(affiliateId))).toMatchObject({ balance: 1100, totalEarnings: 1100 });
+        expect(await t.run((ctx) => ctx.db.get(affiliateId))).toMatchObject({ balance: commissionFor(CREATOR_CODE_PRICE), totalEarnings: commissionFor(CREATOR_CODE_PRICE) });
         expect((await t.run((ctx) => ctx.db.get(houseId)))?.balance).toBe(0);
-        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ amount: 2700, creatorPayout: 1100, status: 'completed', creatorPaidAt: NOW });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ amount: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON, creatorPayout: commissionFor(CREATOR_CODE_PRICE), status: 'completed', creatorPaidAt: NOW });
         const jobs = await t.run((ctx) => ctx.db.system.query('_scheduled_functions').collect());
         const earnings = jobs.filter((job) => job.name === 'earnings:create');
         expect(earnings.map((job) => job.args[0])).toEqual([
-            { creatorId: affiliateId, submissionId: id, amount: 1100, type: 'submission_approved' },
+            { creatorId: affiliateId, submissionId: id, amount: commissionFor(CREATOR_CODE_PRICE), type: 'submission_approved' },
         ]);
         // Execute the real ledger mutation only; all external actions stay queued.
         await t.mutation(internal.earnings.create, earnings[0].args[0] as FunctionArgs<typeof internal.earnings.create>);
         expect(await t.run((ctx) => ctx.db.query('earnings').collect())).toEqual([
-            expect.objectContaining({ creatorId: affiliateId, submissionId: id, amount: 1100, type: 'submission_approved', status: 'available' }),
+            expect.objectContaining({ creatorId: affiliateId, submissionId: id, amount: commissionFor(CREATOR_CODE_PRICE), type: 'submission_approved', status: 'available' }),
         ]);
         expect(jobs.filter((job) => job.name === 'referrals:qualifyByCreator')).toEqual([]);
         const sales = await t.withIdentity({ subject: 'affiliate' }).query(api.affiliates.sales, { paginationOpts: { numItems: 10, cursor: null } });
-        expect(sales.page[0]).toMatchObject({ price: 2700, commission: 1100 });
+        expect(sales.page[0]).toMatchObject({ price: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON, commission: commissionFor(CREATOR_CODE_PRICE) });
     });
 
-    it('rechecks offer changes at submission and rejects forged browser prices or account IDs', async () => {
+    it('keeps the fixed offer despite legacy account price changes and rejects forged browser prices or account IDs', async () => {
         const { t, affiliateId } = await setup();
-        expect((await t.query(api.affiliates.publicPage, { handle }))?.price).toBe(1999);
+        expect((await t.query(api.affiliates.publicPage, { handle }))?.price).toBe(CREATOR_CODE_PRICE);
         await t.run((ctx) => ctx.db.patch(affiliateId, { affiliatePrice: 2999 }));
         const submitted = await t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(), affiliateHandle: handle });
-        expect(await t.run((ctx) => ctx.db.get(submitted))).toMatchObject({ amount: 2999, creatorPayout: 1500 });
+        expect(await t.run((ctx) => ctx.db.get(submitted))).toMatchObject({ amount: CREATOR_CODE_PRICE, creatorPayout: commissionFor(CREATOR_CODE_PRICE) });
         for (const forged of [{ amount: 1 }, { price: 1 }, { affiliatePrice: 1 }, { creatorPayout: 1 }, { creatorId: affiliateId }]) {
             await expect(t.mutation(api.ownerIntake.submitOwnerIntake, { ...intake(2), affiliateHandle: handle, ...forged })).rejects.toThrow();
         }
@@ -319,7 +323,7 @@ describe('affiliate-attributed owner intake', () => {
         const safeToken = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: affiliateOrder, referenceCode: 'SAFE-AFFILIATE', amount: 1,
         });
-        expect(safeToken.amount).toBe(1999);
+        expect(safeToken.amount).toBe(CREATOR_CODE_PRICE);
     });
 
     it('retains ordinary mobile creator monetary updates and derives their token amount from the resulting order', async () => {

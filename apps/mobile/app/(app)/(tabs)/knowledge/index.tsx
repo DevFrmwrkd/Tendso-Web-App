@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../../hooks/useGuardedRouter';
 import { useKnowledge } from '../../../../services/knowledge/KnowledgeProvider';
 import { categoryIcon, hue } from '../../../../components/knowledge/kbTheme';
+import { AskMark } from '../../../../components/knowledge/AskMark';
+import { Banner, Card, EmptyState, ListRow, Loading, ScreenShell, SectionLabel, TextLink, Text } from '../../../../components/v2';
 import type { Workspace } from '../../../../services/knowledge/api';
-import { colors, fonts, radius } from '../../../../theme/tokens';
+import { colors, hit, radius, shadow, space } from '../../../../theme/v2';
 
 const KB = '/(app)/(tabs)/knowledge';
 
+/** Two-option segment: Help center | Field wiki (mock `.cm-seg`). The wiki shows a lock until the account may open it. */
 function WorkspaceToggle({
   workspace,
   onChange,
@@ -19,335 +21,269 @@ function WorkspaceToggle({
   onChange: (w: Workspace) => void;
   canAccessWiki: boolean | undefined;
 }) {
-  const Tab = ({ w, label, locked }: { w: Workspace; label: string; locked?: boolean }) => {
-    const active = workspace === w;
-    return (
-      <TouchableOpacity
-        onPress={() => onChange(w)}
-        activeOpacity={0.8}
-        style={{
-          flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 5,
-          paddingVertical: 8,
-          borderRadius: radius.pill,
-          backgroundColor: active ? colors.ink : 'transparent',
-        }}
-      >
-        {locked && <Ionicons name="lock-closed" size={11} color={active ? colors.paper3 : colors.ink3} />}
-        <Text
-          style={{
-            fontFamily: fonts.monoMed,
-            fontSize: 11,
-            letterSpacing: 1,
-            color: active ? colors.paper3 : colors.ink2,
-          }}
-        >
-          {label}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+  const options: { w: Workspace; label: string; locked?: boolean }[] = [
+    { w: 'help', label: 'Help center' },
+    { w: 'wiki', label: 'Field wiki', locked: !canAccessWiki },
+  ];
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        backgroundColor: colors.paper2,
-        borderRadius: radius.pill,
-        padding: 3,
-        marginTop: 16,
-      }}
-    >
-      <Tab w="help" label="HELP CENTER" />
-      <Tab w="wiki" label="FIELD WIKI" locked={!canAccessWiki} />
+    <View style={styles.seg} accessibilityRole="tablist">
+      {options.map(({ w, label, locked }) => {
+        const active = workspace === w;
+        return (
+          <Pressable
+            key={w}
+            onPress={() => onChange(w)}
+            accessibilityRole="tab"
+            accessibilityLabel={locked ? `${label}, locked` : label}
+            accessibilityState={{ selected: active }}
+            style={[styles.segItem, active ? [styles.segOn, shadow.soft] : null]}
+          >
+            {locked ? <Ionicons name="lock-closed" size={16} color={active ? colors.ink : colors.ink3} /> : null}
+            <Text variant="label" weight="bold" tone={active ? 'ink' : 'muted'}>
+              {label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 export default function KnowledgeHome() {
   const router = useGuardedRouter();
-  const { workspace, setWorkspace, canAccessWiki, categories, articles, faqs, loading } = useKnowledge();
+  const { workspace, setWorkspace, canAccessWiki, categories, articles, faqs, loading,
+    bookmarkedIds, bookmarksReady, bookmarkError, reloadBookmarks } = useKnowledge();
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
 
   const popular = articles.filter((a) => a.popular).slice(0, 5);
   const wikiBlocked = workspace === 'wiki' && canAccessWiki === false;
+  // IDs alone never reveal an article outside the currently authorized workspace.
+  const savedArticles = articles.filter(article => bookmarkedIds.includes(article._id));
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-          <Text style={{ fontFamily: fonts.mono, fontSize: 11, letterSpacing: 2, color: colors.ink3 }}>
-            KNOWLEDGE
+    <ScreenShell title="How can we help?" insetBottom={false} contentStyle={styles.content}>
+      <WorkspaceToggle workspace={workspace} onChange={setWorkspace} canAccessWiki={canAccessWiki} />
+
+      {/* Search entry */}
+      <Pressable
+        onPress={() => router.push(`${KB}/search` as any)}
+        accessibilityRole="search"
+        accessibilityLabel="Search or ask a question"
+        style={[styles.search, shadow.soft]}
+      >
+        <Ionicons name="search" size={22} color={colors.ink3} />
+        <Text variant="body" weight="semibold" tone="muted" style={styles.flex} numberOfLines={1}>
+          {workspace === 'wiki' ? 'Search the wiki' : 'Search the help center'}
+        </Text>
+      </Pressable>
+
+      <TextLink label={savedOnly ? 'Browse all topics' : `Saved articles (${savedArticles.length})`}
+        disabled={!bookmarksReady} onPress={() => setSavedOnly(value => !value)} align="left" />
+      {bookmarkError ? <Banner tone="warn" body={bookmarkError} /> : null}
+      {bookmarkError && !bookmarksReady ? <TextLink label="Retry saved articles" onPress={reloadBookmarks} align="left" /> : null}
+
+      {/* Ask Tendso */}
+      <Card variant="dark" onPress={() => router.push(`${KB}/ask` as any)} accessibilityLabel="Ask Tendso" style={styles.ask}>
+        <AskMark size={44} />
+        <View style={styles.flex}>
+          <Text variant="bodyLg" weight="extrabold" tone="onDark">
+            Ask Tendso
           </Text>
-          <Text style={{ fontFamily: fonts.serif, fontSize: 34, color: colors.ink, marginTop: 4 }}>
-            How can we{' '}
-            <Text style={{ fontFamily: fonts.serifIt, color: colors.accent }}>help?</Text>
+          <Text variant="label" weight="medium" style={styles.askSub} numberOfLines={2}>
+            Answers with sources
           </Text>
-
-          <WorkspaceToggle workspace={workspace} onChange={setWorkspace} canAccessWiki={canAccessWiki} />
-
-          {/* Search entry */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push(`${KB}/search` as any)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              backgroundColor: colors.paper3,
-              borderColor: colors.rule,
-              borderWidth: 1,
-              borderRadius: radius.md,
-              paddingHorizontal: 16,
-              height: 52,
-              marginTop: 16,
-            }}
-          >
-            <Ionicons name="search" size={18} color={colors.ink3} />
-            <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.ink3 }}>
-              Search or ask a question…
-            </Text>
-          </TouchableOpacity>
-
-          {/* Ask Tendso AI */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push(`${KB}/ask` as any)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              backgroundColor: colors.accentBg,
-              borderRadius: radius.md,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              marginTop: 10,
-            }}
-          >
-            <Ionicons name="sparkles" size={16} color={colors.accentInk} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.accentInk }}>
-                Ask Tendso AI
-              </Text>
-              <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.accentInk, opacity: 0.8 }}>
-                Trained on the whole knowledge base
-              </Text>
-            </View>
-            <Ionicons name="arrow-forward" size={16} color={colors.accentInk} />
-          </TouchableOpacity>
         </View>
+        <View style={styles.go}>
+          <Ionicons name="arrow-forward" size={20} color={colors.onAccent} />
+        </View>
+      </Card>
 
-        {loading ? (
-          <View style={{ paddingTop: 60, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={colors.accent} />
-          </View>
-        ) : wikiBlocked ? (
-          <View style={{ paddingHorizontal: 24, paddingTop: 40, alignItems: 'center' }}>
-            <Ionicons name="lock-closed-outline" size={40} color={colors.ink3} />
-            <Text style={{ fontFamily: fonts.serif, fontSize: 22, color: colors.ink, marginTop: 12 }}>
-              Field Wiki is locked
-            </Text>
-            <Text
-              style={{
-                fontFamily: fonts.sans,
-                fontSize: 14,
-                lineHeight: 22,
-                color: colors.ink3,
-                textAlign: 'center',
-                marginTop: 6,
-                maxWidth: 300,
-              }}
-            >
-              The internal wiki is for certified field agents. Complete your certification to unlock it.
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* Categories */}
-            {categories.length > 0 && (
-              <View style={{ paddingHorizontal: 24, marginTop: 28 }}>
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1.6, color: colors.ink3, marginBottom: 12 }}>
-                  BROWSE BY TOPIC
-                </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                  {categories.map((c) => {
-                    const h = hue(c.hue);
-                    return (
-                      <TouchableOpacity
-                        key={c._id}
-                        activeOpacity={0.85}
-                        onPress={() => router.push(`${KB}/category/${c.slug}` as any)}
-                        style={{
-                          width: '47%',
-                          flexGrow: 1,
-                          backgroundColor: colors.paper3,
-                          borderColor: colors.rule,
-                          borderWidth: 1,
-                          borderRadius: radius.md,
-                          padding: 14,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 10,
-                            backgroundColor: h.bg,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: 10,
-                          }}
-                        >
-                          <Ionicons name={categoryIcon(c.icon)} size={18} color={h.ink} />
-                        </View>
-                        <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }} numberOfLines={1}>
-                          {c.title}
-                        </Text>
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.ink3, marginTop: 2 }} numberOfLines={2}>
-                          {c.description}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-
-            {/* Popular articles */}
-            {popular.length > 0 && (
-              <View style={{ paddingHorizontal: 24, marginTop: 28 }}>
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1.6, color: colors.ink3, marginBottom: 12 }}>
-                  POPULAR ARTICLES
-                </Text>
-                <View style={{ gap: 8 }}>
-                  {popular.map((a) => (
-                    <TouchableOpacity
-                      key={a._id}
-                      activeOpacity={0.8}
-                      onPress={() => router.push(`${KB}/article/${a.slug}` as any)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 10,
-                        backgroundColor: colors.paper3,
-                        borderColor: colors.rule,
-                        borderWidth: 1,
-                        borderRadius: radius.sm,
-                        paddingHorizontal: 14,
-                        paddingVertical: 12,
-                      }}
+      {loading ? (
+        <Loading fill={false} />
+      ) : wikiBlocked ? (
+        <View style={styles.locked}>
+          <Ionicons name="lock-closed-outline" size={40} color={colors.ink3} />
+          <Text variant="title" align="center" style={styles.lockedTitle}>
+            Field wiki is locked
+          </Text>
+          <Text variant="bodyLg" tone="ink2" align="center">
+            Finish your certification to open it.
+          </Text>
+        </View>
+      ) : savedOnly ? (
+        <View style={styles.section}>
+          <SectionLabel>Saved articles</SectionLabel>
+          {savedArticles.length ? <Card style={styles.listCard}>{savedArticles.map((article, index) =>
+            <ListRow key={article._id} icon="bookmark" title={article.title}
+              subtitle={`${article.readMin} min read`} divider={index < savedArticles.length - 1}
+              onPress={() => router.push(`${KB}/article/${article.slug}` as never)} />)}</Card>
+            : <EmptyState icon="bookmark-outline" title="No saved articles here" body="Tap the bookmark on an article to save it. Switch Help center or Field wiki to see that workspace’s saved articles." />}
+        </View>
+      ) : (
+        <>
+          {/* Topics */}
+          {categories.length > 0 && (
+            <View style={styles.section}>
+              <SectionLabel>Topics</SectionLabel>
+              <View style={styles.grid}>
+                {categories.map((c) => {
+                  const h = hue(c.hue);
+                  return (
+                    <Card
+                      key={c._id}
+                      onPress={() => router.push(`${KB}/category/${c.slug}` as any)}
+                      accessibilityLabel={`${c.title}. ${c.description}`}
+                      style={styles.topic}
                     >
-                      <Ionicons name="document-text-outline" size={16} color={colors.ink3} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }} numberOfLines={1}>
-                          {a.title}
-                        </Text>
-                        <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3, marginTop: 2 }}>
-                          {a.readMin} MIN READ
-                        </Text>
+                      <View style={[styles.tile, { backgroundColor: h.bg }]}>
+                        <Ionicons name={categoryIcon(c.icon)} size={22} color={h.ink} />
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.ink3} />
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                      <Text variant="bodyLg" weight="extrabold" numberOfLines={2}>
+                        {c.title}
+                      </Text>
+                      <Text variant="label" weight="medium" tone="muted" numberOfLines={2}>
+                        {c.description}
+                      </Text>
+                    </Card>
+                  );
+                })}
               </View>
-            )}
-
-            {/* FAQ */}
-            {faqs.length > 0 && (
-              <View style={{ paddingHorizontal: 24, marginTop: 28 }}>
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1.6, color: colors.ink3, marginBottom: 12 }}>
-                  FREQUENTLY ASKED
-                </Text>
-                <View style={{ backgroundColor: colors.paper3, borderColor: colors.rule, borderWidth: 1, borderRadius: radius.md, overflow: 'hidden' }}>
-                  {faqs.map((f, i) => {
-                    const open = openFaq === f._id;
-                    return (
-                      <View key={f._id} style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.rule }}>
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => setOpenFaq(open ? null : f._id)}
-                          style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14 }}
-                        >
-                          <Text style={{ flex: 1, fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }}>
-                            {f.question}
-                          </Text>
-                          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.ink3} />
-                        </TouchableOpacity>
-                        {open && (
-                          <View style={{ paddingHorizontal: 14, paddingBottom: 14 }}>
-                            <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 22, color: colors.ink2 }}>
-                              {f.answer}
-                            </Text>
-                            {!!f.linkArticleSlug && (
-                              <TouchableOpacity
-                                onPress={() => router.push(`${KB}/article/${f.linkArticleSlug}` as any)}
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}
-                              >
-                                <Text style={{ fontFamily: fonts.sansMed, fontSize: 13, color: colors.accent }}>
-                                  Read more
-                                </Text>
-                                <Ionicons name="arrow-forward" size={13} color={colors.accent} />
-                              </TouchableOpacity>
-                            )}
-                          </View>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-
-            {/* App-specific help — the mobile workflow FAQ (submitting, photos,
-                drafts, payouts, troubleshooting). This content is hardcoded in
-                the app and isn't in the web-managed KB, so it gets its own entry
-                here now that Profile's "Help & FAQ" row was removed. */}
-            <View style={{ paddingHorizontal: 24, marginTop: 28 }}>
-              <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, letterSpacing: 1.6, color: colors.ink3, marginBottom: 12 }}>
-                USING THE APP
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => router.push('/(app)/help-faq' as any)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.sm,
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                }}
-              >
-                <Ionicons name="help-circle-outline" size={18} color={colors.ink3} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink }}>
-                    App help &amp; FAQ
-                  </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.ink3, marginTop: 2 }}>
-                    Submitting, photos, payouts, troubleshooting
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.ink3} />
-              </TouchableOpacity>
             </View>
+          )}
 
-            {categories.length === 0 && popular.length === 0 && faqs.length === 0 && (
-              <View style={{ paddingHorizontal: 24, paddingTop: 40, alignItems: 'center' }}>
-                <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.ink3 }}>
-                  Nothing here yet.
-                </Text>
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          {/* Popular articles */}
+          {popular.length > 0 && (
+            <View style={styles.section}>
+              <SectionLabel>Popular articles</SectionLabel>
+              <Card style={styles.listCard}>
+                {popular.map((a, i) => (
+                  <ListRow
+                    key={a._id}
+                    icon="document-text-outline"
+                    title={a.title}
+                    subtitle={`${a.readMin} min read`}
+                    onPress={() => router.push(`${KB}/article/${a.slug}` as any)}
+                    divider={i < popular.length - 1}
+                  />
+                ))}
+              </Card>
+            </View>
+          )}
+
+          {/* FAQ */}
+          {faqs.length > 0 && (
+            <View style={styles.section}>
+              <SectionLabel>Frequently asked</SectionLabel>
+              <Card style={styles.listCard}>
+                {faqs.map((f, i) => {
+                  const open = openFaq === f._id;
+                  return (
+                    <View key={f._id} style={[styles.faq, i < faqs.length - 1 ? styles.faqDivider : null]}>
+                      <Pressable
+                        onPress={() => setOpenFaq(open ? null : f._id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={f.question}
+                        accessibilityState={{ expanded: open }}
+                        style={styles.faqHead}
+                      >
+                        <Text variant="bodyLg" weight="semibold" style={styles.flex}>
+                          {f.question}
+                        </Text>
+                        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={22} color={open ? colors.ink : colors.ink3} />
+                      </Pressable>
+                      {open && (
+                        <View style={styles.faqBody}>
+                          <Text variant="body" tone="ink2" style={styles.faqText}>
+                            {f.answer}
+                          </Text>
+                          {!!f.linkArticleSlug && (
+                            <TextLink
+                              label="Read more"
+                              align="left"
+                              onPress={() => router.push(`${KB}/article/${f.linkArticleSlug}` as any)}
+                            />
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </Card>
+            </View>
+          )}
+
+          {/* App-specific help — the mobile workflow FAQ (submitting, photos,
+              drafts, payouts, troubleshooting). This content is hardcoded in
+              the app and isn't in the web-managed KB, so it gets its own entry
+              here now that Profile's "Help & FAQ" row was removed. */}
+          <View style={styles.section}>
+            <SectionLabel>Using the app</SectionLabel>
+            <Card style={styles.listCard}>
+              <ListRow
+                icon="help-circle-outline"
+                title="App help & FAQ"
+                subtitle="Photos, payouts, fixes"
+                onPress={() => router.push('/(app)/help-faq' as any)}
+              />
+            </Card>
+          </View>
+
+          {categories.length === 0 && popular.length === 0 && faqs.length === 0 && (
+            <Text variant="bodyLg" tone="muted" align="center" style={styles.empty}>
+              Nothing here yet.
+            </Text>
+          )}
+        </>
+      )}
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  content: { gap: space.md, paddingBottom: space.xxl },
+  seg: { flexDirection: 'row', padding: 4, borderRadius: radius.pill, backgroundColor: colors.bg2 },
+  segItem: {
+    flex: 1,
+    minHeight: hit.min,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+  },
+  segOn: { backgroundColor: colors.card },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md - 2,
+    minHeight: hit.primary,
+    paddingHorizontal: space.lg + 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+  },
+  ask: { flexDirection: 'row', alignItems: 'center', gap: space.md, borderRadius: 22 },
+  askSub: { color: 'rgba(255,255,255,0.72)' },
+  go: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locked: { alignItems: 'center', gap: space.sm, paddingTop: space.xxl, paddingHorizontal: space.lg },
+  lockedTitle: { marginTop: space.sm },
+  section: { gap: space.md, marginTop: space.md },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md - 2 },
+  topic: { width: '48.5%', flexGrow: 1, gap: space.sm, padding: space.lg - 2, borderRadius: radius.card },
+  tile: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: space.xs },
+  listCard: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  faq: {},
+  faqDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
+  faqHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, minHeight: 64, paddingVertical: space.md, paddingHorizontal: space.xs },
+  faqBody: { paddingHorizontal: space.xs, paddingBottom: space.md },
+  faqText: { lineHeight: 26 },
+  empty: { paddingTop: space.xxl },
+});

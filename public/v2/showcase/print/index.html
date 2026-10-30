@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tinta Print Hub · Sampaloc, Manila</title>
+<meta name="description" content="Tarpaulin, calling cards, ID and lanyards, flyers and stickers printed same day in Sampaloc, Manila.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EBEBEA;
+  --paper:#F7F7F6;
+  --ink:#111111;
+  --mute:#5E5E5C;
+  --line:#111;
+  --or:#FF4A1C;
+  --or-d:#D93608;
+  --pad:40px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Space Grotesk',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;width:100%;height:100%;object-fit:cover}
+.wrap{padding:0 var(--pad);max-width:1536px;margin:0 auto}
+
+header{height:72px;border-bottom:2px solid var(--ink)}
+header .wrap{height:100%;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:700;font-size:22px;letter-spacing:-.03em;display:flex;align-items:center;gap:10px}
+.logo .cmyk{display:grid;grid-template-columns:repeat(2,11px);gap:2px}
+.logo .cmyk i{width:11px;height:11px;display:block;border-radius:50%}
+.logo .cmyk i:nth-child(1){background:#00AEEF}.logo .cmyk i:nth-child(2){background:#EC008C}.logo .cmyk i:nth-child(3){background:#FFD400}.logo .cmyk i:nth-child(4){background:#111}
+nav{display:flex;gap:32px;font-size:15px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+nav a:hover{color:var(--or)}
+.hdr-r{display:flex;gap:22px;align-items:center;font-weight:500;font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:space-between;gap:28px;background:var(--or);color:#fff;font-weight:700;font-size:18px;padding:18px 26px;letter-spacing:-.01em;transition:background .15s}
+.btn:hover{background:var(--ink)}
+.btn.sm{padding:11px 18px;font-size:15px}
+.btn.ink{background:var(--ink)}.btn.ink:hover{background:var(--or)}
+
+/* hero */
+.hero{height:calc(100vh - 72px);min-height:660px;display:flex}
+.hero .wrap{width:100%;display:grid;grid-template-columns:5fr 7fr;column-gap:48px;padding-top:36px;padding-bottom:36px}
+.hp{position:relative;min-height:0}
+.hp .im{position:absolute;inset:0;background:var(--paper)}
+.hp .im img{object-position:62% 50%}
+.hp .rush{position:absolute;right:-18px;bottom:36px;background:var(--or);color:#fff;padding:16px 20px;font-weight:700;font-size:15px;line-height:1.15;letter-spacing:.02em;text-transform:uppercase;z-index:2}
+.hp .rush b{display:block;font-size:38px;letter-spacing:-.04em;line-height:1;text-transform:none}
+.cm{position:absolute;width:20px;height:20px;border-color:var(--ink);border-style:solid;z-index:2}
+.cm.a{left:-14px;top:-14px;border-width:0 2px 2px 0;transform:translate(-4px,-4px)}
+.cm.b{right:-14px;top:-14px;border-width:0 0 2px 2px;transform:translate(4px,-4px)}
+.cm.c{left:-14px;bottom:-14px;border-width:2px 2px 0 0;transform:translate(-4px,4px)}
+.cm.d{right:-14px;bottom:-14px;border-width:2px 0 0 2px;transform:translate(4px,4px)}
+.ht{display:flex;flex-direction:column;min-height:0}
+.kick{display:flex;justify-content:space-between;font-size:14px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.kick b{color:var(--or);font-weight:700}
+h1{font-weight:700;font-size:clamp(46px,8vw,118px);line-height:.9;letter-spacing:-.055em;margin-top:28px}
+h1 span{color:var(--or)}
+.lede{margin-top:22px;font-size:20px;max-width:34ch;color:#2a2a29}
+.cta{margin-top:24px;display:flex;align-items:center;gap:24px}
+.cta small{font-size:14px;color:var(--mute)}
+.sheet{margin-top:auto;border-top:2px solid var(--ink)}
+.sheet div:nth-child(n+4){}
+.sheet div{display:grid;grid-template-columns:44px 1fr auto;align-items:baseline;padding:11px 0;border-bottom:1px solid #b8b8b6;font-size:18px}
+.sheet div:last-child{border-bottom:0;padding-bottom:0}
+.sheet i{font-style:normal;font-size:13px;color:var(--mute);font-weight:500}
+.sheet b{font-weight:700;font-size:20px;letter-spacing:-.02em}
+.sheet b small{font-weight:500;font-size:13px;color:var(--mute)}
+
+/* sections */
+section{padding-top:112px}
+.sh{display:flex;justify-content:space-between;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:0}
+.sh h2{font-size:clamp(34px,5vw,72px);line-height:.95;letter-spacing:-.05em;font-weight:700}
+.sh span{font-size:14px;font-weight:600;color:var(--or);letter-spacing:.07em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid var(--ink)}
+.card{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:26px 26px 30px;min-height:286px;display:flex;flex-direction:column;transition:background .15s}
+.card:hover{background:var(--paper)}
+.card .n{font-size:14px;font-weight:600;color:var(--mute)}
+.card h3{font-size:34px;line-height:1;letter-spacing:-.04em;margin-top:auto;font-weight:700}
+.card p{color:var(--mute);margin-top:10px;font-size:16px;max-width:30ch}
+.card .pr{margin-top:20px;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.card .pr small{font-size:13px;font-weight:500;color:var(--mute)}
+.card.hot{background:var(--or);color:#fff}
+.card.hot .n,.card.hot p,.card.hot .pr small{color:#fff;opacity:.85}
+.card.hot:hover{background:var(--or-d)}
+
+/* tarp table + photo */
+.tp{display:grid;grid-template-columns:7fr 5fr;column-gap:48px;margin-top:56px;align-items:start}
+.tp .ph{aspect-ratio:1/1;background:var(--paper);position:relative}
+.tp table{width:100%;border-collapse:collapse;margin-top:8px}
+.tp th{font-size:13px;text-align:left;text-transform:uppercase;letter-spacing:.07em;color:var(--mute);font-weight:600;padding:0 0 12px}
+.tp th:last-child,.tp td:last-child{text-align:right}
+.tp td{padding:18px 0;border-top:1px solid var(--ink);font-size:26px;font-weight:700;letter-spacing:-.03em}
+.tp td.s{font-weight:500;font-size:17px;color:var(--mute);letter-spacing:0}
+.tp .foot{margin-top:20px;font-size:16px;color:var(--mute);border-top:2px solid var(--ink);padding-top:16px}
+.tp h3{font-size:44px;letter-spacing:-.04em;line-height:1;margin-bottom:28px}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);margin-top:0}
+.step{padding:28px 28px 34px 0;border-right:1px solid #b8b8b6;margin-right:28px}
+.step:last-child{border:0}
+.step b{font-size:76px;font-weight:700;letter-spacing:-.06em;line-height:1;color:var(--or);display:block}
+.step h3{font-size:24px;letter-spacing:-.03em;margin-top:18px}
+.step p{color:var(--mute);font-size:16px;margin-top:6px}
+
+/* owner */
+.own{display:grid;grid-template-columns:4fr 8fr;column-gap:48px;margin-top:48px}
+.own .ph{aspect-ratio:4/5;background:var(--paper)}
+.own .ph img{object-position:50% 25%}
+.own q{display:block;font-size:clamp(30px,3.7vw,56px);line-height:1;letter-spacing:-.05em;font-weight:700;quotes:none}
+.own q span{color:var(--or)}
+.own .who{margin-top:28px;font-size:18px;color:var(--mute)}
+.own .who b{color:var(--ink)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);margin-top:48px;border-top:2px solid var(--ink)}
+.facts div{padding:18px 16px 0 0}
+.facts b{display:block;font-size:48px;letter-spacing:-.05em;line-height:1}
+.facts span{font-size:15px;color:var(--mute)}
+
+/* contact */
+.visit{margin-top:112px;background:var(--ink);color:#fff;padding:72px 0 0}
+.visit .row{display:grid;grid-template-columns:7fr 5fr;column-gap:48px;padding-bottom:72px}
+.visit .lab{font-size:14px;color:var(--or);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px}
+.visit .tel{display:block;font-size:clamp(44px,7.4vw,112px);letter-spacing:-.06em;font-weight:700;line-height:.92}
+.visit p{margin-top:22px;font-size:20px;max-width:36ch;opacity:.85}
+.visit .btn{margin-top:30px}
+.visit dl{border-top:2px solid #fff}
+.visit dl div{display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid #444;font-size:18px}
+.visit dd{font-weight:600}
+.visit address{font-style:normal;margin-top:28px;font-size:19px;line-height:1.5}
+.visit address small{display:block;color:#a9a9a6;font-size:15px;margin-top:6px}
+.ft{border-top:1px solid #444;font-size:14px;color:#a9a9a6}
+.ft .wrap{display:flex;justify-content:space-between;padding-top:18px;padding-bottom:18px}
+
+@media(max-width:1100px){
+  :root{--pad:28px}
+  nav{display:none}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .step{margin-right:0;padding-right:20px}
+  .step:nth-child(2){border-right:0}
+  .tp,.own,.visit .row{grid-template-columns:1fr;row-gap:36px}
+}
+@media(max-width:720px){
+  :root{--pad:18px}
+  body{font-size:16px}
+  header{height:60px}
+  .hdr-r a:first-child{display:none}
+  .logo{font-size:19px}
+  .hero{height:auto;min-height:0}
+  .hero .wrap{display:flex;flex-direction:column;padding-top:20px;padding-bottom:0;gap:0}
+  .hp{height:230px;flex:none;margin:6px 6px 26px;width:calc(100% - 12px)}
+  .hp .rush{right:-6px;bottom:20px;padding:10px 14px}
+  .hp .rush b{font-size:28px}
+  .kick{font-size:11px}
+  .kick span:last-child{display:none}
+  h1{font-size:clamp(50px,15.4vw,64px);margin-top:20px;line-height:.9}
+  .lede{font-size:18px;margin-top:16px}
+  .cta{flex-direction:column;align-items:stretch;gap:10px;margin-top:20px}
+  .btn{width:100%}
+  .cta small{text-align:center}
+  .sheet{margin-top:26px}
+  .sheet div:nth-child(n+4){display:none}
+  .sheet div{font-size:16px;grid-template-columns:34px 1fr auto}
+  .sheet b{font-size:17px}
+  section{padding-top:72px}
+  .sh h2{font-size:34px}
+  .sh span{display:none}
+  .cards{grid-template-columns:1fr}
+  .card{min-height:0;padding:20px 20px 24px;display:grid;grid-template-columns:1fr auto;column-gap:16px}
+  .card .n{grid-column:1/3;margin-bottom:22px}
+  .card h3{grid-column:1;font-size:27px;margin-top:0}
+  .card p{grid-column:1/3;order:3}
+  .card .pr{grid-column:2;grid-row:2;margin-top:0;align-self:start;text-align:right}
+  .tp{margin-top:36px}
+  .tp td{font-size:22px;padding:14px 0}
+  .tp h3{font-size:32px;margin-bottom:18px}
+  .steps{grid-template-columns:1fr}
+  .step{border:0;border-bottom:1px solid #b8b8b6;display:grid;grid-template-columns:78px 1fr;padding:18px 0 20px}
+  .step b{font-size:56px;grid-row:1/3}
+  .step h3{margin-top:4px;font-size:22px}
+  .own{margin-top:32px}
+  .facts b{font-size:32px}.facts span{font-size:13px}
+  .visit{margin-top:72px;padding-top:56px}
+  .visit .row{padding-bottom:56px}
+  .ft .wrap{flex-direction:column;gap:2px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="cmyk"><i></i><i></i><i></i><i></i></span>Tinta Print Hub</a>
+    <nav><a href="#services">Services</a><a href="#tarp">Tarpaulin</a><a href="#how">How it works</a><a href="#visit">Visit</a></nav>
+    <div class="hdr-r"><a href="tel:09175550188">0917 555 0188</a><a class="btn sm" href="#visit">Order</a></div>
+  </div>
+</header>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap">
+    <div class="hp">
+      <span class="cm a"></span><span class="cm b"></span><span class="cm c"></span><span class="cm d"></span>
+      <div class="im"><img src="/v2/showcase/print/img/print-press.jpg" alt="Kuya Ramil pulling a fresh print from the large-format printer"></div>
+      <div class="rush">Rush order<b>2 hours</b></div>
+    </div>
+    <div class="ht">
+      <div class="kick"><span><b>●</b> Print shop · Sampaloc, Manila</span><span>Since 2011</span></div>
+      <h1>Print it.<br><span>Pick it up.</span></h1>
+      <p class="lede">Tarpaulins, calling cards, IDs and flyers. Free layout, same-day pickup.</p>
+      <div class="cta"><a class="btn" href="#visit">Send your file <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a><small>Mon–Sat 8am–7pm</small></div>
+      <div class="sheet">
+        <div><i>01</i><span>Tarpaulin</span><b>₱18 <small>/ sq ft</small></b></div>
+        <div><i>02</i><span>Calling cards, 100 pcs</span><b>₱350</b></div>
+        <div><i>03</i><span>ID with lanyard</span><b>₱85 <small>/ pc</small></b></div>
+        <div><i>04</i><span>A4 flyers, full colour</span><b>₱6 <small>/ pc</small></b></div>
+        <div><i>05</i><span>Vinyl stickers, A4 sheet</span><b>₱120</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="services">
+  <div class="wrap">
+    <div class="sh"><h2>What we print.</h2><span>02 / SERVICES</span></div>
+    <div class="cards">
+      <div class="card hot"><div class="n">A</div><h3>Tarpaulin</h3><p>Birthday, election, store and event banners. Eyelets included.</p><div class="pr">₱18 <small>/ sq ft</small></div></div>
+      <div class="card"><div class="n">B</div><h3>Calling cards</h3><p>Full colour, laminated, 100 pieces per box.</p><div class="pr">₱350 <small>/ 100 pcs</small></div></div>
+      <div class="card"><div class="n">C</div><h3>ID &amp; lanyard</h3><p>PVC-style ID, lanyard and holder. Rush ready in 30 minutes.</p><div class="pr">₱85 <small>/ pc</small></div></div>
+      <div class="card"><div class="n">D</div><h3>Flyers &amp; posters</h3><p>A4 flyers on 100gsm, A3 posters on glossy.</p><div class="pr">₱6 <small>/ A4 flyer</small></div></div>
+      <div class="card"><div class="n">E</div><h3>Stickers</h3><p>Vinyl, waterproof, cut to shape. For products and bottles.</p><div class="pr">₱120 <small>/ A4 sheet</small></div></div>
+      <div class="card"><div class="n">F</div><h3>Photocopy &amp; scan</h3><p>Black and white, colour, plus A3 and long bond.</p><div class="pr">₱2 <small>/ page</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tarp">
+  <div class="wrap">
+    <div class="sh"><h2>Tarpaulin, sized.</h2><span>03 / PRICE LIST</span></div>
+    <div class="tp">
+      <div>
+        <table>
+          <thead><tr><th>Size</th><th>Good for</th><th>Price</th></tr></thead>
+          <tbody>
+            <tr><td>2 × 3 ft</td><td class="s">Sari-sari, menu</td><td>₱108</td></tr>
+            <tr><td>3 × 4 ft</td><td class="s">Birthday, store sign</td><td>₱216</td></tr>
+            <tr><td>4 × 6 ft</td><td class="s">Events, stage</td><td>₱432</td></tr>
+            <tr><td>5 × 8 ft</td><td class="s">Gym, school, barangay</td><td>₱720</td></tr>
+          </tbody>
+        </table>
+        <p class="foot">Includes layout, eyelets and trimming. Send your design as a PDF or just tell us what to write.</p>
+      </div>
+      <div class="ph"><img src="/v2/showcase/print/img/print-work.jpg" alt="Printed cards, flyers and a rolled tarpaulin on the worktable"></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sh"><h2>Four steps.</h2><span>04 / HOW IT WORKS</span></div>
+    <div class="steps">
+      <div class="step"><b>1</b><h3>Send</h3><p>Message your file or idea on Viber or at the counter.</p></div>
+      <div class="step"><b>2</b><h3>Proof</h3><p>We send a preview. Fix typos before anything is printed.</p></div>
+      <div class="step"><b>3</b><h3>Print</h3><p>Most orders take 2 to 3 hours. Cards next day.</p></div>
+      <div class="step"><b>4</b><h3>Pay on pickup</h3><p>Cash or GCash. 50% down for orders above ₱2,000.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sh"><h2>Who’s behind it.</h2><span>05 / THE SHOP</span></div>
+    <div class="own">
+      <div class="ph"><img src="/v2/showcase/print/img/print-owner.jpg" alt="Ramil Dela Cruz, owner of Tinta Print Hub"></div>
+      <div>
+        <q>I started with one second-hand printer. Every banner on this street <span>went through my hands.</span></q>
+        <p class="who"><b>Ramil Dela Cruz</b>, owner. Walk in, ask for Kuya Ramil.</p>
+        <div class="facts">
+          <div><b>2011</b><span>opened on Lacson</span></div>
+          <div><b>60</b><span>tarpaulins a week</span></div>
+          <div><b>2 hrs</b><span>rush turnaround</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="visit" id="visit">
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <div class="lab">06 / Order or visit</div>
+        <a class="tel" href="tel:09175550188">0917 555 0188</a>
+        <p>Call, text or Viber. We reply fast during shop hours.</p>
+        <a class="btn" href="tel:09175550188">Call the shop <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a>
+      </div>
+      <div>
+        <dl>
+          <div><dt>Monday – Saturday</dt><dd>8:00 – 19:00</dd></div>
+          <div><dt>Sunday</dt><dd>9:00 – 15:00</dd></div>
+        </dl>
+        <address>1423 Lacson Avenue, Sampaloc<br>Manila 1008<small>Across the Dapitan jeepney stop, beside the hardware.</small></address>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><div class="wrap"><b>Tinta Print Hub</b><span>Sampaloc, Manila · Printing since 2011</span></div></div>
+</div>
+</main>
+</body>
+</html>

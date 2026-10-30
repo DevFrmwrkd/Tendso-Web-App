@@ -460,10 +460,9 @@ export const submitOwnerIntake = mutation({
         businessType: v.string(),
         ownerName: v.string(),
         ownerPhone: v.string(),
-        // REQUIRED here, unlike the creator funnel where it is optional and
-        // labelled as such: /api/send-website-email 400s without it (:44-46) and
-        // the 72h follow-up cron filters on it (convex/followUp.ts:52). With no
-        // creator standing in the shop, it is the only channel back to the owner.
+        // Required in owner intake and on final creator submission: website
+        // emails and payment follow-ups need the owner’s email address.
+        // Creator drafts may still save before that address is collected.
         ownerEmail: v.string(),
         address: v.string(),
         city: v.string(),

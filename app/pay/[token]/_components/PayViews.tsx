@@ -289,7 +289,7 @@ export function PendingView({ token, submission, now, wiseEmail }: ViewProps & {
             <SiteSummary
                 submission={submission}
                 label="What you are paying for"
-                note={url && !offline ? "Your site is already up. Pay once to keep it." : null}
+                note={url && !offline ? "You have seen your site. Pay once to keep it live." : null}
                 aside={
                     <div className="flex shrink-0 flex-col gap-1 border-t border-r1-line pt-4 sm:items-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
                         <span className="t-label">You pay</span>
@@ -301,7 +301,7 @@ export function PendingView({ token, submission, now, wiseEmail }: ViewProps & {
                             </span>
                         </span>
                         {discount && !domain && <Status tone="done" word={`${discount.percentOff}% off`} />}
-                        <span className="t-meta">One time. No monthly fee.</span>
+                        <span className="t-meta">Pay once to keep it live.</span>
                     </div>
                 }
                 footer={
@@ -491,7 +491,7 @@ export function PaidView({ token, submission, now, ownerHome }: ViewProps & { ow
                             </span>
                         </ReceiptRow>
                     )}
-                    <ReceiptRow term="For">{name ? `${name} website, one-time` : "Your website, one-time"}</ReceiptRow>
+                    <ReceiptRow term="For">{name ? `${name} website` : "Your website"}</ReceiptRow>
                 </dl>
             </section>
 

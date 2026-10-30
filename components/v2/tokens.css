@@ -1,0 +1,182 @@
+/*
+ * Tendso design v2 tokens.
+ *
+ * Source of truth: docs/landing-mock/css/tokens.css + base.css (the approved mock).
+ * Values are copied, not reinterpreted.
+ *
+ * SCOPE. Every custom property below is declared on `.v2` (or `[data-theme="v2"]`),
+ * so a route that does not render a v2 root does not see any of it, and the Round 1
+ * pages are untouched. Tailwind utilities (`bg-v2-ink`, `rounded-v2-tile`,
+ * `ease-v2-expo`…) are registered with `@theme inline`, which writes
+ * `var(--v2-*)` straight into the utility, so they resolve against the nearest
+ * v2 scope and are inert anywhere else.
+ *
+ * ACCENT IS A FILL, NEVER TEXT. #E4F222 on white is 1.2:1. There is deliberately no
+ * `--color-v2-accent` in the theme: a colour in that namespace would also generate
+ * `text-v2-accent`, `border-v2-accent`, `ring-v2-accent`. Instead the accent shades
+ * are exposed only as background utilities (`@utility bg-v2-accent*`) below, and
+ * the text colour that goes on them is `text-v2-on-accent`.
+ * __tests__/v2/tokens.test.ts guards this.
+ */
+
+@layer base {
+  .v2,
+  [data-theme="v2"] {
+    /* colour: ONE accent. Every other accent shade derives from it. */
+    --v2-accent: #E4F222;
+    --v2-accent-hover: color-mix(in oklab, var(--v2-accent) 78%, white);
+    --v2-accent-soft: color-mix(in oklab, var(--v2-accent) 22%, white);
+    --v2-on-accent: #0C0A08;
+
+    --v2-canvas: #FFFFFF;
+    --v2-stage: #F2F3F1;
+    --v2-tile: #FFFFFF;
+    --v2-tile-quiet: #F7F7F5;
+    --v2-line: #ECECE8;
+    --v2-ink: #0C0A08;
+    --v2-ink-2: #4A4943;
+    --v2-muted: #8C8B84;
+    --v2-dark: #121210;
+
+    /* type: Onest everywhere; JetBrains Mono only for tiny uppercase labels.
+       --font-v2-onest / --font-v2-mono are set by next/font on the v2 root. */
+    --v2-font: var(--font-v2-onest), "Onest", "Helvetica Neue", Arial, sans-serif;
+    --v2-mono: var(--font-v2-mono), "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --v2-t-hero: clamp(44px, 6.4vw, 104px);
+    --v2-t-moment: clamp(64px, 12vw, 210px);
+    --v2-t-h2: clamp(36px, 5vw, 72px);
+    --v2-t-h3: clamp(22px, 2vw, 28px);
+    --v2-t-body: 17px;
+    --v2-t-small: 14px;
+    --v2-t-label: 11px;
+
+    /* shape */
+    --v2-r-tile: 40px;
+    --v2-r-card: 20px;
+    --v2-r-pill: 999px;
+
+    /* spacing / layout */
+    --v2-page-pad: clamp(16px, 3.3vw, 48px);
+    --v2-gap: clamp(12px, 1.7vw, 24px);
+    --v2-max: 1440px;
+    --v2-sec-sm: clamp(40px, 5vw, 72px);
+    --v2-sec-md: clamp(80px, 10vw, 160px);
+    --v2-sec-lg: clamp(96px, 13vw, 200px);
+
+    /* motion (from ramp.design's CSS, via the mock) */
+    --v2-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --v2-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --v2-ease-inout: cubic-bezier(0.77, 0, 0.175, 1);
+    --v2-d-ui: 220ms;
+    --v2-d-reveal: 620ms;
+    --v2-d-settle: 900ms;
+    --v2-blur-in: 14px;
+
+    --v2-shadow-object:
+      0 1px 1px rgba(12, 10, 8, 0.04),
+      0 12px 30px -8px rgba(12, 10, 8, 0.18),
+      0 40px 80px -30px rgba(12, 10, 8, 0.22);
+
+    /* base: what the mock's `body` sets */
+    background: var(--v2-canvas);
+    color: var(--v2-ink);
+    font: 400 var(--v2-t-body) / 1.5 var(--v2-font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  @media (max-width: 760px) {
+    .v2,
+    [data-theme="v2"] {
+      --v2-r-tile: 28px;
+      --v2-t-body: 16px;
+    }
+  }
+
+  .v2 h1,
+  .v2 h2,
+  .v2 h3,
+  [data-theme="v2"] h1,
+  [data-theme="v2"] h2,
+  [data-theme="v2"] h3 {
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  /* Specificity note: app/globals.css draws a gold ring on every :focus-visible
+     that is not inside .r1 or .v2; inside v2 this one applies instead. */
+  .v2 :focus-visible,
+  [data-theme="v2"] :focus-visible {
+    outline: 2px solid var(--v2-ink);
+    outline-offset: 3px;
+  }
+}
+
+/* Tailwind utilities. `inline` = the utility carries var(--v2-*) itself, so the
+   value is looked up where the class is used (inside a v2 scope). */
+@theme inline {
+  --color-v2-canvas: var(--v2-canvas);
+  --color-v2-stage: var(--v2-stage);
+  --color-v2-tile: var(--v2-tile);
+  --color-v2-quiet: var(--v2-tile-quiet);
+  --color-v2-line: var(--v2-line);
+  --color-v2-ink: var(--v2-ink);
+  --color-v2-ink-2: var(--v2-ink-2);
+  --color-v2-muted: var(--v2-muted);
+  --color-v2-dark: var(--v2-dark);
+  /* text that sits ON an accent fill */
+  --color-v2-on-accent: var(--v2-on-accent);
+
+  --font-v2-sans: var(--v2-font);
+  --font-v2-label: var(--v2-mono);
+
+  --text-v2-hero: var(--v2-t-hero);
+  --text-v2-hero--line-height: 0.94;
+  --text-v2-hero--letter-spacing: -0.055em;
+  --text-v2-moment: var(--v2-t-moment);
+  --text-v2-moment--line-height: 0.86;
+  --text-v2-moment--letter-spacing: -0.065em;
+  --text-v2-h2: var(--v2-t-h2);
+  --text-v2-h2--line-height: 0.98;
+  --text-v2-h2--letter-spacing: -0.045em;
+  --text-v2-h3: var(--v2-t-h3);
+  --text-v2-h3--line-height: 1.12;
+  --text-v2-h3--letter-spacing: -0.035em;
+  --text-v2-body: var(--v2-t-body);
+  --text-v2-body--line-height: 1.5;
+  --text-v2-small: var(--v2-t-small);
+  --text-v2-small--line-height: 1.4;
+  --text-v2-label: var(--v2-t-label);
+  --text-v2-label--line-height: 1.2;
+  --text-v2-label--letter-spacing: 0.08em;
+
+  --radius-v2-tile: var(--v2-r-tile);
+  --radius-v2-card: var(--v2-r-card);
+  --radius-v2-pill: var(--v2-r-pill);
+
+  --spacing-v2-gap: var(--v2-gap);
+  --spacing-v2-pad: var(--v2-page-pad);
+  --spacing-v2-sec-sm: var(--v2-sec-sm);
+  --spacing-v2-sec-md: var(--v2-sec-md);
+  --spacing-v2-sec-lg: var(--v2-sec-lg);
+  --container-v2: var(--v2-max);
+
+  --shadow-v2-object: var(--v2-shadow-object);
+
+  --ease-v2-out: var(--v2-ease-out);
+  --ease-v2-expo: var(--v2-ease-expo);
+  --ease-v2-inout: var(--v2-ease-inout);
+}
+
+/* Accent: background only. No text-/border-/ring-/fill- utility exists for it. */
+@utility bg-v2-accent {
+  background-color: var(--v2-accent);
+}
+@utility bg-v2-accent-hover {
+  background-color: var(--v2-accent-hover);
+}
+@utility bg-v2-accent-soft {
+  background-color: var(--v2-accent-soft);
+}

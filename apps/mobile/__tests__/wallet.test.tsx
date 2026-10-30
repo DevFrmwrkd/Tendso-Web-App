@@ -5,10 +5,16 @@
  */
 
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { act, render, fireEvent, waitFor } from "@testing-library/react-native";
+import { Alert, BackHandler, Keyboard, Platform, StyleSheet } from 'react-native';
 import WalletScreen from "../app/(app)/(tabs)/wallet";
+import { Button } from '../components/v2';
+let mockClerkId: string | null = 'clerk-user-1';
+let mockConnected = true;
+let mockFocused = true;
+const mockMobileAccount = { isPreview: false, isAuthenticated: true, account: { role: 'creator' } };
 jest.mock('../hooks/useMobileAccount', () => ({
-  useMobileAccount: () => ({ isPreview: false, account: { role: 'creator' } }),
+  useMobileAccount: () => mockMobileAccount,
 }));
 
 // ---------------------------------------------------------------------------
@@ -19,12 +25,21 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: () => null,
 }));
 
+jest.mock('@tendso/convex-client', () => ({
+  api: new Proxy({}, { get: (_target, module) => new Proxy({}, {
+    get: (_functions, name) => `${String(module)}:${String(name)}`,
+  }) }),
+}));
+
 jest.mock("@clerk/clerk-expo", () => ({
-  useUser: () => ({ user: { id: "clerk-user-1" } }),
+  useUser: () => ({ user: mockClerkId ? { id: mockClerkId } : null }),
 }));
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
+  useFocusEffect: (effect: () => undefined | (() => void)) => {
+    require('react').useEffect(() => mockFocused ? effect() : undefined, [effect, mockFocused]);
+  },
 }));
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -34,6 +49,8 @@ jest.mock("react-native-safe-area-context", () => ({
 const mockCreateWithdrawal = jest.fn();
 const mockUpdateCreator = jest.fn();
 const mockUseQuery = jest.fn();
+const mockResolvePhotos = jest.fn();
+const mockConvexClient = { query: (...args: any[]) => mockResolvePhotos(...args) };
 const mockUseMutation = jest.fn((mutationKey: string) => {
   if (mutationKey === "creators:update") {
     return mockUpdateCreator;
@@ -42,12 +59,13 @@ const mockUseMutation = jest.fn((mutationKey: string) => {
 });
 
 jest.mock("convex/react", () => ({
+  useConvex: () => mockConvexClient,
   useQuery: (...args: any[]) => mockUseQuery(...args),
   useMutation: (...args: any[]) => mockUseMutation(...args),
 }));
 
 jest.mock("../providers/NetworkProvider", () => ({
-  useNetwork: () => ({ isConnected: true }),
+  useNetwork: () => ({ isConnected: mockConnected }),
 }), { virtual: true });
 
 jest.mock("../components/OfflineBanner", () => ({
@@ -60,6 +78,8 @@ jest.mock("../components/OfflineBanner", () => ({
 
 const mockCreator = {
   _id: "creator-id-1",
+  clerkId: 'clerk-user-1',
+  status: 'active',
   balance: 1500,
   totalEarnings: 3000,
   totalWithdrawn: 750,
@@ -74,8 +94,8 @@ const mockCreatorNoWise = {
 };
 
 const mockEarnings = [
-  { _id: "e1", amount: 1000, createdAt: Date.now() - 86400000 },
-  { _id: "e2", amount: 500,  createdAt: Date.now() - 172800000 },
+  { _id: "e1", submissionId: "submission-1", businessName: "Kalan", type: "submission_approved", amount: 1000, status: 'available', createdAt: Date.now() - 86400000 },
+  { _id: "e2", submissionId: "submission-2", businessName: "Laundry", type: "submission_approved", amount: 500, status: 'withdrawn', createdAt: Date.now() - 172800000 },
 ];
 
 const mockWithdrawals = [
@@ -108,16 +128,28 @@ const mockLegacyWithdrawals = [
 
 function setupQueries(
   creator = mockCreator as any,
-  earnings = mockEarnings,
-  withdrawals = mockWithdrawals as any[]
+  earnings: any = mockEarnings,
+  withdrawals = mockWithdrawals as any[],
+  submissions: any[] = [
+    { _id: "submission-1", creatorId: mockCreator._id, amount: 1999, status: "completed", photos: [] },
+    { _id: "submission-2", creatorId: mockCreator._id, amount: 999, status: "paid", photos: [] },
+  ]
 ) {
   mockUseQuery.mockImplementation((queryKey: string) => {
     if (queryKey === "creators:getByClerkId") return creator;
     if (queryKey === "earnings:getByCreator")  return earnings;
     if (queryKey === "withdrawals:getByCreator") return withdrawals;
+    if (queryKey === "submissions:getByCreatorId") return submissions;
     return undefined;
   });
 }
+
+beforeEach(() => {
+  mockClerkId = 'clerk-user-1'; mockConnected = true; mockFocused = true;
+  mockResolvePhotos.mockResolvedValue([]);
+  Object.assign(mockMobileAccount, { isPreview: false, isAuthenticated: true, account: { role: 'creator' } });
+});
+afterEach(() => jest.restoreAllMocks());
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -129,15 +161,20 @@ describe("WalletScreen", () => {
     setupQueries();
   });
 
-  it("renders the available balance formatted in PHP", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/₱1,500\.00/)).toBeTruthy();
+  it("renders the available balance and cash-out action in PHP", () => {
+    const { getByText, getByTestId } = render(<WalletScreen />);
+    expect(getByText('Available to cash out')).toBeTruthy();
+    expect(getByTestId('wallet-balance-value')).toHaveTextContent('₱1,500');
+    expect(getByText("Cash out ₱1,500 to Wise")).toBeTruthy();
+    expect(getByTestId("withdraw-button")).toBeTruthy();
   });
 
   it("renders total earned and withdrawn stats", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/₱3,000\.00/)).toBeTruthy();  // totalEarnings
-    expect(getByText(/₱750\.00/)).toBeTruthy();    // totalWithdrawn
+    const { getByText, getByTestId } = render(<WalletScreen />);
+    expect(getByText('Total earned')).toBeTruthy();
+    expect(getByText('Withdrawn')).toBeTruthy();
+    expect(getByTestId('wallet-earned-total')).toHaveTextContent('₱3,000');
+    expect(getByTestId('wallet-withdrawn-total')).toHaveTextContent('₱750');
   });
 
   it("shows withdraw button when balance > 0", () => {
@@ -163,24 +200,74 @@ describe("WalletScreen", () => {
   it("shows empty state when no earnings", () => {
     setupQueries(mockCreator, []);
     const { getByText } = render(<WalletScreen />);
-    expect(getByText("No earnings")).toBeTruthy();
+    expect(getByText('No earnings yet')).toBeTruthy();
+    expect(getByText("Your first paid site shows up here.")).toBeTruthy();
+  });
+
+  it("identifies team commission credits separately from earlier referral bonuses", () => {
+    const now = Date.now();
+    const earnings = [
+      { _id: "team", type: "creator_override", amount: 250, createdAt: now },
+      { _id: "bonus", type: "referral_bonus", amount: 1000, createdAt: now - 86400000 },
+    ];
+    setupQueries(mockCreator, earnings);
+    const view = render(<WalletScreen />);
+    expect(view.getByText("5% team commission")).toBeTruthy();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    fireEvent.press(view.getByLabelText('History: Earned'));
+    expect(view.getByText("From your invites")).toBeTruthy();
+    expect(view.getByText("+₱250")).toBeTruthy();
   });
 
   it("shows empty state when no withdrawals", () => {
     setupQueries(mockCreator, mockEarnings, []);
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/Your withdrawal history will show up here once you cash out/)).toBeTruthy();
+    const { getByText, getByLabelText } = render(<WalletScreen />);
+    fireEvent.press(getByLabelText('View all earnings and payouts'));
+    fireEvent.press(getByLabelText('History: Cashed out'));
+    expect(getByText('No cash-outs yet')).toBeTruthy();
+  });
+
+  it("renders one recent earning and one cash-out with its actual status", () => {
+    const view = render(<WalletScreen />);
+    expect(view.getByText("+₱1,000")).toBeTruthy();
+    expect(view.queryByText("+₱500")).toBeNull();
+    expect(view.getAllByTestId(/^earning-/)).toHaveLength(1);
+    expect(view.getAllByTestId(/^payout-/)).toHaveLength(1);
+    expect(view.getByTestId('payout-w1')).toBeTruthy();
+    expect(view.getByText("−₱500")).toBeTruthy();
+    expect(view.getByText("Completed")).toBeTruthy();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByText("+₱500")).toBeTruthy();
+    expect(view.getByText("−₱500")).toBeTruthy();
+    expect(view.getByText("Completed")).toBeTruthy();
+  });
+
+  it("keeps the field-agent home focused on balance, totals, earnings and cash-outs", () => {
+    const view = render(<WalletScreen />);
+    expect(view.getByRole('header', { name: 'Available to cash out' })).toBeTruthy();
+    expect(view.getByText('Total earned')).toBeTruthy();
+    expect(view.getByText('Withdrawn')).toBeTruthy();
+    expect(view.getByTestId('earnings-six-month-trend')).toBeTruthy();
+    expect(view.getByText('Recent earnings')).toBeTruthy();
+    expect(view.getByText('Cash outs')).toBeTruthy();
+    expect(view.getByText('Invite field agents')).toBeTruthy();
+    expect(view.queryByText('Your price')).toBeNull();
+    expect(view.queryByRole('header', { name: 'Latest' })).toBeNull();
+    expect(view.queryByRole('header', { name: /^You earned in / })).toBeNull();
   });
 
   it("renders withdrawal history with Wise email and transfer ID", () => {
-    const { getByText } = render(<WalletScreen />);
-    expect(getByText(/Wise \u00b7 juan@wise\.com/)).toBeTruthy();
-    expect(getByText(/Wise #12345/)).toBeTruthy();
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    fireEvent.press(view.getByLabelText('History: Cashed out'));
+    expect(view.getByText('juan@wise.com')).toBeTruthy();
+    expect(view.getByText(/Wise #12345/)).toBeTruthy();
   });
 
   it("renders legacy withdrawal history with bank name", () => {
     setupQueries(mockCreator, mockEarnings, mockLegacyWithdrawals);
-    const { getByText } = render(<WalletScreen />);
+    const { getByText, getByLabelText } = render(<WalletScreen />);
+    fireEvent.press(getByLabelText('View all earnings and payouts'));
     expect(getByText("BDO")).toBeTruthy();
   });
 
@@ -290,12 +377,24 @@ describe("WithdrawalModal", () => {
     });
   });
 
-  it("prevents typing amount exceeding balance (input is capped)", () => {
-    const { getByTestId } = openModal();
+  it("pre-picks the whole balance and lets the quick-pick pills change it", () => {
+    const { getByTestId, getByText, getByLabelText } = openModal();
+    expect(getByTestId("amount-input").props.value).toBe("1500");
+    expect(getByText("Send ₱1,500 to Wise")).toBeTruthy();
+    fireEvent.press(getByLabelText("Cash out ₱1,000"));
+    expect(getByTestId("amount-input").props.value).toBe("1000");
+    expect(getByText("Send ₱1,000 to Wise")).toBeTruthy();
+  });
+
+  it("keeps an above-balance amount visible and blocks it at confirmation", () => {
+    const { getByTestId, getByLabelText, getByText } = openModal();
     const amountInput = getByTestId("amount-input");
+    fireEvent.changeText(amountInput, "");
     fireEvent.changeText(amountInput, "9999");
-    // The onChangeText handler rejects values > balance, so the input stays empty
-    expect(amountInput.props.value).toBe("");
+    expect(amountInput.props.value).toBe("9999");
+    fireEvent.press(getByLabelText('Confirm withdrawal'));
+    expect(getByText('Amount exceeds your available balance.')).toBeTruthy();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
   });
 
   it("shows validation error when Wise email is empty", async () => {
@@ -345,5 +444,446 @@ describe("WithdrawalModal", () => {
     await waitFor(() => {
       expect(getByText(/Insufficient balance/)).toBeTruthy();
     });
+  });
+});
+
+describe('Earn design and complete history', () => {
+  beforeEach(() => { jest.clearAllMocks(); setupQueries(); });
+
+  it('starts with the available balance and one owned shop-photo row while preserving complete Payouts', async () => {
+    const rows = Array.from({ length: 5 }, (_, index) => ({ _id: `latest-${index}`, submissionId: `own-${index}`,
+      businessName: `Own shop ${index}`, type: 'submission_approved', amount: 1000 + index, status: 'available', createdAt: Date.now() - index * 1000 }));
+    const own = rows.map((row, index) => ({ _id: row.submissionId, creatorId: mockCreator._id, photos: [`own-cover-${index}`],
+      amount: [1999, 2999, 3999, 4999, 999][index], status: 'completed' }));
+    setupQueries(mockCreator, rows, mockWithdrawals, own);
+    mockResolvePhotos.mockImplementation((_key: string, { storageIds }: { storageIds: string[] }) =>
+      Promise.resolve(storageIds.map(key => `https://example.com/${key}.jpg`)));
+    const view = render(<WalletScreen />);
+    expect(view.queryByText('Earn')).toBeNull();
+    expect(view.getByRole('header', { name: 'Available to cash out' })).toBeTruthy();
+    expect(view.getByTestId('wallet-balance-value')).toHaveTextContent('₱1,500');
+    expect(view.getByText('Total earned')).toBeTruthy();
+    expect(view.getByText('Withdrawn')).toBeTruthy();
+    expect(view.getByText(/^Earned in /)).toBeTruthy();
+    expect(view.getByText('Recent earnings')).toBeTruthy();
+    expect(view.getByText('Cash outs')).toBeTruthy();
+    expect(view.getByText('Invite field agents')).toBeTruthy();
+    expect(view.queryByText('Your price')).toBeNull();
+    expect(view.queryByRole('header', { name: /^You earned in / })).toBeNull();
+    expect(view.getByLabelText('View all earnings and payouts')).toHaveStyle({ width: 48, height: 48 });
+    expect(view.getAllByTestId(/^earning-/)).toHaveLength(1);
+    expect(view.queryByTestId('earning-latest-1')).toBeNull();
+    expect(view.getAllByTestId(/^payout-/)).toHaveLength(1);
+    expect(view.getByTestId('payout-w1')).toBeTruthy();
+    await waitFor(() => expect(mockResolvePhotos).toHaveBeenCalledWith('files:getMultipleUrls', { storageIds: ['own-cover-0'] }));
+    expect(mockResolvePhotos).toHaveBeenCalledTimes(1);
+    expect(view.getByText(/^Paid ₱1,999/)).toBeTruthy();
+    await waitFor(() => expect(view.getByLabelText('Own shop 0 photo').props.source).toEqual({ uri: 'https://example.com/own-cover-0.jpg' }));
+    await act(async () => { fireEvent.press(view.getByLabelText('View all earnings and payouts')); });
+    expect(view.getByRole('header', { name: 'Payouts' })).toBeTruthy();
+    expect(view.getByTestId('earning-latest-4')).toBeTruthy();
+    await waitFor(() => expect(mockResolvePhotos).toHaveBeenLastCalledWith('files:getMultipleUrls', {
+      storageIds: ['own-cover-0', 'own-cover-1', 'own-cover-2', 'own-cover-3', 'own-cover-4'],
+    }));
+    await waitFor(() => expect(view.getByLabelText('Own shop 4 photo').props.source).toEqual({ uri: 'https://example.com/own-cover-4.jpg' }));
+    expect(view.queryByText('Payout history')).toBeNull();
+  });
+
+  it('keeps site pricing out of Earn and opens existing full-list shortcuts without mutations', () => {
+    const view = render(<WalletScreen />);
+    expect(view.queryByTestId('field-agent-price-card')).toBeNull();
+    expect(view.queryByLabelText(/^New site price /)).toBeNull();
+    fireEvent.press(view.getByLabelText('All earnings'));
+    expect(view.getByLabelText('History: Earned').props.accessibilityState.selected).toBe(true);
+    expect(view.getByTestId('earning-e2')).toBeTruthy();
+    expect(view.queryByTestId('payout-w1')).toBeNull();
+    fireEvent.press(view.getByLabelText('Back'));
+    fireEvent.press(view.getByLabelText('All cash-outs'));
+    expect(view.getByLabelText('History: Cashed out').props.accessibilityState.selected).toBe(true);
+    expect(view.getByTestId('payout-w1')).toBeTruthy();
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
+  });
+
+  it('preserves exact preview money and a readable cash-out action with large text and long names', () => {
+    jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 320, height: 812, scale: 3, fontScale: 1.5 });
+    const businessName = 'A very long community business name that still belongs to the actual earning';
+    const wiseEmail = 'a.long.account.name.for.our.actual.recipient@example.com';
+    setupQueries({ ...mockCreator, balance: 1234567.89 }, [{ _id: 'long-money', amount: 1234567.89, status: 'available',
+      businessName, createdAt: Date.now() }], [{ ...mockWithdrawals[0], amount: 1234567.89, wiseEmail }]);
+    const view = render(<WalletScreen />);
+    expect(view.getByText(businessName).props.numberOfLines).toBe(2);
+    expect(view.getByText('+₱1,234,567.89').props.numberOfLines).toBeUndefined();
+    expect(view.getByText('₱1,234,567.89 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out')).toBeTruthy();
+    expect(view.getByTestId('withdraw-button').props.accessibilityLabel).toBe('Cash out ₱1,234,567.89 to Wise');
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByText(wiseEmail).props.numberOfLines).toBe(2);
+    expect(view.getByText('−₱1,234,567.89').props.numberOfLines).toBeUndefined();
+  });
+
+  it('uses real credited calendar-month earnings and keeps pending money out of the trend', () => {
+    const now = new Date();
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 2, 12).getTime();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 2, 12).getTime();
+    setupQueries(mockCreator, [
+      { _id: 'available', amount: 1200.5, status: 'available', createdAt: thisMonth, businessName: 'Kalan' },
+      { _id: 'withdrawn', amount: 200, status: 'withdrawn', createdAt: thisMonth, businessName: 'Laundry' },
+      { _id: 'pending', amount: 9000, status: 'pending', createdAt: thisMonth, businessName: 'Pending shop' },
+      { _id: 'last-month', amount: 400, status: 'available', createdAt: Number.NaN, _creationTime: lastMonth },
+    ]);
+    const view = render(<WalletScreen />);
+    expect(view.getByLabelText('Earned this month, ₱1,400.50')).toBeTruthy();
+    expect(view.getByLabelText(`${new Date(lastMonth).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}, ₱400 earned`)).toBeTruthy();
+    expect(view.getByTestId('earnings-six-month-trend').children).toHaveLength(6);
+    expect(view.getByText('Cash out ₱1,500 to Wise')).toBeTruthy();
+    expect(view.getByText('Kalan')).toBeTruthy();
+    expect(view.queryByText('Pending shop')).toBeNull();
+    expect(view.queryByText('Your price')).toBeNull();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    fireEvent.press(view.getByLabelText('History: Earned'));
+    expect(view.getByText('Pending shop')).toBeTruthy();
+    expect(view.getByText('Pending')).toBeTruthy();
+  });
+
+  it('does not show a zero or empty earnings state while the ledger is loading', () => {
+    setupQueries(mockCreator, undefined, undefined as any);
+    // setupQueries defaults are useful elsewhere; explicitly model pending subscriptions here.
+    mockUseQuery.mockImplementation((key: string) => key === 'creators:getByClerkId' ? mockCreator : undefined);
+    const view = render(<WalletScreen />);
+    expect(view.getByText('Loading earnings…')).toBeTruthy();
+    expect(view.getByText('Loading recent earnings…')).toBeTruthy();
+    expect(view.queryByText('No earnings yet')).toBeNull();
+    expect(view.queryByLabelText('Earned this month, ₱0')).toBeNull();
+    expect(view.queryByTestId('earnings-six-month-trend')).toBeNull();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByText('Loading history…')).toBeTruthy();
+  });
+
+  it('renders true zero data without manufactured bars or growth claims', () => {
+    setupQueries({ ...mockCreator, balance: 0, totalEarnings: 0, totalWithdrawn: 0 }, [], []);
+    const view = render(<WalletScreen />);
+    expect(view.getByLabelText('Earned this month, ₱0')).toBeTruthy();
+    expect(view.getByText('No earnings recorded in the last six months.')).toBeTruthy();
+    expect(view.queryByTestId('earnings-six-month-trend')).toBeNull();
+    expect(view.getByText('No balance available')).toBeTruthy();
+  });
+
+  it.each([3750.5, 1234567.89])('keeps the exact available balance %s on Earn and in Payouts at 375pt', balance => {
+    jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 375, height: 812, scale: 3, fontScale: 1 });
+    setupQueries({ ...mockCreator, balance });
+    const view = render(<WalletScreen />);
+    const expected = `₱${balance.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const balanceValue = view.getByTestId('wallet-balance-value');
+    expect(balanceValue).toHaveTextContent(expected);
+    expect(StyleSheet.flatten(balanceValue.props.style).fontSize).toBeGreaterThanOrEqual(16);
+    expect(StyleSheet.flatten(balanceValue.props.style).fontSize).toBeLessThanOrEqual(48);
+    expect(balanceValue.props.adjustsFontSizeToFit).not.toBe(true);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    const text = view.getByLabelText(`Ready, ${expected}`);
+    expect(text).toHaveTextContent(expected);
+    const style = StyleSheet.flatten(text.props.style);
+    expect(style.fontSize).toBeLessThanOrEqual(17);
+    expect(style.fontSize).toBeGreaterThanOrEqual(16);
+    expect(style.lineHeight).toBeGreaterThan(style.fontSize);
+    expect(text.props.adjustsFontSizeToFit).not.toBe(true);
+  });
+
+  it.each([
+    { earned: 41500.5, withdrawn: 37750.25 },
+    { earned: 12345678.9, withdrawn: 9100000.12 },
+  ])('preserves complete lifetime totals with centavos on Earn and in Payouts ($earned / $withdrawn)', ({ earned, withdrawn }) => {
+    jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 375, height: 812, scale: 3, fontScale: 1 });
+    setupQueries({ ...mockCreator, totalEarnings: earned, totalWithdrawn: withdrawn });
+    const view = render(<WalletScreen />);
+    const earnedText = `₱${earned.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const withdrawnText = `₱${withdrawn.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const homeEarned = view.getByTestId('wallet-earned-total');
+    const homeWithdrawn = view.getByTestId('wallet-withdrawn-total');
+    expect(homeEarned).toHaveTextContent(earnedText);
+    expect(homeWithdrawn).toHaveTextContent(withdrawnText);
+    expect(StyleSheet.flatten(homeEarned.props.style).fontSize).toBeGreaterThanOrEqual(16);
+    expect(StyleSheet.flatten(homeEarned.props.style).fontSize).toBe(StyleSheet.flatten(homeWithdrawn.props.style).fontSize);
+    expect(homeEarned.props.adjustsFontSizeToFit).not.toBe(true);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    const earnedValue = view.getByLabelText(`Earned, ₱${earned.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+    const withdrawnValue = view.getByLabelText(`Cashed out, ₱${withdrawn.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+    expect(earnedValue).toHaveTextContent(`₱${earned.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+    expect(withdrawnValue).toHaveTextContent(`₱${withdrawn.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+    const earnedStyle = StyleSheet.flatten(earnedValue.props.style);
+    const withdrawnStyle = StyleSheet.flatten(withdrawnValue.props.style);
+    expect(earnedStyle.fontSize).toBeGreaterThanOrEqual(16);
+    expect(earnedStyle.fontSize).toBeLessThanOrEqual(17);
+    expect(earnedStyle.fontSize).toBe(withdrawnStyle.fontSize);
+    expect(earnedValue.props.adjustsFontSizeToFit).not.toBe(true);
+  });
+
+  it('draws no visible current-month bar when its actual total is zero', () => {
+    const now = new Date();
+    setupQueries(mockCreator, [{ _id: 'prior-credit', amount: 500, status: 'available',
+      createdAt: new Date(now.getFullYear(), now.getMonth() - 1, 2, 12).getTime() }]);
+    const view = render(<WalletScreen />);
+    const currentBar = StyleSheet.flatten(view.getByTestId(`earnings-bar-${now.getFullYear()}-${now.getMonth()}`).props.style);
+    expect(currentBar.height).toBe(0);
+    expect(currentBar.borderWidth ?? 0).toBe(0);
+    expect(view.getByLabelText('Earned this month, ₱0')).toBeTruthy();
+  });
+
+  it('makes records beyond the home preview reachable and filters complete month-grouped history', () => {
+    const now = new Date();
+    const rows = Array.from({ length: 9 }, (_, index) => ({ _id: `long-${index}`, amount: index + 1,
+      type: 'submission_approved', status: 'available', businessName: `History shop ${index}`,
+      createdAt: new Date(now.getFullYear(), now.getMonth() - Math.floor(index / 3), 20 - index, 12).getTime() }));
+    const payouts = Array.from({ length: 7 }, (_, index) => ({ ...mockWithdrawals[0], _id: `payout-${index}`, amount: index + 100,
+      createdAt: new Date(now.getFullYear(), now.getMonth() - Math.floor(index / 3), 19 - index, 12).getTime() }));
+    setupQueries(mockCreator, rows, payouts);
+    const view = render(<WalletScreen />);
+    expect(view.queryByText('History shop 8')).toBeNull();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByTestId('wallet-history')).toBeTruthy();
+    expect(view.getByText('History shop 8')).toBeTruthy();
+    expect(view.getByTestId('payout-payout-6')).toBeTruthy();
+    expect(view.getByText(new Date(now.getFullYear(), now.getMonth() - 2, 1).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }))).toBeTruthy();
+    fireEvent.press(view.getByLabelText('History: Earned'));
+    expect(view.getByText('History shop 8')).toBeTruthy();
+    expect(view.queryByTestId('payout-payout-6')).toBeNull();
+    fireEvent.press(view.getByLabelText('History: Cashed out'));
+    expect(view.queryByText('History shop 8')).toBeNull();
+    expect(view.getByTestId('payout-payout-6')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('History: All'));
+    expect(view.getByText('History shop 8')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('Back'));
+    expect(view.queryByTestId('wallet-history')).toBeNull();
+    expect(view.getByTestId('withdraw-button')).toBeTruthy();
+  });
+
+  it('opens complete mixed Payouts and switches between earnings and cash-outs', () => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByLabelText('History: All').props.accessibilityState.selected).toBe(true);
+    expect(view.getByTestId('earning-e1')).toBeTruthy();
+    expect(view.getByTestId('payout-w1')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('History: Earned'));
+    expect(view.getByLabelText('History: Earned').props.accessibilityState.selected).toBe(true);
+    expect(view.queryByTestId('payout-w1')).toBeNull();
+    fireEvent.press(view.getByLabelText('History: Cashed out'));
+    expect(view.getByLabelText('History: Cashed out').props.accessibilityState.selected).toBe(true);
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(view.getByTestId('payout-w1')).toBeTruthy();
+  });
+
+  it('shows failed payout explanations and legacy bank transfers in full history', () => {
+    setupQueries(mockCreator, mockEarnings, [{ ...mockLegacyWithdrawals[0], status: 'failed',
+      failureReason: 'Recipient details could not be verified.', reference: 'PAYOUT-LEGACY-1' }]);
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    fireEvent.press(view.getByLabelText('History: Cashed out'));
+    expect(view.getByText('BDO')).toBeTruthy();
+    expect(view.getByText('Failed')).toBeTruthy();
+    expect(view.getByText('Recipient details could not be verified.')).toBeTruthy();
+    expect(view.getByText('PAYOUT-LEGACY-1')).toBeTruthy();
+    expect(view.getByText('Wise #67890')).toBeTruthy();
+  });
+
+  it('does not invent offline balances or leak an unmatched account ledger', () => {
+    mockConnected = false;
+    setupQueries(undefined as any);
+    mockUseQuery.mockImplementation((key: string) => key === 'creators:getByClerkId' ? undefined : mockEarnings);
+    const view = render(<WalletScreen />);
+    expect(view.getByText('Balance unavailable')).toBeTruthy();
+    expect(view.getByText('Reconnect to load your account balance.')).toBeTruthy();
+    expect(view.getByText('Reconnect to load your earnings.')).toBeTruthy();
+    expect(view.queryByText('₱0')).toBeNull();
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('keeps known history readable offline while blocking cash-out', () => {
+    mockConnected = false;
+    const view = render(<WalletScreen />);
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    fireEvent.press(view.getByLabelText('History: Cashed out'));
+    expect(view.getByText('Wise #12345')).toBeTruthy();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('asks to reconnect for missing offline history without hiding known transfers', () => {
+    mockConnected = false;
+    mockUseQuery.mockImplementation((key: string) => key === 'creators:getByClerkId' ? mockCreator
+      : key === 'withdrawals:getByCreator' ? mockWithdrawals : undefined);
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByText('Reconnect to load your complete history.')).toBeTruthy();
+    expect(view.getByText('Wise #12345')).toBeTruthy();
+    expect(view.queryByText('Loading history…')).toBeNull();
+  });
+
+  it('hides money when a creator response belongs to a different Clerk subject', () => {
+    setupQueries({ ...mockCreator, clerkId: 'someone-else' });
+    const view = render(<WalletScreen />);
+    expect(view.getByTestId('activity-indicator')).toBeTruthy();
+    expect(view.queryByText('₱1,500')).toBeNull();
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(mockUseQuery).toHaveBeenCalledWith('earnings:getByCreator', 'skip');
+  });
+
+  it('masks stale query data when authentication is lost', () => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    mockMobileAccount.isAuthenticated = false;
+    view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(view.getByText('Balance unavailable')).toBeTruthy();
+    expect(mockUseQuery).toHaveBeenCalledWith('creators:getByClerkId', 'skip');
+  });
+
+  it('uses the affiliate portal summary and histories through the shared wallet route', () => {
+    mockMobileAccount.account.role = 'affiliate';
+    mockUseQuery.mockImplementation((key: string) => {
+      if (key === 'creators:getByClerkId') return { ...mockCreator, role: 'affiliate' };
+      if (key === 'affiliates:portal') return { summary: { balance: 250.75, totalEarned: 4000, totalWithdrawn: 3749.25 },
+        earnings: [{ _id: 'affiliate-e', amount: 250.75, status: 'available', type: 'creator_override', businessName: 'Team shop', createdAt: Date.now() }],
+        withdrawals: [{ ...mockWithdrawals[0], _id: 'affiliate-w', amount: 3749.25 }] };
+      return undefined;
+    });
+    const view = render(<WalletScreen />);
+    expect(view.getByText('Cash out ₱250.75 to Wise')).toBeTruthy();
+    expect(view.getByText('Team shop')).toBeTruthy();
+    expect(view.getByText('₱4,000')).toBeTruthy();
+    expect(view.queryByTestId('field-agent-price-card')).toBeNull();
+    expect(mockUseQuery).toHaveBeenCalledWith('earnings:getByCreator', 'skip');
+    expect(mockUseQuery).toHaveBeenCalledWith('withdrawals:getByCreator', 'skip');
+    fireEvent.press(view.getByLabelText('All cash-outs'));
+    expect(view.getByTestId('payout-affiliate-w')).toBeTruthy();
+    expect(view.getByText('−₱3,749.25')).toBeTruthy();
+  });
+
+  it('handles Android hardware Back only while the history screen is focused', () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    const removed = jest.fn();
+    let back: (() => boolean | null | undefined) | undefined;
+    const listener = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => { back = handler; return { remove: removed }; });
+    const view = render(<WalletScreen />);
+    expect(listener).not.toHaveBeenCalled();
+    fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(listener).toHaveBeenCalledTimes(1);
+    mockFocused = false;
+    view.rerender(<WalletScreen />);
+    expect(removed).toHaveBeenCalledTimes(1);
+    mockFocused = true;
+    view.rerender(<WalletScreen />);
+    expect(listener).toHaveBeenCalledTimes(2);
+    act(() => { expect(back?.()).toBe(true); });
+    expect(view.queryByTestId('wallet-history')).toBeNull();
+    expect(view.getByTestId('withdraw-button')).toBeTruthy();
+  });
+});
+
+describe('Wise payout lifecycle safety', () => {
+  beforeEach(() => { jest.clearAllMocks(); setupQueries(); });
+
+  it('preserves centavos and permits a positive cash-out below one peso', async () => {
+    setupQueries({ ...mockCreator, balance: 0.5 });
+    mockCreateWithdrawal.mockResolvedValue('tiny-payout');
+    const view = render(<WalletScreen />);
+    expect(view.getByText('Cash out ₱0.50 to Wise')).toBeTruthy();
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.press(view.getByLabelText('Confirm withdrawal'));
+    await waitFor(() => expect(mockCreateWithdrawal).toHaveBeenCalledWith({ creatorId: mockCreator._id, amount: 0.5, wiseEmail: mockCreator.wiseEmail }));
+  });
+
+  it.each(['100abc', '0.001', 'Infinity', '-1'])('rejects malformed or sub-cent amounts: %s', async input => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.changeText(view.getByTestId('amount-input'), input);
+    expect(view.getByTestId('amount-input').props.value).toBe(input);
+    fireEvent.press(view.getByLabelText('Confirm withdrawal'));
+    expect(view.getByText('Please enter a valid amount.')).toBeTruthy();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('locks duplicate withdrawal calls synchronously until the request resolves', async () => {
+    let resolve!: (value: string) => void;
+    mockCreateWithdrawal.mockImplementation(() => new Promise<string>(done => { resolve = done; }));
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    const submit = view.UNSAFE_getAllByType(Button).find(button => button.props.accessibilityLabel === 'Confirm withdrawal')!.props.onPress;
+    act(() => { void submit(); void submit(); });
+    expect(mockCreateWithdrawal).toHaveBeenCalledTimes(1);
+    await act(async () => { resolve('withdrawal-id'); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+  });
+
+  it('blocks a stale confirm callback after the network disconnects', () => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    const submit = view.UNSAFE_getAllByType(Button).find(button => button.props.accessibilityLabel === 'Confirm withdrawal')!.props.onPress;
+    mockConnected = false;
+    view.rerender(<WalletScreen />);
+    act(() => { void submit(); });
+    expect(view.getByLabelText('Confirm withdrawal').props.accessibilityState.disabled).toBe(true);
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it.each(['suspended', 'deleted'])('blocks cash-out when the account becomes %s', status => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    setupQueries({ ...mockCreator, status });
+    view.rerender(<WalletScreen />);
+    fireEvent.press(view.getByLabelText('Confirm withdrawal'));
+    expect(view.getByLabelText('Confirm withdrawal').props.accessibilityState.disabled).toBe(true);
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('does not show an old withdrawal result after switching accounts', async () => {
+    let resolve!: (value: string) => void;
+    mockCreateWithdrawal.mockImplementation(() => new Promise<string>(done => { resolve = done; }));
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.press(view.getByLabelText('Confirm withdrawal'));
+    mockClerkId = 'clerk-user-2';
+    setupQueries({ ...mockCreator, _id: 'creator-2', clerkId: mockClerkId, balance: 12, wiseEmail: 'second@wise.com' }, [], []);
+    view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.getByText('Cash out ₱12 to Wise')).toBeTruthy();
+    await act(async () => { resolve('old-withdrawal'); });
+    expect(alert).not.toHaveBeenCalled();
+    expect(view.queryByTestId('amount-input')).toBeNull();
+  });
+
+  it('does not reopen an old Wise editor after an account switch', async () => {
+    let resolve!: () => void;
+    setupQueries(mockCreatorNoWise);
+    mockUpdateCreator.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.changeText(view.getByTestId('wise-setup-email-input'), 'old@wise.com');
+    fireEvent.press(view.getByLabelText('Continue to withdrawal'));
+    mockClerkId = 'clerk-user-2';
+    setupQueries({ ...mockCreator, _id: 'creator-2', clerkId: mockClerkId, wiseEmail: 'new@wise.com' }, [], []);
+    view.rerender(<WalletScreen />);
+    await act(async () => { resolve(); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.queryByTestId('wise-setup-email-input')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('keeps withdrawal content scrollable and reduces its bounds while the keyboard is shown', () => {
+    const callbacks = new Map<string, (event: any) => void>();
+    jest.spyOn(Keyboard, 'addListener').mockImplementation((name, callback) => { callbacks.set(name, callback); return { remove: jest.fn() }; });
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    const before = StyleSheet.flatten(view.getByTestId('wallet-withdraw-scroll').props.style).maxHeight;
+    expect(view.getByTestId('wallet-withdraw-scroll').props.keyboardShouldPersistTaps).toBe('handled');
+    act(() => callbacks.get(Platform.OS === 'ios' ? 'keyboardWillChangeFrame' : 'keyboardDidShow')?.({ endCoordinates: { screenY: 100 } }));
+    const after = StyleSheet.flatten(view.getByTestId('wallet-withdraw-scroll').props.style).maxHeight;
+    expect(after).toBeLessThan(before);
+    expect(after).toBeGreaterThanOrEqual(160);
+    act(() => callbacks.get('keyboardDidHide')?.({}));
+    expect(StyleSheet.flatten(view.getByTestId('wallet-withdraw-scroll').props.style).maxHeight).toBe(before);
   });
 });

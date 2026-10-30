@@ -30,6 +30,8 @@ import { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { fetchAction, fetchMutation, fetchQuery } from 'convex/nextjs';
 import { buildAstroSite } from '@/lib/astro-builder';
+import { hasSuppliedTestimonials } from '@/lib/services/groq.service';
+import { autoTemplateFor } from '@/lib/templatePicker';
 import { deployHoldingPage } from '@/lib/holding-page';
 import { POST as generateWebsite } from '@/app/api/generate-website/route';
 import { POST as publishWebsite } from '@/app/api/publish-website/route';
@@ -115,6 +117,44 @@ it('forwards the admin token to generator account and submission reads', async (
     expect(fetchQuery).toHaveBeenCalledWith('submission', { id: 'submission-1' }, { token: 'verified-convex-token' });
     expectAllConvexCallsAuthenticated();
     expectNoSideEffects();
+});
+
+describe('saved capture design in an authorized builder preview', () => {
+    it.each([
+        ['saved canonical choice', ' barbershop:BP ', undefined, 'barbershop:BP'],
+        ['explicit editor override', 'barbershop:BP', 'generic:B', 'generic:B'],
+        ['legacy missing choice', undefined, undefined, undefined],
+        ['invalid legacy choice', 'barbershop:BQ', undefined, undefined],
+    ])('uses %s without writing or making an external build request', async (_label, templateId, override, expected) => {
+        const submission = {
+            _id: 'submission-1', businessName: 'Corner Shop', businessType: 'Restaurant', status: 'submitted',
+            ownerName: 'Sam', ownerPhone: '09171234567', ownerEmail: 'sam@example.test', city: 'Marikina',
+            address: 'Main Street', photos: [], templateId,
+        };
+        (fetchQuery as jest.Mock).mockImplementation(async (query: string) => {
+            if (query === 'actor') return actor;
+            if (query === 'submission') return submission;
+            return null;
+        });
+        (hasSuppliedTestimonials as jest.Mock).mockReturnValue(true);
+        (buildAstroSite as jest.Mock).mockResolvedValue('<html><head></head><body>Shop preview</body></html>');
+        const response = await generateWebsite(new NextRequest('https://tendso.com/api/generate-website', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                submissionId: submission._id, preview: true,
+                content: { business_name: 'Corner Shop', tagline: 'Local food', about: 'Family recipes from Marikina.' },
+                ...(override ? { customizations: { heroStyle: override } } : {}),
+            }),
+        }));
+        expect(response.status).toBe(200);
+        expect(buildAstroSite).toHaveBeenCalledTimes(1);
+        expect((buildAstroSite as jest.Mock).mock.calls[0][1].heroStyle)
+            .toBe(expected ?? autoTemplateFor(submission.businessType, submission._id, submission.businessName));
+        expect(fetchMutation).not.toHaveBeenCalled();
+        expect(fetchAction).not.toHaveBeenCalled();
+        expect(network).not.toHaveBeenCalled();
+        expectAllConvexCallsAuthenticated();
+    });
 });
 
 it('publishes for an authenticated admin and forwards the token to status writes', async () => {

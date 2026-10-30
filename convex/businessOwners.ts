@@ -159,11 +159,19 @@ export const issueClaimTokenForEmail = mutation({
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
             .first();
         if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
-        return await mintClaimToken(ctx, args.submissionId);
+        // RETIRED 2026-10-21 (owner app v2). Nothing reads claim links any more
+        // (/my-business/claim redirects, the email template ignores the URL),
+        // and owners now sign in with the email the site was sold to
+        // (owners.ensure links it). No token is minted; the empty string keeps
+        // /api/send-website-email's call harmless. Tables stay.
+        void args;
+        return { token: '' };
     },
 });
 
 /** Shared token-minting logic (used by the internal + admin entry points). */
+// Retired 2026-10-21: kept for rollback, no caller mints claim tokens any more.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function mintClaimToken(ctx: MutationCtx, submissionId: Id<'submissions'>): Promise<{ token: string }> {
     const submission = await ctx.db.get(submissionId);
     if (!submission?.ownerEmail) throw new Error('Submission has no owner email');
@@ -195,7 +203,8 @@ async function mintClaimToken(ctx: MutationCtx, submissionId: Id<'submissions'>)
  */
 export const issueClaimToken = internalMutation({
     args: { submissionId: v.id('submissions') },
-    handler: async (ctx, args) => mintClaimToken(ctx, args.submissionId),
+    // Retired with issueClaimTokenForEmail above: mints nothing.
+    handler: async (): Promise<{ token: string }> => ({ token: '' }),
 });
 
 /**

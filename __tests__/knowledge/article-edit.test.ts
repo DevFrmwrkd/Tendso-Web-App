@@ -85,6 +85,25 @@ async function seedOtherArticle(
 }
 
 describe('knowledge.upsertArticle editing', () => {
+    it('retains real optional HTTPS photos and legacy caption-only blocks', async () => {
+        const { t, article, edit } = await setup();
+        const body = [
+            { t: 'image', caption: 'The real shop', url: 'https://media.example.com/shop.jpg', alt: 'Shop front' },
+            { t: 'image', caption: 'Legacy caption' },
+        ];
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.knowledge.upsertArticle, { ...edit, body });
+        expect((await t.run(ctx => ctx.db.get(article._id)))?.body).toEqual(body);
+    });
+
+    it.each(['javascript:alert(1)', 'file:///private/photo.jpg', 'data:image/png;base64,abc', 'http://media.example.com/photo.jpg', 'https://user:password@media.example.com/photo.jpg', 'not a URL'])(
+        'rejects an unsafe article photo URL: %s', async (url) => {
+            const { t, edit } = await setup();
+            await expect(t.withIdentity({ subject: ADMIN_ID }).mutation(api.knowledge.upsertArticle, {
+                ...edit, body: [{ t: 'image', caption: 'Photo', url }],
+            })).rejects.toThrow(/valid HTTPS image URL/);
+        },
+    );
+
     it('saves a manually edited summary and category on an existing QA article while preserving other metadata', async () => {
         const { t, article, selectedCategoryId, edit } = await setup();
         const id = await t.withIdentity({ subject: ADMIN_ID }).mutation(api.knowledge.upsertArticle, edit);

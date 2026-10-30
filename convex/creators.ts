@@ -3,6 +3,11 @@ import { query, mutation, internalQuery, internalMutation } from './_generated/s
 import { internal } from './_generated/api';
 import { requireAccountOwner, requireAdmin, requireAuth } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
+import { applyPendingAgentAttribution } from './lib/creatorRecruits';
+import { affiliatePhoneError, affiliatePhotoError } from '../lib/affiliates';
+import { normalizeCreatorCode } from '../lib/creatorCodes';
+import { CAMPAIGN_CODES } from '../lib/pricing';
+import { referralCodeTaken, resolveReferralCode } from './lib/referralCodes';
 
 // ==================== QUERIES ====================
 
@@ -139,10 +144,7 @@ export const deleteAccount = mutation({
 export const getByReferralCode = query({
     args: { referralCode: v.string() },
     handler: async (ctx, args) => {
-        const account = await ctx.db
-            .query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referralCode))
-            .unique();
+        const account = await resolveReferralCode(ctx, args.referralCode);
         if (account?.role === 'affiliate' && (account.isDeleted || account.status !== 'active')) return null;
         return account;
     },
@@ -236,9 +238,14 @@ export const create = mutation({
             }
         }
 
-        const incomingCode = args.referredByCode?.trim().toUpperCase();
-        const referrer = incomingCode ? await ctx.db.query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', incomingCode)).first() : null;
+        // Existing accounts returned above retain idempotent signup retries. New
+        // nonempty agent codes cannot shadow a creator's current or printed old code.
+        const ownCode = normalizeCreatorCode(args.referralCode);
+        if (ownCode && (Object.prototype.hasOwnProperty.call(CAMPAIGN_CODES, ownCode) || await referralCodeTaken(ctx, ownCode))) {
+            throw new Error('That referral code is already taken. Choose another one.');
+        }
+        const incomingCode = args.referredByCode?.trim() ? normalizeCreatorCode(args.referredByCode) : undefined;
+        const referrer = incomingCode ? await resolveReferralCode(ctx, incomingCode) : null;
         if (incomingCode && (!referrer || referrer.isDeleted || referrer.status === 'suspended'
             || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate'))) {
@@ -274,7 +281,7 @@ export const create = mutation({
             lastName: args.lastName,
             email: args.email || '',
             phone: args.phone,
-            referralCode: args.referralCode || '',
+            referralCode: ownCode,
             referredBy: referrer?._id ?? args.referredBy,
             referredByCode: incomingCode,
             referredByName: referrer ? [referrer.firstName, referrer.lastName].filter(Boolean).join(' ') : undefined,
@@ -284,6 +291,7 @@ export const create = mutation({
             submissionCount: 0,
             status: 'active',
             role: 'creator',
+            fieldAgentOnboardingRequired: true,
             createdAt: Date.now(),
         });
 
@@ -294,6 +302,9 @@ export const create = mutation({
                 referredId: creatorId,
                 referralCode: incomingCode,
             });
+        } else if (!args.referredBy) {
+            // "Did <creator> send you?" answered before this account existed.
+            await applyPendingAgentAttribution(ctx, creatorId);
         }
 
         return creatorId;
@@ -472,10 +483,8 @@ export const applyReferralCode = mutation({
         }
 
         // Find the referrer by code
-        const referrer = await ctx.db
-            .query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referredByCode))
-            .first();
+        const code = normalizeCreatorCode(args.referredByCode);
+        const referrer = await resolveReferralCode(ctx, code);
         if (!referrer) {
             throw new Error('Invalid referral code');
         }
@@ -490,7 +499,7 @@ export const applyReferralCode = mutation({
 
         // Save the referral code and referrer info on the creator
         await ctx.db.patch(args.id, {
-            referredByCode: args.referredByCode,
+            referredByCode: code,
             referredBy: referrer._id,
             referredByName: [referrer.firstName, referrer.lastName].filter(Boolean).join(' '),
         });
@@ -499,7 +508,7 @@ export const applyReferralCode = mutation({
         await ctx.scheduler.runAfter(0, internal.referrals.createFromSignup, {
             referrerId: referrer._id,
             referredId: args.id,
-            referralCode: args.referredByCode,
+            referralCode: code,
         });
     },
 });
@@ -562,7 +571,8 @@ export const markQuizPassed = mutation({
 /**
  * Admin-only: approve a creator that has passed the quiz.
  * Sets certifiedAt and schedules a "certification" notification.
- * Idempotent: returns silently if the creator is already certified.
+ * Idempotent: an already-certified creator only has stale rejection metadata
+ * cleared; their certification timestamp and notification remain unchanged.
  */
 export const approveCreator = mutation({
     args: { id: v.id('creators') },
@@ -572,10 +582,22 @@ export const approveCreator = mutation({
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
         if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be approved');
-        if (creator.certifiedAt) return;
+        if (creator.certifiedAt) {
+            if (creator.rejectedAt !== undefined || creator.rejectionReason !== undefined || creator.rejectedBy !== undefined) {
+                await ctx.db.patch(args.id, {
+                    rejectedAt: undefined,
+                    rejectionReason: undefined,
+                    rejectedBy: undefined,
+                });
+            }
+            return;
+        }
 
         await ctx.db.patch(args.id, {
             certifiedAt: Date.now(),
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+            rejectedBy: undefined,
             lastActiveAt: Date.now(),
         });
         await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
@@ -627,9 +649,9 @@ export const listPendingApproval = query({
 //
 // Counterpart to approveCreator. Admin can choose Reject (with optional reason)
 // when reviewing a pending creator. Mobile detects rejectedAt and routes the
-// creator to /verification-rejected, where they can either request a retry
-// (clears rejectedAt + quizPassedAt → bounces back to /training) or contact
-// support.
+// creator to /verification-rejected, where they can correct their profile and
+// resubmit without losing their quiz pass, or contact support. The legacy
+// requestRecertification endpoint still supports older clients' explicit retake.
 //
 // Invariant: certifiedAt and rejectedAt are mutually exclusive. The rejection
 // mutation throws if the creator is already certified — explicit "unapprove"
@@ -676,7 +698,7 @@ export const rejectCreator = mutation({
             title: 'Verification update',
             body: trimmed && trimmed.length > 0
                 ? `Your application wasn't approved this time. Reason: ${trimmed}`
-                : "Your application wasn't approved this time. You can retake the quiz or contact support.",
+                : "Your application wasn't approved this time. Update your profile and resend it for review, or contact support.",
             data: { rejectedByAdmin: true },
         });
     },
@@ -692,15 +714,26 @@ export const rejectCreator = mutation({
  * can report the result back in Discord.
  */
 export const approveCreatorInternal = internalMutation({
-    args: { id: v.id('creators'), approvedBy: v.optional(v.string()) },
+    args: { id: v.id('creators'), approvedBy: v.optional(v.string()), expectedReviewSubmittedAt: v.optional(v.number()) },
     handler: async (
         ctx,
         args,
-    ): Promise<{ outcome: 'approved' | 'already_approved' | 'already_rejected' | 'not_found'; name: string }> => {
+    ): Promise<{ outcome: 'approved' | 'already_approved' | 'already_rejected' | 'not_found' | 'stale_request'; name: string }> => {
         const creator = await ctx.db.get(args.id);
         if (!creator) return { outcome: 'not_found', name: '' };
         if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be approved');
         const name = [creator.firstName, creator.lastName].filter(Boolean).join(' ') || creator.email || 'creator';
+        // Recheck in the decision transaction: a profile can be corrected while
+        // the Discord action is fetching reactions on the previous request.
+        // An old action already running during deploy can omit the token. It
+        // may resolve legacy first reviews, but never a corrected profile.
+        if (creator.reviewSubmittedAt !== undefined && args.expectedReviewSubmittedAt === undefined) {
+            return { outcome: 'stale_request', name };
+        }
+        if (args.expectedReviewSubmittedAt !== undefined && (
+            !creator.quizPassedAt || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended'
+            || (creator.reviewSubmittedAt ?? creator.quizPassedAt) !== args.expectedReviewSubmittedAt
+        )) return { outcome: 'stale_request', name };
         if (creator.certifiedAt) return { outcome: 'already_approved', name };
         if (creator.rejectedAt) return { outcome: 'already_rejected', name };
 
@@ -722,15 +755,22 @@ export const approveCreatorInternal = internalMutation({
  * Discord reaction poller. Idempotent; refuses if already certified (mutex).
  */
 export const rejectCreatorInternal = internalMutation({
-    args: { id: v.id('creators'), reason: v.optional(v.string()), rejectedBy: v.optional(v.string()) },
+    args: { id: v.id('creators'), reason: v.optional(v.string()), rejectedBy: v.optional(v.string()), expectedReviewSubmittedAt: v.optional(v.number()) },
     handler: async (
         ctx,
         args,
-    ): Promise<{ outcome: 'rejected' | 'already_rejected' | 'already_approved' | 'not_found'; name: string }> => {
+    ): Promise<{ outcome: 'rejected' | 'already_rejected' | 'already_approved' | 'not_found' | 'stale_request'; name: string }> => {
         const creator = await ctx.db.get(args.id);
         if (!creator) return { outcome: 'not_found', name: '' };
         if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be rejected for certification');
         const name = [creator.firstName, creator.lastName].filter(Boolean).join(' ') || creator.email || 'creator';
+        if (creator.reviewSubmittedAt !== undefined && args.expectedReviewSubmittedAt === undefined) {
+            return { outcome: 'stale_request', name };
+        }
+        if (args.expectedReviewSubmittedAt !== undefined && (
+            !creator.quizPassedAt || creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended'
+            || (creator.reviewSubmittedAt ?? creator.quizPassedAt) !== args.expectedReviewSubmittedAt
+        )) return { outcome: 'stale_request', name };
         if (creator.rejectedAt) return { outcome: 'already_rejected', name };
         if (creator.certifiedAt) return { outcome: 'already_approved', name };
 
@@ -748,10 +788,74 @@ export const rejectCreatorInternal = internalMutation({
             body:
                 trimmed && trimmed.length > 0
                     ? `Your application wasn't approved this time. Reason: ${trimmed}`
-                    : "Your application wasn't approved this time. You can retake the quiz or contact support.",
+                    : "Your application wasn't approved this time. Update your profile and resend it for review, or contact support.",
             data: { rejectedByAdmin: true, rejectedVia: 'discord' },
         });
         return { outcome: 'rejected', name };
+    },
+});
+
+/** Correct a rejected profile and atomically request another review.
+ * A profile correction never changes the original quiz pass or certifies an
+ * account. Repeated pending retries are no-ops, including their profile edits.
+ */
+export const resubmitProfileForReview = mutation({
+    args: {
+        id: v.id('creators'),
+        firstName: v.string(),
+        lastName: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        profileImage: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
+        const creator = await ctx.db.get(args.id);
+        if (!creator || creator.clerkId !== identity.subject) {
+            throw new Error('Forbidden: you can only update your own account');
+        }
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can resubmit a profile for review');
+        if (creator.isDeleted || creator.status === 'deleted' || creator.status === 'suspended') {
+            throw new Error('Your account is not active');
+        }
+        if (creator.certifiedAt) throw new Error('Already certified');
+        if (!creator.quizPassedAt) throw new Error('Pass the certification quiz before submitting for review');
+        if (!creator.rejectedAt) {
+            // A successful request may be retried after a lost response. Keep
+            // that review and its exact submitted profile unchanged.
+            if (creator.reviewSubmittedAt !== undefined) return;
+            throw new Error('Only rejected creators can resubmit a profile for review');
+        }
+
+        const firstName = args.firstName.trim();
+        const lastName = args.lastName?.trim() || undefined;
+        if (!firstName || firstName.length > 100 || (lastName && lastName.length > 100)) {
+            throw new Error('Enter your name (up to 100 characters).');
+        }
+        const phone = args.phone?.trim() || undefined;
+        if (phone) {
+            const error = affiliatePhoneError(phone);
+            if (error) throw new Error(error);
+        }
+        const profileImage = args.profileImage?.trim() || undefined;
+        if (profileImage) {
+            const error = affiliatePhotoError(profileImage);
+            if (error) throw new Error(error);
+        }
+        const now = Date.now();
+        const reviewSubmittedAt = Math.max(now, (creator.reviewSubmittedAt ?? creator.quizPassedAt) + 1);
+        await ctx.db.patch(args.id, {
+            firstName,
+            ...(args.lastName !== undefined ? { lastName } : {}),
+            ...(args.phone !== undefined ? { phone } : {}),
+            ...(args.profileImage !== undefined ? { profileImage } : {}),
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+            rejectedBy: undefined,
+            reviewSubmittedAt,
+            updatedAt: now,
+            lastActiveAt: now,
+        });
+        await ctx.scheduler.runAfter(0, internal.approvals.createAndPost, { creatorId: args.id });
     },
 });
 
@@ -782,6 +886,7 @@ export const requestRecertification = mutation({
             rejectionReason: undefined,
             rejectedBy: undefined,
             quizPassedAt: undefined,
+            reviewSubmittedAt: undefined,
             lastActiveAt: Date.now(),
         });
     },

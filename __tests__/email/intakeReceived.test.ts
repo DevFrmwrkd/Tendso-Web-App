@@ -29,7 +29,7 @@ describe('owner-intake acknowledgement email', () => {
         expect(text).toContain('Tendso web address');
         expect(text).toContain('Custom domains are not included.');
         expect(text).toContain('If eligible, your website is free — nothing to pay.');
-        expect(text).not.toMatch(/payment instructions|payable|GCash|Maya|only pay after|started building your website|Your Website Will Be Ready In/);
+        expect(text).not.toMatch(/payment instructions|payable|GCash|Maya|only pay after|started building your website|Your Website Will Be Ready/);
         expect(text).not.toContain('₱0');
     });
 

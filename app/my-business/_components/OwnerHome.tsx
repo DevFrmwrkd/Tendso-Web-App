@@ -144,10 +144,10 @@ function StateBand({ status, live }: { status: string; live: boolean }) {
             <div className="flex flex-col gap-1 border-b border-r1-gold-line bg-r1-gold-bg px-5 py-4 sm:px-6 sm:py-5">
                 <p className="flex gap-2.5 text-base font-medium leading-6 text-r1-ink">
                     <Dot tone="attn" className="mt-2" />
-                    <span>{live ? "Live · payment due — you pay only because it's live" : "Payment due"}</span>
+                    <span>{live ? "Live · payment due — pay once to keep it live" : "Payment due"}</span>
                 </p>
                 <p className="t-meta pl-[18px]">
-                    One payment, by bank transfer, using the link Tendso emails you.{live && " Nothing was charged before your site went live."}
+                    One payment, by bank transfer, using the link Tendso emails you.{live && " Nothing was charged before you saw your site."}
                 </p>
             </div>
         );
@@ -159,7 +159,7 @@ function StateBand({ status, live }: { status: string; live: boolean }) {
                     <Dot tone="done" className="mt-2" />
                     <span>{live ? "Live · paid" : "Paid"}</span>
                 </p>
-                <p className="t-meta pl-[18px]">Nothing more to pay.{live && " You paid once, after your site went live."}</p>
+                <p className="t-meta pl-[18px]">Nothing more to pay.{live && " You paid once."}</p>
             </div>
         );
     }

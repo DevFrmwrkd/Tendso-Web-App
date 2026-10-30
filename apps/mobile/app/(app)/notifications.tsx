@@ -1,89 +1,67 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
-  ActivityIndicator,
   Modal,
   Alert,
   Platform,
   PermissionsAndroid,
+  StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUser } from '@clerk/clerk-expo';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '@tendso/convex-client';
-import { useFocusEffect } from 'expo-router';
+import { api, type Doc } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
+import { useNetwork } from '../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
-import type { Id } from '@tendso/convex-client';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import CertificateCard from '../../components/CertificateCard';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Loading,
+  ScreenShell,
+  SectionLabel,
+  Text,
+  TextLink,
+} from '../../components/v2';
+import { NotificationIcon, timeAgo } from '../../components/v2/NotificationIcon';
+import { colors, hit, radius, shadow, space } from '../../theme/v2';
+import { notificationRouteId } from '../../services/notificationOpening';
 
-type NotificationType =
-  | 'submission_approved'
-  | 'submission_rejected'
-  | 'new_lead'
-  | 'payout_sent'
-  | 'website_live'
-  | 'submission_created'
-  | 'profile_updated'
-  | 'password_changed'
-  | 'certification'
-  | 'system';
+const DAY = 86_400_000;
 
-function getNotificationIcon(type: NotificationType): { name: string; color: string; bg: string } {
-  switch (type) {
-    case 'submission_approved':
-      return { name: 'checkmark-circle', color: '#E4B05E', bg: 'bg-emerald-100' };
-    case 'submission_rejected':
-      return { name: 'close-circle', color: '#ef4444', bg: 'bg-red-100' };
-    case 'new_lead':
-      return { name: 'person-add', color: '#3b82f6', bg: 'bg-blue-100' };
-    case 'payout_sent':
-      return { name: 'cash', color: '#E4B05E', bg: 'bg-emerald-100' };
-    case 'website_live':
-      return { name: 'globe', color: '#8b5cf6', bg: 'bg-purple-100' };
-    case 'submission_created':
-      return { name: 'add-circle', color: '#6366f1', bg: 'bg-indigo-100' };
-    case 'profile_updated':
-      return { name: 'person-circle', color: '#f59e0b', bg: 'bg-amber-100' };
-    case 'password_changed':
-      return { name: 'lock-closed', color: '#71717a', bg: 'bg-zinc-100' };
-    case 'certification':
-      return { name: 'ribbon', color: '#E4B05E', bg: 'bg-emerald-100' };
-    case 'system':
-    default:
-      return { name: 'information-circle', color: '#71717a', bg: 'bg-zinc-100' };
-  }
-}
-
-function timeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return 'Just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
+/** Today = last 24 hours, This week = last 7 days, everything else = Earlier. */
+function groupOf(sentAt: number): 'Today' | 'This week' | 'Earlier' {
+  const age = Date.now() - sentAt;
+  if (age < DAY) return 'Today';
+  if (age < 7 * DAY) return 'This week';
+  return 'Earlier';
 }
 
 export default function NotificationsScreen() {
-  const router = useGuardedRouter();
-  const insets = useSafeAreaInsets();
   const { user } = useUser();
+  if (!user) return <Loading />;
+  return <NotificationInbox key={user.id} clerkId={user.id} />;
+}
+
+function NotificationInbox({ clerkId }: { clerkId: string }) {
+  const params = useLocalSearchParams<{ notificationId?: string | string[]; notificationOpenKey?: string | string[] }>();
+  const router = useGuardedRouter();
+  const { isConnected } = useNetwork();
+  const [selectedNotification, setSelectedNotification] = useState<Doc<'notifications'> | null>(null);
   const [showCertModal, setShowCertModal] = useState(false);
   const certModalRef = useRef<View>(null);
+  const openedTarget = useRef<string | null>(null);
 
   const creator = useQuery(
     api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip'
+    { clerkId }
   );
 
   const notifications = useQuery(
@@ -93,17 +71,12 @@ export default function NotificationsScreen() {
 
   const markAsRead = useMutation(api.notifications.markAsRead);
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
+  const selected = selectedNotification?.creatorId === creator?._id ? selectedNotification : null;
+  const details = useQuery(api.notifications.getDetails, selected ? { id: selected._id } : 'skip');
+  const message = details?._id === selected?._id && details?.creatorId === creator?._id ? details : selected;
+  const waitingForAnnouncement = !!selected?.data?.announcementId && details === undefined;
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
-
-  // Auto-clear the bell badge whenever this screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (creator?._id) {
-        markAllAsRead({ creatorId: creator._id });
-      }
-    }, [creator?._id])
-  );
 
   const handleShareCert = useCallback(async () => {
     try {
@@ -148,237 +121,227 @@ export default function NotificationsScreen() {
     }
   }, []);
 
-  const handleNotificationPress = async (notification: any) => {
-    // Mark as read
+  const handleNotificationPress = useCallback((notification: Doc<'notifications'>) => {
+    if (!creator?._id || notification.creatorId !== creator._id) return;
+    // Reading never waits for a network write or requires a deep-link payload.
+    setShowCertModal(false);
+    setSelectedNotification(notification);
     if (!notification.read) {
-      await markAsRead({ id: notification._id });
+      void markAsRead({ id: notification._id }).catch(() => {});
     }
+  }, [creator?._id, markAsRead]);
 
-    // Deep link based on notification type
-    if (notification.data?.showCertificate) {
-      setShowCertModal(true);
-    } else if (notification.data?.submissionId) {
-      router.push(`/(app)/submissions/${notification.data.submissionId}` as any);
-    } else if (notification.data?.articleSlug) {
-      // "Your question was answered" — the escalation loop captures the answer as
-      // a KB article and puts its slug here. Open the article. (No-ops safely
-      // until the backend that sets articleSlug is deployed.)
-      router.push(`/(app)/(tabs)/knowledge/article/${notification.data.articleSlug}` as any);
-    }
-  };
+  const requestedId = notificationRouteId(params.notificationId);
+  const openKey = typeof params.notificationOpenKey === 'string' && params.notificationOpenKey.length <= 1024
+    ? params.notificationOpenKey : '';
+  useEffect(() => {
+    if (!creator?._id || !notifications || !requestedId) return;
+    const targetKey = JSON.stringify([creator._id, requestedId, openKey]);
+    if (openedTarget.current === targetKey) return;
+    // Deep links and push taps can select only a row already in this recipient's inbox.
+    const notification = notifications.find(row => row._id === requestedId && row.creatorId === creator._id);
+    if (!notification) return;
+    openedTarget.current = targetKey;
+    handleNotificationPress(notification);
+  }, [creator?._id, notifications, requestedId, openKey, handleNotificationPress]);
+
+  const closeDetails = () => { setSelectedNotification(null); setShowCertModal(false); };
 
   const handleMarkAllRead = async () => {
     if (creator?._id && unreadCount > 0) {
-      await markAllAsRead({ creatorId: creator._id });
+      try { await markAllAsRead({ creatorId: creator._id }); }
+      catch { Alert.alert('Could not mark notifications read', 'You can still open and read each message. Try again when you are connected.'); }
     }
   };
 
   if (!creator || notifications === undefined) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#E4B05E" />
-      </View>
-    );
+    return <Loading />;
   }
 
+  const groups = (['Today', 'This week', 'Earlier'] as const)
+    .map((title) => ({
+      title,
+      items: notifications.filter((n) => groupOf(n.sentAt) === title),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const certName = `${creator.firstName || ''} ${creator.lastName || ''}`.trim().toUpperCase();
+  const certDate = creator.certifiedAt ? new Date(creator.certifiedAt) : new Date();
+  const isFieldAgent = (!creator.role || creator.role === 'creator') && !!creator.certifiedAt && !creator.rejectedAt;
+  const canOpenCertificate = isFieldAgent && message?.data?.showCertificate === true;
+  const articleSlug = isFieldAgent && typeof message?.data?.articleSlug === 'string' && message.data.articleSlug.trim()
+    ? message.data.articleSlug.trim() : null;
+  const openArticle = () => {
+    if (!articleSlug) return;
+    setSelectedNotification(null);
+    router.push({ pathname: '/(app)/(tabs)/knowledge/article/[slug]', params: { slug: articleSlug } } as never);
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-4 py-4 flex-row items-center justify-between border-b border-zinc-100">
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-10 h-10 items-center justify-center rounded-full bg-zinc-50"
-            accessibilityLabel="Go back"
-            accessibilityRole="button"
-          >
-            <Ionicons name="arrow-back" size={20} color="#18181b" />
-          </TouchableOpacity>
-          <Text className="text-xl font-bold text-zinc-900 ml-4">Notifications</Text>
+    <ScreenShell
+      title="Notifications"
+      onBack={() => router.back()}
+      headerRight={
+        unreadCount > 0 ? <TextLink label="Mark all read" onPress={handleMarkAllRead} /> : undefined
+      }
+    >
+      {notifications.length > 0 ? (
+        <View style={styles.list}>
+          {groups.map((group) => (
+            <View key={group.title} style={styles.group}>
+              <SectionLabel>{group.title}</SectionLabel>
+              {group.items.map((notification) => {
+                const unread = !notification.read;
+                return (
+                  <Pressable
+                    key={notification._id}
+                    onPress={() => handleNotificationPress(notification)}
+                    accessibilityLabel={`${notification.title}: ${notification.body}`}
+                    accessibilityHint="Opens the full notification"
+                    accessibilityRole="button"
+                    style={[styles.row, unread ? styles.rowUnread : styles.rowOld, unread ? shadow.soft : null]}
+                  >
+                    <NotificationIcon type={notification.type} />
+                    <View style={styles.rowText}>
+                      <View style={styles.rowHead}>
+                        <Text variant="body" weight="bold" numberOfLines={1} style={styles.rowTitle}>
+                          {notification.title}
+                        </Text>
+                        {unread ? <View style={styles.dot} accessibilityLabel="Unread" /> : null}
+                      </View>
+                      <Text variant="label" weight="medium" tone="ink2" numberOfLines={2}>
+                        {notification.body}
+                      </Text>
+                      <Text variant="label" tone="muted">
+                        {timeAgo(notification.sentAt)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.ink3Text} style={styles.chevron} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
         </View>
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={handleMarkAllRead} accessibilityLabel="Mark all as read" accessibilityRole="button">
-            <Text className="text-sm font-semibold text-emerald-600">Mark all read</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      ) : (
+        <EmptyState
+          icon="notifications-off-outline"
+          title="No notifications yet"
+          body="Updates about your sites show up here."
+        />
+      )}
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {notifications && notifications.length > 0 ? (
-          notifications.map((notification) => {
-            const icon = getNotificationIcon(notification.type as NotificationType);
-            return (
-              <TouchableOpacity
-                key={notification._id}
-                className={`px-4 py-4 flex-row border-b border-zinc-50 ${
-                  !notification.read ? 'bg-emerald-50/30' : ''
-                }`}
-                onPress={() => handleNotificationPress(notification)}
-                accessibilityLabel={`${notification.title}: ${notification.body}`}
-                accessibilityRole="button"
-              >
-                <View className={`w-10 h-10 rounded-full items-center justify-center ${icon.bg}`}>
-                  <Ionicons name={icon.name as any} size={20} color={icon.color} />
-                </View>
-                <View className="ml-3 flex-1">
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      className={`text-sm font-bold ${
-                        !notification.read ? 'text-zinc-900' : 'text-zinc-700'
-                      }`}
-                      numberOfLines={1}
-                    >
-                      {notification.title}
-                    </Text>
-                    {!notification.read && (
-                      <View className="w-2 h-2 rounded-full bg-emerald-500 ml-2" />
-                    )}
-                  </View>
-                  <Text className="text-sm text-zinc-500 mt-0.5" numberOfLines={2}>
-                    {notification.body}
-                  </Text>
-                  <Text className="text-xs text-zinc-400 mt-1">
-                    {timeAgo(notification.sentAt)}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })
-        ) : (
-          <View className="flex-1 items-center justify-center py-20">
-            <Ionicons name="notifications-off-outline" size={48} color="#a1a1aa" />
-            <Text className="text-zinc-500 text-base mt-4">No notifications yet</Text>
-            <Text className="text-zinc-400 text-sm mt-1">
-              You'll be notified about submission updates and more.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Certificate Modal */}
+      {/* One native modal keeps the detail-to-certificate transition reliable on iOS. */}
       <Modal
-        visible={showCertModal}
+        visible={!!selected || showCertModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowCertModal(false)}
+        onRequestClose={closeDetails}
       >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-        }}>
-          <View style={{
-            backgroundColor: '#fff',
-            borderRadius: 24,
-            width: '100%',
-            maxHeight: '85%',
-            overflow: 'hidden',
-          }}>
-            {/* Modal header */}
-            <View style={{
-              flexDirection: 'row', alignItems: 'center',
-              paddingHorizontal: 16, paddingVertical: 14,
-              borderBottomWidth: 1, borderBottomColor: '#f4f4f5',
-            }}>
-              <TouchableOpacity
-                onPress={() => setShowCertModal(false)}
-                style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: '#f4f4f5',
-                  alignItems: 'center', justifyContent: 'center',
-                }}
-                accessibilityLabel="Close certificate"
+        <View style={styles.scrim} accessibilityViewIsModal onAccessibilityEscape={closeDetails}>
+          <Card variant="lg" style={styles.sheet}>
+            <View style={styles.sheetHead}>
+              <Pressable
+                onPress={closeDetails}
+                style={styles.roundBtn}
+                accessibilityLabel={showCertModal ? 'Close certificate' : 'Close notification'}
                 accessibilityRole="button"
               >
-                <Ionicons name="close" size={18} color="#18181b" />
-              </TouchableOpacity>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#18181b', flex: 1, textAlign: 'center' }}>
-                My Certificate
+                <Ionicons name="close" size={22} color={colors.ink} />
+              </Pressable>
+              <Text variant="heading" align="center" style={styles.sheetTitle}>
+                {showCertModal ? 'My certificate' : 'Notification'}
               </Text>
-              <TouchableOpacity
+              {showCertModal ? <Pressable
                 onPress={handleShareCert}
-                style={{
-                  width: 32, height: 32, borderRadius: 16,
-                  backgroundColor: '#f4f4f5',
-                  alignItems: 'center', justifyContent: 'center',
-                }}
+                style={styles.roundBtn}
                 accessibilityLabel="Share certificate"
                 accessibilityRole="button"
               >
-                <Ionicons name="share-outline" size={16} color="#18181b" />
-              </TouchableOpacity>
+                <Ionicons name="share-outline" size={22} color={colors.ink} />
+              </Pressable> : <View style={styles.roundSpacer} />}
             </View>
 
-            {/* Certificate */}
-            <ScrollView
-              contentContainerStyle={{ padding: 20, alignItems: 'center' }}
-              showsVerticalScrollIndicator={false}
-            >
+            {showCertModal ? <>
+            <ScrollView contentContainerStyle={styles.certBody} showsVerticalScrollIndicator={false}>
               <CertificateCard
                 ref={certModalRef}
-                creatorName={
-                  creator
-                    ? `${((creator as any).firstName || '').toUpperCase()} ${((creator as any).lastName || '').toUpperCase()}`.trim()
-                    : ''
-                }
-                certMonth={
-                  (creator as any)?.certifiedAt
-                    ? new Date((creator as any).certifiedAt).toLocaleString('en-US', { month: 'long' })
-                    : new Date().toLocaleString('en-US', { month: 'long' })
-                }
-                certYear={
-                  (creator as any)?.certifiedAt
-                    ? new Date((creator as any).certifiedAt).getFullYear()
-                    : new Date().getFullYear()
-                }
+                creatorName={certName}
+                certMonth={certDate.toLocaleString('en-US', { month: 'long' })}
+                certYear={certDate.getFullYear()}
               />
             </ScrollView>
 
-            {/* Action buttons */}
-            <View style={{
-              paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20,
-              borderTopWidth: 1, borderTopColor: '#f4f4f5',
-            }}>
-              <TouchableOpacity
+            <View style={styles.sheetFoot}>
+              <Button
+                title="Save to gallery"
+                icon="download-outline"
                 onPress={handleDownloadCert}
-                activeOpacity={0.85}
-                style={{
-                  backgroundColor: '#E4B05E',
-                  height: 50, borderRadius: 14,
-                  flexDirection: 'row',
-                  alignItems: 'center', justifyContent: 'center',
-                  marginBottom: 8,
-                }}
                 accessibilityLabel="Save certificate to gallery"
-                accessibilityRole="button"
-              >
-                <Ionicons name="download-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '800' }}>
-                  Save to Gallery
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              />
+              <Button
+                title="Share certificate"
+                variant="ghost"
+                size="md"
+                icon="share-outline"
                 onPress={handleShareCert}
-                activeOpacity={0.7}
-                style={{
-                  height: 44, borderRadius: 14,
-                  flexDirection: 'row',
-                  alignItems: 'center', justifyContent: 'center',
-                }}
                 accessibilityLabel="Share certificate"
-                accessibilityRole="button"
-              >
-                <Ionicons name="share-outline" size={16} color="#E4B05E" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#E4B05E', fontSize: 14, fontWeight: '700' }}>
-                  Share Certificate
-                </Text>
-              </TouchableOpacity>
+              />
             </View>
-          </View>
+            </> : message ? <>
+              <ScrollView style={styles.detailScroll} contentContainerStyle={styles.detailBody} showsVerticalScrollIndicator>
+                <View style={styles.detailMeta}>
+                  <NotificationIcon type={message.type} />
+                  <Text variant="label" tone="muted" style={styles.rowText}>
+                    {new Date(message.sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </Text>
+                </View>
+                <Text variant="heading" accessibilityRole="header" selectable>{message.title}</Text>
+                <Text variant="bodyLg" selectable testID="notification-full-body">{message.body}</Text>
+                {waitingForAnnouncement ? <Text tone="muted">{isConnected === false
+                  ? 'Connect to read the full announcement.' : 'Loading the full message…'}</Text> : null}
+              </ScrollView>
+              <View style={styles.sheetFoot}>
+                {canOpenCertificate ? <Button title="View certificate" icon="ribbon-outline"
+                  onPress={() => { setSelectedNotification(null); setShowCertModal(true); }} />
+                  : articleSlug ? <Button title="Read article" icon="book-outline" onPress={openArticle} /> : null}
+                <Button title="Close" variant={canOpenCertificate || articleSlug ? 'ghost' : 'primary'} onPress={closeDetails} />
+              </View>
+            </> : null}
+          </Card>
         </View>
       </Modal>
-    </SafeAreaView>
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  list: { gap: space.lg },
+  group: { gap: space.sm },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, borderRadius: radius.card, padding: space.md },
+  rowUnread: { backgroundColor: colors.card },
+  rowOld: { backgroundColor: 'transparent' },
+  rowText: { flex: 1, gap: 2 },
+  rowHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  rowTitle: { flex: 1 },
+  chevron: { alignSelf: 'center' },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.ink },
+  scrim: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'center', paddingHorizontal: space.lg },
+  sheet: { maxHeight: '88%', padding: 0, overflow: 'hidden' },
+  sheetHead: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg },
+  sheetTitle: { flex: 1 },
+  roundSpacer: { width: hit.icon },
+  detailScroll: { flexShrink: 1 },
+  detailBody: { paddingHorizontal: space.lg, paddingBottom: space.lg, gap: space.lg },
+  detailMeta: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  roundBtn: {
+    width: hit.icon,
+    height: hit.icon,
+    borderRadius: 999,
+    backgroundColor: colors.bg2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  certBody: { padding: space.lg, alignItems: 'center' },
+  sheetFoot: { padding: space.lg, gap: space.sm },
+});

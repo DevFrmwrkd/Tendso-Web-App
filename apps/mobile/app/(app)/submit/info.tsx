@@ -1,80 +1,89 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  ActivityIndicator,
+  StyleSheet,
   Alert,
+  Keyboard,
+  type TextInput,
 } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
-import { mapCategoryToBusinessType, toLocalPhDigits } from '../../../services/prospectPrefill';
+import { BUSINESS_TYPES, looksLikeConvexId, mapCategoryToBusinessType, toLocalPhDigits } from '../../../services/prospectPrefill';
 import { removeSubmission } from '../../../services/submissionsExtra';
 import { api } from '@tendso/convex-client';
 import type { Id } from '@tendso/convex-client';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNetwork } from '../../../providers/NetworkProvider';
+import { useLocalSearchParams } from 'expo-router';
 import { OfflineBanner } from '../../../components/OfflineBanner';
 import { useFormDraftCache } from '../../../hooks/useFormDraftCache';
-import { Display, Body, Label, Door, Card, Rule } from '../../../components/ui/primitives';
-import { colors, fonts, radius, space, shadow } from '../../../theme/tokens';
+import { Banner, Button, ChoiceChip, Field, Loading, ScreenShell, Text } from '../../../components/v2';
+import { space } from '../../../theme/v2';
 import { useGuardedPress } from '../../../hooks/useGuardedPress';
+import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
+import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
+import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
+import { validCapturePrice } from '../../../services/capturePrice';
 
-const BUSINESS_TYPES = [
-  'Barber/Salon',
-  'Auto Shop',
-  'Spa/Massage',
-  'Restaurant',
-  'Clinic',
-  'Law Office',
-  'Craft/Producer',
-  'Other',
-];
+// Keep all existing API values while placing the board's common choices first.
+const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
+  ...BUSINESS_TYPES.filter((type) => !['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage'].includes(type))];
+
+type CaptureParams = {
+  draftId?: string; prospectLeadId?: string; businessName?: string; phone?: string;
+  address?: string; city?: string; category?: string; latitude?: string; longitude?: string;
+};
+type SavedDetails = {
+  businessName: string; businessType: string; ownerName: string; ownerPhone: string;
+  ownerEmail?: string; address: string; city: string; coordinates?: CaptureCoordinates; prospectLeadId?: string;
+};
+type PendingDetails = { creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
+  initialSellPrice?: number; formData: SavedDetails };
 
 export default function SubmitInfoScreen() {
-  const router = useRouter();
+  const capture = useCaptureSession();
+  const prefillParams = useLocalSearchParams<CaptureParams>();
+  return <SubmitInfoForm key={`${capture.actorKey ?? 'loading'}:${JSON.stringify(prefillParams.draftId ?? null)}`}
+    capture={capture} prefillParams={prefillParams} />;
+}
+
+function SubmitInfoForm({ capture, prefillParams }: {
+  capture: ReturnType<typeof useCaptureSession>; prefillParams: CaptureParams;
+}) {
+  const router = useGuardedRouter();
   // Set when arriving from Discover's "Start with these details". prospectLeadId
   // is present only for legacy-leads rows — see startInterview in discover.tsx.
-  const prefillParams = useLocalSearchParams<{
-    prospectLeadId?: string;
-    businessName?: string;
-    phone?: string;
-    address?: string;
-    city?: string;
-    category?: string;
-  }>();
-  const { user, isLoaded, isSignedIn } = useUser();
-
+  const explicitDraft = prefillParams.draftId != null;
+  const requestedDraftId = typeof prefillParams.draftId === 'string'
+    && (prefillParams.draftId === 'offline_pending' || looksLikeConvexId(prefillParams.draftId))
+    ? prefillParams.draftId : null;
   const goBack = useGuardedPress(() => router.back());
 
   const creator = useQuery(
     api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip'
+    capture.canQuery && capture.actor ? { clerkId: capture.actor.clerkId } : 'skip'
   );
 
-  const existingDraft = useQuery(
+  const newestDraft = useQuery(
     api.submissions.getDraftByCreatorId,
-    creator?._id ? { creatorId: creator._id } : 'skip'
+    !explicitDraft && capture.canQuery && capture.actor ? { creatorId: capture.actor.creatorId } : 'skip'
   );
+  const requestedDraft = useQuery(
+    api.submissions.getById,
+    explicitDraft && capture.canQuery && requestedDraftId && requestedDraftId !== 'offline_pending'
+      ? { id: requestedDraftId as Id<'submissions'> } : 'skip'
+  );
+  const existingDraft = explicitDraft ? requestedDraft : newestDraft;
 
-  const insets = useSafeAreaInsets();
   const createSubmission = useMutation(api.submissions.create);
   const updateSubmission = useMutation(api.submissions.update);
   const discardDraft = useMutation(removeSubmission);
 
-  const { isConnected } = useNetwork();
-  const { saveDraft, loadDraft, clearDraft } = useFormDraftCache();
+  const { saveDraft, loadDraft, clearDraft } = useFormDraftCache(capture.actor);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showTypePicker, setShowTypePicker] = useState(false);
 
   // Form state
   const [businessName, setBusinessName] = useState('');
@@ -82,9 +91,21 @@ export default function SubmitInfoScreen() {
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const emailInput = useRef<TextInput | null>(null);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [coordinates, setCoordinates] = useState<CaptureCoordinates | undefined>();
+  const [choosingLocation, setChoosingLocation] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [unavailableDraft, setUnavailableDraft] = useState(false);
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const mounted = useRef(true);
+  const initializing = useRef(false);
+  const saving = useRef(false);
+  const initialSellPrice = useRef<number | null>(null);
+  const isCurrent = () => mounted.current && capture.isCurrent();
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   // Carried through to submissions.create/update so the backend attaches this
   // interview to the scraped lead instead of inserting a duplicate.
   const [prospectLeadId, setProspectLeadId] = useState<string | undefined>(
@@ -107,121 +128,162 @@ export default function SubmitInfoScreen() {
     setOwnerPhone(toLocalPhDigits(prefillParams.phone));
     setAddress(prefillParams.address ?? '');
     setCity(prefillParams.city ?? '');
+    const point = prefillParams.latitude?.trim() && prefillParams.longitude?.trim()
+      ? { lat: Number(prefillParams.latitude), lng: Number(prefillParams.longitude) } : undefined;
+    setCoordinates(validCaptureCoordinates(point) ? point : undefined);
     // '' when Outscraper's free-text category matches nothing — the required
     // check then makes the creator pick, rather than storing a confident guess.
     setBusinessType(mapCategoryToBusinessType(prefillParams.category));
     // Owner name and email are deliberately NOT prefilled: the scrape knows the
     // business, not the person, and a wrong owner name is worse than a blank one.
-  }, [prefillParams.businessName, prefillParams.phone, prefillParams.address, prefillParams.city, prefillParams.category]);
+  }, [prefillParams.businessName, prefillParams.phone, prefillParams.address, prefillParams.city, prefillParams.category,
+    prefillParams.latitude, prefillParams.longitude]);
 
-  // Load draft data: priority 1 = Convex draft, priority 2 = local cache
+  // A review repair must open that exact capture. Untagged form caches and the
+  // newest server draft may belong to another business, so neither is a fallback.
   useEffect(() => {
-    if (initialized) return;
-
-    // Arrived from Discover with a business in hand.
-    if (hasPrefill) {
-      // No server draft in the way — just fill the form in.
-      if (existingDraft === null) {
-        applyPrefill();
-        setInitialized(true);
-        return;
-      }
-      if (existingDraft) {
-        // Same business as the draft: nothing to reconcile, resume it.
-        const sameBusiness =
-          (existingDraft.businessName ?? '').trim().toLowerCase() ===
-          (prefillParams.businessName ?? '').trim().toLowerCase();
-        if (sameBusiness) {
-          // fall through to the normal draft-loading path below
-        } else {
-          // A different business is already half-entered. Ask rather than
-          // silently overwrite: a draft may already be linked to another
-          // prospect, and update() sets prospectLeadId once and never
-          // re-points it — so reusing it would file THIS interview against
-          // THAT business.
-          if (collisionPrompted.current) return;
-          collisionPrompted.current = true;
-          Alert.alert(
-            'Finish your other interview?',
-            `You have an unfinished interview for ${existingDraft.businessName || 'another business'}. Starting ${prefillParams.businessName || 'this one'} will discard it.`,
-            [
-              {
-                text: `Continue ${existingDraft.businessName || 'it'}`,
-                style: 'cancel',
-                onPress: () => {
-                  setBusinessName(existingDraft.businessName || '');
-                  setBusinessType(existingDraft.businessType || '');
-                  setOwnerName(existingDraft.ownerName || '');
-                  setOwnerPhone(existingDraft.ownerPhone || '');
-                  setOwnerEmail(existingDraft.ownerEmail || '');
-                  setAddress(existingDraft.address || '');
-                  setCity(existingDraft.city || '');
-                  AsyncStorage.setItem('current_submission_id', existingDraft._id);
-                  // The prospect link belongs to the business we just declined,
-                  // so drop it — otherwise this draft would submit against it.
-                  setProspectLeadId(undefined);
-                  setInitialized(true);
-                },
-              },
-              {
-                text: 'Start this one',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    await discardDraft({ id: existingDraft._id });
-                    await AsyncStorage.removeItem('current_submission_id');
-                    await clearDraft();
-                  } catch (err) {
-                    // Non-fatal: worst case the old draft lingers and gets
-                    // picked up next time. Don't block the creator, who is
-                    // standing in front of the business.
-                    console.warn('Could not discard previous draft:', err);
-                  }
-                  applyPrefill();
-                  setInitialized(true);
-                },
-              },
-            ],
-          );
+    if (!explicitDraft || initialized || initializing.current || !capture.isReady || !capture.actor || !isCurrent()) return;
+    if (!requestedDraftId) { setUnavailableDraft(true); return; }
+    if (!capture.isOffline && !capture.canQuery) return;
+    if (capture.canQuery && requestedDraftId !== 'offline_pending' && requestedDraft === undefined) return;
+    initializing.current = true;
+    void (async () => {
+      try {
+        if (capture.canQuery && requestedDraftId !== 'offline_pending'
+          && (!requestedDraft || requestedDraft.creatorId !== capture.actor?.creatorId || requestedDraft.status !== 'draft')) {
+          if (isCurrent()) setUnavailableDraft(true);
           return;
         }
-      }
-    }
+        const [pending, snapshot, storedId] = await Promise.all([
+          capture.read<PendingDetails>('submission_pending_sync'),
+          capture.read<SavedDetails & { submissionId: string; creatorId: string }>('submission_snapshot'),
+          capture.read<string>('current_submission_id'),
+        ]);
+        if (!isCurrent()) return;
+        const matchingPending = pending && pending.creatorId === capture.actor?.creatorId && pending.formData
+          && (requestedDraftId === 'offline_pending'
+            ? storedId === 'offline_pending' && (!pending.existingDraftId || pending.existingDraftId === 'offline_pending')
+            : pending.existingDraftId === requestedDraftId) ? pending : null;
+        const matchingSnapshot = snapshot && snapshot.creatorId === capture.actor?.creatorId
+          && snapshot.submissionId === requestedDraftId ? snapshot : null;
+        const data = matchingPending?.formData
+          ?? (capture.canQuery && requestedDraftId !== 'offline_pending' ? requestedDraft : matchingSnapshot);
+        if (!data) { setUnavailableDraft(true); return; }
+        setUnavailableDraft(false);
+        setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
+        setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
+        setOwnerEmail(data.ownerEmail || ''); setAddress(data.address || ''); setCity(data.city || '');
+        setCoordinates(validCaptureCoordinates(data.coordinates) ? data.coordinates : undefined);
+        setProspectLeadId(matchingPending?.prospectLeadId ?? data.prospectLeadId);
+        setSelectedDraftId(requestedDraftId === 'offline_pending' ? null : requestedDraftId);
+        await capture.write('current_submission_id', requestedDraftId);
+        if (isCurrent()) setInitialized(true);
+      } catch {
+        if (isCurrent()) setUnavailableDraft(true);
+      } finally { initializing.current = false; }
+    })();
+  }, [explicitDraft, requestedDraftId, requestedDraft, initialized, capture.actorKey, capture.isReady, capture.canQuery, capture.isOffline]);
 
-    // Priority 1: Existing Convex draft
-    if (existingDraft) {
-      setBusinessName(existingDraft.businessName || '');
-      setBusinessType(existingDraft.businessType || '');
-      setOwnerName(existingDraft.ownerName || '');
-      setOwnerPhone(existingDraft.ownerPhone || '');
-      setOwnerEmail(existingDraft.ownerEmail || '');
-      setAddress(existingDraft.address || '');
-      setCity(existingDraft.city || '');
-      AsyncStorage.setItem('current_submission_id', existingDraft._id);
-      setInitialized(true);
-      return;
-    }
-
-    // Priority 2: Local cache (when query resolved to null — no server draft)
-    if (existingDraft === null) {
-      loadDraft().then((cached) => {
-        if (cached) {
-          setBusinessName(cached.businessName || '');
-          setBusinessType(cached.businessType || '');
-          setOwnerName(cached.ownerName || '');
-          setOwnerPhone(cached.ownerPhone || '');
-          setOwnerEmail(cached.ownerEmail || '');
-          setAddress(cached.address || '');
-          setCity(cached.city || '');
+  // Keep server drafts first, then this account's cached form. A new shop must
+  // never silently reuse a draft whose lead link is set once on the server.
+  useEffect(() => {
+    if (explicitDraft) return;
+    if (initialized || initializing.current || !capture.isReady || !capture.actor || !isCurrent()) return;
+    if (!capture.isOffline && existingDraft === undefined) return;
+    initializing.current = true;
+    void (async () => {
+      try {
+        const localForm = existingDraft ? null : await loadDraft();
+        if (!isCurrent()) return;
+        const pending = capture.isOffline && !existingDraft && !localForm
+          ? await capture.read<{
+            creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
+            formData: { businessName: string; businessType: string; ownerName: string; ownerPhone: string;
+              ownerEmail?: string; address: string; city: string; coordinates?: CaptureCoordinates };
+          }>('submission_pending_sync') : null;
+        if (!isCurrent()) return;
+        const cached = localForm ?? (pending && pending.creatorId === capture.actor?.creatorId && pending.formData
+          ? { ...pending.formData, ownerEmail: pending.formData.ownerEmail ?? '', prospectLeadId: pending.prospectLeadId } : null);
+        if (!isCurrent()) return;
+        const data = existingDraft ?? cached;
+        const cachedId = cached ? pending?.existingDraftId ?? await capture.read<string>('current_submission_id') : null;
+        if (!isCurrent()) return;
+        const draftId = existingDraft?._id ?? (capture.isOffline && cachedId && cachedId !== 'offline_pending' ? cachedId : null);
+        const sameBusiness = hasPrefill && data
+          && (data.businessName || '').trim().toLowerCase() === (prefillParams.businessName || '').trim().toLowerCase();
+        const loadExisting = async () => {
+          if (!isCurrent()) return;
+          if (data) {
+            setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
+            setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
+            setOwnerEmail(data.ownerEmail || ''); setAddress(data.address || ''); setCity(data.city || '');
+            setCoordinates(validCaptureCoordinates(data.coordinates) ? data.coordinates : undefined);
+            setProspectLeadId(data.prospectLeadId ?? (sameBusiness ? prefillParams.prospectLeadId : undefined));
+          }
+          setSelectedDraftId(draftId);
+          if (draftId) await capture.write('current_submission_id', draftId);
+          if (isCurrent()) setInitialized(true);
+        };
+        const differentBusiness = data && hasPrefill && !sameBusiness;
+        if (differentBusiness) {
+          if (collisionPrompted.current) return;
+          collisionPrompted.current = true;
+          Alert.alert('Finish your other interview?',
+            `You have an unfinished interview for ${data.businessName || 'another business'}. Starting ${prefillParams.businessName || 'this one'} will discard it.`, [
+              { text: `Continue ${data.businessName || 'it'}`, style: 'cancel', onPress: () => {
+                void loadExisting().catch(() => { if (isCurrent()) setError('Could not reopen your saved interview. Please try again.'); });
+              } },
+              { text: 'Start this one', style: 'destructive', onPress: async () => {
+                if (!isCurrent() || saving.current) return;
+                saving.current = true; setLoading(true);
+                try {
+                  if (draftId) {
+                    if (!capture.canMutate()) throw new Error('Reconnect before discarding your saved interview.');
+                    await discardDraft({ id: draftId as Id<'submissions'> });
+                    if (!isCurrent()) return;
+                  }
+                  await capture.remove('current_submission_id');
+                  await capture.remove('submission_pending_sync');
+                  await capture.remove('submission_pending_photos');
+                  await capture.remove('submission_pending_interview');
+                  await capture.remove('submission_pending_submit');
+                  await capture.remove('submission_design');
+                  await capture.remove('submission_photo_tasks');
+                  await capture.remove('submission_interview_draft');
+                  await clearDraft();
+                  if (!isCurrent()) return;
+                  initialSellPrice.current = null;
+                  setSelectedDraftId(null); setOwnerName(''); setOwnerEmail('');
+                  applyPrefill();
+                  setProspectLeadId(typeof prefillParams.prospectLeadId === 'string' ? prefillParams.prospectLeadId : undefined);
+                  setInitialized(true);
+                } catch (cause) {
+                  if (!isCurrent()) return;
+                  await loadExisting();
+                  if (isCurrent()) setError(cause instanceof Error ? cause.message : 'Could not discard the saved interview. Your other draft is still here.');
+                } finally {
+                  saving.current = false;
+                  if (isCurrent()) setLoading(false);
+                }
+              } },
+            ]);
+          return;
         }
-        setInitialized(true);
-      });
-    }
-  }, [existingDraft, initialized, loadDraft, hasPrefill, applyPrefill, prefillParams.businessName, discardDraft, clearDraft]);
+        if (data) await loadExisting();
+        else {
+          if (hasPrefill) applyPrefill();
+          setSelectedDraftId(null); setInitialized(true);
+        }
+      } catch {
+        if (isCurrent()) setError('Could not load your saved details. Reopen this capture to try again.');
+      } finally { initializing.current = false; }
+    })();
+  }, [explicitDraft, capture.actorKey, capture.isReady, capture.isOffline, existingDraft, initialized, loadDraft, hasPrefill, applyPrefill,
+    prefillParams.businessName, prefillParams.prospectLeadId, discardDraft, clearDraft]);
 
   // Auto-save form fields to local cache (debounced)
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !isCurrent()) return;
     saveDraft({
       businessName,
       businessType,
@@ -230,14 +292,16 @@ export default function SubmitInfoScreen() {
       ownerEmail,
       address,
       city,
+      ...(coordinates ? { coordinates } : {}),
+      prospectLeadId,
     });
-  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, initialized, saveDraft]);
+  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, coordinates, prospectLeadId, initialized, saveDraft]);
 
   const handleNext = async () => {
+    if (saving.current || !initialized || !capture.actor || !isCurrent()) return;
     setError(null);
-
-    if (!creator) {
-      setError('You must complete your profile first');
+    if (!capture.isOffline && (!capture.canMutate() || creator?._id !== capture.actor.creatorId)) {
+      setError('Reconnect to save this capture for your account.');
       return;
     }
 
@@ -245,41 +309,80 @@ export default function SubmitInfoScreen() {
       setError('Please fill in all required fields');
       return;
     }
+    const invalidEmail = captureEmailError(ownerEmail);
+    setEmailError(invalidEmail);
+    if (invalidEmail) { emailInput.current?.focus(); return; }
 
     const formData = {
       businessName: businessName.trim(),
       businessType,
       ownerName: ownerName.trim(),
       ownerPhone: ownerPhone.trim(),
-      ownerEmail: ownerEmail.trim() || undefined,
+      ownerEmail: normalizeCaptureEmail(ownerEmail),
       address: address.trim(),
       city: city.trim(),
+      ...(validCaptureCoordinates(coordinates) ? { coordinates } : {}),
     };
 
-    // OFFLINE PATH: Save locally and navigate forward
-    if (!isConnected) {
+    saving.current = true; setLoading(true);
+    // New captures start at the base price. Existing captures keep their
+    // original quote; legacy device-wide preferences are never read.
+    let capturedPrice: number;
+    try {
+      if (initialSellPrice.current === null) {
+        const [pending, snapshot, storedId] = await Promise.all([
+          capture.read<PendingDetails>('submission_pending_sync'),
+          capture.read<{ submissionId: string; creatorId: string; initialSellPrice?: number }>('submission_snapshot'),
+          capture.read<string>('current_submission_id'),
+        ]);
+        if (!isCurrent()) return;
+        const target = selectedDraftId ?? 'offline_pending';
+        const ownsPending = pending?.creatorId === capture.actor.creatorId
+          && (selectedDraftId ? pending.existingDraftId === selectedDraftId
+            : storedId === 'offline_pending' && (!pending.existingDraftId || pending.existingDraftId === 'offline_pending'));
+        const ownsSnapshot = snapshot?.creatorId === capture.actor.creatorId && snapshot.submissionId === target
+          && (!!selectedDraftId || storedId === 'offline_pending');
+        const serverPrice = selectedDraftId && existingDraft?._id === selectedDraftId
+          && existingDraft.creatorId === capture.actor.creatorId && typeof existingDraft.amount === 'number'
+          ? validCapturePrice(existingDraft.amount - (existingDraft.domainCostPHP ?? 0)) : null;
+        const savedPrice = serverPrice ?? (ownsPending ? validCapturePrice(pending.initialSellPrice) : null)
+          ?? (ownsSnapshot ? validCapturePrice(snapshot.initialSellPrice) : null);
+        initialSellPrice.current = savedPrice ?? BASE_PRICE;
+      }
+      capturedPrice = initialSellPrice.current;
+    } catch {
+      if (isCurrent()) { setError('Could not load your capture price. Try again.'); setLoading(false); }
+      saving.current = false;
+      return;
+    }
+    // Offline writes stay with the cached, signed-in field agent. The source
+    // lead is retained so reconnecting does not create a duplicate shop.
+    if (capture.isOffline) {
       try {
-        await AsyncStorage.setItem('submission_pending_sync', JSON.stringify({
+        await capture.write('submission_pending_sync', {
           formData,
-          creatorId: creator._id,
-          existingDraftId: existingDraft?._id || null,
+          creatorId: capture.actor.creatorId,
+          existingDraftId: selectedDraftId,
+          prospectLeadId,
+          initialSellPrice: capturedPrice,
           savedAt: Date.now(),
-        }));
-        // Ensure there's a submission ID so downstream screens work
-        const existingId = await AsyncStorage.getItem('current_submission_id');
-        if (!existingId) {
-          await AsyncStorage.setItem('current_submission_id', 'offline_pending');
-        }
+        });
+        if (!isCurrent()) return;
+        await capture.write('submission_snapshot', { submissionId: selectedDraftId ?? 'offline_pending', creatorId: capture.actor.creatorId,
+          ...formData, initialSellPrice: capturedPrice });
+        if (!isCurrent()) return;
+        await capture.write('current_submission_id', selectedDraftId ?? 'offline_pending');
+        if (!isCurrent()) return;
         await clearDraft();
-        router.push('/(app)/submit/photos');
+        if (isCurrent()) router.push('/(app)/submit/photos');
       } catch (err) {
-        setError('Failed to save data locally');
+        if (isCurrent()) setError('Failed to save data locally');
+      } finally {
+        saving.current = false;
+        if (isCurrent()) setLoading(false);
       }
       return;
     }
-
-    // ONLINE PATH
-    setLoading(true);
 
     try {
       let submissionId: string;
@@ -289,460 +392,121 @@ export default function SubmitInfoScreen() {
       // predates prospectLeadId this keeps ordinary submissions working.
       const link = prospectLeadId ? { prospectLeadId: prospectLeadId as Id<'leads'> } : {};
 
-      if (existingDraft) {
+      if (!capture.canMutate()) return;
+      if (selectedDraftId) {
         await updateSubmission({
-          id: existingDraft._id,
+          id: selectedDraftId as Id<'submissions'>,
           ...formData,
           ...link,
         });
-        submissionId = existingDraft._id;
+        submissionId = selectedDraftId;
       } else {
         submissionId = await createSubmission({
-          creatorId: creator._id,
+          creatorId: capture.actor.creatorId,
           ...formData,
           ...link,
+          amount: capturedPrice,
+          creatorPayout: commissionFor(capturedPrice),
         });
       }
-
-      await AsyncStorage.setItem('current_submission_id', submissionId);
+      if (!isCurrent()) return;
+      // Remember a successful create even if a later local write fails. A
+      // retry must update that draft, rather than create a second interview.
+      setSelectedDraftId(submissionId);
+      await capture.write('submission_snapshot', { submissionId, creatorId: capture.actor.creatorId, ...formData, initialSellPrice: capturedPrice });
+      if (!isCurrent()) return;
+      await capture.write('current_submission_id', submissionId);
+      if (!isCurrent()) return;
       await clearDraft();
-      await AsyncStorage.removeItem('submission_pending_sync');
-      router.push('/(app)/submit/photos');
+      if (!isCurrent()) return;
+      await capture.remove('submission_pending_sync');
+      if (isCurrent()) router.push('/(app)/submit/photos');
     } catch (err: any) {
       console.error('Error saving business info:', err);
-      setError(err.message || 'Failed to save business information');
+      if (isCurrent()) setError(err.message || 'Failed to save business information');
     } finally {
-      setLoading(false);
+      saving.current = false;
+      if (isCurrent()) setLoading(false);
     }
   };
 
-  // When offline, skip Clerk/Convex loading gates — layout already verified auth
-  if (!isConnected && (!isLoaded || creator === undefined)) {
-    // Offline: allow form to render without creator data
-  } else if (!isLoaded || creator === undefined) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+  // Offline access is already scoped by the app layout; do not block local drafts
+  // on an unavailable live Clerk or Convex response.
+  if ((!capture.isReady && !capture.actor) || (!initialized && capture.canQuery && creator === undefined)) {
+    return <Loading label="Loading shop details…" />;
   }
-
-  // ─── Field renderer ──────────────────────────────────────────────────────
-  // Editorial input frame: paper3 surface + rule border + icon + mono label.
-  const renderField = ({
-    icon,
-    label,
-    placeholder,
-    value,
-    onChangeText,
-    keyboardType,
-    autoCapitalize,
-    maxLength,
-    optional = false,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    placeholder: string;
-    value: string;
-    onChangeText: (v: string) => void;
-    keyboardType?: any;
-    autoCapitalize?: any;
-    maxLength?: number;
-    optional?: boolean;
-  }) => (
-    <View style={{ marginBottom: 18 }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: colors.paper3,
-          borderColor: colors.rule,
-          borderWidth: 1,
-          borderRadius: radius.sm,
-          paddingHorizontal: 16,
-          height: 54,
-        }}
-      >
-        <Ionicons name={icon} size={18} color={colors.ink3} />
-        <TextInput
-          style={{
-            flex: 1,
-            marginLeft: 12,
-            fontFamily: fonts.sans,
-            fontSize: 15,
-            color: colors.ink,
-          }}
-          placeholder={placeholder}
-          placeholderTextColor={colors.ink3}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          maxLength={maxLength}
-          editable={!loading}
-        />
-      </View>
-      <View
-        style={{
-          marginTop: 6,
-          paddingHorizontal: 4,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Label>{label}</Label>
-        {optional && <Label color={colors.ink3}>OPTIONAL</Label>}
-      </View>
-    </View>
-  );
+  if (!capture.actor) return <ScreenShell onBack={goBack} title="Capture unavailable">
+    <Banner tone="warn" body="Sign in with your certified field-agent account to start a capture." />
+  </ScreenShell>;
+  if (explicitDraft && unavailableDraft) return <ScreenShell onBack={goBack} title="Capture unavailable">
+    <Banner tone="warn" body="This draft is unavailable for your account. Reconnect or return to your capture to try again. Your saved media is unchanged." />
+    <Button title="Go back" variant="ghost" onPress={goBack} />
+  </ScreenShell>;
+  if (explicitDraft && !initialized) return <Loading label="Loading shop details…" />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
-      {/* Header — back arrow + step counter */}
-      <View
-        style={{
-          paddingHorizontal: 24,
-          paddingTop: 8,
-          paddingBottom: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.root}>
+      <ScreenShell
+        title="About the shop"
+        subtitle="The basics first. Photos and the interview come next."
+        onBack={goBack}
+        progress={0.2}
+        headerRight={<Text variant="label" tone="muted">1 / 5</Text>}
+        contentStyle={styles.content}
+        footer={<Button title={loading ? 'Saving…' : capture.isOffline ? 'Save & continue offline' : 'Continue to photos'}
+          loading={loading} disabled={loading || !initialized} onPress={handleNext}
+          accessibilityLabel="Continue to photos step" />}
       >
-        <TouchableOpacity
-          onPress={goBack}
-          activeOpacity={0.7}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          style={{
-            width: 40,
-            height: 40,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: radius.pill,
-            backgroundColor: colors.paper3,
-            borderColor: colors.rule,
-            borderWidth: 1,
-          }}
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.ink} />
-        </TouchableOpacity>
-      </View>
+        <OfflineBanner />
+        {error ? <Banner tone="danger" body={error} /> : null}
 
-      <OfflineBanner />
+        <Field label="Business name" icon="storefront-outline" placeholder="Shop name"
+          value={businessName} onChangeText={setBusinessName} editable={!loading}
+          autoCapitalize="words" returnKeyType="next" />
 
-      {/* Progress rule — replaces emerald progress bar */}
-      <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
-        <View
-          style={{
-            height: 3,
-            backgroundColor: colors.rule,
-            borderRadius: radius.pill,
-            overflow: 'hidden',
-          }}
-        >
-          <View
-            style={{
-              height: '100%',
-              width: '25%',
-              backgroundColor: colors.accent,
-              borderRadius: radius.pill,
-            }}
-          />
+        <View style={styles.typeSection}>
+          <Text variant="label" tone="muted">Business type</Text>
+          <View style={styles.types}>
+            {TYPE_CHOICES.map((type) => <ChoiceChip key={type} label={type} selected={businessType === type}
+              disabled={loading} onPress={() => setBusinessType(type)} />)}
+          </View>
         </View>
-      </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Editorial header — eyebrow + serif headline w/ italic accent */}
-          <View style={{ marginBottom: 8 }}>
-            <Label tracking={1.8} style={{ marginBottom: 16 }}>NEW BUSINESS</Label>
-            <Display size="md">Tell us about</Display>
-            <Display size="md" italic color={colors.accent}>the place.</Display>
-          </View>
-
-          <Body size="md" color={colors.ink2} style={{ marginTop: 12, marginBottom: 28, maxWidth: 340 }}>
-            The basics first — name, owner, address. We&apos;ll handle the rest in the next steps.
-          </Body>
-
-          {/* Error banner — matches login pattern */}
-          {error && (
-            <View
-              style={{
-                backgroundColor: colors.dangerBg,
-                borderColor: colors.danger,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                padding: 14,
-                marginBottom: 20,
-              }}
-            >
-              <Body size="sm" weight="medium" color={colors.danger}>{error}</Body>
-            </View>
-          )}
-
-          {/* SECTION A — Business */}
-          <View style={{ marginBottom: 8 }}>
-            <Label tracking={1.6} style={{ marginBottom: 6 }}>BUSINESS</Label>
-            <Display size="sm">The shopfront.</Display>
-          </View>
-          <Rule style={{ marginTop: 14, marginBottom: 20 }} />
-
-          {/* Business Name */}
-          {renderField({
-            icon: 'storefront-outline',
-            label: 'BUSINESS NAME',
-            placeholder: "e.g., Juan's Barbershop",
-            value: businessName,
-            onChangeText: setBusinessName,
-          })}
-
-          {/* Business Type — custom picker (keeps existing show/hide logic) */}
-          <View style={{ marginBottom: 18 }}>
-            <TouchableOpacity
-              onPress={() => setShowTypePicker(!showTypePicker)}
-              disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel="Select business type"
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: colors.paper3,
-                borderColor: colors.rule,
-                borderWidth: 1,
-                borderRadius: radius.sm,
-                paddingHorizontal: 16,
-                height: 54,
-              }}
-            >
-              <Ionicons name="grid-outline" size={18} color={colors.ink3} />
-              <Text
-                style={{
-                  flex: 1,
-                  marginLeft: 12,
-                  fontFamily: fonts.sans,
-                  fontSize: 15,
-                  color: businessType ? colors.ink : colors.ink3,
-                }}
-              >
-                {businessType || 'Select business type'}
-              </Text>
-              <Ionicons
-                name={showTypePicker ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={colors.ink3}
-              />
-            </TouchableOpacity>
-
-            {showTypePicker && (
-              <View
-                style={{
-                  marginTop: 8,
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.sm,
-                  overflow: 'hidden',
-                }}
-              >
-                {BUSINESS_TYPES.map((type, idx) => {
-                  const active = businessType === type;
-                  return (
-                    <TouchableOpacity
-                      key={type}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Choose ${type}`}
-                      onPress={() => {
-                        setBusinessType(type);
-                        setShowTypePicker(false);
-                      }}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 14,
-                        borderBottomColor: colors.rule,
-                        borderBottomWidth: idx === BUSINESS_TYPES.length - 1 ? 0 : 1,
-                        backgroundColor: active ? colors.accentBg : 'transparent',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: active ? fonts.sansMed : fonts.sans,
-                          fontSize: 15,
-                          color: active ? colors.accentInk : colors.ink2,
-                        }}
-                      >
-                        {type}
-                      </Text>
-                      {active && (
-                        <Ionicons name="checkmark" size={18} color={colors.accentInk} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-
-            <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-              <Label>BUSINESS TYPE</Label>
-            </View>
-          </View>
-
-          {/* SECTION B — Owner */}
-          <View style={{ marginTop: 16, marginBottom: 8 }}>
-            <Label tracking={1.6} style={{ marginBottom: 6 }}>OWNER</Label>
-            <Display size="sm">Who runs it.</Display>
-          </View>
-          <Rule style={{ marginTop: 14, marginBottom: 20 }} />
-
-          {/* Owner Full Name */}
-          {renderField({
-            icon: 'person-outline',
-            label: 'OWNER FULL NAME',
-            placeholder: 'e.g., Juan Dela Cruz',
-            value: ownerName,
-            onChangeText: setOwnerName,
-            autoCapitalize: 'words',
-          })}
-
-          {/* Owner Phone — country code chip + number input */}
-          <View style={{ marginBottom: 18 }}>
-            <View style={{ flexDirection: 'row' }}>
-              <View
-                style={{
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.sm,
-                  paddingHorizontal: 14,
-                  height: 54,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 8,
-                }}
-              >
-                <Text style={{ fontFamily: fonts.monoMed, fontSize: 13, color: colors.ink2, letterSpacing: 1 }}>
-                  +63
-                </Text>
-              </View>
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: colors.paper3,
-                  borderColor: colors.rule,
-                  borderWidth: 1,
-                  borderRadius: radius.sm,
-                  paddingHorizontal: 16,
-                  height: 54,
-                }}
-              >
-                <Ionicons name="call-outline" size={18} color={colors.ink3} />
-                <TextInput
-                  style={{
-                    flex: 1,
-                    marginLeft: 12,
-                    fontFamily: fonts.sans,
-                    fontSize: 15,
-                    color: colors.ink,
-                  }}
-                  placeholder="912 345 4567"
-                  placeholderTextColor={colors.ink3}
-                  value={ownerPhone}
-                  onChangeText={(v) => setOwnerPhone(v.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  maxLength={15}
-                  editable={!loading}
-                />
-              </View>
-            </View>
-            <View style={{ marginTop: 6, paddingHorizontal: 4 }}>
-              <Label>OWNER PHONE NUMBER</Label>
-            </View>
-          </View>
-
-          {/* Owner Email — optional */}
-          {renderField({
-            icon: 'mail-outline',
-            label: 'OWNER EMAIL',
-            placeholder: 'owner@example.com',
-            value: ownerEmail,
-            onChangeText: setOwnerEmail,
-            keyboardType: 'email-address',
-            autoCapitalize: 'none',
-            optional: true,
-          })}
-
-          {/* SECTION C — Location */}
-          <View style={{ marginTop: 16, marginBottom: 8 }}>
-            <Label tracking={1.6} style={{ marginBottom: 6 }}>LOCATION</Label>
-            <Display size="sm">Where to find it.</Display>
-          </View>
-          <Rule style={{ marginTop: 14, marginBottom: 20 }} />
-
-          {/* Address */}
-          {renderField({
-            icon: 'location-outline',
-            label: 'FULL ADDRESS',
-            placeholder: '123 Main St, Barangay Example',
-            value: address,
-            onChangeText: setAddress,
-          })}
-
-          {/* City */}
-          {renderField({
-            icon: 'business-outline',
-            label: 'CITY',
-            placeholder: 'e.g., Manila',
-            value: city,
-            onChangeText: setCity,
-          })}
-
-          {/* Spacer for sticky footer */}
-          <View style={{ height: 24 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* Footer CTA — Door button */}
-      <View
-        style={{
-          paddingHorizontal: 24,
-          paddingTop: 16,
-          paddingBottom: Math.max(insets.bottom, 16),
-          backgroundColor: colors.paper,
-          borderTopColor: colors.rule,
-          borderTopWidth: 1,
-        }}
-      >
-        <Door
-          variant="solid"
-          caption="CONTINUE"
-          label={loading ? 'Saving…' : isConnected ? 'Continue to photos' : 'Save & continue offline'}
-          loading={loading}
-          disabled={loading}
-          onPress={handleNext}
-          accessibilityLabel="Continue to photos step"
-          rightIcon={
-            loading ? (
-              <ActivityIndicator color={colors.paper3} />
-            ) : (
-              <Ionicons name="arrow-forward" size={18} color={colors.paper3} style={{ marginLeft: 12 }} />
-            )
-          }
-        />
-      </View>
-    </SafeAreaView>
+        <Field label="Owner’s full name" icon="person-outline" placeholder="Full name"
+          value={ownerName} onChangeText={setOwnerName} editable={!loading}
+          autoCapitalize="words" textContentType="name" returnKeyType="next" />
+        <Field label="Owner’s mobile" icon="call-outline" prefix="+63" placeholder="917 123 4567"
+          value={ownerPhone} onChangeText={(value) => setOwnerPhone(value.replace(/[^0-9]/g, ''))}
+          keyboardType="phone-pad" textContentType="telephoneNumber" maxLength={15} editable={!loading} />
+        <Field ref={emailInput} label="Owner’s email" icon="mail-outline" placeholder="owner@example.com" maxLength={320}
+          value={ownerEmail} onChangeText={(value) => { setOwnerEmail(value); if (emailError) setEmailError(captureEmailError(value)); }}
+          error={emailError} helper="Required so the owner can access their website." keyboardType="email-address"
+          autoCapitalize="none" autoCorrect={false} textContentType="emailAddress" editable={!loading} returnKeyType="next" />
+        <Field label="Address" icon="location-outline" placeholder="Street and barangay"
+          value={address} onChangeText={setAddress} autoCapitalize="words" editable={!loading} returnKeyType="next" />
+        <Button title={coordinates ? 'Edit map location' : 'Choose on map'} variant="ghost" icon="map-outline"
+          disabled={loading || !initialized} onPress={() => {
+            if (!isCurrent() || saving.current) return;
+            Keyboard.dismiss(); setChoosingLocation(true);
+          }} />
+        {coordinates ? <Text variant="label" tone="muted">Changing the address does not move the pin. Use Edit map location to move it.</Text> : null}
+        <Field label="City" icon="business-outline" placeholder="City or municipality"
+          value={city} onChangeText={setCity} autoCapitalize="words" editable={!loading} returnKeyType="done" />
+      </ScreenShell>
+      {choosingLocation ? <CaptureLocationPicker coordinates={coordinates} address={address} city={city}
+        isOffline={capture.isOffline} isCurrent={isCurrent}
+        onClose={() => { if (isCurrent()) setChoosingLocation(false); }}
+        onConfirm={(location) => {
+          if (!isCurrent() || saving.current || !validCaptureCoordinates(location.coordinates)) return;
+          setCoordinates(location.coordinates); setAddress(location.address); setCity(location.city); setChoosingLocation(false);
+        }} /> : null}
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  content: { gap: space.md, paddingBottom: space.xl },
+  typeSection: { gap: space.sm },
+  types: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+});
