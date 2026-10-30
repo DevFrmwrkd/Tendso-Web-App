@@ -521,7 +521,8 @@ const styles = StyleSheet.create({
   grab: { height: 5, width: 40, borderRadius: 3, backgroundColor: colors.ruleStrong },
   peekLabel: { maxWidth: '100%' }, sheetChevron: { position: 'absolute', right: space.lg, top: 18 },
   sheetHead: { paddingHorizontal: space.lg, paddingBottom: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  carousel: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
+  // The viewport grows while dragging; cards keep their natural content height.
+  carousel: { alignItems: 'flex-start', gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
   fullList: { gap: space.md, paddingHorizontal: space.lg, paddingBottom: space.lg },
   listShop: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.card, padding: space.md, borderRadius: radius.card },
   listShopText: { flex: 1, minWidth: 0, gap: space.xs },
