@@ -192,8 +192,8 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     </View>
 
     <View style={[styles.panel, !showOffer && styles.hidden]} accessibilityElementsHidden={!showOffer} importantForAccessibility={showOffer ? 'auto' : 'no-hide-descendants'}>
-      <AffiliateOfferSummary code={codeEditor ? undefined : account.referralCode} />
       {codeEditor}
+      <AffiliateOfferSummary code={codeEditor ? undefined : account.referralCode} />
     </View>
     <View style={[styles.panel, section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={section !== 'sharing'} importantForAccessibility={section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
     {pageDirty ? <Text variant="label" tone="muted">Sharing uses your saved page. Save your changes before sharing new materials.</Text> : null}

@@ -128,8 +128,8 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                         />
                     </div>
                     <div className={styles.controlPanel} role="tabpanel" id={`${editorId}-panel-offer`} aria-labelledby={`${editorId}-tab-offer`} tabIndex={0} hidden={controlTab !== "offer"}>
-                        <PriceSettings referralCode={account.referralCode} />
                         <CreatorCodeSettings account={account} preview={preview} />
+                        <PriceSettings />
                     </div>
                     <div className={styles.controlPanel} role="tabpanel" id={`${editorId}-panel-sharing`} aria-labelledby={`${editorId}-tab-sharing`} tabIndex={0} hidden={controlTab !== "sharing"}>
                         <div className={styles.sharing}>
