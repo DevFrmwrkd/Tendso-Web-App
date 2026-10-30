@@ -9,6 +9,7 @@ import { Sales, SalesList, type AffiliateSale } from "@/app/affiliates/dashboard
 import type { Doc } from "@/convex/_generated/dataModel";
 import { AFFILIATE_MESSAGE_MAX_LENGTH } from "@/lib/affiliates";
 import { formatPHP } from "@/lib/pricing";
+import { CreatorPagePreview } from "@/components/v2/creators/CreatorPagePreview";
 
 jest.mock("convex/react", () => ({
     useAction: jest.fn(),
@@ -24,6 +25,7 @@ jest.mock("@/convex/_generated/api", () => ({
 }));
 jest.mock("@/app/affiliates/dashboard/_components/ShareTools.module.css", () => ({}));
 jest.mock("@/app/affiliates/dashboard/_components/MyPage.module.css", () => ({}));
+jest.mock("@/components/v2/creators/CreatorPagePreview", () => ({ CreatorPagePreview: jest.fn(() => null) }));
 
 const account: Doc<"creators"> = {
     _id: "preview-affiliate" as Doc<"creators">["_id"],
@@ -103,17 +105,18 @@ beforeEach(() => {
 });
 
 describe("affiliate dashboard preview", () => {
-    it("connects page sections and the saved public page without mixing price and page forms", () => {
+    it("keeps all editor panels mounted and passes the canonical public draft into the page preview", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
         expect(html).toContain('aria-label="Page settings"');
-        for (const id of ["page-settings", "price-settings", "affiliate-share-heading"]) {
-            expect(html).toContain(`href="#${id}"`);
-            expect(html).toContain(`id="${id}"`);
-        }
+        expect(html.match(/role="tab"/g)).toHaveLength(3);
+        expect(html.match(/role="tabpanel"/g)).toHaveLength(3);
+        for (const id of ["page-settings", "price-settings", "affiliate-share-heading"]) expect(html).toContain(`id="${id}"`);
         expect(html).toContain(`href="/v2/a/${account.affiliateHandle}"`);
         expect(html).toContain("View saved page");
         expect(html.match(/<form\b/g)).toHaveLength(2);
-        expect(html).toContain("This is the offer shop owners see from your link.");
+        expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0]).toMatchObject({
+            card: { name: account.affiliateDisplayName, code: account.referralCode, price: 2200, saving: 2799 }, dirty: false,
+        });
         expect(usePaginatedQuery).not.toHaveBeenCalled();
         const previewHtml = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
         expect(previewHtml).not.toContain("View saved page");
@@ -218,8 +221,7 @@ describe("affiliate dashboard preview", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
 
         expect(html).toContain(`value="${account.affiliateSocialLink}"`);
-        expect(html).toContain(`href="${account.affiliateSocialLink}"`);
-        expect(html).toContain("Message on Messenger");
+        expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0].card.socialLinks?.messenger).toBe(account.affiliateSocialLink);
         for (const platform of ["Messenger", "Facebook", "Instagram", "TikTok", "YouTube"]) {
             expect(html).toContain(`${platform} link`);
         }
@@ -231,8 +233,7 @@ describe("affiliate dashboard preview", () => {
             account: { ...account, affiliateSocialLinks: { instagram: "https://www.instagram.com/ana" } },
         }));
 
-        expect(html).toContain('href="https://www.instagram.com/ana"');
-        expect(html).toContain("View Instagram");
+        expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0].card.socialLinks).toEqual({ instagram: "https://www.instagram.com/ana" });
         expect(html).not.toContain(`href="${account.affiliateSocialLink}"`);
         expect(html).not.toContain(`value="${account.affiliateSocialLink}"`);
     });
