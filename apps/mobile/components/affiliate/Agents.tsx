@@ -22,8 +22,15 @@ function InviteAction({ title, icon, disabled, busy = false, onPress, primary = 
 }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ disabled: disabled || busy, busy }}
     disabled={disabled || busy} onPress={onPress} style={[styles.dialogAction, primary && styles.dialogPrimary, (disabled || busy) && styles.disabled]}>
-    <Ionicons name={icon} size={22} color={primary ? colors.onDark : colors.ink} />
-    <Text variant="button" tone={primary ? 'onDark' : 'ink'} style={styles.dialogActionText}>{busy ? 'Opening share options…' : title}</Text>
+    <Ionicons name={icon} size={22} color={primary ? colors.onAccent : colors.ink} />
+    <Text variant="button" tone={primary ? 'onAccent' : 'ink'} style={styles.dialogActionText}>{busy ? 'Opening share options…' : title}</Text>
+  </Pressable>;
+}
+
+function InviteCopyAction({ label, disabled, onPress }: { label: string; disabled: boolean; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled}
+    onPress={onPress} hitSlop={2} style={[styles.dialogCopy, disabled && styles.disabled]}>
+    <Ionicons name="copy-outline" size={21} color={colors.ink} />
   </Pressable>;
 }
 
@@ -205,21 +212,29 @@ export function AgentsContent({ account, isPreview, isOffline, isAuthenticated, 
         <Pressable style={styles.backdrop} accessibilityRole="button" accessibilityLabel="Dismiss agent invite" onPress={closeInvite} />
         <View testID="affiliate-agent-invite-tools" onAccessibilityEscape={closeInvite} style={[styles.dialog, { maxHeight: modalMaxHeight }]}>
           <View style={styles.dialogHeader}>
+            <View style={styles.dialogPeople} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"><Ionicons name="people-outline" size={24} color={colors.onAccent} /></View>
             <Text variant="heading" accessibilityRole="header" style={styles.flex}>Invite a field agent</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close agent invite" onPress={closeInvite} style={styles.round}><Ionicons name="close" size={24} color={colors.ink} /></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close agent invite" onPress={closeInvite} style={styles.dialogClose}><Ionicons name="close" size={22} color={colors.ink} /></Pressable>
           </View>
           <ScrollView style={styles.dialogScroll} contentContainerStyle={styles.dialogContent} keyboardShouldPersistTaps="handled">
             <Text tone="ink2">Earn 5% of their sales for 12 months, after each shop has paid in full.</Text>
             {isPreview ? <Text variant="label" tone="muted">Preview only. Copying and sharing are disabled.</Text> : account.status !== 'active' ? <Text variant="label" tone="muted">Invitations are paused while your account is inactive.</Text> : null}
             <View style={styles.dialogDetail}>
-              <Text variant="label" tone="muted">Your invite link</Text>
-              <Text selectable>{inviteLink ?? 'Your invite link is not available yet.'}</Text>
-              <InviteAction title="Copy invite link" icon="copy-outline" disabled={disabled || !inviteLink} onPress={() => { void copyInvite(inviteLink, 'link'); }} />
+              <View style={styles.dialogValue}>
+                <Text variant="label" tone="muted">Your invite link</Text>
+                <Text selectable>{inviteLink ?? 'Your invite link is not available yet.'}</Text>
+              </View>
+              <InviteCopyAction label="Copy invite link" disabled={disabled || !inviteLink} onPress={() => { void copyInvite(inviteLink, 'link'); }} />
             </View>
-            <View style={styles.dialogDetail}>
-              <Text variant="label" tone="muted">Your invitation code</Text>
-              <Text variant="heading" selectable>{account.referralCode || 'Your invitation code is not available yet.'}</Text>
-              <InviteAction title="Copy invitation code" icon="copy-outline" disabled={disabled || !account.referralCode} onPress={() => { void copyInvite(account.referralCode, 'code'); }} />
+            <View style={styles.dialogCodeSection}>
+              <View style={styles.dialogDetail}>
+                <View style={styles.dialogValue}>
+                  <Text variant="label" tone="muted">Your invitation code</Text>
+                  <Text variant={account.referralCode ? 'title' : 'body'} selectable>{account.referralCode || 'Your invitation code is not available yet.'}</Text>
+                </View>
+                <InviteCopyAction label="Copy invitation code" disabled={disabled || !account.referralCode} onPress={() => { void copyInvite(account.referralCode, 'code'); }} />
+              </View>
+              <Text variant="label" tone="muted">They can enter this code when creating their account.</Text>
             </View>
             <InviteAction title="Share agent invite" icon="share-outline" primary disabled={disabled || !inviteLink} busy={sharing} onPress={invite} />
             {copyStatus ? <Text variant="label" tone="muted" accessibilityLiveRegion="polite">{copyStatus}</Text> : null}
@@ -264,13 +279,18 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   modal: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xl },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.scrim },
-  dialog: { width: '100%', maxWidth: 480, backgroundColor: colors.card, borderRadius: radius.cardLg, overflow: 'hidden' },
+  dialog: { width: '100%', maxWidth: 480, backgroundColor: colors.card, borderRadius: 28, overflow: 'hidden' },
   dialogScroll: { flexGrow: 0, flexShrink: 1, minHeight: 0 },
   dialogContent: { padding: space.xl - 4, paddingTop: 0, gap: space.lg },
   dialogHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.xl - 4, flexShrink: 0 },
-  dialogDetail: { gap: space.sm },
+  dialogPeople: { width: 44, height: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: colors.accent },
+  dialogClose: { width: 44, height: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: colors.bg2 },
+  dialogDetail: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: colors.rule, backgroundColor: colors.bg },
+  dialogValue: { flex: 1, minWidth: 0, gap: space.xs },
+  dialogCodeSection: { gap: space.sm },
+  dialogCopy: { width: 44, height: 44, flexShrink: 0, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: colors.card },
   dialogAction: { minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: space.md, backgroundColor: colors.bg2 },
-  dialogPrimary: { backgroundColor: colors.ink },
+  dialogPrimary: { backgroundColor: colors.accent },
   dialogActionText: { flexShrink: 1, textAlign: 'center' },
   inviteAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   inviteActionText: { flexShrink: 1, textAlign: 'center' },

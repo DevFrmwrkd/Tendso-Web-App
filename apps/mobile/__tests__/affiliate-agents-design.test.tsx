@@ -219,14 +219,14 @@ it('closes and resets a pending invite after status revocation and ignores its l
   expect(result.getByLabelText('Copy invitation code')).toBeDisabled();
 });
 
-it('bounds the scrollable dialog within safe insets and lets large action labels wrap', () => {
+it('bounds the scrollable dialog within safe insets and keeps copy and share accessible at large text sizes', () => {
   mockWindowDimensions.mockReturnValue({ width: 375, height: 667, scale: 1, fontScale: 1.5 });
   const result = screen();
   fireEvent.press(result.getByLabelText('Invite an agent'));
   const style = ReactNative.StyleSheet.flatten(result.getByTestId('affiliate-agent-invite-tools').props.style);
   expect(style.maxWidth).toBe(480);
   expect(style.maxHeight).toBeLessThanOrEqual(667 - 44 - 34);
-  expect(result.getByText('Copy invitation code').props.numberOfLines).toBeUndefined();
+  expect(result.getByRole('button', { name: 'Copy invitation code' })).toBeEnabled();
   expect(result.getByText('Share agent invite').props.numberOfLines).toBeUndefined();
   expect(result.UNSAFE_getByType(ReactNative.ScrollView)).toBeTruthy();
 });

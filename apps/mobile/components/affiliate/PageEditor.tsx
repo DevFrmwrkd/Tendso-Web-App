@@ -155,7 +155,7 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     offline={isOffline}
     floatingFooter={false}
     footer={<View style={styles.saveSection}>
-      {error || status ? <Text testID="affiliate-save-status" variant="label" tone={error ? 'danger' : 'muted'} align="center" accessibilityLiveRegion="polite">{error || status}</Text> : null}
+      {error || status ? <Text testID="affiliate-save-status" variant="label" tone={error ? 'danger' : 'muted'} align="center" accessibilityRole={error ? 'alert' : undefined} accessibilityLiveRegion="polite">{error || status}</Text> : null}
       <Button title={mode === 'page' ? 'Save page' : 'Save page and price'} disabled={locked || !dirty} loading={saving} onPress={save} />
     </View>}
   >
