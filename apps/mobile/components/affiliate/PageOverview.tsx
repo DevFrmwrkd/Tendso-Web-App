@@ -18,7 +18,7 @@ export function AffiliatePageScreen() {
 
 export function AffiliateShareScreen() {
   return <AffiliateAccess>{({ account, isPreview, isOffline }) => <AffiliateToolFrame title="Share QR & poster" preview={isPreview} offline={isOffline} suspended={account.status !== 'active'}>
-    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={affiliateName(account)} price={Number(affiliateDraft(account).price)} disabled={isPreview || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
+    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={affiliateName(account)} photo={account.affiliatePhoto} referralCode={account.referralCode} price={Number(affiliateDraft(account).price)} disabled={isPreview || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
   </AffiliateToolFrame>}</AffiliateAccess>;
 }
 

@@ -24,6 +24,7 @@ jest.mock("@/convex/_generated/api", () => ({
     },
 }));
 jest.mock("@/app/affiliates/dashboard/_components/ShareTools.module.css", () => ({}));
+jest.mock("@/components/v2/fonts", () => ({ v2Fonts: "test-v2-fonts" }));
 jest.mock("@/app/affiliates/dashboard/_components/MyPage.module.css", () => ({}));
 jest.mock("@/components/v2/creators/CreatorPagePreview", () => ({ CreatorPagePreview: jest.fn(() => null) }));
 

@@ -15,6 +15,12 @@ jest.mock("convex/react", () => ({
 }));
 jest.mock("@/convex/_generated/api", () => ({ api: jest.requireActual("convex/server").anyApi }));
 jest.mock("@/app/affiliates/dashboard/_components/ShareTools.module.css", () => ({}));
+jest.mock("@/components/v2/fonts", () => ({ v2Fonts: "test-v2-fonts" }));
+jest.mock("@/components/v2/creators/creators.css", () => ({}));
+jest.mock("@/components/v2/creators/PortalFrame.module.css", () => ({}));
+jest.mock("@/components/v2/creators/CreatorPagePreview.module.css", () => ({}));
+jest.mock("@/app/affiliates/dashboard/_components/AffiliatePageFrame.module.css", () => ({}));
+jest.mock("@/app/affiliates/dashboard/_components/MyPage.module.css", () => ({}));
 jest.mock("@clerk/nextjs", () => ({ useUser: jest.fn() }));
 jest.mock("next/navigation", () => ({
     usePathname: () => "/admin/preview/creator",

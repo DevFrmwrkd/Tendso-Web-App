@@ -152,7 +152,7 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                     <div className={styles.controlPanel} role="tabpanel" id={`${editorId}-panel-sharing`} aria-labelledby={`${editorId}-tab-sharing`} tabIndex={0} hidden={controlTab !== "sharing"}>
                         <div className={styles.sharing}>
                             {account.affiliateHandle ? (
-                                <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} price={priceBaseline} disabled={suspended || preview} />
+                                <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} photo={pageBaseline.photo} referralCode={account.referralCode} price={priceBaseline} disabled={suspended || preview} />
                             ) : (
                                 <p className={styles.unavailable}>Your page handle is unavailable. Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help.</p>
                             )}

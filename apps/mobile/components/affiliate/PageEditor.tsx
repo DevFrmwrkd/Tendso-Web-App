@@ -245,7 +245,7 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onSav
 
     <View style={[styles.panel, mode === 'page' && section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={mode === 'page' && section !== 'sharing'} importantForAccessibility={mode === 'page' && section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
     {pageDirty || priceDirty ? <Text variant="label" tone="muted">Sharing uses your saved page and price. Save each section before sharing new materials.</Text> : null}
-    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} price={Number(baseline.price)} disabled={isPreview || isOffline || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
+    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} photo={baseline.photo} referralCode={account.referralCode} price={Number(baseline.price)} disabled={isPreview || isOffline || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
     </View>
     </>}
   </AffiliateToolFrame>;

@@ -1,32 +1,54 @@
 "use client";
 
 import { Download, Printer } from "lucide-react";
-import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
-import { useRef, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal, flushSync } from "react-dom";
 import { toast } from "sonner";
 
+import { BoldOfferPoster, prepareAffiliatePosterForPrint } from "@/components/affiliate/BoldOfferPoster";
 import { Button, Icon } from "@/components/r1";
+import { createAffiliatePoster, type AffiliatePosterModel } from "@/lib/affiliatePoster";
 import { CopyButton } from "./CopyButton";
-import { OfferPrice } from "./OfferPreview";
 import styles from "./ShareTools.module.css";
 
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
 
-export function ShareTools({ handle, displayName, price, disabled = false }: {
+export function ShareTools({ handle, displayName, photo, referralCode, price, disabled = false }: {
     handle: string;
     displayName: string;
+    photo?: string | null;
+    referralCode?: string | null;
     price: number;
     disabled?: boolean;
 }) {
     const qr = useRef<HTMLCanvasElement>(null);
+    const poster = useRef<SVGSVGElement>(null);
+    const sheet = useRef<HTMLElement>(null);
+    const printLock = useRef(false);
+    const alive = useRef(true);
+    const [preparing, setPreparing] = useState(false);
+    const [failedPhoto, setFailedPhoto] = useState<string>();
+    const [omitBrandImage, setOmitBrandImage] = useState(false);
+    const [prepared, setPrepared] = useState<{ key: string; model: AffiliatePosterModel; omitBrandImage: boolean }>();
     const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
-    const url = `https://tendso.com/v2/a/${encodeURIComponent(handle)}`;
+    const sourceModel = createAffiliatePoster({ handle, displayName, photo, referralCode, price });
+    const key = JSON.stringify(sourceModel);
+    const model = sourceModel.photo && sourceModel.photo === failedPhoto ? { ...sourceModel, photo: null } : sourceModel;
+    const latest = useRef({ key, disabled });
+    latest.current = { key, disabled };
+    const titleId = useId();
+    const url = sourceModel.url;
+
+    useEffect(() => {
+        alive.current = true;
+        return () => { alive.current = false; };
+    }, []);
 
     function download() {
-        if (!qr.current) return;
+        if (latest.current.disabled || !qr.current) return;
         try {
             const anchor = document.createElement("a");
             anchor.href = qr.current.toDataURL("image/png");
@@ -36,6 +58,36 @@ export function ShareTools({ handle, displayName, price, disabled = false }: {
             anchor.remove();
         } catch {
             toast.error("Could not download the QR. Please try again.");
+        }
+    }
+
+    function imageFailed(id: "brand" | "photo", href: string) {
+        if (id === "photo") setFailedPhoto(href);
+        else setOmitBrandImage(true);
+    }
+
+    async function print() {
+        if (!mounted || latest.current.disabled || printLock.current || !poster.current) return;
+        printLock.current = true;
+        setPreparing(true);
+        const currentKey = key;
+        const current = () => alive.current && !latest.current.disabled && latest.current.key === currentKey;
+        try {
+            const family = window.getComputedStyle(poster.current).getPropertyValue("--font-v2-onest").trim() || "Onest, Arial, sans-serif";
+            const ready = await prepareAffiliatePosterForPrint(model, family);
+            if (!current()) return;
+            // Commit fallback artwork before asking the browser to capture its print page.
+            flushSync(() => setPrepared({ key: currentKey, model: ready.model, omitBrandImage: omitBrandImage || ready.omitBrandImage }));
+            await new Promise<void>(resolve => {
+                if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+                else window.setTimeout(resolve, 0);
+            });
+            if (current() && sheet.current) window.print();
+        } catch {
+            if (current()) toast.error("Could not prepare the poster. Please try again.");
+        } finally {
+            printLock.current = false;
+            if (alive.current) setPreparing(false);
         }
     }
 
@@ -53,20 +105,18 @@ export function ShareTools({ handle, displayName, price, disabled = false }: {
                 <QRCodeCanvas ref={qr} value={url} size={768} marginSize={4} level="M" bgColor="#FFFFFF" fgColor="#111111" role="img" aria-label={`QR code for ${url}`} style={{ width: "192px", height: "192px", maxWidth: "100%" }} />
                 <div className="flex w-full flex-col gap-3 sm:w-auto">
                     <Button onClick={download} disabled={disabled}><Icon icon={Download} />Download QR PNG</Button>
-                    <Button onClick={() => window.print()} disabled={disabled || !mounted}><Icon icon={Printer} />Print A4 poster</Button>
-                    <p className="t-meta">Print on A4 paper, or save as a PDF from the print menu.</p>
                 </div>
             </div>
-            {mounted && !disabled && createPortal(
-                <article className={`${styles.poster} r1`} aria-hidden="true">
-                    <p className={styles.brand}>tendso</p>
-                    <p className={styles.byline}>{displayName || "Your Tendso affiliate"}</p>
-                    <h1 className={styles.headline}>Your shop.<br />Online.</h1>
-                    <p className={styles.intro}>Get a website for your business.</p>
-                    <div className={styles.price}><OfferPrice price={price} /><p>Pay once to publish</p></div>
-                    <QRCodeSVG value={url} size={320} marginSize={4} level="M" bgColor="#FFFFFF" fgColor="#111111" className={styles.qr} />
-                    <p className={styles.scan}>Scan to order your website</p>
-                    <p className={styles.url}>{url.replace("https://", "")}</p>
+            <div className={styles.posterPreview} aria-labelledby={titleId}>
+                <div className={styles.posterHeading}><h3 id={titleId}>Bold offer</h3><span>A4 poster</span></div>
+                <BoldOfferPoster ref={poster} model={model} omitBrandImage={omitBrandImage} onImageError={imageFailed} className={styles.artwork} />
+                <p className="t-meta">Uses your saved name, photo, price, creator code and page link.</p>
+                <Button onClick={print} disabled={disabled || !mounted || preparing} aria-label="Print A4 poster" aria-busy={preparing}><Icon icon={Printer} />{preparing ? "Preparing poster…" : "Print A4 poster"}</Button>
+                <p className={styles.printHint} role="status" aria-live="polite">{preparing ? "Preparing the poster’s fonts and images…" : "Print on A4 paper at 100%, or save as a PDF from the print menu."}</p>
+            </div>
+            {mounted && !disabled && prepared?.key === key && createPortal(
+                <article ref={sheet} className={styles.poster} aria-hidden="true" data-affiliate-print="true">
+                    <BoldOfferPoster model={prepared.model} omitBrandImage={prepared.omitBrandImage} />
                 </article>, document.body,
             )}
         </section>

@@ -4,6 +4,12 @@ Web My page is a section of the creator portal at `/v2/creators/portal/my-page`.
 
 Mobile **Edit your page** has Page details, Your offer and Sharing sections, plus Edit/Preview switching. Save page changes only the public profile fields; Save price changes only the website price for future orders. Switching sections and previewing must preserve unsaved drafts. Sharing and QR materials use saved values.
 
+## Printable posters
+
+Sharing uses the selected **Bold offer** layout on both platforms. `lib/affiliatePoster.ts` builds the public print model and A4 scene from the saved name, photo, price, actual referral code and shop-page link. The code stays independent of the handle. Missing photos use initials; missing codes are omitted. Full-price offers do not show a discount.
+
+Web My page → Sharing → **Print A4 poster** prepares the images and fonts, then prints one A4 sheet or saves it through the browser's PDF option. Mobile My creator page → Share QR & poster → **Share printable poster PNG** rasterizes the SVG at A4 print resolution, independently of the thumbnail size. It adjusts iOS point bounds for the device scale and removes temporary files after sharing. Neither export saves edits, changes the account or records a referral visit.
+
 ## Preview generation
 
 Web and mobile render `ShopLinkView`, the same presentation used by the public shop link. Mobile bundles that view, its styles, fonts and example images in a standalone HTML document using the already-installed native WebView. No production preview URL, sign-in token or local-network connection is needed. An uploaded profile photo still needs its HTTPS image to be available.
