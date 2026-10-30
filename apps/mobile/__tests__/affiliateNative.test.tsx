@@ -111,7 +111,7 @@ describe('native affiliate access and live data', () => {
     expect(view.getByLabelText('From your link, ₱6,000')).toBeTruthy();
     expect(view.getByLabelText('From your agents, ₱450')).toBeTruthy();
     expect(view.queryByText('₱2,500')).toBeNull();
-    expect(view.getByText('October earnings')).toBeTruthy();
+    expect(view.getByText('From your link and agents')).toBeTruthy();
     expect(view.getByLabelText('October 2026 earnings, ₱6,450')).toBeTruthy();
   });
 

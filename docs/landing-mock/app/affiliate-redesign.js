@@ -4,6 +4,9 @@
   const P = '../assets/';
   const CODE_PRICE = 3499, CODE_LIST_PRICE = 4999, CODE_PERCENT_OFF = 30;
   const icons = {
+    arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+    receipt:'<path d="M6 3 4 5v16l3-2 3 2 3-2 3 2 3-2V3l-3 2-3-2-3 2-3-2Z"/><path d="M8 9h7M8 13h7"/>',
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
     home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
     agents:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M17 4a4 4 0 0 1 0 7M22 21v-2a5 5 0 0 0-3-4.6"/>',
     money:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8V5a2 2 0 0 1 2-2h12M17 11h4v6h-4a3 3 0 0 1 0-6Z"/><path d="M17 14h.01"/>',
@@ -71,11 +74,10 @@
   const empty = (title, copy, label, dest) => `<div class="ar-empty">${icon('agents')}<h2>${title}</h2><p>${copy}</p>${label ? button(dest,label) : ''}</div>`;
   function home(s) {
     const m = samples[s.month];
-    return body(`<div class="ar-topline"><div class="ar-greeting">${pagePhoto(s.pageSaved.photo,s.pageSaved.displayName||'Mika Santos',42)}<div><p>Your creator account</p><b>Hi, Mika</b></div></div>${go('notifications', icon('bell'), 'ar-round', 'aria-label="Notifications"')}</div>
-      <div class="ar-earn-card">${action('month',`${m.month} 2027 ${icon('down')}`,'ar-month-switch','aria-label="Change earnings month"')}<span class="ar-number">${php(m.total)}</span><span class="ar-lab">${m.month} earnings</span></div>
-      <div class="ar-source-grid">${go('sales',`<span class="ar-source-icon">${icon('link')}Your link</span><strong>${php(m.direct)}</strong><small>Paid website sales</small>`)}${go('agents',`<span class="ar-source-icon">${icon('agents')}Your agents</span><strong>${php(m.team)}</strong><small>5% team commission</small>`)}</div>
-      <div class="ar-shortcuts">${go('sales',`Sales ${chevron}`)}${go('page',`My page ${chevron}`)}</div>
-      <div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika</span>${action('copy',icon('copy'),'','aria-label="Copy shop link"')}</div>`, 'ar-has-action') + footer(action('share',`${icon('share')}Share my shop link`,'ar-btn')) + tabs('home');
+    return body(`<div class="ar-topline"><div class="ar-greeting">${pagePhoto(s.pageSaved.photo,s.pageSaved.displayName||'Mika Santos',48)}<div><p>Creator home</p><b>Hi, Mika</b></div></div>${go('notifications', icon('bell'), 'ar-round', 'aria-label="Notifications"')}</div>
+      <section class="ar-earn-card" aria-label="${m.month} earnings, ${php(m.total)}"><div class="ar-home-earn-heading"><span>Your earnings</span>${action('month',`${m.month} 2027 ${icon('down')}`,'ar-month-switch','aria-label="Change earnings month"')}</div><strong class="ar-number">${php(m.total)}</strong><p class="ar-earn-caption">From your link and agents</p><div class="ar-source-grid">${go('sales',`<span class="ar-source-icon">${icon('link')}<span>Your link</span>${chevron}</span><strong aria-label="From your link, ${php(m.direct)}">${php(m.direct)}</strong><small>Paid website sales</small>`,'','aria-label="View your link earnings"')}${go('agents',`<span class="ar-source-icon">${icon('agents')}<span>Your agents</span>${chevron}</span><strong aria-label="From your agents, ${php(m.team)}">${php(m.team)}</strong><small>5% team commission</small>`,'','aria-label="View your agents earnings"')}</div></section>
+      <p class="ar-home-tools-label">Your tools</p><div class="ar-shortcuts">${go('sales',`<span class="ar-tool-heading"><span class="ar-tool-icon">${icon('receipt')}</span>${icon('arrow')}</span><b class="ar-tool-title">Sales</b><small>Track shop progress</small>`,'','aria-label="Sales"')}${go('page',`<span class="ar-tool-heading"><span class="ar-tool-icon">${icon('edit')}</span>${icon('arrow')}</span><b class="ar-tool-title">My page</b><small>Edit &amp; preview</small>`,'','aria-label="My page"')}</div>
+      <section class="ar-home-link" aria-labelledby="${s.uid}-share-title"><h2 id="${s.uid}-share-title">Share with shop owners</h2><p>Your link gives ${CODE_PERCENT_OFF}% off.</p><div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika</span>${action('copy',icon('copy'),'','aria-label="Copy shop link"')}</div></section>`, 'ar-has-action') + footer(action('share',`${icon('share')}Share my shop link`,'ar-btn')) + tabs('home');
   }
   function agents(s) {
     const rows = samples.agents.filter(a => s.agentFilter !== 'ended' || a.months === 0);
@@ -178,7 +180,7 @@
     return body(`${back('page','Share your page')}<h1>Put your link<br>in their hands.</h1><div class="ar-card ar-detail-amount ar-mt"><img src="${P}brand/mark-ink-256.png" alt="Tendso" style="height:72px;width:72px;margin:0 auto 20px"><h2>${esc(s.pageSaved.displayName||'Mika Santos')}</h2><p class="ar-caption ar-mt">tendso.com/v2/a/mika</p></div>${help('The app can share your saved QR image or printable poster.')}`, 'ar-pushed ar-has-action')+footer(action('poster','Share QR or poster','ar-btn'),true);
   }
   const screens = {
-    home:{title:'Home',group:'overview',render:home,note:'One monthly total, two clear sources, and visible shortcuts to Sales and My page. Sharing stays the main action.'},
+    home:{title:'Home',group:'overview',render:home,note:'One dark card combines monthly earnings and both clickable sources. Clear tool tiles open Sales and My page; the shop-link card explains the fixed 30% offer.'},
     agents:{title:'Your agents',group:'team',render:agents,note:'Your commission appears beside each name. Remaining months are written out; the track explains time, not performance.'},
     agent:{title:'Agent details',group:'team',render:agent,note:'Owned-agent details show credited totals and exact dates. Commission expiry and the 5% rule sit together.'},
     money:{title:'Your money',group:'money',render:money,note:'Available cash leads. Lifetime totals and uncredited commission stay separate, with a floating cash-out action.'},

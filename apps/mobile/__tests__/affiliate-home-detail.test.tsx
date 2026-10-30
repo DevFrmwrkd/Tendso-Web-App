@@ -1,7 +1,7 @@
 import React from 'react';
 import * as ReactNative from 'react-native';
 import { Share } from 'react-native';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
 import { AffiliateHomeScreen, HomeContent } from '../components/affiliate/Home';
 import { AffiliateAgentDetailScreen, AgentDetailContent } from '../components/affiliate/AgentDetail';
@@ -10,6 +10,7 @@ import { sampleAffiliate, samplePortal, type AffiliatePortal } from '../componen
 const mockPush = jest.fn();
 const mockQuery = jest.fn();
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }) }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('convex/react', () => ({ useQuery: (...args: unknown[]) => mockQuery(...args) }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => ({ push: mockPush }) }));
@@ -30,6 +31,7 @@ beforeEach(() => {
   jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
   jest.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 9, 29));
   mockQuery.mockReturnValue(samplePortal);
+  jest.mocked(Clipboard.setStringAsync).mockReset().mockResolvedValue(undefined);
 });
 
 it('shows the credited monthly total and real source amounts separately from available money', () => {
@@ -76,7 +78,71 @@ it('keeps zero income distinct from loading and never invents missing monthly da
   result.rerender(<HomeContent {...access} portal={undefined} selectedMonth="2026-09" />);
   expect(result.getAllByText('Loading…')).toHaveLength(3);
   expect(result.queryByText('₱0')).toBeNull();
-  expect(result.getByText('September earnings')).toBeTruthy();
+  expect(result.getByText('From your link and agents')).toBeTruthy();
+  expect(result.getByLabelText('September 2026 earnings, loading')).toBeTruthy();
+});
+
+it('never labels a previous month’s income as the selected month while the portal refreshes', () => {
+  const result = render(<HomeContent {...access} portal={samplePortal} selectedMonth="2026-09" onMonthChange={jest.fn()} />);
+  expect(result.getByLabelText('September 2026 earnings, loading')).toBeTruthy();
+  expect(result.getByLabelText('From your link, loading')).toBeTruthy();
+  expect(result.getByLabelText('From your agents, loading')).toBeTruthy();
+  for (const staleValue of ['₱2,750', '₱2,500', '₱250']) expect(result.queryByText(staleValue)).toBeNull();
+  fireEvent.press(result.getByLabelText('Sales'));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/(app)/affiliate/sales', params: { month: '2026-09' } });
+  fireEvent.press(result.getByLabelText('View your link earnings'));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/(app)/affiliate/sales', params: { month: '2026-09' } });
+  fireEvent.press(result.getByLabelText('View your agents earnings'));
+  expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/(app)/(affiliate-tabs)/agents', params: { month: '2026-09' } });
+  const september: AffiliatePortal = { ...samplePortal,
+    month: { start: Date.UTC(2026, 7, 31, 16), end: Date.UTC(2026, 8, 30, 16), label: '2026-09' },
+    income: { directThisMonth: 0, teamThisMonth: 0, totalThisMonth: 0 } };
+  result.rerender(<HomeContent {...access} portal={september} selectedMonth="2026-09" onMonthChange={jest.fn()} />);
+  expect(result.getByLabelText('September 2026 earnings, ₱0')).toBeTruthy();
+  expect(result.getAllByText('₱0')).toHaveLength(3);
+  expect(result.queryByText('Loading…')).toBeNull();
+});
+
+it('announces the full selected month and keeps every month option reachable on a small screen', () => {
+  jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 320, height: 568, scale: 1, fontScale: 1.5 });
+  const change = jest.fn();
+  const result = render(<HomeContent {...access} portal={samplePortal} onMonthChange={change} />);
+  const picker = result.getByLabelText('Change earnings month');
+  expect(picker.props.accessibilityValue).toMatchObject({ text: 'October 2026' });
+  expect(picker.props.accessibilityState.expanded).toBe(false);
+  fireEvent.press(picker);
+  expect(result.getByLabelText('Change earnings month').props.accessibilityState.expanded).toBe(true);
+  const options = within(result.getByLabelText('Earnings month options'));
+  expect(options.getByLabelText('October 2026').props.accessibilityState.selected).toBe(true);
+  expect(options.getByLabelText('September 2026').props.accessibilityState.selected).toBe(false);
+  fireEvent.press(options.getByLabelText('May 2026'));
+  expect(change).toHaveBeenCalledWith('2026-05');
+  expect(result.queryByLabelText('May 2026')).toBeNull();
+  expect(result.getByLabelText('Change earnings month').props.accessibilityState.expanded).toBe(false);
+});
+
+it('dismisses the month chooser without changing the selected month', () => {
+  const change = jest.fn();
+  const result = render(<HomeContent {...access} portal={samplePortal} onMonthChange={change} />);
+  fireEvent.press(result.getByLabelText('Change earnings month'));
+  fireEvent.press(result.getByLabelText('Close earnings month'));
+  expect(result.queryByLabelText('September 2026')).toBeNull();
+  expect(result.getByLabelText('Change earnings month').props.accessibilityValue).toMatchObject({ text: 'October 2026' });
+  expect(change).not.toHaveBeenCalled();
+});
+
+it('keeps complete large earnings values available at small widths and larger text settings', () => {
+  jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 320, height: 667, scale: 1, fontScale: 1.6 });
+  const result = render(<HomeContent {...access} portal={{ ...samplePortal,
+    income: { totalThisMonth: 1234567890, directThisMonth: 987654321, teamThisMonth: 246913569 } }} />);
+  for (const [label, value] of [
+    ['October 2026 earnings, ₱1,234,567,890', '₱1,234,567,890'],
+    ['From your link, ₱987,654,321', '₱987,654,321'],
+    ['From your agents, ₱246,913,569', '₱246,913,569'],
+  ]) {
+    expect(result.getByLabelText(label)).toBeTruthy();
+    expect(result.getByText(value).props.numberOfLines).toBeUndefined();
+  }
 });
 
 it('copies and shares the saved shop URL and disables these actions in preview', async () => {
@@ -91,6 +157,51 @@ it('copies and shares the saved shop URL and disables these actions in preview',
   expect(result.getByLabelText('Copy shop link')).toBeDisabled();
   expect(result.getByLabelText('Share my shop link')).toBeDisabled();
   expect(result.getByLabelText('Change earnings month')).toBeDisabled();
+});
+
+it('introduces the saved shop link with the fixed creator offer rather than a legacy custom price', () => {
+  const result = render(<HomeContent {...access} account={{ ...sampleAffiliate, affiliatePrice: 2661 }} portal={samplePortal} />);
+  expect(result.getByText('Share with shop owners')).toBeTruthy();
+  expect(result.getByText('tendso.com/v2/a/sample-affiliate')).toBeTruthy();
+  expect(result.getByText(/30%/)).toBeTruthy();
+  expect(result.queryByText('₱2,661')).toBeNull();
+});
+
+it('keeps copy and share unavailable for a suspended account or a missing creator handle', () => {
+  const result = render(<HomeContent {...access} account={{ ...sampleAffiliate, status: 'suspended' }} portal={samplePortal} />);
+  expect(result.getByLabelText('Copy shop link')).toBeDisabled();
+  expect(result.getByLabelText('Share my shop link')).toBeDisabled();
+  result.rerender(<HomeContent {...access} account={{ ...sampleAffiliate, affiliateHandle: undefined }} portal={samplePortal} />);
+  expect(result.getByLabelText('Copy shop link')).toBeDisabled();
+  expect(result.getByLabelText('Share my shop link')).toBeDisabled();
+  fireEvent.press(result.getByLabelText('Copy shop link'));
+  expect(Clipboard.setStringAsync).not.toHaveBeenCalled();
+});
+
+it('reports copy and share failures while allowing a later retry', async () => {
+  jest.mocked(Clipboard.setStringAsync).mockRejectedValueOnce(new Error('Clipboard unavailable'));
+  const share = jest.spyOn(Share, 'share').mockRejectedValueOnce(new Error('Sharing unavailable'));
+  const result = render(<HomeContent {...access} portal={samplePortal} />);
+  await act(async () => { fireEvent.press(result.getByLabelText('Copy shop link')); });
+  expect(result.getByText('Could not copy. Please try again.')).toBeTruthy();
+  await act(async () => { fireEvent.press(result.getByLabelText('Copy shop link')); });
+  expect(result.getByText('Copied.')).toBeTruthy();
+  await act(async () => { fireEvent.press(result.getByLabelText('Share my shop link')); });
+  expect(result.getByText('Could not share your link. Please try again.')).toBeTruthy();
+  share.mockResolvedValueOnce({ action: Share.sharedAction });
+  await act(async () => { fireEvent.press(result.getByLabelText('Share my shop link')); });
+  expect(share).toHaveBeenCalledTimes(2);
+  expect(result.queryByText('Could not share your link. Please try again.')).toBeNull();
+});
+
+it('ignores repeated share taps until the native share sheet finishes', async () => {
+  let finish!: (value: Awaited<ReturnType<typeof Share.share>>) => void;
+  const share = jest.spyOn(Share, 'share').mockReturnValue(new Promise(resolve => { finish = resolve; }));
+  const result = render(<HomeContent {...access} portal={samplePortal} />);
+  fireEvent.press(result.getByLabelText('Share my shop link'));
+  fireEvent.press(result.getByLabelText('Share my shop link'));
+  expect(share).toHaveBeenCalledTimes(1);
+  await act(async () => { finish({ action: Share.sharedAction }); });
 });
 
 it('shows only an owned recruit’s monthly share, lifetime earnings, rate and actual dates', () => {
