@@ -46,6 +46,8 @@ jest.mock('@/app/auth/_components/AuthFrame', () => ({
     },
 }));
 jest.mock('@/components/v2/creators/Photo', () => ({ Photo: () => null }));
+jest.mock('@/components/r1/Toaster', () => ({ Toaster: () => null }));
+jest.mock('@/components/affiliate/CreatorCodeConfirmDialog.module.css', () => ({}));
 jest.mock('@/app/affiliates/dashboard/_components/MyPage.module.css', () => ({}));
 jest.mock('@/app/affiliates/dashboard/_components/PageSettings', () => ({ PageSettings: () => null }));
 jest.mock('@/components/v2/creators/CreatorPagePreview', () => ({
@@ -139,10 +141,17 @@ async function settleDebounce() {
 async function click(label: string) {
     await act(async () => { (button(label).props.onClick as () => unknown)(); await Promise.resolve(); });
 }
-async function submit() {
+async function submit(confirm = true) {
     const form = renderer!.root.findAllByType('form')[0];
     if (!form) throw new Error('Form missing');
     await act(async () => { (form.props.onSubmit as (event: { preventDefault: () => void }) => unknown)({ preventDefault: jest.fn() }); await Promise.resolve(); });
+    if (confirm) {
+        const primary = renderer!.root.findAllByType('button').find(node => ['Confirm code', 'Confirm and create account'].includes(text(node).trim()));
+        if (primary) await act(async () => { (primary.props.onClick as () => unknown)(); await Promise.resolve(); });
+    }
+}
+function openDialogs() {
+    return renderer!.root.findAllByType('dialog').filter(node => node.children.length > 0);
 }
 function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -529,5 +538,107 @@ describe('legacy affiliate signup custom code', () => {
         expect(input('Page handle').props.value).toBe('mika-legacy');
         expect(input('Mobile number').props.value).toBe('09171234567');
         expect(navigation.replace).not.toHaveBeenCalled();
+    });
+});
+
+type ChoicePath = 'my-page' | 'signup' | 'legacy-signup';
+const choicePaths: ChoicePath[] = ['my-page', 'signup', 'legacy-signup'];
+const confirmLabel = (path: ChoicePath) => path === 'my-page' ? 'Confirm code' : 'Confirm and create account';
+const choiceWrite = (path: ChoicePath) => path === 'my-page' ? updateCode : path === 'signup' ? apply : createAffiliate;
+async function prepareChoice(path: ChoicePath) {
+    if (path === 'my-page') await mount();
+    else if (path === 'signup') {
+        await signupStepFour();
+        await change('mikashops', 'Your name on Tendso');
+    } else {
+        await mount(createElement(AffiliateJoinPage));
+        await change('09171234567', 'Mobile number');
+        await change('mika-shops', 'Page handle');
+    }
+    await change('shops30');
+    await settleDebounce();
+}
+
+describe('one-time creator code confirmation', () => {
+    it.each(choicePaths)('requires an explicit confirmation on %s and preserves the draft when cancelled', async path => {
+        await prepareChoice(path);
+        await submit(false);
+        expect(choiceWrite(path)).not.toHaveBeenCalled();
+        expect(openDialogs()).toHaveLength(1);
+        const message = text(openDialogs()[0]);
+        expect(message).toContain('SHOPS30');
+        expect(message).toContain('fixed 30% discount');
+        expect(message).toMatch(/cannot.*change|permanent/i);
+        await click('Keep editing');
+        expect(openDialogs()).toHaveLength(0);
+        expect(input().props.value).toBe('SHOPS30');
+        expect(choiceWrite(path)).not.toHaveBeenCalled();
+
+        await submit(false);
+        await click(confirmLabel(path));
+        expect(choiceWrite(path)).toHaveBeenCalledTimes(1);
+        expect(choiceWrite(path)).toHaveBeenCalledWith(expect.objectContaining({ code: 'SHOPS30' }));
+    });
+
+    it.each(choicePaths)('does not write a stale captured candidate on %s', async path => {
+        await prepareChoice(path);
+        await submit(false);
+        const queuedConfirm = button(confirmLabel(path)).props.onClick as () => unknown;
+        await change('OTHER30');
+        await act(async () => { queuedConfirm(); await Promise.resolve(); });
+        expect(choiceWrite(path)).not.toHaveBeenCalled();
+        expect(openDialogs()).toHaveLength(0);
+        expect(input().props.value).toBe('OTHER30');
+    });
+
+    it.each(choicePaths)('drops the old confirmation after the Clerk actor changes on %s', async path => {
+        await prepareChoice(path);
+        await submit(false);
+        const queuedConfirm = button(confirmLabel(path)).props.onClick as () => unknown;
+        const next = { ...account, _id: 'next-affiliate' as Doc<'creators'>['_id'], clerkId: 'next-clerk-user', referralCode: 'NINA30' };
+        state.user = { ...state.user!, id: next.clerkId, fullName: 'Nina Cruz', firstName: 'Nina' };
+        state.setup = setup('NINA30', true, next._id);
+        await rerender(path === 'my-page' ? createElement(CreatorCodeSettings, { account: next })
+            : path === 'signup' ? createElement(SignupFlow) : createElement(AffiliateJoinPage));
+        await act(async () => { queuedConfirm(); await Promise.resolve(); });
+        expect(choiceWrite(path)).not.toHaveBeenCalled();
+        expect(openDialogs()).toHaveLength(0);
+        expect(text(renderer!.root)).not.toContain('SHOPS30');
+    });
+
+    it('invalidates the confirmation when the server revokes the one-time setup permission', async () => {
+        await prepareChoice('my-page');
+        await submit(false);
+        const queuedConfirm = button('Confirm code').props.onClick as () => unknown;
+        state.setup = setup('MIKA30', false);
+        await rerender();
+        await act(async () => { queuedConfirm(); await Promise.resolve(); });
+        expect(updateCode).not.toHaveBeenCalled();
+        expect(openDialogs()).toHaveLength(0);
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+    });
+
+    it('blocks cancellation and duplicate confirmation while the one-time write is pending', async () => {
+        const pending = deferred<{ code: string }>();
+        updateCode.mockReturnValueOnce(pending.promise);
+        await prepareChoice('my-page');
+        await submit(false);
+        const queuedConfirm = button('Confirm code').props.onClick as () => unknown;
+        await click('Confirm code');
+        expect(updateCode).toHaveBeenCalledTimes(1);
+        expect(openDialogs()).toHaveLength(1);
+        const actions = openDialogs()[0].findAllByType('button');
+        expect(actions).toHaveLength(2);
+        expect(actions.every(node => node.props.disabled === true)).toBe(true);
+        const modalTarget = {};
+        await act(() => {
+            (openDialogs()[0].props.onCancel as (event: unknown) => void)({ target: modalTarget, currentTarget: modalTarget, preventDefault: jest.fn() });
+        });
+        await act(async () => { queuedConfirm(); await Promise.resolve(); });
+        expect(openDialogs()).toHaveLength(1);
+        expect(updateCode).toHaveBeenCalledTimes(1);
+        await act(async () => { pending.resolve({ code: 'SHOPS30' }); });
+        expect(openDialogs()).toHaveLength(0);
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
     });
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useClerk, useSession, useUser } from '@clerk/clerk-expo';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
@@ -11,8 +11,11 @@ import {
   clearPendingSignupProfile, clearPendingSignupProfiles, createSignupAccount, loadPendingSignupProfile,
   normalizeSignupProfile, savePendingSignupProfile, signupAccountHome, signupErrorMessage, signupProfileErrors,
 } from '../../services/signupProfile';
-import type { SignupProfile } from '../../services/signupProfile';
+import type { SignupIdentity, SignupProfile } from '../../services/signupProfile';
 import { creatorCodeError, normalizeCreatorCode } from '../../../../lib/creatorCodes';
+import { CreatorCodeConfirmation } from '../../components/affiliate/CreatorCodeConfirmation';
+
+type SetupSubmission = { profile: SignupProfile; identity: SignupIdentity; actorKey: string; formKey: string; code: string };
 
 /** Authentication is complete before either account creation mutation can run. */
 export default function AccountSetupScreen() {
@@ -36,7 +39,10 @@ export default function AccountSetupScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const inFlight = useRef(false);
+  const inFlight = useRef<{ token: symbol; submission: SetupSubmission } | null>(null);
+  const mounted = useRef(true);
+  const [confirmation, setConfirmation] = useState<SetupSubmission | null>(null);
+  const activeConfirmation = useRef<SetupSubmission | null>(null);
   const [codeCheck, setCodeCheck] = useState<{ subject: string; value: string } | null>(null);
   const codeCandidate = normalizeCreatorCode(profile.creatorCode ?? '');
   const codeFormatError = codeCandidate ? creatorCodeError(codeCandidate) : null;
@@ -58,6 +64,35 @@ export default function AccountSetupScreen() {
   const creatorCodeHelper = !codeCandidate ? 'Choose your own code, such as ALEX30. Owners save 30% with it.'
     : codeReady ? 'This code is available. Owners save 30% with it.'
     : isConnected !== true ? 'Connect to check whether this code is available.' : 'Checking code availability…';
+  const actorKey = JSON.stringify([identity.clerkId ?? null, identity.email?.trim().toLowerCase() ?? null,
+    identity.sessionId ?? null, ownSession?.clerkId ?? null]);
+  const formKey = JSON.stringify(normalizeSignupProfile(profile));
+  const sessionReady = isAuthenticated && !isLoading && !!ownSession && !isOwner && account === null
+    && !!identity.clerkId && draftLoaded;
+  const live = useRef({ actorKey, formKey, sessionReady, connected: isConnected === true, codeReady, codeCandidate });
+  live.current = { actorKey, formKey, sessionReady, connected: isConnected === true, codeReady, codeCandidate };
+  const matches = useCallback((submission: SetupSubmission) => mounted.current && live.current.sessionReady
+    && live.current.actorKey === submission.actorKey && live.current.formKey === submission.formKey, []);
+  if (activeConfirmation.current && !matches(activeConfirmation.current)) activeConfirmation.current = null;
+  const maySubmit = useCallback((submission: SetupSubmission) => matches(submission) && live.current.connected
+    && (submission.profile.accountType !== 'affiliate' || activeConfirmation.current === submission
+      && live.current.codeReady && live.current.codeCandidate === submission.code), [matches]);
+  const confirmationCurrent = !!confirmation && activeConfirmation.current === confirmation
+    && confirmation.profile.accountType === 'affiliate' && matches(confirmation);
+  const confirmationReady = !!confirmation && maySubmit(confirmation);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; inFlight.current = null; activeConfirmation.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (confirmation && (!matches(confirmation) || activeConfirmation.current !== confirmation)) setConfirmation(null);
+    if (inFlight.current && !matches(inFlight.current.submission)) {
+      inFlight.current = null;
+      setSaving(false);
+    }
+  }, [actorKey, formKey, sessionReady, confirmation, matches]);
 
   useEffect(() => {
     if (!isAuthenticated || !identity.clerkId || !ownSession || isOwner) return;
@@ -86,35 +121,74 @@ export default function AccountSetupScreen() {
   }, [account?._id, account?.role, identity, router]);
 
   const change = (field: keyof SignupProfile, value: string) => {
+    if (inFlight.current) return;
+    activeConfirmation.current = null;
+    setConfirmation(null);
     setProfile((previous) => ({ ...previous, [field]: value }));
     setFieldErrors({});
     setError('');
   };
 
-  const save = async () => {
-    if (inFlight.current || !isAuthenticated || isLoading || !ownSession || isOwner || account !== null || !identity.clerkId || isConnected !== true) return;
-    if (profile.accountType === 'affiliate' && !codeReady) return;
-    const normalized = normalizeSignupProfile(profile);
-    const errors = signupProfileErrors(normalized);
-    setFieldErrors(errors);
-    if (Object.keys(errors).length) return;
-    inFlight.current = true;
+  const createAccount = async (submission: SetupSubmission) => {
+    if (inFlight.current || !maySubmit(submission)) return;
+    const token = Symbol('signup');
+    inFlight.current = { token, submission };
+    const active = () => mounted.current && inFlight.current?.token === token && matches(submission);
     setSaving(true);
     setError('');
     try {
       // Keep every edit available after a failed request or an app restart.
-      await savePendingSignupProfile(normalized, identity);
-      await createSignupAccount(normalized, identity, { isAuthenticated, hasAccount: account !== null }, { createCreator, createAffiliate });
-      router.replace(signupAccountHome(normalized.accountType));
+      await savePendingSignupProfile(submission.profile, submission.identity);
+      // Storage can yield while the account, session, connection or code check changes.
+      if (!active() || !maySubmit(submission)) return;
+      await createSignupAccount(submission.profile, submission.identity, { isAuthenticated: true, hasAccount: false }, { createCreator, createAffiliate });
+      if (!active()) return;
+      activeConfirmation.current = null;
+      setConfirmation(null);
+      router.replace(signupAccountHome(submission.profile.accountType));
     } catch (failure) {
-      setError(signupErrorMessage(failure));
+      if (active()) setError(signupErrorMessage(failure));
     } finally {
-      inFlight.current = false;
-      setSaving(false);
+      if (mounted.current && inFlight.current?.token === token) {
+        inFlight.current = null;
+        setSaving(false);
+      }
     }
   };
 
+  const save = () => {
+    if (inFlight.current || !sessionReady || isConnected !== true) return;
+    const normalized = normalizeSignupProfile(profile);
+    const errors = signupProfileErrors(normalized);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity.email?.trim() ?? '')) {
+      setError('Add a verified email to your sign-in account before continuing.');
+      return;
+    }
+    if (normalized.accountType === 'affiliate' && !codeReady) return;
+    const submission = { profile: normalized, identity: { ...identity }, actorKey, formKey, code: codeCandidate };
+    setError('');
+    if (normalized.accountType === 'affiliate') {
+      // Object identity is the review token, even if a later popup has identical fields.
+      activeConfirmation.current = submission;
+      setConfirmation(submission);
+    }
+    else void createAccount(submission);
+  };
+
+  const cancelConfirmation = () => {
+    if (inFlight.current) return;
+    activeConfirmation.current = null;
+    setConfirmation(null);
+    setError('');
+  };
+
   const leave = async () => {
+    activeConfirmation.current = null;
+    inFlight.current = null;
+    setConfirmation(null);
+    setSaving(false);
     try {
       await clearPendingSignupProfiles();
     } finally {
@@ -185,8 +259,13 @@ export default function AccountSetupScreen() {
         : null}
       </View>
       <Text variant="label" tone="muted" style={styles.note}>To use both, sign up with different emails.</Text>
-      {error ? <Banner tone="danger" body={error} style={styles.note} /> : null}
+      {error && !confirmationCurrent ? <Banner tone="danger" body={error} style={styles.note} /> : null}
     </ScreenShell>
+    <CreatorCodeConfirmation visible={confirmationCurrent} code={confirmation?.code ?? ''} creatingAccount
+      busy={saving} disabled={!confirmationReady}
+      error={error || (isConnected !== true ? 'Connect to the internet before creating your account.'
+        : !codeReady ? creatorCodeProblem || 'Check that this code is still available before continuing.' : undefined)}
+      onConfirm={() => { if (confirmation) void createAccount(confirmation); }} onCancel={cancelConfirmation} />
   </KeyboardAvoidingView>;
 }
 

@@ -11,11 +11,13 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AUTH_BODY, AuthFrame } from "@/app/auth/_components/AuthFrame";
 import { AuthAlert } from "@/app/auth/_components/AuthParts";
 import { Button, Field, Icon, Input, Loading, PhoneInput, Skeleton } from "@/components/r1";
+import { CreatorCodeConfirmDialog } from "@/components/affiliate/CreatorCodeConfirmDialog";
 import { api } from "@/convex/_generated/api";
 import { AFFILIATE_HANDLE_MAX_LENGTH, AFFILIATE_HANDLE_MIN_LENGTH, affiliateHandleError, affiliatePhoneError } from "@/lib/affiliates";
 import { CREATOR_CODE_MAX_LENGTH, creatorCodeError, normalizeCreatorCode } from "@/lib/creatorCodes";
 import { useCreatorCodeAvailability, useDebounced } from "@/lib/v2/creatorData";
 import { CODE_PERCENT_OFF } from "@/lib/v2/creatorProgram";
+import { useCreatorCodeConfirmation } from "@/lib/v2/useCreatorCodeConfirmation";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../_components/AccountState";
 
@@ -76,12 +78,12 @@ export default function AffiliateJoinPage() {
     if (account) return <DifferentAccount role={account.role} />;
     if (owner) return <DifferentAccount role="owner" />;
 
-    return <AffiliateProfile key={user.id} name={user.fullName ?? ""} email={user.primaryEmailAddress?.emailAddress} />;
+    return <AffiliateProfile key={user.id} clerkId={user.id} name={user.fullName ?? ""} email={user.primaryEmailAddress?.emailAddress} />;
 }
 
 type FieldErrors = { name?: string; phone?: string; handle?: string; code?: string };
 
-function AffiliateProfile({ name: initialName, email }: { name: string; email?: string }) {
+function AffiliateProfile({ clerkId, name: initialName, email }: { clerkId: string; name: string; email?: string }) {
     const router = useRouter();
     const createAffiliate = useMutation(api.affiliates.create);
     const [name, setName] = useState(initialName);
@@ -101,9 +103,12 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
     const codeCheck = useCreatorCodeAvailability(code && !problem && debouncedCode === code ? code : null, { signup: true });
     const codeChecked = debouncedCode === code && codeCheck.status === "checked" && codeCheck.result?.value === code;
     const codeFree = codeChecked && codeCheck.result?.available === true;
+    const profile = { email: email ?? "", firstName: name.trim(), phone, handle, code };
+    const validProfile = !!email && !!name.trim() && name.trim().length <= 100 && !affiliatePhoneError(phone) && !affiliateHandleError(handle) && !creatorCodeError(code) && codeFree;
+    const confirmation = useCreatorCodeConfirmation({ actor: clerkId, code, context: JSON.stringify(profile), allowed: validProfile, busy: saving });
     useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (saving) return;
         setError(undefined);
@@ -129,15 +134,23 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
             return;
         }
 
+        confirmation.request();
+    }
+
+    async function confirmCreate() {
+        const choice = confirmation.take();
+        if (!choice) return;
         setSaving(true);
         try {
-            await createAffiliate({ email, firstName: name.trim(), phone, handle, code });
+            await createAffiliate({ ...profile, code: choice.code });
             if (alive.current) router.replace("/affiliates/dashboard");
         } catch (err) {
             if (!alive.current) return;
             setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : "Your account was not saved. Please try again.");
             codeCheck.retry();
             setSaving(false);
+        } finally {
+            confirmation.finish(choice.token);
         }
     }
 
@@ -176,6 +189,7 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
                     {saving ? "Saving…" : <>Create affiliate account <Icon icon={ArrowRight} /></>}
                 </Button>
             </form>
+            <CreatorCodeConfirmDialog open={confirmation.open} code={confirmation.code} busy={saving} canConfirm={confirmation.canConfirm} creatingAccount onCancel={confirmation.cancel} onConfirm={confirmCreate} />
         </AuthFrame>
     );
 }

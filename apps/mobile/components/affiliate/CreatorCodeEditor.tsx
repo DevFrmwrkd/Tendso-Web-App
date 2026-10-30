@@ -6,6 +6,7 @@ import { api, type Id } from '@tendso/convex-client';
 import { Button, Card, Field, Text } from '../v2';
 import { space } from '../../theme/v2';
 import { creatorCodeError, normalizeCreatorCode } from '../../../../lib/creatorCodes';
+import { CreatorCodeConfirmation } from './CreatorCodeConfirmation';
 
 type SetupProps = { accountId: Id<'creators'>; savedCode?: string; offline: boolean };
 
@@ -55,10 +56,15 @@ function ChooseCode({ savedCode, offline, onChosen }: { savedCode?: string; offl
   const [checkedValue, setCheckedValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [choice, setChoice] = useState<{ code: string } | null>(null);
+  const activeChoice = useRef<typeof choice>(null);
+  const pendingCode = choice?.code;
+  const inFlight = useRef(false);
   const alive = useRef(true);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; activeChoice.current = null; }; }, []);
   if (seen !== savedCode) {
     setSeen(savedCode);
+    activeChoice.current = null;
     setBaseline(savedCode ?? '');
     if (draft.trim() === baseline) setDraft(savedCode ?? '');
   }
@@ -74,26 +80,37 @@ function ChooseCode({ savedCode, offline, onChosen }: { savedCode?: string; offl
   const update = useMutation(api.creatorProgram.updateCode);
   const confirmed = !offline && valid && checkedValue === candidate && availability?.value === candidate;
   const available = confirmed && availability.available;
+  const currentChoice = useRef({ candidate, available });
+  currentChoice.current = { candidate, available };
   const formatError = candidate && localError ? localError : '';
   const availabilityError = confirmed && !availability.available ? availability.error || 'That code is already taken. Choose another one.' : '';
   const status = error || formatError || availabilityError || (valid ? offline ? 'Connect to check availability.' : available ? 'Available' : 'Checking availability…' : '');
   const failed = !!(error || formatError || availabilityError);
 
-  async function save() {
-    if (saving || !available) return;
+  function requestConfirmation() {
+    if (!alive.current || inFlight.current || saving || !currentChoice.current.available) return;
     Keyboard.dismiss();
+    const next = { code: candidate };
+    activeChoice.current = next;
+    setError(''); setChoice(next);
+  }
+
+  async function save() {
+    const chosen = pendingCode;
+    if (!alive.current || inFlight.current || saving || !choice || activeChoice.current !== choice || !chosen || chosen !== currentChoice.current.candidate || !currentChoice.current.available) return;
+    inFlight.current = true;
     setSaving(true); setError('');
     try {
-      const result = await update({ code: candidate });
+      const result = await update({ code: chosen });
       if (!alive.current) return;
       onChosen(result.code);
     } catch (problem) {
       if (alive.current) setError(problem instanceof ConvexError && typeof problem.data === 'string'
         ? problem.data : 'Your code was not set. Check availability and try again.');
-    } finally { if (alive.current) setSaving(false); }
+    } finally { inFlight.current = false; if (alive.current) setSaving(false); }
   }
 
-  return <Card variant="lg" style={styles.card}>
+  return <><Card variant="lg" style={styles.card}>
     <View style={styles.heading}>
       <Text variant="heading" accessibilityRole="header">Choose your creator code</Text>
       <Text variant="body" tone="muted">Make it easy to remember, like MIKA30. Every creator code gives the same 30% off.</Text>
@@ -101,13 +118,15 @@ function ChooseCode({ savedCode, offline, onChosen }: { savedCode?: string; offl
     </View>
     <Text variant="label" tone="muted">Current code: {savedCode || 'Not set'}</Text>
     <Field label="Creator code" value={draft} placeholder="MIKA30" autoCapitalize="characters" autoCorrect={false}
-      maxLength={16} editable={!saving && !offline} returnKeyType="done" onSubmitEditing={save}
-      onChangeText={value => { setDraft(value.toUpperCase()); setError(''); }}
+      maxLength={16} editable={!saving && !offline} returnKeyType="done" onSubmitEditing={requestConfirmation}
+      onChangeText={value => { activeChoice.current = null; setDraft(value.toUpperCase()); setError(''); }}
       helper="4–16 letters and numbers. Each code belongs to one creator." />
     {status ? <Text testID="creator-code-status" variant="label" tone={failed ? 'danger' : 'muted'} accessibilityRole={failed ? 'alert' : undefined} accessibilityLiveRegion="polite">{status}</Text> : null}
-    <Button title="Set my code" variant="dark" size="md" disabled={saving || !available} loading={saving} onPress={save} />
+    <Button title="Set my code" variant="dark" size="md" disabled={saving || !available} loading={saving} onPress={requestConfirmation} />
     <Text variant="label" tone="muted">This is a one-time setup. Previously shared codes still work. Your page link, past sales and commissions stay the same.</Text>
-  </Card>;
+  </Card><CreatorCodeConfirmation visible={!!pendingCode} code={pendingCode ?? ''} busy={saving}
+    disabled={!available || pendingCode !== candidate} error={error || (pendingCode !== candidate ? 'Your code changed. Keep editing and review the new code.' : availabilityError || (offline ? 'Connect before confirming your code.' : undefined))}
+    onConfirm={save} onCancel={() => { if (!inFlight.current) { activeChoice.current = null; setChoice(null); } }} /></>;
 }
 
 const styles = StyleSheet.create({ card: { gap: space.lg }, heading: { gap: space.sm } });

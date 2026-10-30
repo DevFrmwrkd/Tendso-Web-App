@@ -133,6 +133,7 @@ The legacy `affiliates.create` mutation also accepts an optional own `code?: str
 - Returns: `{ code: string }`, normalized to upper case.
 - Active affiliates with unfinished setup only; rechecks eligibility and uniqueness in the same transaction, then stamps `creatorCodeChosenAt`. Both the previous fallback and chosen code are permanently reserved in `creatorCodeAliases`. Concurrent different choices by the same account allow exactly one winner.
 - The chosen code is permanent. Repeating the same normalized code succeeds without writes; any different code, including an older alias, throws `Your creator code is already set and cannot be changed.`
+- Web and mobile show the exact code and a permanence warning in a confirmation popup before setting it or creating an affiliate account. Opening or cancelling the popup performs no write. Confirmation rechecks the current account, form and availability; stale or duplicate confirmations cannot submit.
 - The handle and shared links stay the same. Existing owner quotes, payments, commissions, referral identities and recruitment dates are unchanged. Old printed codes, pending referral jobs and onboarding retries continue resolving to the same creator, subject to the existing account-status rules.
 
 ---

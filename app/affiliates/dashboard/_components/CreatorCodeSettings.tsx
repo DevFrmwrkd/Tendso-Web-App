@@ -5,10 +5,12 @@ import { useConvexAuth } from "convex/react";
 import { Component, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { Button, Field, Input } from "@/components/r1";
+import { CreatorCodeConfirmDialog } from "@/components/affiliate/CreatorCodeConfirmDialog";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { CREATOR_CODE_MAX_LENGTH, creatorCodeError, normalizeCreatorCode } from "@/lib/creatorCodes";
 import { CODE_PERCENT_OFF } from "@/lib/v2/creatorProgram";
 import { CREATORS_SAMPLE, errorMessage, useCreatorCodeAvailability, useCreatorCodeSetup, useDebounced, useUpdateCreatorCode } from "@/lib/v2/creatorData";
+import { useCreatorCodeConfirmation } from "@/lib/v2/useCreatorCodeConfirmation";
 
 type Props = { account: Doc<"creators">; preview?: boolean };
 const CODE_ALREADY_SET = "Your creator code is already set and cannot be changed.";
@@ -74,6 +76,7 @@ function LiveCreatorCode({ account, initialCode, onChosen, onLocked }: { account
     const available = exact && check.result?.available === true;
     const canSave = !problem && available && !saving;
     const actor = `${account.clerkId}:${account._id}`;
+    const confirmation = useCreatorCodeConfirmation({ actor, code, context: savedCode, allowed: !problem && available, busy: saving });
     const currentActor = useRef<string | null>(actor);
     const statusId = useId();
     useEffect(() => {
@@ -84,13 +87,20 @@ function LiveCreatorCode({ account, initialCode, onChosen, onLocked }: { account
         if (exact && check.result?.error === CODE_ALREADY_SET) onLocked(CODE_ALREADY_SET);
     }, [exact, check.result?.error, onLocked]);
 
-    async function save(event: FormEvent<HTMLFormElement>) {
+    function save(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!canSave || !actor) return;
+        setSaveError(null);
+        confirmation.request();
+    }
+
+    async function confirmCode() {
+        const choice = confirmation.take();
+        if (!choice) return;
         setSaving(true);
         setSaveError(null);
         try {
-            const result = await updateCode(code);
+            const result = await updateCode(choice.code);
             if (currentActor.current === actor) onChosen(result.code);
         } catch (error) {
             if (currentActor.current === actor) {
@@ -100,6 +110,7 @@ function LiveCreatorCode({ account, initialCode, onChosen, onLocked }: { account
             }
         } finally {
             if (currentActor.current === actor) setSaving(false);
+            confirmation.finish(choice.token);
         }
     }
 
@@ -123,5 +134,6 @@ function LiveCreatorCode({ account, initialCode, onChosen, onLocked }: { account
             <div className="ap-save-row flex flex-wrap items-center gap-3"><Button type="submit" variant="primary" disabled={!canSave} aria-busy={saving}>{saving ? "Setting code…" : "Set my code"}</Button></div>
         </form>
         <p className="t-meta">Your page, QR code and poster use your chosen code after setup.</p>
+        <CreatorCodeConfirmDialog open={confirmation.open} code={confirmation.code} busy={saving} canConfirm={confirmation.canConfirm} onCancel={confirmation.cancel} onConfirm={confirmCode} />
     </section>;
 }

@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AccountSetupScreen from '../app/(app)/account-setup';
 import CompleteProfileScreen from '../app/(app)/complete-profile';
+import { CreatorCodeConfirmation } from '../components/affiliate/CreatorCodeConfirmation';
 import { loadPendingSignupProfile, normalizeSignupProfile, savePendingSignupProfile } from '../services/signupProfile';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -30,11 +31,12 @@ const mockQuery = jest.fn();
 const mockRouter = { replace: jest.fn() };
 const mockSignOut = jest.fn();
 const mockIdentity = { clerkId: 'user_alex', email: 'alex@example.com', sessionId: 'session_alex' };
+let mockSessionId = mockIdentity.sessionId;
 const mockUser = { id: mockIdentity.clerkId, firstName: 'Alex', lastName: 'Cruz', primaryEmailAddress: { emailAddress: mockIdentity.email }, update: jest.fn() };
 
 jest.mock('@clerk/clerk-expo', () => ({
   useUser: () => ({ user: mockUser }),
-  useSession: () => ({ session: { id: mockIdentity.sessionId } }),
+  useSession: () => ({ session: { id: mockSessionId } }),
   useClerk: () => ({ signOut: mockSignOut }),
 }));
 jest.mock('convex/react', () => ({
@@ -71,6 +73,7 @@ beforeEach(async () => {
   mockConnected = true;
   mockCodeResult = 'auto';
   mockAccount = null;
+  mockSessionId = mockIdentity.sessionId;
   mockCreateCreator.mockResolvedValue('creator_alex');
   mockCreateAffiliate.mockResolvedValue('affiliate_alex');
 });
@@ -87,6 +90,7 @@ it('waits for Convex authentication and preserves a legacy referral without aski
   expect(screen.queryByLabelText(/referral code/i)).toBeNull();
   expect(mockCreateCreator).not.toHaveBeenCalled();
   fireEvent.press(screen.getByLabelText('Create field agent account'));
+  expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
   await waitFor(() => expect(mockCreateCreator).toHaveBeenCalledWith(expect.objectContaining({
     clerkId: mockIdentity.clerkId, phone: '09171234567', referredByCode: 'AFF123',
   })));
@@ -137,6 +141,10 @@ it('resumes the affiliate choice and sends no incoming referral field', async ()
   expect(screen.queryByLabelText('Referral code')).toBeNull();
   await waitFor(() => expect(screen.getByLabelText('Create creator account').props.accessibilityState.disabled).toBe(false));
   fireEvent.press(screen.getByLabelText('Create creator account'));
+  expect(screen.getByTestId('creator-code-confirmation')).toBeTruthy();
+  expect(screen.getByText('ALEX30')).toBeTruthy();
+  expect(mockCreateAffiliate).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByLabelText('Confirm and create account'));
   await waitFor(() => expect(mockCreateAffiliate).toHaveBeenCalledWith({
     firstName: 'Alex Shop', lastName: 'Cruz', phone: '09171234567', handle: 'alex-shop', email: mockIdentity.email, code: 'ALEX30',
   }));
@@ -163,11 +171,14 @@ it('chooses an affiliate after signup while keeping the collected name and mobil
   expect(screen.getByLabelText('Page handle').props.value).toBe('');
   fireEvent.press(screen.getByLabelText('Create creator account'));
   expect(mockCreateAffiliate).not.toHaveBeenCalled();
+  expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+  expect(mockCreateAffiliate).not.toHaveBeenCalled();
 
   fireEvent.changeText(screen.getByLabelText('Page handle'), 'Juan-Shop');
   fireEvent.changeText(screen.getByLabelText('Creator code'), 'juan30');
   await waitFor(() => expect(screen.getByLabelText('Create creator account').props.accessibilityState.disabled).toBe(false));
   fireEvent.press(screen.getByLabelText('Create creator account'));
+  fireEvent.press(screen.getByLabelText('Confirm and create account'));
   await waitFor(() => expect(mockCreateAffiliate).toHaveBeenCalledWith({
     email: mockIdentity.email, firstName: 'Juan', lastName: 'Dela Cruz',
     phone: '09171234567', handle: 'juan-shop', code: 'JUAN30',
@@ -188,6 +199,7 @@ it('keeps the entered affiliate details after a server uniqueness error', async 
   fireEvent.changeText(screen.getByLabelText('Creator code'), 'taken30');
   await waitFor(() => expect(screen.getByLabelText('Create creator account').props.accessibilityState.disabled).toBe(false));
   fireEvent.press(screen.getByLabelText('Create creator account'));
+  fireEvent.press(screen.getByLabelText('Confirm and create account'));
   await waitFor(() => expect(screen.getByText('That page handle is already taken.')).toBeTruthy());
   expect(await loadPendingSignupProfile(mockIdentity)).toMatchObject({ accountType: 'affiliate', handle: 'taken-shop', phone: '09171234567', creatorCode: 'TAKEN30' });
   expect(mockRouter.replace).not.toHaveBeenCalled();
@@ -274,6 +286,8 @@ describe('required creator code during mobile affiliate setup', () => {
     mockCodeResult = { value: 'ALEX40', available: true, error: null };
     screen.rerender(<AccountSetupScreen />);
     fireEvent.press(screen.getByLabelText('Create creator account'));
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Confirm and create account'));
     await act(flush);
     expect(mockCreateAffiliate).toHaveBeenCalledWith(expect.objectContaining({ code: 'ALEX40', handle: 'alex-shop' }));
     expect(mockCreateAffiliate.mock.calls[0][0]).not.toHaveProperty('referredByCode');
@@ -328,5 +342,149 @@ describe('required creator code during mobile affiliate setup', () => {
     expect(screen.queryByLabelText('Create creator account')).toBeNull();
     await advance(500);
     expect(mockCreateAffiliate).not.toHaveBeenCalled();
+  });
+
+  it('reviews the exact permanent code before any draft write and preserves every edit on cancellation', async () => {
+    const screen = await mountCreator();
+    await advance(350);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.changeText(screen.getByLabelText('Name'), 'Alex Updated');
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    expect(screen.getByTestId('creator-code-confirmation')).toBeTruthy();
+    expect(screen.getByText('ALEX30')).toBeTruthy();
+    expect(screen.getByText('You won’t be able to change this code afterward.')).toBeTruthy();
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+    expect(mockCreateCreator).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Keep editing'));
+    expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+    expect(screen.getByLabelText('Name').props.value).toBe('Alex Updated');
+    expect(screen.getByLabelText('Creator code').props.value).toBe('ALEX30');
+    expect(screen.getByLabelText('Page handle').props.value).toBe('alex-shop');
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect((await loadPendingSignupProfile(mockIdentity))?.firstName).toBe('Alex');
+  });
+
+  it('rejects a queued confirmation after cancellation and after reopening the identical form', async () => {
+    const screen = await mountCreator();
+    await advance(350);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    const queuedOldConfirm = screen.UNSAFE_getByType(CreatorCodeConfirmation).props.onConfirm as () => void;
+    fireEvent.press(screen.getByLabelText('Keep editing'));
+    await act(async () => { queuedOldConfirm(); await flush(); });
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    const currentConfirm = screen.UNSAFE_getByType(CreatorCodeConfirmation).props.onConfirm as () => void;
+    await act(async () => { queuedOldConfirm(); await flush(); });
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+    expect(screen.getByTestId('creator-code-confirmation')).toBeTruthy();
+    await act(async () => { currentConfirm(); await flush(); });
+    expect(mockCreateAffiliate).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.multiSet).toHaveBeenCalledTimes(1);
+  });
+
+  it('validates the rest of the profile before showing the permanent-choice popup', async () => {
+    const screen = await mountCreator();
+    await advance(350);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.changeText(screen.getByLabelText('Mobile number'), '');
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    expect(screen.getByText('Enter a Philippine mobile number, like 09171234567.')).toBeTruthy();
+    expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+  });
+
+  it('rechecks availability and connectivity while the confirmation is open', async () => {
+    const screen = await mountCreator();
+    await advance(350);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    mockCodeResult = { value: 'ALEX30', available: false, error: 'That code is already taken. Choose another one.' };
+    screen.rerender(<AccountSetupScreen />);
+    expect(screen.getByLabelText('Confirm and create account').props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByRole('alert')).toHaveTextContent('That code is already taken. Choose another one.');
+    fireEvent.press(screen.getByLabelText('Confirm and create account'));
+    mockConnected = false;
+    screen.rerender(<AccountSetupScreen />);
+    expect(screen.getByLabelText('Confirm and create account').props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByRole('alert')).toHaveTextContent('Connect to the internet before creating your account.');
+    fireEvent.press(screen.getByLabelText('Confirm and create account'));
+    await act(flush);
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+  });
+
+  it.each(['name', 'code', 'role', 'session', 'account', 'authentication', 'JWT subject'])('invalidates an unconfirmed snapshot when its %s changes', async change => {
+    const screen = await mountCreator();
+    await advance(350);
+    const nameField = screen.getByLabelText('Name');
+    const codeField = screen.getByLabelText('Creator code');
+    const fieldAgentChoice = screen.getByLabelText(/^Field agent,/);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    expect(screen.getByTestId('creator-code-confirmation')).toBeTruthy();
+    if (change === 'name') fireEvent.changeText(nameField, 'A changed name');
+    if (change === 'code') fireEvent.changeText(codeField, 'DIFFERENT30');
+    if (change === 'role') fireEvent.press(fieldAgentChoice);
+    if (change === 'session') mockSessionId = 'new-session';
+    if (change === 'account') mockAccount = { _id: 'already-created', role: 'affiliate' };
+    if (change === 'authentication') mockAuthenticated = false;
+    if (change === 'JWT subject') mockJwtSubject = 'different-user';
+    screen.rerender(<AccountSetupScreen />);
+    await act(flush);
+    expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+    expect(AsyncStorage.multiSet).not.toHaveBeenCalled();
+    expect(mockCreateAffiliate).not.toHaveBeenCalled();
+    expect(mockCreateCreator).not.toHaveBeenCalled();
+  });
+
+  it('creates exactly once after confirmation and keeps the popup busy until the request completes', async () => {
+    let finish!: (id: string) => void;
+    mockCreateAffiliate.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const screen = await mountCreator();
+    await advance(350);
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+    fireEvent.press(screen.getByLabelText('Create creator account'));
+    fireEvent.press(screen.getByLabelText('Confirm and create account'));
+    fireEvent.press(screen.getByLabelText('Confirm and create account'));
+    await act(flush);
+    expect(mockCreateAffiliate).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.multiSet).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('Confirm and create account').props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByLabelText('Keep editing').props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(screen.getByLabelText('Keep editing'));
+    expect(screen.getByTestId('creator-code-confirmation')).toBeTruthy();
+    await act(async () => { finish('affiliate_alex'); await flush(); });
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(affiliate-tabs)');
+    expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+  });
+
+  it('does not create an account if the session changes while the confirmed draft is being saved', async () => {
+    const screen = await mountCreator();
+    await advance(350);
+    let release!: () => void;
+    const storage = AsyncStorage.multiSet as jest.Mock;
+    const originalWrite = storage.getMockImplementation();
+    storage.mockImplementationOnce(() => new Promise<void>(resolve => { release = resolve; }));
+    try {
+      fireEvent.press(screen.getByLabelText('Create creator account'));
+      fireEvent.press(screen.getByLabelText('Confirm and create account'));
+      expect(mockCreateAffiliate).not.toHaveBeenCalled();
+      mockSessionId = 'replacement-session';
+      screen.rerender(<AccountSetupScreen />);
+      await act(flush);
+      await act(async () => { release(); await flush(); });
+      expect(mockCreateAffiliate).not.toHaveBeenCalled();
+      expect(mockCreateCreator).not.toHaveBeenCalled();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('creator-code-confirmation')).toBeNull();
+    } finally { if (originalWrite) storage.mockImplementation(originalWrite); }
   });
 });

@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 
 import { clerkCode, clerkMessage, emailProblem } from "@/app/auth/_components/authLogic";
+import { CreatorCodeConfirmDialog } from "@/components/affiliate/CreatorCodeConfirmDialog";
+import { useCreatorCodeConfirmation } from "@/lib/v2/useCreatorCodeConfirmation";
 import {
     CREATORS_SAMPLE,
     errorMessage,
@@ -75,6 +77,8 @@ function SignupInner() {
     const mode = useRef<"signin" | "signup">("signup");
     const headingRef = useRef<HTMLHeadingElement | null>(null);
     const stepped = useRef(false);
+    const alive = useRef(true);
+    useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
     // step 1
     const [name, setName] = useState(CREATORS_SAMPLE && previewStep > 1 ? "Mika Santos" : "");
@@ -217,27 +221,42 @@ function SignupInner() {
             ? (availability?.handle?.error ?? "That name is taken. Try another.")
             : null;
 
-    async function submit(e: FormEvent) {
+    const { firstName: applicationFirstName, lastName: applicationLastName } = splitName(name || user?.fullName || user?.firstName || "");
+    const applicationArgs = {
+        firstName: applicationFirstName || "Creator",
+        lastName: applicationLastName,
+        handle,
+        code: creatorCode,
+        socials: chosen.map((p) => ({ platform: p.key, handle: socials[p.key].trim() })),
+        audienceSize: audience ?? undefined,
+    };
+    const applicationActor = CREATORS_SAMPLE ? "sample" : authLoaded && isSignedIn && convexReady && application?.status === "none" && user ? user.id : null;
+    const canApply = !!applicationActor && handleOk && free && socialsReady;
+    const confirmation = useCreatorCodeConfirmation({ actor: applicationActor, code: creatorCode, context: JSON.stringify(applicationArgs), allowed: step === 4 && canApply, busy });
+
+    function submit(e: FormEvent) {
         e.preventDefault();
-        if (busy || !handleOk || !free || (!CREATORS_SAMPLE && !convexReady)) return;
+        if (busy || !canApply) return;
+        setError(null);
+        confirmation.request();
+    }
+
+    async function confirmApplication() {
+        const choice = confirmation.take();
+        if (!choice) return;
         setBusy(true);
         setError(null);
         try {
-            const { firstName, lastName } = splitName(name || user?.fullName || user?.firstName || "");
-            await apply({
-                firstName: firstName || "Creator",
-                lastName,
-                handle,
-                code: creatorCode,
-                socials: chosen.map((p) => ({ platform: p.key, handle: socials[p.key].trim() })),
-                audienceSize: audience ?? undefined,
-            });
-            go(5);
+            await apply({ ...applicationArgs, code: choice.code });
+            if (alive.current) go(5);
         } catch (err) {
-            setError(errorMessage(err, "We could not send your application. Please try again."));
-            codeCheck.retry();
+            if (alive.current) {
+                setError(errorMessage(err, "We could not send your application. Please try again."));
+                codeCheck.retry();
+            }
         } finally {
-            setBusy(false);
+            if (alive.current) setBusy(false);
+            confirmation.finish(choice.token);
         }
     }
 
@@ -485,7 +504,7 @@ function SignupInner() {
                                 </div>
                             </div>
                             <div className="su-go">
-                                <button className="btn btn--accent" type="submit" disabled={busy || !handleOk || !free || (!CREATORS_SAMPLE && !convexReady)} aria-busy={busy}>
+                                <button className="btn btn--accent" type="submit" disabled={busy || !canApply} aria-busy={busy}>
                                     {busy ? "Sending…" : !CREATORS_SAMPLE && !convexReady ? "Signing you in…" : "Send for review"}
                                 </button>
                                 <p className="su-note">
@@ -530,6 +549,7 @@ function SignupInner() {
                 </section>
             </main>
             <div className="wrap" style={{ paddingBottom: 40 }} />
+            <CreatorCodeConfirmDialog open={confirmation.open} code={confirmation.code} busy={busy} canConfirm={confirmation.canConfirm} creatingAccount onCancel={confirmation.cancel} onConfirm={confirmApplication} />
         </>
     );
 }

@@ -1,7 +1,8 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { ConvexError } from 'convex/values';
 import { CreatorCodeEditor } from '../components/affiliate/CreatorCodeEditor';
+import { CreatorCodeConfirmation } from '../components/affiliate/CreatorCodeConfirmation';
 import type { Id } from '@tendso/convex-client';
 
 const mockUpdate = jest.fn(), mockQuery = jest.fn();
@@ -10,6 +11,7 @@ let mockSetup: { creatorId: string; code: string | null; canChoose: boolean; cho
 let mockSetupError = false;
 let mockAvailability: { value: string; available: boolean; error: string | null } | undefined;
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }) }));
 jest.mock('@tendso/convex-client', () => ({ api: { creatorProgram: { codeSetup: 'setup', checkCodeAvailability: 'check', updateCode: 'update' } } }));
 jest.mock('convex/react', () => ({
   useMutation: () => { mockMutationHook(); return mockUpdate; },
@@ -38,6 +40,10 @@ it('normalizes and debounces availability, then saves only the exact available c
   expect(mockQuery).toHaveBeenLastCalledWith({ code: 'MIKA30' });
   expect(view.getByText('Available')).toBeTruthy();
   await act(async () => fireEvent.press(view.getByLabelText('Set my code')));
+  expect(mockUpdate).not.toHaveBeenCalled();
+  expect(view.getByText('You won’t be able to change this code afterward.')).toBeTruthy();
+  expect(view.getByText('MIKA30')).toBeTruthy();
+  await act(async () => fireEvent.press(view.getByLabelText('Yes, set my code')));
   expect(mockUpdate).toHaveBeenCalledWith({ code: 'MIKA30' });
   expect(view.getByText('Your code is set. It can’t be changed.')).toBeTruthy();
   expect(view.queryByLabelText('Creator code')).toBeNull();
@@ -78,7 +84,8 @@ it('reports a server-side collision without changing the saved code', async () =
   const view = setup(); fireEvent.changeText(view.getByLabelText('Creator code'), 'MIKA30'); available();
   mockUpdate.mockRejectedValueOnce(new ConvexError('That code is already taken. Choose another one.'));
   await act(async () => fireEvent.press(view.getByLabelText('Set my code')));
-  expect(view.getByRole('alert')).toHaveTextContent(/already taken/);
+  await act(async () => fireEvent.press(view.getByLabelText('Yes, set my code')));
+  expect(within(view.getByTestId('creator-code-confirmation')).getByRole('alert')).toHaveTextContent(/already taken/);
   expect(view.queryByText('Code saved.')).toBeNull();
   expect(view.getByText('Current code: AFF12345')).toBeTruthy();
 });
@@ -114,6 +121,8 @@ it('lets a legacy creator permanently keep the generated code after an availabil
   mockUpdate.mockResolvedValueOnce({ code: 'AFF12345' });
   expect(view.getByText('Choose carefully. You can’t change this code after confirming.')).toBeTruthy();
   await act(async () => fireEvent.press(view.getByLabelText('Set my code')));
+  expect(mockUpdate).not.toHaveBeenCalled();
+  await act(async () => fireEvent.press(view.getByLabelText('Yes, set my code')));
   expect(mockUpdate).toHaveBeenCalledWith({ code: 'AFF12345' });
   expect(view.queryByLabelText('Set my code')).toBeNull();
 });
@@ -130,4 +139,51 @@ it('keeps failed setup read-only and retries without mounting write hooks before
     expect(view.getByLabelText('Creator code')).toBeTruthy();
     expect(view.getByLabelText('Set my code')).toBeDisabled();
   } finally { log.mockRestore(); }
+});
+
+it('cancels confirmation without changing the draft or saving a code', () => {
+  const view = setup(); fireEvent.changeText(view.getByLabelText('Creator code'), 'MIKA30'); available();
+  fireEvent.press(view.getByLabelText('Set my code'));
+  expect(view.getByTestId('creator-code-confirmation')).toBeTruthy();
+  fireEvent.press(view.getByLabelText('Keep editing'));
+  expect(view.queryByTestId('creator-code-confirmation')).toBeNull();
+  expect(view.getByDisplayValue('MIKA30')).toBeTruthy(); expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('rejects queued confirmation callbacks after canceling and reopening the same code', async () => {
+  const view = setup(); fireEvent.changeText(view.getByLabelText('Creator code'), 'MIKA30'); available();
+  fireEvent.press(view.getByLabelText('Set my code'));
+  const canceledConfirm = view.UNSAFE_getByType(CreatorCodeConfirmation).props.onConfirm;
+  fireEvent.press(view.getByLabelText('Keep editing'));
+  await act(async () => canceledConfirm());
+  expect(mockUpdate).not.toHaveBeenCalled();
+  fireEvent.press(view.getByLabelText('Set my code'));
+  await act(async () => canceledConfirm());
+  expect(mockUpdate).not.toHaveBeenCalled();
+  await act(async () => fireEvent.press(view.getByLabelText('Yes, set my code')));
+  expect(mockUpdate).toHaveBeenCalledTimes(1);
+  expect(mockUpdate).toHaveBeenCalledWith({ code: 'MIKA30' });
+});
+
+it('blocks a stale confirmation after the candidate or connection changes', () => {
+  const view = setup(); fireEvent.changeText(view.getByLabelText('Creator code'), 'MIKA30'); available();
+  fireEvent.press(view.getByLabelText('Set my code'));
+  fireEvent.changeText(view.getByLabelText('Creator code'), 'JOY30');
+  expect(view.getByLabelText('Yes, set my code')).toBeDisabled();
+  fireEvent.press(view.getByLabelText('Yes, set my code')); expect(mockUpdate).not.toHaveBeenCalled();
+  view.rerender(<CreatorCodeEditor accountId={actor} savedCode="AFF12345" offline />);
+  expect(view.getByLabelText('Yes, set my code')).toBeDisabled();
+});
+
+it('submits a confirmed code only once while the mutation is pending', async () => {
+  let finish!: (value: { code: string }) => void;
+  mockUpdate.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const view = setup(); fireEvent.changeText(view.getByLabelText('Creator code'), 'MIKA30'); available();
+  fireEvent.press(view.getByLabelText('Set my code'));
+  const confirm = view.getByLabelText('Yes, set my code');
+  fireEvent.press(confirm); fireEvent.press(confirm);
+  expect(mockUpdate).toHaveBeenCalledTimes(1);
+  expect(view.getByLabelText('Keep editing')).toBeDisabled();
+  await act(async () => finish({ code: 'MIKA30' }));
+  expect(view.queryByTestId('creator-code-confirmation')).toBeNull();
 });
