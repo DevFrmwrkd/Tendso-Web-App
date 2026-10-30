@@ -23,6 +23,7 @@ import { colors, radius, shadow, space } from '../../../theme/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
 import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
 import { distanceKm } from '../../../services/fieldAgentMap';
+import { ShopImage } from '../../../components/ShopImage';
 import {
   Avatar,
   Banner,
@@ -365,16 +366,9 @@ export default function LeadDetailScreen() {
       {isConnected === false ? (
         <Banner tone="warn" icon="cloud-offline-outline" title="You're offline" body="Reconnect to save notes or change this shop's status." />
       ) : null}
-      {/* Hero: photo, or a tinted tile, with the status chip */}
+      {/* Public/authorized photo, or the shared local placeholder, with the status chip. */}
       <View style={styles.hero}>
-        {heroUri ? (
-          <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" accessibilityLabel={`${shopName} photo`} />
-        ) : (
-          <View style={styles.heroTile}>
-            <Ionicons name="storefront-outline" size={56} color={colors.ink2} />
-            <Text variant="label" tone="muted" weight="medium">Shop photo not added</Text>
-          </View>
-        )}
+        <ShopImage uri={heroUri} name={shopName} width="100%" height="100%" borderRadius={0} />
         <Chip label={heroLabel} tone={hasLiveWebsite || detail.needsWebsite === true ? 'ok' : status.tone} style={styles.heroChip} />
       </View>
 
@@ -666,8 +660,6 @@ const styles = StyleSheet.create({
   section: { gap: space.sm },
 
   hero: { height: 196, borderRadius: radius.cardLg, overflow: 'hidden', backgroundColor: colors.accentSoft },
-  heroImg: { width: '100%', height: '100%' },
-  heroTile: { flex: 1, gap: space.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accentSoft },
   heroChip: { position: 'absolute', top: space.md, left: space.md },
   nameBlock: { gap: space.xs },
 

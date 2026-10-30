@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <defs><linearGradient id="paper" x2="0" y2="1"><stop stop-color="#F5F7E9"/><stop offset="1" stop-color="#E8EDE1"/></linearGradient></defs>
+  <path fill="url(#paper)" d="M0 0h640v480H0z"/>
+  <circle cx="418" cy="140" r="104" fill="#F6F9C4" opacity=".72"/>
+  <circle cx="152" cy="157" r="6" fill="#D7DDCC"/>
+  <circle cx="486" cy="263" r="4" fill="#CCD5BF"/>
+  <ellipse cx="320" cy="369" rx="184" ry="17" fill="#C6CEBB" opacity=".45"/>
+  <rect x="180" y="196" width="280" height="168" rx="13" fill="#FFF" stroke="#AEB99F" stroke-width="3"/>
+  <rect x="207" y="140" width="226" height="53" rx="12" fill="#FCFDF6" stroke="#AEB99F" stroke-width="3"/>
+  <rect x="259" y="162" width="122" height="8" rx="4" fill="#B8C3AA"/>
+  <path d="m189 182-22 29h306l-22-29z" fill="#F7F9DB" stroke="#AEB99F" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m189 182-22 29h51l14-29zm86 0-7 29h52v-29zm88 0 7 29h51l-14-29z" fill="#E4F222"/>
+  <path d="M167 211h51v15c0 10-13 16-25 16s-26-6-26-16zm101 0h52v15c0 10-13 16-26 16s-26-6-26-16zm102 0h51v15c0 10-13 16-25 16s-26-6-26-16z" fill="#D9E83A"/>
+  <path d="M218 211h50v15c0 10-12 16-25 16s-25-6-25-16zm102 0h50v15c0 10-12 16-25 16s-25-6-25-16zm101 0h52v15c0 10-13 16-26 16s-26-6-26-16z" fill="#FBFCEB"/>
+  <path d="M167 211v15c0 10 14 16 26 16s25-6 25-16c0 10 12 16 25 16s25-6 25-16c0 10 13 16 26 16s26-6 26-16c0 10 12 16 25 16s25-6 25-16c0 10 14 16 26 16s25-6 25-16c0 10 13 16 26 16s26-6 26-16v-15z" fill="none" stroke="#AEB99F" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="201" y="262" width="135" height="76" rx="7" fill="#E7EEE0" stroke="#AEB99F" stroke-width="3"/>
+  <path d="m205 267 88 0-59 67h-29z" fill="#F9FCF5" opacity=".8"/>
+  <path d="M268 263v74m-65-37h131" stroke="#AEB99F" stroke-width="3"/>
+  <rect x="357" y="261" width="76" height="103" rx="7" fill="#E3EBD9" stroke="#AEB99F" stroke-width="3"/>
+  <rect x="369" y="274" width="52" height="47" rx="4" fill="#FAFCF4"/>
+  <circle cx="417" cy="340" r="4" fill="#7A886C"/>
+  <path d="M173 365h294" stroke="#8E9E7E" stroke-width="5" stroke-linecap="round"/>
+  <path d="M135 343v-43m0 28c-20-1-28-12-25-26 18 1 26 10 25 26zm1-14c-1-20 8-32 22-32 4 17-3 30-22 32z" fill="#B2C89D" stroke="#8EAA7B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M118 341h35l-5 24h-25z" fill="#D1D8C6" stroke="#9DAE8D" stroke-width="3" stroke-linejoin="round"/>
+</svg>

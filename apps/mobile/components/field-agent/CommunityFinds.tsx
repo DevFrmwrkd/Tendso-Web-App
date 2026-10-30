@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Keyboard, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Alert, Keyboard, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useConvexAuth, useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { Avatar, Button, EmptyState, Loading, Pill, ScreenShell, Text } from '..
 import { colors, fonts, hit, radius, shadow, space } from '../../theme/v2';
 import { DEFAULT_FIND_RADIUS_KM, FIND_RADII_KM, filterCommunityFinds, findWebsiteLabel, type FindFilter } from '../../services/fieldAgentFinds';
 import { normalizeCommunityFind, publicImage, type CommunityFind } from '../../services/fieldAgentMap';
+import { ShopImage } from '../ShopImage';
 
 const FILTERS: { key: FindFilter; title: string }[] = [
   { key: 'all', title: 'All finds' }, { key: 'near', title: 'Near me' },
@@ -100,8 +101,6 @@ function FindTile({ lead, imageHeight, distanceLabel, onPress }: {
   lead: CommunityFind; imageHeight: number; distanceLabel?: string; onPress: () => void;
 }) {
   const photo = publicImage(lead.photoUrl || lead.previewImageUrl);
-  const [failedPhoto, setFailedPhoto] = useState(false);
-  useEffect(() => setFailedPhoto(false), [photo]);
   const person = lead.spottedBy ?? lead.submittedBy;
   const label = findWebsiteLabel(lead);
   return (
@@ -109,8 +108,7 @@ function FindTile({ lead, imageHeight, distanceLabel, onPress }: {
       accessibilityLabel={`${lead.businessName || 'Shop'}, ${label}${person ? `, spotted by ${person.displayName}` : ''}`}
       cssInterop={false} style={({ pressed }) => [styles.tile, pressed ? { opacity: 0.75 } : null]}>
       <View style={[styles.photo, { height: imageHeight }]}>
-        {photo && !failedPhoto ? <Image source={{ uri: photo }} style={StyleSheet.absoluteFill} resizeMode="cover" onError={() => setFailedPhoto(true)} />
-          : <View style={styles.placeholder}><Ionicons name="storefront-outline" size={36} color={colors.ink3} /><Text variant="label" tone="muted">Shop photo</Text></View>}
+        <ShopImage uri={photo} name={lead.businessName || 'Shop'} width="100%" height="100%" borderRadius={0} decorative />
         <View style={styles.tags}>
           <View style={[styles.tag, lead.hasLiveWebsite ? styles.liveTag : null]}>
             <Text variant="label" weight="bold" style={styles.tagText}>{label}</Text>
@@ -141,7 +139,6 @@ const styles = StyleSheet.create({
   rangeOption: { minHeight: hit.min, paddingHorizontal: space.md },
   masonry: { flexDirection: 'row', gap: space.md, paddingHorizontal: space.gutter }, column: { flex: 1, minWidth: 0, gap: space.xl },
   tile: { gap: space.sm }, photo: { borderRadius: radius.card, backgroundColor: colors.bg2, overflow: 'hidden' },
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.sm },
   tags: { position: 'absolute', left: space.sm, right: space.sm, top: space.sm, alignItems: 'flex-start' },
   tag: { maxWidth: '100%', paddingHorizontal: space.sm, paddingVertical: space.xs, borderRadius: radius.pill, backgroundColor: colors.card },
   tagText: { textAlign: 'center' },

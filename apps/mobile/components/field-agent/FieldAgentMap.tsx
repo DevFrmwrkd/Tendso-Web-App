@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  AccessibilityInfo, ActivityIndicator, Animated, Image, Linking, Modal, PanResponder, Platform, Pressable, ScrollView,
+  AccessibilityInfo, ActivityIndicator, Animated, Linking, Modal, PanResponder, Platform, Pressable, ScrollView,
   StyleSheet, View, useWindowDimensions,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, type MapViewProps, type Region } from 'react-native-maps';
@@ -20,6 +20,7 @@ import {
   type FieldAgentShop, type MapProspect,
 } from '../../services/fieldAgentMap';
 import { Avatar, Banner, Button, Text, TextLink, formatPeso } from '../v2';
+import { ShopImage } from '../ShopImage';
 import { colors, radius, shadow, space, type as typeScale } from '../../theme/v2';
 
 interface MapCreator extends WorkAreaAccount {
@@ -55,11 +56,6 @@ const QUIET_MAP: NonNullable<MapViewProps['customMapStyle']> = [
   { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ visibility: 'off' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#D3DCE3' }] },
 ];
-const KIND_ICONS: Record<FieldAgentShop['kind'], React.ComponentProps<typeof Ionicons>['name']> = {
-  food: 'restaurant-outline', sari_sari: 'storefront-outline', beauty: 'cut-outline',
-  repair: 'construct-outline', other: 'business-outline',
-};
-
 type MapSheetPosition = 'collapsed' | 'preview' | 'expanded';
 type MapSheetHeights = Record<MapSheetPosition, number>;
 
@@ -449,12 +445,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
 }
 
 function ShopPhoto({ shop, width, height }: { shop: FieldAgentShop; width: number; height: number }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [shop.photoUrl]);
-  return <View style={[styles.photo, { width, height }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-    {shop.photoUrl && !failed ? <Image source={{ uri: shop.photoUrl }} style={{ width, height }} resizeMode="cover" onError={() => setFailed(true)} />
-      : <Ionicons name={KIND_ICONS[shop.kind]} size={34} color={colors.ink3Text} />}
-  </View>;
+  return <ShopImage uri={shop.photoUrl} name={shop.name} width={width} height={height} decorative />;
 }
 
 function PhotoPin({ shop, selected, onPress }: { shop: FieldAgentShop; selected: boolean; onPress: () => void }) {
@@ -476,9 +467,8 @@ function PhotoPin({ shop, selected, onPress }: { shop: FieldAgentShop; selected:
       <View style={[styles.pin, { width: size, height: size, borderRadius: size / 2 },
         selected ? styles.pinSelected : shop.isMine || shop.hasLiveWebsite ? styles.pinYours : shop.needsWebsite === true ? styles.pinNeed : styles.pinUnknown]}>
         <View style={[styles.pinPhoto, { width: size - 10, height: size - 10, borderRadius: (size - 10) / 2 }]}>
-          {shop.photoUrl && !failed ? <Image source={{ uri: shop.photoUrl }} style={{ width: size - 10, height: size - 10 }}
-            onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
-            : <Ionicons name={KIND_ICONS[shop.kind]} size={selected ? 25 : 21} color={colors.ink} />}
+          <ShopImage uri={shop.photoUrl} name={shop.name} width={size - 10} height={size - 10} borderRadius={0}
+            decorative onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
         </View>
       </View>
       {selected ? <View style={styles.pinLabel}><Text variant="label" tone="onDark" numberOfLines={1}>{shop.name}</Text></View> : null}
@@ -527,7 +517,7 @@ const styles = StyleSheet.create({
   listShop: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.card, padding: space.md, borderRadius: radius.card },
   listShopText: { flex: 1, minWidth: 0, gap: space.xs },
   shopCard: { width: 200, borderRadius: radius.card, backgroundColor: colors.card, padding: space.sm, gap: space.xs },
-  cardName: { marginTop: space.xs }, photo: { overflow: 'hidden', borderRadius: 16, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
+  cardName: { marginTop: space.xs },
   empty: { paddingHorizontal: space.xl, paddingBottom: space.xl, gap: space.sm },
   detail: { paddingHorizontal: space.lg, paddingBottom: space.lg, gap: space.md },
   detailTop: { flexDirection: 'row', gap: space.md }, detailText: { flex: 1, gap: space.xs, minWidth: 0 },

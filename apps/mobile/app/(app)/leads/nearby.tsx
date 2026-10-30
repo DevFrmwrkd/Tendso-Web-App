@@ -6,7 +6,6 @@ import {
   Platform,
   BackHandler,
   ScrollView,
-  Image,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
@@ -23,6 +22,7 @@ import { colors, radius, shadow, space } from '../../../theme/v2';
 import { Avatar, Banner, Button, Chip, Loading, Text, TextLink, leadStatus } from '../../../components/v2';
 import { openDirections } from '../../../services/links';
 import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
+import { ShopImage } from '../../../components/ShopImage';
 
 type GeocodedLead = {
   leadId: string;
@@ -120,21 +120,16 @@ function ShopPin({
   selected: boolean;
   onPress: () => void;
 }) {
-  const [loaded, setLoaded] = useState(false);
-  const track = useBriefTracking(`${selected}-${loaded}`);
+  const [imageRevision, setImageRevision] = useState(0);
+  const track = useBriefTracking(`${selected}-${lead.photoUrl ?? ''}-${imageRevision}`);
+  const imageFinished = useCallback(() => setImageRevision(value => value + 1), []);
   const live = isLiveOrYours(lead);
   const size = selected ? PIN_SELECTED : PIN;
-  const initial = (lead.businessName ?? '').trim().charAt(0).toUpperCase() || '?';
 
   const photo = (box: number) => (
     <View style={[styles.photo, { width: box, height: box, borderRadius: box / 2 }]}>
-      {lead.photoUrl ? (
-        <Image source={{ uri: lead.photoUrl }} style={{ width: box, height: box }} onLoad={() => setLoaded(true)} />
-      ) : (
-        <Text variant="button" style={{ fontSize: Math.round(box * 0.42), lineHeight: Math.round(box * 0.5) }}>
-          {initial}
-        </Text>
-      )}
+      <ShopImage uri={lead.photoUrl} name={lead.businessName} width={box} height={box} borderRadius={box / 2}
+        decorative onLoad={imageFinished} onError={imageFinished} />
     </View>
   );
 
@@ -208,18 +203,13 @@ function MeDot({ coordinate }: { coordinate: { latitude: number; longitude: numb
 }
 
 function ShopTile({ uri, name, width, height }: { uri: string | null; name: string; width: number; height: number }) {
-  const initial = (name ?? '').trim().charAt(0).toUpperCase() || '?';
   return (
     <View
       style={[styles.tile, { width, height }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      {uri ? (
-        <Image source={{ uri }} style={{ width, height }} resizeMode="cover" />
-      ) : (
-        <Text variant="title">{initial}</Text>
-      )}
+      <ShopImage uri={uri} name={name} width="100%" height="100%" borderRadius={0} decorative />
     </View>
   );
 }

@@ -217,7 +217,25 @@ it.each([false, undefined])('does not render raw capture media without explicit 
   mockDetail.photoUrl = null;
   screen.rerender(<LeadDetailScreen />);
   expect(screen.queryByLabelText('Nena Store photo')).toBeNull();
-  expect(screen.getByText('Shop photo not added')).toBeTruthy();
+  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(require('../assets/placeholders/shop.png'));
+});
+
+it('uses the local placeholder after a public photo fails without exposing capture media, then recovers on a new photo URL', () => {
+  mockDetail.canViewCaptureMedia = false;
+  mockDetail.business = {
+    businessName: 'Nena Store', ownerName: 'Nena', ownerPhone: '09171234567',
+    photos: ['https://media.example.com/private-owner.jpg'], status: 'submitted',
+  };
+  const screen = render(<LeadDetailScreen />);
+  fireEvent(screen.getByLabelText('Nena Store photo'), 'error', { nativeEvent: { error: 'Photo unavailable' } });
+  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(require('../assets/placeholders/shop.png'));
+  expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
+  expect(screen.getByRole('header', { name: 'Nena Store' })).toBeTruthy();
+  mockDetail.photoUrl = 'https://images.example.com/new-shop-photo.jpg';
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.getByLabelText('Nena Store photo').props.source.uri).toBe(mockDetail.photoUrl);
+  expect(screen.queryByLabelText('Nena Store photo unavailable')).toBeNull();
+  expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
 });
 
 it('keeps capture photos available in detail when the server explicitly permits the capturing agent or admin', () => {
