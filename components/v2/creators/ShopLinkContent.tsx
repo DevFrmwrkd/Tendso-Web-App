@@ -64,7 +64,7 @@ export function ShopLinkContent({ card }: { card: CreatorCard }) {
                         </a>)}</div>
                     </nav> : null}
                 </div>
-                <figure className="as-photo">
+                <figure className="as-photo as-photo--creator">
                     <CreatorPhoto card={card} />
                     <figcaption className="as-photo-tag">
                         <span>
