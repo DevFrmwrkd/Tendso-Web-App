@@ -17,6 +17,8 @@
   .hub-head h1 { font-size: clamp(48px, 7vw, 108px); line-height: .9; letter-spacing: -0.06em; }
   .hub-head p { font-size: 19px; color: var(--ink-2); max-width: 40em; }
   .hub-meta { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  .hub-current-link { align-self: flex-start; display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 500; }
+  .hub-current-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
   .hub-sec { display: flex; flex-direction: column; gap: 22px; }
   .hub-sec > header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
   .hub-sec h2 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -0.045em; }
@@ -25,8 +27,22 @@
   .card-img { border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--tile-quiet); aspect-ratio: 16 / 10; transition: border-color var(--d-ui) var(--ease-out), transform var(--d-settle) var(--ease-expo); }
   .card-img img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
   .card:hover .card-img { border-color: var(--ink); transform: translateY(-3px); }
-  .card h3 { font-size: 21px; letter-spacing: -0.03em; line-height: 1.15; display: flex; align-items: center; gap: 10px; }
+  .card h3 { font-size: 21px; letter-spacing: -0.03em; line-height: 1.15; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
   .card p { font-size: 15px; color: var(--ink-2); }
+  .card--current { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); align-items: center; gap: clamp(20px, 4vw, 48px); padding: clamp(18px, 3vw, 32px); border: 1px solid var(--ink); border-radius: 28px; background: var(--canvas); }
+  .card-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; }
+  .card--current h3 { font-size: clamp(28px, 3.2vw, 44px); }
+  .card--current p { font-size: 17px; line-height: 1.5; }
+  .affiliate-thumb { aspect-ratio: 16 / 9; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; padding: clamp(18px, 3vw, 28px); background: #F5F5F2; }
+  .affiliate-thumb img { width: 38px; height: 38px; object-fit: contain; }
+  .affiliate-thumb > b { font-size: clamp(24px, 3.1vw, 40px); line-height: 1.05; letter-spacing: -.05em; }
+  .affiliate-thumb-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .affiliate-thumb-tabs span { padding: 7px 10px; border-radius: 999px; background: white; font-size: 13px; font-weight: 500; }
+  .affiliate-thumb-tabs span:first-child { background: var(--accent); color: var(--on-accent); }
+  .hub-note { color: var(--ink-2); font-size: 16px; max-width: 70ch; }
+  .hub-archive summary { cursor: pointer; font-size: 16px; font-weight: 500; }
+  .hub-archive > p { margin-top: 14px; }
+  @media (max-width: 640px) { .card--current { grid-template-columns: minmax(0, 1fr); } }
   .tag { font: 500 10px/1 var(--mono); letter-spacing: .07em; text-transform: uppercase; padding: 4px 7px; border-radius: 6px; background: var(--tile-quiet); color: var(--ink-2); }
   .tag--new { background: var(--accent); color: var(--on-accent); }
   .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px 32px; margin: 0; padding: 0; list-style: none; }
@@ -46,41 +62,47 @@
 <body>
 <main class="wrap hub">
   <header class="hub-head">
-    <span class="label">Tendso · design v2 · for approval</span>
+    <span class="label">Tendso · design v2 · reference hub</span>
     <h1>Landing, pages and app.</h1>
-    <p>Rule number one: never overwhelm. Every phone screen has one thing, one big button, at most 20 words and no text under 16px. A checker measures every screen; all pass.</p>
-    <div class="hub-meta"><span class="label">Accent #E4F222</span><span class="label">Desktop 1440 · Phone 390</span><span class="label">Prepared 20–21 Oct 2026</span></div>
+    <p>Web and mobile design references for Tendso. Business owners, field agents and creators use one app. The latest affiliate board is highlighted below; earlier flow studies stay available for comparison.</p>
+    <a class="hub-current-link" href="app/affiliate-redesign.html">Latest affiliate mobile board <span aria-hidden="true">→</span></a>
+    <div class="hub-meta"><span class="label">Accent #E4F222</span><span class="label">Reference widths · desktop 1440 · phone 390</span><span class="label">Hub updated 30 Oct 2026</span></div>
   </header>
 
   <section class="hub-sec">
-    <header><h2>Web</h2><span class="label">5 pages</span></header>
+    <header><h2>Web</h2><span class="label">5 design references</span></header>
     <div class="cards">
       <a class="card" href="index.html"><div class="card-img"><img src="review/thumb-landing.jpg" alt=""></div><h3>Landing page <span class="tag tag--new">Motion</span></h3><p>Homepages orbit the phone that made them, shrink into a grid of living tiles, then five steps on one phone, three ways in, and the people.</p></a>
-      <a class="card" href="pages/business.html"><div class="card-img"><img src="review/thumb-business.jpg" alt=""></div><h3>For businesses</h3><p>Two ways, same result. What you get, one price paid once when it's live, examples, questions.</p></a>
+      <a class="card" href="pages/business.html"><div class="card-img"><img src="review/thumb-business.jpg" alt=""></div><h3>For businesses</h3><p>Review your website, then pay to publish. Process, pricing, examples and questions.</p></a>
       <a class="card" href="pages/examples.html"><div class="card-img"><img src="review/thumb-examples.jpg" alt=""></div><h3>Examples</h3><p>Browse Tendso designs by kind of business without signing up.</p></a>
-      <a class="card" href="pages/creators.html"><div class="card-img"><img src="review/thumb-creators.jpg" alt=""></div><h3>For field agents</h3><p>Put local shops online. Follows production's money policy: price, discount floor, your half. No promised amounts.</p></a>
+      <a class="card" href="pages/creators.html"><div class="card-img"><img src="review/thumb-creators.jpg" alt=""></div><h3>For field agents</h3><p>A reference for visiting shops, setting a website price and understanding your share.</p></a>
       <a class="card" href="pages/about.html"><div class="card-img"><img src="review/thumb-about.jpg" alt=""></div><h3>About</h3><p>What Tendso is, the team, where we work.</p></a>
     </div>
   </section>
 
   <section class="hub-sec">
-    <header><h2>Creators</h2><span class="label">5 pages · 1 app board · new</span></header>
+    <header><h2>Creator program</h2><span class="label">5 web references · 1 earlier mobile study</span></header>
     <div class="cards">
       <a class="card" href="pages/creator-program.html"><div class="card-img"><img src="review/thumb-creator-program.jpg" alt=""></div><h3>For creators <span class="tag tag--new">New</span></h3><p>/creators. Two ways to earn side by side, a two-slider calculator in pesos, steps, rules, questions.</p></a>
       <a class="card" href="pages/creator-signup.html"><div class="card-img"><img src="review/thumb-creator-signup.jpg" alt=""></div><h3>Creator sign-up</h3><p>One step per screen: name and email, email code, where you post, pick your handle, under review.</p></a>
       <a class="card" href="pages/creator-portal.html"><div class="card-img"><img src="review/thumb-creator-portal.jpg" alt=""></div><h3>Creator portal</h3><p>Money now and monthly money, links and code, click-to-sale funnel, recruited agents, shops, Wise payouts.</p></a>
       <a class="card" href="pages/a-shop.html"><div class="card-img"><img src="review/thumb-a-shop.jpg" alt=""></div><h3>/a/mika · for shops</h3><p>What a shop owner sees from Mika's link: save ₱1,500, six simple steps, real sites, get the app.</p></a>
       <a class="card" href="pages/a-earn.html"><div class="card-img"><img src="review/thumb-a-earn.jpg" alt=""></div><h3>/a/mika/earn · for agents</h3><p>Join Mika's team: what a field agent does, the example, why join through Mika, get the app.</p></a>
-      <a class="card" href="app/creator-links.html"><div class="card-img"><img src="review/thumb-creator-links.jpg" alt=""></div><h3>App · creator links</h3><p>5 screens: "Did Mika send you?", who sent you, code at checkout, creator home, my agents.</p></a>
+      <a class="card" href="app/creator-links.html"><div class="card-img"><img src="review/thumb-creator-links.jpg" alt=""></div><h3>Creator links study <span class="tag">Earlier reference</span></h3><p>The original five-screen attribution study: who sent you, checkout codes, creator Home and agents. Use the highlighted affiliate board below for the latest account design.</p></a>
     </div>
   </section>
 
   <section class="hub-sec">
-    <header><h2>App</h2><span class="label">Round 2 design</span></header>
+    <header><h2>One app</h2><span class="label">Mobile design references</span></header>
+    <p class="hub-note">The affiliate board is the current creator-account reference. Business-owner and field-agent boards below are earlier flow studies; individual panels may differ from the latest app.</p>
     <div class="cards">
-      <a class="card" href="app/owner.html"><div class="card-img"><img src="review/thumb-owner.jpg" alt=""></div><h3>Owner app</h3><p>15 screens, one thing each: choose, talk, take photos, pick a look, publish.</p></a>
-      <a class="card" href="app/creator-core.html"><div class="card-img"><img src="review/thumb-creator-core.jpg" alt=""></div><h3>Creator app</h3><p>8 screens: find a shop, take 10 photos, ask 10 questions, send.</p></a>
-      <a class="card" href="app/creator-more.html"><div class="card-img"><img src="review/thumb-creator-more.jpg" alt=""></div><h3>Creator app · money and me</h3><p>9 screens: join, learn, earn, cash out, your sites, your link.</p></a>
+      <a class="card card--current" href="app/affiliate-redesign.html">
+        <div class="card-img affiliate-thumb" aria-hidden="true"><img src="assets/brand/mark-ink-256.png" alt=""><b>Your link.<br>Your people.<br>Your progress.</b><div class="affiliate-thumb-tabs"><span>Home</span><span>Agents</span><span>Money</span><span>Me</span></div></div>
+        <div class="card-copy"><span class="tag tag--new">Current reference · updated 30 Oct 2026</span><h3>Affiliate mobile</h3><p>The creator account in the same Tendso app. Twelve interactive panels cover Home, Agents, Money, Me, saved creator pages, photo and social-link editing, invitations and notifications.</p><span class="label">12 panels · isolated sample data · open the board →</span></div>
+      </a>
+      <a class="card" href="app/owner.html"><div class="card-img"><img src="review/thumb-owner.jpg" alt=""></div><h3>Business owner flow <span class="tag">Earlier reference</span></h3><p>Get started, record an interview, take photos, choose a design and publish. Compare individual panels with the current app.</p></a>
+      <a class="card" href="app/creator-core.html"><div class="card-img"><img src="review/thumb-creator-core.jpg" alt=""></div><h3>Field agent capture <span class="tag">Earlier reference</span></h3><p>Find a shop, capture photos and an interview, then submit for review.</p></a>
+      <a class="card" href="app/creator-more.html"><div class="card-img"><img src="review/thumb-creator-more.jpg" alt=""></div><h3>Field agent Earn &amp; Me <span class="tag">Earlier reference</span></h3><p>The earlier field-agent account study, including earnings, cash outs, sites and profile tools.</p></a>
     </div>
   </section>
 
@@ -107,22 +129,25 @@
       <li><b><a href="HANDOFF.md">HANDOFF.md</a></b><span>Storyboard, motion spec, components, assets, tokens, production notes</span></li>
       <li><b><a href="BRIEF.md">BRIEF.md</a></b><span>House rules and file map</span></li>
       <li><b><a href="APP-SYSTEM.md">APP-SYSTEM.md</a></b><span>App colours old → new</span></li>
-      <li><b><a href="APP-SCREENS-SPEC.md">APP-SCREENS-SPEC.md</a></b><span>The real screens, exact copy</span></li>
+      <li><b><a href="APP-SCREENS-SPEC.md">APP-SCREENS-SPEC.md</a></b><span>Original screen inventory and copy references</span></li>
       <li><b><a href="https://claude.ai/artifact/CVgk9ZHx7iGxZbJcvZPw59">Stage 1 study</a></b><span>ramp.design, Klarna, Agentcard recorded</span></li>
     </ul>
   </section>
 
   <section class="hub-sec">
-    <header><h2>Decisions for Theo</h2><span class="label">Placeholders until answered</span></header>
+    <header><h2>Original design notes</h2><span class="label">20–21 Oct 2026 · archive</span></header>
+    <details class="hub-archive"><summary>View the original handoff questions</summary>
+    <p class="hub-note">Historical context from the first handoff. These questions are not a current product-status checklist.</p>
     <ol class="qs">
       <li><div><b>Payment rule.</b> <span>Turnaround is now "same day, about 30 minutes". "Pay only when it's live" was wrong; copy says "See it first. Pay once to publish." Confirm that's right.</span></div></li>
       <li><div><b>Prices in the "Pay once" comparison.</b> <span>Placeholders: web agency ₱10,000 a month, Wix or Webflow ₱1,500 a month, shown over one year against Tendso ₱4,999 once.</span></div></li>
       <li><div><b>App Store and Google Play links.</b> <span>QR codes are drawn patterns until then.</span></div></li>
       <li><div><b>"Field agent" or "Tendso creator"?</b> <span>Production says creator; the brief says field agent. Pages use both once, then "agent".</span></div></li>
       <li><div><b>Real photos of the team and agents.</b> <span>People photos are generated placeholders, Filipino first.</span></div></li>
-      <li><div><b>Owner app tab bar.</b> <span>Five tabs (Home, Site, Help, Inbox, Account) or four.</span></div></li>
+      <li><div><b>Business-owner tab bar.</b> <span>Five tabs (Home, Site, Help, Inbox, Account) or four.</span></div></li>
       <li><div><b>Old pricing copy inside the app.</b> <span>help-faq, terms of service and the price slider still mention the removed unlock rule.</span></div></li>
     </ol>
+    </details>
   </section>
 </main>
 </body>
