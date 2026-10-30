@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { CREATOR_CODE_DISCOUNT, formatPHP } from '../../../../packages/shared/pricing';
 import { Avatar, Card, ListRow, Text } from '../v2';
+import { PressFeedback, PressFeedbackProvider } from '../v2/PressFeedback';
 import { colors, radius, space } from '../../theme/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, type AffiliateAccessProps } from './Screen';
@@ -43,14 +44,14 @@ function Income({ label, amount, description, icon, onPress, amountSize, stacked
   label: string; amount: number | undefined; description: string;
   icon: React.ComponentProps<typeof Ionicons>['name']; onPress: () => void; amountSize: number; stacked: boolean;
 }) {
-  return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`View ${label.toLowerCase()} earnings`} style={({ pressed }) => [styles.income, stacked && styles.sourceStacked, pressed && styles.sourcePressed]}>
+  return <PressFeedback onPress={onPress} accessibilityLabel={`View ${label.toLowerCase()} earnings`} style={[styles.income, stacked && styles.sourceStacked]} overlayTone="light" strength={0.08}>
     <View style={styles.sourceLabel}><Ionicons name={icon} size={18} color={colors.accent} /><Text variant="label" tone="onDark">{label}</Text></View>
     <Text variant="number" tone="onDark" tabular style={[styles.sourceAmount, { fontSize: amountSize, lineHeight: Math.ceil(amountSize * 1.25) }]}
       accessibilityLabel={amount === undefined ? `From ${label.toLowerCase()}, loading` : `From ${label.toLowerCase()}, ${formatPHP(amount)}`}>
       {amount === undefined ? 'Loading…' : formatPHP(amount)}
     </Text>
     <Text variant="label" tone="onDark" style={styles.sourceDescription}>{description}</Text>
-  </Pressable>;
+  </PressFeedback>;
 }
 
 /** Income is credited earnings for the selected month, separate from the Money balance. */
@@ -96,24 +97,24 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
     catch { setCopyMessage('Could not copy. Please try again.'); }
   };
 
-  return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline}>
+  return <PressFeedbackProvider><AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline}>
     <View style={styles.topline}>
-      <Pressable onPress={() => router.push('/(app)/(affiliate-tabs)/profile')} accessibilityRole="button" accessibilityLabel="Open my profile" style={styles.greeting}>
+      <PressFeedback onPress={() => router.push('/(app)/(affiliate-tabs)/profile')} accessibilityLabel="Open my profile" style={styles.greeting}>
         <Avatar uri={account.affiliatePhoto || undefined} name={affiliateName(account)} size={48} />
         <View style={styles.flex}><Text variant="label" tone="muted">Creator home</Text><Text variant="title" accessibilityRole="header" style={styles.greetingText}>Hi, {account.firstName || 'creator'}</Text></View>
-      </Pressable>
-      <Pressable onPress={() => router.push('/(app)/notifications')} accessibilityRole="button" accessibilityLabel="Notifications" style={styles.round}>
+      </PressFeedback>
+      <PressFeedback onPress={() => router.push('/(app)/notifications')} accessibilityLabel="Notifications" style={styles.round}>
         <Ionicons name="notifications-outline" size={22} color={colors.ink} />
-      </Pressable>
+      </PressFeedback>
     </View>
 
     <Card variant="dark" style={styles.hero} testID="affiliate-monthly-income">
       <View style={[styles.earningsHeading, (width < 360 || fontScale > 1.2) && styles.headingStacked]}>
         <Text variant="label" tone="onDark" style={styles.heroCaption}>Your earnings</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Change earnings month" accessibilityValue={{ text: monthLabel }} accessibilityState={{ disabled: isPreview || !onMonthChange, expanded: choosingMonth }}
-          disabled={isPreview || !onMonthChange} onPress={() => setChoosingMonth(true)} style={({ pressed }) => [styles.monthSwitch, pressed && styles.sourcePressed]}>
+        <PressFeedback accessibilityLabel="Change earnings month" accessibilityValue={{ text: monthLabel }} accessibilityState={{ disabled: isPreview || !onMonthChange, expanded: choosingMonth }}
+          disabled={isPreview || !onMonthChange} onPress={() => setChoosingMonth(true)} style={styles.monthSwitch} overlayTone="light" strength={0.08}>
           <Text variant="label" tone="onDark" style={styles.monthText}>{monthLabel}</Text><Ionicons name="chevron-down" size={16} color={colors.onDark} />
-        </Pressable>
+        </PressFeedback>
       </View>
       <Text variant="hero" tone="onDark" tabular style={[styles.heroAmount, { fontSize: heroSize, lineHeight: Math.ceil(heroSize * 1.2) }]}
         accessibilityLiveRegion="polite"
@@ -130,8 +131,8 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
 
     <Text variant="label" tone="muted" style={styles.sectionLabel}>Your tools</Text>
     <Card style={styles.tools}>
-      <ListRow title="Sales" subtitle="Track shops and payments" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="receipt-outline" accessibilityLabel="Sales" accessibilityHint="View your shops for the selected earnings month" onPress={openSales} divider style={styles.toolRow} />
-      <ListRow title="My page" subtitle="Edit and preview your page" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="create-outline" accessibilityLabel="My page" accessibilityHint="Open your creator page editor" onPress={() => router.push('/(app)/affiliate/page')} style={styles.toolRow} />
+      <ListRow title="Sales" subtitle="Track shops and payments" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="receipt-outline" accessibilityLabel="Sales" accessibilityHint="View your shops for the selected earnings month" onPress={openSales} divider style={styles.toolRow} softPress />
+      <ListRow title="My page" subtitle="Edit and preview your page" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="create-outline" accessibilityLabel="My page" accessibilityHint="Open your creator page editor" onPress={() => router.push('/(app)/affiliate/page')} style={styles.toolRow} softPress />
     </Card>
     <Card variant="lg" style={styles.linkCard} testID="affiliate-shop-sharing">
       <Text variant="bodyLg" weight="bold">Share with shop owners</Text>
@@ -139,37 +140,37 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
       <View style={styles.link}>
         <Ionicons name="link-outline" size={20} color={colors.ink2} />
         <Text selectable variant="label" weight="semibold" style={styles.flex}>{url?.replace(/^https?:\/\//, '') ?? 'Your page link is not available yet.'}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Copy shop link" disabled={!url || disabled} accessibilityState={{ disabled: !url || disabled }} onPress={copy} style={[styles.copyButton, (!url || disabled) && styles.disabled]}>
+        <PressFeedback accessibilityLabel="Copy shop link" disabled={!url || disabled} onPress={copy} style={[styles.copyButton, (!url || disabled) && styles.disabled]}>
           <Ionicons name="copy-outline" size={21} color={colors.ink} />
-        </Pressable>
+        </PressFeedback>
       </View>
       {copyMessage ? <Text variant="label" tone="muted" accessibilityLiveRegion="polite">{copyMessage}</Text> : null}
       {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel="Share my shop link" accessibilityState={{ disabled: !url || disabled }} onPress={share} disabled={!url || disabled} style={[styles.shareAction, (!url || disabled) && styles.disabled]}><Ionicons name="share-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.shareActionText}>Share link</Text></Pressable>
+      <PressFeedback accessibilityLabel="Share my shop link" onPress={share} disabled={!url || disabled} style={[styles.shareAction, (!url || disabled) && styles.disabled]}><Ionicons name="share-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.shareActionText}>Share link</Text></PressFeedback>
     </Card>
 
     <Modal visible={choosingMonth} transparent animationType="slide" onRequestClose={() => setChoosingMonth(false)}>
       <View style={styles.monthModal}>
         <Pressable accessibilityRole="button" accessibilityLabel="Close month chooser" onPress={() => setChoosingMonth(false)} style={StyleSheet.absoluteFill} />
         <View style={[styles.monthSheet, { maxHeight: Math.max(160, height - insets.top - space.xl), paddingBottom: Math.max(insets.bottom, space.lg) }]} accessibilityViewIsModal>
-          <View style={styles.sheetHeader}><Text variant="title" style={styles.flex} accessibilityRole="header">Earnings month</Text><Pressable accessibilityRole="button" accessibilityLabel="Close earnings month" onPress={() => setChoosingMonth(false)} style={styles.round}><Ionicons name="close" size={24} color={colors.ink} /></Pressable></View>
+          <View style={styles.sheetHeader}><Text variant="title" style={styles.flex} accessibilityRole="header">Earnings month</Text><PressFeedback accessibilityLabel="Close earnings month" onPress={() => setChoosingMonth(false)} style={styles.round}><Ionicons name="close" size={24} color={colors.ink} /></PressFeedback></View>
           <ScrollView accessibilityLabel="Earnings month options" style={styles.monthOptions}>
-          {choices.map(choice => <Pressable key={choice.key} accessibilityRole="button" accessibilityLabel={choice.label} accessibilityState={{ selected: resolvedMonth === choice.key }}
+          {choices.map(choice => <PressFeedback key={choice.key} accessibilityLabel={choice.label} accessibilityState={{ selected: resolvedMonth === choice.key }}
             onPress={() => { setChoosingMonth(false); onMonthChange?.(choice.key); }} style={styles.monthOption}>
             <Text style={styles.flex} weight={resolvedMonth === choice.key ? 'bold' : 'regular'}>{choice.label}</Text>
             {resolvedMonth === choice.key ? <Ionicons name="checkmark" size={22} color={colors.ink} /> : null}
-          </Pressable>)}
+          </PressFeedback>)}
           </ScrollView>
         </View>
       </View>
     </Modal>
-  </AffiliateFrame>;
+  </AffiliateFrame></PressFeedbackProvider>;
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
   topline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 4 },
-  greeting: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 48 },
+  greeting: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 48, borderRadius: radius.field },
   greetingText: { fontSize: 22, lineHeight: 28 },
   round: { minWidth: 48, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.rule },
   hero: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 20, borderRadius: radius.tile },
@@ -188,13 +189,12 @@ const styles = StyleSheet.create({
   sourceDescription: { opacity: 0.8 },
   sourceRule: { width: 1, backgroundColor: 'rgba(255,255,255,0.16)' },
   sourceRuleHorizontal: { height: 1, backgroundColor: 'rgba(255,255,255,0.16)' },
-  sourcePressed: { opacity: 0.7 },
   sectionLabel: { marginTop: 4, marginBottom: -6 },
   tools: { paddingHorizontal: 16, paddingVertical: 4 },
   toolRow: { minHeight: 80, paddingVertical: 16 },
   linkCard: { padding: 18, gap: 8 },
   link: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 12, paddingRight: 4, paddingVertical: 6, marginTop: 6, backgroundColor: colors.bg2, borderRadius: radius.field },
-  copyButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  copyButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
   disabled: { opacity: 0.4 },
   shareAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, marginTop: 8, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   shareActionText: { flexShrink: 1, textAlign: 'center' },

@@ -152,3 +152,12 @@
 .ar-full-message{user-select:text;gap:18px}.ar-full-message h2{font-size:24px;line-height:1.25}.ar-full-message p{font-size:18px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
 .ar-notification-meta{display:flex;align-items:center;gap:12px;color:#6B6A63;font-size:15px}
 .ar-dialog-footer{padding:16px 20px 20px;flex:none}
+
+/* Home press feedback changes only a contained background layer. */
+.ar-app[data-view="home"] button{-webkit-tap-highlight-color:transparent}
+.ar-app[data-view="home"] .ar-body button{position:relative;isolation:isolate;overflow:hidden;--ar-press-tint:#0C0A080A}
+.ar-app[data-view="home"] .ar-body button::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;background:var(--ar-press-tint);opacity:0;transition:opacity 140ms ease-out}
+.ar-app[data-view="home"] .ar-body button:enabled:active::after{opacity:1;transition-duration:80ms}
+.ar-app[data-view="home"] .ar-body .ar-source-grid>button,.ar-app[data-view="home"] .ar-body button.ar-month-switch{--ar-press-tint:#FFFFFF14}
+.ar-app[data-view="home"] .ar-body button.ar-home-share-action{--ar-press-tint:#0C0A080F}
+@media(prefers-reduced-motion:reduce){.ar-app[data-view="home"] .ar-body button::after{transition:none!important}}

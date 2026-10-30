@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text as NativeText } from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, Share, StyleSheet, Text as NativeText } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AffiliateHomeScreen, HomeContent } from '../components/affiliate/Home';
 import { AffiliateAgentsScreen, AgentsContent } from '../components/affiliate/Agents';
@@ -63,6 +63,9 @@ jest.mock('../components/ui/primitives', () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // These access/data tests keep the safe still preference; the dedicated press
+  // suite covers the asynchronous preference query and subscription lifecycle.
+  jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockReturnValue(new Promise(() => {}));
   Object.assign(mockAccount, { account: sampleAffiliate, isLoading: false, isAuthenticated: true, isOffline: false, isAdmin: false, view: 'affiliate', isPreview: false });
   mockQuery.mockReturnValue(samplePortal);
   mockPaginated.mockReturnValue({ results: [], status: 'Exhausted', loadMore: jest.fn() });

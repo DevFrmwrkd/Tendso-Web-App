@@ -28,6 +28,9 @@ const access = { account: sampleAffiliate, isPreview: false, isOffline: false, i
 beforeEach(() => {
   jest.clearAllMocks();
   jest.restoreAllMocks();
+  // Motion preference transitions are covered in press-feedback.test; keep this
+  // screen's loading/data assertions independent of asynchronous system events.
+  jest.spyOn(ReactNative.AccessibilityInfo, 'isReduceMotionEnabled').mockReturnValue(new Promise(() => {}));
   jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 390, height: 844, scale: 1, fontScale: 1 });
   jest.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 9, 29));
   mockQuery.mockReturnValue(samplePortal);

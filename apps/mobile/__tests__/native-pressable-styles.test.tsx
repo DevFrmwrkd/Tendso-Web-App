@@ -4,6 +4,8 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { cssInterop } from 'react-native-css-interop';
 import { Button } from '../components/v2/Button';
 import { AccountTypeOption, SocialPill } from '../components/v2/AuthParts';
+import { PressFeedback } from '../components/v2/PressFeedback';
+import { ListRow } from '../components/v2/ListRow';
 import { colors, radius } from '../theme/v2';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -13,6 +15,45 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 cssInterop(Pressable, { className: 'style' });
 
 describe('native pressable styles with NativeWind enabled', () => {
+  it('keeps soft press surfaces and content still through the real native adapter', () => {
+    const onPress = jest.fn();
+    const surface = { backgroundColor: colors.ink, borderRadius: 24, minHeight: 64, padding: 16 };
+    const screen = render(<PressFeedback accessibilityLabel="Monthly earnings" onPress={onPress} style={surface} overlayTone="light" strength={0.08}>
+      <View testID="earnings-content" style={{ flexDirection: 'row', gap: 12 }} />
+    </PressFeedback>);
+    const button = screen.getByRole('button', { name: 'Monthly earnings' });
+    expect(typeof button.props.style).not.toBe('function');
+    expect(StyleSheet.flatten(button.props.style)).toEqual(surface);
+    const touch = { persist: jest.fn(), currentTarget: 1, nativeEvent: { pageX: 12, pageY: 12 } };
+    fireEvent(button, 'responderGrant', touch);
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style)).toEqual(surface);
+    expect(StyleSheet.flatten(screen.getByTestId('earnings-content').props.style)).toEqual({ flexDirection: 'row', gap: 12 });
+    expect(onPress).not.toHaveBeenCalled();
+    fireEvent(screen.getByRole('button'), 'responderRelease', touch);
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style)).toEqual(surface);
+  });
+
+  it('opts a navigation row into soft feedback without changing other row defaults', () => {
+    const onPress = jest.fn();
+    const screen = render(<ListRow title="My page" subtitle="Edit and preview your page" accessibilityLabel="My page" onPress={onPress} softPress />);
+    expect(screen.UNSAFE_getByType(PressFeedback).props.strength).toBe(0.04);
+    const initial = StyleSheet.flatten(screen.getByRole('button').props.style);
+    expect(initial.flexDirection).toBe('row');
+    expect(typeof screen.getByRole('button').props.style).not.toBe('function');
+    fireEvent(screen.getByRole('button'), 'pressIn', { nativeEvent: {} });
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style)).toEqual(initial);
+    fireEvent.press(screen.getByRole('button'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    screen.rerender(<ListRow title="Unchanged row" onPress={onPress} />);
+    expect(screen.UNSAFE_queryByType(PressFeedback)).toBeNull();
+    const touch = { persist: jest.fn(), currentTarget: 1, nativeEvent: { pageX: 12, pageY: 12 } };
+    fireEvent(screen.getByRole('button'), 'responderGrant', touch);
+    expect(StyleSheet.flatten(screen.getByRole('button').props.style).backgroundColor).toBe(colors.bg2);
+    fireEvent(screen.getByRole('button'), 'responderRelease', touch);
+    expect(onPress).toHaveBeenCalledTimes(2);
+  });
+
   it('keeps the primary button fill, pill shape and pressed feedback', async () => {
     const onPress = jest.fn();
     const screen = render(<Button title="Sign in" onPress={onPress} />);

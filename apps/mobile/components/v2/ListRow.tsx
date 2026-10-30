@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { colors, hit, radius, space } from '../../theme/v2';
 import { Text } from './Text';
+import { PressFeedback } from './PressFeedback';
 
 export interface ListRowProps {
   title: string;
@@ -22,6 +23,8 @@ export interface ListRowProps {
   accessibilityHint?: string;
   /** Hairline under the row (for rows stacked inside one Card). */
   divider?: boolean;
+  /** Fade a subtle press highlight without moving or dimming the row's content. */
+  softPress?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -38,6 +41,7 @@ export function ListRow({
   accessibilityLabel,
   accessibilityHint,
   divider,
+  softPress = false,
   style,
 }: ListRowProps) {
   const content = (
@@ -68,6 +72,11 @@ export function ListRow({
         {content}
       </View>
     );
+  }
+  if (softPress) {
+    return <PressFeedback onPress={onPress} accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}, ${subtitle}` : title)} accessibilityHint={accessibilityHint} style={rowStyle} strength={0.04}>
+      {content}
+    </PressFeedback>;
   }
   return (
     <Pressable
