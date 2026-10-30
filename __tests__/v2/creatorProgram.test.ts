@@ -1,6 +1,7 @@
 import {
     AGENT_EXAMPLE,
     CODE_PRICE,
+    CODE_PERCENT_OFF,
     CODE_SAVING,
     KEEP_PER_SHOP,
     OVERRIDE_PER_SALE,
@@ -18,10 +19,14 @@ import {
 } from "@/lib/v2/creatorProgram";
 import { SAMPLE_PORTAL } from "@/lib/v2/creatorSample";
 import { DEFAULT_STORE_LINKS, RELEASED_STORE_LINKS, safeStoreUrl } from "@/lib/v2/appLinks";
+import { CREATOR_CODE_DISCOUNT, CREATOR_CODE_PRICE, WEBSITE_PRICE } from "@/lib/pricing";
 
 describe("creator program numbers", () => {
     it("matches docs/CREATOR-PROGRAM.md", () => {
         expect(CODE_PRICE).toBe(3499);
+        expect(CODE_PRICE).toBe(CREATOR_CODE_PRICE);
+        expect(CODE_PRICE).toBe(Math.round(WEBSITE_PRICE * (1 - CREATOR_CODE_DISCOUNT)));
+        expect(CODE_PERCENT_OFF).toBe(30);
         expect(CODE_SAVING).toBe(1500);
         expect(KEEP_PER_SHOP).toBe(1750);
         expect(OVERRIDE_PER_SALE).toBe(150);
@@ -79,6 +84,9 @@ describe("creator share links", () => {
 
 describe("sample portal", () => {
     const p = SAMPLE_PORTAL;
+    it("uses the fixed code offer while keeping historical shop amounts separate", () => {
+        expect(p.creator).toMatchObject({ price: CREATOR_CODE_PRICE, listPrice: WEBSITE_PRICE, saving: 1500, percentOff: 30 });
+    });
     it("adds up to the numbers on the program page", () => {
         expect(p.now.thisMonth).toBe(12250);
         expect(p.now.shopsThisMonth).toBe(7);

@@ -14,7 +14,7 @@ import { PayoutDialog, type PayoutStep } from "@/app/wallet/_components/PayoutDi
 import { amountInput, checkAmount, shortDate, type LedgerRow, type Retry } from "@/app/wallet/_lib/ledger";
 import { Button, ButtonLink, DefList, DefRow, EmptyState, Fold, Highlight, Icon, Loading, PageHeader, ShowAllList, Skeleton, SkeletonRows, Status, formatMoney } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { COMMISSION_RATE, REFERRAL_BONUS } from "@/lib/pricing";
+import { COMMISSION_RATE, CREATOR_CODE_DISCOUNT, REFERRAL_BONUS } from "@/lib/pricing";
 import { AFFILIATE_RECRUIT_REWARD, AFFILIATE_RECRUIT_TERMS } from "@/lib/affiliateReferralProgram";
 
 import { affiliateLedger, type AffiliatePortal } from "../_lib/portal";
@@ -57,7 +57,7 @@ export function AffiliateHomeView({ account, portal, preview = false, hrefFor = 
             <div className="flex flex-col gap-2">
                 <p className="t-label">Share your offer</p>
                 <h2 className="t-h2">Your page does the introduction.</h2>
-                <p className="t-body max-w-[64ch]">Set your price, share your link, and earn {Math.round(COMMISSION_RATE * 100)}% of each website sale. Creators take photos and interview shop owners; your role is to share your offer.</p>
+                <p className="t-body max-w-[64ch]">Share your {Math.round(CREATOR_CODE_DISCOUNT * 100)}% creator-code offer and earn {Math.round(COMMISSION_RATE * 100)}% of each website sale. Field agents take photos and interview shop owners; your role is to share your offer.</p>
             </div>
             <div className="flex flex-wrap gap-3">
                 <ButtonLink variant="primary" href={hrefFor("my-page")}>My page <Icon icon={ArrowRight} /></ButtonLink>
@@ -249,7 +249,7 @@ export function AffiliateAccountView({ account, preview = false, hrefFor = defau
             <p className="t-meta">One login has one account type. Use a different email to sign up as a creator.</p>
         </section>
         {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} />}
-        <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message, and price that shop owners see from My page.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>
+        <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message and social links that shop owners see from My page. Creator codes always give {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off the website price.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>
     </div>;
 }
 

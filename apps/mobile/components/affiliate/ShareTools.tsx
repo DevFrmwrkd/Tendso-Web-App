@@ -100,7 +100,7 @@ export function ShareTools({ handle, displayName, photo, price, referralCode, di
       <V2Text selectable variant="bodyLg" weight="bold">{url}</V2Text>
       <CopyButton value={url} label="Copy page link" disabled={disabled} />
       <Button title="Share page link" variant="dark" size="md" icon="share-outline" disabled={disabled || !!busy} loading={busy === 'link'} onPress={shareLink} />
-      <V2Text variant="label" tone="muted">Sharing uses your saved page and price.</V2Text>
+      <V2Text variant="label" tone="muted">Sharing uses your saved page and creator-code offer.</V2Text>
     </Card>
     <Card variant="lg" style={styles.card}>
       <V2Text variant="heading">QR code</V2Text>

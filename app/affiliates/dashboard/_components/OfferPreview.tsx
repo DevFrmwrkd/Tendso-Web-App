@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, ButtonLink } from "@/components/r1";
-import { creatorDiscount, formatPHP, WEBSITE_PRICE } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE, creatorDiscount, formatPHP, WEBSITE_PRICE } from "@/lib/pricing";
 import { AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, getAffiliateSocialLinks, type AffiliateSocialLinks } from "@/lib/affiliates";
 
 export function CreatorSocialLinks({ socialLinks, socialLink }: { socialLinks?: AffiliateSocialLinks; socialLink?: string }) {
@@ -27,13 +27,14 @@ export function OfferPrice({ price }: { price: number }) {
 }
 
 /** Fixed text and plain strings keep the offer outside the page editor. */
-export function OfferPreview({ photo, displayName, message, socialLink, socialLinks, price }: {
+export function OfferPreview({ photo, displayName, message, socialLink, socialLinks }: {
     photo?: string;
     displayName: string;
     message?: string;
     socialLink?: string;
     socialLinks?: AffiliateSocialLinks;
-    price: number;
+    /** Legacy callers may supply a price; creator-code previews always use the fixed offer. */
+    price?: number;
 }) {
     return (
         <article className="t-card flex flex-col gap-5 overflow-hidden p-5 sm:p-6" aria-label="Your page preview">
@@ -52,7 +53,7 @@ export function OfferPreview({ photo, displayName, message, socialLink, socialLi
             <hr className="t-divider" />
             <div className="flex flex-col gap-3">
                 <h3 className="t-h2">A website for your shop</h3>
-                <OfferPrice price={price} />
+                <OfferPrice price={CREATOR_CODE_PRICE} />
                 <p className="t-meta">See it first. Pay once to publish your business website.</p>
             </div>
             <CreatorSocialLinks socialLinks={socialLinks} socialLink={socialLink} />

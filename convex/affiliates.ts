@@ -5,11 +5,11 @@ import type { Doc } from './_generated/dataModel';
 import { requireAdmin, requireAuth } from './lib/auth';
 import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliateHandleError, affiliatePhoneError,
-    affiliatePhotoError, affiliatePriceError, affiliateSocialLinkError,
+    affiliatePhotoError, affiliateSocialLinkError,
     AFFILIATE_SOCIAL_PLATFORMS, affiliateSocialPlatformLinkError, getAffiliateSocialLinks,
     type AffiliateSocialPlatform,
 } from '../lib/affiliates';
-import { clampSellPrice, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
+import { CREATOR_CODE_PRICE, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
 import { manilaMonth } from './creatorPortal';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
@@ -117,9 +117,10 @@ export const updatePage = mutation({
         if (affiliate.status === 'pending') throw new ConvexError('Your affiliate account is waiting for admin approval.');
         if (affiliate.status === 'suspended') throw new ConvexError('Your affiliate account is suspended.');
         if (affiliate.status !== 'active') throw new ConvexError('Your affiliate account is not active.');
-        if (args.price !== undefined) {
-            const priceError = affiliatePriceError(args.price);
-            if (priceError) throw new ConvexError(priceError);
+        // Keep fixed-price payloads from older clients compatible; custom prices
+        // are rejected before any page change, and no account price is written.
+        if (args.price !== undefined && args.price !== CREATOR_CODE_PRICE) {
+            throw new ConvexError('Creator codes give shop owners 30% off. The website price cannot be changed.');
         }
         const updates: Partial<typeof affiliate> = { updatedAt: Date.now() };
         if (args.photo !== undefined) updates.affiliatePhoto = optionalUrl(args.photo, 'Photo', affiliatePhotoError);
@@ -144,7 +145,6 @@ export const updatePage = mutation({
                 updates.affiliateSocialLinks = { ...links, ...getAffiliateSocialLinks(undefined, link) };
             }
         }
-        if (args.price !== undefined) updates.affiliatePrice = clampSellPrice(args.price);
         await ctx.db.patch(affiliate._id, updates);
     },
 });

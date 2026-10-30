@@ -1,12 +1,12 @@
 import React from 'react';
-import { Share } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AffiliatePageScreen } from '../components/affiliate/PageOverview';
 import { AffiliatePageEditorScreen } from '../components/affiliate/PageEditor';
 import { AffiliateOfferScreen } from '../components/affiliate/Offer';
 import { AffiliateSalesScreen, SalesContent } from '../components/affiliate/Sales';
 import { sampleAffiliate, sampleSales } from '../components/affiliate/model';
-import { formatPHP } from '../../../packages/shared/pricing';
+import MyPageRoute from '../app/(app)/affiliate/page';
+import EditPageRoute from '../app/(app)/affiliate/page-edit';
 
 const mockAccess = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true };
 const mockParams: { month?: string } = {};
@@ -15,6 +15,8 @@ const mockSave = jest.fn();
 const mockMutation = jest.fn();
 const mockAction = jest.fn();
 const mockPaginated = jest.fn();
+const mockSharing = jest.fn();
+const mockPreview = jest.fn();
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
@@ -32,7 +34,14 @@ jest.mock('../components/affiliate/Screen', () => ({
   AffiliateLoading: ({ label }: { label: string }) => require('react').createElement(require('react-native').Text, null, label),
 }));
 jest.mock('../components/PriceSlider', () => ({ PriceSlider: () => null }));
-jest.mock('../components/affiliate/ShareTools', () => ({ CopyButton: () => null, ShareTools: () => null }));
+jest.mock('../components/affiliate/ShareTools', () => ({ CopyButton: () => null, ShareTools: (props: object) => {
+  mockSharing(props);
+  return require('react').createElement(require('react-native').Text, { testID: 'saved-sharing' }, 'Saved sharing tools');
+} }));
+jest.mock('../components/affiliate/PublicPagePreview', () => ({ AffiliatePublicPagePreview: (props: object) => {
+  mockPreview(props);
+  return require('react').createElement(require('react-native').Text, { testID: 'actual-page-preview' }, 'Actual public page');
+} }));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -43,40 +52,58 @@ beforeEach(() => {
   mockPaginated.mockReturnValue({ results: sampleSales, status: 'Exhausted', loadMore: jest.fn() });
 });
 
-it('shows the saved page offer and opens each focused tool from the overview', () => {
-  const view = render(<AffiliatePageScreen />);
-  expect(view.getByText('Sam Santos')).toBeTruthy();
-  expect(view.getByText(sampleAffiliate.affiliateMessage!)).toBeTruthy();
-  expect(view.getByText(formatPHP(3999))).toBeTruthy();
-  expect(view.getByText(`Save ${formatPHP(1000)}`)).toBeTruthy();
-  expect(view.getByText('tendso.com/v2/a/sample-affiliate')).toBeTruthy();
-  for (const [label, route] of [['Edit page', 'page-edit'], ['Your price', 'offer'], ['Share QR & poster', 'share']]) {
-    fireEvent.press(view.getByLabelText(label));
-    expect(mockRouter.push).toHaveBeenLastCalledWith(`/(app)/affiliate/${route}`);
-  }
+it('opens Home’s My page destination directly in the current editor, without another overview or redirect', () => {
+  expect(MyPageRoute).toBe(AffiliatePageScreen);
+  const view = render(<MyPageRoute />);
+  expect(view.getByText('My page')).toBeTruthy();
+  for (const name of ['Page details', 'Your offer', 'Sharing']) expect(view.getByRole('tab', { name })).toBeTruthy();
+  expect(view.queryByRole('button', { name: 'Edit page', exact: true })).toBeNull();
+  expect(view.queryByRole('button', { name: 'Share QR & poster', exact: true })).toBeNull();
+  fireEvent.changeText(view.getByLabelText('Display name'), 'A draft from My page');
+  fireEvent.press(view.getByRole('tab', { name: 'Your offer' }));
+  expect(view.getByText('₱3,499')).toBeTruthy();
+  expect(view.queryByLabelText('Save price')).toBeNull();
+  fireEvent.press(view.getByRole('tab', { name: 'Preview public page' }));
+  expect(view.getByTestId('actual-page-preview')).toBeTruthy();
+  expect(mockPreview.mock.calls.at(-1)![0]).toMatchObject({ dirty: true, card: { name: 'A draft from My page', price: 3499 } });
+  fireEvent.press(view.getByRole('tab', { name: 'Edit page details' }));
+  fireEvent.press(view.getByRole('tab', { name: 'Page details' }));
+  expect(view.getByLabelText('Display name').props.value).toBe('A draft from My page');
+  expect(mockRouter.push).not.toHaveBeenCalled();
+  expect(mockRouter.replace).not.toHaveBeenCalled();
   fireEvent.press(view.getByLabelText('Back'));
   expect(mockRouter.back).toHaveBeenCalledTimes(1);
-  expect(mockRouter.replace).not.toHaveBeenCalled();
   mockRouter.canGoBack.mockReturnValue(false);
   fireEvent.press(view.getByLabelText('Back'));
   expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(affiliate-tabs)');
 });
 
-it('shares saved page values and locks sharing in previews and suspended accounts', async () => {
-  const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: Share.sharedAction });
-  const view = render(<AffiliatePageScreen />);
-  fireEvent.press(view.getByLabelText('Share my shop link'));
-  await waitFor(() => expect(share).toHaveBeenCalledWith({ message: 'Sam Santos · Get a website for your shop: https://tendso.com/v2/a/sample-affiliate', url: 'https://tendso.com/v2/a/sample-affiliate' }));
-  mockAccess.isPreview = true;
-  view.rerender(<AffiliatePageScreen />);
-  expect(view.getByLabelText('Share my shop link').props.accessibilityState.disabled).toBe(true);
-  mockAccess.isPreview = false;
-  mockAccess.account = { ...sampleAffiliate, status: 'suspended' };
-  view.rerender(<AffiliatePageScreen />);
-  expect(view.getByLabelText('Share my shop link').props.accessibilityState.disabled).toBe(true);
-  share.mockRestore();
+it('keeps the old edit URL on the same editor with an Edit title and normal back behavior', () => {
+  expect(EditPageRoute).toBe(AffiliatePageEditorScreen);
+  const view = render(<EditPageRoute />);
+  expect(view.getByText('Edit your page')).toBeTruthy();
+  expect(view.getByRole('tab', { name: 'Page details' })).toBeTruthy();
+  expect(view.getByRole('tab', { name: 'Preview public page' })).toBeTruthy();
+  fireEvent.press(view.getByLabelText('Back'));
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  expect(mockRouter.replace).not.toHaveBeenCalled();
 });
 
+it('keeps sharing on saved profile values and locked for previews, offline and suspended accounts', () => {
+  const view = render(<MyPageRoute />);
+  fireEvent.changeText(view.getByLabelText('Display name'), 'Unsaved public name');
+  fireEvent.press(view.getByRole('tab', { name: 'Sharing' }));
+  expect(view.getByTestId('saved-sharing')).toBeTruthy();
+  expect(mockSharing.mock.calls.at(-1)![0]).toMatchObject({ displayName: 'Sam Santos', price: 3499, disabled: false });
+  for (const condition of ['preview', 'offline', 'suspended']) {
+    mockAccess.isPreview = condition === 'preview';
+    mockAccess.isOffline = condition === 'offline';
+    mockAccess.account = condition === 'suspended' ? { ...sampleAffiliate, status: 'suspended' } : sampleAffiliate;
+    view.rerender(<MyPageRoute />);
+    fireEvent.press(view.getByRole('tab', { name: 'Sharing' }));
+    expect(mockSharing.mock.calls.at(-1)![0].disabled).toBe(true);
+  }
+});
 it('saves focused page edits without overwriting the saved price', async () => {
   const view = render(<AffiliatePageEditorScreen />);
   expect(view.queryByLabelText('Website price in pesos')).toBeNull();
@@ -87,27 +114,24 @@ it('saves focused page edits without overwriting the saved price', async () => {
   expect(view.getByText('Page saved.')).toBeTruthy();
 });
 
-it('normalizes a price-only save and keeps invalid, offline and preview writes blocked', async () => {
+it('shows the fixed offer without mounting any price-write hook in active, offline or preview states', () => {
+  mockAccess.account = { ...sampleAffiliate, affiliatePrice: 999 };
   const view = render(<AffiliateOfferScreen />);
-  fireEvent.changeText(view.getByLabelText('Website price in pesos'), '');
-  fireEvent.press(view.getByLabelText('Save price'));
-  expect(view.getByText('Enter your website price in whole pesos.')).toBeTruthy();
-  expect(mockSave).not.toHaveBeenCalled();
-  fireEvent.changeText(view.getByLabelText('Website price in pesos'), '998');
-  fireEvent.press(view.getByLabelText('Save price'));
-  await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ price: 999 }));
-  expect(view.getByText('Price saved.')).toBeTruthy();
+  expect(view.getByText('₱3,499')).toBeTruthy();
+  expect(view.getByText('₱1,500')).toBeTruthy();
+  expect(view.getByText('₱1,750')).toBeTruthy();
+  expect(view.queryByLabelText('Website price in pesos')).toBeNull();
+  expect(view.queryByLabelText('Save price')).toBeNull();
+  expect(mockMutation).not.toHaveBeenCalled();
+  expect(mockAction).not.toHaveBeenCalled();
   mockAccess.isOffline = true;
   view.rerender(<AffiliateOfferScreen />);
-  expect(view.getByLabelText('Website price in pesos').props.editable).toBe(false);
-  view.unmount();
-  jest.clearAllMocks();
+  expect(view.getByText('₱3,499')).toBeTruthy();
   mockAccess.isPreview = true;
-  render(<AffiliateOfferScreen />);
+  view.rerender(<AffiliateOfferScreen />);
   expect(mockMutation).not.toHaveBeenCalled();
   expect(mockAction).not.toHaveBeenCalled();
 });
-
 it('labels frozen sale amounts and keeps unpaid commission visibly uncredited', () => {
   const view = render(<SalesContent {...mockAccess} sales={sampleSales} month="2026-10" />);
   expect(view.getByText('October 2026')).toBeTruthy();

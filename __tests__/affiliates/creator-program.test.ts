@@ -4,11 +4,12 @@ import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import {
-    CREATOR_CODE_DEFAULT_PRICE, CREATOR_OVERRIDE_CUTOVER, CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE,
+    CREATOR_CODE_DEFAULT_PRICE, CREATOR_CODE_PRICE, CREATOR_OVERRIDE_CUTOVER, CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE,
     REFERRAL_BONUS, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, overrideFor,
 } from '../../lib/pricing';
 import { clientIpFromHeaders, hashIp } from '../../convex/lib/attribution';
 import { manilaMonth } from '../../convex/creatorPortal';
+import { creatorCard } from '../../convex/lib/creatorRecruits';
 
 const modules = {
     './_generated/server.js': () => import('../../convex/_generated/server'),
@@ -66,6 +67,45 @@ async function addSale(t: T, creatorId: Id<'creators'>, fields: Partial<Doc<'sub
 
 const overrides = (t: T) => t.run(async (ctx) => (await ctx.db.query('earnings').collect()).filter((row) => row.type === 'creator_override'));
 const credit = (t: T, submissionId: Id<'submissions'>) => t.mutation(internal.creatorOverrides.creditForSubmission, { submissionId });
+
+describe('fixed creator-code offer policy', () => {
+    it('ignores legacy account prices on every public and live portal card without repricing historical records', async () => {
+        const { t, creatorId, mika } = await setup();
+        const submissionId = await addSale(t, creatorId, {
+            status: 'completed', amount: 1999, creatorPayout: 1000, paidInFullAt: NOW, amountPaid: 1999, balanceDue: 0,
+        });
+        await t.run(async (ctx) => {
+            await ctx.db.patch(creatorId, { balance: 750, totalEarnings: 1000, totalWithdrawn: 250 });
+            await ctx.db.insert('paymentTokens', { submissionId, token: 'historical-code-payment', referenceCode: 'HISTORICAL',
+                amount: 1999, status: 'paid', createdAt: NOW - DAY, expiresAt: NOW + DAY });
+            await ctx.db.insert('earnings', { creatorId, submissionId, amount: 1000,
+                type: 'submission_approved', status: 'available', createdAt: NOW });
+            await ctx.db.insert('withdrawals', { creatorId, amount: 250, payoutMethod: 'wise_email', accountDetails: 'private',
+                status: 'completed', createdAt: NOW - DAY, processedAt: NOW });
+        });
+        const snapshot = () => t.run(async (ctx) => ({
+            account: await ctx.db.get(creatorId), submissions: await ctx.db.query('submissions').collect(),
+            tokens: await ctx.db.query('paymentTokens').collect(), earnings: await ctx.db.query('earnings').collect(),
+            withdrawals: await ctx.db.query('withdrawals').collect(),
+        }));
+        for (const affiliatePrice of [undefined, 999, 2199.5, 4999, 7000, NaN]) {
+            await t.run((ctx) => ctx.db.patch(creatorId, { affiliatePrice }));
+            const before = await snapshot();
+            const fixed = { price: CREATOR_CODE_PRICE, saving: 1500, percentOff: 30 };
+            expect(await t.query(api.creatorProgram.getCreatorByHandle, { handle: 'mika' })).toMatchObject(fixed);
+            expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'MIKA30' })).toMatchObject(fixed);
+            expect(await t.query(api.affiliates.publicPage, { handle: 'mika' })).toMatchObject({ price: CREATOR_CODE_PRICE });
+            // Even an older direct helper caller cannot create a custom public card.
+            expect(creatorCard(before.account!, 999)).toMatchObject(fixed);
+            const portal = await mika.query(api.creatorPortal.summary, {});
+            expect(portal.creator).toMatchObject(fixed);
+            expect(portal.shops).toEqual([expect.objectContaining({ submissionId, paid: 1999, kept: 1000 })]);
+            expect(portal.payouts).toMatchObject({ readyToSend: 750, inFlight: 0,
+                history: [expect.objectContaining({ amount: 250, status: 'completed' })] });
+            expect(await snapshot()).toEqual(before);
+        }
+    });
+});
 
 /** Sign up a field agent with the creator's code, then run the scheduled referral step. */
 async function recruitByCode(t: T, clerkId: string, code = 'MIKA30') {
@@ -471,8 +511,9 @@ describe('creator sign-up and code', () => {
         expect(await lia.mutation(api.creatorProgram.apply, { ...args, firstName: 'Changed' })).toBe(id);
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
             role: 'affiliate', status: 'pending', email: 'lia@example.com', affiliateHandle: 'lia-makes', referralCode: 'LIA25',
-            affiliatePrice: 3499, creatorSocials: [{ platform: 'tiktok', handle: '@liamakes' }], creatorAudienceSize: 12000, creatorAppliedAt: NOW, firstName: 'Lia',
+            creatorSocials: [{ platform: 'tiktok', handle: '@liamakes' }], creatorAudienceSize: 12000, creatorAppliedAt: NOW, firstName: 'Lia',
         });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBeUndefined();
         expect(await lia.query(api.creatorProgram.myApplication, {})).toMatchObject({ status: 'pending', handle: 'lia-makes', code: 'LIA25' });
         expect((await admin.query(api.affiliates.list, {})).map((row) => row._id)).toContain(id);
         expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'LIA25' })).toBeNull();

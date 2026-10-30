@@ -12,7 +12,7 @@ import { api } from "@/convex/_generated/api";
 import { affiliateBuyHref, creatorPlatform, creatorStoreButtons, type CreatorPlatform } from "@/lib/affiliateLanding";
 import { affiliatePhotoError, type AffiliateSocialLinks } from "@/lib/affiliates";
 import { rememberAffiliate } from "@/lib/campaign";
-import { WEBSITE_PRICE } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE } from "@/lib/pricing";
 
 type PublicAffiliate = (Omit<NonNullable<FunctionReturnType<typeof api.affiliates.publicPage>>, "socialLinks"> & { socialLinks?: AffiliateSocialLinks }) | null;
 const subscribe = () => () => {};
@@ -70,7 +70,7 @@ export function AffiliateOffer({ handle, affiliate, platform = "other", playUrl,
     playUrl?: string | null;
     iosUrl?: string | null;
 }) {
-    const price = affiliate?.price ?? WEBSITE_PRICE;
+    const price = affiliate ? CREATOR_CODE_PRICE : WEBSITE_PRICE;
     const photo = affiliate?.photo && !affiliatePhotoError(affiliate.photo) ? affiliate.photo : null;
     const stores = creatorStoreButtons(platform, playUrl, iosUrl);
 

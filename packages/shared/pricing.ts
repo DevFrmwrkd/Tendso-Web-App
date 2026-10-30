@@ -29,6 +29,12 @@
  *      price through, then shows the creator's price and the percentage off
  *      (creatorDiscount).
  *
+ *  Updated 2026-10-30:
+ *
+ *    • Affiliate/creator codes always give 30% off (₱3,499). Creators cannot
+ *      change that code offer. The variable price band above still applies
+ *      to captured field-agent submissions. Existing quotes stay unchanged.
+ *
  *  Change a number HERE and it propagates to the landing pages, the submit
  *  flow, the payout math, and the transactional emails. Do NOT re-hardcode
  *  any of these values anywhere else — import from this module instead.
@@ -38,16 +44,16 @@
  *    commissionFor(4999) = 2500  (the "₱2,500" that kept recurring in the call)
  */
 
-/** The lowest website price a creator or affiliate may charge. */
+/** The lowest website price a field agent may charge for a captured submission. */
 export const BASE_PRICE = 999;
 
-/** The highest website price a creator or affiliate may charge. */
+/** The highest website price a field agent may charge for a captured submission. */
 export const PRICE_CEILING = 4999;
 
 /**
  * The website's price: what a business owner pays on /start with no campaign
- * and no creator, and the figure the landing quotes. Campaigns discount it
- * (OTR is 30% off), and a creator may offer less, down to BASE_PRICE.
+ * and no creator code, and the figure the landing quotes. Creator codes have
+ * the fixed CREATOR_CODE_DISCOUNT; field-agent submission prices use the band above.
  */
 export const WEBSITE_PRICE = PRICE_CEILING;
 
@@ -88,11 +94,15 @@ export const CREATOR_OVERRIDE_MONTHS = 12;
 /** 2026-10-21 00:00 Asia/Manila. Creator recruits from this moment get the override, not REFERRAL_BONUS. */
 export const CREATOR_OVERRIDE_CUTOVER = Date.UTC(2026, 9, 20, 16, 0, 0);
 
-/** A creator's code takes this much off WEBSITE_PRICE by default (₱4,999 → ₱3,499). */
-export const CREATOR_CODE_DEFAULT_DISCOUNT = 0.3;
+/** Every affiliate/creator code gives owners the same fixed 30% website discount. */
+export const CREATOR_CODE_DISCOUNT = 0.3;
 
-/** The price a new creator's code starts at; they can change it later, down to BASE_PRICE. */
-export const CREATOR_CODE_DEFAULT_PRICE = Math.round(WEBSITE_PRICE * (1 - CREATOR_CODE_DEFAULT_DISCOUNT));
+/** The fixed code offer (₱4,999 → ₱3,499), independent of legacy account price fields. */
+export const CREATOR_CODE_PRICE = Math.round(WEBSITE_PRICE * (1 - CREATOR_CODE_DISCOUNT));
+
+/** Compatibility names for older imports; these values are policy, not editable defaults. */
+export const CREATOR_CODE_DEFAULT_DISCOUNT = CREATOR_CODE_DISCOUNT;
+export const CREATOR_CODE_DEFAULT_PRICE = CREATOR_CODE_PRICE;
 
 /** The creator's override for one sale, from the website price (domain add-on excluded). */
 export function overrideFor(websitePrice: number): number {

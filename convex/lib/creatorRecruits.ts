@@ -2,7 +2,7 @@ import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { isCreatorAccount } from '../../lib/accounts';
 import { affiliateHandleError, getAffiliateSocialLinks } from '../../lib/affiliates';
-import { isComped, WEBSITE_PRICE, clampSellPrice } from '../../lib/pricing';
+import { CREATOR_CODE_PRICE, isComped, WEBSITE_PRICE } from '../../lib/pricing';
 import { resolveAffiliateOffer } from './affiliateOffer';
 import { isPaidInFull as ownerPaidInFull } from './ownerApp';
 
@@ -128,7 +128,7 @@ export async function findActiveCreator(ctx: Pick<QueryCtx, 'db'>, handleOrCode:
     const code = normalizeCreatorCode(raw);
     const byCode = await ctx.db.query('creators').withIndex('by_referral_code', (q) => q.eq('referralCode', code)).first();
     if (!byCode || byCode.role !== 'affiliate' || byCode.status !== 'active' || byCode.isDeleted || !byCode.affiliateHandle) return null;
-    return { affiliate: byCode, price: clampSellPrice(byCode.affiliatePrice ?? WEBSITE_PRICE) };
+    return { affiliate: byCode, price: CREATOR_CODE_PRICE };
 }
 
 export function creatorName(creator: Doc<'creators'>): string {
@@ -137,8 +137,9 @@ export function creatorName(creator: Doc<'creators'>): string {
         || (creator.affiliateHandle ? `@${creator.affiliateHandle}` : 'Tendso creator');
 }
 
-/** The public face of a creator's code: no contact or payout data. */
-export function creatorCard(creator: Doc<'creators'>, price: number) {
+/** The public face of a creator's fixed code offer: no contact or payout data. */
+export function creatorCard(creator: Doc<'creators'>, _legacyPrice?: number) {
+    const price = CREATOR_CODE_PRICE;
     const listPrice = WEBSITE_PRICE;
     const saving = Math.max(0, listPrice - price);
     const message = creator.affiliateMessage?.trim();

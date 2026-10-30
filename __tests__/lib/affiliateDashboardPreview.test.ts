@@ -5,10 +5,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DashboardContent } from "@/app/affiliates/dashboard/_components/Dashboard";
 import { PageSettings } from "@/app/affiliates/dashboard/_components/PageSettings";
 import { PriceSettings } from "@/app/affiliates/dashboard/_components/PriceSettings";
+import { OfferPreview } from "@/app/affiliates/dashboard/_components/OfferPreview";
 import { Sales, SalesList, type AffiliateSale } from "@/app/affiliates/dashboard/_components/Sales";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { AFFILIATE_MESSAGE_MAX_LENGTH } from "@/lib/affiliates";
-import { formatPHP } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE, commissionFor, formatPHP } from "@/lib/pricing";
 import { CreatorPagePreview } from "@/components/v2/creators/CreatorPagePreview";
 
 jest.mock("convex/react", () => ({
@@ -114,10 +115,12 @@ describe("affiliate dashboard preview", () => {
         for (const id of ["page-settings", "price-settings", "affiliate-share-heading"]) expect(html).toContain(`id="${id}"`);
         expect(html).toContain(`href="/v2/a/${account.affiliateHandle}"`);
         expect(html).toContain("View saved page");
-        expect(html.match(/<form\b/g)).toHaveLength(2);
+        expect(html.match(/<form\b/g)).toHaveLength(1);
         expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0]).toMatchObject({
-            card: { name: account.affiliateDisplayName, code: account.referralCode, price: 2200, saving: 2799 }, dirty: false,
+            card: { name: account.affiliateDisplayName, code: account.referralCode, price: CREATOR_CODE_PRICE, saving: 1500 }, dirty: false,
         });
+        expect(html).not.toContain("Save price");
+        expect(html).not.toMatch(/<input\b[^>]*type="(?:number|range)"/);
         expect(usePaginatedQuery).not.toHaveBeenCalled();
         const previewHtml = renderToStaticMarkup(createElement(DashboardContent, { account, preview: true }));
         expect(previewHtml).not.toContain("View saved page");
@@ -125,7 +128,7 @@ describe("affiliate dashboard preview", () => {
 
     it("keeps a suspended creator's page, offer, uploads and share materials read-only", () => {
         const html = renderToStaticMarkup(createElement(DashboardContent, { account: { ...account, status: "suspended" } }));
-        for (const label of ["Change photo", "Remove", "Save page", "Save price", "Download QR PNG", "Print A4 poster"]) {
+        for (const label of ["Change photo", "Remove", "Save page", "Download QR PNG", "Print A4 poster"]) {
             expect(buttonTag(html, label)).toContain('disabled=""');
         }
         for (const control of html.match(/<(?:input|textarea)\b[^>]*>/g) ?? []) expect(control).toContain('disabled=""');
@@ -138,8 +141,8 @@ describe("affiliate dashboard preview", () => {
 
         expect(html).toContain("My page");
         expect(html).toContain("Ana&#x27;s local offers");
-        expect(html).toContain(formatPHP(2200));
-        expect(html).toContain(formatPHP(1100));
+        expect(html).toContain(formatPHP(CREATOR_CODE_PRICE));
+        expect(html).toContain(formatPHP(commissionFor(CREATOR_CODE_PRICE)));
         expect(html).not.toContain("Getting paid");
         expect(html).not.toContain(account.wiseEmail);
         expect(html).not.toContain(liveSale.businessName);
@@ -159,7 +162,7 @@ describe("affiliate dashboard preview", () => {
         expect(html).toContain("Photo uploads are disabled in this preview.");
     });
 
-    it("keeps the sample page and price editors usable", () => {
+    it("keeps sample page editing usable and the creator-code offer read-only", () => {
         const pageHtml = renderToStaticMarkup(createElement(PageSettings, {
             draft: { photo: "", displayName: "Edited preview", message: "Sample offer", socialLinks: {} },
             defaultName: "Ana Cruz",
@@ -170,21 +173,15 @@ describe("affiliate dashboard preview", () => {
             onChange: jest.fn(),
             onSaved: jest.fn(),
         }));
-        const priceHtml = renderToStaticMarkup(createElement(PriceSettings, {
-            value: "2400",
-            previewPrice: 2400,
-            dirty: true,
-            disabled: false,
-            preview: true,
-            onChange: jest.fn(),
-            onSaved: jest.fn(),
-        }));
+        const priceHtml = renderToStaticMarkup(createElement(PriceSettings, { referralCode: account.referralCode }));
 
         expect(buttonTag(pageHtml, "Save page")).not.toContain("disabled");
         expect(pageHtml.match(/<input\b[^>]*value="Edited preview"[^>]*>/)?.[0]).not.toContain("disabled");
-        expect(buttonTag(priceHtml, "Save price")).not.toContain("disabled");
-        expect(priceHtml.match(/<input\b[^>]*type="number"[^>]*>/)?.[0]).not.toContain("disabled");
-        expect(priceHtml).toContain(formatPHP(1200));
+        expect(priceHtml).not.toContain("Save price");
+        expect(priceHtml).not.toMatch(/<(?:form|input|button)\b/);
+        expect(priceHtml).toContain("30% off");
+        expect(priceHtml).toContain(formatPHP(CREATOR_CODE_PRICE));
+        expect(priceHtml).toContain(formatPHP(commissionFor(CREATOR_CODE_PRICE)));
         expect(buttonTag(pageHtml, "Add photo")).toContain('disabled=""');
         expect(updatePage).not.toHaveBeenCalled();
         expect(generateUploadUrl).not.toHaveBeenCalled();
@@ -239,6 +236,25 @@ describe("affiliate dashboard preview", () => {
         expect(html).not.toContain(`value="${account.affiliateSocialLink}"`);
     });
 
+    it.each([999, 2200, 4999, undefined])("uses the fixed creator-code offer instead of the historical saved price %s", (affiliatePrice) => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, { account: { ...account, affiliatePrice } }));
+        expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0].card).toMatchObject({ price: CREATOR_CODE_PRICE, saving: 1500, percentOff: 30 });
+        expect(html).not.toMatch(/<input\b[^>]*type="(?:number|range)"/);
+        expect(html).not.toContain("Save price");
+        expect(html).not.toContain("Adjust your price");
+        expect(html).toMatch(/data-poster-node="price"[^>]*>₱3,499<\/text>/);
+        expect(updatePage).not.toHaveBeenCalled();
+    });
+
+    it("keeps the saved name, photo and actual creator code on fixed-offer sharing materials", () => {
+        const html = renderToStaticMarkup(createElement(DashboardContent, { account }));
+        expect(html).toContain('Shared by Ana&#x27;s local offers');
+        expect(html).toMatch(/data-poster-node="creator-code-0"[^>]*>PREVIEW1<\/text>/);
+        const photo = html.match(/<image\b(?=[^>]*data-poster-node="photo")[^>]*>/)?.[0];
+        expect(photo).toContain(`href="${account.affiliatePhoto}"`);
+        expect(html).toContain(`tendso.com/v2/a/${account.affiliateHandle}`);
+    });
+
 });
 
 describe("affiliate preview form saves", () => {
@@ -279,27 +295,15 @@ describe("affiliate preview form saves", () => {
         expect(generateUploadUrl).not.toHaveBeenCalled();
     });
 
-    it.each([
-        [" 2400.4 ", 2400], ["1", 999], ["9999", 4999],
-    ])("saves preview price %s as %s locally without calling services", async (value, expected) => {
-        const onSaved = jest.fn();
-        const submit = captureSubmit(() => PriceSettings({
-            value, previewPrice: 2200, dirty: true, disabled: false, preview: true, onChange: jest.fn(), onSaved,
-        }));
-        await submit();
-        expect(onSaved).toHaveBeenCalledTimes(1);
-        expect(onSaved).toHaveBeenCalledWith(expected);
-        expect(updatePage).not.toHaveBeenCalled();
-        expect(generateUploadUrl).not.toHaveBeenCalled();
-    });
-
-    it.each(["", "not-a-price", "Infinity"])("does not save invalid preview price %j", async (value) => {
-        const onSaved = jest.fn();
-        const submit = captureSubmit(() => PriceSettings({
-            value, previewPrice: 2200, dirty: true, disabled: false, preview: true, onChange: jest.fn(), onSaved,
-        }));
-        await submit();
-        expect(onSaved).not.toHaveBeenCalled();
+    it("shows the fixed offer without mounting any mutation or form handlers", () => {
+        const html = renderToStaticMarkup(createElement(PriceSettings, { referralCode: account.referralCode }));
+        expect(html).not.toMatch(/<(?:form|input|button)\b/);
+        expect(html).toContain("Every creator code gives shop owners the same 30% off");
+        expect(html).toContain(formatPHP(CREATOR_CODE_PRICE));
+        expect(html).toContain(formatPHP(1500));
+        expect(html).toContain(formatPHP(1750));
+        expect(useMutation).not.toHaveBeenCalled();
+        expect(useAction).not.toHaveBeenCalled();
         expect(updatePage).not.toHaveBeenCalled();
         expect(generateUploadUrl).not.toHaveBeenCalled();
     });
@@ -354,15 +358,10 @@ describe("affiliate preview form saves", () => {
         expect(onSaved).not.toHaveBeenCalled();
     });
 
-    it("keeps the default live price save calling the backend with the rounded price", async () => {
-        const onSaved = jest.fn();
-        const submit = captureSubmit(() => PriceSettings({
-            value: "2400.4", previewPrice: 2400, dirty: true, disabled: false, onChange: jest.fn(), onSaved,
-        }));
-        await submit();
-        expect(updatePage).toHaveBeenCalledTimes(1);
-        expect(updatePage).toHaveBeenCalledWith({ price: 2400 });
-        expect(onSaved).toHaveBeenCalledWith(2400);
-        expect(generateUploadUrl).not.toHaveBeenCalled();
+    it("keeps legacy offer previews on the fixed creator-code price", () => {
+        const html = renderToStaticMarkup(createElement(OfferPreview, { displayName: "Saved creator", price: 999 }));
+        expect(html).toContain("₱3,499");
+        expect(html).toContain("30% off");
+        expect(html).not.toContain("₱999");
     });
 });

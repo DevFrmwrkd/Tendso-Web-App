@@ -1,24 +1,24 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import { useAction, useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { api } from '@tendso/convex-client';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import { BASE_PRICE, PRICE_CEILING, COMMISSION_RATE, WEBSITE_PRICE, clampSellPrice, commissionFor, formatPHP } from '../../../../packages/shared/pricing';
+import { CREATOR_CODE_PRICE } from '../../../../packages/shared/pricing';
 import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, type AffiliateSocialLinks, type AffiliateSocialPlatform } from '../../../../lib/affiliates';
 import { createCreatorPageCard, creatorPageDraftsEqual } from '../../../../lib/v2/creatorPageEditor';
-import { Avatar, Button, Card, Field, SectionLabel, Text, ToggleRow } from '../v2';
+import { Avatar, Button, Card, Field, Text, ToggleRow } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
-import { PriceSlider } from '../PriceSlider';
 import { AffiliateAccess, Notice, type AffiliateAccessProps } from './Screen';
 import { AffiliateToolFrame } from './AffiliateToolFrame';
 import { affiliateDraft, affiliateName, affiliatePagePayload, type AffiliateDraft } from './model';
 import { ShareTools } from './ShareTools';
+import { AffiliateOfferSummary } from './Offer';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 type PagePayload = ReturnType<typeof affiliatePagePayload>;
-type EditorMode = 'all' | 'page';
+type EditorTitle = 'My page' | 'Edit your page';
 type EditorSection = 'page' | 'offer' | 'sharing';
 const SOCIAL_PLACEHOLDERS: Record<AffiliateSocialPlatform, string> = {
   messenger: 'https://m.me/yourname',
@@ -28,21 +28,21 @@ const SOCIAL_PLACEHOLDERS: Record<AffiliateSocialPlatform, string> = {
   youtube: 'https://www.youtube.com/@yourname',
 };
 
-/** Kept for existing imports; pushed page routes use the focused editor below. */
+/** Home and the compatibility edit route use the same editor and saved-page preview. */
 export function AffiliatePageScreen() {
-  return <EditorScreen mode="all" />;
+  return <EditorScreen title="My page" />;
 }
 
 export function AffiliatePageEditorScreen() {
-  return <EditorScreen mode="page" />;
+  return <EditorScreen title="Edit your page" />;
 }
 
-function EditorScreen({ mode }: { mode: EditorMode }) {
+function EditorScreen({ title }: { title: EditorTitle }) {
   return <AffiliateAccess>{(props) => props.isPreview || props.account.status !== 'active' || !props.isAuthenticated
-    ? <PageEditorContent {...props} mode={mode} /> : <LivePageEditor {...props} mode={mode} />}</AffiliateAccess>;
+    ? <PageEditorContent {...props} title={title} /> : <LivePageEditor {...props} title={title} />}</AffiliateAccess>;
 }
 
-function LivePageEditor(props: AffiliateAccessProps & { mode: EditorMode }) {
+function LivePageEditor(props: AffiliateAccessProps & { title: EditorTitle }) {
   const save = useMutation(api.affiliates.updatePage);
   const generateUploadUrl = useAction(api.r2.generateUploadUrl);
   async function uploadPhoto(): Promise<string | undefined> {
@@ -64,14 +64,10 @@ function LivePageEditor(props: AffiliateAccessProps & { mode: EditorMode }) {
     if (!upload.ok || affiliatePhotoError(publicUrl)) throw new Error('Your photo did not upload. Please try again.');
     return publicUrl;
   }
-  return <PageEditorContent {...props} onSave={(payload) => {
-    // Page edits never overwrite a separately saved price.
-    const { price, ...page } = payload;
-    return save(props.mode === 'page' ? page : payload);
-  }} onSavePrice={price => save({ price })} onPhoto={uploadPhoto} />;
+  return <PageEditorContent {...props} title={props.title} onSave={payload => save(payload)} onPhoto={uploadPhoto} />;
 }
 
-export function PageEditorContent({ account, isPreview, isOffline, onSave, onSavePrice, onPhoto, mode = 'all' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onSavePrice?: (price: number) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; mode?: EditorMode }) {
+export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, title = 'My page' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; title?: EditorTitle }) {
   const incoming = affiliateDraft(account);
   const incomingKey = JSON.stringify(incoming);
   const [seen, setSeen] = useState(incomingKey);
@@ -80,9 +76,7 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onSav
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [priceError, setPriceError] = useState('');
   const [saved, setSaved] = useState(false);
-  const [priceSaved, setPriceSaved] = useState(false);
   const [section, setSection] = useState<EditorSection>('page');
   const [editorView, setEditorView] = useState<'edit' | 'preview'>('edit');
   // "What shows" switches: a field is shown when it has a value or its switch was turned on. Turning a switch off
@@ -90,31 +84,20 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onSav
   const [switchedOn, setSwitchedOn] = useState({ photo: false, message: false, socialLinks: false });
   const stash = useRef({ photo: '', message: '' });
   const socialStash = useRef<AffiliateSocialLinks>({});
-  const priceInput = useRef(draft.price);
-  priceInput.current = draft.price;
   const pageDirty = !creatorPageDraftsEqual(draft, baseline);
-  const priceDirty = draft.price !== baseline.price;
-  const dirty = mode === 'all' ? pageDirty || priceDirty : section === 'offer' ? priceDirty : pageDirty;
+  const dirty = pageDirty;
   // Refresh clean settings from a subscription without erasing an in-progress edit.
   if (seen !== incomingKey) {
     setSeen(incomingKey); setBaseline(incoming);
-    if (mode === 'page') setDraft(current => ({ ...(pageDirty ? current : incoming), price: priceDirty ? current.price : incoming.price }));
-    else if (!dirty) setDraft(incoming);
+    if (!dirty) setDraft(incoming);
   }
   const disabled = isPreview || isOffline || account.status !== 'active' || !onSave;
   const locked = disabled || saving || uploading;
-  const price = draft.price.trim() && Number.isFinite(Number(draft.price)) ? clampSellPrice(Number(draft.price)) : Number(baseline.price);
+  const price = CREATOR_CODE_PRICE;
   const defaultName = [account.firstName, account.lastName].filter(Boolean).join(' ').trim() || (account.affiliateHandle ? `@${account.affiliateHandle}` : 'Tendso creator');
-  const changePrice = useCallback((value: number) => {
-    if (priceInput.current === String(value)) return;
-    priceInput.current = String(value);
-    setDraft((current) => current.price === String(value) ? current : { ...current, price: String(value) });
-    setPriceSaved(false); setPriceError(''); if (mode === 'all') setError('');
-  }, []);
   function change(patch: Partial<AffiliateDraft>) {
     setDraft((current) => ({ ...current, ...patch }));
-    if (patch.price !== undefined) { setPriceSaved(false); setPriceError(''); if (mode === 'all') setError(''); }
-    else { setSaved(false); setError(''); }
+    setSaved(false); setError('');
   }
   const shows = (key: 'photo' | 'message') => switchedOn[key] || !!draft[key];
   const showsSocialLinks = switchedOn.socialLinks || Object.values(draft.socialLinks).some(Boolean);
@@ -145,69 +128,48 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onSav
   async function save() {
     if (locked || !dirty || !onSave) return;
     let payload: PagePayload;
-    try { payload = affiliatePagePayload(mode === 'page' ? { ...draft, price: baseline.price } : draft); }
+    try { payload = affiliatePagePayload(draft); }
     catch (problem) { setError(problem instanceof Error ? problem.message : 'Check your page details.'); return; }
     setSaving(true); setError('');
     try {
       await onSave(payload);
-      if (mode === 'page') {
-        const { price: _price, ...page } = payload;
-        setDraft(current => ({ ...current, ...page })); setBaseline(current => ({ ...current, ...page }));
-      } else {
-        const next = { ...payload, price: String(payload.price) };
-        setDraft(next); setBaseline(next);
-      }
+      setDraft(current => ({ ...current, ...payload })); setBaseline(current => ({ ...current, ...payload }));
       setSaved(true);
     } catch (problem) {
       setError(problem instanceof ConvexError && typeof problem.data === 'string' ? problem.data : 'Your page was not saved. Please try again.');
     } finally { setSaving(false); }
   }
-  async function savePrice() {
-    if (locked || !priceDirty || !onSavePrice) return;
-    if (!draft.price.trim() || !Number.isFinite(Number(draft.price))) { setPriceError('Enter your website price in whole pesos.'); return; }
-    setSaving(true); setPriceError('');
-    try {
-      await onSavePrice(price);
-      setDraft(current => ({ ...current, price: String(price) })); setBaseline(current => ({ ...current, price: String(price) })); setPriceSaved(true);
-    } catch (problem) {
-      setPriceError(problem instanceof ConvexError && typeof problem.data === 'string' ? problem.data : 'Your price was not saved. Please try again.');
-    } finally { setSaving(false); }
-  }
-  const keep = commissionFor(price);
-  const saves = Math.max(0, WEBSITE_PRICE - price);
-  const savingOffer = mode === 'page' && section === 'offer';
-  const displayedError = savingOffer ? priceError : error;
-  const status = savingOffer ? priceSaved && !priceDirty ? 'Price saved.' : priceDirty ? 'Unsaved price change.' : ''
-    : saved && !pageDirty && (mode === 'page' || !priceDirty) ? (mode === 'page' ? 'Page saved.' : 'Page and price saved.') : dirty ? 'Unsaved changes.' : '';
+  const displayedError = error;
+  const status = saved && !pageDirty ? 'Page saved.' : dirty ? 'Unsaved changes.' : '';
   const previewName = draft.displayName.trim() || defaultName;
   const card = createCreatorPageCard(account, draft, price);
   // Keep the form's initial render light; the native WebView loads when Preview is opened.
   const PublicPreview = editorView === 'preview' ? require('./PublicPagePreview').AffiliatePublicPagePreview : null;
   function switchView(next: 'edit' | 'preview') { Keyboard.dismiss(); setEditorView(next); }
-  const showPage = mode === 'all' || section === 'page';
-  const showOffer = mode === 'all' || section === 'offer';
+  const showPage = section === 'page';
+  const showOffer = section === 'offer';
   return <AffiliateToolFrame avoidKeyboard
-    title={mode === 'page' ? 'Edit your page' : 'My page'}
+    title={title}
     preview={isPreview}
     suspended={account.status !== 'active'}
     offline={isOffline}
     floatingFooter={false}
     scroll={editorView !== 'preview'}
-    footer={mode === 'page' && section === 'sharing' && editorView === 'edit' ? undefined : <View style={styles.saveSection}>
+    footer={section !== 'page' && editorView === 'edit' ? undefined : <View style={styles.saveSection}>
       {displayedError || status ? <Text testID="affiliate-save-status" variant="label" tone={displayedError ? 'danger' : 'muted'} align="center" accessibilityRole={displayedError ? 'alert' : undefined} accessibilityLiveRegion="polite">{displayedError || status}</Text> : null}
       <View style={styles.footerActions}>
         <Button title={editorView === 'preview' ? 'Edit' : 'Preview'} icon={editorView === 'preview' ? 'create-outline' : 'eye-outline'} variant="ghost" fullWidth={false} style={styles.footerAction} onPress={() => switchView(editorView === 'preview' ? 'edit' : 'preview')} />
-        <Button title={savingOffer ? 'Save price' : mode === 'page' ? 'Save page' : 'Save page and price'} fullWidth={false} style={styles.footerAction} disabled={locked || !dirty || (savingOffer && !onSavePrice)} loading={saving} onPress={savingOffer ? savePrice : save} />
+        <Button title="Save page" fullWidth={false} style={styles.footerAction} disabled={locked || !dirty} loading={saving} onPress={save} />
       </View>
     </View>}
   >
     <View style={styles.viewSwitch} accessibilityRole="tablist" accessibilityLabel="Page editor view">
       {(['edit', 'preview'] as const).map(view => <Pressable key={view} accessibilityRole="tab" accessibilityLabel={view === 'edit' ? 'Edit page details' : 'Preview public page'} accessibilityState={{ selected: editorView === view }} onPress={() => switchView(view)} style={[styles.viewTab, editorView === view && styles.viewTabSelected]}><Text variant="label" weight="bold" tone={editorView === view ? 'onDark' : 'ink'}>{view === 'edit' ? 'Edit' : 'Preview'}</Text></Pressable>)}
     </View>
-    {editorView === 'preview' && PublicPreview ? <PublicPreview key={account._id} card={card} dirty={pageDirty || priceDirty} paused={account.status !== 'active'} offline={isOffline} sample={isPreview} /> : <>
-    {mode === 'page' ? <><Text variant="body" tone="muted">Edit the page shop owners open from your link.</Text><View style={styles.sectionTabs} accessibilityRole="tablist" accessibilityLabel="Page settings">
+    {editorView === 'preview' && PublicPreview ? <PublicPreview key={account._id} card={card} dirty={pageDirty} paused={account.status !== 'active'} offline={isOffline} sample={isPreview} /> : <>
+    <Text variant="body" tone="muted">Edit the page shop owners open from your link.</Text><View style={styles.sectionTabs} accessibilityRole="tablist" accessibilityLabel="Page settings">
       {([{ id: 'page', label: 'Page details' }, { id: 'offer', label: 'Your offer' }, { id: 'sharing', label: 'Sharing' }] as const).map(item => <Pressable key={item.id} accessibilityRole="tab" accessibilityLabel={item.label} accessibilityState={{ selected: section === item.id }} onPress={() => { Keyboard.dismiss(); setSection(item.id); }} style={[styles.sectionTab, section === item.id && styles.sectionTabSelected]}><Text variant="label" weight="semibold">{item.label}</Text></Pressable>)}
-    </View></> : <SectionLabel>What shows on your page</SectionLabel>}
+    </View>
     <View style={[styles.panel, !showPage && styles.hidden]} accessibilityElementsHidden={!showPage} importantForAccessibility={showPage ? 'auto' : 'no-hide-descendants'}>
     <Field label="Display name" icon="person-outline" value={draft.displayName} placeholder={defaultName} maxLength={100} editable={!locked} helper="The name shown on your public page." onChangeText={(displayName) => change({ displayName })} />
     <ToggleRow title="Show my photo" subtitle={draft.photo ? 'Tap below to change it' : 'Add a photo of yourself'} value={shows('photo')} disabled={locked} onValueChange={(on) => toggle('photo', on)} />
@@ -227,24 +189,11 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onSav
     <Text variant="label" tone="muted" style={styles.handle}>Your page handle is @{account.affiliateHandle || 'unavailable'}. It stays the same.</Text>
     </View>
 
-    <View style={[styles.panel, !showOffer && styles.hidden]} accessibilityElementsHidden={!showOffer} importantForAccessibility={showOffer ? 'auto' : 'no-hide-descendants'}><SectionLabel>Your website price</SectionLabel>
-    <Card variant="lg" style={styles.priceCard}>
-      <Field label="Website price in pesos" prefix="₱" value={draft.price} keyboardType="number-pad" maxLength={9} editable={!locked} helper={`Between ${formatPHP(BASE_PRICE)} and ${formatPHP(PRICE_CEILING)}. Applies to future orders.`} onChangeText={(priceValue) => change({ price: priceValue })} onBlur={() => { if (draft.price.trim() && Number.isFinite(Number(draft.price))) change({ price: String(clampSellPrice(Number(draft.price))) }); }} />
-      <PriceSlider floor={BASE_PRICE} ceiling={PRICE_CEILING} anchor={WEBSITE_PRICE} commissionRate={COMMISSION_RATE} step={1} initialValue={price} disabled={locked} onChange={changePrice} showEarnings={false} />
-      <View style={styles.tiles}>
-        <View style={[styles.tile, styles.tileKeep]}>
-          <Text variant="title" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{formatPHP(keep)}</Text>
-          <Text variant="label" tone="ink2">you keep</Text>
-        </View>
-        <View style={styles.tile}>
-          <Text variant="title" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{formatPHP(saves)}</Text>
-          <Text variant="label" tone="ink2">the shop saves</Text>
-        </View>
-      </View>
-    </Card></View>
-
-    <View style={[styles.panel, mode === 'page' && section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={mode === 'page' && section !== 'sharing'} importantForAccessibility={mode === 'page' && section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
-    {pageDirty || priceDirty ? <Text variant="label" tone="muted">Sharing uses your saved page and price. Save each section before sharing new materials.</Text> : null}
+    <View style={[styles.panel, !showOffer && styles.hidden]} accessibilityElementsHidden={!showOffer} importantForAccessibility={showOffer ? 'auto' : 'no-hide-descendants'}>
+      <AffiliateOfferSummary code={account.referralCode} />
+    </View>
+    <View style={[styles.panel, section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={section !== 'sharing'} importantForAccessibility={section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
+    {pageDirty ? <Text variant="label" tone="muted">Sharing uses your saved page. Save your changes before sharing new materials.</Text> : null}
     {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} photo={baseline.photo} referralCode={account.referralCode} price={Number(baseline.price)} disabled={isPreview || isOffline || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
     </View>
     </>}
@@ -267,8 +216,4 @@ const styles = StyleSheet.create({
   handle: { paddingHorizontal: space.xs },
   socialFields: { gap: space.lg },
   saveSection: { gap: space.sm },
-  priceCard: { gap: space.lg },
-  tiles: { flexDirection: 'row', gap: space.sm },
-  tile: { flex: 1, minWidth: 0, borderRadius: radius.field, padding: space.md, backgroundColor: colors.bg },
-  tileKeep: { backgroundColor: colors.accentSoft },
 });

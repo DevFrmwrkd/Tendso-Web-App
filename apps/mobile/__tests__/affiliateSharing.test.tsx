@@ -70,7 +70,7 @@ it('shares the vector-exported PNG and removes the temporary file after the shar
   expect(mockCapture).not.toHaveBeenCalled();
   expect(mockPosterExport).toHaveBeenCalledTimes(1);
   expect(mockPoster.mock.calls.at(-1)![0].model).toMatchObject({ name: 'My saved offer', photo: 'https://photos.example.com/saved.jpg',
-    price: 3999, code: 'LEGACY27', url: 'https://tendso.com/v2/a/my-page' });
+    price: 3499, code: 'LEGACY27', url: 'https://tendso.com/v2/a/my-page' });
   const uri = mockWrite.mock.calls[0][0];
   expect(mockWrite).toHaveBeenCalledWith(uri, PNG, { encoding: 'base64' });
   expect(mockShareImage).toHaveBeenCalledWith(uri, { mimeType: 'image/png', dialogTitle: 'Share printable creator poster' });

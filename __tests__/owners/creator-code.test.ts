@@ -45,6 +45,24 @@ async function setup(fields: Partial<Doc<'submissions'>> = {}) {
 }
 
 describe('owner-app creator-code quote', () => {
+    it('keeps a historical discounted quote through reads and payment even when its creator has a different legacy price', async () => {
+        const { t, ids, owner, row } = await setup({ status: 'website_generated', previewReadyAt: NOW,
+            ownerApprovedAt: NOW, amount: 2499, creatorPayout: 1250, websiteListPrice: 4999, affiliateHandle: 'mika' });
+        await t.run(async ctx => {
+            await ctx.db.patch(ids.submission, { creatorId: ids.mika });
+            await ctx.db.patch(ids.mika, { affiliatePrice: 999 });
+        });
+        const before = await row();
+        expect(await owner.query(api.ownerApp.creatorCode, { submissionId: ids.submission }))
+            .toMatchObject({ total: 2499, applied: { total: 2499, saving: 2500 } });
+        expect(await row()).toEqual(before);
+        const token = await owner.mutation(api.ownerPayments.createPayToken, { submissionId: ids.submission, kind: 'full', expectedTotal: 2499 });
+        expect(token.amount).toBe(2499);
+        await t.mutation(internal.ownerPayments.applyTokenPayment, { token: token.token, provider: 'manual', triggeredBy: 'test', amountReceived: 2499 });
+        expect(await row()).toMatchObject({ amount: 2499, amountPaid: 2499, balanceDue: 0, creatorPayout: 1250, status: 'completed' });
+        expect((await t.run(ctx => ctx.db.get(ids.mika)))?.balance).toBe(1250);
+    });
+
     it('computes the active offer, freezes the quote, preserves first attribution on change, and removes back to the house', async () => {
         const { t, ids, owner, apply, row } = await setup();
         expect(await apply('  mika30  ')).toEqual({ name: 'Mika', code: 'MIKA30', handle: 'mika',
@@ -55,8 +73,8 @@ describe('owner-app creator-code quote', () => {
         expect(firstClaim).toHaveLength(1); expect(firstClaim[0]).toMatchObject({ creatorId: ids.mika, source: 'code', kind: 'owner', status: 'applied' });
         await t.run(ctx => ctx.db.patch(ids.mika, { affiliatePrice: 4999 }));
         expect((await owner.query(api.ownerApp.creatorCode, { submissionId: ids.submission })).applied?.total).toBe(3499);
-        expect((await apply('TONI40'))?.total).toBe(2999);
-        expect(await row()).toMatchObject({ creatorId: ids.toni, amount: 2999, creatorPayout: commissionFor(2999), affiliateHandle: 'toni' });
+        expect((await apply('TONI40'))?.total).toBe(3499);
+        expect(await row()).toMatchObject({ creatorId: ids.toni, amount: 3499, creatorPayout: commissionFor(3499), affiliateHandle: 'toni' });
         expect(await t.run(ctx => ctx.db.query('creatorAttributions').collect())).toEqual(firstClaim);
         expect(await apply(null)).toBeNull();
         const removed = await row();

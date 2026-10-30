@@ -1,1 +1,1 @@
-export { AffiliatePageScreen as default } from '../../../components/affiliate/PageOverview';
+export { AffiliatePageScreen as default } from '../../../components/affiliate/PageEditor';

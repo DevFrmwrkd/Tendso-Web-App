@@ -2,7 +2,6 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AffiliatePageEditorScreen } from '../components/affiliate/PageEditor';
-import { AffiliatePageScreen } from '../components/affiliate/PageOverview';
 import { AffiliateSocialButtons } from '../components/affiliate/Offer';
 import { affiliateDraft, affiliatePagePayload, sampleAffiliate } from '../components/affiliate/model';
 import type { AffiliateSocialLinks } from '../../../lib/affiliates';
@@ -80,25 +79,22 @@ it('keeps invalid social drafts unsaved and preserves them through unrelated acc
   expect(mockSave).not.toHaveBeenCalled();
 });
 
-it('shows separate saved platform buttons and prevents preview or suspended navigation', async () => {
+it('shows separate saved platform buttons and prevents disabled navigation', async () => {
   const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-  mockAccess.account = { ...sampleAffiliate, affiliateSocialLinks: { messenger: 'https://m.me/sam', tiktok: 'https://www.tiktok.com/@sam' } };
-  const view = render(<AffiliatePageScreen />);
+  const socialLinks = { messenger: 'https://m.me/sam', tiktok: 'https://www.tiktok.com/@sam' };
+  const view = render(<AffiliateSocialButtons socialLinks={socialLinks} />);
   expect(view.getByRole('button', { name: 'Messenger' })).toBeTruthy();
   expect(view.getByRole('button', { name: 'TikTok' })).toBeTruthy();
   expect(view.queryByText(/Message on TikTok/)).toBeNull();
   fireEvent.press(view.getByRole('button', { name: 'TikTok' }));
   await waitFor(() => expect(open).toHaveBeenCalledWith('https://www.tiktok.com/@sam'));
-  mockAccess.isPreview = true;
-  view.rerender(<AffiliatePageScreen />);
+  view.rerender(<AffiliateSocialButtons socialLinks={socialLinks} disabled />);
   expect(view.getByRole('button', { name: 'TikTok' }).props.accessibilityState.disabled).toBe(true);
-  mockAccess.isPreview = false;
-  mockAccess.account = { ...mockAccess.account, status: 'suspended' };
-  view.rerender(<AffiliatePageScreen />);
-  expect(view.getByRole('button', { name: 'TikTok' }).props.accessibilityState.disabled).toBe(true);
+  open.mockClear();
+  fireEvent.press(view.getByRole('button', { name: 'TikTok' }));
+  expect(open).not.toHaveBeenCalled();
   open.mockRestore();
 });
-
 it('omits invalid profile buttons and never resurrects legacy links after a canonical clear', () => {
   const view = render(<AffiliateSocialButtons socialLinks={{ instagram: 'https://instagram.com.attacker.test/sam', youtube: 'https://www.youtube.com/@sam' }} socialLink="https://m.me/sam" />);
   expect(view.queryByRole('button', { name: 'Instagram' })).toBeNull();

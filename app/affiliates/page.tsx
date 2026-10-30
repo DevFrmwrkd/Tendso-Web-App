@@ -3,11 +3,12 @@ import { ArrowRight, Link2, Users, Wallet } from "lucide-react";
 import Link from "next/link";
 
 import { ButtonLink, Icon, PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
-import { BASE_PRICE, COMMISSION_RATE, PRICE_CEILING, formatPHP } from "@/lib/pricing";
+import { COMMISSION_RATE, CREATOR_CODE_DISCOUNT, CREATOR_CODE_PRICE, formatPHP } from "@/lib/pricing";
 import { AFFILIATE_RECRUIT_REWARD, AFFILIATE_RECRUIT_TERMS } from "@/lib/affiliateReferralProgram";
 
 const SHARE = Math.round(COMMISSION_RATE * 100);
-const DESCRIPTION = `Share your own Tendso page, set your website price from ${formatPHP(BASE_PRICE)} to ${formatPHP(PRICE_CEILING)}, and earn ${SHARE}% of every sale. ${AFFILIATE_RECRUIT_REWARD}`;
+const DISCOUNT = Math.round(CREATOR_CODE_DISCOUNT * 100);
+const DESCRIPTION = `Share your own Tendso page and fixed ${DISCOUNT}% creator-code offer. Shop owners pay ${formatPHP(CREATOR_CODE_PRICE)} and you keep ${SHARE}% of each website sale. ${AFFILIATE_RECRUIT_REWARD}`;
 
 export const metadata: Metadata = {
     title: "Share a link, earn a commission — Tendso affiliates",
@@ -23,7 +24,7 @@ export default function AffiliatesPage() {
                     <p className="t-label">Tendso affiliates</p>
                     <h1 className="t-h1">Share your link. Earn with every website.</h1>
                     <p className="t-sub">
-                        Help shop owners get online through your own Tendso page. Choose your price from {formatPHP(BASE_PRICE)} to {formatPHP(PRICE_CEILING)} and keep {SHARE}% of each sale.
+                        Help shop owners get online through your own Tendso page. Your creator code gives a fixed {DISCOUNT}% off: shop owners pay {formatPHP(CREATOR_CODE_PRICE)} and you keep half of the website price.
                     </p>
                     <ButtonLink href="/affiliates/join" variant="primary" size="lg" className="self-start">
                         Become an affiliate
@@ -39,20 +40,21 @@ export default function AffiliatesPage() {
                     </section>
                     <section className="t-card t-card-pad flex flex-col gap-3">
                         <Icon icon={Wallet} size={20} />
-                        <h2 className="t-h2">Set your price</h2>
-                        <p className="t-body">Owners who order through your page pay your price. You earn {SHARE}% of the website sale.</p>
+                        <h2 className="t-h2">Share a fixed {DISCOUNT}% offer</h2>
+                        <p className="t-body">Every creator code has the same website offer. You earn {SHARE}% of each eligible website sale.</p>
                     </section>
                     <section className="t-card t-card-pad flex flex-col gap-3">
                         <Icon icon={Users} size={20} />
                         <h2 className="t-h2">Refer creators</h2>
                         <p className="t-body">{AFFILIATE_RECRUIT_REWARD}</p>
+                        <p className="t-meta">Your team commission is credited after the shop has paid in full.</p>
                         <p className="t-meta">{AFFILIATE_RECRUIT_TERMS}</p>
                     </section>
                 </div>
 
                 <div className="flex max-w-[680px] flex-col gap-3">
                     <p className="t-body">
-                        Affiliates share their link. Creators visit shops, take photos, and interview owners. Sign up, then wait for admin approval before sharing your page.
+                        Affiliates share their link. Field agents visit shops, take photos, and interview owners. Sign up, then wait for admin approval before sharing your page.
                     </p>
                     <p className="t-meta">
                         Already a creator? Use a different email for your affiliate account. Each login has one account type.{" "}

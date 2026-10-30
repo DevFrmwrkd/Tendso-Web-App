@@ -17,7 +17,7 @@ describe('public creator handle lookup', () => {
             affiliateHandle: 'maria', referralCode: 'AFF123ABC', affiliatePrice: 2999, wiseEmail: 'private-wise@example.com',
         }));
         const card = await t.query(api.creatorProgram.getCreatorByHandle, { handle: 'maria' });
-        expect(card).toEqual({ handle: 'maria', name: 'Maria', photo: null, code: 'AFF123ABC', listPrice: 4999, price: 2999, saving: 2000, percentOff: 40 });
+        expect(card).toEqual({ handle: 'maria', name: 'Maria', photo: null, code: 'AFF123ABC', listPrice: 4999, price: 3499, saving: 1500, percentOff: 30 });
         expect(await t.query(api.affiliates.publicPage, { handle: 'maria' })).toMatchObject({ handle: 'maria', price: card!.price });
         expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'maria' })).toBeNull();
         expect(await t.query(api.creatorProgram.getCreatorByCode, { code: 'aff123abc' })).toEqual(card);

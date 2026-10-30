@@ -1,13 +1,13 @@
 import type { FunctionReturnType } from 'convex/server';
 import { api, type Doc, type Id } from '@tendso/convex-client';
-import { clampSellPrice, commissionFor, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
+import { CREATOR_CODE_DISCOUNT, CREATOR_CODE_PRICE, commissionFor } from '../../../../packages/shared/pricing';
 import { saleStatusLabel } from '../../../../packages/shared/affiliateSales';
 import type { ChipTone } from '../v2';
 import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, affiliateSocialPlatformLinkError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../../../../lib/affiliates';
 
-/** The default creator code takes 30% off the list price: ₱3,499, of which the creator keeps ₱1,750. */
-export const DEFAULT_CODE_DISCOUNT = 0.3;
-export const DEFAULT_CODE_PRICE = Math.round(WEBSITE_PRICE * (1 - DEFAULT_CODE_DISCOUNT));
+/** Every creator code takes 30% off the list price: ₱3,499, of which the creator keeps ₱1,750. */
+export const DEFAULT_CODE_DISCOUNT = CREATOR_CODE_DISCOUNT;
+export const DEFAULT_CODE_PRICE = CREATOR_CODE_PRICE;
 export const DEFAULT_CODE_KEEP = commissionFor(DEFAULT_CODE_PRICE);
 /** Share of each sale by a field agent who joined with the creator's code (12 months, one level). */
 export const RECRUIT_SHARE_PERCENT = 5;
@@ -20,7 +20,7 @@ export function affiliateDraft(account: Doc<'creators'>): AffiliateDraft {
   return {
     photo: account.affiliatePhoto ?? '', displayName: account.affiliateDisplayName ?? '',
     message: account.affiliateMessage ?? '', socialLinks: getAffiliateSocialLinks(account.affiliateSocialLinks, account.affiliateSocialLink),
-    price: String(clampSellPrice(account.affiliatePrice ?? WEBSITE_PRICE)),
+    price: String(CREATOR_CODE_PRICE),
   };
 }
 
@@ -44,8 +44,7 @@ export function affiliatePagePayload(draft: AffiliateDraft) {
     if (error) throw new Error(error);
     if (value) page.socialLinks[platform] = value;
   }
-  if (!draft.price.trim() || !Number.isFinite(Number(draft.price))) throw new Error('Enter your website price in whole pesos.');
-  return { ...page, price: clampSellPrice(Number(draft.price)) };
+  return page;
 }
 
 export const saleStatus = saleStatusLabel;
@@ -62,7 +61,7 @@ export const sampleAffiliate: Doc<'creators'> = {
   _id: 'mobile-preview-affiliate' as Id<'creators'>, _creationTime: sampleTime,
   clerkId: 'preview', email: 'creator@example.com', firstName: 'Sam', lastName: 'Santos',
   role: 'affiliate', status: 'active', affiliateHandle: 'sample-affiliate', affiliateDisplayName: 'Sam Santos',
-  affiliateMessage: 'Let’s help your business get online.', affiliatePrice: 3999,
+  affiliateMessage: 'Let’s help your business get online.', affiliatePrice: CREATOR_CODE_PRICE,
   referralCode: 'AFFSAMPLE', balance: 2500, totalEarnings: 5000, totalWithdrawn: 1000,
 };
 

@@ -2,7 +2,6 @@ import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { requireAuth } from './lib/auth';
 import { affiliateHandleError, affiliatePhoneError } from '../lib/affiliates';
-import { CREATOR_CODE_DEFAULT_PRICE } from '../lib/pricing';
 import { codeTaken, creatorCodeError, handleTaken, insertAffiliateAccount } from './lib/affiliateSignup';
 import { creatorCard, findActiveCreator, normalizeCreatorCode } from './lib/creatorRecruits';
 
@@ -104,8 +103,7 @@ export const apply = mutation({
                 creatorSocials: socials,
                 creatorAudienceSize: audienceSize,
                 creatorAppliedAt: Date.now(),
-                // New creators' codes start at 30% off (₱3,499); they can change it.
-                affiliatePrice: CREATOR_CODE_DEFAULT_PRICE,
+                // Code pricing comes from the shared fixed policy, never an account override.
             },
         });
     },

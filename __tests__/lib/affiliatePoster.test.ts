@@ -1,5 +1,5 @@
 import { boldOfferPosterScene, createAffiliatePoster, POSTER_PAGE } from '@/lib/affiliatePoster';
-import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, clampSellPrice, formatPHP } from '@/packages/shared/pricing';
+import { BASE_PRICE, CREATOR_CODE_DISCOUNT, CREATOR_CODE_PRICE, PRICE_CEILING, WEBSITE_PRICE, formatPHP } from '@/packages/shared/pricing';
 
 const saved = {
     handle: 'ana-local', displayName: '  Ana’s saved page  ', photo: ' https://photos.example.com/saved.jpg ',
@@ -21,15 +21,17 @@ describe('saved affiliate poster data', () => {
         expect(model.url).not.toContain('localhost');
     });
 
-    it.each([BASE_PRICE - 1, BASE_PRICE, 2661.6, WEBSITE_PRICE, PRICE_CEILING + 100, NaN])(
-        'uses shared price policy for a saved price of %s', desired => {
+    it.each([undefined, BASE_PRICE - 1, BASE_PRICE, 2661.6, WEBSITE_PRICE, PRICE_CEILING + 100, NaN, Infinity])(
+        'uses the fixed code offer instead of a legacy saved price of %s', desired => {
             const model = createAffiliatePoster({ ...saved, price: desired });
-            const price = Number.isFinite(desired) ? clampSellPrice(desired) : WEBSITE_PRICE;
-            expect(model.price).toBe(price);
-            expect(model.priceLabel).toBe(formatPHP(price));
+            expect(model.price).toBe(CREATOR_CODE_PRICE);
+            expect(model.priceLabel).toBe(formatPHP(CREATOR_CODE_PRICE));
             expect(model.listPriceLabel).toBe(formatPHP(WEBSITE_PRICE));
-            expect(model.saving).toBe(WEBSITE_PRICE - price);
-            expect(model.hasDiscount).toBe(price < WEBSITE_PRICE);
+            expect(model.saving).toBe(1500);
+            expect(model.hasDiscount).toBe(true);
+            expect(model.price).toBe(Math.round(WEBSITE_PRICE * (1 - CREATOR_CODE_DISCOUNT)));
+            expect(textIn(boldOfferPosterScene(model))).toContain('₱3,499');
+            expect(textIn(boldOfferPosterScene(model))).toContain('Save ₱1,500');
         },
     );
 
@@ -75,11 +77,13 @@ describe('Bold offer print content', () => {
         expect(words).not.toContain('Scan to order');
     });
 
-    it('does not advertise a discount when the saved price is the full website price', () => {
+    it('keeps the fixed discount even when an older account saved the full website price', () => {
         const model = createAffiliatePoster({ ...saved, price: WEBSITE_PRICE });
         const words = textIn(boldOfferPosterScene(model));
         expect(words.filter(value => value === model.priceLabel)).toHaveLength(1);
-        expect(words.join(' ')).not.toMatch(/Save ₱|% OFF|discount/i);
+        expect(words).toContain('₱4,999');
+        expect(words).toContain('Save ₱1,500');
+        expect(model.priceLabel).toBe('₱3,499');
     });
 
     it('uses an A4 page and a 300 dpi export rather than capturing the phone thumbnail', () => {

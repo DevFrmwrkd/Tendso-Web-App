@@ -6,7 +6,7 @@ import { ShopLinkPage } from '@/components/v2/creators/ShopLinkPage';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { creatorCard } from '@/convex/lib/creatorRecruits';
 import { getAffiliateSocialLinks } from '@/lib/affiliates';
-import { clampSellPrice } from '@/lib/pricing';
+import { CREATOR_CODE_PRICE } from '@/lib/pricing';
 import { createCreatorPageCard, creatorPageDraftsEqual } from '@/lib/v2/creatorPageEditor';
 
 jest.mock('@/lib/campaign', () => ({ rememberAffiliate: jest.fn() }));
@@ -49,12 +49,14 @@ describe('creator page preview public model', () => {
         expect(creatorPageDraftsEqual({ ...baseline, message: 'A new introduction' }, baseline)).toBe(false);
     });
 
-    it.each([0, 999, 1999.6, 3499, 4999, 99999])('matches the backend public card after saving a draft at price %s', price => {
+    it.each([undefined, 0, 999, 1999.6, 3499, 4999, 99999, NaN])('matches the fixed backend offer regardless of a legacy price %s', price => {
         const savedAccount = {
-            ...account, affiliatePhoto: draft.photo.trim(), affiliateDisplayName: draft.displayName.trim(),
+            ...account, affiliatePrice: price, affiliatePhoto: draft.photo.trim(), affiliateDisplayName: draft.displayName.trim(),
             affiliateMessage: draft.message.trim(), affiliateSocialLinks: getAffiliateSocialLinks(draft.socialLinks), affiliateSocialLink: undefined,
         };
-        expect(createCreatorPageCard(account, draft, price)).toEqual(creatorCard(savedAccount, clampSellPrice(price)));
+        const card = createCreatorPageCard({ ...account, affiliatePrice: price }, draft, price);
+        expect(card).toEqual(creatorCard(savedAccount, price));
+        expect(card).toMatchObject({ price: CREATOR_CODE_PRICE, listPrice: 4999, saving: 1500, percentOff: 30 });
     });
 
     it('preserves the real referral code and clears optional draft fields without reviving saved ones', () => {
@@ -66,8 +68,9 @@ describe('creator page preview public model', () => {
         expect(card.photo).toBeNull();
         expect(card.message).toBeUndefined();
         expect(card.socialLinks).toBeUndefined();
-        expect(card.saving).toBe(0);
-        expect(card.percentOff).toBe(0);
+        expect(card.price).toBe(CREATOR_CODE_PRICE);
+        expect(card.saving).toBe(1500);
+        expect(card.percentOff).toBe(30);
     });
 
     it('uses the public handle fallback and keeps a missing code missing', () => {

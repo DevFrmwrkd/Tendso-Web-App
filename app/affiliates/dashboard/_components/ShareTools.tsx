@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { BoldOfferPoster, prepareAffiliatePosterForPrint } from "@/components/affiliate/BoldOfferPoster";
 import { Button, Icon } from "@/components/r1";
 import { createAffiliatePoster, type AffiliatePosterModel } from "@/lib/affiliatePoster";
+import { CREATOR_CODE_DISCOUNT } from "@/lib/pricing";
 import { CopyButton } from "./CopyButton";
 import styles from "./ShareTools.module.css";
 
@@ -110,7 +111,7 @@ export function ShareTools({ handle, displayName, photo, referralCode, price, di
             <div className={styles.posterPreview} aria-labelledby={titleId}>
                 <div className={styles.posterHeading}><h3 id={titleId}>Bold offer</h3><span>A4 poster</span></div>
                 <BoldOfferPoster ref={poster} model={model} omitBrandImage={omitBrandImage} onImageError={imageFailed} className={styles.artwork} />
-                <p className="t-meta">Uses your saved name, photo, price, creator code and page link.</p>
+                <p className="t-meta">Uses your saved name, photo, creator code and page link, with the fixed {Math.round(CREATOR_CODE_DISCOUNT * 100)}% offer.</p>
                 <Button onClick={print} disabled={disabled || !mounted || preparing} aria-label="Print A4 poster" aria-busy={preparing}><Icon icon={Printer} />{preparing ? "Preparing poster…" : "Print A4 poster"}</Button>
                 <p className={styles.printHint} role="status" aria-live="polite">{preparing ? "Preparing the poster’s fonts and images…" : "Print on A4 paper at 100%, or save as a PDF from the print menu."}</p>
             </div>

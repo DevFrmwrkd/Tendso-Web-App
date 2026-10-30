@@ -4,7 +4,7 @@ import type { QueryCtx } from './_generated/server';
 import type { Doc } from './_generated/dataModel';
 import { requireAuth } from './lib/auth';
 import {
-    CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, clampSellPrice, creatorOverrideEndsAt, creatorOverrideMonthsLeft,
+    CREATOR_CODE_PRICE, CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, creatorOverrideEndsAt, creatorOverrideMonthsLeft,
     domainAddOnFor, earnsCreatorOverride, isComped, overrideFor, ownerChargeFor,
 } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidInFull, isPaidSale, paidInFullTime } from './lib/creatorRecruits';
@@ -169,10 +169,9 @@ export const summary = query({
             .filter((row) => row.status === 'pending' || row.status === 'processing')
             .reduce((sum, row) => sum + row.amount, 0);
 
-        const price = clampSellPrice(me.affiliatePrice ?? WEBSITE_PRICE);
         return {
             creator: {
-                ...creatorCard(me, price),
+                ...creatorCard(me, CREATOR_CODE_PRICE),
                 status: me.status as 'active' | 'suspended',
                 shopLink: `/v2/a/${me.affiliateHandle}`,
                 earnLink: `/v2/a/${me.affiliateHandle}/earn`,

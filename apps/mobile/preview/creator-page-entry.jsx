@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { V2Root } from '../../../components/v2/V2Root';
 import { ShopLinkView } from '../../../components/v2/creators/ShopLinkContent';
 import { AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError, getAffiliateSocialLinks } from '../../../lib/affiliates';
-import { WEBSITE_PRICE, clampSellPrice } from '../../../packages/shared/pricing';
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE } from '../../../packages/shared/pricing';
 import { PreviewStoreLinksProvider, normalizePreviewStoreLinks } from './store-links';
 
 const VERSION = 1;
@@ -31,8 +31,7 @@ function normalizePayload(payload) {
     throw new Error('Invalid preview payload.');
   }
   const input = payload.card;
-  if (typeof input.price !== 'number' || !Number.isFinite(input.price)) throw new Error('Invalid preview price.');
-  const price = clampSellPrice(input.price);
+  const price = CREATOR_CODE_PRICE;
   const saving = Math.max(0, WEBSITE_PRICE - price);
   const photo = text(input.photo, 2048);
   const message = text(input.message, AFFILIATE_MESSAGE_MAX_LENGTH);

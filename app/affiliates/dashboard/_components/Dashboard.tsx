@@ -9,7 +9,7 @@ import { CreatorPagePreview } from "@/components/v2/creators/CreatorPagePreview"
 import type { Doc } from "@/convex/_generated/dataModel";
 import { getAffiliateSocialLinks } from "@/lib/affiliates";
 import { SUPPORT_EMAIL } from "@/lib/contact";
-import { WEBSITE_PRICE, clampSellPrice } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE } from "@/lib/pricing";
 import { createCreatorPageCard, creatorPageDraftsEqual } from "@/lib/v2/creatorPageEditor";
 
 import { CopyButton } from "./CopyButton";
@@ -36,18 +36,13 @@ function pageValues(account: Doc<"creators">): AffiliatePageDraft {
 
 export function DashboardContent({ account, preview = false }: { account: Doc<"creators">; preview?: boolean }) {
     const savedPage = pageValues(account);
-    const savedPrice = clampSellPrice(account.affiliatePrice ?? WEBSITE_PRICE);
     const defaultName = [account.firstName, account.lastName].filter(Boolean).join(" ").trim()
         || (account.affiliateHandle ? `@${account.affiliateHandle}` : "Tendso creator");
     const [pageDraft, setPageDraft] = useState(() => savedPage);
     const [pageBaseline, setPageBaseline] = useState(() => savedPage);
-    const [priceValue, setPriceValue] = useState(() => String(savedPrice));
-    const [priceBaseline, setPriceBaseline] = useState(savedPrice);
     const pageDirty = !creatorPageDraftsEqual(pageDraft, pageBaseline);
-    const priceDirty = priceValue !== String(priceBaseline);
     const latestPage = JSON.stringify(savedPage);
     const [seenPage, setSeenPage] = useState(latestPage);
-    const [seenPrice, setSeenPrice] = useState(savedPrice);
     const [controlTab, setControlTab] = useState<ControlTab>("page");
     const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
     const editorId = useId();
@@ -60,15 +55,8 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
         setPageBaseline(savedPage);
         if (!pageDirty) setPageDraft(savedPage);
     }
-    if (seenPrice !== savedPrice) {
-        setSeenPrice(savedPrice);
-        setPriceBaseline(savedPrice);
-        if (!priceDirty) setPriceValue(String(savedPrice));
-    }
-
     const suspended = account.status !== "active";
-    const previewPrice = priceValue.trim() && Number.isFinite(Number(priceValue)) ? clampSellPrice(Number(priceValue)) : priceBaseline;
-    const card = createCreatorPageCard(account, pageDraft, previewPrice);
+    const card = createCreatorPageCard(account, pageDraft, CREATOR_CODE_PRICE);
     const publicHref = account.affiliateHandle ? `/v2/a/${encodeURIComponent(account.affiliateHandle)}` : undefined;
     const inviteUrl = account.affiliateHandle ? `https://tendso.com/v2/a/${encodeURIComponent(account.affiliateHandle)}/earn` : undefined;
 
@@ -139,24 +127,16 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                         />
                     </div>
                     <div className={styles.controlPanel} role="tabpanel" id={`${editorId}-panel-offer`} aria-labelledby={`${editorId}-tab-offer`} tabIndex={0} hidden={controlTab !== "offer"}>
-                        <PriceSettings
-                            value={priceValue}
-                            previewPrice={previewPrice}
-                            dirty={priceDirty}
-                            disabled={suspended}
-                            preview={preview}
-                            onChange={setPriceValue}
-                            onSaved={(price) => { setPriceValue(String(price)); setPriceBaseline(price); }}
-                        />
+                        <PriceSettings referralCode={account.referralCode} />
                     </div>
                     <div className={styles.controlPanel} role="tabpanel" id={`${editorId}-panel-sharing`} aria-labelledby={`${editorId}-tab-sharing`} tabIndex={0} hidden={controlTab !== "sharing"}>
                         <div className={styles.sharing}>
                             {account.affiliateHandle ? (
-                                <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} photo={pageBaseline.photo} referralCode={account.referralCode} price={priceBaseline} disabled={suspended || preview} />
+                                <ShareTools handle={account.affiliateHandle} displayName={pageBaseline.displayName.trim() || defaultName} photo={pageBaseline.photo} referralCode={account.referralCode} price={CREATOR_CODE_PRICE} disabled={suspended || preview} />
                             ) : (
                                 <p className={styles.unavailable}>Your page handle is unavailable. Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help.</p>
                             )}
-                            {(pageDirty || priceDirty) && <p className={styles.sharingNote}>Sharing uses your saved page and price. Save your changes before downloading new materials.</p>}
+                            {pageDirty && <p className={styles.sharingNote}>Sharing uses your saved page details. Save your changes before downloading new materials.</p>}
                             {inviteUrl && <section className={styles.invitation} aria-labelledby={`${editorId}-invite-title`}>
                                 <div>
                                     <h2 id={`${editorId}-invite-title`}>Invite a field agent</h2>
@@ -182,7 +162,7 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
                     </div>
                 </div>
                 <div id={`${editorId}-preview`} className={`${styles.previewPane} ${mobileView === "edit" ? styles.mobileHidden : ""}`}>
-                    <CreatorPagePreview card={card} dirty={pageDirty || priceDirty} paused={suspended} publicHref={preview || suspended ? undefined : publicHref} />
+                    <CreatorPagePreview card={card} dirty={pageDirty} paused={suspended} publicHref={preview || suspended ? undefined : publicHref} />
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 import type { Doc } from '../../convex/_generated/dataModel';
 import { AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../affiliates';
-import { WEBSITE_PRICE, clampSellPrice } from '../pricing';
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE } from '../pricing';
 import type { CreatorCard } from './creatorTypes';
 
 type PageDraft = { photo: string; displayName: string; message: string; socialLinks: AffiliateSocialLinks };
@@ -12,8 +12,8 @@ export function creatorPageDraftsEqual(left: PageDraft, right: PageDraft): boole
 }
 
 /** Match the public creator-card contract using only editable public fields and the saved code. */
-export function createCreatorPageCard(account: Doc<'creators'>, draft: PageDraft, value: number): CreatorCard {
-    const price = clampSellPrice(value);
+export function createCreatorPageCard(account: Doc<'creators'>, draft: PageDraft, _legacyPrice?: number): CreatorCard {
+    const price = CREATOR_CODE_PRICE;
     const saving = Math.max(0, WEBSITE_PRICE - price);
     const message = draft.message.trim();
     const socialLinks = getAffiliateSocialLinks(draft.socialLinks);

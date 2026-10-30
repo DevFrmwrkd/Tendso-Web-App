@@ -1,5 +1,5 @@
 import { affiliatePhotoError } from './affiliates';
-import { WEBSITE_PRICE, clampSellPrice, formatPHP } from '../packages/shared/pricing';
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE, formatPHP } from '../packages/shared/pricing';
 
 /** One print layout for native PNG export and the browser's A4 print sheet. */
 export const POSTER_PAGE = {
@@ -15,7 +15,8 @@ export type AffiliatePosterInput = {
     handle: string;
     displayName: string;
     photo?: string | null;
-    price: number;
+    /** Accepted for older callers; creator-code offers always use the fixed policy price. */
+    price?: number;
     referralCode?: string | null;
 };
 
@@ -32,9 +33,9 @@ export type AffiliatePosterModel = {
     hasDiscount: boolean;
 };
 
-/** Callers supply saved page/price baselines, never editor drafts or private account records. */
+/** Callers supply saved public details; the code price always comes from shared policy. */
 export function createAffiliatePoster(input: AffiliatePosterInput): AffiliatePosterModel {
-    const price = clampSellPrice(Number.isFinite(input.price) ? input.price : WEBSITE_PRICE);
+    const price = CREATOR_CODE_PRICE;
     const saving = Math.max(0, WEBSITE_PRICE - price);
     const photo = input.photo?.trim();
     return {

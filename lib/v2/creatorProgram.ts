@@ -2,15 +2,14 @@
  * The creator program's numbers and the maths behind the "Money now vs Monthly
  * money" calculator. Source of truth for the rules: docs/CREATOR-PROGRAM.md
  * (design-mock branch) and the backend's packages/shared/pricing.ts
- * (CREATOR_OVERRIDE_RATE, CREATOR_OVERRIDE_MONTHS, CREATOR_CODE_DEFAULT_PRICE).
+ * (CREATOR_OVERRIDE_RATE, CREATOR_OVERRIDE_MONTHS, CREATOR_CODE_PRICE).
  * The prices and rates come from there (one source); the server decides what is
  * actually paid.
  */
 
 import {
-    BASE_PRICE,
-    CREATOR_CODE_DEFAULT_DISCOUNT,
-    CREATOR_CODE_DEFAULT_PRICE,
+    CREATOR_CODE_DISCOUNT,
+    CREATOR_CODE_PRICE,
     CREATOR_OVERRIDE_MONTHS,
     CREATOR_OVERRIDE_RATE,
     WEBSITE_PRICE,
@@ -20,17 +19,14 @@ import {
 
 /** What a shop pays with no code. */
 export const LIST_PRICE = WEBSITE_PRICE;
-/** A new creator's code starts at 30% off. */
-export const CODE_PERCENT_OFF = Math.round(CREATOR_CODE_DEFAULT_DISCOUNT * 100);
+/** Every creator's code gives the same fixed 30% discount. */
+export const CODE_PERCENT_OFF = Math.round(CREATOR_CODE_DISCOUNT * 100);
 /** ₱4,999 × 0.7. */
-export const CODE_PRICE = CREATOR_CODE_DEFAULT_PRICE;
-/** What a shop saves with the default code (₱1,500). */
+export const CODE_PRICE = CREATOR_CODE_PRICE;
+/** What a shop saves with a creator code (₱1,500). */
 export const CODE_SAVING = LIST_PRICE - CODE_PRICE;
 /** The creator keeps half of what the shop pays: ₱3,499 / 2, rounded. */
 export const KEEP_PER_SHOP = Math.round(CODE_PRICE / 2);
-/** A creator can discount down to this price and still keeps half. */
-export const FLOOR_PRICE = BASE_PRICE;
-
 /** The creator's share of each sale by a field agent they recruited. */
 export const OVERRIDE_RATE = CREATOR_OVERRIDE_RATE;
 /** How long it runs, from the agent's join date. */

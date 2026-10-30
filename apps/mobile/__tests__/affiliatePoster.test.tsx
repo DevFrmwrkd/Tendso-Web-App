@@ -54,7 +54,7 @@ describe('native Bold offer artwork preparation', () => {
     fireEvent(view.getByTestId('affiliate-poster-photo'), 'load');
     expect(await output).toBe(PNG);
     expect(mockToDataURL).toHaveBeenCalledWith(expect.any(Function), { width: 2480, height: 3508 });
-    expect(view.getByTestId('affiliate-poster-price').props.children).toBe('₱2,661');
+    expect(view.getByTestId('affiliate-poster-price').props.children).toBe('₱3,499');
     expect(view.getByTestId('affiliate-poster-creator-code-0').props.children).toBe('LEGACY27');
     view.unmount();
   });
@@ -71,7 +71,7 @@ describe('native Bold offer artwork preparation', () => {
     expect(view.getByTestId('affiliate-poster-avatar-initial').props.children).toBe('A');
     fireEvent(view.getByTestId('affiliate-poster-brand'), 'load');
     expect(await ref.current!.exportPng()).toBe(PNG);
-    expect(view.getByTestId('affiliate-poster-price').props.children).toBe('₱2,661');
+    expect(view.getByTestId('affiliate-poster-price').props.children).toBe('₱3,499');
     expect(view.getByTestId('affiliate-poster-creator-code-0').props.children).toBe('LEGACY27');
     view.unmount();
   });

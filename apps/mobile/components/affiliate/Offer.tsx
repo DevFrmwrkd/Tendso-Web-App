@@ -1,84 +1,43 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
-import { useMutation } from 'convex/react';
-import { ConvexError } from 'convex/values';
-import { api } from '@tendso/convex-client';
-import { BASE_PRICE, PRICE_CEILING, COMMISSION_RATE, clampSellPrice, commissionFor, creatorDiscount, formatPHP, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
+import React from 'react';
+import { Linking, StyleSheet, View } from 'react-native';
+import { CREATOR_CODE_DISCOUNT, CREATOR_CODE_PRICE, commissionFor, creatorDiscount, formatPHP, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
 import { AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../../../../lib/affiliates';
-import { Avatar, Button, Card, Chip, Field, Text } from '../v2';
-import { PriceSlider } from '../PriceSlider';
+import { Avatar, Button, Card, Chip, Text } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
-import { AffiliateAccess, Notice, type AffiliateAccessProps } from './Screen';
+import { AffiliateAccess, type AffiliateAccessProps } from './Screen';
 import { AffiliateToolFrame } from './AffiliateToolFrame';
-import { affiliateDraft } from './model';
 
 export function AffiliateOfferScreen() {
-  return <AffiliateAccess>{props => props.isPreview || props.account.status !== 'active' || !props.isAuthenticated
-    ? <PriceEditorContent {...props} /> : <LivePriceEditor {...props} />}</AffiliateAccess>;
+  return <AffiliateAccess>{props => <PriceEditorContent {...props} />}</AffiliateAccess>;
 }
 
-function LivePriceEditor(props: AffiliateAccessProps) {
-  const save = useMutation(api.affiliates.updatePage);
-  return <PriceEditorContent {...props} onSave={price => save({ price })} />;
-}
-
-/** Price-only writes preserve saved page details and the frozen amounts on existing sales. */
-export function PriceEditorContent({ account, isPreview, isOffline, onSave }: AffiliateAccessProps & { onSave?: (price: number) => Promise<unknown> }) {
-  const incoming = affiliateDraft(account).price;
-  const [seen, setSeen] = useState(incoming);
-  const [draft, setDraft] = useState(incoming);
-  const [baseline, setBaseline] = useState(incoming);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
-  const priceInput = useRef(draft);
-  priceInput.current = draft;
-  const dirty = draft !== baseline;
-  if (seen !== incoming) {
-    setSeen(incoming); setBaseline(incoming);
-    if (!dirty) setDraft(incoming);
-  }
-  const locked = isPreview || isOffline || account.status !== 'active' || !onSave || saving;
-  const price = draft.trim() && Number.isFinite(Number(draft)) ? clampSellPrice(Number(draft)) : Number(baseline);
-  const change = useCallback((value: string) => {
-    if (priceInput.current === value) return;
-    priceInput.current = value; setDraft(value); setSaved(false); setError('');
-  }, []);
-  const slide = useCallback((value: number) => change(String(value)), [change]);
-  async function save() {
-    if (locked || !dirty || !onSave) return;
-    if (!draft.trim() || !Number.isFinite(Number(draft))) { setError('Enter your website price in whole pesos.'); return; }
-    setSaving(true); setError('');
-    try {
-      await onSave(price); setDraft(String(price)); setBaseline(String(price)); setSaved(true);
-    } catch (problem) {
-      setError(problem instanceof ConvexError && typeof problem.data === 'string' ? problem.data : 'Your price was not saved. Please try again.');
-    } finally { setSaving(false); }
-  }
-  return <AffiliateToolFrame avoidKeyboard title="Your price" preview={isPreview} suspended={account.status !== 'active'} offline={isOffline}
-    footer={<>
-      {saved && !dirty ? <Text variant="label" tone="muted" align="center" accessibilityLiveRegion="polite">Price saved.</Text> : dirty ? <Text variant="label" tone="muted" align="center">Unsaved changes. Sharing uses your saved price.</Text> : null}
-      <Button title="Save price" loading={saving} disabled={locked || !dirty} onPress={save} />
-    </>}>
-    <Text variant="title" accessibilityRole="header">One price. Paid once.</Text>
-    <Card variant="lg" style={styles.priceEditor}>
-      <Field label="Website price in pesos" prefix="₱" value={draft} keyboardType="number-pad" maxLength={9} editable={!locked} onChangeText={change} onBlur={() => { if (draft.trim() && Number.isFinite(Number(draft))) change(String(price)); }} />
-      <PriceSlider floor={BASE_PRICE} ceiling={PRICE_CEILING} anchor={WEBSITE_PRICE} commissionRate={COMMISSION_RATE} step={1} initialValue={price} disabled={locked} onChange={slide} showEarnings={false} />
-    </Card>
-    <View style={styles.quickPrices}>
-      {[BASE_PRICE, 3499, PRICE_CEILING].map(amount => <Pressable key={amount} accessibilityRole="button" accessibilityLabel={`Set price to ${formatPHP(amount)}`} accessibilityState={{ selected: price === amount, disabled: locked }} disabled={locked} onPress={() => change(String(amount))} style={[styles.quickPrice, price === amount && styles.selectedPrice]}><Text variant="label">{formatPHP(amount)}</Text></Pressable>)}
-    </View>
-    <Card variant="lg" style={styles.priceEditor}>
-      <View style={styles.summaryRow}><Text variant="label" tone="muted" style={styles.summaryLabel}>You earn per paid website</Text><Text variant="bodyLg" weight="bold" tabular>{formatPHP(commissionFor(price))}</Text></View>
-      <View style={styles.summaryRow}><Text variant="label" tone="muted" style={styles.summaryLabel}>The shop saves</Text><Text variant="bodyLg" weight="bold" tabular>{formatPHP(Math.max(0, WEBSITE_PRICE - price))}</Text></View>
-    </Card>
-    <Text variant="label" tone="muted">{formatPHP(BASE_PRICE)}–{formatPHP(PRICE_CEILING)}. New prices apply to future orders only.</Text>
-    {error ? <Notice error>{error}</Notice> : null}
+/** Kept as a route-compatible name; creator-code offers are read-only. */
+export function PriceEditorContent({ account, isPreview, isOffline }: AffiliateAccessProps) {
+  return <AffiliateToolFrame title="Your offer" preview={isPreview} suspended={account.status !== 'active'} offline={isOffline}>
+    <AffiliateOfferSummary code={account.referralCode} />
   </AffiliateToolFrame>;
 }
 
-/** List price struck through, the creator's price, and the percentage off. */
-export function OfferPrice({ price, large = false }: { price: number; large?: boolean }) {
+export function AffiliateOfferSummary({ code }: { code?: string }) {
+  return <View style={styles.card}>
+    <Text variant="title" accessibilityRole="header">30% off with your creator code</Text>
+    <Text variant="body" tone="muted">Your code gives shop owners {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off the {formatPHP(WEBSITE_PRICE)} website price.</Text>
+    <Card variant="lg" style={styles.priceEditor}>
+      <Text variant="label" tone="muted">The shop pays</Text>
+      <OfferPrice large />
+      <Text variant="label" tone="muted">One-time website price. See it first. Pay to publish.</Text>
+    </Card>
+    <Card variant="lg" style={styles.priceEditor}>
+      <View style={styles.summaryRow}><Text variant="label" tone="muted" style={styles.summaryLabel}>The shop saves</Text><Text variant="bodyLg" weight="bold" tabular>{formatPHP(WEBSITE_PRICE - CREATOR_CODE_PRICE)}</Text></View>
+      <View style={styles.summaryRow}><Text variant="label" tone="muted" style={styles.summaryLabel}>Your share per paid website</Text><Text variant="bodyLg" weight="bold" tabular>{formatPHP(commissionFor(CREATOR_CODE_PRICE))}</Text></View>
+    </Card>
+    <Text variant="label" tone="muted">Your share is 50% of the discounted website price, credited after the shop pays in full.</Text>
+    {code ? <Card variant="lg" style={styles.priceEditor}><Text variant="label" tone="muted">Creator code</Text><Text selectable variant="title">{code}</Text><Text variant="label" tone="muted">Shop owners enter this code before payment.</Text></Card> : null}
+  </View>;
+}
+/** The fixed creator-code price and its 30% discount from the website price. */
+export function OfferPrice({ large = false }: { price?: number; large?: boolean }) {
+  const price = CREATOR_CODE_PRICE;
   const discount = creatorDiscount(price, WEBSITE_PRICE);
   return <View style={styles.priceRow}>
     {discount ? <Text testID="affiliate-list-price" variant="bodyLg" tone="muted" style={{ textDecorationLine: 'line-through' }}>{formatPHP(discount.listPrice)}</Text> : null}
@@ -91,7 +50,8 @@ export function OfferPrice({ price, large = false }: { price: number; large?: bo
  * Compact preview of the saved creator's offer, including the code visitors enter before paying.
  * The main action is decorative inside this editor preview.
  */
-export function OfferPreview({ photo, displayName, message, socialLinks, socialLink, socialDisabled = false, price, code, commission = false }: { photo?: string; displayName: string; message?: string; socialLinks?: AffiliateSocialLinks; socialLink?: string; socialDisabled?: boolean; price: number; code?: string; commission?: boolean }) {
+export function OfferPreview({ photo, displayName, message, socialLinks, socialLink, socialDisabled = false, code, commission = false }: { photo?: string; displayName: string; message?: string; socialLinks?: AffiliateSocialLinks; socialLink?: string; socialDisabled?: boolean; price?: number; code?: string; commission?: boolean }) {
+  const price = CREATOR_CODE_PRICE;
   const safePhoto = photo && !affiliatePhotoError(photo) ? photo : undefined;
   const discount = creatorDiscount(price, WEBSITE_PRICE);
   const firstName = displayName.trim().split(/\s+/)[0] || displayName;
@@ -114,7 +74,7 @@ export function OfferPreview({ photo, displayName, message, socialLinks, socialL
       </View>
       <AffiliateSocialButtons socialLinks={socialLinks} socialLink={socialLink} disabled={socialDisabled} />
     </View>
-    {commission ? <Text variant="label" tone="muted">You keep {formatPHP(commissionFor(price))} when this sells.</Text> : null}
+    {commission ? <Text variant="label" tone="muted">You receive {formatPHP(commissionFor(price))} after the shop pays in full.</Text> : null}
   </Card>;
 }
 
@@ -133,9 +93,6 @@ export function AffiliateSocialButtons({ socialLinks, socialLink, disabled = fal
 
 const styles = StyleSheet.create({
   priceEditor: { gap: space.lg },
-  quickPrices: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.sm },
-  quickPrice: { minHeight: 48, paddingHorizontal: space.lg, paddingVertical: space.md, borderRadius: radius.pill, backgroundColor: colors.bg2, borderWidth: 1, borderColor: 'transparent' },
-  selectedPrice: { backgroundColor: colors.accent, borderColor: colors.ink },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: space.lg },
   summaryLabel: { flex: 1 },
   priceRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: space.md },

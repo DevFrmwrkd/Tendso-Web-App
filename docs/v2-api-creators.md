@@ -15,8 +15,9 @@ The Convex contract the web (`/v2/...`) and app agents build against. Written 20
 | `CREATOR_OVERRIDE_RATE` | `0.05` | Creator's share of each sale by a field agent they recruited |
 | `CREATOR_OVERRIDE_MONTHS` | `12` | How long, from the agent's join date |
 | `CREATOR_OVERRIDE_CUTOVER` | `2026-10-21 00:00 Asia/Manila` (ms) | Creator recruits from here get the override; earlier referrals keep `REFERRAL_BONUS` (₱1,000) |
-| `CREATOR_CODE_DEFAULT_DISCOUNT` | `0.3` | A new creator's code starts at 30% off |
-| `CREATOR_CODE_DEFAULT_PRICE` | `3499` | ₱4,999 × 0.7 |
+| `CREATOR_CODE_DISCOUNT` | `0.3` | Every creator/affiliate code has the same fixed 30% offer |
+| `CREATOR_CODE_PRICE` | `3499` | Fixed code price: ₱4,999 × 0.7, saving ₱1,500 |
+| `CREATOR_CODE_DEFAULT_DISCOUNT` / `CREATOR_CODE_DEFAULT_PRICE` | `0.3` / `3499` | Compatibility aliases for the fixed policy, not editable defaults |
 | `overrideFor(websitePrice)` | `round(price × 0.05)` | ₱999 → 50, ₱2,999 → 150, ₱3,499 → 175, ₱4,999 → 250 |
 | `earnsCreatorOverride(joinedAt)` | boolean | `joinedAt >= CREATOR_OVERRIDE_CUTOVER` |
 | `creatorOverrideEndsAt(joinedAt)` | ms | Join date + 12 calendar months |
@@ -35,8 +36,8 @@ type CreatorCard = {
   socialLinks?: { messenger?: string; facebook?: string; instagram?: string; tiktok?: string; youtube?: string }; // optional, validated public HTTPS links
   code: string | null;   // "MIKA30" — what people type
   listPrice: number;     // 4999
-  price: number;         // the creator's price for a shop, e.g. 3499
-  saving: number;        // listPrice − price, e.g. 1500  ("you save ₱1,500")
+  price: number;         // fixed creator-code price: 3499
+  saving: number;        // fixed saving: 1500  ("you save ₱1,500")
   percentOff: number;    // 30
 };
 ```
@@ -44,6 +45,12 @@ type CreatorCard = {
 Only **active** creators resolve. A pending (not yet approved), suspended or deleted creator gives `null` everywhere.
 
 Public messages and social links come only from the creator's saved page settings. Application social accounts, account email, phone and payout details remain private. An existing Facebook or Messenger page link is used when no newer social-link map has been saved; an explicitly empty map hides every social button.
+
+Current creator-code offers always use `CREATOR_CODE_PRICE` and `CREATOR_CODE_DISCOUNT`, including accounts with an older custom `affiliatePrice`. Profile editing, preview, sharing and poster exports use this fixed offer. Field-agent submission pricing remains ₱999–₱4,999, and historical orders keep their captured amounts.
+
+### Existing page editor — `affiliates.updatePage`
+
+The signed-in active affiliate can update `{ photo?, displayName?, message?, socialLink?, socialLinks? }`; the public handle and creator code do not change. New clients omit `price`. The optional legacy `price` argument accepts only `CREATOR_CODE_PRICE` (3499) for compatibility and never writes an account price. Any other value rejects the entire request before profile fields are saved. Pending, suspended, deleted and non-affiliate accounts retain their existing write restrictions.
 
 ---
 
@@ -99,7 +106,7 @@ Live check while the person types.
 ### `creatorProgram.getCreatorByHandle` (query, public)
 
 - Args: `{ handle: string }` — a page handle (`mika` / `@mika`, any case).
-- Returns: `CreatorCard | null`, with the same active-account and clamped-price rules.
+- Returns: `CreatorCard | null`, with the same active-account and fixed creator-code price rules.
 - Use this for `/a/<handle>` and `/a/<handle>/earn`, including existing affiliates whose generated referral code differs from their handle. It never falls back to another account's referral code.
 
 ---
@@ -245,7 +252,7 @@ page: Array<{
 
 Without `month`, the query covers the affiliate's full sales history. With `month`, it includes owned orders created in that Manila calendar month **or** owned orders with a direct `submission_approved` earning credited in that month. The credit must have status `available` or `withdrawn`; pending credits and team overrides do not add orders to this set. This allows an earlier order credited in the selected earnings month to appear with its original order date.
 
-The ownership, month and optional Paid filters apply **before pagination**. Results remain ordered by submission creation time descending. `status: "paid"` includes current `paid` and `completed` orders; omitting it returns all statuses. Price and commission come from the order's saved amounts, so changing the creator's current page price affects future orders only. The response exposes no owner contact details, raw capture photos or private asset URLs; clients use a storefront fallback when no permitted public image is available.
+The ownership, month and optional Paid filters apply **before pagination**. Results remain ordered by submission creation time descending. `status: "paid"` includes current `paid` and `completed` orders; omitting it returns all statuses. Price and commission come from each order's captured amounts; the fixed ₱3,499 creator-code policy does not reprice historical orders or commissions. The response exposes no owner contact details, raw capture photos or private asset URLs; clients use a storefront fallback when no permitted public image is available.
 
 ### Native confirmation status
 

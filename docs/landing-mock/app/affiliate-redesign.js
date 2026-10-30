@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   const P = '../assets/';
+  const CODE_PRICE = 3499, CODE_LIST_PRICE = 4999, CODE_PERCENT_OFF = 30;
   const icons = {
     home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
     agents:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2M17 4a4 4 0 0 1 0 7M22 21v-2a5 5 0 0 0-3-4.6"/>',
@@ -124,28 +125,34 @@
       ${list.map(row=>`<article class="ar-card ar-sale"><div class="ar-sale-heading"><img src="${P+row.asset}" alt=""><div><h3>${row.name}</h3><p>${row.date}</p></div></div><div class="ar-mt"><span class="ar-badge ${row.status==='Paid'?'ar-ok':'ar-warn'}">${row.status}</span></div><div class="ar-sale-money"><div><span>Website price</span><strong>${php(row.price)}</strong></div><div><span>Your commission</span><strong>${php(row.commission)}</strong>${row.status!=='Paid'?'<em>Not credited yet</em>':''}</div></div></article>`).join('')}`, 'ar-pushed');
   }
   function page(s) {
-    const saved=s.pageSaved,name=saved.displayName||'Mika Santos';
-    return body(`${back('home','My creator page')}<div class="ar-page-preview"><div class="ar-page-cover"><img class="ar-page-mark" src="${P}brand/mark-ink-256.png" alt="Tendso"></div><div class="ar-page-info">${pagePhoto(saved.photo,name,64)}<h2>${esc(name)}</h2>${saved.message?`<p class="ar-personal-message">${esc(saved.message)}</p>`:''}<div class="ar-page-offer"><div><span>Website price</span><strong>${php(s.savedPrice)}</strong></div>${s.savedPrice<4999?`<span class="ar-badge ar-ok">Save ${php(4999-s.savedPrice)}</span>`:''}</div>${Object.keys(saved.socialLinks).length?`<div class="ar-social-links">${platforms.filter(p=>saved.socialLinks[p.key]).map(p=>action('social-'+p.key,icon('link')+p.label,'',`aria-label="View saved ${p.label} link"`)).join('')}</div>`:''}</div></div>
-      <div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika</span>${action('copy',icon('copy'),'','aria-label="Copy creator page link"')}</div>
-      <div class="ar-mt">${menu([['editpage','Edit page','edit'],['offer','Your price','store'],['poster','Share QR & poster','share']])}</div>`, 'ar-pushed ar-has-action') + footer(action('share','Share my shop link','ar-btn'),true);
+    return editPage(s,'My page');
   }
   function me(s) {
     return body(`<div class="ar-topline"><h1>Me</h1></div><div class="ar-profile-info">${pagePhoto(s.pageSaved.photo,'Mika Santos',64)}<div><h1>Mika Santos</h1><p>Creator · Code MIKA</p></div></div>
       ${menu([['profile','Edit profile','me'],['page','My creator page','page'],['sales','Your sales','sales']])}
       <div class="ar-mt">${menu([['wise','Payout details','money'],['notifications','Notifications','bell'],['help','Help & account','help']])}</div>${action('signout',icon('out')+' Sign out','ar-signout')}`) + tabs('me');
   }
-  function editPage(s) {
+  function editorTabs(s) {
+    const views=`<div class="ar-chip-row" role="tablist" aria-label="Page editor view">${[['edit','Edit'],['preview','Preview']].map(([key,label])=>action('editor-view-'+key,label,s.pageView===key?'is-on':'',`role="tab" aria-selected="${s.pageView===key}"`)).join('')}</div>`;
+    return views+(s.pageView==='preview'?'':`<div class="ar-chip-row" role="tablist" aria-label="Page settings">${[['page','Page details'],['offer','Your offer'],['sharing','Sharing']].map(([key,label])=>action('editor-section-'+key,label,s.pageSection===key?'is-on':'',`role="tab" aria-selected="${s.pageSection===key}"`)).join('')}</div>`);
+  }
+  function editPage(s,title='Edit your page') {
     const d=s.pageDraft;
+    const tools=editorTabs(s);
+    if(s.pageView==='preview')return `<div class="ar-editor-layout">${back('home',title)}<div class="ar-editor-scroll">${tools}<p class="ar-caption">Illustrative public-page reference. The app previews your actual draft.</p><iframe data-editor-preview src="../pages/a-shop.html" sandbox="allow-same-origin" title="Illustrative public shop-page preview" style="display:block;width:100%;height:520px;border:1px solid #D9DCD0;border-radius:18px;margin-top:12px;background:white"></iframe></div></div>`;
+    if(s.pageSection==='offer')return `<div class="ar-editor-layout">${back('home',title)}<div class="ar-editor-scroll">${tools}${offerContent()}</div></div>`;
+    if(s.pageSection==='sharing')return `<div class="ar-editor-layout">${back('home',title)}<div class="ar-editor-scroll">${tools}<h1>Share your page.</h1><div class="ar-card ar-detail-amount ar-mt">${pagePhoto(s.pageSaved.photo,s.pageSaved.displayName||'Mika Santos',64)}<h2>${esc(s.pageSaved.displayName||'Mika Santos')}</h2><p class="ar-caption ar-mt">tendso.com/v2/a/mika</p><strong>${php(CODE_PRICE)} · ${CODE_PERCENT_OFF}% off</strong></div>${action('share','Share my shop link','ar-btn ar-mt')}${action('poster','Share QR or poster','ar-btn ar-secondary ar-mt')}${help('Sharing uses saved public details and the fixed 30% offer. Unsaved profile edits are not shared.')}</div></div>`;
     const toggle=(key,title,subtitle)=>`<label class="ar-toggle"><span><b>${title}</b><small>${subtitle}</small></span><input type="checkbox" name="show-${key}" role="switch" ${d['show'+key[0].toUpperCase()+key.slice(1)]?'checked':''}><i aria-hidden="true"></i></label>`;
-    return `<div class="ar-editor-layout">${back('page','Edit your page')}<div class="ar-editor-scroll"><h1>Make it yours.</h1><label class="ar-edit-field ar-mt"><span>Display name</span><input name="display-name" aria-label="Display name" maxlength="100" value="${esc(d.displayName)}"><small>The name shown on your public page.</small></label>
+    return `<div class="ar-editor-layout">${back('home',title)}<div class="ar-editor-scroll">${tools}<h1>Make it yours.</h1><label class="ar-edit-field ar-mt"><span>Display name</span><input name="display-name" aria-label="Display name" maxlength="100" value="${esc(d.displayName)}"><small>The name shown on your public page.</small></label>
       ${toggle('photo','Show my photo',d.photo?'Tap below to change it':'Add a photo of yourself')}${d.showPhoto?`<div class="ar-card ar-photo-picker">${pagePhoto(d.photo,d.displayName||'Mika Santos',64)}${action('choose-photo',d.photo?'Change page photo':'Choose page photo','ar-textlink')}<input class="ar-file-input" type="file" name="page-photo" accept="image/*" aria-label="Choose page photo"></div>`:''}
       ${toggle('message','Show a message','Introduce yourself to visitors')}${d.showMessage?`<label class="ar-edit-field"><span>Short message</span><textarea name="page-message" aria-label="Short message" maxlength="200" placeholder="A short introduction or invitation">${esc(d.message)}</textarea><small data-message-count>${d.message.length} / 200 characters</small></label>`:''}
       ${toggle('socialLinks','Show social links','Add the profiles you want visitors to find')}${d.showSocialLinks?`<div class="ar-social-fields"><p class="ar-caption">Choose any of these platforms. Leave the others blank.</p>${platforms.map(p=>`<label class="ar-edit-field"><span>${p.label} link</span><div class="ar-social-input">${icon('link')}<input type="url" name="social-${p.key}" aria-label="${p.label} link" maxlength="2048" value="${esc(d.socialLinks[p.key]||'')}" placeholder="${p.placeholder}" autocomplete="off" autocapitalize="none" spellcheck="false"></div><small>Optional · Starts with https://</small></label>`).join('')}</div>`:''}
       <p class="ar-caption ar-handle">Your page handle is @mika. It stays the same.</p></div><div class="ar-save-dock"><p class="ar-save-status${s.pageError?' is-error':''}" data-page-status role="status" aria-live="polite">${esc(pageStatus(s))}</p>${action('save-page','Save page','ar-btn',pageDirty(s)?'':'disabled')}</div></div>`;
   }
-  function offer(s) {
-    return body(`${back('page','Your price')}<h1>One price. Paid once.</h1><div class="ar-card ar-mt ar-detail-amount"><label class="ar-lab" for="${s.uid}-price">Website price</label><div class="ar-amount-input"><span>₱</span><input id="${s.uid}-price" name="website-price" aria-label="Website price" inputmode="numeric" value="${s.price}"></div></div><div class="ar-quick">${[999,3499,4999].map(n=>action('price-'+n,php(n),s.price===n?'is-on':'')).join('')}</div><div class="ar-card ar-mt ar-data-rows"><div class="ar-data-row"><span>You earn per paid website</span><b>${php(Math.round(s.price/2))}</b></div><div class="ar-data-row"><span>The shop saves</span><b>${php(4999-s.price)}</b></div></div>${help('₱999–₱4,999. New prices apply to future orders only.')}`, 'ar-pushed ar-has-action') + footer(action('save-price','Save price','ar-btn'),true);
+  function offerContent() {
+    return `<h1>Your code.<br>${CODE_PERCENT_OFF}% off.</h1><div class="ar-card ar-mt ar-detail-amount"><span class="ar-lab">Website price with your code</span><strong class="ar-number">${php(CODE_PRICE)}</strong><span class="ar-badge ar-ok">Fixed ${CODE_PERCENT_OFF}% offer</span></div><div class="ar-card ar-mt ar-data-rows"><div class="ar-data-row"><span>Your commission per website</span><b>${php(Math.round(CODE_PRICE/2))}</b></div><div class="ar-data-row"><span>The shop saves</span><b>${php(CODE_LIST_PRICE-CODE_PRICE)}</b></div></div>${help('Every creator code gives the same fixed 30% offer. Update your photo, name, message and social links in Page details.')}`;
   }
+  function offer(s) {return body(`${back('page','Your offer')}${offerContent()}`,'ar-pushed');}
   function wise(s) {
     return body(`${back(s.previous==='cashout'?'cashout':'me','Payout details')}<h1>Your Wise email.</h1><p class="ar-caption ar-mt">Use the email linked to your Wise account.</p><label class="ar-edit-field ar-mt"><span>Wise email</span><input type="email" name="wise-email" value="${esc(s.wiseEmail)}"></label>`, 'ar-pushed ar-has-action') + footer(action('save-wise','Save Wise email','ar-btn'),true);
   }
@@ -178,7 +185,7 @@
     cashout:{title:'Cash out',group:'money',render:cashout,note:'A focused Wise sheet: amount, quick picks and saved email. Review comes before requesting; nothing sends from this board.'},
     history:{title:'Activity & payouts',group:'money',render:history,note:'Filter earned income and cash outs. Pending, completed and failed transfers have distinct, readable labels.'},
     sales:{title:'Your sales',group:'overview',render:sales,note:'Website price and your commission are explicitly labelled. Awaiting payment stays visible and is not counted as available.'},
-    page:{title:'My creator page',group:'overview',render:page,note:'Saved profile photo, personal message and optional social links appear with your offer. Unsaved edits stay in the editor.'},
+    page:{title:'My page',group:'overview',render:page,note:'Opens directly to Page details, read-only Your offer and Sharing, with Edit/Preview switching. There is no separate summary screen.'},
     me:{title:'Me',group:'overview',render:me,note:'A dedicated fourth tab makes profile, page, sales, payout details and help easy to find.'},
     editpage:{title:'Edit your page',group:'overview',render:editPage,note:'Photo, message and social switches plus five optional platform links. Status and Save page sit below the scroll area, clear of every field. Saving changes this phone only.'},
     invite:{title:'Invite popup',group:'team',render:agents,note:'A centered invitation over the unchanged Agents list: copy the link or code, or share the invite. Close, backdrop or Escape dismisses it without losing your filter or scroll position.'},
@@ -190,7 +197,7 @@
   const toast = message => { const node=document.getElementById('ar-toast');clearTimeout(toastTimer);node.textContent=message;node.hidden=false;toastTimer=setTimeout(()=>{node.hidden=true;},4200); };
   function state(view) {
     const saved=savedPage();
-    return {uid:'ar-'+serial++,view:view==='invite'?'agents':view,overlay:view==='invite'?'invite':null,previous:'home',stack:({agent:['agents'],cashout:['money'],history:['money'],sales:['home'],page:['home'],editpage:['page'],notifications:['me']}[view]||[]).slice(),month:'oct',agent:'paolo',agentFilter:'all',historyFilter:'all',salesFilter:'all',amount:7200,amountError:'',wiseEmail:'mika.santos@gmail.com',pageSaved:saved,pageDraft:draftPage(saved),pageError:'',pageWasSaved:false,inviteStatus:'',notifications:sampleNotices(),selectedNotice:null,returnFocus:null,price:3499,savedPrice:3499,requested:false,requestedAmount:0};
+    return {uid:'ar-'+serial++,view:view==='invite'?'agents':view,overlay:view==='invite'?'invite':null,previous:'home',stack:({agent:['agents'],cashout:['money'],history:['money'],sales:['home'],page:['home'],editpage:['home'],notifications:['me']}[view]||[]).slice(),month:'oct',agent:'paolo',agentFilter:'all',historyFilter:'all',salesFilter:'all',amount:7200,amountError:'',wiseEmail:'mika.santos@gmail.com',pageSaved:saved,pageDraft:draftPage(saved),pageSection:'page',pageView:'edit',pageError:'',pageWasSaved:false,inviteStatus:'',notifications:sampleNotices(),selectedNotice:null,returnFocus:null,requested:false,requestedAmount:0};
   }
   function mount(parent, view) { const phone=T.phone({size:'lg'});parent.appendChild(phone.el);hosts.set(phone.screen,state(view));render(phone.screen);return phone.screen; }
   function updatePicker(host) {
@@ -224,13 +231,14 @@
     const sameView=host.querySelector('.ar-app')?.dataset.view===s.view;
     const scroll=sameView?[...host.querySelectorAll('.ar-body,.ar-editor-scroll')].map(node=>node.scrollTop):[];
     host.innerHTML=`<div class="ar-app" data-proposed="false" data-view="${s.view}">${T.statusBar(false)}${renderer(s)}<div class="ar-home-indicator"></div></div>`;
+    host.querySelector('[data-editor-preview]')?.addEventListener('load',event=>{const doc=event.target.contentDocument;const block=e=>{if(e.target.closest('a,button,form')){e.preventDefault();e.stopPropagation();}};doc?.addEventListener('click',block,true);doc?.addEventListener('submit',block,true);});
     [...host.querySelectorAll('.ar-body,.ar-editor-scroll')].forEach((node,i)=>{node.scrollTop=scroll[i]||0;});
     if(sameView&&focusKey){const next=[...host.querySelectorAll('button,input,textarea')].find(node=>node.getAttribute(focusKey)===focusValue);next?.focus({preventScroll:true});if(selection&&next?.setSelectionRange&&next.type!=='url'&&next.type!=='email')next.setSelectionRange(...selection);}
     renderOverlay(host);
   }
   function prepareView(s,next) {
-    if(s.view==='editpage'&&next!==s.view)s.photoAttempt=null;
-    if(next==='editpage'&&s.view!==next){s.pageDraft=draftPage(s.pageSaved);s.pageError='';s.pageWasSaved=false;s.photoAttempt=null;}
+    if(['page','editpage'].includes(s.view)&&!['page','editpage'].includes(next))s.photoAttempt=null;
+    if(['page','editpage'].includes(next)&&!['page','editpage'].includes(s.view)){s.pageDraft=draftPage(s.pageSaved);s.pageError='';s.pageWasSaved=false;s.photoAttempt=null;s.pageSection='page';s.pageView='edit';}
   }
   const navigate=(host,view,reset=false)=>{const s=hosts.get(host);if(view==='support'){toast('Prototype: contact the Tendso support team.');return;}if(view==='terms'){toast('Prototype: Terms of Service and Privacy Policy open here.');return;}if(view==='invite'){if(s.view!=='agents'){prepareView(s,'agents');s.previous=s.view;s.view='agents';render(host);}openOverlay(host,'invite');return;}prepareView(s,view);s.overlay=null;if(reset)s.stack=[];else if(view!==s.view)s.stack.push(s.view);s.previous=s.view;s.view=view;render(host);};
   const backTo=(host,fallback)=>{const s=hosts.get(host);if(s.overlay){closeOverlay(host);return;}const next=s.stack.pop()||fallback;prepareView(s,next);s.view=next;s.previous=s.stack.at(-1)||'home';render(host);};
@@ -269,9 +277,9 @@
       if(invalid){s.pageError=invalid.message;refreshPageStatus(host);const field=host.querySelector(`[name="${invalid.field}"]`);field?.focus({preventScroll:true});field?.scrollIntoView({block:'nearest'});return;}
       s.pageSaved=effectivePage(s.pageDraft);s.pageWasSaved=true;s.pageError='';refreshPageStatus(host);toast('Page saved in this phone only. Your real page is unchanged.');
     }
+    else if(name.startsWith('editor-section-')){s.pageSection=name.slice('editor-section-'.length);render(host);}
+    else if(name.startsWith('editor-view-')){s.pageView=name.slice('editor-view-'.length);render(host);}
     else if(name==='choose-photo')host.querySelector('[name="page-photo"]')?.click();
-    else if(name.startsWith('price-')){s.price=Number(name.slice(6));render(host);}
-    else if(name==='save-price'){const input=host.querySelector('[name="website-price"]'),value=Number(input.value);if(!Number.isInteger(value)||value<999||value>4999){toast('Choose a whole-peso price from ₱999 to ₱4,999.');input.focus();return;}s.price=value;s.savedPrice=value;backTo(host,'page');toast('Prototype price selected. Existing orders are unchanged.');}
     else if(name==='save-wise'){const field=host.querySelector('[name="wise-email"]');if(!field.value.includes('@')||!field.validity.valid){field.reportValidity();return;}s.wiseEmail=field.value.trim();backTo(host,'me');toast('Wise details changed in the prototype only.');}
     else if(name==='save-profile'){backTo(host,'me');toast('Prototype only. No account details were changed.');}
     else if(name==='copy'||name==='copy-invite'||name==='copy-code'){if(s.overlay==='invite'){s.inviteStatus=name==='copy-code'?'Invitation code copied.':'Invite link copied.';host.querySelector('.ar-dialog-status').textContent=s.inviteStatus;}toast(name==='copy-code'?'Sample invitation code: MIKA':'Sample link: tendso.com/v2/a/mika'+(name==='copy-invite'?'/earn':''));}
@@ -292,7 +300,7 @@
   });
   document.addEventListener('input',event=>{
     const field=event.target,host=field.closest('.screen-root');if(!host||!hosts.has(host))return;
-    const s=hosts.get(host);if(s.view!=='editpage')return;
+    const s=hosts.get(host);if(!['page','editpage'].includes(s.view))return;
     if(field.name==='display-name')s.pageDraft.displayName=field.value;
     else if(field.name==='page-message'){s.pageDraft.message=field.value;host.querySelector('[data-message-count]').textContent=`${field.value.length} / 200 characters`;}
     else if(field.name?.startsWith('social-'))s.pageDraft.socialLinks[field.name.slice(7)]=field.value;
@@ -301,13 +309,13 @@
   });
   document.addEventListener('change',event=>{
     const field=event.target,host=field.closest('.screen-root');if(!host||!hosts.has(host))return;
-    const s=hosts.get(host);if(s.view!=='editpage')return;
+    const s=hosts.get(host);if(!['page','editpage'].includes(s.view))return;
     if(field.name?.startsWith('show-')){const key=field.name.slice(5);s.pageDraft['show'+key[0].toUpperCase()+key.slice(1)]=field.checked;s.pageError='';s.pageWasSaved=false;render(host);}
     else if(field.name==='page-photo'){
       const file=field.files[0];if(!file)return;
       if(!file.type.startsWith('image/')||!file.size||file.size>5*1024*1024){s.pageError='Choose an image up to 5 MB.';refreshPageStatus(host);field.value='';return;}
       const attempt={};s.photoAttempt=attempt;const reader=new FileReader();
-      reader.onload=()=>{if(s.photoAttempt!==attempt)return;s.pageDraft.photo=String(reader.result);s.pageDraft.showPhoto=true;s.pageError='';s.pageWasSaved=false;if(s.view==='editpage')render(host);};
+      reader.onload=()=>{if(s.photoAttempt!==attempt)return;s.pageDraft.photo=String(reader.result);s.pageDraft.showPhoto=true;s.pageError='';s.pageWasSaved=false;if(['page','editpage'].includes(s.view))render(host);};
       reader.onerror=()=>{if(s.photoAttempt!==attempt)return;s.pageError='Your photo could not be opened. Please try again.';refreshPageStatus(host);};
       reader.readAsDataURL(file);
     }

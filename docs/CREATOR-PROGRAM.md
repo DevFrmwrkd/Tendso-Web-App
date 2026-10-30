@@ -1,6 +1,6 @@
 # Creator program: earnings structure
 
-Written 2026-10-21. All amounts in ₱. Code constants live in `packages/shared/pricing.ts`.
+Written 2026-10-21; creator-code pricing updated 2026-10-30. All amounts in ₱. Code constants live in `packages/shared/pricing.ts`.
 
 > **Decided (Theo, 2026-10-21):**
 > - **Override:** 5% of each sale by a recruited field agent, for 12 months, one level.
@@ -22,10 +22,12 @@ The code calls field agents "creators". We keep the code roles and change only t
 
 ## The two ways a creator earns
 
-1. **Sell to shops (now money).** The creator shares their code (default 30% off). The shop pays ₱3,499 instead of ₱4,999, and the creator keeps 50% = **₱1,750 per shop**. The creator can lower the price further, down to ₱999. This is how affiliates already work (`affiliates.ts`, 50% commission).
+1. **Sell to shops (now money).** Every creator code gives the same fixed 30% off. The shop pays ₱3,499 instead of ₱4,999, saves ₱1,500, and the creator keeps 50% = **₱1,750 per shop**. The offer is set by `CREATOR_CODE_DISCOUNT` and `CREATOR_CODE_PRICE`; creators cannot change it. Legacy account price fields do not alter the current code offer.
 2. **Recruit field agents (monthly money).** Every field agent who joins through the creator's link earns the creator a cut of **each sale that agent makes**. It runs for 12 months from the day the agent joins. No sale means no payout. Nobody earns on sign-ups.
 
 ## What one sale leaves Tendso
+
+Creator-code offers use ₱3,499. Field-agent submissions still support prices from ₱999 to ₱4,999; the other rows below describe that separate pricing band. Existing orders keep their captured price and commission.
 
 Assumptions to check: payment fees about 3% (GCash/Maya/card through a gateway; Wise is cheaper). AI, transcription and hosting about ₱60 (≈ $1). People (review, support, design) about **₱150 per site**, which is a placeholder.
 
@@ -36,7 +38,7 @@ Assumptions to check: payment fees about 3% (GCash/Maya/card through a gateway; 
 | ₱3,499 (30% code) | 1,750 | 105 | 210 | **1,434** | 1,347 | 1,259 |
 | ₱4,999 | 2,500 | 150 | 210 | **2,139** | 2,014 | 1,889 |
 
-Even at the ₱999 floor with a 5% override, Tendso stays positive.
+Even at the ₱999 field-agent submission floor with a 5% override, Tendso stays positive.
 
 ## "An army of 100 field agents": monthly income for the creator
 

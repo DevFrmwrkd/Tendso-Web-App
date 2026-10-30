@@ -58,8 +58,8 @@ describe('affiliate admin approval', () => {
         expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBeUndefined();
 
         await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 1999 });
-        expect(await t.query(api.affiliates.publicPage, { handle: signup.handle })).toMatchObject({ handle: signup.handle, price: 1999 });
+        await affiliate.mutation(api.affiliates.updatePage, { displayName: 'My approved page' });
+        expect(await t.query(api.affiliates.publicPage, { handle: signup.handle })).toMatchObject({ handle: signup.handle, price: 3499 });
         expect((await affiliate.query(api.affiliates.sales, { paginationOpts })).page).toEqual([]);
         expect((await affiliate.query(api.affiliates.portal, {})).summary.balance).toBe(0);
         expect((await t.run((ctx) => ctx.db.get(id)))?.certifiedAt).toBeUndefined();

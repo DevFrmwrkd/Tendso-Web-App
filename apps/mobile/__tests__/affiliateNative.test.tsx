@@ -6,7 +6,7 @@ import { AffiliateAgentsScreen, AgentsContent } from '../components/affiliate/Ag
 import { AffiliatePageScreen } from '../components/affiliate/PageEditor';
 import { AffiliateSalesScreen } from '../components/affiliate/Sales';
 import { affiliateDraft, affiliatePagePayload, sampleAffiliate, samplePortal } from '../components/affiliate/model';
-import { commissionFor, creatorDiscount, WEBSITE_PRICE } from '../../../packages/shared/pricing';
+import { CREATOR_CODE_PRICE, commissionFor, creatorDiscount, WEBSITE_PRICE } from '../../../packages/shared/pricing';
 
 const mockAccount = {
   account: sampleAffiliate, isLoading: false, isAuthenticated: true, isOffline: false,
@@ -70,7 +70,7 @@ describe('native affiliate access and live data', () => {
     sales.unmount();
     const page = render(<AffiliatePageScreen />);
     expect(page.getByLabelText('Display name').props.editable).toBe(false);
-    expect(page.getByLabelText('Save page and price').props.accessibilityState.disabled).toBe(true);
+    expect(page.getByLabelText('Save page').props.accessibilityState.disabled).toBe(true);
     expect(mockQuery).not.toHaveBeenCalled();
     expect(mockPaginated).not.toHaveBeenCalled();
     expect(mockMutation).not.toHaveBeenCalled();
@@ -156,7 +156,8 @@ describe('native affiliate access and live data', () => {
   it('keeps suspended pages read-only without mounting write hooks', () => {
     mockAccount.account = { ...sampleAffiliate, status: 'suspended' };
     const view = render(<AffiliatePageScreen />);
-    expect(view.getByLabelText('Website price in pesos').props.editable).toBe(false);
+    expect(view.queryByLabelText('Website price in pesos')).toBeNull();
+    expect(view.getByLabelText('Display name').props.editable).toBe(false);
     expect(view.getByText(/account is suspended/)).toBeTruthy();
     expect(mockMutation).not.toHaveBeenCalled();
     expect(mockAction).not.toHaveBeenCalled();
@@ -176,32 +177,35 @@ describe('native affiliate access and live data', () => {
   it('saves only normalized page settings and preserves unsaved edits during account updates', async () => {
     const view = render(<AffiliatePageScreen />);
     fireEvent.changeText(view.getByLabelText('Display name'), '  My shop offer  ');
-    fireEvent.changeText(view.getByLabelText('Website price in pesos'), '998');
-    expect(view.getByText('Saved share price: 3999')).toBeTruthy();
+    fireEvent.press(view.getByRole('tab', { name: 'Sharing' }));
+    expect(view.getByText('Saved share price: 3499')).toBeTruthy();
+    fireEvent.press(view.getByRole('tab', { name: 'Page details' }));
     mockAccount.account = { ...sampleAffiliate, balance: 9000 };
     view.rerender(<AffiliatePageScreen />);
     expect(view.getByLabelText('Display name').props.value).toBe('  My shop offer  ');
-    fireEvent.press(view.getByLabelText('Save page and price'));
-    await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ photo: '', displayName: 'My shop offer', message: sampleAffiliate.affiliateMessage, socialLinks: {}, price: 999 }));
-    expect(view.getByText('Page and price saved.')).toBeTruthy();
-    expect(view.getByText('Saved share price: 999')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('Save page'));
+    await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ photo: '', displayName: 'My shop offer', message: sampleAffiliate.affiliateMessage, socialLinks: {} }));
+    expect(view.getByText('Page saved.')).toBeTruthy();
+    fireEvent.press(view.getByRole('tab', { name: 'Sharing' }));
+    expect(view.getByText('Saved share price: 3499')).toBeTruthy();
   });
 });
 
-describe('native affiliate pricing and page validation', () => {
-  it('shares rounded/clamped prices and commission/discount rules with the web', () => {
-    const draft = affiliateDraft(sampleAffiliate);
-    expect(affiliatePagePayload({ ...draft, price: '4999.7' }).price).toBe(4999);
-    expect(affiliatePagePayload({ ...draft, price: '1' }).price).toBe(999);
-    expect(affiliatePagePayload({ ...draft, price: '3999.4' }).price).toBe(3999);
+describe('native affiliate offer and profile validation', () => {
+  it('ignores legacy affiliate prices while leaving general field-agent pricing helpers unchanged', () => {
+    for (const legacyPrice of [999, 2661, 3999, 4999]) {
+      const draft = affiliateDraft({ ...sampleAffiliate, affiliatePrice: legacyPrice });
+      expect(draft.price).toBe(String(CREATOR_CODE_PRICE));
+      expect(affiliatePagePayload({ ...draft, price: String(legacyPrice) })).not.toHaveProperty('price');
+    }
     expect(commissionFor(999)).toBe(500);
     expect(creatorDiscount(4999, WEBSITE_PRICE)).toBeNull();
     expect(creatorDiscount(3999, WEBSITE_PRICE)?.percentOff).toBe(20);
   });
 
-  it('rejects nonfinite/empty prices, oversized messages, and social lookalikes', () => {
+  it('validates profile fields independently of unused legacy price drafts', () => {
     const draft = affiliateDraft(sampleAffiliate);
-    for (const price of ['', 'NaN', 'Infinity']) expect(() => affiliatePagePayload({ ...draft, price })).toThrow();
+    for (const price of ['', 'NaN', 'Infinity']) expect(affiliatePagePayload({ ...draft, price })).not.toHaveProperty('price');
     expect(() => affiliatePagePayload({ ...draft, message: 'x'.repeat(201) })).toThrow(/200/);
     expect(() => affiliatePagePayload({ ...draft, socialLinks: { facebook: 'https://facebook.com.attacker.test/name' } })).toThrow(/Facebook/);
     expect(affiliatePagePayload({ ...draft, message: 'x'.repeat(200), socialLinks: { messenger: 'https://m.me/my-page' } }).socialLinks).toEqual({ messenger: 'https://m.me/my-page' });

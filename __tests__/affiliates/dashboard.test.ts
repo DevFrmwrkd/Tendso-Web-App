@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
+import { CREATOR_CODE_PRICE } from '../../lib/pricing';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError, affiliateSocialLinkError,
@@ -74,13 +75,13 @@ describe('affiliate dashboard sales', () => {
         expect((await other.query(api.affiliates.sales, { paginationOpts })).page.map((row) => row.businessName)).toEqual(['Another Affiliate Shop']);
     });
 
-    it('keeps historical owner charges and frozen commissions when the affiliate changes today’s price', async () => {
+    it('keeps historical owner charges and frozen commissions while saving fixed-price page settings', async () => {
         const { t, affiliate, id } = await setup();
         await sale(t, id, 'Custom Domain Shop', { amount: 1499, creatorPayout: 500, submissionType: 'with_custom_domain' });
         await sale(t, id, 'Comped Shop', { amount: 4999, creatorPayout: 2500, pricingMode: 'comped' });
         await sale(t, id, 'Legacy Shop', { amount: undefined, creatorPayout: undefined });
         const before = await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 10, cursor: null } });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 4999 });
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, displayName: 'Updated page' });
         const after = await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 10, cursor: null } });
         expect(after.page).toEqual(before.page);
         expect(after.page.map(({ businessName, price, commission }) => ({ businessName, price, commission }))).toEqual([
@@ -107,16 +108,15 @@ describe('affiliate dashboard sales', () => {
 });
 
 describe('affiliate dashboard page settings', () => {
-    it('rounds and clamps finite price input on the server and rejects nonfinite input without changing settings', async () => {
+    it('rejects custom prices atomically and accepts a legacy fixed-price payload without writing the account price', async () => {
         const { t, affiliate, id } = await setup();
-        for (const [price, expected] of [[-1000, 999], [998, 999], [999, 999], [999.5, 1000], [2500.4, 2500], [4999, 4999], [9999, 4999]]) {
-            await affiliate.mutation(api.affiliates.updatePage, { price });
-            expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(expected);
+        const before = await t.run((ctx) => ctx.db.get(id));
+        for (const price of [-1000, 998, 999, 999.5, 2500.4, 4999, 9999, NaN, Infinity, -Infinity]) {
+            await expect(affiliate.mutation(api.affiliates.updatePage, { price, message: 'Must not save' })).rejects.toThrow('cannot be changed');
+            expect(await t.run((ctx) => ctx.db.get(id))).toEqual(before);
         }
-        for (const price of [NaN, Infinity, -Infinity]) {
-            await expect(affiliate.mutation(api.affiliates.updatePage, { price })).rejects.toThrow('valid price');
-        }
-        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(4999);
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, message: 'Saved page' });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliatePrice: 1999, affiliateMessage: 'Saved page' });
     });
 
     it('saves supported public social links and rejects credentials, lookalikes and unrelated hosts', async () => {
@@ -158,7 +158,7 @@ describe('affiliate dashboard page settings', () => {
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
             affiliateDisplayName: 'Alex', affiliatePhoto: 'https://example.com/photo.jpg', affiliateMessage: 'x'.repeat(200),
         });
-        await expect(affiliate.mutation(api.affiliates.updatePage, { price: 4999, message: 'x'.repeat(201) })).rejects.toThrow('200 characters');
+        await expect(affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, message: 'x'.repeat(201) })).rejects.toThrow('200 characters');
         expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(1999);
         for (const photo of ['http://example.com/photo.jpg', 'javascript:alert(1)', 'https://user:secret@example.com/photo.jpg']) {
             expect(affiliatePhotoError(photo)).not.toBeNull();
@@ -177,8 +177,9 @@ describe('affiliate dashboard page settings', () => {
         await expect(t.withIdentity({ subject: 'missing-profile' }).mutation(api.affiliates.updatePage, { price: 3999 })).rejects.toThrow('affiliate account');
         const foreignUpdate = { price: 3999, id: otherId };
         await expect(affiliate.mutation(api.affiliates.updatePage, foreignUpdate)).rejects.toThrow();
-        await affiliate.mutation(api.affiliates.updatePage, { price: 3999 });
-        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(3999);
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, displayName: 'Only my page' });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliatePrice: 1999, affiliateDisplayName: 'Only my page' });
+        expect((await t.run((ctx) => ctx.db.get(otherId)))?.affiliateDisplayName).toBeUndefined();
         expect((await t.run((ctx) => ctx.db.get(otherId)))?.affiliatePrice).toBe(1999);
     });
 });

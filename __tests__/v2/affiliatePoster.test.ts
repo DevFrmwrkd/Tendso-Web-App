@@ -49,12 +49,14 @@ afterEach(() => {
 });
 
 describe('web Bold offer artwork', () => {
-    it('renders the real saved offer, photo and code in a vector A4 document', () => {
+    it('renders the fixed code offer and real saved photo and code in a vector A4 document', () => {
         const html = renderToStaticMarkup(createElement(BoldOfferPoster, { model }));
         expect(html).toContain(`viewBox="0 0 ${POSTER_PAGE.width} ${POSTER_PAGE.height}"`);
         expect(html).toContain('test-v2-fonts');
         expect(html).toContain('Ana’s saved page');
-        expect(html).toContain('₱2,661');
+        expect(html).toContain('₱3,499');
+        expect(html).toContain('Save ₱1,500');
+        expect(html).not.toContain('₱2,661');
         expect(html).toContain('LEGACY27');
         expect(html).toContain('href="https://photos.example.com/saved.jpg"');
         expect(html).toContain('tendso.com/v2/a/ana-local');
@@ -80,7 +82,8 @@ describe('web Bold offer artwork', () => {
         expect(html).toContain('Shared by Ana Cruz');
         expect(html).not.toContain('CREATOR CODE');
         expect(html).not.toContain('Enter this code');
-        expect(html).not.toContain('Save ₱');
+        expect(html).toContain('₱3,499');
+        expect(html).toContain('Save ₱1,500');
         expect(html).not.toContain('photos.example.com');
     });
 

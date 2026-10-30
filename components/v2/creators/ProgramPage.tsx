@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { CODE_PRICE, CODE_SAVING, KEEP_PER_SHOP, LIST_PRICE, OVERRIDE_PER_SALE, peso } from "@/lib/v2/creatorProgram";
+import { CODE_PERCENT_OFF, CODE_PRICE, CODE_SAVING, KEEP_PER_SHOP, LIST_PRICE, OVERRIDE_PER_SALE, peso } from "@/lib/v2/creatorProgram";
 
 import { Calculator } from "./Calculator";
 import { ProgramNav } from "./Chrome";
@@ -18,7 +18,7 @@ const FAQ: [string, string][] = [
     ["Do I need to visit shops?", "No. Field agents visit shops. You share your link and code online, where people already follow you."],
     [
         "How much do I get when a shop uses my code?",
-        `With the usual 30% off, the shop pays ${peso(CODE_PRICE)} and you keep ${peso(KEEP_PER_SHOP)}. You can give a bigger discount, down to ₱999. You always keep half of what the shop pays.`,
+        `Every creator code gives the same ${CODE_PERCENT_OFF}% off. The shop pays ${peso(CODE_PRICE)} and you keep half: ${peso(KEEP_PER_SHOP)}. Creator-code prices are fixed.`,
     ],
     [
         "How does the monthly money work?",
@@ -123,7 +123,7 @@ export function ProgramPage() {
                                 </p>
                                 <div className="cp-ticket" aria-hidden="true">
                                     <span className="cp-ticket-code">MIKA</span>
-                                    <span className="cp-ticket-off">30% off</span>
+                                    <span className="cp-ticket-off">{CODE_PERCENT_OFF}% off</span>
                                     <span className="cp-ticket-price">
                                         <s>{peso(LIST_PRICE)}</s>
                                         <b>{peso(CODE_PRICE)}</b>
@@ -134,7 +134,7 @@ export function ProgramPage() {
                                         The shop pays {peso(CODE_PRICE)} instead of {peso(LIST_PRICE)}.
                                     </li>
                                     <li>You keep half: {peso(KEEP_PER_SHOP)}.</li>
-                                    <li>Want a bigger discount? Go as low as ₱999. You still keep half.</li>
+                                    <li>Every creator code has the same fixed {CODE_PERCENT_OFF}% offer.</li>
                                 </ul>
                             </article>
                             <article className="cp-way cp-way--monthly" data-reveal style={{ "--i": 1 } as CSSProperties}>
@@ -280,7 +280,7 @@ export function ProgramPage() {
                                 <div className="ag-code" aria-hidden="true">
                                     <span className="ag-code-l">Your code</span>
                                     <span className="ag-code-v">MIKA</span>
-                                    <span className="ag-code-b">30% off · {peso(CODE_PRICE)}</span>
+                                    <span className="ag-code-b">{CODE_PERCENT_OFF}% off · {peso(CODE_PRICE)}</span>
                                 </div>
                             </article>
                             <article className="ag-g cp-g cp-g--portal" data-reveal>

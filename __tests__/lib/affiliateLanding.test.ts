@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { AffiliateOffer } from "@/app/a/[handle]/_components/AffiliateLanding";
 import { affiliateBuyHref, creatorPlatform, creatorStoreButtons } from "@/lib/affiliateLanding";
-import { WEBSITE_PRICE } from "@/lib/pricing";
+import { CREATOR_CODE_PRICE, WEBSITE_PRICE } from "@/lib/pricing";
 
 // The offer view does not fetch data. The generated ESM client is replaced only
 // so Jest's CommonJS renderer can import the same module as the public route.
@@ -31,8 +31,9 @@ describe("public affiliate offer", () => {
         expect(html).toContain(affiliate.message);
         expect(html).toContain(`src="${affiliate.photo}"`);
         expect(html).toMatch(/<del[^>]*>₱4,999<\/del>/);
-        expect(html).toContain("₱1,999");
-        expect(html).toContain("60% off");
+        expect(html).toContain("₱3,499");
+        expect(html).toContain("30% off");
+        expect(html).not.toContain("₱1,999");
         expect(html).toContain('href="/start?affiliate=maria"');
         expect(html).toContain("Get my website");
         expect(html).toContain("MARIA2026");
@@ -59,14 +60,15 @@ describe("public affiliate offer", () => {
         expect(html).toContain("Get my website");
     });
 
-    it("shows a plain full-price affiliate offer without a strike-through", () => {
+    it.each([0, 999, 1999.6, WEBSITE_PRICE, 99999, NaN])("ignores a legacy affiliate price of %s for the fixed code offer", (price) => {
         const html = renderToStaticMarkup(createElement(AffiliateOffer, {
-            handle: "maria", affiliate: { ...affiliate, price: WEBSITE_PRICE },
+            handle: "maria", affiliate: { ...affiliate, price },
         }));
         expect(html).toContain("Maria Cruz");
-        expect(html).toContain("₱4,999");
-        expect(html).not.toContain("<del");
-        expect(html).not.toContain("% off");
+        expect(html).toContain("₱3,499");
+        expect(html).toMatch(/<del[^>]*>₱4,999<\/del>/);
+        expect(html).toContain("30% off");
+        expect(CREATOR_CODE_PRICE).toBe(3499);
     });
 
     it("shows several saved platforms with labels that match their destinations", () => {
