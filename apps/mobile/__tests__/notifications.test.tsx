@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import NotificationsScreen from '../app/(app)/notifications';
 
 const mockRouter = { push: jest.fn(), back: jest.fn() };
@@ -84,6 +84,80 @@ beforeEach(() => {
   mockMarkAllRead.mockReset().mockResolvedValue(undefined);
 });
 
+it.each(['creator', 'affiliate'])('leaves a %s inbox unread when it is opened, left, and revisited', (role) => {
+  mockAccounts['clerk-agent'] = { ...mockAccounts['clerk-agent'], role };
+  const row = notification();
+  const view = inbox(row);
+  expect(view.getByLabelText('Unread')).toBeTruthy();
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+
+  fireEvent.press(view.getByRole('button', { name: 'Back' }));
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  view.unmount();
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+
+  const revisit = render(<NotificationsScreen />);
+  expect(revisit.getByLabelText('Unread')).toBeTruthy();
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+});
+
+it('updates only the opened notification from the live inbox response and keeps that state when reopened or revisited', async () => {
+  const first = notification();
+  const second = notification({ _id: 'notice-2', title: 'Another update', body: 'Read this one later.' });
+  mockNotifications['agent-1'] = [first, second];
+  const view = render(<NotificationsScreen />);
+  expect(view.getAllByLabelText('Unread')).toHaveLength(2);
+
+  open(view, first);
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  expect(mockMarkRead).toHaveBeenCalledWith({ id: first._id });
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+  expect(view.getByTestId('notification-full-body').props.children).toBe(first.body);
+
+  await act(flush);
+  mockNotifications['agent-1'] = [{ ...first, read: true }, second];
+  view.rerender(<NotificationsScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Close notification' }));
+  const firstRow = view.getByRole('button', { name: `${first.title}: ${first.body}` });
+  const secondRow = view.getByRole('button', { name: `${second.title}: ${second.body}` });
+  expect(within(firstRow).queryByLabelText('Unread')).toBeNull();
+  expect(within(secondRow).getByLabelText('Unread')).toBeTruthy();
+  expect(view.getAllByLabelText('Unread')).toHaveLength(1);
+
+  open(view, first);
+  expect(view.getByTestId('notification-full-body').props.children).toBe(first.body);
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  fireEvent.press(view.getByRole('button', { name: 'Close notification' }));
+  expect(view.getAllByLabelText('Unread')).toHaveLength(1);
+  view.unmount();
+
+  const revisit = render(<NotificationsScreen />);
+  expect(within(revisit.getByRole('button', { name: `${first.title}: ${first.body}` })).queryByLabelText('Unread')).toBeNull();
+  expect(within(revisit.getByRole('button', { name: `${second.title}: ${second.body}` })).getByLabelText('Unread')).toBeTruthy();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+});
+
+it('marks all notifications read only through the explicit action and reflects its live response', async () => {
+  const rows = [notification(), notification({ _id: 'notice-2', title: 'Another update' })];
+  mockNotifications['agent-1'] = rows;
+  const view = render(<NotificationsScreen />);
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+  expect(view.getAllByLabelText('Unread')).toHaveLength(2);
+
+  fireEvent.press(view.getByRole('link', { name: 'Mark all read' }));
+  expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+  expect(mockMarkAllRead).toHaveBeenCalledWith({ creatorId: 'agent-1' });
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  await act(flush);
+  mockNotifications['agent-1'] = rows.map(row => ({ ...row, read: true }));
+  view.rerender(<NotificationsScreen />);
+  expect(view.queryByLabelText('Unread')).toBeNull();
+  expect(view.queryByRole('link', { name: 'Mark all read' })).toBeNull();
+});
+
 it('opens a plain notification as selectable unclamped text, then closes and reopens it', () => {
   const view = inbox();
   expect(view.queryByTestId('notification-full-body')).toBeNull();
@@ -115,6 +189,15 @@ it.each(['pending', 'rejected'])('shows details immediately while marking read i
   expect(view.getByTestId('notification-full-body')).toBeTruthy();
   fireEvent.press(view.getByRole('button', { name: 'Close' }));
   expect(view.queryByTestId('notification-full-body')).toBeNull();
+  expect(view.getByLabelText('Unread')).toBeTruthy();
+  expect(view.getByRole('link', { name: 'Mark all read' })).toBeTruthy();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+
+  open(view);
+  expect(mockMarkRead).toHaveBeenCalledTimes(2);
+  expect(mockMarkRead).toHaveBeenLastCalledWith({ id: 'notice-1' });
+  await act(flush);
+  expect(view.getByTestId('notification-full-body').props.children).toBe(longBody);
 });
 
 it('replaces an announcement preview with its resolved original paragraphs', () => {

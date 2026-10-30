@@ -12,7 +12,6 @@ import {
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
 import { api, type Doc } from '@tendso/convex-client';
-import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useNetwork } from '../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,7 +54,6 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const [selectedNotification, setSelectedNotification] = useState<Doc<'notifications'> | null>(null);
   const [showCertModal, setShowCertModal] = useState(false);
   const certModalRef = useRef<View>(null);
-  const seenUnread = useRef<Set<string>>(new Set());
 
   const creator = useQuery(
     api.creators.getByClerkId,
@@ -75,15 +73,6 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const waitingForAnnouncement = !!selected?.data?.announcementId && details === undefined;
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
-
-  // Auto-clear the bell badge whenever this screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (creator?._id) {
-        void markAllAsRead({ creatorId: creator._id }).catch(() => {});
-      }
-    }, [creator?._id, markAllAsRead])
-  );
 
   const handleShareCert = useCallback(async () => {
     try {
@@ -149,12 +138,6 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
     return <Loading />;
   }
 
-  // Auto mark-all-read runs as soon as this screen opens. Remember what was unread when it
-  // arrived so those cards stay white (with the ink dot) for this visit.
-  for (const n of notifications) {
-    if (!n.read) seenUnread.current.add(n._id);
-  }
-
   const groups = (['Today', 'This week', 'Earlier'] as const)
     .map((title) => ({
       title,
@@ -188,7 +171,7 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
             <View key={group.title} style={styles.group}>
               <SectionLabel>{group.title}</SectionLabel>
               {group.items.map((notification) => {
-                const unread = seenUnread.current.has(notification._id);
+                const unread = !notification.read;
                 return (
                   <Pressable
                     key={notification._id}
