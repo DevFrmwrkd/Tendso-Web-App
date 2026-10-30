@@ -39,7 +39,7 @@ jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockAccount }));
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy: false, canDelete: true, requestDelete: jest.fn() }) }));
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
-jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { portal: 'affiliates:portal', sales: 'affiliates:sales', updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' } } }));
+jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { portal: 'affiliates:portal', sales: 'affiliates:sales', updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' }, creatorProgram: { checkCodeAvailability: 'creatorProgram:checkCodeAvailability', updateCode: 'creatorProgram:updateCode' } } }));
 jest.mock('convex/react', () => ({
   useQuery: (...args: unknown[]) => mockQuery(...args),
   usePaginatedQuery: (...args: unknown[]) => mockPaginated(...args),

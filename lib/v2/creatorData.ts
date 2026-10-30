@@ -37,6 +37,8 @@ const fn = {
     getCreatorByHandle: api.creatorProgram.getCreatorByHandle,
     myApplication: api.creatorProgram.myApplication,
     checkAvailability: api.creatorProgram.checkAvailability,
+    checkCodeAvailability: api.creatorProgram.checkCodeAvailability,
+    updateCode: api.creatorProgram.updateCode,
     apply: api.creatorProgram.apply,
     recordClick: api.attribution.recordClick,
     portalSummary: api.creatorPortal.summary,
@@ -155,18 +157,70 @@ export function useMyApplication(): MyApplication | undefined {
 }
 
 /** Live check of a page handle and its code while the person types. Pass null to skip. */
-export function useAvailability(input: { handle: string; code: string } | null): Availability | undefined {
-    const live = useQuery(fn.checkAvailability, CREATORS_SAMPLE || !input ? "skip" : { handle: input.handle, code: input.code });
+export function useAvailability(input: { handle?: string; code?: string } | null): Availability | undefined {
+    const live = useQuery(fn.checkAvailability, CREATORS_SAMPLE || !input ? "skip" : input);
     if (CREATORS_SAMPLE && input) {
         // Sample mode: only the sample creator's own name is taken.
         const taken = input.handle === "mika";
         const err = "That page handle is already taken. Choose another one.";
         return {
-            handle: { value: input.handle, available: !taken, error: taken ? err : null },
-            code: { value: input.code, available: !taken, error: taken ? "That code is already taken. Choose another one." : null },
+            handle: input.handle === undefined ? null : { value: input.handle, available: !taken, error: taken ? err : null },
+            code: input.code === undefined ? null : { value: input.code, available: !taken, error: taken ? "That code is already taken. Choose another one." : null },
         };
     }
     return live;
+}
+
+export type CreatorCodeAvailability = { value: string; available: boolean; error: string | null };
+export type CreatorCodeCheck = {
+    status: "idle" | "checking" | "checked" | "error";
+    result?: CreatorCodeAvailability;
+    error?: string;
+    retry: () => void;
+};
+
+/** A live lookup is advisory; saving atomically checks availability again on the server. */
+export function useCreatorCodeAvailability(input: string | null, { signup = false }: { signup?: boolean } = {}): CreatorCodeCheck {
+    const convex = useConvex();
+    const [attempt, setAttempt] = useState(0);
+    const [check, setCheck] = useState<Omit<CreatorCodeCheck, "retry"> & { key?: string }>({ status: "idle" });
+    const key = input ? `${signup ? "signup" : "account"}:${input}` : null;
+    const retry = useCallback(() => {
+        setCheck({ key: key ?? undefined, status: input ? "checking" : "idle" });
+        setAttempt(value => value + 1);
+    }, [input, key]);
+    useEffect(() => {
+        if (!input) {
+            setCheck(previous => previous.status === "idle" && !previous.key ? previous : { status: "idle" });
+            return;
+        }
+        if (CREATORS_SAMPLE) return;
+        let current = true;
+        setCheck({ key: key!, status: "checking" });
+        void (async () => {
+            try {
+                const result = signup ? (await convex.query(fn.checkAvailability, { code: input })).code
+                    : await convex.query(fn.checkCodeAvailability, { code: input });
+                if (!current) return;
+                if (result?.value === input) setCheck({ key: key!, status: "checked", result });
+                else setCheck({ key: key!, status: "error", error: "Could not confirm this code. Try again." });
+            } catch {
+                if (current) setCheck({ key: key!, status: "error", error: "Could not check this code. Try again." });
+            }
+        })();
+        return () => { current = false; };
+    }, [convex, input, key, signup, attempt]);
+    if (!input) return { status: "idle", retry };
+    if (CREATORS_SAMPLE) return { status: "checked", result: { value: input, available: true, error: null }, retry };
+    return check.key === key ? { ...check, retry } : { status: "checking", retry };
+}
+
+export function useUpdateCreatorCode(): (code: string) => Promise<{ code: string }> {
+    const update = useMutation(fn.updateCode);
+    return useCallback(async (code: string) => {
+        if (CREATORS_SAMPLE) throw new Error("Code changes are disabled in sample mode.");
+        return await update({ code });
+    }, [update]);
 }
 
 /** Send the application. Throws a ConvexError with a sentence to show. */

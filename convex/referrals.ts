@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import { isCreatorAccount } from '../lib/accounts';
 import { earnsCreatorOverride, isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
 import { attachRecruit } from './lib/creatorRecruits';
+import { resolveReferralCode } from './lib/referralCodes';
 
 // ==================== INTERNAL MUTATIONS ====================
 
@@ -20,10 +21,11 @@ export const createFromSignup = internalMutation({
         const referred = await ctx.db.get(args.referredId);
         if (!isCreatorAccount(referred)) throw new Error('Only creator accounts can be referred. Affiliates cannot be referred.');
         const referrer = await ctx.db.get(args.referrerId);
+        const codeOwner = await resolveReferralCode(ctx, args.referralCode);
         if (!referrer || referrer.isDeleted || referrer.status === 'suspended'
             || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')
-            || referrer.referralCode !== args.referralCode || args.referrerId === args.referredId) {
+            || codeOwner?._id !== referrer._id || args.referrerId === args.referredId) {
             throw new Error('Invalid referrer');
         }
         // Dedup: check if referral already exists

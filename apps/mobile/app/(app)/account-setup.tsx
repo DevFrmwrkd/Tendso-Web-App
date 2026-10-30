@@ -12,6 +12,7 @@ import {
   normalizeSignupProfile, savePendingSignupProfile, signupAccountHome, signupErrorMessage, signupProfileErrors,
 } from '../../services/signupProfile';
 import type { SignupProfile } from '../../services/signupProfile';
+import { creatorCodeError, normalizeCreatorCode } from '../../../../lib/creatorCodes';
 
 /** Authentication is complete before either account creation mutation can run. */
 export default function AccountSetupScreen() {
@@ -36,6 +37,27 @@ export default function AccountSetupScreen() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const inFlight = useRef(false);
+  const [codeCheck, setCodeCheck] = useState<{ subject: string; value: string } | null>(null);
+  const codeCandidate = normalizeCreatorCode(profile.creatorCode ?? '');
+  const codeFormatError = codeCandidate ? creatorCodeError(codeCandidate) : null;
+  const canCheckCode = profile.accountType === 'affiliate' && draftLoaded && isAuthenticated && !isLoading
+    && !!identity.clerkId && !!ownSession && !isOwner && account === null && isConnected === true;
+
+  useEffect(() => {
+    setCodeCheck(null);
+    if (!canCheckCode || !codeCandidate || codeFormatError || !identity.clerkId) return;
+    const subject = identity.clerkId;
+    const timer = setTimeout(() => setCodeCheck({ subject, value: codeCandidate }), 350);
+    return () => clearTimeout(timer);
+  }, [canCheckCode, codeCandidate, codeFormatError, identity.clerkId]);
+  const matchingCheck = canCheckCode && codeCheck?.subject === identity.clerkId && codeCheck?.value === codeCandidate;
+  const availability = useQuery(api.creatorProgram.checkAvailability, matchingCheck ? { code: codeCandidate } : 'skip');
+  const codeResult = matchingCheck && availability?.code?.value === codeCandidate ? availability.code : undefined;
+  const codeReady = !!codeCandidate && !codeFormatError && codeResult?.available === true;
+  const creatorCodeProblem = fieldErrors.creatorCode || codeFormatError || (codeResult && !codeResult.available ? codeResult.error : null);
+  const creatorCodeHelper = !codeCandidate ? 'Choose your own code, such as ALEX30. Owners save 30% with it.'
+    : codeReady ? 'This code is available. Owners save 30% with it.'
+    : isConnected !== true ? 'Connect to check whether this code is available.' : 'Checking code availability…';
 
   useEffect(() => {
     if (!isAuthenticated || !identity.clerkId || !ownSession || isOwner) return;
@@ -71,6 +93,7 @@ export default function AccountSetupScreen() {
 
   const save = async () => {
     if (inFlight.current || !isAuthenticated || isLoading || !ownSession || isOwner || account !== null || !identity.clerkId || isConnected !== true) return;
+    if (profile.accountType === 'affiliate' && !codeReady) return;
     const normalized = normalizeSignupProfile(profile);
     const errors = signupProfileErrors(normalized);
     setFieldErrors(errors);
@@ -126,7 +149,7 @@ export default function AccountSetupScreen() {
       subtitle={`Signed in as ${identity.email || 'your sign-in account'}.`}
       footer={<>
         {isConnected !== true ? <Text variant="label" tone="muted" align="center">Connect to the internet to finish setup.</Text> : null}
-        <Button title={`Create ${accountLabel} account`} onPress={save} disabled={saving || isConnected !== true} loading={saving} />
+        <Button title={`Create ${accountLabel} account`} onPress={save} disabled={saving || isConnected !== true || (profile.accountType === 'affiliate' && !codeReady)} loading={saving} />
         <TextLink label="Use a different login" tone="muted" onPress={() => { void leave().catch((failure) => setError(signupErrorMessage(failure))); }} />
       </>}>
       <View style={styles.stack} accessibilityRole="radiogroup">
@@ -147,11 +170,17 @@ export default function AccountSetupScreen() {
           accessibilityLabel="Mobile number" icon="call-outline" placeholder="09171234567" value={profile.phone}
           onChangeText={(value: string) => change('phone', value.replace(/[^0-9+]/g, ''))}
           keyboardType="phone-pad" editable={!saving} error={fieldErrors.phone} />
-        {profile.accountType === 'affiliate' ? <Field label="Page handle" accessibilityLabel="Page handle" icon="link-outline"
+        {profile.accountType === 'affiliate' ? <><Field label="Page handle" accessibilityLabel="Page handle" icon="link-outline"
           placeholder="your-page" value={profile.handle}
           onChangeText={(value: string) => change('handle', value.toLowerCase())} autoCapitalize="none" autoCorrect={false}
           editable={!saving} error={fieldErrors.handle}
           helper={`tendso.com/a/${profile.handle || 'your-page'} after approval. Lowercase letters, numbers, hyphens.`} />
+          <Field label="Creator code" accessibilityLabel="Creator code" icon="pricetag-outline"
+            placeholder="ALEX30" value={profile.creatorCode ?? ''}
+            onChangeText={(value: string) => change('creatorCode', normalizeCreatorCode(value))}
+            autoCapitalize="characters" autoCorrect={false} maxLength={16} editable={!saving}
+            error={creatorCodeProblem} helper={creatorCodeHelper} />
+          </>
         : null}
       </View>
       <Text variant="label" tone="muted" style={styles.note}>To use both, sign up with different emails.</Text>

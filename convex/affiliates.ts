@@ -15,6 +15,7 @@ import { manilaMonth, selectedManilaMonth } from './lib/affiliateCalendar';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
 import { insertAffiliateAccount } from './lib/affiliateSignup';
 import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
+import { creatorCodeError, normalizeCreatorCode } from '../lib/creatorCodes';
 
 /** Optional additive field keeps older clients compatible with the portal shape. */
 function creditedLifetime(amount: number): { creditedTotalEarned?: number } {
@@ -50,6 +51,7 @@ export const create = mutation({
         email: v.string(),
         phone: v.string(),
         handle: v.string(),
+        code: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const identity = await requireAuth(ctx);
@@ -68,8 +70,13 @@ export const create = mutation({
         if (phoneError) throw new ConvexError(phoneError);
         const handleError = affiliateHandleError(args.handle);
         if (handleError) throw new ConvexError(handleError);
+        const code = args.code === undefined ? undefined : normalizeCreatorCode(args.code);
+        if (code !== undefined) {
+            const codeError = creatorCodeError(code);
+            if (codeError) throw new ConvexError(codeError);
+        }
 
-        return insertAffiliateAccount(ctx, identity, { firstName, lastName, email, phone, handle: args.handle });
+        return insertAffiliateAccount(ctx, identity, { firstName, lastName, email, phone, handle: args.handle, referralCode: code });
     },
 });
 

@@ -5,6 +5,9 @@ import { requireAccountOwner, requireAdmin, requireAuth } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 import { applyPendingAgentAttribution } from './lib/creatorRecruits';
 import { affiliatePhoneError, affiliatePhotoError } from '../lib/affiliates';
+import { normalizeCreatorCode } from '../lib/creatorCodes';
+import { CAMPAIGN_CODES } from '../lib/pricing';
+import { referralCodeTaken, resolveReferralCode } from './lib/referralCodes';
 
 // ==================== QUERIES ====================
 
@@ -141,10 +144,7 @@ export const deleteAccount = mutation({
 export const getByReferralCode = query({
     args: { referralCode: v.string() },
     handler: async (ctx, args) => {
-        const account = await ctx.db
-            .query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referralCode))
-            .unique();
+        const account = await resolveReferralCode(ctx, args.referralCode);
         if (account?.role === 'affiliate' && (account.isDeleted || account.status !== 'active')) return null;
         return account;
     },
@@ -238,9 +238,14 @@ export const create = mutation({
             }
         }
 
-        const incomingCode = args.referredByCode?.trim().toUpperCase();
-        const referrer = incomingCode ? await ctx.db.query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', incomingCode)).first() : null;
+        // Existing accounts returned above retain idempotent signup retries. New
+        // nonempty agent codes cannot shadow a creator's current or printed old code.
+        const ownCode = normalizeCreatorCode(args.referralCode);
+        if (ownCode && (Object.prototype.hasOwnProperty.call(CAMPAIGN_CODES, ownCode) || await referralCodeTaken(ctx, ownCode))) {
+            throw new Error('That referral code is already taken. Choose another one.');
+        }
+        const incomingCode = args.referredByCode?.trim() ? normalizeCreatorCode(args.referredByCode) : undefined;
+        const referrer = incomingCode ? await resolveReferralCode(ctx, incomingCode) : null;
         if (incomingCode && (!referrer || referrer.isDeleted || referrer.status === 'suspended'
             || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate'))) {
@@ -276,7 +281,7 @@ export const create = mutation({
             lastName: args.lastName,
             email: args.email || '',
             phone: args.phone,
-            referralCode: args.referralCode || '',
+            referralCode: ownCode,
             referredBy: referrer?._id ?? args.referredBy,
             referredByCode: incomingCode,
             referredByName: referrer ? [referrer.firstName, referrer.lastName].filter(Boolean).join(' ') : undefined,
@@ -478,10 +483,8 @@ export const applyReferralCode = mutation({
         }
 
         // Find the referrer by code
-        const referrer = await ctx.db
-            .query('creators')
-            .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referredByCode))
-            .first();
+        const code = normalizeCreatorCode(args.referredByCode);
+        const referrer = await resolveReferralCode(ctx, code);
         if (!referrer) {
             throw new Error('Invalid referral code');
         }
@@ -496,7 +499,7 @@ export const applyReferralCode = mutation({
 
         // Save the referral code and referrer info on the creator
         await ctx.db.patch(args.id, {
-            referredByCode: args.referredByCode,
+            referredByCode: code,
             referredBy: referrer._id,
             referredByName: [referrer.firstName, referrer.lastName].filter(Boolean).join(' '),
         });
@@ -505,7 +508,7 @@ export const applyReferralCode = mutation({
         await ctx.scheduler.runAfter(0, internal.referrals.createFromSignup, {
             referrerId: referrer._id,
             referredId: args.id,
-            referralCode: args.referredByCode,
+            referralCode: code,
         });
     },
 });

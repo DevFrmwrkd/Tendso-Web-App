@@ -5,6 +5,9 @@ import { affiliateHandleError, getAffiliateSocialLinks } from '../../lib/affilia
 import { CREATOR_CODE_PRICE, isComped, WEBSITE_PRICE } from '../../lib/pricing';
 import { resolveAffiliateOffer } from './affiliateOffer';
 import { isPaidInFull as ownerPaidInFull } from './ownerApp';
+import { normalizeCreatorCode } from '../../lib/creatorCodes';
+import { resolveReferralCode } from './referralCodes';
+export { normalizeCreatorCode } from '../../lib/creatorCodes';
 
 /** earnings.type for the creator's 5% on a recruit's sale. */
 export const CREATOR_OVERRIDE_EARNING = 'creator_override';
@@ -108,11 +111,6 @@ export async function attachRecruit(
     return { ok: true, alreadyLinked: false };
 }
 
-/** Codes are stored upper-case; handles lower-case. */
-export function normalizeCreatorCode(value: string): string {
-    return value.trim().toUpperCase();
-}
-
 /**
  * An ACTIVE creator by an explicit page handle (`mika`) or code (`MIKA30`). Pending,
  * suspended and deleted creators resolve to nothing, so a link can never
@@ -126,7 +124,7 @@ export async function findActiveCreator(ctx: Pick<QueryCtx, 'db'>, handleOrCode:
         return affiliateHandleError(handle) ? null : resolveAffiliateOffer(ctx, handle);
     }
     const code = normalizeCreatorCode(raw);
-    const byCode = await ctx.db.query('creators').withIndex('by_referral_code', (q) => q.eq('referralCode', code)).first();
+    const byCode = await resolveReferralCode(ctx, code);
     if (!byCode || byCode.role !== 'affiliate' || byCode.status !== 'active' || byCode.isDeleted || !byCode.affiliateHandle) return null;
     return { affiliate: byCode, price: CREATOR_CODE_PRICE };
 }

@@ -12,6 +12,7 @@ import {
     errorMessage,
     useApplyAsCreator,
     useAvailability,
+    useCreatorCodeAvailability,
     useDebounced,
     useMyApplication,
 } from "@/lib/v2/creatorData";
@@ -22,12 +23,12 @@ import {
     OVERRIDE_PER_SALE,
     SOCIAL_PLATFORMS,
     cleanHandle,
-    codeFromHandle,
     earnLinkFor,
     peso,
     shopLinkFor,
     type SocialPlatform,
 } from "@/lib/v2/creatorProgram";
+import { CREATOR_CODE_MAX_LENGTH, creatorCodeError, normalizeCreatorCode } from "@/lib/creatorCodes";
 
 import { SoloBar } from "./Chrome";
 import { CreatorsBoundary } from "./CreatorsBoundary";
@@ -45,9 +46,10 @@ function splitName(full: string): { firstName: string; lastName?: string } {
 
 /** The sign-up: one step per screen. Email code through Clerk (no password), then the application. */
 export function SignupFlow() {
+    const { user } = useUser();
     return (
         <CreatorsBoundary>
-            <SignupInner />
+            <SignupInner key={user?.id ?? "signed-out"} />
         </CreatorsBoundary>
     );
 }
@@ -86,9 +88,11 @@ function SignupInner() {
     const [audience, setAudience] = useState<number | null>(CREATORS_SAMPLE ? AUDIENCE_CHOICES[1].value : null);
     // step 4
     const [handle, setHandle] = useState(CREATORS_SAMPLE && previewStep > 3 ? "mikasan" : "");
-    const derivedCode = codeFromHandle(handle);
-    const debounced = useDebounced(handle);
-    const availability = useAvailability(debounced.length >= 3 && debounced === handle ? { handle: debounced, code: codeFromHandle(debounced) } : null);
+    const [creatorCode, setCreatorCode] = useState(CREATORS_SAMPLE && previewStep > 3 ? "MIKASAN30" : "");
+    const debouncedHandle = useDebounced(handle);
+    const debouncedCreatorCode = useDebounced(creatorCode);
+    const availability = useAvailability(step === 4 && debouncedHandle.length >= 3 && debouncedHandle === handle ? { handle: debouncedHandle } : null);
+    const codeCheck = useCreatorCodeAvailability(step === 4 && creatorCode && !creatorCodeError(creatorCode) && debouncedCreatorCode === creatorCode ? creatorCode : null, { signup: true });
 
     const go = (next: Step) => {
         setError(null);
@@ -198,22 +202,24 @@ function SignupInner() {
     // ---- step 3/4 checks ----
     const chosen = SOCIAL_PLATFORMS.filter((p) => platforms[p.key]);
     const socialsReady = chosen.length > 0 && chosen.every((p) => socials[p.key].trim().length > 1) && audience !== null;
-    const handleOk = handle.length >= 3 && derivedCode.length >= 4;
-    const checked = availability && availability.handle?.value === handle;
-    const free = !!checked && !!availability?.handle?.available && !!availability?.code?.available;
+    const handleOk = handle.length >= 3;
+    const checked = debouncedHandle === handle && availability?.handle?.value === handle;
+    const handleFree = !!checked && availability?.handle?.available === true;
+    const codeProblem = creatorCode ? creatorCodeError(creatorCode) : null;
+    const codeChecked = debouncedCreatorCode === creatorCode && codeCheck.status === "checked" && codeCheck.result?.value === creatorCode;
+    const codeFree = codeChecked && codeCheck.result?.available === true;
+    const free = handleFree && codeFree;
     const handleProblem = !handle
         ? null
         : handle.length < 3
           ? "Use at least 3 letters or numbers."
-          : derivedCode.length < 4
-            ? "Use at least 4 letters or numbers, so your code works."
-            : checked && !free
-              ? (availability?.handle?.error ?? availability?.code?.error ?? "That name is taken. Try another.")
-              : null;
+          : checked && !handleFree
+            ? (availability?.handle?.error ?? "That name is taken. Try another.")
+            : null;
 
     async function submit(e: FormEvent) {
         e.preventDefault();
-        if (busy || !handleOk || !free) return;
+        if (busy || !handleOk || !free || (!CREATORS_SAMPLE && !convexReady)) return;
         setBusy(true);
         setError(null);
         try {
@@ -222,13 +228,14 @@ function SignupInner() {
                 firstName: firstName || "Creator",
                 lastName,
                 handle,
-                code: derivedCode,
+                code: creatorCode,
                 socials: chosen.map((p) => ({ platform: p.key, handle: socials[p.key].trim() })),
                 audienceSize: audience ?? undefined,
             });
             go(5);
         } catch (err) {
             setError(errorMessage(err, "We could not send your application. Please try again."));
+            codeCheck.retry();
         } finally {
             setBusy(false);
         }
@@ -427,24 +434,27 @@ function SignupInner() {
                     {step === 4 && (
                         <form className="su-step is-on" onSubmit={submit} noValidate>
                             <h1 className="su-h" ref={headingRef} tabIndex={-1}>
-                                Pick your name.
+                                Choose your link and code.
                             </h1>
-                            <p className="su-p">It becomes your two links and your code.</p>
+                            <p className="su-p">Pick a page name and a code people can remember.</p>
                             <label className="su-f">
                                 <span>Your name on Tendso</span>
                                 <span className="su-in">
-                                    <span className="pre">tendso.com/a/</span>
+                                    <span className="pre">tendso.com/v2/a/</span>
                                     <input
                                         type="text"
                                         value={handle}
+                                        disabled={busy}
                                         maxLength={16}
                                         autoCapitalize="off"
                                         autoComplete="off"
                                         spellCheck={false}
                                         placeholder="yourname"
-                                        onChange={(e) => setHandle(cleanHandle(e.target.value))}
+                                        aria-describedby="su-handle-status"
+                                        aria-invalid={!!handleProblem}
+                                        onChange={(e) => { setHandle(cleanHandle(e.target.value)); setError(null); }}
                                     />
-                                    {free && handleOk && (
+                                    {handleFree && handleOk && (
                                         <span className="ok">
                                             <i aria-hidden="true" />
                                             Free
@@ -452,7 +462,14 @@ function SignupInner() {
                                     )}
                                 </span>
                             </label>
-                            {handleProblem && <p className="su-hint is-bad">{handleProblem}</p>}
+                            <p id="su-handle-status" className={`su-hint${handleProblem ? " is-bad" : ""}`} role="status" aria-live="polite">{handleProblem ?? (handle && handleOk && !checked ? "Checking page name…" : handleFree ? "This page name is available." : "")}</p>
+                            <label className="su-f">
+                                <span>Your creator code</span>
+                                <span className="su-in"><input type="text" value={creatorCode} disabled={busy} maxLength={CREATOR_CODE_MAX_LENGTH} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder="MIKA30" aria-describedby="su-creator-code-status su-creator-code-help" aria-invalid={!!codeProblem || !!codeChecked && !codeFree} onChange={event => { setCreatorCode(normalizeCreatorCode(event.target.value)); setError(null); }} /></span>
+                            </label>
+                            <p id="su-creator-code-help" className="su-hint">Use 4–16 letters or numbers. Every code gives {CODE_PERCENT_OFF}% off.</p>
+                            <p id="su-creator-code-status" className={`su-hint${codeProblem || codeChecked && !codeFree || codeCheck.status === "error" ? " is-bad" : ""}`} role="status" aria-live="polite">{codeProblem ?? (codeCheck.status === "error" ? codeCheck.error : codeFree ? "This code is available." : codeChecked ? codeCheck.result?.error ?? "That code is already taken. Choose another one." : creatorCode ? "Checking code availability…" : "")}</p>
+                            {codeCheck.status === "error" && !codeProblem ? <button type="button" className="btn btn--line btn--sm" disabled={busy} onClick={codeCheck.retry}>Check again</button> : null}
                             <div className="su-preview">
                                 <div>
                                     <span>For shops</span>
@@ -464,7 +481,7 @@ function SignupInner() {
                                 </div>
                                 <div>
                                     <span>Your code · {CODE_PERCENT_OFF}% off</span>
-                                    <b className="code">{derivedCode || "YOURNAME"}</b>
+                                    <b className="code">{creatorCode || "YOURCODE"}</b>
                                 </div>
                             </div>
                             <div className="su-go">

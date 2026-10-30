@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FunctionArgs } from 'convex/server';
 import type { api } from '@tendso/convex-client';
 import { affiliateHandleError, affiliatePhoneError } from '../../../lib/affiliates';
+import { creatorCodeError, normalizeCreatorCode } from '../../../lib/creatorCodes';
 
 export type SignupAccountType = 'creator' | 'affiliate';
 export type SignupProfile = {
@@ -11,6 +12,8 @@ export type SignupProfile = {
   phone: string;
   handle: string;
   referredByCode: string;
+  /** Their own creator code; separate from a field agent's incoming invitation. */
+  creatorCode?: string;
 };
 export type SignupIdentity = { clerkId?: string; email?: string; sessionId?: string };
 type PendingSignup = { version: 1; profile: SignupProfile; identity: SignupIdentity; savedAt: number };
@@ -30,6 +33,7 @@ export function normalizeSignupProfile(profile: Partial<SignupProfile>): SignupP
     phone: profile.phone?.replace(/\s/g, '') ?? '',
     handle: accountType === 'affiliate' ? profile.handle?.trim().toLowerCase() ?? '' : '',
     referredByCode: accountType === 'creator' ? profile.referredByCode?.trim().toUpperCase() ?? '' : '',
+    creatorCode: accountType === 'affiliate' ? normalizeCreatorCode(profile.creatorCode ?? '') : '',
   };
 }
 
@@ -116,6 +120,12 @@ export function signupProfileErrors(profile: SignupProfile): Record<string, stri
     const handleError = affiliateHandleError(profile.handle);
     if (phoneError) errors.phone = phoneError;
     if (handleError) errors.handle = handleError;
+    // Older drafts/clients may omit a code. The current setup UI requires a
+    // checked candidate; a supplied code is still validated before any mutation.
+    if (profile.creatorCode) {
+      const codeError = creatorCodeError(profile.creatorCode);
+      if (codeError) errors.creatorCode = codeError;
+    }
   } else if (profile.phone && affiliatePhoneError(profile.phone)) {
     errors.phone = 'Enter a valid Philippine mobile number, or leave it blank.';
   }
@@ -138,6 +148,7 @@ export async function createSignupAccount(
     await mutations.createAffiliate({
       email, firstName: profile.firstName, lastName: profile.lastName || undefined,
       phone: profile.phone, handle: profile.handle,
+      ...(profile.creatorCode ? { code: profile.creatorCode } : {}),
     });
   } else {
     const prefix = (profile.firstName.slice(0, 2) + profile.lastName.slice(0, 1)).toUpperCase();

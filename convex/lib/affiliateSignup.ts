@@ -3,7 +3,9 @@ import type { UserIdentity } from 'convex/server';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { affiliateHandleError } from '../../lib/affiliates';
-import { CAMPAIGN_CODES } from '../../lib/pricing';
+import { creatorCodeError, normalizeCreatorCode } from '../../lib/creatorCodes';
+import { referralCodeTaken, reserveReferralCode } from './referralCodes';
+export { creatorCodeError, CREATOR_CODE_MIN_LENGTH, CREATOR_CODE_MAX_LENGTH } from '../../lib/creatorCodes';
 
 export type AffiliateSignup = {
     firstName: string;
@@ -16,19 +18,6 @@ export type AffiliateSignup = {
     extra?: Partial<Pick<Doc<'creators'>, 'creatorSocials' | 'creatorAudienceSize' | 'creatorAppliedAt' | 'affiliatePrice'>>;
 };
 
-export const CREATOR_CODE_MIN_LENGTH = 4;
-export const CREATOR_CODE_MAX_LENGTH = 16;
-
-/** A creator's own code: 4–16 letters or numbers, never a campaign code. */
-export function creatorCodeError(code: string): string | null {
-    if (code.length < CREATOR_CODE_MIN_LENGTH || code.length > CREATOR_CODE_MAX_LENGTH) {
-        return `Use a code between ${CREATOR_CODE_MIN_LENGTH} and ${CREATOR_CODE_MAX_LENGTH} characters.`;
-    }
-    if (!/^[A-Z0-9]+$/.test(code)) return 'Use letters and numbers only.';
-    if (Object.prototype.hasOwnProperty.call(CAMPAIGN_CODES, code)) return 'That code is reserved. Choose another one.';
-    return null;
-}
-
 /** Deleted handles stay reserved so an old shared link cannot be taken over. */
 export async function handleTaken(ctx: Pick<QueryCtx, 'db'>, handle: string): Promise<boolean> {
     return !!(await ctx.db.query('creators').withIndex('by_affiliate_handle', (q) => q.eq('affiliateHandle', handle)).first());
@@ -36,7 +25,7 @@ export async function handleTaken(ctx: Pick<QueryCtx, 'db'>, handle: string): Pr
 
 /** Field agents' invite codes share this index, so a creator code can never shadow one. */
 export async function codeTaken(ctx: Pick<QueryCtx, 'db'>, code: string): Promise<boolean> {
-    return !!(await ctx.db.query('creators').withIndex('by_referral_code', (q) => q.eq('referralCode', code)).first());
+    return referralCodeTaken(ctx, code);
 }
 
 /**
@@ -72,8 +61,10 @@ export async function insertAffiliateAccount(
     if (handleError) throw new ConvexError(handleError);
     if (await handleTaken(ctx, input.handle)) throw new ConvexError('That page handle is already taken. Choose another one.');
 
-    let referralCode = input.referralCode;
+    let referralCode = input.referralCode?.trim() ? normalizeCreatorCode(input.referralCode) : undefined;
     if (referralCode) {
+        const codeError = creatorCodeError(referralCode);
+        if (codeError) throw new ConvexError(codeError);
         if (await codeTaken(ctx, referralCode)) throw new ConvexError('That code is already taken. Choose another one.');
     } else {
         do {
@@ -83,7 +74,7 @@ export async function insertAffiliateAccount(
     if (existing?.isDeleted) {
         await ctx.db.patch(existing._id, { clerkId: `deleted_${existing._id}_${Date.now()}` });
     }
-    return ctx.db.insert('creators', {
+    const creatorId = await ctx.db.insert('creators', {
         clerkId: identity.subject,
         email,
         firstName: input.firstName,
@@ -100,4 +91,6 @@ export async function insertAffiliateAccount(
         createdAt: Date.now(),
         ...input.extra,
     });
+    await reserveReferralCode(ctx, referralCode, creatorId);
+    return creatorId;
 }

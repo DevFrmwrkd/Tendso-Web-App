@@ -128,6 +128,15 @@ export default defineSchema({
         .index('by_status', ['status'])
         .index('by_recruited_by', ['recruitedByCreatorId']),
 
+    // Permanent code ownership. Old printed/shared codes keep resolving to the
+    // same creator after a rename, and stay reserved after account deletion.
+    creatorCodeAliases: defineTable({
+        creatorId: v.id('creators'),
+        code: v.string(),
+        createdAt: v.number(),
+    }).index('by_code', ['code'])
+        .index('by_creator', ['creatorId']),
+
     // Business submissions
     submissions: defineTable({
         creatorId: v.id('creators'),

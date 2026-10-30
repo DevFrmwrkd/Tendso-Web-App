@@ -15,6 +15,7 @@ import { AffiliateToolFrame } from './AffiliateToolFrame';
 import { affiliateDraft, affiliateName, affiliatePagePayload, type AffiliateDraft } from './model';
 import { ShareTools } from './ShareTools';
 import { AffiliateOfferSummary } from './Offer';
+import { CreatorCodeEditor } from './CreatorCodeEditor';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 type PagePayload = ReturnType<typeof affiliatePagePayload>;
@@ -64,10 +65,11 @@ function LivePageEditor(props: AffiliateAccessProps & { title: EditorTitle }) {
     if (!upload.ok || affiliatePhotoError(publicUrl)) throw new Error('Your photo did not upload. Please try again.');
     return publicUrl;
   }
-  return <PageEditorContent {...props} title={props.title} onSave={payload => save(payload)} onPhoto={uploadPhoto} />;
+  return <PageEditorContent {...props} title={props.title} onSave={payload => save(payload)} onPhoto={uploadPhoto}
+    codeEditor={<CreatorCodeEditor key={`${props.account.clerkId}:${props.account._id}`} savedCode={props.account.referralCode} offline={props.isOffline} />} />;
 }
 
-export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, title = 'My page' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; title?: EditorTitle }) {
+export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, codeEditor, title = 'My page' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; codeEditor?: React.ReactNode; title?: EditorTitle }) {
   const incoming = affiliateDraft(account);
   const incomingKey = JSON.stringify(incoming);
   const [seen, setSeen] = useState(incomingKey);
@@ -190,7 +192,8 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
     </View>
 
     <View style={[styles.panel, !showOffer && styles.hidden]} accessibilityElementsHidden={!showOffer} importantForAccessibility={showOffer ? 'auto' : 'no-hide-descendants'}>
-      <AffiliateOfferSummary code={account.referralCode} />
+      <AffiliateOfferSummary code={codeEditor ? undefined : account.referralCode} />
+      {codeEditor}
     </View>
     <View style={[styles.panel, section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={section !== 'sharing'} importantForAccessibility={section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
     {pageDirty ? <Text variant="label" tone="muted">Sharing uses your saved page. Save your changes before sharing new materials.</Text> : null}

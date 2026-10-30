@@ -48,6 +48,7 @@
 .controls :global(.ap-price-settings input[type="range"]) { accent-color: #0c0a08; cursor: pointer; }
 .controls :global(.ap-price-summary) { background: #f3f6db; border-radius: 16px; padding: 18px; }
 .controls :global(.ap-price-summary strong) { color: #0c0a08; }
+.controls :global(.ap-code-settings) { border-top: 1px solid #ecece5; }
 .controls :global(.ap-price-summary p:nth-child(2) strong) { font-size: 32px; font-weight: 600; letter-spacing: -.045em; }
 .controls :global(canvas) { border: 1px solid #eeeee8; border-radius: 12px; }
 .controls :global(.ap-qr-body) { flex-wrap: wrap; }

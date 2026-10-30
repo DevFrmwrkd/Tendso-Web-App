@@ -1,9 +1,10 @@
 import { ConvexError, v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import { requireAuth } from './lib/auth';
 import { affiliateHandleError, affiliatePhoneError } from '../lib/affiliates';
 import { codeTaken, creatorCodeError, handleTaken, insertAffiliateAccount } from './lib/affiliateSignup';
 import { creatorCard, findActiveCreator, normalizeCreatorCode } from './lib/creatorRecruits';
+import { referralCodeTaken, reserveReferralCode } from './lib/referralCodes';
 
 /**
  * Creator program: sign-up and the public face of a creator's code.
@@ -21,6 +22,43 @@ const socialPlatform = v.union(
 );
 
 const MAX_SOCIALS = 6;
+
+async function ownCodeAccount(ctx: QueryCtx | MutationCtx) {
+    const identity = await requireAuth(ctx);
+    const me = await ctx.db.query('creators').withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject)).unique();
+    if (!me || me.role !== 'affiliate' || me.isDeleted || me.status === 'deleted') throw new ConvexError('A creator account is required.');
+    if (me.status !== 'active' && me.status !== 'suspended') throw new ConvexError('Your creator account is waiting for admin approval.');
+    return me;
+}
+
+/** The current code and this account's earlier codes remain available to their owner. */
+export const checkCodeAvailability = query({
+    args: { code: v.string() },
+    handler: async (ctx, args) => {
+        const me = await ownCodeAccount(ctx);
+        const value = normalizeCreatorCode(args.code);
+        const error = creatorCodeError(value) ?? (await referralCodeTaken(ctx, value, me._id) ? 'That code is already taken. Choose another one.' : null);
+        return { value, available: !error, error };
+    },
+});
+
+/** Rename only this active affiliate's code; shared aliases and financial history stay intact. */
+export const updateCode = mutation({
+    args: { code: v.string() },
+    handler: async (ctx, args) => {
+        const me = await ownCodeAccount(ctx);
+        if (me.status !== 'active') throw new ConvexError('Your creator account is suspended.');
+        const code = normalizeCreatorCode(args.code);
+        const error = creatorCodeError(code);
+        if (error) throw new ConvexError(error);
+        // This transaction rechecks availability: an earlier UI check is never a reservation.
+        if (await referralCodeTaken(ctx, code, me._id)) throw new ConvexError('That code is already taken. Choose another one.');
+        await reserveReferralCode(ctx, me.referralCode ?? '', me._id);
+        await reserveReferralCode(ctx, code, me._id);
+        if (me.referralCode !== code) await ctx.db.patch(me._id, { referralCode: code });
+        return { code };
+    },
+});
 
 /** Is this page handle / code free? Both are optional; pass what the person typed. */
 export const checkAvailability = query({

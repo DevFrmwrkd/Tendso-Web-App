@@ -14,6 +14,7 @@ const mockMutation = jest.fn();
 const mockAction = jest.fn();
 const mockPublicPreview = jest.fn();
 const mockSharing = jest.fn();
+const mockCodeEditor = jest.fn();
 const mockAccess = { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true };
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -25,6 +26,10 @@ jest.mock('convex/react', () => ({
 jest.mock('expo-image-picker', () => ({ requestMediaLibraryPermissionsAsync: jest.fn(), launchImageLibraryAsync: jest.fn() }));
 jest.mock('expo-image-manipulator', () => ({ ImageManipulator: { manipulate: jest.fn() }, SaveFormat: { JPEG: 'jpeg' } }));
 jest.mock('../components/PriceSlider', () => ({ PriceSlider: () => null }));
+jest.mock('../components/affiliate/CreatorCodeEditor', () => ({ CreatorCodeEditor: (props: unknown) => {
+  mockCodeEditor(props);
+  return require('react').createElement(require('react-native').Text, null, 'Choose your creator code');
+} }));
 jest.mock('../components/affiliate/Screen', () => ({
   AffiliateAccess: ({ children }: { children: (props: typeof mockAccess) => React.ReactNode }) => children(mockAccess),
   Notice: require('react-native').Text,
@@ -236,6 +241,7 @@ it('uses the live page mutation only for profile changes, never for visiting the
   const view = render(<AffiliatePageEditorScreen />);
   tab(view, 'Your offer');
   expect(view.queryByLabelText('Save price')).toBeNull();
+  expect(mockCodeEditor).toHaveBeenCalledWith({ savedCode: sampleAffiliate.referralCode, offline: false });
   expect(mockMutationSave).not.toHaveBeenCalled();
   tab(view, 'Page details');
   fireEvent.changeText(view.getByLabelText('Display name'), 'Live profile name');

@@ -85,6 +85,7 @@ import type * as lib_paymentPricing from "../lib/paymentPricing.js";
 import type * as lib_phone from "../lib/phone.js";
 import type * as lib_prospectViewport from "../lib/prospectViewport.js";
 import type * as lib_quality from "../lib/quality.js";
+import type * as lib_referralCodes from "../lib/referralCodes.js";
 import type * as lib_reminders from "../lib/reminders.js";
 import type * as lib_settlement from "../lib/settlement.js";
 import type * as lib_submissionReview from "../lib/submissionReview.js";
@@ -205,6 +206,7 @@ declare const fullApi: ApiFromModules<{
   "lib/phone": typeof lib_phone;
   "lib/prospectViewport": typeof lib_prospectViewport;
   "lib/quality": typeof lib_quality;
+  "lib/referralCodes": typeof lib_referralCodes;
   "lib/reminders": typeof lib_reminders;
   "lib/settlement": typeof lib_settlement;
   "lib/submissionReview": typeof lib_submissionReview;

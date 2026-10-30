@@ -50,7 +50,7 @@ Current creator-code offers always use `CREATOR_CODE_PRICE` and `CREATOR_CODE_DI
 
 ### Existing page editor — `affiliates.updatePage`
 
-The signed-in active affiliate can update `{ photo?, displayName?, message?, socialLink?, socialLinks? }`; the public handle and creator code do not change. New clients omit `price`. The optional legacy `price` argument accepts only `CREATOR_CODE_PRICE` (3499) for compatibility and never writes an account price. Any other value rejects the entire request before profile fields are saved. Pending, suspended, deleted and non-affiliate accounts retain their existing write restrictions.
+The signed-in active affiliate can update `{ photo?, displayName?, message?, socialLink?, socialLinks? }`; this mutation does not change the public handle or creator code. Code changes use `creatorProgram.updateCode` below. New clients omit `price`. The optional legacy `price` argument accepts only `CREATOR_CODE_PRICE` (3499) for compatibility and never writes an account price. Any other value rejects the entire request before profile fields are saved. Pending, suspended, deleted and non-affiliate accounts retain their existing write restrictions.
 
 ---
 
@@ -84,9 +84,11 @@ Live check while the person types.
   }
   ```
 - Email comes from the Clerk session (never an argument).
-- Returns: `Id<"creators">`. Creates a `role: "affiliate", status: "pending"` row with `affiliatePrice: 3499`, `creatorSocials`, `creatorAudienceSize`, `creatorAppliedAt`.
+- Returns: `Id<"creators">`. Creates a `role: "affiliate", status: "pending"` row with `creatorSocials`, `creatorAudienceSize`, `creatorAppliedAt`; the shared fixed offer supplies its price. The chosen/generated code is reserved permanently.
 - Retrying returns the same id unchanged. Throws if this login or email already has a field-agent, admin or business-owner account.
 - **Approval** is the existing admin page `/admin/affiliates` (`creators.updateStatus → "active"`). No new admin UI. (That page does not show socials or audience size yet.)
+
+The legacy `affiliates.create` mutation also accepts an optional own `code?: string`, using the same format, uniqueness and permanent-reservation rules. Omission retains random `AFF…` generation for older clients; a supplied empty/invalid code is rejected. This is separate from incoming field-agent referral codes. Current mobile affiliate account setup requires a nonempty code with a matching live availability result before creating the account; older scoped drafts without that field still load and prompt the person to choose one.
 
 ### `creatorProgram.myApplication` (query, never throws)
 
@@ -101,6 +103,7 @@ Live check while the person types.
 
 - Args: `{ code: string }` — a referral code (`MIKA30`, any case). Handles and codes have separate namespaces.
 - Returns: `CreatorCard | null`.
+- Current codes and permanently reserved previous codes resolve to the same active creator. The returned card displays the creator's current code. An old code never moves to a different account, including after deletion.
 - Use it for "Mika's code: you save ₱1,500" at owner checkout and "Join Mika's team" at agent sign-up. To charge the discounted price, owner checkout keeps passing `affiliateHandle: card.handle` to the existing `ownerIntake.submitOwnerIntake`.
 
 ### `creatorProgram.getCreatorByHandle` (query, public)
@@ -108,6 +111,20 @@ Live check while the person types.
 - Args: `{ handle: string }` — a page handle (`mika` / `@mika`, any case).
 - Returns: `CreatorCard | null`, with the same active-account and fixed creator-code price rules.
 - Use this for `/a/<handle>` and `/a/<handle>/earn`, including existing affiliates whose generated referral code differs from their handle. It never falls back to another account's referral code.
+
+### `creatorProgram.checkCodeAvailability` (query, signed in)
+
+- Args: `{ code: string }`
+- Returns: `{ value: string, available: boolean, error: string | null }`; `value` is trimmed and upper-cased.
+- Available to the signed-in active or suspended affiliate only. The account's own current/previous codes are available to it. Other affiliates' codes, field-agent invite codes, deleted-account reservations and campaign codes are unavailable. Input rules are shared in `lib/creatorCodes.ts`.
+- This check does not reserve a code. Clients must match the returned `value` to the current input before enabling Save.
+
+### `creatorProgram.updateCode` (mutation, signed in)
+
+- Args: `{ code: string }` — no selected account, price or preview bypass.
+- Returns: `{ code: string }`, normalized to upper case.
+- Active affiliates only; rechecks uniqueness in the save transaction. Both the previous and new code are permanently reserved in `creatorCodeAliases`. An affiliate may reuse its own earlier code.
+- The handle and shared links stay the same. Existing owner quotes, payments, commissions, referral identities and recruitment dates are unchanged. Old printed codes, pending referral jobs and onboarding retries continue resolving to the same creator, subject to the existing account-status rules.
 
 ---
 

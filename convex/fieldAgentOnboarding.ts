@@ -7,6 +7,7 @@ import { attachRecruit } from './lib/creatorRecruits';
 import { isCreatorAccount } from '../lib/accounts';
 import { FIELD_AGENT_DISCOVERY_SOURCES, normalizeWorkArea, normalizeWorkCity } from '../lib/fieldAgentOnboarding';
 import { earnsCreatorOverride } from '../lib/pricing';
+import { resolveReferralCode } from './lib/referralCodes';
 
 const discoverySourceValidator = v.union(
     v.literal('friend'), v.literal('facebook'), v.literal('tiktok'),
@@ -68,13 +69,17 @@ async function applyOnboardingReferral(ctx: MutationCtx, agent: Doc<'creators'>,
     if (agent.referredByCode || existingReferrerId || existingReferral) {
         const existingReferrer = existingReferrerId ? await ctx.db.get(existingReferrerId) : null;
         const existingCode = agent.referredByCode ?? existingReferral?.referralCode ?? existingReferrer?.referralCode;
-        if (existingCode?.trim().toUpperCase() !== code) throw new Error('A referral has already been recorded for your account');
-        return;
+        if (existingCode?.trim().toUpperCase() === code) return;
+        // Renaming a creator's code does not replace the recruiter's identity or
+        // restart an existing referral. Either permanent code is a safe retry.
+        const incomingOwner = await resolveReferralCode(ctx, code);
+        const originalOwner = existingReferrerId ?? (existingCode ? (await resolveReferralCode(ctx, existingCode))?._id : undefined);
+        if (incomingOwner && incomingOwner._id === originalOwner) return;
+        throw new Error('A referral has already been recorded for your account');
     }
     if (agent.fieldAgentOnboardingCompletedAt) throw new Error('Onboarding is already complete');
 
-    const referrer = await ctx.db.query('creators')
-        .withIndex('by_referral_code', (q) => q.eq('referralCode', code)).first();
+    const referrer = await resolveReferralCode(ctx, code);
     if (!referrer || referrer.isDeleted || referrer.status === 'deleted' || referrer.status === 'suspended'
         || (referrer.role === 'affiliate' && referrer.status !== 'active')
         || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')) {

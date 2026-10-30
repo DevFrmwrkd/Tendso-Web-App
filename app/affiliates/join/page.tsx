@@ -13,6 +13,9 @@ import { AuthAlert } from "@/app/auth/_components/AuthParts";
 import { Button, Field, Icon, Input, Loading, PhoneInput, Skeleton } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { AFFILIATE_HANDLE_MAX_LENGTH, AFFILIATE_HANDLE_MIN_LENGTH, affiliateHandleError, affiliatePhoneError } from "@/lib/affiliates";
+import { CREATOR_CODE_MAX_LENGTH, creatorCodeError, normalizeCreatorCode } from "@/lib/creatorCodes";
+import { useCreatorCodeAvailability, useDebounced } from "@/lib/v2/creatorData";
+import { CODE_PERCENT_OFF } from "@/lib/v2/creatorProgram";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../_components/AccountState";
 
@@ -33,7 +36,7 @@ export default function AffiliateJoinPage() {
 
     if (!isSignedIn || !user) {
         return (
-            <AuthFrame title="Create an affiliate account" sub="First, create your login. Then choose your page handle.">
+            <AuthFrame title="Create an affiliate account" sub="First, create your login. Then choose your page handle and creator code.">
                 <div className={AUTH_BODY}>
                     <SignUp
                         routing="hash"
@@ -73,10 +76,10 @@ export default function AffiliateJoinPage() {
     if (account) return <DifferentAccount role={account.role} />;
     if (owner) return <DifferentAccount role="owner" />;
 
-    return <AffiliateProfile name={user.fullName ?? ""} email={user.primaryEmailAddress?.emailAddress} />;
+    return <AffiliateProfile key={user.id} name={user.fullName ?? ""} email={user.primaryEmailAddress?.emailAddress} />;
 }
 
-type FieldErrors = { name?: string; phone?: string; handle?: string };
+type FieldErrors = { name?: string; phone?: string; handle?: string; code?: string };
 
 function AffiliateProfile({ name: initialName, email }: { name: string; email?: string }) {
     const router = useRouter();
@@ -84,12 +87,21 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
     const [name, setName] = useState(initialName);
     const [phone, setPhone] = useState("");
     const [handle, setHandle] = useState("");
+    const [code, setCode] = useState("");
     const [errors, setErrors] = useState<FieldErrors>({});
     const [error, setError] = useState<string>();
     const [saving, setSaving] = useState(false);
     const nameRef = useRef<HTMLInputElement>(null);
     const phoneRef = useRef<HTMLInputElement>(null);
     const handleRef = useRef<HTMLInputElement>(null);
+    const codeRef = useRef<HTMLInputElement>(null);
+    const alive = useRef(true);
+    const debouncedCode = useDebounced(code);
+    const problem = code ? creatorCodeError(code) : null;
+    const codeCheck = useCreatorCodeAvailability(code && !problem && debouncedCode === code ? code : null, { signup: true });
+    const codeChecked = debouncedCode === code && codeCheck.status === "checked" && codeCheck.result?.value === code;
+    const codeFree = codeChecked && codeCheck.result?.available === true;
+    useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -100,10 +112,16 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
             name: !name.trim() ? "Enter your name." : name.trim().length > 100 ? "Use a name of 100 characters or fewer." : undefined,
             phone: affiliatePhoneError(phone) ?? undefined,
             handle: affiliateHandleError(handle) ?? undefined,
+            code: creatorCodeError(code) ?? undefined,
         };
         setErrors(next);
-        if (next.name || next.phone || next.handle) {
-            (next.name ? nameRef : next.phone ? phoneRef : handleRef).current?.focus();
+        if (next.name || next.phone || next.handle || next.code) {
+            (next.name ? nameRef : next.phone ? phoneRef : next.handle ? handleRef : codeRef).current?.focus();
+            return;
+        }
+        if (!codeFree) {
+            setError(codeChecked ? codeCheck.result?.error ?? "That code is already taken. Choose another one." : "Wait for code availability to finish checking, then try again.");
+            codeRef.current?.focus();
             return;
         }
         if (!email) {
@@ -113,16 +131,18 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
 
         setSaving(true);
         try {
-            await createAffiliate({ email, firstName: name.trim(), phone, handle });
-            router.replace("/affiliates/dashboard");
+            await createAffiliate({ email, firstName: name.trim(), phone, handle, code });
+            if (alive.current) router.replace("/affiliates/dashboard");
         } catch (err) {
+            if (!alive.current) return;
             setError(err instanceof ConvexError && typeof err.data === "string" ? err.data : "Your account was not saved. Please try again.");
+            codeCheck.retry();
             setSaving(false);
         }
     }
 
     return (
-        <AuthFrame title="Your affiliate profile" sub="Choose the handle for your page. An admin will review your account before you can start sharing.">
+        <AuthFrame title="Your affiliate profile" sub="Choose your page handle and creator code. An admin will review your account before you can start sharing.">
             <form className={AUTH_BODY} onSubmit={handleSubmit} noValidate>
                 {error && <AuthAlert>{error}</AuthAlert>}
                 <Field label="Name" required error={errors.name}>
@@ -143,8 +163,16 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
                         setErrors((current) => ({ ...current, handle: undefined }));
                     }} />
                 </Field>
-                <p className="t-meta">Your own creator referral code is made for you when you save.</p>
-                <Button variant="primary" size="lg" block type="submit" disabled={saving} aria-busy={saving}>
+                <Field label="Your creator code" required help={`Use 4–16 letters or numbers, like MIKA30. Every code gives ${CODE_PERCENT_OFF}% off.`} error={errors.code ?? problem ?? undefined}>
+                    <Input ref={codeRef} value={code} placeholder="MIKA30" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={CREATOR_CODE_MAX_LENGTH} disabled={saving} onChange={event => {
+                        setCode(normalizeCreatorCode(event.target.value));
+                        setErrors(current => ({ ...current, code: undefined }));
+                        setError(undefined);
+                    }} />
+                </Field>
+                <p className={codeCheck.status === "error" || codeChecked && !codeFree ? "t-error" : "t-meta"} role="status" aria-live="polite">{problem ? "" : codeCheck.status === "error" ? codeCheck.error : codeFree ? "This code is available." : codeChecked ? codeCheck.result?.error ?? "That code is already taken. Choose another one." : code ? "Checking code availability…" : ""}</p>
+                {codeCheck.status === "error" && !problem ? <Button onClick={codeCheck.retry} disabled={saving}>Check again</Button> : null}
+                <Button variant="primary" size="lg" block type="submit" disabled={saving || !codeFree} aria-busy={saving}>
                     {saving ? "Saving…" : <>Create affiliate account <Icon icon={ArrowRight} /></>}
                 </Button>
             </form>
