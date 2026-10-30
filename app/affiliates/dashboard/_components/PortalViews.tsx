@@ -246,7 +246,7 @@ export function AffiliateAccountView({ account, preview = false, hrefFor = defau
                 <DefRow term="Status"><Status tone={account.status === "active" ? "done" : "off"} word={account.status === "active" ? "Active" : "Suspended"} /></DefRow>
                 <DefRow term="Page handle">{account.affiliateHandle ? `/${account.affiliateHandle}` : "Not available"}</DefRow>
             </DefList>
-            <p className="t-meta">One login has one account type. Use a different email to sign up as a creator.</p>
+            <p className="t-meta">One login has one account type. Use a different email to sign up as a field agent or business owner.</p>
         </section>
         {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} signOutHref={signOutHref} />}
         <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message and social links that shop owners see from My page. Creator codes always give {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off the website price.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>

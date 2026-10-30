@@ -75,6 +75,7 @@ function payoutSection(options: Parameters<typeof portalMarkup>[0] = {}): string
 describe('creator portal payout access', () => {
     it('keeps Wise setup reachable before the first credited commission', () => {
         const html = payoutSection();
+        expect(html).not.toContain('You are paid when they finish');
         expect(html).toContain(`href="${PAYOUTS}"`);
         expect(html).not.toContain('/affiliates/dashboard/wallet');
         expect(html).not.toMatch(/<a\b[^>]*>\s*Send [\s\S]*?to Wise\s*<\/a>/);

@@ -433,7 +433,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         {payouts.waitingForShops > 0 ? (
                             <div className="pt-wait">
                                 <b>{peso(payouts.waitingForShops)} waiting</b>
-                                <span>Some shops are still paying. You are paid when they finish.</span>
+                                <span>Some commissions are still pending. Credited earnings appear in your available balance.</span>
                             </div>
                         ) : null}
                         {sample || data.creator.status === "suspended" || payouts.readyToSend <= 0 ? (
