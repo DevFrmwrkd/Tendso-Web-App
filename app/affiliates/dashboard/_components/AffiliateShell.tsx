@@ -12,6 +12,7 @@ import { AppShell, Button, TabBar, type NavLinkEntry, type SidebarProps } from "
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { CREATOR_PAGE_EDITOR_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../../_components/AccountState";
 import { affiliateHref, type AffiliateSection } from "../_lib/navigation";
@@ -28,6 +29,8 @@ export function useAffiliateAccount() {
 /** One session-derived account gate protects every section, including direct URLs. */
 export function AffiliateDashboardBoundary({ children }: { children?: ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
+    const canonicalPage = pathname?.replace(/\/$/, "") === CREATOR_PAGE_EDITOR_HREF;
     const { user, isLoaded, isSignedIn } = useUser();
     const { isAuthenticated, isLoading } = useConvexAuth();
     const ready = isLoaded && isSignedIn && !isLoading && isAuthenticated && !!user;
@@ -36,8 +39,13 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
     const account = current ? session.creator : undefined;
 
     useEffect(() => {
-        if (isLoaded && (!isSignedIn || (current && account === null && !session.isOwner))) router.replace("/affiliates/join");
-    }, [isLoaded, isSignedIn, current, account, session, router]);
+        if (isLoaded && (!isSignedIn || (current && account === null && !session.isOwner))) {
+            const destination = canonicalPage
+                ? isSignedIn ? "/v2/creators/signup" : "/v2/creators/signup?login=1"
+                : "/affiliates/join";
+            router.replace(destination);
+        }
+    }, [isLoaded, isSignedIn, current, account, session, canonicalPage, router]);
 
     if (!current || account === undefined) return <AffiliateAccountLoading />;
     if (account === null) return session.isOwner ? <DifferentAccount role="owner" /> : <AffiliateAccountLoading />;
@@ -91,7 +99,8 @@ export function AffiliateShellView({ account, children, preview = false, section
     section?: AffiliateSection;
 }) {
     const pathname = usePathname();
-    const pageRoute = preview ? section === "my-page" : pathname?.replace(/\/$/, "") === "/affiliates/dashboard/my-page";
+    const pageRoute = preview ? section === "my-page"
+        : ["/affiliates/dashboard/my-page", CREATOR_PAGE_EDITOR_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
     if (pageRoute) return <AffiliatePageFrame account={account} preview={preview}>{children}</AffiliatePageFrame>;
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
     const entry = (key: AffiliateSection, label: string, icon: NavLinkEntry["icon"]): NavLinkEntry => ({

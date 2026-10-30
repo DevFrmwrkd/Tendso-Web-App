@@ -184,7 +184,7 @@ Web versions of features that also exist in the app are merged into section 5 (b
 | M-014 | Affiliate awaiting approval (replaces navigator; sign out, delete account) | `components/affiliate/PendingApproval.tsx` | affiliate (pending) | not drawn: keep, restyle | 4 | 🎨 | ☐ |
 | M-018 | Affiliate tab bar: Home, My page, Sales, Wallet, Profile | `(affiliate-tabs)/_layout.tsx` | affiliate | not drawn: keep, restyle | 4 | 🎨 | ☑ |
 | W-052, M-019 | Affiliate Home: balance, pending commission, shortcuts, invite creators | `/affiliates/dashboard`; `affiliate/Home.tsx` | affiliate | not drawn: keep, restyle | 4 | 🎨 | ☑ |
-| W-053, M-020 | My page editor: photo, name, message, social link, sell price | `/affiliates/dashboard/my-page`; `PageEditor.tsx` | affiliate | creator-more 7 Link editor (drawn for creators: Q9) | 4 | ✅ | ◐ |
+| W-053, M-020 | My page editor: photo, name, message, social links, sell price | `/v2/creators/portal/my-page` (legacy `/affiliates/dashboard/my-page` redirects); `PageEditor.tsx` | affiliate | Shared creator portal navigation and actual public shop-page preview; creator-more 7 Link editor (drawn for creators: Q9) | 4 | ✅ | ◐ |
 | M-021 | Share tools: copy / share link, QR PNG, printable A4 poster | `affiliate/ShareTools.tsx` | affiliate | creator-more 7 copy + share; QR / poster not drawn: keep | 4 | 🎨 | ☐ |
 | W-054, M-022 | Sales list (price and commission at sale) | `/affiliates/dashboard/sales`; `affiliate/Sales.tsx` | affiliate | not drawn: keep, restyle | 4 | 🎨 | ☑ |
 | W-055, M-023, M-046 | Affiliate wallet + profile (re-use the creator screens) | `/affiliates/dashboard/wallet`; `(affiliate-tabs)/wallet.tsx`, `profile.tsx` | affiliate | follows creator Earn (creator-more 4–6) and Profile (16) | 4 | 🎨 | ◐ |

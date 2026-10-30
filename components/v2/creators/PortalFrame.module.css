@@ -1,0 +1,13 @@
+.shell { min-width: 0; }
+.shell > :global(.cp-bar) > :global(.cp-bar-in) { min-width: 0; }
+.shell > :global(.pt-main) > * { min-width: 0; }
+.nav { min-width: 0; }
+.shell .nav a { min-height: 44px; height: auto; padding-block: 8px; line-height: 1.4; }
+.shell .nav a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+@media (max-width: 1100px) {
+    .shell > :global(.cp-bar) > :global(.cp-bar-in) { height: auto; min-height: 64px; flex-wrap: wrap; gap: 8px 12px; padding-block: 10px; }
+    .shell > :global(.cp-bar) .nav { order: 3; flex: 1 0 100%; display: flex; gap: 4px; margin: 0; padding: 3px; overflow-x: auto; border-radius: var(--r-pill); background: var(--canvas); scrollbar-width: none; }
+    .shell .nav::-webkit-scrollbar { display: none; }
+    .shell .nav a { flex: 1 0 auto; justify-content: center; padding-inline: 12px; }
+    .shell > :global(.pt-main), .shell :global(.pt-card[id]) { scroll-margin-top: 152px; }
+}

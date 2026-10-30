@@ -6,13 +6,13 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { fmtDate, fmtDay, fmtMonthName, firstName, peso, shopLinkFor, earnLinkFor, OVERRIDE_MONTHS } from "@/lib/v2/creatorProgram";
 import type { FunnelCounts, PortalPictures, PortalRecruit, PortalShop, PortalSummary, ShopStatus } from "@/lib/v2/creatorTypes";
 import { saleStatusLabel } from "@/packages/shared/affiliateSales";
+import { CREATOR_PAGE_EDITOR_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { CopyButton, ShareButton } from "./CopyButton";
 import { Face, ShopThumb } from "./Face";
 import { CopyIcon } from "./icons";
 
 const WALLET_HREF = "/affiliates/dashboard/wallet";
-const DISCOUNT_HREF = "/affiliates/dashboard/my-page";
 
 const SHOP_STATUS: Record<ShopStatus, { label: string; ok: boolean }> = {
     paid: { label: "Paid", ok: true },
@@ -271,7 +271,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     <div className="pt-page-entry">
                         <div><b>Your creator page</b><p>Photo, display name, message and social links.</p></div>
                         {sample ? <a className="pt-btn pt-btn--accent" href={`#${id('links')}`}>Edit your page</a>
-                            : <Link className="pt-btn pt-btn--accent" href={DISCOUNT_HREF}>Edit your page</Link>}
+                            : <Link className="pt-btn pt-btn--accent" href={CREATOR_PAGE_EDITOR_HREF}>Edit your page</Link>}
                     </div>
                     <div className="pt-links">
                         <div className="pt-link">
@@ -311,7 +311,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     </div>
                     <p className="pt-codenote" id={id("discount")}>
                         Shops pay {peso(creator.price)} and you keep {peso(Math.round(creator.price / 2))}.{" "}
-                        {sample ? <a href={`#${id("discount")}`}>Change the discount</a> : <Link href={DISCOUNT_HREF}>Change the discount</Link>}
+                        {sample ? <a href={`#${id("discount")}`}>Change the discount</a> : <Link href={CREATOR_PAGE_EDITOR_HREF}>Change the discount</Link>}
                     </p>
                 </section>
                 <section className="pt-card" id={id("funnel")} aria-label="From click to sale">

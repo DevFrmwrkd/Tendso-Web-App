@@ -1,7 +1,7 @@
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useConvexAuth, useQuery } from "convex/react";
 import { getFunctionName } from "convex/server";
-import { createElement } from "react";
+import { createElement, type EffectCallback } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import {
@@ -25,6 +25,7 @@ jest.mock("next/navigation", () => ({
 }));
 jest.mock("@/components/v2/fonts", () => ({ v2Fonts: "test-v2-fonts" }));
 jest.mock("@/components/v2/creators/creators.css", () => ({}));
+jest.mock("@/components/v2/creators/PortalFrame.module.css", () => ({}));
 jest.mock("@/app/affiliates/dashboard/_components/AffiliatePageFrame.module.css", () => ({}));
 
 const account: Doc<"creators"> = {
@@ -97,6 +98,19 @@ function ProtectedAffiliateContent() {
 }
 function renderBoundary(): string {
     return renderToStaticMarkup(createElement(AffiliateDashboardBoundary, null, createElement(ProtectedAffiliateContent)));
+}
+
+/** SSR leaves effects inert; commit only the boundary's own first effect to inspect its redirect. */
+function renderAndCommitBoundaryRedirect(): string {
+    const effects: EffectCallback[] = [];
+    const react = jest.requireActual<typeof import("react")>("react");
+    const spy = jest.spyOn(react, "useEffect").mockImplementation(effect => { effects.push(effect); });
+    try {
+        const html = renderBoundary();
+        expect(effects.length).toBeGreaterThan(0);
+        effects[0]();
+        return html;
+    } finally { spy.mockRestore(); }
 }
 
 beforeEach(() => {
@@ -198,23 +212,27 @@ describe("affiliate navigation", () => {
         expect(useUser).not.toHaveBeenCalled();
     });
 
-    it.each(["/affiliates/dashboard/my-page", "/affiliates/dashboard/my-page/"])("uses the real creator page frame for the exact live route %s", (pathname) => {
+    it.each([
+        "/v2/creators/portal/my-page", "/v2/creators/portal/my-page/",
+        "/affiliates/dashboard/my-page", "/affiliates/dashboard/my-page/",
+    ])("uses the same creator portal frame for the exact live route %s", (pathname) => {
         state.pathname = pathname;
         const html = renderToStaticMarkup(createElement(AffiliateShellView, { account }, "page-editor-content"));
         const nav = creatorPortalNavHtml(html);
         expect(linksIn(nav)).toEqual([
-            "/affiliates/dashboard/my-page",
             "/v2/creators/portal#top", "/v2/creators/portal#pt-links", "/v2/creators/portal#pt-agents",
-            "/v2/creators/portal#pt-shops", "/v2/creators/portal#pt-pay",
+            "/v2/creators/portal#pt-shops", "/v2/creators/portal#pt-pay", "/v2/creators/portal/my-page",
         ]);
         const current = nav.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
         expect(current).toHaveLength(1);
-        expect(current[0]).toContain('href="/affiliates/dashboard/my-page"');
+        expect(current[0]).toContain('href="/v2/creators/portal/my-page"');
         expect(current[0]).toContain("My page");
         const main = pageMainHtml(html);
-        expect(main).toContain('href="/v2/creators/portal"');
-        expect(main).toContain("Back to portal");
         expect(main).toContain("page-editor-content");
+        expect(main).toContain("Creator rules");
+        expect(main).toContain("Paid on real sales only.");
+        expect(html).not.toContain("Back to portal");
+        expect(html).toMatch(/<main\b[^>]*class="[^"]*\bwrap\b[^"]*\bpt-main\b[^"]*"[^>]*id="top"/);
         expect(html).toContain('class="v2 test-v2-fonts cr ag cp cp-solo pt"');
         expect(html).not.toContain('aria-label="Main navigation"');
         expect(html).not.toContain("t-tabbar");
@@ -223,7 +241,10 @@ describe("affiliate navigation", () => {
         expect(useQuery).not.toHaveBeenCalled();
     });
 
-    it.each(["/affiliates/dashboard", "/affiliates/dashboard/my-page/extra", "/affiliates/dashboard/my-page-other"])("keeps the existing shell for a non-editor route %s", (pathname) => {
+    it.each([
+        "/affiliates/dashboard", "/affiliates/dashboard/my-page/extra", "/affiliates/dashboard/my-page-other",
+        "/v2/creators/portal/my-page/extra", "/v2/creators/portal/my-page-other",
+    ])("keeps the existing shell for a non-editor route %s", (pathname) => {
         state.pathname = pathname;
         const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, section: "my-page" }));
         expect(sidebarHtml(html)).toContain('href="/affiliates/dashboard/my-page"');
@@ -231,7 +252,7 @@ describe("affiliate navigation", () => {
         expect(html).not.toContain('aria-label="Creator portal"');
     });
 
-    it.each(["/admin/preview/affiliate", "/affiliates/dashboard/my-page"])("keeps the My page preview inside protected preview destinations at %s", (pathname) => {
+    it.each(["/admin/preview/affiliate", "/affiliates/dashboard/my-page", "/v2/creators/portal/my-page"])("keeps the My page preview inside protected preview destinations at %s", (pathname) => {
         state.pathname = pathname;
         const html = renderToStaticMarkup(createElement(AffiliateShellView, { account, preview: true, section: "my-page" }, "sample-editor-content"));
         const nav = creatorPortalNavHtml(html);
@@ -276,11 +297,11 @@ describe("affiliate dashboard account boundary", () => {
         expect(mounted).toBe(1);
     });
 
-    it.each(["active", "suspended"])("keeps the redesigned My page behind the verified %s affiliate boundary", (status) => {
-        state.pathname = "/affiliates/dashboard/my-page";
+    it.each(["active", "suspended"].flatMap(status => ["/affiliates/dashboard/my-page", "/v2/creators/portal/my-page"].map(pathname => ({ status, pathname }))))("keeps $pathname behind the verified $status affiliate boundary", ({ status, pathname }) => {
+        state.pathname = pathname;
         state.session!.creator!.status = status;
         const html = renderBoundary();
-        expect(creatorPortalNavHtml(html)).toContain('href="/affiliates/dashboard/my-page"');
+        expect(creatorPortalNavHtml(html)).toContain('href="/v2/creators/portal/my-page"');
         expect(pageMainHtml(html)).toContain("protected-affiliate-content:current-user");
         expect(mounted).toBe(1);
         expect((useQuery as jest.Mock).mock.calls.map(([reference, args]) => [getFunctionName(reference), args])).toEqual([
@@ -289,12 +310,13 @@ describe("affiliate dashboard account boundary", () => {
         if (status === "suspended") expect(pageMainHtml(html)).toContain("Page changes, sharing, and payouts are paused.");
     });
 
-    it.each(["pending", "wrong role", "deleted", "previous identity", "signed out"])("does not bypass the My page boundary for %s", (condition) => {
-        state.pathname = "/affiliates/dashboard/my-page";
+    it.each(["pending", "wrong role", "deleted", "previous identity", "previous creator", "signed out"])("does not bypass the canonical My page boundary for %s", (condition) => {
+        state.pathname = "/v2/creators/portal/my-page";
         if (condition === "pending") state.session!.creator!.status = "pending";
         if (condition === "wrong role") state.session!.creator!.role = "creator";
         if (condition === "deleted") state.session!.creator!.isDeleted = true;
         if (condition === "previous identity") state.session!.clerkId = "previous-user";
+        if (condition === "previous creator") state.session!.creator!.clerkId = "previous-user";
         if (condition === "signed out") { state.user = null; state.signedIn = false; }
         const html = renderBoundary();
         expect(html).not.toContain("protected-affiliate-content");
@@ -395,4 +417,60 @@ describe("affiliate dashboard account boundary", () => {
         expect(renderBoundary()).not.toContain("protected-affiliate-content");
         expect(mounted).toBe(0);
     });
+});
+
+describe("canonical creator page entry redirects", () => {
+    it.each([
+        ["/v2/creators/portal/my-page", "/v2/creators/signup?login=1"],
+        ["/v2/creators/portal/my-page/", "/v2/creators/signup?login=1"],
+        ["/affiliates/dashboard/my-page", "/affiliates/join"],
+        ["/affiliates/dashboard/wallet", "/affiliates/join"],
+    ])("sends a signed-out visitor at %s to %s", (pathname, destination) => {
+        state.pathname = pathname;
+        state.user = null;
+        state.signedIn = false;
+        state.convex = { isLoading: false, isAuthenticated: false };
+        const html = renderAndCommitBoundaryRedirect();
+        expect(state.replace).toHaveBeenCalledTimes(1);
+        expect(state.replace).toHaveBeenCalledWith(destination);
+        expect(html).not.toContain("protected-affiliate-content");
+        expect(mounted).toBe(0);
+        expect((useQuery as jest.Mock).mock.calls.every(([, args]) => args === "skip")).toBe(true);
+    });
+
+    it.each([
+        ["/v2/creators/portal/my-page", "/v2/creators/signup"],
+        ["/v2/creators/portal/my-page/", "/v2/creators/signup"],
+        ["/affiliates/dashboard/my-page", "/affiliates/join"],
+        ["/affiliates/dashboard/wallet", "/affiliates/join"],
+    ])("sends a verified login without a creator profile at %s to %s", (pathname, destination) => {
+        state.pathname = pathname;
+        state.session!.creator = null;
+        const html = renderAndCommitBoundaryRedirect();
+        expect(state.replace).toHaveBeenCalledTimes(1);
+        expect(state.replace).toHaveBeenCalledWith(destination);
+        expect(html).not.toContain("protected-affiliate-content");
+        expect(mounted).toBe(0);
+        expect((useQuery as jest.Mock).mock.calls.map(([reference, args]) => [getFunctionName(reference), args])).toEqual([
+            ["adminAccess:me", {}],
+        ]);
+    });
+
+    it.each(["Clerk loading", "Convex loading", "session unresolved", "previous identity", "owner", "admin", "pending", "deleted"])(
+        "keeps existing canonical editor account gates while %s", condition => {
+            state.pathname = "/v2/creators/portal/my-page";
+            if (condition === "Clerk loading") { state.clerkLoaded = false; state.signedIn = false; }
+            if (condition === "Convex loading") { state.convex = { isLoading: true, isAuthenticated: true }; state.session!.creator = null; }
+            if (condition === "session unresolved") state.session = undefined;
+            if (condition === "previous identity") { state.session!.clerkId = "previous-user"; state.session!.creator = null; }
+            if (condition === "owner") { state.session!.creator = null; state.session!.isOwner = true; }
+            if (condition === "admin") state.session!.creator!.role = "admin";
+            if (condition === "pending") state.session!.creator!.status = "pending";
+            if (condition === "deleted") state.session!.creator!.isDeleted = true;
+            const html = renderAndCommitBoundaryRedirect();
+            expect(state.replace).not.toHaveBeenCalled();
+            expect(html).not.toContain("protected-affiliate-content");
+            expect(mounted).toBe(0);
+        },
+    );
 });

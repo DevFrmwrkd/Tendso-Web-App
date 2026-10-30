@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import { useAction, useMutation } from 'convex/react';
 import { ConvexError } from 'convex/values';
 import { api } from '@tendso/convex-client';
@@ -7,18 +7,19 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { BASE_PRICE, PRICE_CEILING, COMMISSION_RATE, WEBSITE_PRICE, clampSellPrice, commissionFor, formatPHP } from '../../../../packages/shared/pricing';
 import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_LABELS, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, type AffiliateSocialLinks, type AffiliateSocialPlatform } from '../../../../lib/affiliates';
+import { createCreatorPageCard, creatorPageDraftsEqual } from '../../../../lib/v2/creatorPageEditor';
 import { Avatar, Button, Card, Field, SectionLabel, Text, ToggleRow } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
 import { PriceSlider } from '../PriceSlider';
 import { AffiliateAccess, Notice, type AffiliateAccessProps } from './Screen';
 import { AffiliateToolFrame } from './AffiliateToolFrame';
 import { affiliateDraft, affiliateName, affiliatePagePayload, type AffiliateDraft } from './model';
-import { OfferPreview } from './Offer';
 import { ShareTools } from './ShareTools';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 type PagePayload = ReturnType<typeof affiliatePagePayload>;
 type EditorMode = 'all' | 'page';
+type EditorSection = 'page' | 'offer' | 'sharing';
 const SOCIAL_PLACEHOLDERS: Record<AffiliateSocialPlatform, string> = {
   messenger: 'https://m.me/yourname',
   facebook: 'https://www.facebook.com/yourname',
@@ -67,10 +68,10 @@ function LivePageEditor(props: AffiliateAccessProps & { mode: EditorMode }) {
     // Page edits never overwrite a separately saved price.
     const { price, ...page } = payload;
     return save(props.mode === 'page' ? page : payload);
-  }} onPhoto={uploadPhoto} />;
+  }} onSavePrice={price => save({ price })} onPhoto={uploadPhoto} />;
 }
 
-export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, mode = 'all' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; mode?: EditorMode }) {
+export function PageEditorContent({ account, isPreview, isOffline, onSave, onSavePrice, onPhoto, mode = 'all' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onSavePrice?: (price: number) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; mode?: EditorMode }) {
   const incoming = affiliateDraft(account);
   const incomingKey = JSON.stringify(incoming);
   const [seen, setSeen] = useState(incomingKey);
@@ -79,7 +80,11 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [priceError, setPriceError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [priceSaved, setPriceSaved] = useState(false);
+  const [section, setSection] = useState<EditorSection>('page');
+  const [editorView, setEditorView] = useState<'edit' | 'preview'>('edit');
   // "What shows" switches: a field is shown when it has a value or its switch was turned on. Turning a switch off
   // clears the field (the value is kept here, so turning it back on restores it).
   const [switchedOn, setSwitchedOn] = useState({ photo: false, message: false, socialLinks: false });
@@ -87,23 +92,30 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
   const socialStash = useRef<AffiliateSocialLinks>({});
   const priceInput = useRef(draft.price);
   priceInput.current = draft.price;
-  const dirty = JSON.stringify(draft) !== JSON.stringify(baseline);
+  const pageDirty = !creatorPageDraftsEqual(draft, baseline);
+  const priceDirty = draft.price !== baseline.price;
+  const dirty = mode === 'all' ? pageDirty || priceDirty : section === 'offer' ? priceDirty : pageDirty;
   // Refresh clean settings from a subscription without erasing an in-progress edit.
   if (seen !== incomingKey) {
     setSeen(incomingKey); setBaseline(incoming);
-    if (!dirty) setDraft(incoming);
+    if (mode === 'page') setDraft(current => ({ ...(pageDirty ? current : incoming), price: priceDirty ? current.price : incoming.price }));
+    else if (!dirty) setDraft(incoming);
   }
   const disabled = isPreview || isOffline || account.status !== 'active' || !onSave;
   const locked = disabled || saving || uploading;
   const price = draft.price.trim() && Number.isFinite(Number(draft.price)) ? clampSellPrice(Number(draft.price)) : Number(baseline.price);
-  const defaultName = [account.firstName, account.lastName].filter(Boolean).join(' ') || 'Your Tendso creator';
+  const defaultName = [account.firstName, account.lastName].filter(Boolean).join(' ').trim() || (account.affiliateHandle ? `@${account.affiliateHandle}` : 'Tendso creator');
   const changePrice = useCallback((value: number) => {
     if (priceInput.current === String(value)) return;
     priceInput.current = String(value);
     setDraft((current) => current.price === String(value) ? current : { ...current, price: String(value) });
-    setSaved(false); setError('');
+    setPriceSaved(false); setPriceError(''); if (mode === 'all') setError('');
   }, []);
-  function change(patch: Partial<AffiliateDraft>) { setDraft((current) => ({ ...current, ...patch })); setSaved(false); setError(''); }
+  function change(patch: Partial<AffiliateDraft>) {
+    setDraft((current) => ({ ...current, ...patch }));
+    if (patch.price !== undefined) { setPriceSaved(false); setPriceError(''); if (mode === 'all') setError(''); }
+    else { setSaved(false); setError(''); }
+  }
   const shows = (key: 'photo' | 'message') => switchedOn[key] || !!draft[key];
   const showsSocialLinks = switchedOn.socialLinks || Object.values(draft.socialLinks).some(Boolean);
   function toggle(key: 'photo' | 'message', on: boolean) {
@@ -133,33 +145,70 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
   async function save() {
     if (locked || !dirty || !onSave) return;
     let payload: PagePayload;
-    try { payload = affiliatePagePayload(draft); }
+    try { payload = affiliatePagePayload(mode === 'page' ? { ...draft, price: baseline.price } : draft); }
     catch (problem) { setError(problem instanceof Error ? problem.message : 'Check your page details.'); return; }
     setSaving(true); setError('');
     try {
       await onSave(payload);
-      const next = { ...payload, price: String(payload.price) };
-      setDraft(next); setBaseline(next); setSaved(true);
+      if (mode === 'page') {
+        const { price: _price, ...page } = payload;
+        setDraft(current => ({ ...current, ...page })); setBaseline(current => ({ ...current, ...page }));
+      } else {
+        const next = { ...payload, price: String(payload.price) };
+        setDraft(next); setBaseline(next);
+      }
+      setSaved(true);
     } catch (problem) {
       setError(problem instanceof ConvexError && typeof problem.data === 'string' ? problem.data : 'Your page was not saved. Please try again.');
     } finally { setSaving(false); }
   }
+  async function savePrice() {
+    if (locked || !priceDirty || !onSavePrice) return;
+    if (!draft.price.trim() || !Number.isFinite(Number(draft.price))) { setPriceError('Enter your website price in whole pesos.'); return; }
+    setSaving(true); setPriceError('');
+    try {
+      await onSavePrice(price);
+      setDraft(current => ({ ...current, price: String(price) })); setBaseline(current => ({ ...current, price: String(price) })); setPriceSaved(true);
+    } catch (problem) {
+      setPriceError(problem instanceof ConvexError && typeof problem.data === 'string' ? problem.data : 'Your price was not saved. Please try again.');
+    } finally { setSaving(false); }
+  }
   const keep = commissionFor(price);
   const saves = Math.max(0, WEBSITE_PRICE - price);
-  const status = saved && !dirty ? (mode === 'page' ? 'Page saved.' : 'Page and price saved.') : dirty ? 'Unsaved changes.' : '';
+  const savingOffer = mode === 'page' && section === 'offer';
+  const displayedError = savingOffer ? priceError : error;
+  const status = savingOffer ? priceSaved && !priceDirty ? 'Price saved.' : priceDirty ? 'Unsaved price change.' : ''
+    : saved && !pageDirty && (mode === 'page' || !priceDirty) ? (mode === 'page' ? 'Page saved.' : 'Page and price saved.') : dirty ? 'Unsaved changes.' : '';
   const previewName = draft.displayName.trim() || defaultName;
+  const card = createCreatorPageCard(account, draft, price);
+  // Keep the form's initial render light; the native WebView loads when Preview is opened.
+  const PublicPreview = editorView === 'preview' ? require('./PublicPagePreview').AffiliatePublicPagePreview : null;
+  function switchView(next: 'edit' | 'preview') { Keyboard.dismiss(); setEditorView(next); }
+  const showPage = mode === 'all' || section === 'page';
+  const showOffer = mode === 'all' || section === 'offer';
   return <AffiliateToolFrame avoidKeyboard
     title={mode === 'page' ? 'Edit your page' : 'My page'}
     preview={isPreview}
     suspended={account.status !== 'active'}
     offline={isOffline}
     floatingFooter={false}
-    footer={<View style={styles.saveSection}>
-      {error || status ? <Text testID="affiliate-save-status" variant="label" tone={error ? 'danger' : 'muted'} align="center" accessibilityRole={error ? 'alert' : undefined} accessibilityLiveRegion="polite">{error || status}</Text> : null}
-      <Button title={mode === 'page' ? 'Save page' : 'Save page and price'} disabled={locked || !dirty} loading={saving} onPress={save} />
+    scroll={editorView !== 'preview'}
+    footer={mode === 'page' && section === 'sharing' && editorView === 'edit' ? undefined : <View style={styles.saveSection}>
+      {displayedError || status ? <Text testID="affiliate-save-status" variant="label" tone={displayedError ? 'danger' : 'muted'} align="center" accessibilityRole={displayedError ? 'alert' : undefined} accessibilityLiveRegion="polite">{displayedError || status}</Text> : null}
+      <View style={styles.footerActions}>
+        <Button title={editorView === 'preview' ? 'Edit' : 'Preview'} icon={editorView === 'preview' ? 'create-outline' : 'eye-outline'} variant="ghost" fullWidth={false} style={styles.footerAction} onPress={() => switchView(editorView === 'preview' ? 'edit' : 'preview')} />
+        <Button title={savingOffer ? 'Save price' : mode === 'page' ? 'Save page' : 'Save page and price'} fullWidth={false} style={styles.footerAction} disabled={locked || !dirty || (savingOffer && !onSavePrice)} loading={saving} onPress={savingOffer ? savePrice : save} />
+      </View>
     </View>}
   >
-    {mode === 'page' ? <Text variant="title" accessibilityRole="header">Make it yours.</Text> : <SectionLabel>What shows on your page</SectionLabel>}
+    <View style={styles.viewSwitch} accessibilityRole="tablist" accessibilityLabel="Page editor view">
+      {(['edit', 'preview'] as const).map(view => <Pressable key={view} accessibilityRole="tab" accessibilityLabel={view === 'edit' ? 'Edit page details' : 'Preview public page'} accessibilityState={{ selected: editorView === view }} onPress={() => switchView(view)} style={[styles.viewTab, editorView === view && styles.viewTabSelected]}><Text variant="label" weight="bold" tone={editorView === view ? 'onDark' : 'ink'}>{view === 'edit' ? 'Edit' : 'Preview'}</Text></Pressable>)}
+    </View>
+    {editorView === 'preview' && PublicPreview ? <PublicPreview key={account._id} card={card} dirty={pageDirty || priceDirty} paused={account.status !== 'active'} offline={isOffline} sample={isPreview} /> : <>
+    {mode === 'page' ? <><Text variant="body" tone="muted">Edit the page shop owners open from your link.</Text><View style={styles.sectionTabs} accessibilityRole="tablist" accessibilityLabel="Page settings">
+      {([{ id: 'page', label: 'Page details' }, { id: 'offer', label: 'Your offer' }, { id: 'sharing', label: 'Sharing' }] as const).map(item => <Pressable key={item.id} accessibilityRole="tab" accessibilityLabel={item.label} accessibilityState={{ selected: section === item.id }} onPress={() => { Keyboard.dismiss(); setSection(item.id); }} style={[styles.sectionTab, section === item.id && styles.sectionTabSelected]}><Text variant="label" weight="semibold">{item.label}</Text></Pressable>)}
+    </View></> : <SectionLabel>What shows on your page</SectionLabel>}
+    <View style={[styles.panel, !showPage && styles.hidden]} accessibilityElementsHidden={!showPage} importantForAccessibility={showPage ? 'auto' : 'no-hide-descendants'}>
     <Field label="Display name" icon="person-outline" value={draft.displayName} placeholder={defaultName} maxLength={100} editable={!locked} helper="The name shown on your public page." onChangeText={(displayName) => change({ displayName })} />
     <ToggleRow title="Show my photo" subtitle={draft.photo ? 'Tap below to change it' : 'Add a photo of yourself'} value={shows('photo')} disabled={locked} onValueChange={(on) => toggle('photo', on)} />
     {shows('photo') ? <Card style={styles.photoRow}>
@@ -176,8 +225,9 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
       {AFFILIATE_SOCIAL_PLATFORMS.map(platform => <Field key={platform} label={`${AFFILIATE_SOCIAL_LABELS[platform]} link`} icon="link-outline" value={draft.socialLinks[platform] ?? ''} placeholder={SOCIAL_PLACEHOLDERS[platform]} autoCapitalize="none" autoCorrect={false} keyboardType="url" maxLength={2048} editable={!locked} helper="Optional · Starts with https://" onChangeText={value => changeSocialLink(platform, value)} />)}
     </View> : null}
     <Text variant="label" tone="muted" style={styles.handle}>Your page handle is @{account.affiliateHandle || 'unavailable'}. It stays the same.</Text>
+    </View>
 
-    {mode === 'all' ? <><SectionLabel>Your website price</SectionLabel>
+    <View style={[styles.panel, !showOffer && styles.hidden]} accessibilityElementsHidden={!showOffer} importantForAccessibility={showOffer ? 'auto' : 'no-hide-descendants'}><SectionLabel>Your website price</SectionLabel>
     <Card variant="lg" style={styles.priceCard}>
       <Field label="Website price in pesos" prefix="₱" value={draft.price} keyboardType="number-pad" maxLength={9} editable={!locked} helper={`Between ${formatPHP(BASE_PRICE)} and ${formatPHP(PRICE_CEILING)}. Applies to future orders.`} onChangeText={(priceValue) => change({ price: priceValue })} onBlur={() => { if (draft.price.trim() && Number.isFinite(Number(draft.price))) change({ price: String(clampSellPrice(Number(draft.price))) }); }} />
       <PriceSlider floor={BASE_PRICE} ceiling={PRICE_CEILING} anchor={WEBSITE_PRICE} commissionRate={COMMISSION_RATE} step={1} initialValue={price} disabled={locked} onChange={changePrice} showEarnings={false} />
@@ -191,16 +241,27 @@ export function PageEditorContent({ account, isPreview, isOffline, onSave, onPho
           <Text variant="label" tone="ink2">the shop saves</Text>
         </View>
       </View>
-    </Card></> : null}
+    </Card></View>
 
-    {mode === 'all' ? <><SectionLabel>{dirty ? 'What shop owners see · Unsaved changes' : 'What shop owners see'}</SectionLabel>
-    <OfferPreview photo={shows('photo') ? draft.photo : undefined} displayName={previewName} message={shows('message') ? draft.message.trim() : undefined} socialLinks={showsSocialLinks ? draft.socialLinks : {}} socialDisabled={isPreview || account.status !== 'active'} price={price} code={account.referralCode} />
-
-    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} price={Number(baseline.price)} disabled={isPreview || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}</> : null}
+    <View style={[styles.panel, mode === 'page' && section !== 'sharing' && styles.hidden]} accessibilityElementsHidden={mode === 'page' && section !== 'sharing'} importantForAccessibility={mode === 'page' && section !== 'sharing' ? 'no-hide-descendants' : 'auto'}>
+    {pageDirty || priceDirty ? <Text variant="label" tone="muted">Sharing uses your saved page and price. Save each section before sharing new materials.</Text> : null}
+    {account.affiliateHandle ? <ShareTools handle={account.affiliateHandle} displayName={baseline.displayName.trim() || affiliateName(account)} price={Number(baseline.price)} disabled={isPreview || isOffline || account.status !== 'active'} /> : <Notice tone="warn">Your page handle is unavailable. Contact Tendso support for help.</Notice>}
+    </View>
+    </>}
   </AffiliateToolFrame>;
 }
 
 const styles = StyleSheet.create({
+  panel: { gap: space.lg },
+  hidden: { display: 'none' },
+  viewSwitch: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: radius.pill, backgroundColor: colors.card },
+  viewTab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, paddingHorizontal: space.md },
+  viewTabSelected: { backgroundColor: colors.ink },
+  sectionTabs: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: radius.field, backgroundColor: colors.card },
+  sectionTab: { flex: 1, minHeight: 48, padding: space.sm, alignItems: 'center', justifyContent: 'center', borderRadius: radius.field },
+  sectionTabSelected: { backgroundColor: colors.bg2 },
+  footerActions: { flexDirection: 'row', gap: space.sm },
+  footerAction: { flex: 1 },
   photoRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   photoButton: { flex: 1 },
   handle: { paddingHorizontal: space.xs },

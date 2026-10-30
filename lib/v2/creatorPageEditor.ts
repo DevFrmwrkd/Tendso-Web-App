@@ -1,6 +1,6 @@
-import type { Doc } from '@/convex/_generated/dataModel';
-import { AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '@/lib/affiliates';
-import { WEBSITE_PRICE, clampSellPrice } from '@/lib/pricing';
+import type { Doc } from '../../convex/_generated/dataModel';
+import { AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../affiliates';
+import { WEBSITE_PRICE, clampSellPrice } from '../pricing';
 import type { CreatorCard } from './creatorTypes';
 
 type PageDraft = { photo: string; displayName: string; message: string; socialLinks: AffiliateSocialLinks };
