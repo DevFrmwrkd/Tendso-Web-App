@@ -467,7 +467,7 @@ function SignupInner() {
                                 <span>Your creator code</span>
                                 <span className="su-in"><input type="text" value={creatorCode} disabled={busy} maxLength={CREATOR_CODE_MAX_LENGTH} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder="MIKA30" aria-describedby="su-creator-code-status su-creator-code-help" aria-invalid={!!codeProblem || !!codeChecked && !codeFree} onChange={event => { setCreatorCode(normalizeCreatorCode(event.target.value)); setError(null); }} /></span>
                             </label>
-                            <p id="su-creator-code-help" className="su-hint">Use 4–16 letters or numbers. Every code gives {CODE_PERCENT_OFF}% off.</p>
+                            <p id="su-creator-code-help" className="su-hint">Use 4–16 letters or numbers. Every code gives {CODE_PERCENT_OFF}% off. Choose carefully. You cannot change this code later.</p>
                             <p id="su-creator-code-status" className={`su-hint${codeProblem || codeChecked && !codeFree || codeCheck.status === "error" ? " is-bad" : ""}`} role="status" aria-live="polite">{codeProblem ?? (codeCheck.status === "error" ? codeCheck.error : codeFree ? "This code is available." : codeChecked ? codeCheck.result?.error ?? "That code is already taken. Choose another one." : creatorCode ? "Checking code availability…" : "")}</p>
                             {codeCheck.status === "error" && !codeProblem ? <button type="button" className="btn btn--line btn--sm" disabled={busy} onClick={codeCheck.retry}>Check again</button> : null}
                             <div className="su-preview">

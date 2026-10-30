@@ -38,6 +38,7 @@ const fn = {
     myApplication: api.creatorProgram.myApplication,
     checkAvailability: api.creatorProgram.checkAvailability,
     checkCodeAvailability: api.creatorProgram.checkCodeAvailability,
+    codeSetup: api.creatorProgram.codeSetup,
     updateCode: api.creatorProgram.updateCode,
     apply: api.creatorProgram.apply,
     recordClick: api.attribution.recordClick,
@@ -172,6 +173,10 @@ export function useAvailability(input: { handle?: string; code?: string } | null
 }
 
 export type CreatorCodeAvailability = { value: string; available: boolean; error: string | null };
+export function useCreatorCodeSetup(enabled: boolean) {
+    return useQuery(fn.codeSetup, CREATORS_SAMPLE || !enabled ? "skip" : {});
+}
+
 export type CreatorCodeCheck = {
     status: "idle" | "checking" | "checked" | "error";
     result?: CreatorCodeAvailability;

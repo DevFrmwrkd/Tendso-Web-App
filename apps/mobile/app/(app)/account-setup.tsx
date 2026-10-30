@@ -180,6 +180,7 @@ export default function AccountSetupScreen() {
             onChangeText={(value: string) => change('creatorCode', normalizeCreatorCode(value))}
             autoCapitalize="characters" autoCorrect={false} maxLength={16} editable={!saving}
             error={creatorCodeProblem} helper={creatorCodeHelper} />
+          <Text variant="label" tone="muted">Choose carefully. You can’t change this code after creating your account.</Text>
           </>
         : null}
       </View>

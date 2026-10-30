@@ -50,7 +50,7 @@ Current creator-code offers always use `CREATOR_CODE_PRICE` and `CREATOR_CODE_DI
 
 ### Existing page editor — `affiliates.updatePage`
 
-The signed-in active affiliate can update `{ photo?, displayName?, message?, socialLink?, socialLinks? }`; this mutation does not change the public handle or creator code. Code changes use `creatorProgram.updateCode` below. New clients omit `price`. The optional legacy `price` argument accepts only `CREATOR_CODE_PRICE` (3499) for compatibility and never writes an account price. Any other value rejects the entire request before profile fields are saved. Pending, suspended, deleted and non-affiliate accounts retain their existing write restrictions.
+The signed-in active affiliate can update `{ photo?, displayName?, message?, socialLink?, socialLinks? }`; this mutation does not change the public handle or creator code. An eligible existing account chooses its permanent code once through `creatorProgram.updateCode` below. New clients omit `price`. The optional legacy `price` argument accepts only `CREATOR_CODE_PRICE` (3499) for compatibility and never writes an account price. Any other value rejects the entire request before profile fields are saved. Pending, suspended, deleted and non-affiliate accounts retain their existing write restrictions.
 
 ---
 
@@ -84,7 +84,7 @@ Live check while the person types.
   }
   ```
 - Email comes from the Clerk session (never an argument).
-- Returns: `Id<"creators">`. Creates a `role: "affiliate", status: "pending"` row with `creatorSocials`, `creatorAudienceSize`, `creatorAppliedAt`; the shared fixed offer supplies its price. The chosen/generated code is reserved permanently.
+- Returns: `Id<"creators">`. Creates a `role: "affiliate", status: "pending"` row with `creatorSocials`, `creatorAudienceSize`, `creatorAppliedAt`; the shared fixed offer supplies its price. The chosen/generated code is reserved permanently. An explicit code also sets `creatorCodeChosenAt` and completes one-time setup immediately; an omitted code leaves the generated fallback unchosen.
 - Retrying returns the same id unchanged. Throws if this login or email already has a field-agent, admin or business-owner account.
 - **Approval** is the existing admin page `/admin/affiliates` (`creators.updateStatus → "active"`). No new admin UI. (That page does not show socials or audience size yet.)
 
@@ -116,14 +116,23 @@ The legacy `affiliates.create` mutation also accepts an optional own `code?: str
 
 - Args: `{ code: string }`
 - Returns: `{ value: string, available: boolean, error: string | null }`; `value` is trimmed and upper-cased.
-- Available to the signed-in active or suspended affiliate only. The account's own current/previous codes are available to it. Other affiliates' codes, field-agent invite codes, deleted-account reservations and campaign codes are unavailable. Input rules are shared in `lib/creatorCodes.ts`.
+- Available to the signed-in active or suspended affiliate only. Before setup is complete, other affiliates' codes, field-agent invite codes, deleted-account reservations and campaign codes are unavailable. Once setup is complete, only the current code is available for an idempotent retry; every different code is rejected. Input rules are shared in `lib/creatorCodes.ts`.
 - This check does not reserve a code. Clients must match the returned `value` to the current input before enabling Save.
+
+### `creatorProgram.codeSetup` (query, signed in)
+
+- Args: `{}`
+- Returns: `{ creatorId: Id<"creators">, code: string | null, canChoose: boolean, chosenAt: number | null }` for the current affiliate only.
+- `canChoose` is true only for an active affiliate with unfinished setup. Suspended affiliates may read this state but cannot choose.
+- A stored `creatorCodeChosenAt` completes setup. For older rows without a stamp, a readable/custom code is already chosen. Only an untouched generated `AFF` + eight letters/numbers (or a missing code) may choose once, and any prior distinct alias locks it even when the current code looks generated. Inferred historical choices have `chosenAt: null`; this query performs no backfill writes.
+- Existing web/mobile editors verify `creatorId` matches the displayed account. They mount code availability and save hooks only when `canChoose` is true; completed setup is read-only.
 
 ### `creatorProgram.updateCode` (mutation, signed in)
 
 - Args: `{ code: string }` — no selected account, price or preview bypass.
 - Returns: `{ code: string }`, normalized to upper case.
-- Active affiliates only; rechecks uniqueness in the save transaction. Both the previous and new code are permanently reserved in `creatorCodeAliases`. An affiliate may reuse its own earlier code.
+- Active affiliates with unfinished setup only; rechecks eligibility and uniqueness in the same transaction, then stamps `creatorCodeChosenAt`. Both the previous fallback and chosen code are permanently reserved in `creatorCodeAliases`. Concurrent different choices by the same account allow exactly one winner.
+- The chosen code is permanent. Repeating the same normalized code succeeds without writes; any different code, including an older alias, throws `Your creator code is already set and cannot be changed.`
 - The handle and shared links stay the same. Existing owner quotes, payments, commissions, referral identities and recruitment dates are unchanged. Old printed codes, pending referral jobs and onboarding retries continue resolving to the same creator, subject to the existing account-status rules.
 
 ---

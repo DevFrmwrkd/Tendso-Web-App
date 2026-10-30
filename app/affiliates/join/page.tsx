@@ -163,7 +163,7 @@ function AffiliateProfile({ name: initialName, email }: { name: string; email?: 
                         setErrors((current) => ({ ...current, handle: undefined }));
                     }} />
                 </Field>
-                <Field label="Your creator code" required help={`Use 4–16 letters or numbers, like MIKA30. Every code gives ${CODE_PERCENT_OFF}% off.`} error={errors.code ?? problem ?? undefined}>
+                <Field label="Your creator code" required help={`Use 4–16 letters or numbers, like MIKA30. Every code gives ${CODE_PERCENT_OFF}% off. Choose carefully. You cannot change this code later.`} error={errors.code ?? problem ?? undefined}>
                     <Input ref={codeRef} value={code} placeholder="MIKA30" autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={CREATOR_CODE_MAX_LENGTH} disabled={saving} onChange={event => {
                         setCode(normalizeCreatorCode(event.target.value));
                         setErrors(current => ({ ...current, code: undefined }));

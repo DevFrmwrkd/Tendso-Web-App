@@ -25,6 +25,7 @@ jest.mock('convex/react', () => ({
     useQuery: (...args: unknown[]) => liveQuery(...args),
     useMutation: (reference: Parameters<typeof getFunctionName>[0]) => {
         const name = getFunctionName(reference);
+        mutationHook(name);
         if (name === 'creatorProgram:apply') return apply;
         if (name === 'affiliates:create') return createAffiliate;
         if (/:update(Code|CreatorCode)$/.test(name)) return updateCode;
@@ -75,12 +76,17 @@ const account: Doc<'creators'> = {
     email: 'mika@example.com', firstName: 'Mika', lastName: 'Santos', role: 'affiliate', status: 'active', balance: 0,
     affiliateHandle: 'mika-shops', affiliateDisplayName: 'Mika Santos', referralCode: 'MIKA30', affiliatePrice: 2200,
 };
+type CodeSetup = { creatorId: Doc<'creators'>['_id']; code: string | null; canChoose: boolean; chosenAt: number | null };
+function setup(code = 'MIKA30', canChoose = true, creatorId = account._id): CodeSetup {
+    return { creatorId, code, canChoose, chosenAt: canChoose ? null : 100 };
+}
 const state = {
     loaded: true, signedIn: true,
     user: { id: 'current-user', fullName: 'Mika Santos', firstName: 'Mika', primaryEmailAddress: { emailAddress: 'mika@example.com' } } as { id: string; fullName: string; firstName: string; primaryEmailAddress: { emailAddress: string } } | null,
     auth: { isAuthenticated: true, isLoading: false, isRefreshing: false },
     publicCodeValue: undefined as string | undefined,
     takenCodes: new Set<string>(),
+    setup: setup() as CodeSetup | Error | undefined,
 };
 const liveQuery = jest.fn();
 const codeQuery = jest.fn();
@@ -88,6 +94,7 @@ const convexClient = { query: codeQuery };
 const updateCode = jest.fn();
 const apply = jest.fn();
 const createAffiliate = jest.fn();
+const mutationHook = jest.fn();
 const navigation = { replace: jest.fn(), push: jest.fn() };
 let renderer: TestRenderer | undefined;
 let consoleError: jest.SpyInstance;
@@ -162,11 +169,16 @@ beforeEach(() => {
     state.auth = { isAuthenticated: true, isLoading: false, isRefreshing: false };
     state.publicCodeValue = undefined;
     state.takenCodes = new Set();
+    state.setup = setup();
     liveQuery.mockImplementation((reference, args) => {
         if (args === 'skip') return undefined;
         switch (getFunctionName(reference)) {
             case 'creatorProgram:myApplication': return { status: 'none' };
             case 'creatorProgram:checkAvailability': return availability(args);
+            case 'creatorProgram:codeSetup': {
+                if (state.setup instanceof Error) throw state.setup;
+                return state.setup;
+            }
             case 'creators:getByClerkId': return null;
             case 'businessOwners:me': return null;
             default: throw new Error(`Unexpected custom-code subscription: ${getFunctionName(reference)}`);
@@ -187,6 +199,7 @@ beforeEach(() => {
     const original = console.error;
     consoleError = jest.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
         if (typeof args[0] === 'string' && args[0].includes('react-test-renderer is deprecated')) return;
+        if (state.setup instanceof Error && args.includes(state.setup)) return;
         original(...args);
     });
 });
@@ -204,28 +217,81 @@ describe('creator code settings', () => {
         expect(input().props.disabled || input().props.readOnly).toBe(true);
         expect(codeQuery).not.toHaveBeenCalled();
         expect(updateCode).not.toHaveBeenCalled();
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
     });
 
-    it('does not query or save for an account from a previous Clerk actor', async () => {
-        state.user = { ...state.user!, id: 'another-clerk-user' };
+    it.each(['previous Clerk actor', 'Clerk loading', 'signed out', 'Convex loading', 'unauthenticated'])(
+        'does not read setup, check availability or mount a write hook while %s', async condition => {
+        if (condition === 'previous Clerk actor') state.user = { ...state.user!, id: 'another-clerk-user' };
+        if (condition === 'Clerk loading') state.loaded = false;
+        if (condition === 'signed out') { state.user = null; state.signedIn = false; }
+        if (condition === 'Convex loading') state.auth.isLoading = true;
+        if (condition === 'unauthenticated') state.auth.isAuthenticated = false;
         await mount();
         expect(codeQuery).not.toHaveBeenCalled();
         expect(updateCode).not.toHaveBeenCalled();
         expect(input().props.disabled || input().props.readOnly).toBe(true);
+        expect(liveQuery.mock.calls.filter(([reference]) => getFunctionName(reference) === 'creatorProgram:codeSetup').every(([, args]) => args === 'skip')).toBe(true);
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
+    });
+
+    it.each(['CUSTOM30', 'AFFLEGACY'])('uses server eligibility to lock %s without availability or mutation hooks', async code => {
+        state.setup = setup(code, false);
+        await mount(createElement(CreatorCodeSettings, { account: { ...account, referralCode: code } }));
+        expect(input().props.value).toBe(code);
+        expect(input().props.disabled || input().props.readOnly).toBe(true);
+        expect(text(renderer!.root)).toContain('This is your permanent creator code. It cannot be changed.');
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(codeQuery).not.toHaveBeenCalled();
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
+        expect(liveQuery.mock.calls.map(([reference, args]) => [getFunctionName(reference), args])).toEqual([
+            ['creatorProgram:codeSetup', {}],
+        ]);
+    });
+
+    it('keeps setup loading read-only rather than assuming this account may choose a code', async () => {
+        state.setup = undefined;
+        await mount();
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(input().props.disabled || input().props.readOnly).toBe(true);
+        expect(codeQuery).not.toHaveBeenCalled();
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
+    });
+
+    it('keeps setup errors read-only and retries the server permission read explicitly', async () => {
+        state.setup = new Error('Code setup unavailable');
+        await mount();
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(codeQuery).not.toHaveBeenCalled();
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
+        state.setup = setup('MIKA30', false);
+        await click('Retry');
+        expect(text(renderer!.root)).toContain('This is your permanent creator code. It cannot be changed.');
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+    });
+
+    it('does not accept cached setup permission from another creator', async () => {
+        state.setup = setup('FOREIGN30', true, 'another-affiliate' as Doc<'creators'>['_id']);
+        await mount();
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(input().props.value).toBe('MIKA30');
+        expect(codeQuery).not.toHaveBeenCalled();
+        expect(mutationHook).not.toHaveBeenCalledWith('creatorProgram:updateCode');
     });
 
     it('refreshes a clean code field when the live saved code changes elsewhere', async () => {
         await mount();
         expect(input().props.value).toBe('MIKA30');
+        state.setup = setup('NINA30');
         await rerender(createElement(CreatorCodeSettings, { account: { ...account, referralCode: 'NINA30' } }));
         expect(input().props.value).toBe('NINA30');
-        expect(button('Save code').props.disabled).toBe(true);
         expect(updateCode).not.toHaveBeenCalled();
     });
 
     it('preserves an unsaved code draft when the live saved code changes elsewhere', async () => {
         await mount();
         await change('SHOPS30');
+        state.setup = setup('NINA30');
         await rerender(createElement(CreatorCodeSettings, { account: { ...account, referralCode: 'NINA30' } }));
         expect(input().props.value).toBe('SHOPS30');
         expect(updateCode).not.toHaveBeenCalled();
@@ -233,23 +299,43 @@ describe('creator code settings', () => {
 
     it('uppercases a separate code draft, checks it after debounce, and saves only the code', async () => {
         await mount();
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(false);
+        expect(text(renderer!.root)).toContain('Choose carefully. You cannot change this code later.');
+        codeQuery.mockClear();
         await change('shops30');
         expect(input().props.value).toBe('SHOPS30');
         expect(codeQuery).not.toHaveBeenCalled();
         await settleDebounce();
         expect(codeQuery).toHaveBeenCalledWith(expect.anything(), { code: 'SHOPS30' });
-        expect(button('Save code').props.disabled).toBe(false);
+        expect(button('Set my code').props.disabled).toBe(false);
         await submit();
         expect(updateCode).toHaveBeenCalledWith({ code: 'SHOPS30' });
         expect(account.referralCode).toBe('MIKA30');
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        state.setup = setup('SHOPS30', false);
+        await rerender();
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(updateCode).toHaveBeenCalledTimes(1);
+    });
+
+    it('confirms and locks a same-code result even when the account code itself does not change', async () => {
+        await mount();
+        expect(button('Set my code').props.disabled).toBe(false);
+        await submit();
+        expect(updateCode).toHaveBeenCalledWith({ code: 'MIKA30' });
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        state.setup = setup('MIKA30', false);
+        await rerender();
+        expect(input().props.value).toBe('MIKA30');
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
     });
 
     it.each(['ABC', 'MIKA-30', 'ABCDEFGHIJKLMNOPQ'])('rejects invalid code %s without checking or saving it', async value => {
         await mount();
+        codeQuery.mockClear();
         await change(value);
         await settleDebounce();
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(true);
         expect(codeQuery).not.toHaveBeenCalled();
         await submit();
         expect(updateCode).not.toHaveBeenCalled();
@@ -258,31 +344,32 @@ describe('creator code settings', () => {
     it('never enables saving a newer draft from an older availability response', async () => {
         const oldCheck = deferred<NonNullable<Availability['code']>>();
         const newCheck = deferred<NonNullable<Availability['code']>>();
-        codeQuery.mockReturnValueOnce(oldCheck.promise).mockReturnValueOnce(newCheck.promise);
         await mount();
+        codeQuery.mockReturnValueOnce(oldCheck.promise).mockReturnValueOnce(newCheck.promise);
         await change('FIRST30');
         await settleDebounce();
         await change('SECOND30');
         await act(async () => { oldCheck.resolve(availability({ code: 'FIRST30' }).code!); });
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(true);
         await settleDebounce();
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(true);
         await act(async () => { newCheck.resolve(availability({ code: 'SECOND30' }).code!); });
-        expect(button('Save code').props.disabled).toBe(false);
+        expect(button('Set my code').props.disabled).toBe(false);
     });
 
     it('shows an availability failure and retries without losing the draft', async () => {
-        codeQuery.mockRejectedValueOnce(new Error('Offline'));
         await mount();
+        codeQuery.mockClear();
+        codeQuery.mockRejectedValueOnce(new Error('Offline'));
         await change('SHOPS30');
         await settleDebounce();
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(true);
         const retry = renderer!.root.findAllByType('button').find(node => text(node).includes('Check again'));
         expect(retry).toBeDefined();
         await act(async () => { (retry!.props.onClick as () => void)(); await Promise.resolve(); });
         expect(codeQuery).toHaveBeenCalledTimes(2);
         expect(input().props.value).toBe('SHOPS30');
-        expect(button('Save code').props.disabled).toBe(false);
+        expect(button('Set my code').props.disabled).toBe(false);
     });
 
     it('keeps a taken code visible and blocks saving before any mutation', async () => {
@@ -292,7 +379,7 @@ describe('creator code settings', () => {
         await settleDebounce();
         expect(text(renderer!.root)).toContain('That code is already taken.');
         expect(input().props.value).toBe('SHOPS30');
-        expect(button('Save code').props.disabled).toBe(true);
+        expect(button('Set my code').props.disabled).toBe(true);
         await submit();
         expect(updateCode).not.toHaveBeenCalled();
     });
@@ -308,6 +395,19 @@ describe('creator code settings', () => {
         expect(account.referralCode).toBe('MIKA30');
     });
 
+    it.each(['availability', 'save'] as const)('removes the choice form when the %s response says the code was already set', async stage => {
+        const message = 'Your creator code is already set and cannot be changed.';
+        await mount();
+        await change('SHOPS30');
+        if (stage === 'availability') codeQuery.mockResolvedValueOnce({ value: 'SHOPS30', available: false, error: message });
+        else updateCode.mockRejectedValueOnce(new ConvexError(message));
+        await settleDebounce();
+        if (stage === 'save') await submit();
+        expect(text(renderer!.root)).toContain(message);
+        expect(renderer!.root.findAllByType('form')).toHaveLength(0);
+        expect(updateCode).toHaveBeenCalledTimes(stage === 'save' ? 1 : 0);
+    });
+
     it('does not attach an old save failure or draft to a newly signed-in actor', async () => {
         const oldSave = deferred<{ code: string }>();
         updateCode.mockReturnValueOnce(oldSave.promise);
@@ -317,6 +417,7 @@ describe('creator code settings', () => {
         await submit();
         const next = { ...account, _id: 'next-affiliate' as Doc<'creators'>['_id'], clerkId: 'next-clerk-user', referralCode: 'NINA30' };
         state.user = { ...state.user!, id: next.clerkId };
+        state.setup = setup('NINA30', true, next._id);
         await rerender(createElement(CreatorCodeSettings, { account: next }));
         await act(async () => { oldSave.reject(new ConvexError('Old actor save failed.')); });
         expect(input().props.value).toBe('NINA30');
@@ -336,6 +437,7 @@ describe('creator code settings', () => {
             expect(node.props['data-code']).toBe('MIKA30');
             expect(node.props['data-price']).toBe(3499);
         }
+        state.setup = setup('SHOPS30', false);
         await rerender(createElement(DashboardContent, { account: { ...account, referralCode: 'SHOPS30' } }));
         for (const node of materials()) expect(node.props['data-code']).toBe('SHOPS30');
     });
@@ -344,6 +446,7 @@ describe('creator code settings', () => {
 describe('creator signup custom code', () => {
     it('keeps a chosen code independent of the page handle and submits the fixed-offer application', async () => {
         await signupStepFour();
+        expect(text(renderer!.root)).toContain('Choose carefully. You cannot change this code later.');
         await change('mikashops', 'Your name on Tendso');
         await change('shops30');
         await change('mikaonline', 'Your name on Tendso');
@@ -395,6 +498,7 @@ describe('legacy affiliate signup custom code', () => {
 
     it('keeps code independent of the handle and requires its exact public availability check before creating the account', async () => {
         await fillProfile();
+        expect(text(renderer!.root)).toContain('Choose carefully. You cannot change this code later.');
         expect(input().props.value).toBe('');
         expect(button('Create affiliate account').props.disabled).toBe(true);
         await change('legacy30');

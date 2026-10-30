@@ -241,7 +241,7 @@ it('uses the live page mutation only for profile changes, never for visiting the
   const view = render(<AffiliatePageEditorScreen />);
   tab(view, 'Your offer');
   expect(view.queryByLabelText('Save price')).toBeNull();
-  expect(mockCodeEditor).toHaveBeenCalledWith({ savedCode: sampleAffiliate.referralCode, offline: false });
+  expect(mockCodeEditor).toHaveBeenCalledWith({ accountId: sampleAffiliate._id, savedCode: sampleAffiliate.referralCode, offline: false });
   expect(mockMutationSave).not.toHaveBeenCalled();
   tab(view, 'Page details');
   fireEvent.changeText(view.getByLabelText('Display name'), 'Live profile name');

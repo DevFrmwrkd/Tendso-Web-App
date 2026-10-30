@@ -68,6 +68,7 @@ export default defineSchema({
         updatedAt: v.optional(v.number()),
         lastActiveAt: v.optional(v.number()),
         referralCode: v.optional(v.string()), // Optional (mobile has optional)
+        creatorCodeChosenAt: v.optional(v.number()), // Affiliate's one-time code choice; generated fallback has no stamp.
         referredByCode: v.optional(v.string()),
         role: v.optional(v.string()),    // v.string() for cross-deploy safety (mobile uses string)
         status: v.optional(v.string()),  // v.string() for cross-deploy safety

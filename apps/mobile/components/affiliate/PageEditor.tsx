@@ -66,7 +66,7 @@ function LivePageEditor(props: AffiliateAccessProps & { title: EditorTitle }) {
     return publicUrl;
   }
   return <PageEditorContent {...props} title={props.title} onSave={payload => save(payload)} onPhoto={uploadPhoto}
-    codeEditor={<CreatorCodeEditor key={`${props.account.clerkId}:${props.account._id}`} savedCode={props.account.referralCode} offline={props.isOffline} />} />;
+    codeEditor={<CreatorCodeEditor key={`${props.account.clerkId}:${props.account._id}`} accountId={props.account._id} savedCode={props.account.referralCode} offline={props.isOffline} />} />;
 }
 
 export function PageEditorContent({ account, isPreview, isOffline, onSave, onPhoto, codeEditor, title = 'My page' }: AffiliateAccessProps & { onSave?: (payload: PagePayload) => Promise<unknown>; onPhoto?: () => Promise<string | undefined>; codeEditor?: React.ReactNode; title?: EditorTitle }) {

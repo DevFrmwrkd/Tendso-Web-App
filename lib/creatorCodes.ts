@@ -7,6 +7,14 @@ export function normalizeCreatorCode(value: string): string {
     return value.trim().toUpperCase();
 }
 
+/** Legacy random AFF codes can be replaced once; prior custom choices stay fixed. */
+export function creatorCodeChoiceComplete(code: string | null | undefined, chosenAt: number | undefined, aliases: readonly string[]) {
+    if (chosenAt !== undefined) return true;
+    const current = normalizeCreatorCode(code ?? '');
+    if (aliases.some(alias => normalizeCreatorCode(alias) !== current)) return true;
+    return !!current && !/^AFF[A-Z0-9]{8}$/.test(current);
+}
+
 /** Shared input rules; availability and account ownership are always checked on the server. */
 export function creatorCodeError(code: string): string | null {
     if (code.length < CREATOR_CODE_MIN_LENGTH || code.length > CREATOR_CODE_MAX_LENGTH) {

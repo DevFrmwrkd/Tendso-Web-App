@@ -5,6 +5,8 @@ import { affiliateHandleError, affiliatePhoneError } from '../lib/affiliates';
 import { codeTaken, creatorCodeError, handleTaken, insertAffiliateAccount } from './lib/affiliateSignup';
 import { creatorCard, findActiveCreator, normalizeCreatorCode } from './lib/creatorRecruits';
 import { referralCodeTaken, reserveReferralCode } from './lib/referralCodes';
+import { creatorCodeChoiceComplete } from '../lib/creatorCodes';
+import type { Doc } from './_generated/dataModel';
 
 /**
  * Creator program: sign-up and the public face of a creator's code.
@@ -31,31 +33,61 @@ async function ownCodeAccount(ctx: QueryCtx | MutationCtx) {
     return me;
 }
 
-/** The current code and this account's earlier codes remain available to their owner. */
+const CODE_ALREADY_SET = 'Your creator code is already set and cannot be changed.';
+
+async function codeChoiceComplete(ctx: QueryCtx | MutationCtx, me: Doc<'creators'>) {
+    const aliases = await ctx.db.query('creatorCodeAliases').withIndex('by_creator', q => q.eq('creatorId', me._id)).collect();
+    return creatorCodeChoiceComplete(me.referralCode, me.creatorCodeChosenAt, aliases.map(alias => alias.code));
+}
+
+/** Authoritative one-time setup state; clients never infer eligibility from the code's prefix. */
+export const codeSetup = query({
+    args: {},
+    handler: async ctx => {
+        const me = await ownCodeAccount(ctx);
+        const complete = await codeChoiceComplete(ctx, me);
+        return {
+            creatorId: me._id,
+            code: me.referralCode?.trim() || null,
+            canChoose: me.status === 'active' && !complete,
+            chosenAt: me.creatorCodeChosenAt !== undefined && Number.isFinite(me.creatorCodeChosenAt) ? me.creatorCodeChosenAt : null,
+        };
+    },
+});
+
+/** Availability never promises a second choice after this account has completed setup. */
 export const checkCodeAvailability = query({
     args: { code: v.string() },
     handler: async (ctx, args) => {
         const me = await ownCodeAccount(ctx);
         const value = normalizeCreatorCode(args.code);
+        if (await codeChoiceComplete(ctx, me)) {
+            const sameCode = value === normalizeCreatorCode(me.referralCode ?? '');
+            return { value, available: sameCode, error: sameCode ? null : CODE_ALREADY_SET };
+        }
         const error = creatorCodeError(value) ?? (await referralCodeTaken(ctx, value, me._id) ? 'That code is already taken. Choose another one.' : null);
         return { value, available: !error, error };
     },
 });
 
-/** Rename only this active affiliate's code; shared aliases and financial history stay intact. */
+/** Choose once for this active affiliate; shared aliases and financial history stay intact. */
 export const updateCode = mutation({
     args: { code: v.string() },
     handler: async (ctx, args) => {
         const me = await ownCodeAccount(ctx);
         if (me.status !== 'active') throw new ConvexError('Your creator account is suspended.');
         const code = normalizeCreatorCode(args.code);
+        if (await codeChoiceComplete(ctx, me)) {
+            if (code === normalizeCreatorCode(me.referralCode ?? '')) return { code };
+            throw new ConvexError(CODE_ALREADY_SET);
+        }
         const error = creatorCodeError(code);
         if (error) throw new ConvexError(error);
         // This transaction rechecks availability: an earlier UI check is never a reservation.
         if (await referralCodeTaken(ctx, code, me._id)) throw new ConvexError('That code is already taken. Choose another one.');
         await reserveReferralCode(ctx, me.referralCode ?? '', me._id);
         await reserveReferralCode(ctx, code, me._id);
-        if (me.referralCode !== code) await ctx.db.patch(me._id, { referralCode: code });
+        await ctx.db.patch(me._id, { referralCode: code, creatorCodeChosenAt: Date.now() });
         return { code };
     },
 });

@@ -24,7 +24,8 @@ async function setup() {
     const ids = await t.run(async ctx => {
         const mika = await ctx.db.insert('creators', { clerkId: 'mika', email: 'mika@example.test', firstName: 'Mika', role: 'affiliate', status: 'active',
             affiliateHandle: 'mika', referralCode: OLD, affiliatePrice: 1999, balance: 750, totalEarnings: 1250, totalWithdrawn: 500 });
-        const toni = await ctx.db.insert('creators', { clerkId: 'toni', email: 'toni@example.test', role: 'affiliate', status: 'active', affiliateHandle: 'toni', referralCode: 'TONI30' });
+        const toni = await ctx.db.insert('creators', { clerkId: 'toni', email: 'toni@example.test', role: 'affiliate', status: 'active', affiliateHandle: 'toni', referralCode: 'AFFTONI8N3X' });
+        await ctx.db.insert('creators', { clerkId: 'toni-custom', email: 'toni-custom@example.test', role: 'affiliate', status: 'active', affiliateHandle: 'toni-custom', referralCode: 'TONI30' });
         const agent = await ctx.db.insert('creators', { clerkId: 'agent', email: 'agent@example.test', role: 'creator', status: 'active', referralCode: 'JOYD4K2', workCity: 'Marikina' });
         await ctx.db.insert('creators', { clerkId: 'admin', email: 'admin@example.test', role: 'admin', status: 'active' });
         const owner = await ctx.db.insert('businessOwners', { clerkId: 'owner', email: 'owner@example.test', name: 'Shop owner', createdAt: NOW });
@@ -43,7 +44,7 @@ async function setup() {
 }
 
 describe('readable creator codes and permanent aliases', () => {
-    it('checks normalized availability and saves only the code, preserving all existing prices, balances, referrals and payout records', async () => {
+    it('chooses a normalized code once while preserving all existing prices, balances, referrals and payout records', async () => {
         const { t, ids, mika } = await setup();
         const financialSnapshot = () => t.run(async ctx => ({
             submissions: await ctx.db.query('submissions').collect(), earnings: await ctx.db.query('earnings').collect(),
@@ -52,15 +53,17 @@ describe('readable creator codes and permanent aliases', () => {
         }));
         const before = await financialSnapshot();
         const account = await t.run(ctx => ctx.db.get(ids.mika));
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toEqual({ creatorId: ids.mika, code: OLD, canChoose: true, chosenAt: null });
         expect(await mika.query(api.creatorProgram.checkCodeAvailability, { code: '  mika30  ' })).toEqual({ value: 'MIKA30', available: true, error: null });
         expect(await mika.mutation(api.creatorProgram.updateCode, { code: '  mika30  ' })).toEqual({ code: 'MIKA30' });
-        expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual({ ...account, referralCode: 'MIKA30' });
+        expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual({ ...account, referralCode: 'MIKA30', creatorCodeChosenAt: NOW });
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toEqual({ creatorId: ids.mika, code: 'MIKA30', canChoose: false, chosenAt: NOW });
         expect(await financialSnapshot()).toEqual(before);
         expect((await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).map(row => ({ code: row.code, creatorId: row.creatorId }))).toEqual([
             { code: OLD, creatorId: ids.mika }, { code: 'MIKA30', creatorId: ids.mika },
         ]);
         for (const code of [OLD, 'MIKA30']) {
-            expect(await mika.query(api.creatorProgram.checkCodeAvailability, { code })).toEqual({ value: code, available: true, error: null });
+            expect(await mika.query(api.creatorProgram.checkCodeAvailability, { code })).toMatchObject({ value: code, available: code === 'MIKA30' });
             expect(await t.query(api.creatorProgram.checkAvailability, { code })).toMatchObject({ code: { available: false } });
             expect(await t.query(api.creatorProgram.getCreatorByCode, { code: code.toLowerCase() })).toMatchObject({ handle: 'mika', code: 'MIKA30', price: 3499, percentOff: 30 });
             expect((await t.query(api.creators.getByReferralCode, { referralCode: ` ${code.toLowerCase()} ` }))?._id).toBe(ids.mika);
@@ -69,16 +72,20 @@ describe('readable creator codes and permanent aliases', () => {
         expect(await t.run(ctx => ctx.db.system.query('_scheduled_functions').collect())).toEqual([]);
     });
 
-    it('lets the same creator reuse an earlier code and makes repeated saves idempotent', async () => {
-        const { t, mika } = await setup();
+    it('locks the first choice, preserves the printed alias, and makes same-code retries idempotent', async () => {
+        const { t, ids, mika } = await setup();
         await mika.mutation(api.creatorProgram.updateCode, { code: 'MIKA30' });
-        await mika.mutation(api.creatorProgram.updateCode, { code: 'MIKAREYES' });
-        await mika.mutation(api.creatorProgram.updateCode, { code: OLD });
+        const account = await t.run(ctx => ctx.db.get(ids.mika));
         const aliases = await t.run(ctx => ctx.db.query('creatorCodeAliases').collect());
         vi.setSystemTime(NOW + 1000);
-        expect(await mika.mutation(api.creatorProgram.updateCode, { code: OLD })).toEqual({ code: OLD });
+        expect(await mika.mutation(api.creatorProgram.updateCode, { code: ' mika30 ' })).toEqual({ code: 'MIKA30' });
+        for (const code of ['MIKAREYES', OLD]) {
+            await expect(mika.mutation(api.creatorProgram.updateCode, { code })).rejects.toThrow('already set and cannot be changed');
+            expect(await mika.query(api.creatorProgram.checkCodeAvailability, { code })).toMatchObject({ available: false });
+        }
+        expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual(account);
         expect(await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).toEqual(aliases);
-        expect(new Set(aliases.map(row => row.code))).toEqual(new Set([OLD, 'MIKA30', 'MIKAREYES']));
+        expect(new Set(aliases.map(row => row.code))).toEqual(new Set([OLD, 'MIKA30']));
     });
 
     it.each(['TONI30', 'JOYD4K2', 'OTR30', 'bad-code', 'TINY'.slice(0, 3), 'X'.repeat(17)])('rejects taken, reserved or invalid %s atomically', async code => {
@@ -115,6 +122,67 @@ describe('readable creator codes and permanent aliases', () => {
             .toEqual([expect.objectContaining({ creatorId: winner === 0 ? ids.mika : ids.toni })]);
     });
 
+    it('allows exactly one first choice when the same account submits two different available codes concurrently', async () => {
+        const { t, ids, mika } = await setup();
+        const candidates = ['FIRST30', 'SECOND30'];
+        expect((await Promise.all(candidates.map(code => mika.query(api.creatorProgram.checkCodeAvailability, { code })))).every(check => check.available)).toBe(true);
+        const results = await Promise.allSettled(candidates.map(code => mika.mutation(api.creatorProgram.updateCode, { code })));
+        expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1);
+        expect(results.filter(result => result.status === 'rejected')).toHaveLength(1);
+        const winner = results.find(result => result.status === 'fulfilled');
+        const chosen = winner?.status === 'fulfilled' ? winner.value.code : '';
+        expect(candidates).toContain(chosen);
+        expect(await t.run(ctx => ctx.db.get(ids.mika))).toMatchObject({ referralCode: chosen, creatorCodeChosenAt: NOW });
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toMatchObject({ code: chosen, canChoose: false, chosenAt: NOW });
+        expect(new Set((await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).map(row => row.code))).toEqual(new Set([OLD, chosen]));
+    });
+
+    it('treats an existing readable custom code as already chosen without requiring a backfill write', async () => {
+        const { t, ids, mika } = await setup();
+        await t.run(ctx => ctx.db.patch(ids.mika, { referralCode: 'MIKA30' }));
+        const before = await t.run(ctx => ctx.db.get(ids.mika));
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toEqual({ creatorId: ids.mika, code: 'MIKA30', canChoose: false, chosenAt: null });
+        await expect(mika.mutation(api.creatorProgram.updateCode, { code: 'OTHERFREE30' })).rejects.toThrow('already set');
+        expect(await mika.mutation(api.creatorProgram.updateCode, { code: 'mika30' })).toEqual({ code: 'MIKA30' });
+        expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual(before);
+        expect(await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).toEqual([]);
+    });
+
+    it('locks an AFF-shaped code with a prior distinct alias, but permits an untouched generated code with only its own reservation', async () => {
+        const { t, ids, mika } = await setup();
+        await t.run(ctx => ctx.db.insert('creatorCodeAliases', { creatorId: ids.mika, code: OLD, createdAt: NOW - 2000 }));
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toMatchObject({ canChoose: true });
+        await t.run(ctx => ctx.db.insert('creatorCodeAliases', { creatorId: ids.mika, code: 'PREVIOUS30', createdAt: NOW - 1000 }));
+        const before = await t.run(ctx => ctx.db.get(ids.mika));
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toMatchObject({ code: OLD, canChoose: false, chosenAt: null });
+        await expect(mika.mutation(api.creatorProgram.updateCode, { code: 'NEWFREE30' })).rejects.toThrow('already set');
+        expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual(before);
+    });
+
+    it('marks an explicitly chosen AFF-shaped signup code as complete and leaves generated fallbacks eligible', async () => {
+        const { t } = await setup();
+        const profile = { firstName: 'New', handle: 'new-person', code: 'AFFCHOSEN12', socials: [{ platform: 'tiktok' as const, handle: '@new' }] };
+        const chosen = t.withIdentity({ subject: 'chosen', email: 'chosen@example.test' });
+        const chosenId = await chosen.mutation(api.creatorProgram.apply, profile);
+        expect(await t.run(ctx => ctx.db.get(chosenId))).toMatchObject({ creatorCodeChosenAt: NOW });
+        await t.run(ctx => ctx.db.patch(chosenId, { status: 'active' }));
+        expect(await chosen.query(api.creatorProgram.codeSetup, {})).toMatchObject({ code: 'AFFCHOSEN12', canChoose: false, chosenAt: NOW });
+        await expect(chosen.mutation(api.creatorProgram.updateCode, { code: 'NEXT30' })).rejects.toThrow('already set');
+        const generated = t.withIdentity({ subject: 'generated', email: 'generated@example.test' });
+        const generatedId = await generated.mutation(api.creatorProgram.apply, { ...profile, code: undefined, handle: 'generated-person' });
+        await t.run(ctx => ctx.db.patch(generatedId, { status: 'active' }));
+        expect(await generated.query(api.creatorProgram.codeSetup, {})).toMatchObject({ canChoose: true, chosenAt: null });
+    });
+
+    it('lets an older affiliate with no code complete setup once without inventing an old alias', async () => {
+        const { t, ids, mika } = await setup();
+        await t.run(ctx => ctx.db.patch(ids.mika, { referralCode: undefined }));
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toEqual({ creatorId: ids.mika, code: null, canChoose: true, chosenAt: null });
+        await mika.mutation(api.creatorProgram.updateCode, { code: 'MIKA30' });
+        expect(await mika.query(api.creatorProgram.codeSetup, {})).toMatchObject({ code: 'MIKA30', canChoose: false, chosenAt: NOW });
+        expect((await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).map(row => row.code)).toEqual(['MIKA30']);
+    });
+
     it('keeps deleted account aliases reserved, including after the creator row is permanently removed', async () => {
         const { t, ids, mika, toni } = await setup();
         await mika.mutation(api.creatorProgram.updateCode, { code: 'MIKA30' });
@@ -130,6 +198,7 @@ describe('readable creator codes and permanent aliases', () => {
         const { t } = await setup();
         const caller = subject ? t.withIdentity({ subject }) : t;
         await expect(caller.query(api.creatorProgram.checkCodeAvailability, { code: 'NEWCODE30' })).rejects.toThrow();
+        await expect(caller.query(api.creatorProgram.codeSetup, {})).rejects.toThrow();
         await expect(caller.mutation(api.creatorProgram.updateCode, { code: 'NEWCODE30' })).rejects.toThrow();
         expect(await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).toEqual([]);
     });
@@ -141,6 +210,8 @@ describe('readable creator codes and permanent aliases', () => {
         else await expect(mika.query(api.creatorProgram.checkCodeAvailability, { code: OLD })).rejects.toThrow();
         const before = await t.run(ctx => ctx.db.get(ids.mika));
         await expect(mika.mutation(api.creatorProgram.updateCode, { code: 'MIKA30' })).rejects.toThrow();
+        if (status === 'suspended') expect(await mika.query(api.creatorProgram.codeSetup, {})).toMatchObject({ canChoose: false });
+        else await expect(mika.query(api.creatorProgram.codeSetup, {})).rejects.toThrow();
         expect(await t.run(ctx => ctx.db.get(ids.mika))).toEqual(before);
         expect(await t.run(ctx => ctx.db.query('creatorCodeAliases').collect())).toEqual([]);
     });

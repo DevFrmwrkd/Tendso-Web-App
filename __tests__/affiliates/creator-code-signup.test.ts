@@ -27,6 +27,7 @@ describe('legacy-compatible affiliate signup with an own creator code', () => {
         const id = await caller.mutation(api.affiliates.create, { ...signup, code: ' alex30 ' });
         const row = await t.run(ctx => ctx.db.get(id));
         expect(row).toMatchObject({ role: 'affiliate', status: 'pending', referralCode: 'ALEX30', affiliateHandle: 'alex-shops', balance: 0, totalEarnings: 0 });
+        expect(row?.creatorCodeChosenAt).toEqual(expect.any(Number));
         expect(row?.referredBy).toBeUndefined();
         expect(row?.referredByCode).toBeUndefined();
         expect(row?.recruitedByCreatorId).toBeUndefined();
@@ -42,6 +43,7 @@ describe('legacy-compatible affiliate signup with an own creator code', () => {
         const id = await caller.mutation(api.affiliates.create, signup);
         const before = await t.run(ctx => ctx.db.get(id));
         expect(before?.referralCode).toMatch(/^AFF[A-Z0-9]+$/);
+        expect(before?.creatorCodeChosenAt).toBeUndefined();
         const aliases = await t.run(ctx => ctx.db.query('creatorCodeAliases').collect());
         expect(await caller.mutation(api.affiliates.create, { ...signup, code: 'OTHER30', handle: 'different-page' })).toBe(id);
         expect(await t.run(ctx => ctx.db.get(id))).toEqual(before);
@@ -63,9 +65,10 @@ describe('legacy-compatible affiliate signup with an own creator code', () => {
         expect(await t.run(ctx => ctx.db.query('creators').withIndex('by_clerk_id', q => q.eq('clerkId', 'alex')).collect())).toEqual([]);
     });
 
-    it('atomically shares the namespace with an existing creator changing its code', async () => {
+    it('atomically shares the namespace with an existing creator completing its first code choice', async () => {
         const { t, caller } = await setup();
-        const other = t.withIdentity({ subject: 'other' });
+        await t.run(ctx => ctx.db.insert('creators', { clerkId: 'chooser', email: 'chooser@example.test', role: 'affiliate', status: 'active', affiliateHandle: 'chooser', referralCode: 'AFFCHOOSER1' }));
+        const other = t.withIdentity({ subject: 'chooser' });
         expect(await t.query(api.creatorProgram.checkAvailability, { code: 'RACING30' })).toMatchObject({ code: { available: true } });
         const results = await Promise.allSettled([
             caller.mutation(api.affiliates.create, { ...signup, code: 'RACING30' }),

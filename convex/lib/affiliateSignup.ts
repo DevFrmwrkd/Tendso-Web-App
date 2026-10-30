@@ -82,6 +82,7 @@ export async function insertAffiliateAccount(
         phone: input.phone,
         affiliateHandle: input.handle,
         referralCode,
+        ...(input.referralCode?.trim() ? { creatorCodeChosenAt: Date.now() } : {}),
         role: 'affiliate',
         status: 'pending',
         balance: 0,
