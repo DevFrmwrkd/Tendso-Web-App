@@ -1,6 +1,7 @@
 import type { FunctionReturnType } from 'convex/server';
 import { api, type Doc, type Id } from '@tendso/convex-client';
 import { clampSellPrice, commissionFor, WEBSITE_PRICE } from '../../../../packages/shared/pricing';
+import { saleStatusLabel } from '../../../../packages/shared/affiliateSales';
 import type { ChipTone } from '../v2';
 import { AFFILIATE_MESSAGE_MAX_LENGTH, AFFILIATE_SOCIAL_PLATFORMS, affiliatePhotoError, affiliateSocialPlatformLinkError, getAffiliateSocialLinks, type AffiliateSocialLinks } from '../../../../lib/affiliates';
 
@@ -47,9 +48,7 @@ export function affiliatePagePayload(draft: AffiliateDraft) {
   return { ...page, price: clampSellPrice(Number(draft.price)) };
 }
 
-export function saleStatus(status: string): string {
-  return ({ draft: 'Order received', pending: 'In review', approved: 'Approved', processing: 'Building website', website_generated: 'Website ready', deployed: 'Awaiting payment', pending_payment: 'Awaiting payment', paid: 'Paid', completed: 'Completed', rejected: 'Not approved', failed: 'Needs attention' } as Record<string, string>)[status] ?? status.replace(/_/g, ' ');
-}
+export const saleStatus = saleStatusLabel;
 
 export function saleTone(status: string): ChipTone {
   if (status === 'paid' || status === 'completed') return 'ok';

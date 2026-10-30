@@ -35,9 +35,16 @@ export interface PortalShop {
     date: number;
     paidAt: number | null;
     listPrice: number;
+    /** Agreed website price. This legacy field is not the owner's amount received. */
     paid: number;
     kept: number;
     status: ShopStatus;
+    /** Actual submission workflow, separate from the coarse aggregate status above. */
+    workflowStatus?: string;
+    /** Server payment truth; omitted by older APIs and sample data. */
+    paymentStatus?: 'paid_in_full' | 'partially_paid' | 'unpaid';
+    /** Whether an available/withdrawn direct commission ledger credit exists. */
+    commissionCredited?: boolean;
     /** Sample data only: "Tailor · Marikina". The API does not send it. */
     meta?: string;
 }

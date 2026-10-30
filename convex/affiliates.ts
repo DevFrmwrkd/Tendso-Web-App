@@ -1,6 +1,6 @@
 import { ConvexError, v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
-import { mutation, query, type QueryCtx } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import type { Doc } from './_generated/dataModel';
 import { requireAdmin, requireAuth } from './lib/auth';
 import {
@@ -9,7 +9,7 @@ import {
     AFFILIATE_SOCIAL_PLATFORMS, affiliateSocialPlatformLinkError, getAffiliateSocialLinks,
     type AffiliateSocialPlatform,
 } from '../lib/affiliates';
-import { clampSellPrice, creatorOverrideEndsAt, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
+import { clampSellPrice, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
 import { manilaMonth } from './creatorPortal';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
@@ -30,30 +30,6 @@ function selectedManilaMonth(value: string | undefined, now: number) {
 /** Optional additive field keeps older clients compatible with the portal shape. */
 function creditedLifetime(amount: number): { creditedTotalEarned?: number } {
     return { creditedTotalEarned: amount };
-}
-
-/** Development presentation only. Commission eligibility never reads this map. */
-function devBarPreviewFor(ctx: Pick<QueryCtx, 'db'>, affiliate: Doc<'creators'>): ReadonlyMap<string, number> | null {
-    if (process.env.CONVEX_CLOUD_URL !== 'https://diligent-ibex-454.convex.cloud'
-        || !affiliate.email.trim().toLowerCase().endsWith('+clerk_test@example.com')) return null;
-    const raw = process.env.DEV_AFFILIATE_BAR_PREVIEW;
-    if (!raw || raw.length > 8192) return null;
-    try {
-        const config: unknown = JSON.parse(raw);
-        if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-        const value = config as Record<string, unknown>;
-        if (Object.keys(value).sort().join(',') !== 'clerkId,creatorId,monthsLeftByRecruit'
-            || value.clerkId !== affiliate.clerkId || value.creatorId !== affiliate._id) return null;
-        const months = value.monthsLeftByRecruit;
-        if (!months || typeof months !== 'object' || Array.isArray(months)) return null;
-        const entries = Object.entries(months);
-        if (!entries.every(([id, amount]) => id.length > 0 && id.length <= 256
-            && ctx.db.normalizeId('creators', id) !== null
-            && typeof amount === 'number' && Number.isInteger(amount) && amount >= 0 && amount <= 12)) return null;
-        return new Map(entries as [string, number][]);
-    } catch {
-        return null;
-    }
 }
 
 /** Anonymous page data only. Private account, contact and payout data stay private. */
@@ -270,15 +246,11 @@ export const portal = query({
             }
         }
         const legacyReferredIds = new Set(referralRows.map((row) => row.referredId));
-        const barPreview = devBarPreviewFor(ctx, affiliate);
         const recruits = recruitRows
             .filter((recruit) => !recruit.isDeleted && recruit.status !== 'deleted'
                 && recruit.recruitedAt !== undefined && earnsCreatorOverride(recruit.recruitedAt)
                 && !legacyReferredIds.has(recruit._id))
             .map((recruit) => {
-                const demoMonthsLeft = recruit.role === 'creator'
-                    && /^dev_affiliate_[a-z0-9_]+:agent:[a-z0-9-]+$/.test(recruit.clerkId)
-                    ? barPreview?.get(recruit._id) : undefined;
                 return {
                     _id: recruit._id,
                     referredName: [recruit.firstName, recruit.lastName].filter(Boolean).join(' ') || 'New field agent',
@@ -286,11 +258,10 @@ export const portal = query({
                     photo: recruit.profileImage && /^https?:\/\//.test(recruit.profileImage) ? recruit.profileImage : null,
                     endsAt: creatorOverrideEndsAt(recruit.recruitedAt!),
                     earning: now < creatorOverrideEndsAt(recruit.recruitedAt!),
-                    monthsLeft: Math.max(0, Math.min(12, Math.ceil((creatorOverrideEndsAt(recruit.recruitedAt!) - now) / (30.4375 * 24 * 60 * 60 * 1000)))),
+                    monthsLeft: creatorOverrideMonthsLeft(recruit.recruitedAt!, now),
                     monthEarned: monthByRecruit.get(recruit._id) ?? 0,
                     totalEarned: overrideByRecruit.get(recruit._id) ?? 0,
                     ...creditedLifetime(creditedByRecruit.get(recruit._id) ?? 0),
-                    ...(demoMonthsLeft !== undefined ? { demoMonthsLeft } : {}),
                 };
             })
             .sort((a, b) => b.createdAt - a.createdAt);

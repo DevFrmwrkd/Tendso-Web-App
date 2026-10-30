@@ -5,6 +5,7 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
 import { fmtDate, fmtDay, fmtMonthName, firstName, peso, shopLinkFor, earnLinkFor, OVERRIDE_MONTHS } from "@/lib/v2/creatorProgram";
 import type { FunnelCounts, PortalPictures, PortalRecruit, PortalShop, PortalSummary, ShopStatus } from "@/lib/v2/creatorTypes";
+import { saleStatusLabel } from "@/packages/shared/affiliateSales";
 
 import { CopyButton, ShareButton } from "./CopyButton";
 import { Face, ShopThumb } from "./Face";
@@ -22,6 +23,27 @@ const SHOP_STATUS: Record<ShopStatus, { label: string; ok: boolean }> = {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const monthsLeftLabel = (m: number) => (m === 1 ? "1 month left" : `${m} months left`);
+
+function ShopProgress({ shop }: { shop: PortalShop }) {
+    const workflow = shop.workflowStatus?.trim();
+    const paidWorkflow = workflow === 'paid' || workflow === 'completed' || (!workflow && shop.status === 'paid');
+    const partial = shop.paymentStatus === 'partially_paid';
+    const unpaid = shop.paymentStatus === 'unpaid';
+    const label = (paidWorkflow || !workflow) && partial ? saleStatusLabel('deposit_paid')
+        : paidWorkflow && unpaid ? saleStatusLabel('pending_payment')
+        : workflow ? saleStatusLabel(workflow) : SHOP_STATUS[shop.status].label;
+    const payment = partial ? label === saleStatusLabel('deposit_paid') ? 'Balance due' : 'Down payment received · Balance due'
+        : shop.paymentStatus === 'paid_in_full' ? 'Paid in full' : unpaid ? 'No payment received' : null;
+    const ok = paidWorkflow && (shop.paymentStatus === undefined || shop.paymentStatus === 'paid_in_full');
+    return <div className="pt-shop-status">
+        <span className={`pt-st${ok ? ' pt-st--ok' : ''}`}>{label}</span>
+        {payment ? <small>{payment}</small> : null}
+    </div>;
+}
+
+function CommissionStatus({ credited }: { credited?: boolean }) {
+    return credited === undefined ? null : <small className="pt-commission-status">{credited ? 'Credited' : 'Not credited yet'}</small>;
+}
 
 function Months({ left }: { left: number }) {
     return (
@@ -168,9 +190,10 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
             </td>
             <td className="num">
                 <b>{peso(s.kept)}</b>
+                <CommissionStatus credited={s.commissionCredited} />
             </td>
             <td>
-                <span className={`pt-st${SHOP_STATUS[s.status].ok ? " pt-st--ok" : ""}`}>{SHOP_STATUS[s.status].label}</span>
+                <ShopProgress shop={s} />
             </td>
         </tr>
     );
@@ -240,6 +263,11 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     <div className="pt-h">
                         <h2>Your links and code</h2>
                         <span>Share these anywhere</span>
+                    </div>
+                    <div className="pt-page-entry">
+                        <div><b>Your creator page</b><p>Photo, display name, message and social links.</p></div>
+                        {sample ? <a className="pt-btn pt-btn--accent" href={`#${id('links')}`}>Edit your page</a>
+                            : <Link className="pt-btn pt-btn--accent" href={DISCOUNT_HREF}>Edit your page</Link>}
                     </div>
                     <div className="pt-links">
                         <div className="pt-link">
@@ -356,13 +384,13 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                 ) : (
                     <>
                         <div className="pt-tablewrap">
-                            <table className="pt-table">
+                            <table className="pt-table pt-sales-table">
                                 <thead>
                                     <tr>
                                         <th>Shop</th>
                                         <th>Date</th>
-                                        <th className="num">Price</th>
-                                        <th className="num">You keep</th>
+                                        <th className="num">Website price</th>
+                                        <th className="num">Your commission</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -371,17 +399,19 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                         </div>
                         <div className="pt-cards">
                             {shops.map((s) => (
-                                <div className="pt-c" key={s.submissionId}>
+                                <div className="pt-c pt-sale-card" key={s.submissionId}>
                                     <div className="pt-who">
                                         <ShopThumb src={shopPic(s.businessName)} name={s.businessName} />
                                         <div>
                                             <b>{s.businessName}</b>
-                                            {s.meta ? <span>{s.meta}</span> : <span>{SHOP_STATUS[s.status].label}</span>}
+                                            {s.meta ? <span>{s.meta}</span> : null}
+                                            <span>{fmtDay(s.paidAt ?? s.date)}</span>
                                         </div>
                                     </div>
-                                    <div className="r">
-                                        {peso(s.kept)}
-                                        <small>Price {peso(s.paid)}</small>
+                                    <ShopProgress shop={s} />
+                                    <div className="pt-sale-money">
+                                        <div><span>Website price</span><b>{peso(s.paid)}</b></div>
+                                        <div><span>Your commission</span><b>{peso(s.kept)}</b><CommissionStatus credited={s.commissionCredited} /></div>
                                     </div>
                                 </div>
                             ))}

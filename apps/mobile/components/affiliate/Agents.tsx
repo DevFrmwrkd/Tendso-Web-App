@@ -34,22 +34,18 @@ function InviteCopyAction({ label, disabled, onPress }: { label: string; disable
   </Pressable>;
 }
 
-/** Demo metadata changes the illustrated track only, never the actual period or eligibility. */
+/** Keep the track and its labels aligned with the actual commission period. */
 export function agentProgress(recruit: Recruit) {
-  const demo = recruit.demoMonthsLeft;
-  const simulated = typeof demo === 'number' && Number.isFinite(demo) && Number.isInteger(demo) && demo >= 0 && demo <= 12;
-  const months = simulated ? demo : Math.max(0, Math.min(12, recruit.monthsLeft ?? 0));
-  return { months, simulated };
+  const months = Number.isFinite(recruit.monthsLeft) ? Math.max(0, Math.min(12, recruit.monthsLeft)) : 0;
+  return { months };
 }
 
 export function AgentProgressTrack({ recruit, large = false }: { recruit: Recruit; large?: boolean }) {
-  const { months, simulated } = agentProgress(recruit);
+  const { months } = agentProgress(recruit);
   const until = recruit.earning ? `Until ${new Date(recruit.endsAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })}` : 'Commission period ended';
   return <View style={[styles.track, large && styles.largeTrack]} testID={`affiliate-agent-track-${recruit._id}`} accessibilityRole="progressbar"
-    accessibilityLabel={simulated
-      ? `${recruit.referredName}, simulated progress, ${months} of 12 months remaining in this example`
-      : `${recruit.referredName}, ${months} of 12 months remaining`}
-    accessibilityHint={simulated ? 'Example progress only. The actual commission period and expiry date are unchanged.' : until}
+    accessibilityLabel={`${recruit.referredName}, ${months} of 12 months remaining`}
+    accessibilityHint={until}
     accessibilityValue={{ min: 0, max: 12, now: months }}>
     <View testID={`affiliate-agent-progress-${recruit._id}`} style={[styles.trackFill, { width: `${months / 12 * 100}%` }]} />
   </View>;
@@ -163,13 +159,13 @@ export function AgentsContent({ account, isPreview, isOffline, isAuthenticated, 
     {portal === undefined ? <AffiliateLoading inline label="Loading your agents" /> : recruits.length ? <>
       {filtered.length ? <Card style={styles.agentList} testID="affiliate-agent-list">
         {filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map((recruit, index) => {
-          const { months, simulated } = agentProgress(recruit);
+          const { months } = agentProgress(recruit);
           const amount = recruit.monthEarned;
           const formatted = amount === undefined ? '—' : formatPHP(amount);
           const timeLabel = months ? `${months} ${months === 1 ? 'month' : 'months'} left` : 'Period ended';
           const stack = width < 360 || fontScale > 1.2 || formatted.length > 8;
           return <Pressable key={recruit._id} testID={`affiliate-agent-row-${recruit._id}`} accessibilityRole="button" accessibilityLabel={`View ${recruit.referredName}`}
-            accessibilityHint={`${formatted} share for ${monthLabel}. ${simulated ? 'Simulated progress: ' : ''}${timeLabel}. Opens the actual commission period and earnings.`}
+            accessibilityHint={`${formatted} share for ${monthLabel}. ${timeLabel}. Opens the actual commission period and earnings.`}
             onPress={() => router.push({ pathname: '/(app)/affiliate/agent/[agentId]', params: { agentId: recruit._id, ...(resolvedMonth ? { month: resolvedMonth } : {}) } })}
             style={[styles.agent, index > 0 && styles.divider]}>
             <View style={[styles.agentLine, stack && styles.stackedAgent]}>
@@ -181,7 +177,6 @@ export function AgentsContent({ account, isPreview, isOffline, isAuthenticated, 
                 style={[styles.amount, stack && styles.stackedAmount]}>{formatted}</Text>
             </View>
             <View style={[styles.time, fontScale > 1.2 && styles.stackedTime]}><AgentProgressTrack recruit={recruit} large={fontScale > 1.2} /><Text variant="label" tone="muted">{timeLabel}</Text></View>
-            {simulated ? <Text variant="label" tone="muted" style={styles.simulated}>Simulated progress</Text> : null}
           </Pressable>;
         })}
       </Card> : <EmptyState icon="checkmark-circle-outline" title="No ended periods" body="Your agents’ commission periods are still active." />}
@@ -273,7 +268,6 @@ const styles = StyleSheet.create({
   track: { flex: 1, minWidth: 0, height: 5, borderRadius: radius.pill, backgroundColor: colors.ruleStrong, overflow: 'hidden' },
   trackFill: { height: '100%', borderRadius: radius.pill, backgroundColor: colors.ink },
   largeTrack: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', height: 7, width: '100%' },
-  simulated: { marginTop: 5, marginLeft: 50 },
   pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.lg },
   pageButton: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },

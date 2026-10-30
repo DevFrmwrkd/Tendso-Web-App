@@ -60,7 +60,6 @@ export function AgentDetailContent({ account, isPreview, isOffline, portal, agen
           <View style={styles.time}>
             <View style={[styles.timeLabels, stack && styles.stacked]}><Text variant="label" weight="semibold">{progress.months ? `${progress.months} ${progress.months === 1 ? 'month' : 'months'} left` : 'Period ended'}</Text><Text variant="label" tone="muted">of 12 months</Text></View>
             <AgentProgressTrack recruit={recruit} large />
-            {progress.simulated ? <Text variant="label" tone="muted">Simulated progress</Text> : null}
           </View>
         </Card>
         <View style={styles.help}><Ionicons name="information-circle-outline" size={20} color={colors.ink3Text} /><Text variant="label" tone="muted" style={styles.helpText}>Commission is credited after the shop pays in full.</Text></View>

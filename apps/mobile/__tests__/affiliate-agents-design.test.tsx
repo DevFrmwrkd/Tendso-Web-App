@@ -1,7 +1,7 @@
 import React from 'react';
 import * as ReactNative from 'react-native';
 import { Share } from 'react-native';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react-native';
 import { AgentsContent } from '../components/affiliate/Agents';
 import { sampleAffiliate, samplePortal, type AffiliatePortal } from '../components/affiliate/model';
 import type { AffiliateAccessProps } from '../components/affiliate/Screen';
@@ -61,37 +61,42 @@ it('opens the owned recruit details with the selected earnings month', () => {
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/(app)/affiliate/agent/[agentId]', params: { agentId: 'agent-0', month: '2026-09' } });
 });
 
-it('filters ended periods by actual eligibility rather than simulated progress', () => {
-  const result = screen({ ...portal, recruits: [
-    { ...recruits[0], referredName: 'Active example', demoMonthsLeft: 0, earning: true },
-    { ...recruits[1], referredName: 'Ended agent', monthsLeft: 0, earning: false },
-  ] });
+it('filters ended periods by actual eligibility even with stale demo metadata', () => {
+  const active = { ...recruits[0], referredName: 'Active agent', demoMonthsLeft: 0, earning: true };
+  const ended = { ...recruits[1], referredName: 'Ended agent', monthsLeft: 0, demoMonthsLeft: 12, earning: false };
+  const result = screen({ ...portal, recruits: [active, ended] });
   fireEvent.press(result.getByLabelText('Agents whose period ended'));
   expect(result.getByText('Ended agent')).toBeTruthy();
-  expect(result.queryByText('Active example')).toBeNull();
+  expect(result.queryByText('Active agent')).toBeNull();
+  expect(result.getByLabelText('Ended agent, 0 of 12 months remaining').props.accessibilityHint).toBe('Commission period ended');
   expect(result.getByLabelText('Agents whose period ended').props.accessibilityState.selected).toBe(true);
   fireEvent.press(result.getByLabelText('All agents'));
-  expect(result.getByText('Active example')).toBeTruthy();
+  expect(result.getByText('Active agent')).toBeTruthy();
 });
 
-it.each([0, 3, 6, 9, 12])('labels %s demo months as simulated without claiming a real expiry', demoMonthsLeft => {
-  const data = { ...portal, recruits: [{ ...recruits[0], monthsLeft: 12, demoMonthsLeft, monthEarned: 123456789 }] };
-  const result = screen(data);
-  expect(result.getByText('Simulated progress')).toBeTruthy();
-  const progress = result.getByLabelText(`Agent 1, simulated progress, ${demoMonthsLeft} of 12 months remaining in this example`);
-  expect(progress.props.accessibilityValue).toEqual({ min: 0, max: 12, now: demoMonthsLeft });
-  expect(progress.props.accessibilityHint).toBe('Example progress only. The actual commission period and expiry date are unchanged.');
-  expect(result.queryByLabelText('Agent 1, 12 of 12 months remaining')).toBeNull();
+it.each([
+  { monthsLeft: 12, demoMonthsLeft: 3 },
+  { monthsLeft: 5, demoMonthsLeft: 0 },
+  { monthsLeft: 0, demoMonthsLeft: 12 },
+])('ignores stale demo metadata when the actual period has $monthsLeft months left', ({ monthsLeft, demoMonthsLeft }) => {
+  const recruit = { ...recruits[0], monthsLeft, demoMonthsLeft, earning: monthsLeft > 0, monthEarned: 123456789 };
+  const result = screen({ ...portal, recruits: [recruit] });
+  const progress = result.getByLabelText(`Agent 1, ${monthsLeft} of 12 months remaining`);
+  expect(progress.props.accessibilityValue).toEqual({ min: 0, max: 12, now: monthsLeft });
+  expect(progress.props.accessibilityHint).toBe(monthsLeft > 0 ? 'Until Oct 22, 2027' : 'Commission period ended');
+  expect(within(result.getByTestId('affiliate-agent-row-agent-0')).getByText(monthsLeft ? `${monthsLeft} months left` : 'Period ended')).toBeTruthy();
+  expect(result.getByTestId('affiliate-agent-progress-agent-0')).toHaveStyle({ width: `${monthsLeft / 12 * 100}%` });
+  expect(result.queryByText(/simulated progress/i)).toBeNull();
+  expect(result.queryByLabelText(/simulated progress/i)).toBeNull();
+  expect(result.getByLabelText('View Agent 1').props.accessibilityHint).not.toMatch(/simulated/i);
   expect(result.getByTestId('affiliate-agent-amount-agent-0').props.children).toBe('₱123,456,789');
 });
 
-it.each([-1, 13, 2.5, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, undefined, null, '9'])('ignores invalid simulated month metadata %s', invalid => {
-  const invalidRecruit = { ...recruits[0], demoMonthsLeft: invalid } as unknown as AffiliatePortal['recruits'][number];
-  const result = screen({ ...portal, recruits: [invalidRecruit] });
-  const progress = result.getByLabelText('Agent 1, 5 of 12 months remaining');
-  expect(progress.props.accessibilityValue.now).toBe(5);
-  expect(progress.props.accessibilityHint).toMatch(/^Until/);
-  expect(result.queryByText('Simulated progress')).toBeNull();
+it.each([[-1, 0], [13, 12], [Number.NaN, 0], [Number.POSITIVE_INFINITY, 0]])('bounds an invalid actual month count %s to %s', (monthsLeft, expected) => {
+  const result = screen({ ...portal, recruits: [{ ...recruits[0], monthsLeft }] });
+  const progress = result.getByLabelText(`Agent 1, ${expected} of 12 months remaining`);
+  expect(progress.props.accessibilityValue.now).toBe(expected);
+  expect(result.getByTestId('affiliate-agent-progress-agent-0')).toHaveStyle({ width: `${expected / 12 * 100}%` });
 });
 
 it('keeps four agents per page and disables controls at the page boundaries', () => {

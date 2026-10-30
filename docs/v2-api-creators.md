@@ -20,6 +20,7 @@ The Convex contract the web (`/v2/...`) and app agents build against. Written 20
 | `overrideFor(websitePrice)` | `round(price × 0.05)` | ₱999 → 50, ₱2,999 → 150, ₱3,499 → 175, ₱4,999 → 250 |
 | `earnsCreatorOverride(joinedAt)` | boolean | `joinedAt >= CREATOR_OVERRIDE_CUTOVER` |
 | `creatorOverrideEndsAt(joinedAt)` | ms | Join date + 12 calendar months |
+| `creatorOverrideMonthsLeft(joinedAt, now)` | integer 0–12 | Shared web/mobile display estimate: remaining time divided by 30.4375 days, rounded up and bounded to the 12-month program |
 
 ## Shared shape: `CreatorCard`
 
@@ -219,7 +220,7 @@ The redesigned detail view additionally reads optional `creditedTotalEarned: num
 
 Selecting a month changes the returned month, `income` totals and each recruit's `monthEarned` only. Available balance, pending commission, in-flight withdrawals, lifetime totals, histories, referral statistics and commission eligibility do not change. `earning`, `monthsLeft` and the exact commission expiry continue to use the actual current time.
 
-For development visual testing only, a recruit may additionally have `demoMonthsLeft?: number` (integer 0–12, including zero). This optional display value never changes `monthsLeft`, `endsAt`, `earning`, income, recruitment dates or commission eligibility. Clients must label it as simulated progress and must not infer real expiry from it. The field is omitted unless the automatic `CONVEX_CLOUD_URL` exactly matches the development deployment `https://diligent-ibex-454.convex.cloud`, the signed-in affiliate matches both configured IDs and has an email ending `+clerk_test@example.com`, and the owned post-cutover recruit has role `creator` and a synthetic `dev_affiliate_…:agent:…` Clerk subject. The server-only `DEV_AFFILIATE_BAR_PREVIEW` setting accepts exactly `{ "clerkId": "<test subject>", "creatorId": "<test creators id>", "monthsLeftByRecruit": { "<synthetic recruit id>": 9, "<another recruit id>": 0 } }`. Invalid configuration, any invalid map value, a different deployment/account or an unset setting omits the metadata; ordinary account and settlement behavior remains unchanged.
+Both `affiliates.portal` and `creatorPortal.summary` use `creatorOverrideMonthsLeft(joinedAt, now)` for the displayed months remaining. It is bounded to 0–12, including leap-year periods that would otherwise round up to 13, and is zero at or after the exact expiry. The estimate never changes recruitment dates, commission eligibility, or money. The previous development `demoMonthsLeft` response field has been removed; any stale `DEV_AFFILIATE_BAR_PREVIEW` setting is ignored.
 
 ### Native affiliate sales — `affiliates.sales`
 
@@ -293,7 +294,7 @@ Throws "Your creator account is waiting for admin approval." while pending, "A c
       overrideThisMonth: number;    // ₱
       overrideTotal: number;        // ₱
       endsAt: number;
-      monthsLeft: number;           // 0 when ended
+      monthsLeft: number;           // shared estimate bounded to 0–12; 0 at or after expiry
       earning: boolean;             // still inside the 12 months
     }[];                            // newest first
 
@@ -315,11 +316,18 @@ Throws "Your creator account is waiting for admin approval." while pending, "A c
     date: number;                   // order created
     paidAt: number | null;          // paid in full
     listPrice: number;              // struck-through price, e.g. 4999
-    paid: number;                   // what the shop pays (₱0 on a promo site)
-    kept: number;                   // the creator's 50%
+    paid: number;                   // agreed total charge, NOT money received (₱0 on a promo site)
+    kept: number;                   // agreed creator commission, NOT proof of credit
     status: "paid" | "paying" | "waiting" | "not_paid"; // paying = down payment made
+    workflowStatus: string;         // original submission.status, for a detailed lifecycle label
+    paymentStatus: "paid_in_full" | "partially_paid" | "unpaid";
+    commissionCredited: boolean;    // matching owned submission_approved ledger with status available/withdrawn
   };
   ```
+
+The three detailed sale fields are additive; the existing coarse `status`, totals and payment logic are unchanged. `paymentStatus` follows the shared payment truth: `paidInFullAt` proves full payment; a recorded down payment without full payment remains partial even if an old workflow says `paid` or `completed`. A legacy `deposit_paid` row is also partial. With no payment fields, legacy `paid`/`completed` rows are treated as paid in full.
+
+`commissionCredited` is independent of workflow and payment labels. It requires the signed-in creator's matching `submission_approved` earning with status `available` or `withdrawn`; pending earnings, team overrides, referral bonuses and another account's earnings do not qualify. The legacy `creatorPaidAt` timestamp alone is not used as evidence of a ledger credit. A stored `kept` amount is the agreed commission and can be shown before any credit exists.
 
 Withdrawals keep using the existing `withdrawals.create` and saved payout methods.
 

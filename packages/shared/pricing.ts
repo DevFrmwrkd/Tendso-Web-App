@@ -112,6 +112,15 @@ export function creatorOverrideEndsAt(joinedAt: number): number {
     return end.getTime();
 }
 
+/** Display estimate only; eligibility still uses the exact calendar-month end. */
+export function creatorOverrideMonthsLeft(joinedAt: number, now: number): number {
+    if (!Number.isFinite(joinedAt) || !Number.isFinite(now)) return 0;
+    const endsAt = creatorOverrideEndsAt(joinedAt);
+    if (!Number.isFinite(endsAt)) return 0;
+    const estimate = Math.ceil((endsAt - now) / (30.4375 * 24 * 60 * 60 * 1000));
+    return Math.max(0, Math.min(CREATOR_OVERRIDE_MONTHS, estimate));
+}
+
 /**
  * ── CAMPAIGN DISCOUNTS ──────────────────────────────────────────────────────
  *

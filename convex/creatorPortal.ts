@@ -4,7 +4,7 @@ import type { QueryCtx } from './_generated/server';
 import type { Doc } from './_generated/dataModel';
 import { requireAuth } from './lib/auth';
 import {
-    CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, clampSellPrice, creatorOverrideEndsAt,
+    CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE, WEBSITE_PRICE, clampSellPrice, creatorOverrideEndsAt, creatorOverrideMonthsLeft,
     domainAddOnFor, earnsCreatorOverride, isComped, overrideFor, ownerChargeFor,
 } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidInFull, isPaidSale, paidInFullTime } from './lib/creatorRecruits';
@@ -17,7 +17,6 @@ import { hasOutstandingBalance } from './lib/ownerApp';
  */
 
 const MANILA_OFFSET_MS = 8 * 60 * 60 * 1000;
-const AVG_MONTH_MS = 30.4375 * 24 * 60 * 60 * 1000;
 
 /** [start, end) of the Manila calendar month containing `now`. */
 export function manilaMonth(now: number) {
@@ -84,6 +83,10 @@ export const summary = query({
         ]);
 
         // ── Sell to shops (now money) ────────────────────────────────────────
+        const creditedSubmissionIds = new Set(earnings
+            .filter((row) => row.type === 'submission_approved'
+                && (row.status === 'available' || row.status === 'withdrawn'))
+            .map((row) => row.submissionId));
         const shops = ownSales
             .filter((submission) => !submission.giveawayApplication && submission.status !== 'draft')
             .map((submission) => ({
@@ -95,6 +98,11 @@ export const summary = query({
                 paid: ownerChargeFor(submission),
                 kept: submission.creatorPayout ?? 0,
                 status: shopStage(submission),
+                workflowStatus: submission.status,
+                paymentStatus: isPaidInFull(submission) ? 'paid_in_full' as const
+                    : submission.status === 'deposit_paid' || hasOutstandingBalance(submission) ? 'partially_paid' as const
+                    : 'unpaid' as const,
+                commissionCredited: creditedSubmissionIds.has(submission._id),
             }));
         const shopsThisMonth = shops.filter((shop) => shop.status === 'paid' && inMonth(shop.paidAt));
 
@@ -144,7 +152,7 @@ export const summary = query({
                     overrideThisMonth: earned.thisMonth,
                     overrideTotal: earned.total,
                     endsAt,
-                    monthsLeft: inWindow ? Math.max(1, Math.ceil((endsAt - now) / AVG_MONTH_MS)) : 0,
+                    monthsLeft: creatorOverrideMonthsLeft(joinedAt, now),
                     earning: inWindow,
                 };
             })))

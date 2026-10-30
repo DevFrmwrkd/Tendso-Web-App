@@ -5,7 +5,7 @@ import schema from '../../convex/schema';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import {
     CREATOR_CODE_DEFAULT_PRICE, CREATOR_OVERRIDE_CUTOVER, CREATOR_OVERRIDE_MONTHS, CREATOR_OVERRIDE_RATE,
-    REFERRAL_BONUS, creatorOverrideEndsAt, earnsCreatorOverride, overrideFor,
+    REFERRAL_BONUS, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, overrideFor,
 } from '../../lib/pricing';
 import { clientIpFromHeaders, hashIp } from '../../convex/lib/attribution';
 import { manilaMonth } from '../../convex/creatorPortal';
@@ -89,6 +89,107 @@ describe('override math', () => {
         expect(earnsCreatorOverride(CREATOR_OVERRIDE_CUTOVER - 1)).toBe(false);
         expect(new Date(creatorOverrideEndsAt(Date.UTC(2026, 10, 15))).toISOString()).toBe('2027-11-15T00:00:00.000Z');
         expect(REFERRAL_BONUS).toBe(1000);
+    });
+
+    it('caps the display estimate at twelve across leap years and reaches zero at exact expiry', () => {
+        const joinedAt = Date.UTC(2027, 2, 1, 4);
+        const endsAt = creatorOverrideEndsAt(joinedAt);
+        expect(endsAt - joinedAt).toBe(366 * DAY);
+        // Without the upper bound, this average-month estimate rounds up to 13.
+        expect(Math.ceil((endsAt - joinedAt) / (30.4375 * DAY))).toBe(13);
+        expect(creatorOverrideMonthsLeft(joinedAt, joinedAt - DAY)).toBe(12);
+        expect(creatorOverrideMonthsLeft(joinedAt, joinedAt)).toBe(12);
+        expect(creatorOverrideMonthsLeft(joinedAt, endsAt - 1)).toBe(1);
+        expect(creatorOverrideMonthsLeft(joinedAt, endsAt)).toBe(0);
+        expect(creatorOverrideMonthsLeft(joinedAt, endsAt + DAY)).toBe(0);
+        const leapDay = Date.UTC(2028, 1, 29, 4);
+        expect(creatorOverrideMonthsLeft(leapDay, leapDay)).toBe(12);
+        expect(creatorOverrideMonthsLeft(leapDay, creatorOverrideEndsAt(leapDay))).toBe(0);
+        expect(creatorOverrideMonthsLeft(Number.NaN, joinedAt)).toBe(0);
+        expect(creatorOverrideMonthsLeft(joinedAt, Number.POSITIVE_INFINITY)).toBe(0);
+    });
+});
+
+describe('creator portal sale detail', () => {
+    it.each([
+        ['pending', 'waiting'], ['processing', 'waiting'], ['website_generated', 'waiting'],
+        ['deployed', 'waiting'], ['pending_payment', 'waiting'], ['failed', 'waiting'],
+        ['rejected', 'not_paid'], ['unpublished', 'not_paid'],
+    ])('preserves the %s workflow separately from the existing %s aggregate status', async (workflowStatus, status) => {
+        const { t, creatorId, mika } = await setup();
+        const id = await addSale(t, creatorId, { status: workflowStatus, amount: 3499, creatorPayout: 1750 });
+        const summary = await mika.query(api.creatorPortal.summary, {});
+        expect(summary.shops.find(row => row.submissionId === id)).toMatchObject({
+            workflowStatus, status, paymentStatus: 'unpaid', commissionCredited: false, paid: 3499, kept: 1750,
+        });
+    });
+
+    it('uses payment fields before legacy workflow labels while preserving agreed price and commission', async () => {
+        const { t, creatorId, mika } = await setup();
+        const cases = [
+            { name: 'Legacy paid', fields: { status: 'paid' }, payment: 'paid_in_full', coarse: 'paid' },
+            { name: 'Legacy completed', fields: { status: 'completed' }, payment: 'paid_in_full', coarse: 'paid' },
+            { name: 'Legacy deposit', fields: { status: 'deposit_paid' }, payment: 'partially_paid', coarse: 'paying' },
+            { name: 'Completed with balance', fields: { status: 'completed', depositPaidAt: NOW, amountPaid: 500, balanceDue: 2999 }, payment: 'partially_paid', coarse: 'paying' },
+            { name: 'Paid with balance', fields: { status: 'paid', depositPaidAt: NOW }, payment: 'partially_paid', coarse: 'paying' },
+            { name: 'Full payment wins', fields: { status: 'deposit_paid', depositPaidAt: NOW - DAY, paidInFullAt: NOW, amountPaid: 3499, balanceDue: 0 }, payment: 'paid_in_full', coarse: 'paid' },
+            { name: 'Payment timestamp', fields: { status: 'processing', paidInFullAt: NOW }, payment: 'paid_in_full', coarse: 'paid' },
+        ] as const;
+        for (const row of cases) await addSale(t, creatorId, { ...row.fields, businessName: row.name, amount: 3499, creatorPayout: 1750 });
+        const before = await t.run(ctx => ctx.db.query('submissions').collect());
+        const summary = await mika.query(api.creatorPortal.summary, {});
+        for (const row of cases) expect(summary.shops.find(shop => shop.businessName === row.name)).toMatchObject({
+            workflowStatus: row.fields.status, paymentStatus: row.payment, status: row.coarse,
+            paid: 3499, kept: 1750, commissionCredited: false,
+        });
+        expect(await t.run(ctx => ctx.db.query('submissions').collect())).toEqual(before);
+        expect(await t.run(ctx => ctx.db.system.query('_scheduled_functions').collect())).toEqual([]);
+    });
+
+    it('reports commission credit only from an owned matching direct ledger credit, independent of workflow and timestamps', async () => {
+        const { t, creatorId, mika } = await setup();
+        const foreign = await addAgent(t, 'foreign-affiliate', { role: 'affiliate' });
+        const entries = [
+            { name: 'Available direct', creator: creatorId, type: 'submission_approved', status: 'available', expected: true },
+            { name: 'Withdrawn direct', creator: creatorId, type: 'submission_approved', status: 'withdrawn', expected: true },
+            { name: 'Pending direct', creator: creatorId, type: 'submission_approved', status: 'pending', expected: false },
+            { name: 'Team earning', creator: creatorId, type: 'creator_override', status: 'available', expected: false },
+            { name: 'Referral earning', creator: creatorId, type: 'referral_bonus', status: 'available', expected: false },
+            { name: 'Foreign direct', creator: foreign, type: 'submission_approved', status: 'available', expected: false },
+        ] as const;
+        for (const row of entries) {
+            const submissionId = await addSale(t, creatorId, { businessName: row.name, status: 'pending_payment', creatorPaidAt: NOW });
+            await t.run(ctx => ctx.db.insert('earnings', {
+                creatorId: row.creator, submissionId, amount: 1500, type: row.type, status: row.status, createdAt: NOW,
+            }));
+        }
+        const partialSale = await addSale(t, creatorId, { businessName: 'Deposit credited', status: 'deposit_paid', depositPaidAt: NOW });
+        await t.run(ctx => ctx.db.insert('earnings', {
+            creatorId, submissionId: partialSale, amount: 1500, type: 'submission_approved', status: 'available', createdAt: NOW,
+        }));
+        await addSale(t, creatorId, { businessName: 'Legacy timestamp only', status: 'completed', creatorPaidAt: NOW });
+        const foreignSale = await addSale(t, foreign, { businessName: 'Foreign shop', status: 'completed' });
+        await t.run(ctx => ctx.db.insert('earnings', {
+            creatorId, submissionId: foreignSale, amount: 1500, type: 'submission_approved', status: 'available', createdAt: NOW,
+        }));
+        const before = await t.run(async ctx => ({
+            creators: await ctx.db.query('creators').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }));
+        const summary = await mika.query(api.creatorPortal.summary, {});
+        for (const row of entries) expect(summary.shops.find(shop => shop.businessName === row.name)).toMatchObject({
+            commissionCredited: row.expected, workflowStatus: 'pending_payment', paymentStatus: 'unpaid',
+        });
+        expect(summary.shops.find(shop => shop.businessName === 'Legacy timestamp only')).toMatchObject({
+            paymentStatus: 'paid_in_full', commissionCredited: false,
+        });
+        expect(summary.shops.find(shop => shop.submissionId === partialSale)).toMatchObject({
+            workflowStatus: 'deposit_paid', paymentStatus: 'partially_paid', commissionCredited: true,
+        });
+        expect(summary.shops.some(shop => shop.submissionId === foreignSale)).toBe(false);
+        expect(await t.run(async ctx => ({
+            creators: await ctx.db.query('creators').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }))).toEqual(before);
+        expect(await t.run(ctx => ctx.db.system.query('_scheduled_functions').collect())).toEqual([]);
     });
 });
 

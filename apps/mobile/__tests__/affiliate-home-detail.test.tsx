@@ -103,8 +103,10 @@ it('shows only an owned recruit’s monthly share, lifetime earnings, rate and a
   expect(result.getByText('Recruited 22 Oct 2026')).toBeTruthy();
   expect(result.getByText('22 Oct 2027')).toBeTruthy();
   expect(result.getByText('Commission ends')).toBeTruthy();
-  expect(result.getByText('3 months left')).toBeTruthy();
-  expect(result.getByText('Simulated progress')).toBeTruthy();
+  expect(result.getByText('12 months left')).toBeTruthy();
+  expect(result.getByLabelText(`${recruit.referredName}, 12 of 12 months remaining`).props.accessibilityValue.now).toBe(12);
+  expect(result.queryByText(/simulated progress/i)).toBeNull();
+  expect(result.queryByLabelText(/simulated progress/i)).toBeNull();
   result.rerender(<AgentDetailContent {...access} portal={{ ...samplePortal, recruits: [recruit] }} agentId="someone-elses-agent" />);
   expect(result.getByText('Agent not found')).toBeTruthy();
   expect(result.queryByText(recruit.referredName)).toBeNull();
