@@ -8,7 +8,7 @@ import { Photo } from "./Photo";
 import { PhoneFrame } from "../PhoneFrame";
 
 const SITES = [
-    { id: "forge", name: "Forge Barbers", kind: "Barber · Marikina", src: "/v2/sites/forge-m.jpg", alt: "Forge Barbers website" },
+    { id: "forge", name: "Forge Barbers", kind: "Barber · Marikina", src: "/v2/sites/forge-m-fixed.jpg", alt: "Forge Barbers website" },
     { id: "hela", name: "Héla Hair Studio", kind: "Salon · Makati", src: "/v2/sites/hela-m.jpg", alt: "Héla Hair Studio website" },
     { id: "vulca", name: "Vulca Garage", kind: "Mechanic · Cebu City", src: "/v2/sites/vulca-m.jpg", alt: "Vulca Garage website" },
 ] as const;
@@ -127,7 +127,7 @@ export function ShopLinkContent({ card }: { card: CreatorCard }) {
                     </li>
                     <li className="as-step">
                         <figure>
-                            <Photo src="/v2/sites/forge-m.jpg" alt="A finished barber website" sizes="(max-width: 760px) 90vw, 30vw" position="top" />
+                            <Photo src="/v2/sites/forge-m-fixed.jpg" alt="A finished barber website" sizes="(max-width: 760px) 90vw, 30vw" position="top" />
                         </figure>
                         <div className="as-step-t">
                             <span>5</span>

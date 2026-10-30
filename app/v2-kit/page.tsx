@@ -316,7 +316,7 @@ export default function V2KitPage() {
                             <Label>sm · 220</Label>
                         </div>
                         <div className="flex flex-col gap-3">
-                            <PhoneFrame size="md" image={{ src: "/v2/sites/forge-m.jpg", alt: "Forge Barbers mobile site", bg: "#16171C", dark: true }} />
+                            <PhoneFrame size="md" image={{ src: "/v2/sites/forge-m-fixed.jpg", alt: "Forge Barbers mobile site", bg: "#16171C", dark: true }} />
                             <Label>md · 300</Label>
                         </div>
                         <div className="flex flex-col gap-3">
@@ -340,7 +340,7 @@ export default function V2KitPage() {
                     <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
                         <SiteCard href="https://tendso.com" host="vulca.tendso.site" name="Vulca Garage" kind="Auto repair" city="Cebu City" image={{ src: "/v2/sites/vulca-d.jpg" }} />
                         <SiteCard href="https://tendso.com" host="hela.tendso.site" name="Héla Hair Studio" kind="Hair salon" city="Makati" image={{ src: "/v2/sites/hela-d.jpg" }} />
-                        <SiteCard href="https://tendso.com" host="forge.tendso.site" name="Forge Barbers" kind="Barbershop" city="Marikina" image={{ src: "/v2/sites/forge-d.jpg" }} />
+                        <SiteCard href="https://tendso.com" host="forge.tendso.site" name="Forge Barbers" kind="Barbershop" city="Marikina" image={{ src: "/v2/sites/forge-d-fixed.jpg" }} />
                     </div>
                 </Block>
 

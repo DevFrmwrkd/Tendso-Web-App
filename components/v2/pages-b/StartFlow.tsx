@@ -640,7 +640,7 @@ export function StartFlow() {
                             <div className="pb-st-stage">
                                 <span className="pb-sample-tag pb-st-tag">Sample design · {kind.design}</span>
                                 <div className="pb-st-phone">
-                                    <SitePhone key={kind.site} src={`/v2/sites/${kind.site}-m.jpg`} url={address} alt="A sample Tendso site on a phone" />
+                                    <SitePhone key={kind.site} src={kind.site === "forge" ? "/v2/sites/forge-m-fixed.jpg" : `/v2/sites/${kind.site}-m.jpg`} url={address} alt="A sample Tendso site on a phone" />
                                 </div>
                             </div>
                             <div className="pb-st-price">
