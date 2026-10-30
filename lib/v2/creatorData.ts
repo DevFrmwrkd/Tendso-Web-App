@@ -191,12 +191,12 @@ export type PortalState =
     | { status: "ready"; data: PortalSummary; pictures?: PortalPictures };
 
 /** The signed-in creator's portal. The summary is only asked for once the account is active. */
-export function usePortal(): PortalState {
+export function usePortal(input: { month?: string } = {}): PortalState {
     const { isLoaded: clerkLoaded } = useAuth();
     const { isLoading, isAuthenticated } = useConvexAuth();
     const application = useMyApplication();
     const ready = application?.status === "active" || application?.status === "suspended";
-    const summary = useQuery(fn.portalSummary, CREATORS_SAMPLE || !ready ? "skip" : {});
+    const summary = useQuery(fn.portalSummary, CREATORS_SAMPLE || !ready || !isAuthenticated ? "skip" : input.month ? { month: input.month } : {});
 
     if (CREATORS_SAMPLE) return { status: "ready", data: SAMPLE_PORTAL, pictures: SAMPLE_PICTURES };
     if (!clerkLoaded || isLoading) return { status: "loading" };
@@ -212,7 +212,8 @@ export function usePortal(): PortalState {
         case "pending":
             return { status: "pending", handle: application.handle, code: application.code };
         default:
-            return summary === undefined ? { status: "loading" } : { status: "ready", data: summary };
+            return summary === undefined || (input.month !== undefined && summary.month.label !== input.month)
+                ? { status: "loading" } : { status: "ready", data: summary };
     }
 }
 

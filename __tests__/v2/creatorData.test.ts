@@ -6,7 +6,38 @@ jest.mock("convex/react", () => ({ useConvex: jest.fn(), useConvexAuth: jest.fn(
 jest.mock("@/convex/_generated/api", () => ({ api: jest.requireActual("convex/server").anyApi }));
 jest.mock("react", () => ({ ...jest.requireActual("react"), useCallback: (fn: unknown) => fn }));
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); });
+
+describe('creator portal historical month reads', () => {
+    function read(month?: string, returnedMonth = '2026-10', authenticated = true) {
+        const { useAuth } = jest.requireMock('@clerk/nextjs');
+        const { useConvexAuth, useQuery } = jest.requireMock('convex/react');
+        const { getFunctionName } = jest.requireActual('convex/server');
+        useAuth.mockReturnValue({ isLoaded: true });
+        useConvexAuth.mockReturnValue({ isLoading: false, isAuthenticated: authenticated });
+        useQuery.mockImplementation((ref: unknown) => getFunctionName(ref) === 'creatorProgram:myApplication'
+            ? { status: 'active' } : { month: { label: returnedMonth } });
+        let state: unknown;
+        function Probe() {
+            state = jest.requireActual('@/lib/v2/creatorData').usePortal({ month });
+            return null;
+        }
+        renderToStaticMarkup(createElement(Probe));
+        return { state, args: useQuery.mock.calls.filter(([ref]: [unknown]) => getFunctionName(ref) === 'creatorPortal:summary').at(-1)?.[1] };
+    }
+
+    beforeEach(() => jest.clearAllMocks());
+    it('requests the chosen month and keeps the default current-month call compatible', () => {
+        expect(read('2026-10')).toMatchObject({ args: { month: '2026-10' }, state: { status: 'ready' } });
+        expect(read()).toMatchObject({ args: {}, state: { status: 'ready' } });
+    });
+    it('hides stale totals until the selected period arrives', () => {
+        expect(read('2026-09')).toMatchObject({ state: { status: 'loading' } });
+    });
+    it('skips financial queries after sign-out', () => {
+        expect(read('2026-10', '2026-10', false)).toMatchObject({ args: 'skip', state: { status: 'signed_out' } });
+    });
+});
 
 describe("creator sample mode", () => {
     it.each([

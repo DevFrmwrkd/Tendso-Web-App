@@ -16,6 +16,7 @@ import { PendingAffiliateApproval } from '../../components/affiliate/PendingAppr
 import { colors, fonts } from '../../theme/tokens';
 import { hasOwnerIntent } from '../../lib/v2/ownerIntake';
 import { fieldAgentWorkspaceRedirect } from '../../services/fieldAgentFinds';
+import { NotificationResponseOpener } from '../../hooks/useNotificationOpen';
 
 const AUTH_CACHE_KEY = 'ndm_was_signed_in';
 
@@ -186,6 +187,11 @@ export default function AppLayout() {
       <Stack.Screen name="submit/review" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/success" options={{ gestureEnabled: false }} />
     </Stack>
+    {isLoaded && isSignedIn === true && userId && mobileAccount.isAuthenticated && !mobileAccount.isOffline
+      && !mobileAccount.isPreview && mobileAccount.account?.clerkId === userId && mobileAccount.role
+      && !fieldAgentNeedsOnboarding(mobileAccount.account)
+      && (mobileAccount.role !== 'affiliate' || ['active', 'suspended'].includes(mobileAccount.account.status ?? ''))
+      ? <NotificationResponseOpener key={`${userId}:${mobileAccount.account._id}`} subject={userId} creatorId={mobileAccount.account._id} /> : null}
     </View>
   );
 }

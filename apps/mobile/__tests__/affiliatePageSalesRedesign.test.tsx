@@ -4,7 +4,7 @@ import { AffiliatePageScreen } from '../components/affiliate/PageOverview';
 import { AffiliatePageEditorScreen } from '../components/affiliate/PageEditor';
 import { AffiliateOfferScreen } from '../components/affiliate/Offer';
 import { AffiliateSalesScreen, SalesContent } from '../components/affiliate/Sales';
-import { sampleAffiliate, sampleSales } from '../components/affiliate/model';
+import { type AffiliateSale, sampleAffiliate, sampleSales } from '../components/affiliate/model';
 import MyPageRoute from '../app/(app)/affiliate/page';
 import EditPageRoute from '../app/(app)/affiliate/page-edit';
 
@@ -138,18 +138,73 @@ it('labels frozen sale amounts and keeps unpaid commission visibly uncredited', 
   expect(view.getAllByText('Website price')).toHaveLength(2);
   expect(view.getAllByText('Your commission')).toHaveLength(2);
   expect(view.getByText('Not credited yet')).toBeTruthy();
+  expect(view.getByText('Credited')).toBeTruthy();
   fireEvent.press(view.getByRole('button', { name: 'Paid' }));
   expect(view.getByText('Sample barbershop')).toBeTruthy();
   expect(view.queryByText('Sample tailor shop')).toBeNull();
   expect(view.queryByText('Not credited yet')).toBeNull();
 });
 
+it('keeps payment, workflow and ledger credit independent when filtering sales', () => {
+  const sale = (name: string, fields: Partial<AffiliateSale>): AffiliateSale => ({ ...sampleSales[0], _id: name as AffiliateSale['_id'], businessName: name, ...fields });
+  const sales = [
+    sale('Fully paid, credit pending', { status: 'processing', workflowStatus: 'processing', paymentStatus: 'paid_in_full', commissionCredited: false }),
+    sale('Completed but unpaid', { status: 'completed', workflowStatus: 'completed', paymentStatus: 'unpaid', commissionCredited: false }),
+    sale('Completed with balance due', { status: 'completed', workflowStatus: 'completed', paymentStatus: 'partially_paid', commissionCredited: false }),
+    sale('Actually credited', { status: 'paid', workflowStatus: 'paid', paymentStatus: 'paid_in_full', commissionCredited: true }),
+  ];
+  const view = render(<SalesContent {...mockAccess} sales={sales} />);
+  expect(view.getByText('Building website')).toBeTruthy();
+  expect(view.getByText('Awaiting payment')).toBeTruthy();
+  expect(view.getByText('No payment received')).toBeTruthy();
+  expect(view.getByText('Down payment received')).toBeTruthy();
+  expect(view.getByText('Balance due')).toBeTruthy();
+  expect(view.getAllByText('Not credited yet')).toHaveLength(3);
+  expect(view.getByText('Credited')).toBeTruthy();
+  expect(view.queryByText('Completed')).toBeNull();
+  fireEvent.press(view.getByRole('button', { name: 'Paid' }));
+  expect(view.getByText('Fully paid, credit pending')).toBeTruthy();
+  expect(view.getByText('Actually credited')).toBeTruthy();
+  expect(view.queryByText('Completed but unpaid')).toBeNull();
+  expect(view.queryByText('Completed with balance due')).toBeNull();
+  expect(view.getByText('Not credited yet')).toBeTruthy();
+  expect(view.getByText('Credited')).toBeTruthy();
+});
+
+it('does not infer ledger credit from a legacy response without credit facts', () => {
+  const { workflowStatus: _workflow, paymentStatus: _payment, commissionCredited: _credit, ...legacy } = sampleSales[0];
+  const view = render(<SalesContent {...mockAccess} sales={[legacy]} />);
+  expect(view.queryByText('Credited')).toBeNull();
+  expect(view.queryByText('Not credited yet')).toBeNull();
+  fireEvent.press(view.getByRole('button', { name: 'Paid' }));
+  expect(view.getByText('Sample barbershop')).toBeTruthy();
+});
+
 it('queries the selected month and paid filter before pagination', () => {
   mockParams.month = '2026-09';
   const view = render(<AffiliateSalesScreen />);
+  expect(view.getByText('September 2026')).toBeTruthy();
   expect(mockPaginated).toHaveBeenLastCalledWith('affiliates:sales', { month: '2026-09' }, { initialNumItems: 10 });
   fireEvent.press(view.getByRole('button', { name: 'Paid' }));
   expect(mockPaginated).toHaveBeenLastCalledWith('affiliates:sales', { month: '2026-09', status: 'paid' }, { initialNumItems: 10 });
+  expect(view.getByText('September 2026')).toBeTruthy();
+});
+
+it('preserves the selected month through live loading and shows only matching preview samples without queries', () => {
+  mockParams.month = '2026-09';
+  mockPaginated.mockReturnValue({ results: [], status: 'LoadingFirstPage', loadMore: jest.fn() });
+  const view = render(<AffiliateSalesScreen />);
+  expect(view.getByText('September 2026')).toBeTruthy();
+  expect(view.getByText('Loading your sales')).toBeTruthy();
+  expect(view.queryByText('No sales yet')).toBeNull();
+  view.unmount();
+  mockPaginated.mockClear();
+  mockAccess.isPreview = true;
+  const preview = render(<AffiliateSalesScreen />);
+  expect(preview.getByText('September 2026')).toBeTruthy();
+  expect(preview.getByText('No sales yet')).toBeTruthy();
+  expect(preview.queryByText('Sample barbershop')).toBeNull();
+  expect(mockPaginated).not.toHaveBeenCalled();
 });
 
 it('never mounts sales or mutation hooks in an admin preview', () => {

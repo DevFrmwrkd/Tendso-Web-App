@@ -6,6 +6,7 @@ const mockRouter = { push: jest.fn(), back: jest.fn() };
 const mockMarkRead = jest.fn();
 const mockMarkAllRead = jest.fn();
 const mockDetailsQuery = jest.fn();
+const mockParams: { notificationId?: string | string[]; notificationOpenKey?: string } = {};
 let mockUser: { id: string } | null;
 let mockConnected: boolean;
 let mockAccounts: Record<string, any>;
@@ -16,6 +17,7 @@ jest.mock('@clerk/clerk-expo', () => ({ useUser: () => ({ user: mockUser }) }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('expo-router', () => ({
+  useLocalSearchParams: () => mockParams,
   useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
 }));
 jest.mock('@tendso/convex-client', () => ({ api: {
@@ -80,6 +82,8 @@ beforeEach(() => {
   };
   mockNotifications = { 'agent-1': [], 'agent-2': [] };
   mockDetails = {};
+  delete mockParams.notificationId;
+  delete mockParams.notificationOpenKey;
   mockMarkRead.mockReset().mockResolvedValue(undefined);
   mockMarkAllRead.mockReset().mockResolvedValue(undefined);
 });
@@ -315,4 +319,55 @@ it('renders an empty inbox without offering a detail modal', () => {
   expect(view.getByText('No notifications yet')).toBeTruthy();
   expect(view.queryByTestId('notification-full-body')).toBeNull();
   expect(mockDetailsQuery).not.toHaveBeenCalled();
+});
+
+it('auto-opens only the requested owned push message after the inbox resolves and reads no other rows', async () => {
+  const first = notification();
+  const second = notification({ _id: 'notice-2', title: 'The tapped message', body: 'Its complete details.' });
+  mockParams.notificationId = second._id;
+  mockParams.notificationOpenKey = 'delivery-1';
+  mockNotifications['agent-1'] = undefined as never;
+  const view = render(<NotificationsScreen />);
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  mockNotifications['agent-1'] = [first, second];
+  view.rerender(<NotificationsScreen />);
+  expect(view.getByTestId('notification-full-body').props.children).toBe(second.body);
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  expect(mockMarkRead).toHaveBeenCalledWith({ id: second._id });
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+  await act(flush);
+  mockNotifications['agent-1'] = [first, { ...second, read: true }];
+  view.rerender(<NotificationsScreen />);
+  expect(within(view.getByRole('button', { name: `${first.title}: ${first.body}` })).getByLabelText('Unread')).toBeTruthy();
+  fireEvent.press(view.getByRole('button', { name: 'Close notification' }));
+  view.rerender(<NotificationsScreen />);
+  expect(view.queryByTestId('notification-full-body')).toBeNull();
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  // A distinct delivery may intentionally reopen this same (already-read) message.
+  mockParams.notificationOpenKey = 'delivery-2';
+  view.rerender(<NotificationsScreen />);
+  expect(view.getByTestId('notification-full-body').props.children).toBe(second.body);
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+});
+
+it.each([{ target: 'notice-foreign' }, { target: 'https://example.test' }, { target: ['notice-1', 'notice-2'] }])('ignores an unavailable, foreign or malformed notification target $target', ({ target }) => {
+  mockParams.notificationId = target;
+  mockNotifications['agent-1'] = [notification()];
+  mockNotifications['agent-2'] = [notification({ _id: 'notice-foreign', creatorId: 'agent-2' })];
+  const view = render(<NotificationsScreen />);
+  expect(view.queryByTestId('notification-full-body')).toBeNull();
+  expect(mockMarkRead).not.toHaveBeenCalled();
+  expect(mockDetailsQuery).not.toHaveBeenCalled();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+});
+
+it('does not reopen the previous recipient’s auto-open target after changing accounts', () => {
+  mockParams.notificationId = 'notice-1';
+  const view = inbox();
+  expect(view.getByTestId('notification-full-body')).toBeTruthy();
+  mockUser = { id: 'clerk-other' };
+  view.rerender(<NotificationsScreen />);
+  expect(view.queryByTestId('notification-full-body')).toBeNull();
+  expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
 });

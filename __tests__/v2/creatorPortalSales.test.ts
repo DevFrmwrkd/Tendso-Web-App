@@ -155,7 +155,7 @@ describe('standalone portal phone details', () => {
     it('retains desktop income rows and exposes the same recent shop earnings in a phone disclosure', () => {
         const data = { ...portal([base]), now: { thisMonth: 1750, shopsThisMonth: 1, shops: [base] } };
         const html = renderToStaticMarkup(createElement(PortalView, { data, compactIncome: true }));
-        const income = html.match(/<section[^>]*aria-label="This month&#x27;s income"[^>]*>([\s\S]*?)<\/section>/)?.[1];
+        const income = html.match(/<section[^>]*aria-label="Income for [^"]+"[^>]*>([\s\S]*?)<\/section>/)?.[1];
         const desktopRows = income?.match(/<div class="pt-income-inline">([\s\S]*?)<\/article>/)?.[1];
         const disclosure = income?.match(/<details class="pt-income-details">([\s\S]*?)<\/details>/)?.[1];
         expect(desktopRows).toContain('Sam’s Barbershop');

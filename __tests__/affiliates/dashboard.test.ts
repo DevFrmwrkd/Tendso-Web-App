@@ -62,10 +62,11 @@ describe('affiliate dashboard sales', () => {
         expect(first.page.map((row) => row._id)).toEqual([newest, middle]);
         expect(first.isDone).toBe(false);
         expect(first.continueCursor).toEqual(expect.any(String));
-        expect(Object.keys(first.page[0]).sort()).toEqual(['_id', 'businessName', 'commission', 'createdAt', 'price', 'status']);
+        expect(Object.keys(first.page[0]).sort()).toEqual(['_id', 'businessName', 'commission', 'commissionCredited', 'createdAt', 'paymentStatus', 'price', 'status', 'workflowStatus']);
         expect(first.page[0]).toEqual({
             _id: newest, businessName: 'Latest Shop', commission: 1000, price: 1999,
-            status: 'pending_payment', createdAt: (await t.run((ctx) => ctx.db.get(newest)))!._creationTime,
+            status: 'pending_payment', workflowStatus: 'pending_payment', paymentStatus: 'unpaid', commissionCredited: false,
+            createdAt: (await t.run((ctx) => ctx.db.get(newest)))!._creationTime,
         });
         const next = await affiliate.query(api.affiliates.sales, {
             paginationOpts: { numItems: 2, cursor: first.continueCursor },
@@ -73,6 +74,42 @@ describe('affiliate dashboard sales', () => {
         expect(next.page.map((row) => row._id)).toEqual([oldest]);
         expect(next.isDone).toBe(true);
         expect((await other.query(api.affiliates.sales, { paginationOpts })).page.map((row) => row.businessName)).toEqual(['Another Affiliate Shop']);
+    });
+
+    it('reports payment, workflow and actual own ledger credit independently without changing frozen sale amounts', async () => {
+        const { t, affiliate, id, otherId } = await setup();
+        const full = await sale(t, id, 'Paid before building finished', { status: 'processing', paidInFullAt: Date.now(), creatorPaidAt: Date.now(), amount: 2499, creatorPayout: 1250 });
+        const partial = await sale(t, id, 'Legacy completed, balance due', { status: 'completed', depositPaidAt: Date.now() });
+        const legacy = await sale(t, id, 'Legacy paid in full');
+        const available = await sale(t, id, 'Available credit', { status: 'website_generated' });
+        const withdrawn = await sale(t, id, 'Withdrawn credit', { paidInFullAt: Date.now() });
+        const pending = await sale(t, id, 'Pending ledger', { status: 'pending_payment' });
+        const wrongType = await sale(t, id, 'Different earning type');
+        const wrongOwner = await sale(t, id, 'Other account ledger');
+        await t.run(async ctx => {
+            for (const [submissionId, creatorId, type, status] of [
+                [available, id, 'submission_approved', 'available'],
+                [withdrawn, id, 'submission_approved', 'withdrawn'],
+                [pending, id, 'submission_approved', 'pending'],
+                [wrongType, id, 'creator_override', 'available'],
+                [wrongOwner, otherId, 'submission_approved', 'available'],
+            ] as const) await ctx.db.insert('earnings', { creatorId, submissionId, type, status, amount: 1000, createdAt: Date.now() });
+        });
+        const before = await t.run(async ctx => ({
+            account: await ctx.db.get(id), submissions: await ctx.db.query('submissions').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }));
+        const rows = (await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 20, cursor: null } })).page;
+        const byId = new Map(rows.map(row => [row._id, row]));
+        expect(byId.get(full)).toMatchObject({ price: 2499, commission: 1250, status: 'processing', workflowStatus: 'processing', paymentStatus: 'paid_in_full', commissionCredited: false });
+        expect(byId.get(partial)).toMatchObject({ workflowStatus: 'completed', paymentStatus: 'partially_paid', commissionCredited: false });
+        expect(byId.get(legacy)).toMatchObject({ paymentStatus: 'paid_in_full', commissionCredited: false });
+        expect(byId.get(available)).toMatchObject({ workflowStatus: 'website_generated', paymentStatus: 'unpaid', commissionCredited: true });
+        expect(byId.get(withdrawn)).toMatchObject({ paymentStatus: 'paid_in_full', commissionCredited: true });
+        for (const submissionId of [pending, wrongType, wrongOwner]) expect(byId.get(submissionId)?.commissionCredited).toBe(false);
+        expect(await t.run(async ctx => ({
+            account: await ctx.db.get(id), submissions: await ctx.db.query('submissions').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }))).toEqual(before);
+        expect(JSON.stringify(rows)).not.toMatch(/Private Owner|09171234567|private@example|Private Street|private-photo|Private interview/);
     });
 
     it('keeps historical owner charges and frozen commissions while saving fixed-price page settings', async () => {

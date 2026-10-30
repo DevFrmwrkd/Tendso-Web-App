@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { redirect } from 'next/navigation';
 
 import CanonicalMyPage, { metadata } from '@/app/v2/creators/portal/my-page/page';
+import CanonicalAccount from '@/app/v2/creators/portal/account/page';
+import CanonicalPayouts from '@/app/v2/creators/portal/payouts/page';
 import LegacyAffiliateSectionPage from '@/app/affiliates/dashboard/[section]/page';
 import { AffiliateDashboardBoundary } from '@/app/affiliates/dashboard/_components/AffiliateShell';
 import { AffiliateSectionContent } from '@/app/affiliates/dashboard/_components/AffiliateSectionContent';
@@ -12,13 +14,14 @@ import { PortalView } from '@/components/v2/creators/PortalView';
 import { usePortal, type PortalState } from '@/lib/v2/creatorData';
 import { SAMPLE_PORTAL } from '@/lib/v2/creatorSample';
 
-jest.mock('@clerk/nextjs', () => ({ useClerk: () => ({ signOut: jest.fn() }) }));
+jest.mock('@clerk/nextjs', () => ({ useClerk: () => ({ signOut: jest.fn() }), useUser: () => ({ user: { id: 'current-user' } }) }));
 jest.mock('next/navigation', () => ({
     redirect: jest.fn(() => { throw new Error('NEXT_REDIRECT'); }),
     notFound: jest.fn(() => { throw new Error('NEXT_NOT_FOUND'); }),
 }));
 jest.mock('@/lib/v2/creatorData', () => ({ CREATORS_SAMPLE: false, usePortal: jest.fn() }));
 jest.mock('@/components/v2/creators/PortalView', () => ({ PortalView: jest.fn(() => 'portal-overview-content') }));
+jest.mock('@/components/v2/creators/PortalUtilities', () => ({ PortalUtilities: jest.fn(() => 'portal-utility-actions') }));
 jest.mock('@/components/v2/creators/PortalFrame.module.css', () => ({}));
 jest.mock('@/app/affiliates/dashboard/_components/AffiliateShell', () => ({
     AffiliateDashboardBoundary: jest.fn(({ children }: { children?: import('react').ReactNode }) => children),
@@ -30,7 +33,7 @@ jest.mock('@/app/affiliates/dashboard/_components/AffiliateSectionContent', () =
 const EDITOR = '/v2/creators/portal/my-page';
 const NAV_HREFS = [
     '/v2/creators/portal#top', '/v2/creators/portal#pt-links', '/v2/creators/portal#pt-agents',
-    '/v2/creators/portal#pt-shops', '/v2/creators/portal#pt-pay', EDITOR,
+    '/v2/creators/portal#pt-shops', '/v2/creators/portal/payouts', EDITOR,
 ];
 const identity = { name: 'Ana Cruz', photo: null };
 
@@ -82,10 +85,31 @@ describe('shared creator portal frame', () => {
     });
 
     it('keeps sample navigation local instead of opening a real account editor', () => {
-        const html = renderToStaticMarkup(createElement(PortalFrame, { identity, sample: true, children: 'sample-content' }));
+        const html = renderToStaticMarkup(createElement(PortalFrame, {
+            identity, sample: true, children: 'sample-content',
+            utilityActions: createElement('button', { type: 'button' }, 'live-account-action'),
+        }));
         expect(hrefs(nav(html))).toEqual(['#top', '#pt-links', '#pt-agents', '#pt-shops', '#pt-pay', '#pt-links']);
         expect(html).not.toContain(`href="${EDITOR}"`);
         expect(html).not.toContain('href="/affiliates/dashboard/my-page"');
+        expect(html).not.toContain('href="/v2/creators/portal/account"');
+        expect(html).not.toContain('href="/v2/creators/portal/payouts"');
+        expect(html).not.toContain('live-account-action');
+    });
+
+    it.each(['account', 'payouts'] as const)('keeps the %s screen in the same frame and marks its actual destination current', currentPage => {
+        const html = renderToStaticMarkup(createElement(PortalFrame, {
+            identity, currentPage, children: `${currentPage}-content`,
+            utilityActions: createElement('button', { type: 'button' }, 'Notifications'),
+        }));
+        expect(hrefs(nav(html))).toEqual(NAV_HREFS);
+        expect(html).toContain(`${currentPage}-content`);
+        expect(html).toContain('Notifications');
+        expect(html).toContain('href="/v2/creators/portal/account"');
+        const current = html.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
+        expect(current).toHaveLength(1);
+        expect(current[0]).toContain(`href="/v2/creators/portal/${currentPage}"`);
+        expect(html).not.toContain('Back to portal');
     });
 
     it('does not show an account identity or navigation before the portal is ready', () => {
@@ -95,12 +119,30 @@ describe('shared creator portal frame', () => {
         expect(html).toContain('Log in');
         expect(html).not.toContain('aria-label="Creator portal"');
         expect(html).not.toContain('Edit your creator page');
+        expect(html).not.toContain('href="/v2/creators/portal/account"');
         expect(html).toContain('loading-content');
         expect(footer(html)).toContain('Privacy');
     });
 });
 
 describe('portal home uses the shared frame', () => {
+    it('labels the month input and limits it to the current Manila month', () => {
+        const now = jest.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 9, 31, 16, 30));
+        try {
+            jest.mocked(usePortal).mockReturnValue({ status: 'ready', data: SAMPLE_PORTAL });
+            const html = renderToStaticMarkup(createElement(PortalPage));
+            const monthInput = html.match(/<input\b[^>]*type="month"[^>]*>/)?.[0];
+            expect(monthInput).toBeDefined();
+            const id = monthInput!.match(/\bid="([^"]+)"/)?.[1];
+            expect(id).toBeDefined();
+            expect(html).toContain(`<label for="${id}">Month</label>`);
+            expect(monthInput).toContain('max="2026-11"');
+            expect(monthInput).toContain(`value="${SAMPLE_PORTAL.month.label}"`);
+            expect(monthInput).not.toContain('disabled');
+            expect(usePortal).toHaveBeenCalledWith({ month: undefined });
+        } finally { now.mockRestore(); }
+    });
+
     it.each(['active', 'suspended'] as const)('keeps the verified %s portal state and canonical editor entry', status => {
         const data = { ...SAMPLE_PORTAL, creator: { ...SAMPLE_PORTAL.creator, ...identity, status } };
         jest.mocked(usePortal).mockReturnValue({ status: 'ready', data });
@@ -109,7 +151,10 @@ describe('portal home uses the shared frame', () => {
         expect(html).toContain('portal-overview-content');
         expect(html).toContain(identity.name);
         expect(jest.mocked(PortalView).mock.calls[0]?.[0]).toMatchObject({ data, sample: false, compactIncome: true });
-        if (status === 'suspended') expect(html).toContain('Your creator account is paused.');
+        if (status === 'suspended') {
+            expect(html).toContain('Your creator account is paused.');
+            expect(html).not.toContain('you can still send it');
+        }
     });
 
     it.each([
@@ -124,6 +169,7 @@ describe('portal home uses the shared frame', () => {
         expect(html).toContain(message);
         expect(html).not.toContain('aria-label="Creator portal"');
         expect(PortalView).not.toHaveBeenCalled();
+        if (state.status === 'pending') expect(html).not.toContain('then emails you');
     });
 });
 
@@ -134,6 +180,16 @@ describe('canonical My page route and old URL compatibility', () => {
         expect(page.props.children.type).toBe(AffiliateSectionContent);
         expect(page.props.children.props).toEqual({ section: 'my-page' });
         expect(metadata.robots).toEqual({ index: false, follow: false });
+    });
+
+    it.each([
+        { Page: CanonicalAccount, section: 'account' },
+        { Page: CanonicalPayouts, section: 'wallet' },
+    ] as const)('keeps the canonical $section screen behind the existing boundary and reuses its existing section', async ({ Page, section }) => {
+        const page = await Page();
+        expect(page.type).toBe(AffiliateDashboardBoundary);
+        expect(page.props.children.type).toBe(AffiliateSectionContent);
+        expect(page.props.children.props).toEqual({ section });
     });
 
     it('redirects only the old My page route to the canonical portal URL', async () => {

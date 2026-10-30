@@ -28,9 +28,9 @@ export const sampleAffiliate: Doc<"creators"> = {
 };
 
 export const sampleAffiliateSales: readonly AffiliateSale[] = [
-    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", createdAt: Date.UTC(2026, 9, 8, 3) },
-    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", createdAt: Date.UTC(2026, 9, 7, 6) },
-    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", createdAt: Date.UTC(2026, 9, 6, 1) },
+    { _id: "demo-sale-paid" as AffiliateSale["_id"], businessName: "Luna's Salon", price: 2200, commission: 1100, status: "completed", workflowStatus: "completed", paymentStatus: "paid_in_full", commissionCredited: true, createdAt: Date.UTC(2026, 9, 8, 3) },
+    { _id: "demo-sale-pending" as AffiliateSale["_id"], businessName: "Corner Coffee", price: 1999, commission: 1000, status: "pending_payment", workflowStatus: "pending_payment", paymentStatus: "unpaid", commissionCredited: false, createdAt: Date.UTC(2026, 9, 7, 6) },
+    { _id: "demo-sale-review" as AffiliateSale["_id"], businessName: "Maya's Flower Shop", price: 1499, commission: 750, status: "submitted", workflowStatus: "submitted", paymentStatus: "unpaid", commissionCredited: false, createdAt: Date.UTC(2026, 9, 6, 1) },
 ];
 
 export const sampleAffiliatePortal: AffiliatePortal = {

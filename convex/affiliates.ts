@@ -1,7 +1,6 @@
 import { ConvexError, v } from 'convex/values';
 import { paginationOptsValidator } from 'convex/server';
 import { mutation, query } from './_generated/server';
-import type { Doc } from './_generated/dataModel';
 import { requireAdmin, requireAuth } from './lib/auth';
 import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliateHandleError, affiliatePhoneError,
@@ -10,22 +9,12 @@ import {
     type AffiliateSocialPlatform,
 } from '../lib/affiliates';
 import { CREATOR_CODE_PRICE, creatorOverrideEndsAt, creatorOverrideMonthsLeft, earnsCreatorOverride, ownerChargeFor } from '../lib/pricing';
-import { CREATOR_OVERRIDE_EARNING } from './lib/creatorRecruits';
-import { manilaMonth } from './creatorPortal';
+import { CREATOR_OVERRIDE_EARNING, isPaidInFull } from './lib/creatorRecruits';
+import { hasOutstandingBalance } from './lib/ownerApp';
+import { manilaMonth, selectedManilaMonth } from './lib/affiliateCalendar';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
 import { insertAffiliateAccount } from './lib/affiliateSignup';
 import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
-
-/** Calendar selection affects displayed income only, never balances or eligibility. */
-function selectedManilaMonth(value: string | undefined, now: number) {
-    if (value === undefined) return manilaMonth(now);
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || Number(value.slice(0, 4)) < 2000) {
-        throw new ConvexError('Choose a valid calendar month.');
-    }
-    const month = manilaMonth(Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, 1));
-    if (month.start > manilaMonth(now).start) throw new ConvexError('Choose this month or an earlier month.');
-    return month;
-}
 
 /** Optional additive field keeps older clients compatible with the portal shape. */
 function creditedLifetime(amount: number): { creditedTotalEarned?: number } {
@@ -165,11 +154,15 @@ export const sales = query({
         }
         // Suspension stops new page edits, while earned sales remain readable.
         const month = args.month === undefined ? undefined : selectedManilaMonth(args.month, Date.now());
-        const creditedIds = month ? new Set((await ctx.db.query('earnings')
+        const creditedEarnings = (await ctx.db.query('earnings')
             .withIndex('by_creator', (q) => q.eq('creatorId', affiliate._id)).collect())
-            .filter(row => row.type === 'submission_approved' && (row.status === 'available' || row.status === 'withdrawn')
-                && row.createdAt >= month.start && row.createdAt < month.end)
-            .map(row => row.submissionId)) : new Set<Doc<'submissions'>['_id']>();
+            .filter(row => row.type === 'submission_approved' && (row.status === 'available' || row.status === 'withdrawn'));
+        // Credit is a ledger fact, independent of the selected month and the
+        // website's workflow/payment state. Pending or other people's rows do not count.
+        const creditedSubmissionIds = new Set(creditedEarnings.map(row => row.submissionId));
+        const creditedIds = new Set(creditedEarnings
+            .filter(row => month && row.createdAt >= month.start && row.createdAt < month.end)
+            .map(row => row.submissionId));
         let salesQuery = ctx.db.query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', affiliate._id));
         // A sale created earlier can be credited in the selected earnings month.
@@ -179,7 +172,13 @@ export const sales = query({
             ...[...creditedIds].map(id => q.eq(q.field('_id'), id)),
         ));
         if (args.status === 'paid') salesQuery = salesQuery.filter((q) => q.or(
-            q.eq(q.field('status'), 'paid'), q.eq(q.field('status'), 'completed'),
+            // Match isPaidInFull before pagination: the full-payment stamp wins;
+            // legacy paid/completed counts only when no down payment is outstanding.
+            q.and(q.neq(q.field('paidInFullAt'), undefined), q.neq(q.field('paidInFullAt'), 0)),
+            q.and(
+                q.or(q.eq(q.field('depositPaidAt'), undefined), q.eq(q.field('depositPaidAt'), 0)),
+                q.or(q.eq(q.field('status'), 'paid'), q.eq(q.field('status'), 'completed')),
+            ),
         ));
         const result = await salesQuery.order('desc').paginate(args.paginationOpts);
         return {
@@ -190,6 +189,11 @@ export const sales = query({
                 price: ownerChargeFor(submission),
                 commission: submission.creatorPayout ?? 0,
                 status: submission.status,
+                workflowStatus: submission.status,
+                paymentStatus: isPaidInFull(submission) ? 'paid_in_full' as const
+                    : submission.status === 'deposit_paid' || hasOutstandingBalance(submission) ? 'partially_paid' as const
+                    : 'unpaid' as const,
+                commissionCredited: creditedSubmissionIds.has(submission._id),
                 createdAt: submission._creationTime,
             })),
         };

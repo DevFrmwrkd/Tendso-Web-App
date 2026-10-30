@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
-import { CODE_PERCENT_OFF, CODE_PRICE, KEEP_PER_SHOP, fmtDate, fmtDay, fmtMonthName, firstName, peso, shopLinkFor, earnLinkFor, OVERRIDE_MONTHS } from "@/lib/v2/creatorProgram";
+import { CODE_PERCENT_OFF, CODE_PRICE, KEEP_PER_SHOP, fmtDate, fmtDay, fmtMonthName, fmtMonthYear, firstName, peso, shopLinkFor, earnLinkFor, OVERRIDE_MONTHS } from "@/lib/v2/creatorProgram";
 import type { FunnelCounts, PortalPictures, PortalRecruit, PortalShop, PortalSummary, ShopStatus } from "@/lib/v2/creatorTypes";
 import { saleStatusLabel } from "@/packages/shared/affiliateSales";
-import { CREATOR_PAGE_EDITOR_HREF } from "@/lib/v2/creatorPortalNavigation";
+import { CREATOR_PAGE_EDITOR_HREF, CREATOR_PAYOUTS_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { CopyButton, ShareButton } from "./CopyButton";
 import { Face, ShopThumb } from "./Face";
 import { CopyIcon } from "./icons";
-
-const WALLET_HREF = "/affiliates/dashboard/wallet";
 
 const SHOP_STATUS: Record<ShopStatus, { label: string; ok: boolean }> = {
     paid: { label: "Paid", ok: true },
@@ -89,7 +87,7 @@ function Funnel({ data }: { data: PortalSummary["funnel"] }) {
                 {steps.map((s, i) => {
                     const prev = steps[i - 1];
                     const ratio = prev && prev.value > 0 ? s.value / prev.value : null;
-                    const note = i === 0 ? "this month" : ratio !== null && ratio <= 1 ? `${(ratio * 100).toFixed(ratio < 0.1 ? 1 : 0)}% of ${prev!.name.toLowerCase()}` : "all time";
+                    const note = i === 0 ? "all time" : ratio !== null && ratio <= 1 ? `${(ratio * 100).toFixed(ratio < 0.1 ? 1 : 0)}% of ${prev!.name.toLowerCase()}` : "all time";
                     return (
                         <div className="pt-fstep" key={s.name}>
                             <span className="n">{s.name}</span>
@@ -130,6 +128,8 @@ export interface PortalViewProps {
 export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo, compactIncome = false }: PortalViewProps) {
     const { creator, now, monthly, recruits, shops, payouts } = data;
     const id = (s: string) => `${idPrefix}-${s}`;
+    const shareLocked = sample || creator.status !== "active";
+    const period = fmtMonthYear(data.month.start);
 
     const [active, quiet] = useMemo(() => {
         const sold = recruits.filter((r) => r.salesThisMonth > 0).sort((a, b) => b.overrideThisMonth - a.overrideThisMonth || b.joinedAt - a.joinedAt);
@@ -211,7 +211,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                 </div>
             ))}
         </div>
-    ) : <p className="pt-incc-empty">No shop has paid with your code this month yet.</p>;
+    ) : <p className="pt-incc-empty">No shop paid with your code in {period}.</p>;
     const agentIncome = active.length > 0 ? (
         <div className="pt-incc-list">
             {active.slice(0, 3).map((r) => (
@@ -222,11 +222,11 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                 </div>
             ))}
         </div>
-    ) : <p className="pt-incc-empty">No agent of yours has sold this month yet.</p>;
+    ) : <p className="pt-incc-empty">No agent of yours made a sale in {period}.</p>;
 
     return (
         <div className="pt-view">
-            <section className="pt-inc" aria-label="This month's income">
+            <section className="pt-inc" aria-label={`Income for ${period}`}>
                 <article className="pt-incc pt-incc--now">
                     <div className="pt-incc-top">
                         <span className="cp-pill">Money now</span>
@@ -234,7 +234,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     </div>
                     <p className="pt-num">{peso(now.thisMonth)}</p>
                     <p className="pt-sub">
-                        {plural(now.shopsThisMonth, "shop", "shops")} this month{keptEach !== null ? ` · ${peso(keptEach)} each` : ""}
+                        {plural(now.shopsThisMonth, "shop", "shops")} in {period}{keptEach !== null ? ` · ${peso(keptEach)} each` : ""}
                     </p>
                     {compactIncome ? <div className="pt-income-inline">{shopIncome}</div> : shopIncome}
                 </article>
@@ -266,7 +266,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                 <section className="pt-card" id={id("links")} aria-label="Your links and code">
                     <div className="pt-h">
                         <h2>Your links and code</h2>
-                        <span>Share these anywhere</span>
+                        <span>{sample ? "Example links" : shareLocked ? "Sharing is paused" : "Share these anywhere"}</span>
                     </div>
                     <div className="pt-page-entry">
                         <div><b>Your creator page</b><p>Photo, display name, message and social links.</p></div>
@@ -278,22 +278,22 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                             <span className="l">For shops</span>
                             <span className="v">{shopLink}</span>
                             <div className="acts" role="group" aria-label="Shop link actions">
-                                <CopyButton className="pt-btn" text={`https://${shopLink}`}>
+                                <CopyButton className="pt-btn" disabled={shareLocked} text={`https://${shopLink}`}>
                                     <CopyIcon />
                                     Copy
                                 </CopyButton>
-                                <ShareButton className="pt-btn pt-btn--accent" url={`https://${shopLink}`} title={`${firstName(creator.name)} on Tendso`} />
+                                <ShareButton className="pt-btn pt-btn--accent" disabled={shareLocked} url={`https://${shopLink}`} title={`${firstName(creator.name)} on Tendso`} />
                             </div>
                         </div>
                         <div className="pt-link">
                             <span className="l">For field agents</span>
                             <span className="v">{earnLink}</span>
                             <div className="acts" role="group" aria-label="Agent link actions">
-                                <CopyButton className="pt-btn" text={`https://${earnLink}`}>
+                                <CopyButton className="pt-btn" disabled={shareLocked} text={`https://${earnLink}`}>
                                     <CopyIcon />
                                     Copy
                                 </CopyButton>
-                                <ShareButton className="pt-btn" url={`https://${earnLink}`} title={`Join ${firstName(creator.name)}'s team on Tendso`} />
+                                <ShareButton className="pt-btn" disabled={shareLocked} url={`https://${earnLink}`} title={`Join ${firstName(creator.name)}'s team on Tendso`} />
                             </div>
                         </div>
                         <div className="pt-link">
@@ -301,7 +301,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                             <span className="v pt-code">{creator.code ?? "—"}</span>
                             <div className="acts" role="group" aria-label="Discount code actions">
                                 {creator.code ? (
-                                    <CopyButton className="pt-btn" text={creator.code}>
+                                    <CopyButton className="pt-btn" disabled={shareLocked} text={creator.code}>
                                         <CopyIcon />
                                         Copy
                                     </CopyButton>
@@ -323,7 +323,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                 <div className="pt-h">
                     <h2>Your field agents</h2>
                     <span>
-                        {recruits.length} joined through your link · {active.length} made a sale this month
+                        {recruits.length} joined through your link · {active.length} made a sale in {period}
                     </span>
                 </div>
                 {recruits.length === 0 ? (
@@ -336,7 +336,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                                     <tr>
                                         <th>Agent</th>
                                         <th>Joined</th>
-                                        <th className="num">Sales this month</th>
+                                        <th className="num">Sales in {period}</th>
                                         <th className="num">Your 5%</th>
                                         <th>Ends</th>
                                         <th style={{ textAlign: "right" }}>Months left</th>
@@ -377,7 +377,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
             <section className="pt-card" id={id("shops")} aria-label="Shops that used your code">
                 <div className="pt-h">
                     <h2>Shops that used your code</h2>
-                    <span>{sample ? `${fmtMonthName(data.month.start)} · ` : ""}{plural(shops.length, "shop", "shops")}</span>
+                    <span>{sample ? `${fmtMonthName(data.month.start)} · ` : ""}{plural(shops.length, "shop", "shops")} · All time</span>
                 </div>
                 {shops.length === 0 ? (
                     <p className="pt-empty">No shop has used your code yet. Share your shop link to get the first one.</p>
@@ -436,15 +436,17 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                                 <span>Some shops are still paying. You are paid when they finish.</span>
                             </div>
                         ) : null}
-                        {sample || payouts.readyToSend <= 0 ? (
+                        {sample || data.creator.status === "suspended" || payouts.readyToSend <= 0 ? (
                             <span className="btn btn--accent" aria-disabled="true">
-                                {payouts.readyToSend > 0 ? `Send ${peso(payouts.readyToSend)} to Wise` : "Nothing to send yet"}
+                                {data.creator.status === "suspended" ? "Payouts paused" : payouts.readyToSend > 0 ? `Send ${peso(payouts.readyToSend)} to Wise` : "Nothing to send yet"}
                             </span>
                         ) : (
-                            <Link className="btn btn--accent" href={WALLET_HREF}>
+                            <Link className="btn btn--accent" href={CREATOR_PAYOUTS_HREF}>
                                 Send {peso(payouts.readyToSend)} to Wise
                             </Link>
                         )}
+                        {!sample ? <Link className="btn btn--line" href={CREATOR_PAYOUTS_HREF}>Wise payout settings</Link> : null}
+                        {!sample && data.creator.status === "suspended" ? <small>Withdrawals and payout changes are paused while your account is suspended.</small> : null}
                     </div>
                     <div className="pt-hist">
                         {payouts.history.length === 0 ? (

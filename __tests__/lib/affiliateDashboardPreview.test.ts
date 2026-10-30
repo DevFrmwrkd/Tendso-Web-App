@@ -56,6 +56,9 @@ const liveSale: AffiliateSale = {
     price: 2400,
     commission: 1200,
     status: "completed",
+    workflowStatus: "completed",
+    paymentStatus: "paid_in_full",
+    commissionCredited: true,
 };
 const updatePage = jest.fn();
 const generateUploadUrl = jest.fn();

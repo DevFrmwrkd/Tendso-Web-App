@@ -23,7 +23,20 @@ const monthLabel = (month?: string) => month
   ? new Date(`${month}-15T00:00:00+08:00`).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', timeZone: 'Asia/Manila' })
   : 'All time';
 
-const paidSale = (sale: AffiliateSale) => sale.status === 'paid' || sale.status === 'completed';
+const paidSale = (sale: AffiliateSale) => sale.paymentStatus === 'paid_in_full'
+  || (sale.paymentStatus === undefined && (sale.status === 'paid' || sale.status === 'completed'));
+
+function saleProgress(sale: AffiliateSale) {
+  const workflow = sale.workflowStatus || sale.status;
+  const paidWorkflow = workflow === 'paid' || workflow === 'completed';
+  // A legacy workflow label cannot overrule a recorded outstanding balance.
+  const displayedStatus = paidWorkflow && sale.paymentStatus === 'partially_paid' ? 'deposit_paid'
+    : paidWorkflow && sale.paymentStatus === 'unpaid' ? 'pending_payment' : workflow;
+  const payment = sale.paymentStatus === 'paid_in_full' ? 'Paid in full'
+    : sale.paymentStatus === 'partially_paid' ? displayedStatus === 'deposit_paid' ? 'Balance due' : 'Down payment received · Balance due'
+    : sale.paymentStatus === 'unpaid' ? 'No payment received' : null;
+  return { displayedStatus, payment };
+}
 
 export function AffiliateSalesScreen() {
   const params = useLocalSearchParams?.<{ month?: string }>();
@@ -53,20 +66,23 @@ export function SalesContent({ account, isPreview, isOffline, sales, month, filt
     </View>
     {loading ? <AffiliateLoading inline label="Loading your sales" /> : visible.length === 0
       ? <EmptyState icon="receipt-outline" title={filter === 'paid' ? 'No paid sales yet' : 'No sales yet'} body={month ? 'Orders from your page in this month show up here.' : 'Orders from your page show up here.'} />
-      : visible.map((sale) => <Card key={sale._id} variant="lg" style={styles.card}>
-        <View style={styles.top}>
-          <View style={styles.shopIcon}><Ionicons name="storefront-outline" size={24} color={colors.ink} /></View>
-          <View style={styles.name}>
-            <Text variant="bodyLg" weight="bold">{sale.businessName}</Text>
-            <Text variant="label" tone="muted">{saleDate(sale.createdAt)}</Text>
+      : visible.map((sale) => {
+        const { displayedStatus, payment } = saleProgress(sale);
+        return <Card key={sale._id} variant="lg" style={styles.card}>
+          <View style={styles.top}>
+            <View style={styles.shopIcon}><Ionicons name="storefront-outline" size={24} color={colors.ink} /></View>
+            <View style={styles.name}>
+              <Text variant="bodyLg" weight="bold">{sale.businessName}</Text>
+              <Text variant="label" tone="muted">{saleDate(sale.createdAt)}</Text>
+            </View>
           </View>
-        </View>
-        <Chip label={saleStatus(sale.status)} tone={saleTone(sale.status)} />
-        <View style={styles.money}>
-          <View style={styles.moneyColumn}><Text variant="label" tone="muted">Website price</Text><Text variant="heading" tabular>{formatPHP(sale.price)}</Text></View>
-          <View style={[styles.moneyColumn, styles.commission]}><Text variant="label" tone="muted" align="right">Your commission</Text><Text variant="heading" tabular>{formatPHP(sale.commission)}</Text>{!paidSale(sale) ? <Text variant="label" tone="muted" align="right">Not credited yet</Text> : null}</View>
-        </View>
-      </Card>)}
+          <View style={styles.progress}><Chip label={saleStatus(displayedStatus)} tone={saleTone(displayedStatus)} />{payment ? <Text variant="label" tone="muted">{payment}</Text> : null}</View>
+          <View style={styles.money}>
+            <View style={styles.moneyColumn}><Text variant="label" tone="muted">Website price</Text><Text variant="heading" tabular>{formatPHP(sale.price)}</Text></View>
+            <View style={[styles.moneyColumn, styles.commission]}><Text variant="label" tone="muted" align="right">Your commission</Text><Text variant="heading" tabular>{formatPHP(sale.commission)}</Text>{sale.commissionCredited !== undefined ? <Text variant="label" tone="muted" align="right">{sale.commissionCredited ? 'Credited' : 'Not credited yet'}</Text> : null}</View>
+          </View>
+        </Card>;
+      })}
     {more || loadingMore ? <Button title="Show more sales" variant="ghost" size="md" loading={loadingMore} disabled={loadingMore || isOffline} onPress={onMore} /> : null}
   </AffiliateToolFrame>;
 }
@@ -77,6 +93,7 @@ const styles = StyleSheet.create({
   filter: { minHeight: 48, paddingVertical: space.md, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: colors.bg2, justifyContent: 'center' },
   activeFilter: { backgroundColor: colors.ink },
   card: { gap: space.md },
+  progress: { alignItems: 'flex-start', gap: space.xs },
   top: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   shopIcon: { width: 48, height: 48, backgroundColor: colors.bg2, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   name: { flex: 1, gap: 2 },

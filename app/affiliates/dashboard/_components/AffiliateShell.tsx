@@ -12,7 +12,7 @@ import { AppShell, Button, TabBar, type NavLinkEntry, type SidebarProps } from "
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
-import { CREATOR_PAGE_EDITOR_HREF } from "@/lib/v2/creatorPortalNavigation";
+import { CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PAYOUTS_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../../_components/AccountState";
 import { affiliateHref, type AffiliateSection } from "../_lib/navigation";
@@ -30,7 +30,7 @@ export function useAffiliateAccount() {
 export function AffiliateDashboardBoundary({ children }: { children?: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const canonicalPage = pathname?.replace(/\/$/, "") === CREATOR_PAGE_EDITOR_HREF;
+    const canonicalPage = [CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
     const { user, isLoaded, isSignedIn } = useUser();
     const { isAuthenticated, isLoading } = useConvexAuth();
     const ready = isLoaded && isSignedIn && !isLoading && isAuthenticated && !!user;
@@ -99,9 +99,11 @@ export function AffiliateShellView({ account, children, preview = false, section
     section?: AffiliateSection;
 }) {
     const pathname = usePathname();
+    const canonicalPath = pathname?.replace(/\/$/, "") ?? "";
+    const portalPage = canonicalPath === CREATOR_ACCOUNT_HREF ? "account" : canonicalPath === CREATOR_PAYOUTS_HREF ? "payouts" : "my-page";
     const pageRoute = preview ? section === "my-page"
-        : ["/affiliates/dashboard/my-page", CREATOR_PAGE_EDITOR_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
-    if (pageRoute) return <AffiliatePageFrame account={account} preview={preview}>{children}</AffiliatePageFrame>;
+        : ["/affiliates/dashboard/my-page", CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(canonicalPath);
+    if (pageRoute) return <AffiliatePageFrame account={account} preview={preview} currentPage={preview ? "my-page" : portalPage}>{children}</AffiliatePageFrame>;
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
     const entry = (key: AffiliateSection, label: string, icon: NavLinkEntry["icon"]): NavLinkEntry => ({
         href: affiliateHref(key, preview), label, icon, exact: key === "home",

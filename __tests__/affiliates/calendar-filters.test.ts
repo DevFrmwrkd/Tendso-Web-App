@@ -1,4 +1,5 @@
 import { convexTest } from 'convex-test';
+import type { FunctionReturnType } from 'convex/server';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { api } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
@@ -66,6 +67,38 @@ it('filters paid sales and creation month before pagination, including the exact
   expect(first.page[0]).toMatchObject({ price: 3499, commission: 1750, status: 'completed' });
 });
 
+it('filters actual full payments before pagination rather than completed workflow or commission credit', async () => {
+  const { t, caller, insert, ids } = await setup();
+  const legacy = await insert(SEP, 'completed', 'Legacy fully paid');
+  const stamped = await insert(SEP + 1, 'processing', 'Paid in full, still building');
+  const partial = await insert(SEP + 2, 'completed', 'Completed with balance due');
+  const unpaid = await insert(SEP + 3, 'website_generated', 'Ready and unpaid');
+  const depositStatus = await insert(SEP + 4, 'deposit_paid', 'Legacy down payment');
+  const fullAfterDeposit = await insert(SEP + 5, 'deployed', 'Balance settled');
+  await t.run(async ctx => {
+    await ctx.db.patch(stamped, { paidInFullAt: SEP + 10 });
+    await ctx.db.patch(partial, { depositPaidAt: SEP + 20 });
+    await ctx.db.patch(fullAfterDeposit, { depositPaidAt: SEP + 30, paidInFullAt: SEP + 40 });
+    // An available commission never turns an unpaid owner order into a full payment.
+    await ctx.db.insert('earnings', { creatorId: ids.affiliate, submissionId: unpaid, amount: 1750, type: 'submission_approved', status: 'available', createdAt: SEP + 50 });
+  });
+  const names: string[] = [];
+  let cursor: string | null = null;
+  for (let page = 0; page < 4; page++) {
+    const result: FunctionReturnType<typeof api.affiliates.sales> = await caller.query(api.affiliates.sales, { month: '2026-09', status: 'paid', paginationOpts: { numItems: 1, cursor } });
+    names.push(...result.page.map(row => row.businessName));
+    expect(result.page.every(row => row.paymentStatus === 'paid_in_full')).toBe(true);
+    if (result.isDone) break;
+    cursor = result.continueCursor;
+  }
+  expect(names).toEqual(['Balance settled', 'Paid in full, still building', 'Legacy fully paid']);
+  const all = (await caller.query(api.affiliates.sales, { month: '2026-09', paginationOpts: { numItems: 20, cursor: null } })).page;
+  expect(all.find(row => row._id === partial)).toMatchObject({ status: 'completed', paymentStatus: 'partially_paid' });
+  expect(all.find(row => row._id === depositStatus)).toMatchObject({ paymentStatus: 'partially_paid' });
+  expect(all.find(row => row._id === unpaid)).toMatchObject({ paymentStatus: 'unpaid', commissionCredited: true });
+  expect(all.find(row => row._id === legacy)).toMatchObject({ paymentStatus: 'paid_in_full', commissionCredited: false });
+});
+
 it.each(['2026-13', '2026-00', '2026-9', '2026-09-01', '1999-12', '', '2026-11'])('rejects an invalid/future calendar selection %s', async month => {
   const { caller } = await setup();
   await expect(caller.query(api.affiliates.portal, { month })).rejects.toThrow(/month/i);
@@ -92,4 +125,16 @@ it('includes an older order credited in the selected month while keeping foreign
   });
   const result = await caller.query(api.affiliates.sales, { month: '2026-09', status: 'paid', paginationOpts: { numItems: 10, cursor: null } });
   expect(result.page.map(row => row.businessName)).toEqual(['Created earlier, credited September']);
+  expect(result.page[0].commissionCredited).toBe(true);
+});
+
+it('does not erase an actual credit when viewing the sale creation month instead of its later credit month', async () => {
+  const { t, ids, caller, insert } = await setup();
+  const id = await insert(SEP, 'paid', 'September order, October credit');
+  await t.run(ctx => ctx.db.insert('earnings', { creatorId: ids.affiliate, submissionId: id, amount: 1750, type: 'submission_approved', status: 'withdrawn', createdAt: OCT }));
+  for (const month of ['2026-09', '2026-10']) {
+    const result = await caller.query(api.affiliates.sales, { month, paginationOpts: { numItems: 10, cursor: null } });
+    expect(result.page).toHaveLength(1);
+    expect(result.page[0]).toMatchObject({ _id: id, commissionCredited: true });
+  }
 });

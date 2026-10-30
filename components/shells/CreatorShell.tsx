@@ -49,7 +49,7 @@ export function CreatorShell({ children }: { children: ReactNode }) {
     const affiliate = creator?.role === "affiliate";
     const missingProfile = creator === null;
     const submissions = useQuery(api.submissions.getByCreatorId, isAuthenticated && creator && !affiliate ? { creatorId: creator._id } : "skip");
-    const unread = useQuery(api.notifications.getUnreadCount, creator && !affiliate ? { creatorId: creator._id } : "skip");
+    const unread = useQuery(api.notifications.getUnreadCount, isAuthenticated && creator?.clerkId === user?.id && creator && !affiliate ? { creatorId: creator._id } : "skip");
     useEffect(() => {
         if (isLoaded && !isSignedIn) router.replace("/login");
         else if (isLoaded && isSignedIn && missingProfile) router.replace("/onboarding");

@@ -1,4 +1,4 @@
-import { ConvexError } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { query } from './_generated/server';
 import type { QueryCtx } from './_generated/server';
 import type { Doc } from './_generated/dataModel';
@@ -9,24 +9,14 @@ import {
 } from '../lib/pricing';
 import { CREATOR_OVERRIDE_EARNING, creatorCard, isCreatorOwnSite, isPaidInFull, isPaidSale, paidInFullTime } from './lib/creatorRecruits';
 import { hasOutstandingBalance } from './lib/ownerApp';
+import { selectedManilaMonth } from './lib/affiliateCalendar';
+export { manilaMonth } from './lib/affiliateCalendar';
 
 /**
  * The creator portal: both income streams side by side. All money is plain ₱
  * numbers; all dates are ms timestamps. "This month" is the calendar month in
  * Asia/Manila. Contract: docs/v2-api-creators.md.
  */
-
-const MANILA_OFFSET_MS = 8 * 60 * 60 * 1000;
-
-/** [start, end) of the Manila calendar month containing `now`. */
-export function manilaMonth(now: number) {
-    const local = new Date(now + MANILA_OFFSET_MS);
-    const year = local.getUTCFullYear();
-    const month = local.getUTCMonth();
-    const start = Date.UTC(year, month, 1) - MANILA_OFFSET_MS;
-    const end = Date.UTC(year, month + 1, 1) - MANILA_OFFSET_MS;
-    return { start, end, label: `${year}-${String(month + 1).padStart(2, '0')}` };
-}
 
 /** Statuses where the shop has the site and has not paid in full yet. */
 const STILL_PAYING = new Set(['deposit_paid', 'pending_payment', 'deployed']);
@@ -65,11 +55,11 @@ async function requireCreator(ctx: QueryCtx) {
 }
 
 export const summary = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { month: v.optional(v.string()) },
+    handler: async (ctx, args) => {
         const me = await requireCreator(ctx);
         const now = Date.now();
-        const month = manilaMonth(now);
+        const month = selectedManilaMonth(args.month, now);
         const inMonth = (at: number | null | undefined) => at !== null && at !== undefined && at >= month.start && at < month.end;
 
         const [ownSales, earnings, withdrawals, recruitRows, shopClicks, earnClicks, ownerClaims] = await Promise.all([

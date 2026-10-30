@@ -487,7 +487,7 @@ function SignupInner() {
                                 We&apos;ll review it.
                             </h1>
                             <p className="su-p">
-                                We look at your page, then email <b>{signedInEmail || "you"}</b>. Your link and code go live when you&apos;re approved.
+                                We review your application. This screen updates when you&apos;re approved, and your link and code go live. You can also sign in again later.
                             </p>
                             <ol className="su-time">
                                 <TimelineItem state="done" title="Applied" note="Today" />

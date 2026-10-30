@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Pressable,
@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation } from 'convex/react';
 import { api, type Doc } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
@@ -31,6 +32,7 @@ import {
 } from '../../components/v2';
 import { NotificationIcon, timeAgo } from '../../components/v2/NotificationIcon';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
+import { notificationRouteId } from '../../services/notificationOpening';
 
 const DAY = 86_400_000;
 
@@ -49,11 +51,13 @@ export default function NotificationsScreen() {
 }
 
 function NotificationInbox({ clerkId }: { clerkId: string }) {
+  const params = useLocalSearchParams<{ notificationId?: string | string[]; notificationOpenKey?: string | string[] }>();
   const router = useGuardedRouter();
   const { isConnected } = useNetwork();
   const [selectedNotification, setSelectedNotification] = useState<Doc<'notifications'> | null>(null);
   const [showCertModal, setShowCertModal] = useState(false);
   const certModalRef = useRef<View>(null);
+  const openedTarget = useRef<string | null>(null);
 
   const creator = useQuery(
     api.creators.getByClerkId,
@@ -69,7 +73,7 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const selected = selectedNotification?.creatorId === creator?._id ? selectedNotification : null;
   const details = useQuery(api.notifications.getDetails, selected ? { id: selected._id } : 'skip');
-  const message = details ?? selected;
+  const message = details?._id === selected?._id && details?.creatorId === creator?._id ? details : selected;
   const waitingForAnnouncement = !!selected?.data?.announcementId && details === undefined;
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
@@ -117,13 +121,29 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
     }
   }, []);
 
-  const handleNotificationPress = (notification: Doc<'notifications'>) => {
+  const handleNotificationPress = useCallback((notification: Doc<'notifications'>) => {
+    if (!creator?._id || notification.creatorId !== creator._id) return;
     // Reading never waits for a network write or requires a deep-link payload.
+    setShowCertModal(false);
     setSelectedNotification(notification);
     if (!notification.read) {
       void markAsRead({ id: notification._id }).catch(() => {});
     }
-  };
+  }, [creator?._id, markAsRead]);
+
+  const requestedId = notificationRouteId(params.notificationId);
+  const openKey = typeof params.notificationOpenKey === 'string' && params.notificationOpenKey.length <= 1024
+    ? params.notificationOpenKey : '';
+  useEffect(() => {
+    if (!creator?._id || !notifications || !requestedId) return;
+    const targetKey = JSON.stringify([creator._id, requestedId, openKey]);
+    if (openedTarget.current === targetKey) return;
+    // Deep links and push taps can select only a row already in this recipient's inbox.
+    const notification = notifications.find(row => row._id === requestedId && row.creatorId === creator._id);
+    if (!notification) return;
+    openedTarget.current = targetKey;
+    handleNotificationPress(notification);
+  }, [creator?._id, notifications, requestedId, openKey, handleNotificationPress]);
 
   const closeDetails = () => { setSelectedNotification(null); setShowCertModal(false); };
 

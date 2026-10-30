@@ -26,6 +26,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/components/v2/fonts", () => ({ v2Fonts: "test-v2-fonts" }));
 jest.mock("@/components/v2/creators/creators.css", () => ({}));
 jest.mock("@/components/v2/creators/PortalFrame.module.css", () => ({}));
+jest.mock("@/components/v2/creators/PortalUtilities", () => ({ PortalUtilities: () => null }));
 jest.mock("@/app/affiliates/dashboard/_components/AffiliatePageFrame.module.css", () => ({}));
 
 const account: Doc<"creators"> = {
@@ -221,7 +222,7 @@ describe("affiliate navigation", () => {
         const nav = creatorPortalNavHtml(html);
         expect(linksIn(nav)).toEqual([
             "/v2/creators/portal#top", "/v2/creators/portal#pt-links", "/v2/creators/portal#pt-agents",
-            "/v2/creators/portal#pt-shops", "/v2/creators/portal#pt-pay", "/v2/creators/portal/my-page",
+            "/v2/creators/portal#pt-shops", "/v2/creators/portal/payouts", "/v2/creators/portal/my-page",
         ]);
         const current = nav.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
         expect(current).toHaveLength(1);
@@ -297,7 +298,7 @@ describe("affiliate dashboard account boundary", () => {
         expect(mounted).toBe(1);
     });
 
-    it.each(["active", "suspended"].flatMap(status => ["/affiliates/dashboard/my-page", "/v2/creators/portal/my-page"].map(pathname => ({ status, pathname }))))("keeps $pathname behind the verified $status affiliate boundary", ({ status, pathname }) => {
+    it.each(["active", "suspended"].flatMap(status => ["/affiliates/dashboard/my-page", "/v2/creators/portal/my-page", "/v2/creators/portal/account", "/v2/creators/portal/payouts"].map(pathname => ({ status, pathname }))))("keeps $pathname behind the verified $status affiliate boundary", ({ status, pathname }) => {
         state.pathname = pathname;
         state.session!.creator!.status = status;
         const html = renderBoundary();
@@ -423,6 +424,8 @@ describe("canonical creator page entry redirects", () => {
     it.each([
         ["/v2/creators/portal/my-page", "/v2/creators/signup?login=1"],
         ["/v2/creators/portal/my-page/", "/v2/creators/signup?login=1"],
+        ["/v2/creators/portal/account", "/v2/creators/signup?login=1"],
+        ["/v2/creators/portal/payouts", "/v2/creators/signup?login=1"],
         ["/affiliates/dashboard/my-page", "/affiliates/join"],
         ["/affiliates/dashboard/wallet", "/affiliates/join"],
     ])("sends a signed-out visitor at %s to %s", (pathname, destination) => {
@@ -441,6 +444,8 @@ describe("canonical creator page entry redirects", () => {
     it.each([
         ["/v2/creators/portal/my-page", "/v2/creators/signup"],
         ["/v2/creators/portal/my-page/", "/v2/creators/signup"],
+        ["/v2/creators/portal/account", "/v2/creators/signup"],
+        ["/v2/creators/portal/payouts", "/v2/creators/signup"],
         ["/affiliates/dashboard/my-page", "/affiliates/join"],
         ["/affiliates/dashboard/wallet", "/affiliates/join"],
     ])("sends a verified login without a creator profile at %s to %s", (pathname, destination) => {
@@ -456,9 +461,10 @@ describe("canonical creator page entry redirects", () => {
         ]);
     });
 
-    it.each(["Clerk loading", "Convex loading", "session unresolved", "previous identity", "owner", "admin", "pending", "deleted"])(
-        "keeps existing canonical editor account gates while %s", condition => {
-            state.pathname = "/v2/creators/portal/my-page";
+    it.each(["/v2/creators/portal/my-page", "/v2/creators/portal/account", "/v2/creators/portal/payouts"].flatMap(pathname =>
+        ["Clerk loading", "Convex loading", "session unresolved", "previous identity", "owner", "admin", "pending", "deleted"].map(condition => ({ pathname, condition }))))(
+        "keeps existing canonical account gates at $pathname while $condition", ({ pathname, condition }) => {
+            state.pathname = pathname;
             if (condition === "Clerk loading") { state.clerkLoaded = false; state.signedIn = false; }
             if (condition === "Convex loading") { state.convex = { isLoading: true, isAuthenticated: true }; state.session!.creator = null; }
             if (condition === "session unresolved") state.session = undefined;

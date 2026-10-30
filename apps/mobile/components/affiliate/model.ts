@@ -13,7 +13,11 @@ export const DEFAULT_CODE_KEEP = commissionFor(DEFAULT_CODE_PRICE);
 export const RECRUIT_SHARE_PERCENT = 5;
 
 export type AffiliatePortal = FunctionReturnType<typeof api.affiliates.portal>;
-export type AffiliateSale = FunctionReturnType<typeof api.affiliates.sales>['page'][number];
+type SaleResponse = FunctionReturnType<typeof api.affiliates.sales>['page'][number];
+// New facts are optional while a mobile update and its backend roll out separately.
+// An older payload must never be treated as proof that a commission was credited.
+export type AffiliateSale = Omit<SaleResponse, 'workflowStatus' | 'paymentStatus' | 'commissionCredited'>
+  & Partial<Pick<SaleResponse, 'workflowStatus' | 'paymentStatus' | 'commissionCredited'>>;
 export type AffiliateDraft = { photo: string; displayName: string; message: string; socialLinks: AffiliateSocialLinks; price: string };
 
 export function affiliateDraft(account: Doc<'creators'>): AffiliateDraft {
@@ -79,6 +83,6 @@ export const samplePortal: AffiliatePortal = {
 };
 
 export const sampleSales: AffiliateSale[] = [
-  { _id: 'sample-sale-paid' as Id<'submissions'>, businessName: 'Sample barbershop', price: 3999, commission: 2000, status: 'paid', createdAt: sampleTime },
-  { _id: 'sample-sale-pending' as Id<'submissions'>, businessName: 'Sample tailor shop', price: 3999, commission: 2000, status: 'pending_payment', createdAt: sampleTime - 86400000 },
+  { _id: 'sample-sale-paid' as Id<'submissions'>, businessName: 'Sample barbershop', price: 3999, commission: 2000, status: 'paid', workflowStatus: 'paid', paymentStatus: 'paid_in_full', commissionCredited: true, createdAt: sampleTime },
+  { _id: 'sample-sale-pending' as Id<'submissions'>, businessName: 'Sample tailor shop', price: 3999, commission: 2000, status: 'pending_payment', workflowStatus: 'pending_payment', paymentStatus: 'unpaid', commissionCredited: false, createdAt: sampleTime - 86400000 },
 ];

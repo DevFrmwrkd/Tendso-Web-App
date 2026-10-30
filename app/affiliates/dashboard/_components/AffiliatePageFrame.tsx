@@ -6,8 +6,10 @@ import { CreatorsRoot } from "@/components/v2/creators/CreatorsRoot";
 import { SoloBar } from "@/components/v2/creators/Chrome";
 import { Face } from "@/components/v2/creators/Face";
 import { PortalFrame } from "@/components/v2/creators/PortalFrame";
+import { PortalUtilities } from "@/components/v2/creators/PortalUtilities";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { affiliatePhotoError } from "@/lib/affiliates";
+import type { CreatorPortalPage } from "@/lib/v2/creatorPortalNavigation";
 
 import { affiliateHref } from "../_lib/navigation";
 import styles from "./AffiliatePageFrame.module.css";
@@ -21,12 +23,14 @@ const PREVIEW_LINKS = [
 ] as const;
 
 /** Presentation only. The existing dashboard boundary supplies the verified creator account. */
-export function AffiliatePageFrame({ account, preview = false, children }: { account: Doc<"creators">; preview?: boolean; children?: ReactNode }) {
+export function AffiliatePageFrame({ account, preview = false, currentPage = "my-page", children }: { account: Doc<"creators">; preview?: boolean; currentPage?: CreatorPortalPage; children?: ReactNode }) {
     const name = account.affiliateDisplayName?.trim() || [account.firstName, account.lastName].filter(Boolean).join(" ").trim()
         || (account.affiliateHandle ? `@${account.affiliateHandle}` : "Tendso creator");
     const photo = account.affiliatePhoto && !affiliatePhotoError(account.affiliatePhoto) ? account.affiliatePhoto : null;
     if (!preview) return <CreatorsRoot solo portal>
-        <PortalFrame identity={{ name, photo }} currentPage="my-page">{children}</PortalFrame>
+        <PortalFrame identity={{ name, photo }} currentPage={currentPage} utilityActions={<PortalUtilities />}>
+            {currentPage === "my-page" ? children : <div className="pt-settings">{children}</div>}
+        </PortalFrame>
     </CreatorsRoot>;
 
     // The admin sample keeps its protected preview destinations and never opens the real account editor.

@@ -237,7 +237,7 @@ Authenticated active and suspended affiliates can read their own paginated sales
 args: {
   paginationOpts: PaginationOptions;
   month?: string;  // YYYY-MM, Asia/Manila; same validation as affiliates.portal
-  status?: "paid"; // includes both paid and completed submissions
+  status?: "paid"; // paid in full by payment stamps, with legacy status fallback
 };
 // Standard Convex pagination metadata plus:
 page: Array<{
@@ -246,13 +246,16 @@ page: Array<{
   price: number;
   commission: number;
   status: string;
+  workflowStatus: string;
+  paymentStatus: "paid_in_full" | "partially_paid" | "unpaid";
+  commissionCredited: boolean;
   createdAt: number; // original submission creation time
 }>;
 ```
 
 Without `month`, the query covers the affiliate's full sales history. With `month`, it includes owned orders created in that Manila calendar month **or** owned orders with a direct `submission_approved` earning credited in that month. The credit must have status `available` or `withdrawn`; pending credits and team overrides do not add orders to this set. This allows an earlier order credited in the selected earnings month to appear with its original order date.
 
-The ownership, month and optional Paid filters apply **before pagination**. Results remain ordered by submission creation time descending. `status: "paid"` includes current `paid` and `completed` orders; omitting it returns all statuses. Price and commission come from each order's captured amounts; the fixed ₱3,499 creator-code policy does not reprice historical orders or commissions. The response exposes no owner contact details, raw capture photos or private asset URLs; clients use a storefront fallback when no permitted public image is available.
+The ownership, month and optional Paid filters apply **before pagination**. Results remain ordered by submission creation time descending. `status: "paid"` uses the shared full-payment rule: a full-payment stamp wins; a recorded down payment without full settlement is not paid in full; legacy rows without payment stamps fall back to `paid` or `completed`. Omitting the filter returns all workflow states. `commissionCredited` independently checks this affiliate's available or withdrawn direct-commission ledger entry, even if credited outside the selected month. Price and commission come from each order's captured amounts; historical orders are not repriced. Owner contact details, raw capture photos and private asset URLs are excluded.
 
 ### Native confirmation status
 
@@ -264,7 +267,7 @@ A signed-out Yes saves consent locally and makes no server claim. After sign-in,
 
 Throws "Your creator account is waiting for admin approval." while pending, "A creator account is required." for anyone else.
 
-- Args: `{}`
+- Args: `{ month?: string }`. Uses the same `YYYY-MM`, January 2000 minimum and no-future-month validation as `affiliates.portal`. Omit for the current Manila month. Selection filters the displayed shop payment totals, team credits and agent sales. Wallet balances, all-time funnel/history and remaining commission months stay live; it never changes stored records or payout eligibility.
 - Returns:
   ```ts
   {

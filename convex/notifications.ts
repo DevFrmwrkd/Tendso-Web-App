@@ -1,7 +1,21 @@
 import { v } from 'convex/values';
 import { query, mutation, internalMutation, internalQuery, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
-import { requireAccountOwner, requireAuth } from './lib/auth';
+import type { Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
+import { requireAuth } from './lib/auth';
+
+/** An inbox never grants an administrator access to another recipient's messages. */
+async function requireRecipient(ctx: QueryCtx | MutationCtx, creatorId: Id<'creators'>) {
+    const identity = await requireAuth(ctx);
+    const me = await ctx.db.query('creators').withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject)).first();
+    if (!me || me.isDeleted || me.status === 'deleted'
+        || (me.status === 'suspended' && me.role !== 'affiliate')) {
+        throw new Error('Forbidden: account access required');
+    }
+    if (me._id !== creatorId) throw new Error('Forbidden: you can only read your own notifications');
+    return me;
+}
 
 // ==================== INTERNAL ====================
 
@@ -29,7 +43,7 @@ export const createAndSend = internalMutation({
     },
     handler: async (ctx, args) => {
         // Insert notification into DB
-        await ctx.db.insert('notifications', {
+        const notificationId = await ctx.db.insert('notifications', {
             creatorId: args.creatorId,
             type: args.type,
             title: args.title,
@@ -44,7 +58,12 @@ export const createAndSend = internalMutation({
             creatorId: args.creatorId,
             title: args.title,
             body: args.body,
-            data: args.data,
+            data: {
+                ...(args.data && typeof args.data === 'object' && !Array.isArray(args.data) ? args.data : {}),
+                // These server-issued anchors cannot be overridden by a payload URL or caller data.
+                notificationId,
+                creatorId: args.creatorId,
+            },
         });
     },
 });
@@ -138,6 +157,7 @@ export const registerPushToken = mutation({
         platform: v.union(v.literal('ios'), v.literal('android'), v.literal('web')),
     },
     handler: async (ctx, args) => {
+        await requireRecipient(ctx, args.creatorId);
         // Check if token already exists
         const existing = await ctx.db
             .query('pushTokens')
@@ -145,10 +165,9 @@ export const registerPushToken = mutation({
             .first();
 
         if (existing) {
-            // Reactivate if needed
-            if (!existing.active) {
-                await ctx.db.patch(existing._id, { active: true });
-            }
+            // A shared device now belongs to its verified signed-in account.
+            // Reusing a token must not keep delivering the previous account's messages.
+            await ctx.db.patch(existing._id, { creatorId: args.creatorId, platform: args.platform, active: true });
             return existing._id;
         }
 
@@ -167,12 +186,14 @@ export const registerPushToken = mutation({
 export const removePushToken = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
+        await requireAuth(ctx);
         const existing = await ctx.db
             .query('pushTokens')
             .withIndex('by_token', (q) => q.eq('token', args.token))
             .first();
 
         if (existing) {
+            await requireRecipient(ctx, existing.creatorId);
             await ctx.db.patch(existing._id, { active: false });
         }
     },
@@ -186,6 +207,7 @@ export const removePushToken = mutation({
 export const getByCreator = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireRecipient(ctx, args.creatorId);
         return await ctx.db
             .query('notifications')
             .withIndex('by_creator', (q) => q.eq('creatorId', args.creatorId))
@@ -202,7 +224,7 @@ export const getDetails = query({
         const notification = await ctx.db.get(args.id);
         if (!notification) return null;
 
-        const { me } = await requireAccountOwner(ctx, notification.creatorId);
+        const me = await requireRecipient(ctx, notification.creatorId);
         // This inbox endpoint has no administrator override: the notification
         // itself is the recipient's authorization to read a broadcast.
         if (me._id !== notification.creatorId) {
@@ -225,6 +247,7 @@ export const getDetails = query({
 export const getUnreadCount = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireRecipient(ctx, args.creatorId);
         const unread = await ctx.db
             .query('notifications')
             .withIndex('by_creator_unread', (q) =>
@@ -241,6 +264,10 @@ export const getUnreadCount = query({
 export const markAsRead = mutation({
     args: { id: v.id('notifications') },
     handler: async (ctx, args) => {
+        await requireAuth(ctx);
+        const notification = await ctx.db.get(args.id);
+        if (!notification) return;
+        await requireRecipient(ctx, notification.creatorId);
         await ctx.db.patch(args.id, { read: true });
     },
 });
@@ -274,6 +301,7 @@ export const createForClient = mutation({
             Object.prototype.hasOwnProperty.call(args.data, 'announcementId')) {
             throw new Error('Announcement references are reserved for internal notifications');
         }
+        await requireRecipient(ctx, args.creatorId);
         await ctx.db.insert('notifications', {
             creatorId: args.creatorId,
             type: args.type,
@@ -292,6 +320,7 @@ export const createForClient = mutation({
 export const markAllAsRead = mutation({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireRecipient(ctx, args.creatorId);
         const unread = await ctx.db
             .query('notifications')
             .withIndex('by_creator_unread', (q) =>

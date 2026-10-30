@@ -15,6 +15,10 @@ const mockSignOut = jest.fn();
 const mockQuery = jest.fn();
 const mockLastActive = jest.fn();
 const mockOfflineSync = jest.fn();
+const mockNotificationOpen = jest.fn();
+jest.mock('../hooks/useNotificationOpen', () => ({
+  NotificationResponseOpener: (props: unknown) => { mockNotificationOpen(props); return null; },
+}));
 jest.mock('../lib/v2/ownerIntake', () => ({ hasOwnerIntent: jest.fn(async () => true) }));
 jest.mock('@clerk/clerk-expo', () => ({
   useAuth: () => ({ isSignedIn: mockSignedIn, isLoaded: true, userId: mockClerkSubject }),
@@ -92,6 +96,7 @@ describe('pending affiliate root navigation', () => {
     expect(screen.queryByTestId('protected-navigation')).toBeNull();
     expect(screen.queryByTestId('view-switcher')).toBeNull();
     expect(mockQuery).not.toHaveBeenCalled();
+    expect(mockNotificationOpen).not.toHaveBeenCalled();
     expect(mockOfflineSync).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
   });
 
@@ -103,6 +108,7 @@ describe('pending affiliate root navigation', () => {
     expect(screen.queryByText('Awaiting approval')).toBeNull();
     expect(screen.getByTestId('protected-navigation')).toBeTruthy();
     expect(mockQuery).toHaveBeenCalledWith('protected-screen-query', {});
+    expect(mockNotificationOpen).toHaveBeenLastCalledWith({ creatorId: affiliate._id, subject: affiliate.clerkId });
   });
 
   it('unmounts private screens if the live account returns to pending', async () => {
@@ -148,6 +154,28 @@ describe('pending affiliate root navigation', () => {
     expect(screen.getByLabelText('Loading account')).toBeTruthy();
     expect(screen.queryByText('Awaiting approval')).toBeNull();
     expect(mockQuery).not.toHaveBeenCalled();
+  });
+});
+
+describe('notification response navigation boundary', () => {
+  it.each(['creator', 'affiliate', 'admin'])('mounts behind the verified %s navigator', async role => {
+    mockSegments = ['(app)', role === 'affiliate' ? '(affiliate-tabs)' : role === 'admin' ? 'admin' : '(tabs)'];
+    mockAccount = { ...ready(), role, view: role, account: { ...affiliate, role, status: 'active' }, isAdmin: role === 'admin' };
+    await mountApp();
+    expect(mockNotificationOpen).toHaveBeenLastCalledWith({ creatorId: affiliate._id, subject: affiliate.clerkId });
+  });
+
+  it.each(['preview', 'loading', 'offline', 'wrong-subject', 'onboarding', 'signed-out'])('does not install a live opener for %s', async condition => {
+    mockSegments = ['(app)', '(tabs)'];
+    mockAccount = { ...ready(), role: 'creator', view: 'creator', account: { ...affiliate, role: 'creator', status: 'active' } };
+    if (condition === 'preview') mockAccount = { ...mockAccount, isPreview: true, isAdmin: true, role: 'admin' };
+    if (condition === 'loading') mockAccount.isLoading = true;
+    if (condition === 'offline') mockAccount.isOffline = true;
+    if (condition === 'wrong-subject') mockClerkSubject = 'different-user';
+    if (condition === 'onboarding') mockAccount.account = { ...(mockAccount.account as object), fieldAgentOnboardingRequired: true };
+    if (condition === 'signed-out') mockSignedIn = false;
+    await mountApp();
+    expect(mockNotificationOpen).not.toHaveBeenCalled();
   });
 });
 

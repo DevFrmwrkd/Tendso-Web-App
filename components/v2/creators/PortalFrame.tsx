@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 
-import { CREATOR_PAGE_EDITOR_HREF, CREATOR_PORTAL_HREF, CREATOR_PORTAL_NAV } from "@/lib/v2/creatorPortalNavigation";
+import { CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PORTAL_NAV, creatorPortalNavHref, type CreatorPortalPage } from "@/lib/v2/creatorPortalNavigation";
 
 import { MiniFoot, SoloBar } from "./Chrome";
 import { Face } from "./Face";
@@ -12,11 +12,12 @@ import styles from "./PortalFrame.module.css";
 export type PortalIdentity = { name: string; photo?: string | null };
 
 /** Presentation only. Each page keeps its existing account gate and data subscriptions. */
-export function PortalFrame({ identity, currentPage = "home", sample = false, right, children }: {
+export function PortalFrame({ identity, currentPage = "home", sample = false, right, utilityActions, children }: {
     identity?: PortalIdentity;
-    currentPage?: "home" | "my-page";
+    currentPage?: CreatorPortalPage;
     sample?: boolean;
     right?: ReactNode;
+    utilityActions?: ReactNode;
     children: ReactNode;
 }) {
     const editorHref = sample ? "#pt-links" : CREATOR_PAGE_EDITOR_HREF;
@@ -52,7 +53,7 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, ri
                 {CREATOR_PORTAL_NAV.map((item) => (
                     <Link
                         key={item.id}
-                        href={item.anchor ? `${sample ? "" : CREATOR_PORTAL_HREF}#${item.anchor}` : editorHref}
+                        href={creatorPortalNavHref(item.id, sample)}
                         className={item.id === currentPage ? "is-on" : undefined}
                         aria-current={item.id === currentPage ? "page" : undefined}
                     >
@@ -62,6 +63,10 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, ri
             </nav> : null}
         </SoloBar>
         <main className="wrap pt-main" id="top">
+            {identity ? <div className={styles.utilities} role="group" aria-label="Portal account tools">
+                {sample ? <span className={styles.utilityButton} aria-disabled="true">Account</span> : <Link className={styles.utilityButton} href={CREATOR_ACCOUNT_HREF} aria-current={currentPage === "account" ? "page" : undefined}>Account</Link>}
+                {!sample ? utilityActions : null}
+            </div> : null}
             {children}
             <MiniFoot
                 links={[

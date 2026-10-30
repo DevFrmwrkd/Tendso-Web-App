@@ -75,9 +75,9 @@ export function AffiliateHomeView({ account, portal, preview = false, hrefFor = 
     </div>;
 }
 
-export function AffiliateWalletView(props: AffiliatePortalViewProps) {
+export function AffiliateWalletView({ title = "Wallet", ...props }: AffiliatePortalViewProps & { title?: string }) {
     return <div className="flex min-w-0 flex-col gap-6">
-        <PageHeader title="Wallet" sub="Your commissions and payouts, all in one place." />
+        <PageHeader title={title} sub="Your commissions and payouts, all in one place." />
         <ReadOnlyNote preview={props.preview} />
         {props.portal === undefined ? <Loading label="Loading your affiliate wallet" className="flex flex-col gap-6">
             <div className="t-card t-card-pad flex flex-col gap-4" aria-hidden="true"><Skeleton width={160} height={14} /><Skeleton width={200} height={48} /><Skeleton width="60%" height={16} /><Skeleton width={130} height={44} /></div>
@@ -230,7 +230,7 @@ export function AffiliateReferralsView({ account, portal, preview = false }: Aff
     </div>;
 }
 
-export function AffiliateAccountView({ account, preview = false, hrefFor = defaultHref }: AffiliatePortalViewProps) {
+export function AffiliateAccountView({ account, preview = false, hrefFor = defaultHref, signOutHref = "/affiliates" }: AffiliatePortalViewProps & { signOutHref?: string }) {
     const headingId = useId();
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Your affiliate account";
     return <div className="flex min-w-0 flex-col gap-6">
@@ -248,7 +248,7 @@ export function AffiliateAccountView({ account, preview = false, hrefFor = defau
             </DefList>
             <p className="t-meta">One login has one account type. Use a different email to sign up as a creator.</p>
         </section>
-        {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} />}
+        {preview ? <AccountActionCard><Button disabled>Edit profile</Button><Button disabled>Change password</Button><Button disabled>Sign out</Button></AccountActionCard> : <LiveAccountActions account={account} signOutHref={signOutHref} />}
         <div className="t-card t-card-pad flex flex-col items-start gap-3"><h2 className="t-h2">Your public page has its own details</h2><p className="t-body">Change the photo, display name, message and social links that shop owners see from My page. Creator codes always give {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off the website price.</p><ButtonLink href={hrefFor("my-page")}>My page</ButtonLink></div>
     </div>;
 }
@@ -258,7 +258,7 @@ function AccountActionCard({ children }: { children: ReactNode }) {
 }
 
 /** The preview never mounts Clerk or the profile mutation drawers. */
-function LiveAccountActions({ account }: { account: Doc<"creators"> }) {
+function LiveAccountActions({ account, signOutHref }: { account: Doc<"creators">; signOutHref: string }) {
     const { user, isLoaded } = useUser();
     const [overlay, setOverlay] = useState<"profile" | "password" | null>(null);
     const editable = account.status === "active" && isLoaded && Boolean(user);
@@ -267,7 +267,7 @@ function LiveAccountActions({ account }: { account: Doc<"creators"> }) {
         <AccountActionCard>
             <Button variant="primary" disabled={!editable} onClick={() => setOverlay("profile")}>Edit profile</Button>
             <Button disabled={!editable || !hasPassword} onClick={() => setOverlay("password")}>Change password</Button>
-            <SignOutButton redirectUrl="/affiliates"><Button>Sign out</Button></SignOutButton>
+            <SignOutButton redirectUrl={signOutHref}><Button>Sign out</Button></SignOutButton>
         </AccountActionCard>
         {isLoaded && user && !hasPassword && <p className="t-meta">Your sign-in provider manages this login. There is no Tendso password to change.</p>}
         {editable && <EditProfileDrawer open={overlay === "profile"} onClose={() => setOverlay(null)} creator={account} why="How Tendso knows and reaches you." emailLine={maskEmail(account.email)} />}
