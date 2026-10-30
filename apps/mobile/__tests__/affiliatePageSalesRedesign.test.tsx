@@ -81,7 +81,7 @@ it('saves focused page edits without overwriting the saved price', async () => {
   const view = render(<AffiliatePageEditorScreen />);
   expect(view.queryByLabelText('Website price in pesos')).toBeNull();
   fireEvent.changeText(view.getByLabelText('Display name'), '  My saved name  ');
-  expect(view.getByText('Unsaved changes. Sharing still uses your saved offer.')).toBeTruthy();
+  expect(view.getByText('Unsaved changes.')).toBeTruthy();
   fireEvent.press(view.getByLabelText('Save page'));
   await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ photo: '', displayName: 'My saved name', message: sampleAffiliate.affiliateMessage, socialLinks: {} }));
   expect(view.getByText('Page saved.')).toBeTruthy();

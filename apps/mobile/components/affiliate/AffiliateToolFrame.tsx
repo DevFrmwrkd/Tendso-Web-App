@@ -11,18 +11,19 @@ export type AffiliateToolFrameProps = {
   suspended?: boolean;
   offline?: boolean;
   footer?: ReactNode;
+  floatingFooter?: boolean;
   avoidKeyboard?: boolean;
   children: ReactNode;
 };
 
 /** Pushed creator tools keep the navigation stack, including the tab that opened them. */
-export function AffiliateToolFrame({ title, preview, suspended, offline, footer, avoidKeyboard = false, children }: AffiliateToolFrameProps) {
+export function AffiliateToolFrame({ title, preview, suspended, offline, footer, floatingFooter = true, avoidKeyboard = false, children }: AffiliateToolFrameProps) {
   const router = useGuardedRouter();
   function back() {
     if (router.canGoBack?.()) router.back();
     else router.replace('/(app)/(affiliate-tabs)');
   }
-  const frame = <ScreenShell onBack={back} tone="neutral" floatingFooter footer={footer} contentStyle={styles.content}
+  const frame = <ScreenShell onBack={back} tone="neutral" floatingFooter={floatingFooter} footer={footer} contentStyle={styles.content}
     headerRight={title ? <View pointerEvents="none" style={styles.title}><Text variant="bodyLg" weight="bold" align="center" accessibilityRole="header" numberOfLines={1}>{title}</Text></View> : undefined}>
     {preview ? <Notice tone="info">Admin preview · Sample data. Account changes and sharing are disabled.</Notice> : null}
     {suspended ? <Notice tone="warn">Your creator account is suspended. Your sales stay visible. Page changes, sharing and payouts are paused.</Notice> : null}
