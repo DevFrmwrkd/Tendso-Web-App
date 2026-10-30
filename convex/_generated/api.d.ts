@@ -60,6 +60,7 @@ import type * as knowledgeTraining from "../knowledgeTraining.js";
 import type * as landingLeads from "../landingLeads.js";
 import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
+import type * as lib_affiliateCalendar from "../lib/affiliateCalendar.js";
 import type * as lib_affiliateOffer from "../lib/affiliateOffer.js";
 import type * as lib_affiliateSignup from "../lib/affiliateSignup.js";
 import type * as lib_affiliateSocialLinks from "../lib/affiliateSocialLinks.js";
@@ -179,6 +180,7 @@ declare const fullApi: ApiFromModules<{
   landingLeads: typeof landingLeads;
   leadNotes: typeof leadNotes;
   leads: typeof leads;
+  "lib/affiliateCalendar": typeof lib_affiliateCalendar;
   "lib/affiliateOffer": typeof lib_affiliateOffer;
   "lib/affiliateSignup": typeof lib_affiliateSignup;
   "lib/affiliateSocialLinks": typeof lib_affiliateSocialLinks;
