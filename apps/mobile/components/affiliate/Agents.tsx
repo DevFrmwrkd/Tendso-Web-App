@@ -1,19 +1,31 @@
-import React, { useRef, useState } from 'react';
-import { Pressable, Share, StyleSheet, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal, Pressable, ScrollView, Share, StyleSheet, useWindowDimensions, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { formatPHP } from '../../../../packages/shared/pricing';
-import { Avatar, Button, Card, Chip, EmptyState, ListRow, SectionLabel, Text } from '../v2';
+import { Avatar, Card, Chip, EmptyState, ListRow, SectionLabel, Text } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, AffiliateLoading, type AffiliateAccessProps } from './Screen';
 import { affiliateUrl, type AffiliatePortal, samplePortal } from './model';
-import { CopyButton } from './ShareTools';
 
 const PAGE_SIZE = 4;
 
 type Recruit = AffiliatePortal['recruits'][number];
+
+/** Invite labels wrap with system text size instead of truncating inside a fixed-height button. */
+function InviteAction({ title, icon, disabled, busy = false, onPress, primary = false }: {
+  title: string; icon: React.ComponentProps<typeof Ionicons>['name']; disabled: boolean; busy?: boolean; onPress: () => void; primary?: boolean;
+}) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={title} accessibilityState={{ disabled: disabled || busy, busy }}
+    disabled={disabled || busy} onPress={onPress} style={[styles.dialogAction, primary && styles.dialogPrimary, (disabled || busy) && styles.disabled]}>
+    <Ionicons name={icon} size={22} color={primary ? colors.onDark : colors.ink} />
+    <Text variant="button" tone={primary ? 'onDark' : 'ink'} style={styles.dialogActionText}>{busy ? 'Opening share options…' : title}</Text>
+  </Pressable>;
+}
 
 /** Demo metadata changes the illustrated track only, never the actual period or eligibility. */
 export function agentProgress(recruit: Recruit) {
@@ -45,19 +57,65 @@ function LiveAgents({ month, ...props }: AffiliateAccessProps & { month?: string
   return <AgentsContent {...props} portal={portal} month={month} />;
 }
 
-export function AgentsContent({ account, isPreview, isOffline, portal, month }: AffiliateAccessProps & { portal: AffiliatePortal | undefined; month?: string }) {
+export function AgentsContent({ account, isPreview, isOffline, isAuthenticated, portal, month }: AffiliateAccessProps & { portal: AffiliatePortal | undefined; month?: string }) {
   const router = useGuardedRouter();
-  const { width, fontScale } = useWindowDimensions();
+  const { width, height, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
-  const [inviting, setInviting] = useState(false);
+  const [inviteActor, setInviteActor] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'ended'>('all');
   const [error, setError] = useState('');
-  const sharing = useRef(false);
+  const [copyStatus, setCopyStatus] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const actor = `${account._id}:${account.clerkId}:${account.role}:${account.status}:${!!account.isDeleted}:${isPreview}:${isAuthenticated}:${account.affiliateHandle ?? ''}:${account.referralCode ?? ''}`;
+  const latestActor = useRef(actor);
+  latestActor.current = actor;
+  const mounted = useRef(false);
+  const openActor = useRef<string | null>(null);
+  const generation = useRef(0);
+  const shareAttempt = useRef<object | null>(null);
+  const copyAttempt = useRef(0);
+  const inviting = inviteActor === actor;
+  const disabled = isPreview || account.status !== 'active' || account.role !== 'affiliate' || !!account.isDeleted || (!isAuthenticated && !isOffline);
+  const inviteLink = account.affiliateHandle ? `${affiliateUrl(account.affiliateHandle)}/earn` : null;
+  const modalPaddingTop = Math.max(insets.top, space.lg);
+  const modalPaddingBottom = Math.max(insets.bottom, space.lg);
+  const modalMaxHeight = Math.max(1, height - modalPaddingTop - modalPaddingBottom - space.lg * 2);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; openActor.current = null; generation.current += 1; };
+  }, []);
+  useEffect(() => {
+    openActor.current = null; generation.current += 1; shareAttempt.current = null;
+    setInviteActor(null); setError(''); setCopyStatus(''); setSharing(false);
+  }, [actor]);
+  function currentDialog(owner: string, version: number) {
+    return mounted.current && latestActor.current === owner && openActor.current === owner && generation.current === version;
+  }
+  function openInvite() {
+    generation.current += 1; openActor.current = actor; shareAttempt.current = null;
+    setError(''); setCopyStatus(''); setSharing(false); setInviteActor(actor);
+  }
+  function closeInvite() {
+    generation.current += 1; openActor.current = null; shareAttempt.current = null;
+    setInviteActor(null); setError(''); setCopyStatus(''); setSharing(false);
+  }
+  async function copyInvite(value: string | undefined | null, kind: 'code' | 'link') {
+    if (disabled || !value || !currentDialog(actor, generation.current)) return;
+    const version = generation.current;
+    const attempt = ++copyAttempt.current;
+    setError(''); setCopyStatus('');
+    try {
+      await Clipboard.setStringAsync(value);
+      if (currentDialog(actor, version) && copyAttempt.current === attempt) setCopyStatus(kind === 'code' ? 'Invitation code copied.' : 'Invite link copied.');
+    } catch {
+      if (currentDialog(actor, version) && copyAttempt.current === attempt) setError('Could not copy your invite. Please try again.');
+    }
+  }
   const recruits = portal?.recruits ?? [];
   const filtered = filter === 'ended' ? recruits.filter(recruit => !recruit.earning) : recruits;
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pages - 1);
-  const disabled = isPreview || account.status !== 'active';
   const portalMonth = portal?.month ? new Date(portal.month.start + 8 * 60 * 60 * 1000) : undefined;
   const resolvedMonth = month ?? (portalMonth ? `${portalMonth.getUTCFullYear()}-${String(portalMonth.getUTCMonth() + 1).padStart(2, '0')}` : undefined);
   const monthLabel = resolvedMonth ? new Date(`${resolvedMonth}-01T00:00:00Z`).toLocaleDateString('en-PH', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : 'This month';
@@ -65,19 +123,25 @@ export function AgentsContent({ account, isPreview, isOffline, portal, month }: 
   const summarySize = Math.max(16, Math.min(38, Math.floor((width - 48) / (summaryUnits * Math.max(1, fontScale)))));
   const changeFilter = (next: 'all' | 'ended') => { setFilter(next); setPage(0); };
   const invite = async () => {
-    if (disabled || !account.affiliateHandle || sharing.current) return;
-    sharing.current = true;
-    setError('');
-    try { await Share.share({ message: `Join me on Tendso as a field agent: ${affiliateUrl(account.affiliateHandle)}/earn` }); }
-    catch { setError('Could not share your invite. Please try again.'); }
-    finally { sharing.current = false; }
+    if (disabled || !inviteLink || shareAttempt.current || !currentDialog(actor, generation.current)) return;
+    const version = generation.current;
+    const attempt = {};
+    shareAttempt.current = attempt; setSharing(true); setError(''); setCopyStatus('');
+    try { await Share.share({ message: `Join me on Tendso as a field agent: ${inviteLink}` }); }
+    catch { if (currentDialog(actor, version)) setError('Could not share your invite. Please try again.'); }
+    finally {
+      if (shareAttempt.current === attempt) {
+        shareAttempt.current = null;
+        if (currentDialog(actor, version)) setSharing(false);
+      }
+    }
   };
-  return <AffiliateFrame preview={isPreview}
+  return <><View style={styles.screen} accessibilityElementsHidden={inviting} importantForAccessibility={inviting ? 'no-hide-descendants' : 'auto'}><AffiliateFrame preview={isPreview}
     suspended={account.status !== 'active'} offline={isOffline}
-    footer={<Pressable accessibilityRole="button" accessibilityLabel="Invite field agents" accessibilityState={{ expanded: inviting }} onPress={() => setInviting(value => !value)} style={styles.inviteAction}><Ionicons name="people-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.inviteActionText}>Invite a field agent</Text></Pressable>}>
+    footer={<Pressable accessibilityRole="button" accessibilityLabel="Invite field agents" accessibilityState={{ expanded: inviting }} onPress={openInvite} style={styles.inviteAction}><Ionicons name="people-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.inviteActionText}>Invite a field agent</Text></Pressable>}>
     <View style={styles.header}>
       <Text variant="display" accessibilityRole="header" style={[styles.title, styles.flex]}>Your agents</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel="Invite an agent" accessibilityState={{ expanded: inviting }} onPress={() => setInviting(value => !value)} style={styles.round}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Invite an agent" accessibilityState={{ expanded: inviting }} onPress={openInvite} style={styles.round}>
         <Ionicons name="add" size={25} color={colors.ink} />
       </Pressable>
     </View>
@@ -126,17 +190,6 @@ export function AgentsContent({ account, isPreview, isOffline, portal, month }: 
     </> : <EmptyState icon="people-outline" title="Your team starts here"
       body="Field agents appear here after joining with your link or code." />}
 
-    {inviting ? <Card variant="tint" style={styles.invite} testID="affiliate-agent-invite-tools">
-      <SectionLabel>Invite field agents</SectionLabel>
-      <Text tone="ink2">Earn 5% of their sales for 12 months, after each shop has paid in full.</Text>
-      {account.referralCode ? <>
-        <Text variant="title" selectable align="center">{account.referralCode}</Text>
-        <CopyButton value={account.referralCode} label="Copy invitation code" disabled={disabled} />
-      </> : <Text tone="muted">Your invitation code is not available yet.</Text>}
-      <Button title="Share agent invite" variant="dark" icon="share-outline" onPress={invite} disabled={disabled || !account.affiliateHandle} />
-      {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
-    </Card> : null}
-
     {portal?.referrals.length ? <View style={styles.list}>
       <SectionLabel>{`Earlier ₱1,000 referrals · ${portal.referralStats.total}`}</SectionLabel>
       <Text variant="label" tone="muted">Earlier invitations keep their one-time bonus.</Text>
@@ -146,10 +199,40 @@ export function AgentsContent({ account, isPreview, isOffline, portal, month }: 
         trailing={<Chip label={row.status === 'paid' ? 'Paid' : row.status === 'qualified' ? 'Qualified' : 'Joined'} tone={row.status === 'paid' ? 'ok' : 'muted'} />}
         divider={i < portal.referrals.length - 1} />)}</Card>
     </View> : null}
-  </AffiliateFrame>;
+  </AffiliateFrame></View>
+    <Modal testID="affiliate-agent-invite-modal" visible={inviting} transparent animationType="fade" onRequestClose={closeInvite}>
+      <View testID="affiliate-agent-invite-modal-root" accessibilityViewIsModal style={[styles.modal, { paddingTop: modalPaddingTop, paddingBottom: modalPaddingBottom }]}>
+        <Pressable style={styles.backdrop} accessibilityRole="button" accessibilityLabel="Dismiss agent invite" onPress={closeInvite} />
+        <View testID="affiliate-agent-invite-tools" onAccessibilityEscape={closeInvite} style={[styles.dialog, { maxHeight: modalMaxHeight }]}>
+          <View style={styles.dialogHeader}>
+            <Text variant="heading" accessibilityRole="header" style={styles.flex}>Invite a field agent</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close agent invite" onPress={closeInvite} style={styles.round}><Ionicons name="close" size={24} color={colors.ink} /></Pressable>
+          </View>
+          <ScrollView style={styles.dialogScroll} contentContainerStyle={styles.dialogContent} keyboardShouldPersistTaps="handled">
+            <Text tone="ink2">Earn 5% of their sales for 12 months, after each shop has paid in full.</Text>
+            {isPreview ? <Text variant="label" tone="muted">Preview only. Copying and sharing are disabled.</Text> : account.status !== 'active' ? <Text variant="label" tone="muted">Invitations are paused while your account is inactive.</Text> : null}
+            <View style={styles.dialogDetail}>
+              <Text variant="label" tone="muted">Your invite link</Text>
+              <Text selectable>{inviteLink ?? 'Your invite link is not available yet.'}</Text>
+              <InviteAction title="Copy invite link" icon="copy-outline" disabled={disabled || !inviteLink} onPress={() => { void copyInvite(inviteLink, 'link'); }} />
+            </View>
+            <View style={styles.dialogDetail}>
+              <Text variant="label" tone="muted">Your invitation code</Text>
+              <Text variant="heading" selectable>{account.referralCode || 'Your invitation code is not available yet.'}</Text>
+              <InviteAction title="Copy invitation code" icon="copy-outline" disabled={disabled || !account.referralCode} onPress={() => { void copyInvite(account.referralCode, 'code'); }} />
+            </View>
+            <InviteAction title="Share agent invite" icon="share-outline" primary disabled={disabled || !inviteLink} busy={sharing} onPress={invite} />
+            {copyStatus ? <Text variant="label" tone="muted" accessibilityLiveRegion="polite">{copyStatus}</Text> : null}
+            {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  </>;
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
   list: { gap: space.md },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { fontSize: 28, lineHeight: 36 },
@@ -179,7 +262,16 @@ const styles = StyleSheet.create({
   pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.lg },
   pageButton: { width: 48, height: 48, borderRadius: radius.pill, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
-  invite: { gap: space.md },
+  modal: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xl },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.scrim },
+  dialog: { width: '100%', maxWidth: 480, backgroundColor: colors.card, borderRadius: radius.cardLg, overflow: 'hidden' },
+  dialogScroll: { flexGrow: 0, flexShrink: 1, minHeight: 0 },
+  dialogContent: { padding: space.xl - 4, paddingTop: 0, gap: space.lg },
+  dialogHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.xl - 4, flexShrink: 0 },
+  dialogDetail: { gap: space.sm },
+  dialogAction: { minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, borderRadius: radius.pill, paddingHorizontal: space.lg, paddingVertical: space.md, backgroundColor: colors.bg2 },
+  dialogPrimary: { backgroundColor: colors.ink },
+  dialogActionText: { flexShrink: 1, textAlign: 'center' },
   inviteAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   inviteActionText: { flexShrink: 1, textAlign: 'center' },
 });
