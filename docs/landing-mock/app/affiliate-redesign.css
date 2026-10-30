@@ -40,3 +40,71 @@
 .ar-app[data-view="money"] .ar-ledger-row{padding-block:12px}
 .ar-app .ar-signout{display:flex;align-items:center;justify-content:center;gap:8px}
 @media(prefers-reduced-motion:reduce){.ar-board *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Current native affiliate tools: 30 October 2026. Each phone owns its own state. */
+.ar-board{overflow-y:auto;overflow-x:hidden;height:auto;min-height:100vh}
+.ar-tile[hidden]{display:none}
+.ar-page-cover{display:flex;align-items:center;justify-content:flex-end;padding-inline:24px}
+.ar-page-cover img.ar-page-mark{width:42px;height:42px;object-fit:contain;filter:none}
+.ar-page-avatar{display:block;width:var(--sz,64px);height:var(--sz,64px);border-radius:50%;object-fit:cover;object-position:center;flex:none}
+.ar-page-info>.ar-page-avatar{position:relative;margin-top:-32px;margin-bottom:8px;border:3px solid #fff}
+.ar-personal-message{white-space:pre-wrap;overflow-wrap:anywhere}
+.ar-social-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.ar-social-links button{min-height:42px;display:flex;align-items:center;gap:6px;padding:8px 12px!important;background:#EFEFEA;border-radius:999px;font-size:15px}
+.ar-social-links svg{width:17px;height:17px}
+.ar-editor-layout{position:absolute;inset:60px 0 24px;display:flex;flex-direction:column;min-height:0}
+.ar-editor-layout>.ar-backbar{margin:8px 22px 16px;flex:none}
+.ar-editor-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:0 22px 24px;scroll-padding-block:16px}
+.ar-editor-scroll::-webkit-scrollbar{display:none}
+.ar-edit-field small{color:#6B6A63;font-size:16px;line-height:1.4}
+.ar-editor-scroll .ar-edit-field{margin-bottom:20px}
+.ar-edit-field input:focus,.ar-edit-field textarea:focus{outline:2px solid #0C0A08;outline-offset:-2px}
+.ar-toggle{display:flex;align-items:center;gap:14px;margin:14px 0 16px;padding:15px 0;position:relative;cursor:pointer}
+.ar-toggle>span{flex:1;min-width:0}.ar-toggle b{font-size:17px;display:block}.ar-toggle small{font-size:16px;color:#6B6A63;display:block;margin-top:3px}
+.ar-toggle input{position:absolute;right:0;opacity:0;width:48px;height:30px;cursor:pointer}
+.ar-toggle>i{width:48px;height:30px;border-radius:999px;background:#C8CBC0;flex:none;padding:3px;pointer-events:none}
+.ar-toggle>i:before{content:'';display:block;width:24px;height:24px;border-radius:50%;background:white;box-shadow:0 1px 3px #0002;transition:transform .15s}
+.ar-toggle input:checked+i{background:#E4F222}.ar-toggle input:checked+i:before{transform:translateX(18px)}
+.ar-toggle input:focus-visible+i{outline:2px solid #0C0A08;outline-offset:3px}
+.ar-photo-picker{display:flex;align-items:center;gap:14px;padding:16px}.ar-photo-picker .ar-textlink{flex:1;text-align:center;font-size:16px!important}
+.ar-file-input{position:absolute;width:1px;height:1px;padding:0;opacity:0;overflow:hidden;pointer-events:none}
+.ar-social-fields{display:grid;gap:0}.ar-social-fields>p{margin-bottom:18px}
+.ar-social-input{display:flex;align-items:center;gap:12px;background:white;border:1px solid #D9DCD0;border-radius:18px;padding-left:16px}
+.ar-social-input svg{width:20px;height:20px;color:#92948A}.ar-social-input input{min-width:0;border:0;border-radius:18px;padding-left:0;font-size:17px}
+.ar-social-input:focus-within{outline:2px solid #0C0A08;outline-offset:-2px}.ar-social-input input:focus{outline:none}
+.ar-handle{padding:4px 4px 0}
+.ar-save-dock{position:static;flex:none;padding:12px 22px 12px;background:#F5F5F0;border-top:1px solid #E6E7DF;display:flex;flex-direction:column;gap:8px;z-index:auto}
+.ar-save-status{color:#6B6A63;text-align:center;font-size:16px;line-height:1.4;overflow-wrap:anywhere;min-height:0}
+.ar-save-status:empty{display:none}.ar-save-status.is-error{color:#A52B18}
+.ar-modal-layer{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:50px 24px 34px}
+.ar-modal-backdrop{position:absolute;inset:0;background:#0C0A0866!important;width:100%;height:100%;border-radius:0!important}
+.ar-dialog{position:relative;display:flex;flex-direction:column;min-height:0;max-height:100%;width:100%;max-width:480px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 16px 50px #0002;outline:none}
+.ar-dialog-header{display:flex;align-items:center;gap:12px;padding:20px;flex:none}
+.ar-dialog-header h2{flex:1;min-width:0;font-size:22px;line-height:1.25;letter-spacing:-.4px}
+.ar-dialog-header .ar-round{width:44px;height:44px;background:#EFEFEA!important}
+.ar-dialog-header .ar-round svg{width:22px;height:22px}
+.ar-invite-icon{height:44px;width:44px;border-radius:14px;background:#E4F222;display:grid;place-items:center;flex:none}
+.ar-invite-icon svg{width:24px;height:24px}
+.ar-dialog-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 20px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin}
+.ar-invite-intro{font-size:17px;line-height:1.45;color:#484942}
+.ar-invite-panel{padding:14px;border:1px solid #ECECE6;border-radius:18px;background:#F6F6F3;display:flex;align-items:center;gap:12px}
+.ar-invite-panel>div{flex:1;min-width:0}.ar-invite-panel span{font-size:16px;color:#6B6A63;display:block;margin-bottom:5px}
+.ar-invite-panel p{font-size:17px;line-height:1.4;overflow-wrap:anywhere;user-select:text}.ar-invite-panel strong{font-size:28px;line-height:1.2;letter-spacing:.4px;user-select:text}
+.ar-invite-copy{width:44px;height:44px;border-radius:50%;background:#fff!important;display:grid;place-items:center;flex:none}
+.ar-invite-copy svg{width:21px;height:21px}.ar-invite-helper{font-size:16px;line-height:1.4;color:#6B6A63;margin-top:8px;padding-inline:2px}
+.ar-dialog .ar-btn{font-size:18px!important;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+.ar-dialog .ar-btn svg{width:22px;height:22px}.ar-dialog-status{font-size:15px;color:#6B6A63;line-height:1.4;text-align:center}.ar-dialog-status:empty{display:none}
+.ar-inbox-back{margin-bottom:20px}.ar-inbox-back .ar-textlink{margin-left:auto;font-size:15px!important}
+.ar-notice-group{color:#6B6A63;font-size:16px;font-weight:600;margin:22px 0 12px}
+.ar-notice{display:flex!important;align-items:flex-start;gap:12px;text-align:left;width:100%;padding:16px!important;border-radius:22px;margin-bottom:12px}
+.ar-notice.is-unread{background:#fff!important;box-shadow:0 6px 24px -15px #0C0A0826}
+.ar-notice-icon{height:40px;width:40px;border-radius:13px;background:#EFEFEA;display:grid;place-items:center;flex:none}
+.ar-notice-icon svg{width:21px;height:21px}.ar-notice-copy{flex:1;min-width:0;display:grid;gap:4px}
+.ar-notice-title{display:flex;align-items:center;gap:8px;font-size:17px;line-height:1.3}.ar-notice-title>b{flex:1;min-width:0}
+.ar-unread-dot{height:9px;width:9px;flex:none;border-radius:50%;background:#0C0A08}
+.ar-notice-preview{font-size:15px;color:#484942;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ar-notice-copy>small{font-size:14px;color:#6B6A63}.ar-notice>.ar-chevron{align-self:center}
+.ar-notification-dialog{max-height:88%}.ar-notification-dialog .ar-dialog-header h2{text-align:center}
+.ar-full-message{user-select:text;gap:18px}.ar-full-message h2{font-size:24px;line-height:1.25}.ar-full-message p{font-size:18px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
+.ar-notification-meta{display:flex;align-items:center;gap:12px;color:#6B6A63;font-size:15px}
+.ar-dialog-footer{padding:16px 20px 20px;flex:none}

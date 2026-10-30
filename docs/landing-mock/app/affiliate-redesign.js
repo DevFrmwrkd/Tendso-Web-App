@@ -28,6 +28,24 @@
   const back = (view, title) => `<div class="ar-backbar">${go(view, icon('back'), 'ar-round', 'aria-label="Back" data-back="true"')}<b>${title}</b><span></span></div>`;
   const help = text => `<p class="ar-help">${icon('info')}<span>${text}</span></p>`;
   const track = (months, label) => `<span class="ar-track" role="progressbar" aria-label="${label}" aria-valuemin="0" aria-valuemax="12" aria-valuenow="${months}"><i style="--progress:${months / 12 * 100}%"></i></span>`;
+  const platforms = [
+    {key:'messenger', label:'Messenger', placeholder:'https://m.me/yourname', hosts:['messenger.com','m.me']},
+    {key:'facebook', label:'Facebook', placeholder:'https://www.facebook.com/yourname', hosts:['facebook.com']},
+    {key:'instagram', label:'Instagram', placeholder:'https://www.instagram.com/yourname', hosts:['instagram.com']},
+    {key:'tiktok', label:'TikTok', placeholder:'https://www.tiktok.com/@yourname', hosts:['tiktok.com']},
+    {key:'youtube', label:'YouTube', placeholder:'https://www.youtube.com/@yourname', hosts:['youtube.com','youtu.be']}
+  ];
+  const savedPage = () => ({displayName:'Mika Santos', photo:'sample', message:'Let’s put your shop online. I’ll help you get started.', socialLinks:{messenger:'https://m.me/mika.santos',instagram:'https://www.instagram.com/mika.santos',tiktok:'https://www.tiktok.com/@mika.santos'}});
+  const draftPage = saved => ({...saved,socialLinks:{...saved.socialLinks},showPhoto:!!saved.photo,showMessage:!!saved.message,showSocialLinks:Object.keys(saved.socialLinks).length>0});
+  const effectivePage = draft => ({displayName:draft.displayName.trim(),photo:draft.showPhoto?draft.photo:'',message:draft.showMessage?draft.message.trim():'',socialLinks:draft.showSocialLinks?Object.fromEntries(platforms.flatMap(({key})=>draft.socialLinks[key]?.trim()?[[key,draft.socialLinks[key].trim()]]:[])):{}});
+  const pageDirty = s => JSON.stringify(effectivePage(s.pageDraft))!==JSON.stringify(s.pageSaved);
+  const pageStatus = s => s.pageError || (pageDirty(s)?'Unsaved changes.':s.pageWasSaved?'Page saved.':'');
+  const pagePhoto = (photo,name,size) => photo==='sample'?face('mika',size,name):photo?`<img class="ar-page-avatar" src="${esc(photo)}" alt="${esc(name)}" style="--sz:${size}px">`:`<span class="cl-face cl-face--txt" role="img" aria-label="${esc(name)}" style="--sz:${size}px">${esc((name.trim()||'M')[0].toUpperCase())}</span>`;
+  const sampleNotices = () => [
+    {id:'team',title:'Paolo joined your team',body:'Paolo Reyes joined using your invitation code.\n\nOpen Agents to see his commission period and the share credited from his paid website sales. You earn 5% of his sales for 12 months, after each shop has paid in full.\n\nA new account joining your team does not add money to your balance. Commission appears after an eligible shop payment is completed.',time:'Today · 9:15 AM',icon:'agents',read:false},
+    {id:'payout',title:'Your cash out completed',body:'Your ₱1,750 cash out to Wise is complete.\n\nCheck your Wise account for the transfer. You can review the amount and status in your payout history.\n\nIf you need help finding this transfer, contact the Tendso team with the date and amount.',time:'26 October · 2:30 PM',icon:'money',read:false},
+    {id:'sale',title:'Your shop link made a sale',body:'Héla Hair Studio paid for its website. Your ₱1,750 commission has been credited.\n\nYour sales show the website price and your commission separately. Your available balance is shown in Money.',time:'24 October · 10:20 AM',icon:'store',read:true}
+  ];
   const samples = {
     oct: { month: 'October', total: 4950, direct: 4250, team: 700 },
     sep: { month: 'September', total: 3000, direct: 2000, team: 1000 },
@@ -52,8 +70,8 @@
   const empty = (title, copy, label, dest) => `<div class="ar-empty">${icon('agents')}<h2>${title}</h2><p>${copy}</p>${label ? button(dest,label) : ''}</div>`;
   function home(s) {
     const m = samples[s.month];
-    return body(`<div class="ar-topline"><div class="ar-greeting">${face('mika',42,'Mika Santos')}<div><p>Your creator account</p><b>Hi, Mika</b></div></div>${go('notifications', icon('bell'), 'ar-round', 'aria-label="Notifications"')}</div>
-      <div class="ar-earn-card">${action('month',`${m.month} ${icon('down')}`,'ar-month-switch','aria-label="Change earnings month"')}<span class="ar-number">${php(m.total)}</span><span class="ar-lab">${m.month} earnings</span></div>
+    return body(`<div class="ar-topline"><div class="ar-greeting">${pagePhoto(s.pageSaved.photo,s.pageSaved.displayName||'Mika Santos',42)}<div><p>Your creator account</p><b>Hi, Mika</b></div></div>${go('notifications', icon('bell'), 'ar-round', 'aria-label="Notifications"')}</div>
+      <div class="ar-earn-card">${action('month',`${m.month} 2027 ${icon('down')}`,'ar-month-switch','aria-label="Change earnings month"')}<span class="ar-number">${php(m.total)}</span><span class="ar-lab">${m.month} earnings</span></div>
       <div class="ar-source-grid">${go('sales',`<span class="ar-source-icon">${icon('link')}Your link</span><strong>${php(m.direct)}</strong><small>Paid website sales</small>`)}${go('agents',`<span class="ar-source-icon">${icon('agents')}Your agents</span><strong>${php(m.team)}</strong><small>5% team commission</small>`)}</div>
       <div class="ar-shortcuts">${go('sales',`Sales ${chevron}`)}${go('page',`My page ${chevron}`)}</div>
       <div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika</span>${action('copy',icon('copy'),'','aria-label="Copy shop link"')}</div>`, 'ar-has-action') + footer(action('share',`${icon('share')}Share my shop link`,'ar-btn')) + tabs('home');
@@ -106,17 +124,24 @@
       ${list.map(row=>`<article class="ar-card ar-sale"><div class="ar-sale-heading"><img src="${P+row.asset}" alt=""><div><h3>${row.name}</h3><p>${row.date}</p></div></div><div class="ar-mt"><span class="ar-badge ${row.status==='Paid'?'ar-ok':'ar-warn'}">${row.status}</span></div><div class="ar-sale-money"><div><span>Website price</span><strong>${php(row.price)}</strong></div><div><span>Your commission</span><strong>${php(row.commission)}</strong>${row.status!=='Paid'?'<em>Not credited yet</em>':''}</div></div></article>`).join('')}`, 'ar-pushed');
   }
   function page(s) {
-    return body(`${back('home','My creator page')}<div class="ar-page-preview"><div class="ar-page-cover"><img src="${P}people/09-cafe.jpg" alt="A local café"></div><div class="ar-page-info">${face('mika',62,'Mika Santos')}<h2>${esc(s.displayName)}</h2><p>${esc(s.pageMessage)}</p><div class="ar-page-offer"><div><span>Website price</span><strong>${php(s.savedPrice)}</strong></div>${s.savedPrice<4999?`<span class="ar-badge ar-ok">Save ${php(4999-s.savedPrice)}</span>`:''}</div></div></div>
+    const saved=s.pageSaved,name=saved.displayName||'Mika Santos';
+    return body(`${back('home','My creator page')}<div class="ar-page-preview"><div class="ar-page-cover"><img class="ar-page-mark" src="${P}brand/mark-ink-256.png" alt="Tendso"></div><div class="ar-page-info">${pagePhoto(saved.photo,name,64)}<h2>${esc(name)}</h2>${saved.message?`<p class="ar-personal-message">${esc(saved.message)}</p>`:''}<div class="ar-page-offer"><div><span>Website price</span><strong>${php(s.savedPrice)}</strong></div>${s.savedPrice<4999?`<span class="ar-badge ar-ok">Save ${php(4999-s.savedPrice)}</span>`:''}</div>${Object.keys(saved.socialLinks).length?`<div class="ar-social-links">${platforms.filter(p=>saved.socialLinks[p.key]).map(p=>action('social-'+p.key,icon('link')+p.label,'',`aria-label="View saved ${p.label} link"`)).join('')}</div>`:''}</div></div>
       <div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika</span>${action('copy',icon('copy'),'','aria-label="Copy creator page link"')}</div>
       <div class="ar-mt">${menu([['editpage','Edit page','edit'],['offer','Your price','store'],['poster','Share QR & poster','share']])}</div>`, 'ar-pushed ar-has-action') + footer(action('share','Share my shop link','ar-btn'),true);
   }
   function me(s) {
-    return body(`<div class="ar-topline"><h1>Me</h1></div><div class="ar-profile-info">${face('mika',64,'Mika Santos')}<div><h1>Mika Santos</h1><p>Creator · Code MIKA</p></div></div>
+    return body(`<div class="ar-topline"><h1>Me</h1></div><div class="ar-profile-info">${pagePhoto(s.pageSaved.photo,'Mika Santos',64)}<div><h1>Mika Santos</h1><p>Creator · Code MIKA</p></div></div>
       ${menu([['profile','Edit profile','me'],['page','My creator page','page'],['sales','Your sales','sales']])}
       <div class="ar-mt">${menu([['wise','Payout details','money'],['notifications','Notifications','bell'],['help','Help & account','help']])}</div>${action('signout',icon('out')+' Sign out','ar-signout')}`) + tabs('me');
   }
   function editPage(s) {
-    return body(`${back('page','Edit your page')}<h1>Make it yours.</h1><div class="ar-mt"><label class="ar-edit-field"><span>Display name</span><input name="display-name" maxlength="60" value="${esc(s.displayName)}"></label><label class="ar-edit-field"><span>Message to shop owners</span><textarea name="page-message" maxlength="200">${esc(s.pageMessage)}</textarea></label><div class="ar-card"><span class="ar-caption">Your link stays tendso.com/v2/a/mika</span></div></div>`, 'ar-pushed ar-has-action') + footer(action('save-page','Save page','ar-btn'),true);
+    const d=s.pageDraft;
+    const toggle=(key,title,subtitle)=>`<label class="ar-toggle"><span><b>${title}</b><small>${subtitle}</small></span><input type="checkbox" name="show-${key}" role="switch" ${d['show'+key[0].toUpperCase()+key.slice(1)]?'checked':''}><i aria-hidden="true"></i></label>`;
+    return `<div class="ar-editor-layout">${back('page','Edit your page')}<div class="ar-editor-scroll"><h1>Make it yours.</h1><label class="ar-edit-field ar-mt"><span>Display name</span><input name="display-name" aria-label="Display name" maxlength="100" value="${esc(d.displayName)}"><small>The name shown on your public page.</small></label>
+      ${toggle('photo','Show my photo',d.photo?'Tap below to change it':'Add a photo of yourself')}${d.showPhoto?`<div class="ar-card ar-photo-picker">${pagePhoto(d.photo,d.displayName||'Mika Santos',64)}${action('choose-photo',d.photo?'Change page photo':'Choose page photo','ar-textlink')}<input class="ar-file-input" type="file" name="page-photo" accept="image/*" aria-label="Choose page photo"></div>`:''}
+      ${toggle('message','Show a message','Introduce yourself to visitors')}${d.showMessage?`<label class="ar-edit-field"><span>Short message</span><textarea name="page-message" aria-label="Short message" maxlength="200" placeholder="A short introduction or invitation">${esc(d.message)}</textarea><small data-message-count>${d.message.length} / 200 characters</small></label>`:''}
+      ${toggle('socialLinks','Show social links','Add the profiles you want visitors to find')}${d.showSocialLinks?`<div class="ar-social-fields"><p class="ar-caption">Choose any of these platforms. Leave the others blank.</p>${platforms.map(p=>`<label class="ar-edit-field"><span>${p.label} link</span><div class="ar-social-input">${icon('link')}<input type="url" name="social-${p.key}" aria-label="${p.label} link" maxlength="2048" value="${esc(d.socialLinks[p.key]||'')}" placeholder="${p.placeholder}" autocomplete="off" autocapitalize="none" spellcheck="false"></div><small>Optional · Starts with https://</small></label>`).join('')}</div>`:''}
+      <p class="ar-caption ar-handle">Your page handle is @mika. It stays the same.</p></div><div class="ar-save-dock"><p class="ar-save-status${s.pageError?' is-error':''}" data-page-status role="status" aria-live="polite">${esc(pageStatus(s))}</p>${action('save-page','Save page','ar-btn',pageDirty(s)?'':'disabled')}</div></div>`;
   }
   function offer(s) {
     return body(`${back('page','Your price')}<h1>One price. Paid once.</h1><div class="ar-card ar-mt ar-detail-amount"><label class="ar-lab" for="${s.uid}-price">Website price</label><div class="ar-amount-input"><span>₱</span><input id="${s.uid}-price" name="website-price" aria-label="Website price" inputmode="numeric" value="${s.price}"></div></div><div class="ar-quick">${[999,3499,4999].map(n=>action('price-'+n,php(n),s.price===n?'is-on':'')).join('')}</div><div class="ar-card ar-mt ar-data-rows"><div class="ar-data-row"><span>You earn per paid website</span><b>${php(Math.round(s.price/2))}</b></div><div class="ar-data-row"><span>The shop saves</span><b>${php(4999-s.price)}</b></div></div>${help('₱999–₱4,999. New prices apply to future orders only.')}`, 'ar-pushed ar-has-action') + footer(action('save-price','Save price','ar-btn'),true);
@@ -125,10 +150,16 @@
     return body(`${back(s.previous==='cashout'?'cashout':'me','Payout details')}<h1>Your Wise email.</h1><p class="ar-caption ar-mt">Use the email linked to your Wise account.</p><label class="ar-edit-field ar-mt"><span>Wise email</span><input type="email" name="wise-email" value="${esc(s.wiseEmail)}"></label>`, 'ar-pushed ar-has-action') + footer(action('save-wise','Save Wise email','ar-btn'),true);
   }
   function invite(s) {
-    return body(`${back('agents','Invite field agents')}<h1>Grow your team.</h1><p class="ar-caption ar-mt">Earn 5% of their paid website sales for 12 months.</p><div class="ar-card ar-detail-amount ar-mt"><span class="ar-lab">Your invitation code</span><span class="ar-number" style="font-size:38px;letter-spacing:2px">MIKA</span></div><div class="ar-url">${icon('link')}<span>tendso.com/v2/a/mika/earn</span>${action('copy-invite',icon('copy'),'','aria-label="Copy agent invitation"')}</div>${help('One level only. Commission starts after a shop pays in full.')}`, 'ar-pushed ar-has-action') + footer(action('share-invite','Share agent invite','ar-btn'),true);
+    return `<div class="ar-modal-layer"><button class="ar-modal-backdrop" type="button" data-action="close-overlay" aria-label="Dismiss agent invite" tabindex="-1"></button><section class="ar-dialog ar-invite-dialog" role="dialog" aria-modal="true" aria-labelledby="${s.uid}-invite-title" tabindex="-1"><header class="ar-dialog-header"><span class="ar-invite-icon">${icon('agents')}</span><h2 id="${s.uid}-invite-title">Invite a field agent</h2>${action('close-overlay',icon('close'),'ar-round','aria-label="Close agent invite"')}</header><div class="ar-dialog-scroll"><p class="ar-invite-intro">Earn 5% of their sales for 12 months, after each shop has paid in full.</p><div class="ar-invite-panel"><div><span>Your invite link</span><p>https://tendso.com/v2/a/mika/earn</p></div>${action('copy-invite',icon('copy'),'ar-invite-copy','aria-label="Copy invite link"')}</div><div><div class="ar-invite-panel"><div><span>Your invitation code</span><strong>MIKA</strong></div>${action('copy-code',icon('copy'),'ar-invite-copy','aria-label="Copy invitation code"')}</div><p class="ar-invite-helper">They can enter this code when creating their account.</p></div>${action('share-invite',icon('share')+'Share agent invite','ar-btn')}<p class="ar-dialog-status" role="status" aria-live="polite">${esc(s.inviteStatus)}</p></div></section></div>`;
   }
-  function notifications() {
-    return body(`${back('me','Notifications')}<h1>You’re up to date.</h1><div class="ar-card ar-mt"><h3>Paolo joined your team</h3><p class="ar-caption ar-mt">His commission period is shown in Agents.</p></div><div class="ar-card ar-mt"><h3>Your cash out completed</h3><p class="ar-caption ar-mt">₱1,750 · 26 October</p></div>`, 'ar-pushed');
+  function notifications(s) {
+    const unread=s.notifications.some(n=>!n.read);
+    return body(`<div class="ar-backbar ar-inbox-back">${go('me',icon('back'),'ar-round','aria-label="Back" data-back="true"')}${unread?action('mark-all-read','Mark all read','ar-textlink'):''}</div><h1>Notifications</h1><p class="ar-notice-group">Today</p>${s.notifications.map((n,i)=>`${i===1?'<p class="ar-notice-group">This week</p>':''}${action('notice-'+n.id,`<span class="ar-notice-icon">${icon(n.icon)}</span><span class="ar-notice-copy"><span class="ar-notice-title"><b>${esc(n.title)}</b>${n.read?'':'<i class="ar-unread-dot" aria-label="Unread"></i>'}</span><span class="ar-notice-preview">${esc(n.body)}</span><small>${n.time}</small></span>${chevron}`,'ar-notice'+(n.read?'':' is-unread'),`aria-label="Read ${esc(n.title)}"`)}`).join('')}`, 'ar-pushed');
+  }
+  function notificationDetails(s) {
+    const n=s.notifications.find(row=>row.id===s.selectedNotice);
+    if(!n)return '';
+    return `<div class="ar-modal-layer"><button class="ar-modal-backdrop" type="button" data-action="close-overlay" aria-label="Dismiss notification" tabindex="-1"></button><section class="ar-dialog ar-notification-dialog" role="dialog" aria-modal="true" aria-labelledby="${s.uid}-notification-title" tabindex="-1"><header class="ar-dialog-header"><h2 id="${s.uid}-notification-title">Notification</h2>${action('close-overlay',icon('close'),'ar-round','aria-label="Close notification"')}</header><div class="ar-dialog-scroll ar-full-message"><div class="ar-notification-meta"><span class="ar-notice-icon">${icon(n.icon)}</span><span>${n.time}</span></div><h2>${esc(n.title)}</h2><p>${esc(n.body)}</p></div><div class="ar-dialog-footer">${action('close-overlay','Close','ar-btn')}</div></section></div>`;
   }
   function profile(s) {
     return body(`${back('me','Edit profile')}<div class="ar-profile-head">${face('mika',83,'Mika Santos')}</div><label class="ar-edit-field"><span>First name</span><input name="first-name" value="Mika"></label><label class="ar-edit-field"><span>Last name</span><input name="last-name" value="Santos"></label><label class="ar-edit-field"><span>Mobile</span><input name="mobile" inputmode="tel" value="0917 000 0000"></label>`, 'ar-pushed ar-has-action')+footer(action('save-profile','Save profile','ar-btn'),true);
@@ -136,8 +167,8 @@
   function helpScreen() {
     return body(`${back('me','Help & account')}<h1>How can we help?</h1><div class="ar-mt">${menu([['support','Contact support','help'],['terms','Terms & privacy','page']])}</div>`, 'ar-pushed');
   }
-  function poster() {
-    return body(`${back('page','Share your page')}<h1>Put your link<br>in their hands.</h1><div class="ar-card ar-detail-amount ar-mt"><img src="${P}brand/mark-ink-256.png" alt="Tendso" style="height:72px;width:72px;margin:0 auto 20px"><h2>Mika Santos</h2><p class="ar-caption ar-mt">tendso.com/v2/a/mika</p></div>${help('The app can share your saved QR image or printable poster.')}`, 'ar-pushed ar-has-action')+footer(action('poster','Share QR or poster','ar-btn'),true);
+  function poster(s) {
+    return body(`${back('page','Share your page')}<h1>Put your link<br>in their hands.</h1><div class="ar-card ar-detail-amount ar-mt"><img src="${P}brand/mark-ink-256.png" alt="Tendso" style="height:72px;width:72px;margin:0 auto 20px"><h2>${esc(s.pageSaved.displayName||'Mika Santos')}</h2><p class="ar-caption ar-mt">tendso.com/v2/a/mika</p></div>${help('The app can share your saved QR image or printable poster.')}`, 'ar-pushed ar-has-action')+footer(action('poster','Share QR or poster','ar-btn'),true);
   }
   const screens = {
     home:{title:'Home',group:'overview',render:home,note:'One monthly total, two clear sources, and visible shortcuts to Sales and My page. Sharing stays the main action.'},
@@ -147,26 +178,81 @@
     cashout:{title:'Cash out',group:'money',render:cashout,note:'A focused Wise sheet: amount, quick picks and saved email. Review comes before requesting; nothing sends from this board.'},
     history:{title:'Activity & payouts',group:'money',render:history,note:'Filter earned income and cash outs. Pending, completed and failed transfers have distinct, readable labels.'},
     sales:{title:'Your sales',group:'overview',render:sales,note:'Website price and your commission are explicitly labelled. Awaiting payment stays visible and is not counted as available.'},
-    page:{title:'My creator page',group:'overview',render:page,note:'A preview of the saved offer, with page editing, pricing and QR sharing in one familiar place.'},
-    me:{title:'Me',group:'overview',render:me,note:'A dedicated fourth tab makes profile, page, sales, payout details and help easy to find.'}
+    page:{title:'My creator page',group:'overview',render:page,note:'Saved profile photo, personal message and optional social links appear with your offer. Unsaved edits stay in the editor.'},
+    me:{title:'Me',group:'overview',render:me,note:'A dedicated fourth tab makes profile, page, sales, payout details and help easy to find.'},
+    editpage:{title:'Edit your page',group:'overview',render:editPage,note:'Photo, message and social switches plus five optional platform links. Status and Save page sit below the scroll area, clear of every field. Saving changes this phone only.'},
+    invite:{title:'Invite popup',group:'team',render:agents,note:'A centered invitation over the unchanged Agents list: copy the link or code, or share the invite. Close, backdrop or Escape dismisses it without losing your filter or scroll position.'},
+    notifications:{title:'Notifications',group:'overview',render:notifications,note:'Tap a message for selectable full details. Only that item becomes read. Opening or leaving the inbox preserves unread items; Mark all read is an explicit choice.'}
   };
-  const extra = { editpage:editPage, offer, wise, invite, notifications, profile, help:helpScreen, poster, 'cash-review':cashReview, 'request-result':requestResult };
+  const extra = { offer, wise, profile, help:helpScreen, poster, 'cash-review':cashReview, 'request-result':requestResult };
   const keys = Object.keys(screens), hosts = new Map();
   let hero, serial=0, toastTimer;
   const toast = message => { const node=document.getElementById('ar-toast');clearTimeout(toastTimer);node.textContent=message;node.hidden=false;toastTimer=setTimeout(()=>{node.hidden=true;},4200); };
-  function state(view) { return {uid:'ar-'+serial++,view,previous:'home',stack:({agent:['agents'],cashout:['money'],history:['money'],sales:['home'],page:['home']}[view]||[]).slice(),month:'oct',agent:'paolo',agentFilter:'all',historyFilter:'all',salesFilter:'all',amount:7200,amountError:'',wiseEmail:'mika.santos@gmail.com',displayName:'Mika Santos',pageMessage:'Let’s put your shop online.',price:3499,savedPrice:3499,requested:false,requestedAmount:0}; }
+  function state(view) {
+    const saved=savedPage();
+    return {uid:'ar-'+serial++,view:view==='invite'?'agents':view,overlay:view==='invite'?'invite':null,previous:'home',stack:({agent:['agents'],cashout:['money'],history:['money'],sales:['home'],page:['home'],editpage:['page'],notifications:['me']}[view]||[]).slice(),month:'oct',agent:'paolo',agentFilter:'all',historyFilter:'all',salesFilter:'all',amount:7200,amountError:'',wiseEmail:'mika.santos@gmail.com',pageSaved:saved,pageDraft:draftPage(saved),pageError:'',pageWasSaved:false,inviteStatus:'',notifications:sampleNotices(),selectedNotice:null,returnFocus:null,price:3499,savedPrice:3499,requested:false,requestedAmount:0};
+  }
   function mount(parent, view) { const phone=T.phone({size:'lg'});parent.appendChild(phone.el);hosts.set(phone.screen,state(view));render(phone.screen);return phone.screen; }
+  function updatePicker(host) {
+    if(host!==hero)return;
+    const s=hosts.get(host),key=s.overlay==='invite'?'invite':screens[s.view]?s.view:s.previous;
+    document.getElementById('ar-screen-picker').value=keys.includes(key)?key:'home';
+    document.getElementById('ar-current').textContent=screens[key]?(String(keys.indexOf(key)+1).padStart(2,'0')+' / '+screens[key].title):'Explore / '+s.view.replace(/-/g,' ');
+  }
+  function renderOverlay(host,focus=false) {
+    const s=hosts.get(host),app=host.querySelector('.ar-app');
+    app.querySelector('.ar-modal-layer')?.remove();
+    [...app.children].forEach(node=>{if(!node.classList.contains('sb')&&!node.classList.contains('ar-home-indicator'))node.inert=!!s.overlay;});
+    if(s.overlay)app.insertAdjacentHTML('beforeend',s.overlay==='invite'?invite(s):notificationDetails(s));
+    if(focus)app.querySelector('.ar-dialog [data-action="close-overlay"]')?.focus({preventScroll:true});
+    updatePicker(host);
+  }
+  function openOverlay(host,kind) {
+    const s=hosts.get(host);s.returnFocus=host.contains(document.activeElement)?document.activeElement:null;s.overlay=kind;s.inviteStatus='';renderOverlay(host,true);
+  }
+  function closeOverlay(host) {
+    const s=hosts.get(host),target=s.returnFocus;s.overlay=null;s.selectedNotice=null;s.inviteStatus='';renderOverlay(host);
+    const fallback=host.querySelector('[data-action="invite"], [data-action^="notice-"]');
+    (target?.isConnected?target:fallback)?.focus({preventScroll:true});s.returnFocus=null;
+  }
   function render(host) {
     const s=hosts.get(host), renderer=screens[s.view]?.render||extra[s.view]||home;
+    const active=host.contains(document.activeElement)?document.activeElement:null;
+    const focusKey=active?['name','data-action','data-go','aria-label'].find(key=>active.hasAttribute(key)):null;
+    const focusValue=focusKey?active.getAttribute(focusKey):null;
+    const selection=active&&typeof active.selectionStart==='number'?[active.selectionStart,active.selectionEnd]:null;
+    const sameView=host.querySelector('.ar-app')?.dataset.view===s.view;
+    const scroll=sameView?[...host.querySelectorAll('.ar-body,.ar-editor-scroll')].map(node=>node.scrollTop):[];
     host.innerHTML=`<div class="ar-app" data-proposed="false" data-view="${s.view}">${T.statusBar(false)}${renderer(s)}<div class="ar-home-indicator"></div></div>`;
-    if(host===hero){const key=screens[s.view]?s.view:s.previous;document.getElementById('ar-screen-picker').value=keys.includes(key)?key:'home';document.getElementById('ar-current').textContent=screens[s.view]?(String(keys.indexOf(s.view)+1).padStart(2,'0')+' / '+screens[s.view].title):'Explore / '+(s.view==='cash-review'?'Review':s.view.replace(/-/g,' '));}
+    [...host.querySelectorAll('.ar-body,.ar-editor-scroll')].forEach((node,i)=>{node.scrollTop=scroll[i]||0;});
+    if(sameView&&focusKey){const next=[...host.querySelectorAll('button,input,textarea')].find(node=>node.getAttribute(focusKey)===focusValue);next?.focus({preventScroll:true});if(selection&&next?.setSelectionRange&&next.type!=='url'&&next.type!=='email')next.setSelectionRange(...selection);}
+    renderOverlay(host);
   }
-  const navigate=(host,view,reset=false)=>{const s=hosts.get(host);if(view==='support'){toast('Prototype: contact the Tendso support team.');return;}if(view==='terms'){toast('Prototype: Terms of Service and Privacy Policy open here.');return;}if(reset)s.stack=[];else if(view!==s.view)s.stack.push(s.view);s.previous=s.view;s.view=view;render(host);};
-  const backTo=(host,fallback)=>{const s=hosts.get(host);s.view=s.stack.pop()||fallback;s.previous=s.stack.at(-1)||'home';render(host);};
+  function prepareView(s,next) {
+    if(s.view==='editpage'&&next!==s.view)s.photoAttempt=null;
+    if(next==='editpage'&&s.view!==next){s.pageDraft=draftPage(s.pageSaved);s.pageError='';s.pageWasSaved=false;s.photoAttempt=null;}
+  }
+  const navigate=(host,view,reset=false)=>{const s=hosts.get(host);if(view==='support'){toast('Prototype: contact the Tendso support team.');return;}if(view==='terms'){toast('Prototype: Terms of Service and Privacy Policy open here.');return;}if(view==='invite'){if(s.view!=='agents'){prepareView(s,'agents');s.previous=s.view;s.view='agents';render(host);}openOverlay(host,'invite');return;}prepareView(s,view);s.overlay=null;if(reset)s.stack=[];else if(view!==s.view)s.stack.push(s.view);s.previous=s.view;s.view=view;render(host);};
+  const backTo=(host,fallback)=>{const s=hosts.get(host);if(s.overlay){closeOverlay(host);return;}const next=s.stack.pop()||fallback;prepareView(s,next);s.view=next;s.previous=s.stack.at(-1)||'home';render(host);};
+  function refreshPageStatus(host) {
+    const s=hosts.get(host),status=host.querySelector('[data-page-status]'),save=host.querySelector('[data-action="save-page"]');
+    if(status){status.textContent=pageStatus(s);status.classList.toggle('is-error',!!s.pageError);status.setAttribute('role',s.pageError?'alert':'status');}
+    if(save)save.disabled=!pageDirty(s);
+  }
+  function validatePage(s) {
+    const saved=effectivePage(s.pageDraft);
+    if(saved.displayName.length>100)return {field:'display-name',message:'Use a display name of 100 characters or fewer.'};
+    if(saved.message.length>200)return {field:'page-message',message:'Use a message of 200 characters or fewer.'};
+    for(const p of platforms){const value=saved.socialLinks[p.key];if(!value)continue;let valid=false;try{const url=new URL(value);valid=value.length<=2048&&url.protocol==='https:'&&!url.username&&!url.password&&!url.port&&p.hosts.some(domain=>url.hostname===domain||(!['m.me','youtu.be'].includes(domain)&&url.hostname.endsWith('.'+domain)));}catch{}if(!valid)return {field:'social-'+p.key,message:`Use a valid ${p.label} link starting with https://.`};}
+    return null;
+  }
   function handle(host,name) {
     const s=hosts.get(host);
     if(name==='month'){s.month=s.month==='oct'?'sep':'oct';render(host);}
-    else if(name==='invite')navigate(host,'invite');
+    else if(name==='invite')openOverlay(host,'invite');
+    else if(name==='close-overlay')closeOverlay(host);
+    else if(name==='mark-all-read'){s.notifications.forEach(n=>{n.read=true;});render(host);}
+    else if(name.startsWith('notice-')){const n=s.notifications.find(row=>row.id===name.slice(7));if(n){n.read=true;s.selectedNotice=n.id;render(host);openOverlay(host,'notification');}}
     else if(name.startsWith('agent-')){s.agent=name.slice(6);navigate(host,'agent');}
     else if(name.startsWith('agents-')){s.agentFilter=name.slice(7);render(host);}
     else if(name.startsWith('history-')){s.historyFilter=name.slice(8);render(host);}
@@ -178,13 +264,19 @@
       s.amount=amount;s.amountError='';navigate(host,'cash-review');
     }
     else if(name==='request-cashout'){if(s.requested){navigate(host,'history',true);return;}s.requested=true;s.requestedAmount=s.amount;navigate(host,'request-result',true);toast('Prototype only. No withdrawal was created or sent.');}
-    else if(name==='save-page'){const field=host.querySelector('[name="display-name"]');if(!field.value.trim()){field.focus();return;}s.displayName=field.value.trim();s.pageMessage=host.querySelector('[name="page-message"]').value;backTo(host,'page');toast('Preview saved in this board only. Your real page is unchanged.');}
+    else if(name==='save-page'){
+      if(!pageDirty(s))return;const invalid=validatePage(s);
+      if(invalid){s.pageError=invalid.message;refreshPageStatus(host);const field=host.querySelector(`[name="${invalid.field}"]`);field?.focus({preventScroll:true});field?.scrollIntoView({block:'nearest'});return;}
+      s.pageSaved=effectivePage(s.pageDraft);s.pageWasSaved=true;s.pageError='';refreshPageStatus(host);toast('Page saved in this phone only. Your real page is unchanged.');
+    }
+    else if(name==='choose-photo')host.querySelector('[name="page-photo"]')?.click();
     else if(name.startsWith('price-')){s.price=Number(name.slice(6));render(host);}
     else if(name==='save-price'){const input=host.querySelector('[name="website-price"]'),value=Number(input.value);if(!Number.isInteger(value)||value<999||value>4999){toast('Choose a whole-peso price from ₱999 to ₱4,999.');input.focus();return;}s.price=value;s.savedPrice=value;backTo(host,'page');toast('Prototype price selected. Existing orders are unchanged.');}
     else if(name==='save-wise'){const field=host.querySelector('[name="wise-email"]');if(!field.value.includes('@')||!field.validity.valid){field.reportValidity();return;}s.wiseEmail=field.value.trim();backTo(host,'me');toast('Wise details changed in the prototype only.');}
     else if(name==='save-profile'){backTo(host,'me');toast('Prototype only. No account details were changed.');}
-    else if(name==='copy'||name==='copy-invite')toast('Sample link: tendso.com/v2/a/mika'+(name==='copy-invite'?'/earn':''));
-    else if(name==='share'||name==='share-invite')toast('Prototype: share your saved '+(name==='share'?'shop link.':'agent invitation.'));
+    else if(name==='copy'||name==='copy-invite'||name==='copy-code'){if(s.overlay==='invite'){s.inviteStatus=name==='copy-code'?'Invitation code copied.':'Invite link copied.';host.querySelector('.ar-dialog-status').textContent=s.inviteStatus;}toast(name==='copy-code'?'Sample invitation code: MIKA':'Sample link: tendso.com/v2/a/mika'+(name==='copy-invite'?'/earn':''));}
+    else if(name==='share'||name==='share-invite'){if(name==='share-invite'){s.inviteStatus='Prototype only. No invitation was sent.';host.querySelector('.ar-dialog-status').textContent=s.inviteStatus;}toast(name==='share'?`Prototype: share ${s.pageSaved.displayName||'Mika Santos'}’s saved shop page. Unsaved edits are not shared.`:'Prototype: share your agent invitation. No external sharing opens here.');}
+    else if(name.startsWith('social-')){const p=platforms.find(row=>row.key===name.slice(7));if(p&&s.pageSaved.socialLinks[p.key])toast(`Saved ${p.label} link: ${s.pageSaved.socialLinks[p.key]}`);}
     else if(name==='poster')toast('Prototype: choose the QR image or printable poster.');
     else if(name==='signout')toast('Prototype only. You remain signed in to your real account.');
   }
@@ -194,9 +286,42 @@
   document.addEventListener('click',event=>{
     const control=event.target.closest('button');if(!control)return;
     if(control.dataset.filter){const filter=control.dataset.filter;document.querySelectorAll('[data-filter]').forEach(node=>node.setAttribute('aria-pressed',String(node===control)));document.querySelectorAll('.ar-tile').forEach(tile=>{tile.hidden=filter!=='all'&&tile.dataset.group!==filter;});T.fitPhones();return;}
-    if(control.dataset.cycle){const current=keys.indexOf(hosts.get(hero).view),next=(Math.max(0,current)+Number(control.dataset.cycle)+keys.length)%keys.length;navigate(hero,keys[next],true);return;}
+    if(control.dataset.cycle){const currentState=hosts.get(hero),current=keys.indexOf(currentState.overlay==='invite'?'invite':currentState.view),next=(Math.max(0,current)+Number(control.dataset.cycle)+keys.length)%keys.length;navigate(hero,keys[next],true);return;}
     const host=control.closest('.screen-root');if(!host||!hosts.has(host))return;
     if(control.dataset.back)backTo(host,control.dataset.go);else if(control.dataset.go)navigate(host,control.dataset.go,!!control.closest('.ar-tabs'));else if(control.dataset.action)handle(host,control.dataset.action);
+  });
+  document.addEventListener('input',event=>{
+    const field=event.target,host=field.closest('.screen-root');if(!host||!hosts.has(host))return;
+    const s=hosts.get(host);if(s.view!=='editpage')return;
+    if(field.name==='display-name')s.pageDraft.displayName=field.value;
+    else if(field.name==='page-message'){s.pageDraft.message=field.value;host.querySelector('[data-message-count]').textContent=`${field.value.length} / 200 characters`;}
+    else if(field.name?.startsWith('social-'))s.pageDraft.socialLinks[field.name.slice(7)]=field.value;
+    else return;
+    s.pageError='';s.pageWasSaved=false;refreshPageStatus(host);
+  });
+  document.addEventListener('change',event=>{
+    const field=event.target,host=field.closest('.screen-root');if(!host||!hosts.has(host))return;
+    const s=hosts.get(host);if(s.view!=='editpage')return;
+    if(field.name?.startsWith('show-')){const key=field.name.slice(5);s.pageDraft['show'+key[0].toUpperCase()+key.slice(1)]=field.checked;s.pageError='';s.pageWasSaved=false;render(host);}
+    else if(field.name==='page-photo'){
+      const file=field.files[0];if(!file)return;
+      if(!file.type.startsWith('image/')||!file.size||file.size>5*1024*1024){s.pageError='Choose an image up to 5 MB.';refreshPageStatus(host);field.value='';return;}
+      const attempt={};s.photoAttempt=attempt;const reader=new FileReader();
+      reader.onload=()=>{if(s.photoAttempt!==attempt)return;s.pageDraft.photo=String(reader.result);s.pageDraft.showPhoto=true;s.pageError='';s.pageWasSaved=false;if(s.view==='editpage')render(host);};
+      reader.onerror=()=>{if(s.photoAttempt!==attempt)return;s.pageError='Your photo could not be opened. Please try again.';refreshPageStatus(host);};
+      reader.readAsDataURL(file);
+    }
+  });
+  document.addEventListener('keydown',event=>{
+    const host=event.target.closest?.('.screen-root');if(!host||!hosts.has(host))return;
+    const s=hosts.get(host);if(!s.overlay)return;
+    if(event.key==='Escape'){event.preventDefault();closeOverlay(host);return;}
+    if(event.key==='Tab'){
+      const dialog=host.querySelector('.ar-dialog'),controls=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),[tabindex="0"]')];
+      const first=controls[0],last=controls.at(-1);if(!first)return;
+      if(event.shiftKey&&(document.activeElement===first||document.activeElement===dialog)){event.preventDefault();last.focus({preventScroll:true});}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus({preventScroll:true});}
+    }
   });
   document.getElementById('ar-screen-picker').addEventListener('change',event=>navigate(hero,event.target.value,true));
   T.fitPhones();
