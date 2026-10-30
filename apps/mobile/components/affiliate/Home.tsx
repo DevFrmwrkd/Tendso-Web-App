@@ -44,7 +44,7 @@ function Income({ label, amount, description, icon, onPress, amountSize, stacked
   icon: React.ComponentProps<typeof Ionicons>['name']; onPress: () => void; amountSize: number; stacked: boolean;
 }) {
   return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`View ${label.toLowerCase()} earnings`} style={({ pressed }) => [styles.income, stacked && styles.sourceStacked, pressed && styles.sourcePressed]}>
-    <View style={styles.sourceLabel}><Ionicons name={icon} size={18} color={colors.accent} /><Text variant="label" tone="onDark">{label}</Text><Ionicons name="chevron-forward" size={16} color={colors.onDark} /></View>
+    <View style={styles.sourceLabel}><Ionicons name={icon} size={18} color={colors.accent} /><Text variant="label" tone="onDark">{label}</Text></View>
     <Text variant="number" tone="onDark" tabular style={[styles.sourceAmount, { fontSize: amountSize, lineHeight: Math.ceil(amountSize * 1.25) }]}
       accessibilityLabel={amount === undefined ? `From ${label.toLowerCase()}, loading` : `From ${label.toLowerCase()}, ${formatPHP(amount)}`}>
       {amount === undefined ? 'Loading…' : formatPHP(amount)}
