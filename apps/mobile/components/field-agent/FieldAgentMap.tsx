@@ -445,19 +445,18 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
 }
 
 function ShopPhoto({ shop, width, height }: { shop: FieldAgentShop; width: number; height: number }) {
-  return <ShopImage uri={shop.photoUrl} name={shop.name} width={width} height={height} decorative />;
+  return <ShopImage uri={shop.photoUrl} name={shop.name} category={shop.category} kind={shop.kind} width={width} height={height} decorative />;
 }
 
 function PhotoPin({ shop, selected, onPress }: { shop: FieldAgentShop; selected: boolean; onPress: () => void }) {
   const [tracking, setTracking] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { setFailed(false); setLoaded(false); }, [shop.photoUrl]);
+  const [imageRevision, setImageRevision] = useState(0);
+  const imageFinished = useCallback(() => setImageRevision(value => value + 1), []);
   useEffect(() => {
     setTracking(true);
     const timer = setTimeout(() => setTracking(false), 800);
     return () => clearTimeout(timer);
-  }, [shop.photoUrl, selected, shop.isMine, failed, loaded]);
+  }, [shop.photoUrl, shop.category, shop.kind, selected, shop.isMine, imageRevision]);
   const size = selected ? 60 : 48;
   return <Marker coordinate={{ latitude: shop.latitude, longitude: shop.longitude }}
     onPress={(event) => { event.stopPropagation(); onPress(); }}
@@ -467,8 +466,8 @@ function PhotoPin({ shop, selected, onPress }: { shop: FieldAgentShop; selected:
       <View style={[styles.pin, { width: size, height: size, borderRadius: size / 2 },
         selected ? styles.pinSelected : shop.isMine || shop.hasLiveWebsite ? styles.pinYours : shop.needsWebsite === true ? styles.pinNeed : styles.pinUnknown]}>
         <View style={[styles.pinPhoto, { width: size - 10, height: size - 10, borderRadius: (size - 10) / 2 }]}>
-          <ShopImage uri={shop.photoUrl} name={shop.name} width={size - 10} height={size - 10} borderRadius={0}
-            decorative onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
+          <ShopImage uri={shop.photoUrl} name={shop.name} category={shop.category} kind={shop.kind} width={size - 10} height={size - 10} borderRadius={0}
+            decorative onLoad={imageFinished} onError={imageFinished} />
         </View>
       </View>
       {selected ? <View style={styles.pinLabel}><Text variant="label" tone="onDark" numberOfLines={1}>{shop.name}</Text></View> : null}

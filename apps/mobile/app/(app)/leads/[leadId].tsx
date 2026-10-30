@@ -304,6 +304,8 @@ export default function LeadDetailScreen() {
   const canViewCaptureMedia = detail.canViewCaptureMedia === true;
   const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl
     || (canViewCaptureMedia ? business?.photos?.[0] : null) || null;
+  const heroCategory: string | null = lead.businessCategory?.trim() || business?.businessType?.trim() || crmLead?.businessType?.trim() || null;
+  const heroKind: string | null = detail.communityKind ?? lead.communityKind ?? crmLead?.communityKind ?? null;
   const status = STATUS_OPTIONS.find((option) => option.key === lead.status)
     ?? { label: 'Status unavailable', tone: 'muted' as const };
   const hasLiveWebsite = typeof detail.hasLiveWebsite === 'boolean' ? detail.hasLiveWebsite
@@ -368,7 +370,7 @@ export default function LeadDetailScreen() {
       ) : null}
       {/* Public/authorized photo, or the shared local placeholder, with the status chip. */}
       <View style={styles.hero}>
-        <ShopImage uri={heroUri} name={shopName} width="100%" height="100%" borderRadius={0} />
+        <ShopImage uri={heroUri} name={shopName} category={heroCategory} kind={heroKind} width="100%" height="100%" borderRadius={0} />
         <Chip label={heroLabel} tone={hasLiveWebsite || detail.needsWebsite === true ? 'ok' : status.tone} style={styles.heroChip} />
       </View>
 

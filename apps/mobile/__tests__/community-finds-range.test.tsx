@@ -3,6 +3,7 @@ import { Image } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { CommunityFinds } from '../components/field-agent/CommunityFinds';
 import { ShopImage } from '../components/ShopImage';
+import { getShopPlaceholder } from '../services/shopPlaceholder';
 import type { CommunityFind } from '../services/fieldAgentMap';
 import type { MapSearchArea } from '../services/workArea';
 
@@ -159,18 +160,28 @@ it('preserves the authenticated query guard while a distance choice changes', ()
 });
 
 it('shows a local storefront for missing/failed photos while preserving card navigation and recovering updated photos', () => {
-  mockLeads = [{ ...find('photo-shop', 0.5, 'Ramon Shop'), photoUrl: 'https://images.example.com/ramon.jpg' },
-    find('missing-photo', 0.6, 'Nena Store')];
+  mockLeads = [{ ...find('photo-shop', 0.5, 'Ramon Shop'), businessType: 'Barber shop', communityKind: 'beauty', photoUrl: 'https://images.example.com/ramon.jpg' },
+    { ...find('missing-photo', 0.6, 'Nena Store'), businessType: 'Sari-sari', communityKind: 'sari_sari' }];
   const screen = render(<CommunityFinds />);
   const tileImage = (name: string) => screen.UNSAFE_getAllByType(ShopImage).find(node => node.props.name === name)!;
-  expect(tileImage('Nena Store').findByType(Image).props.source).toEqual(require('../assets/placeholders/shop.png'));
+  expect(tileImage('Ramon Shop').props).toMatchObject({ category: 'Barber shop', kind: 'beauty' });
+  expect(tileImage('Nena Store').props).toMatchObject({ category: 'Sari-sari', kind: 'sari_sari' });
+  expect(tileImage('Nena Store').findByType(Image).props.source).toEqual(getShopPlaceholder('Sari-sari', 'sari_sari'));
   expect(tileImage('Ramon Shop').findByType(Image).props.source.uri).toBe('https://images.example.com/ramon.jpg');
   fireEvent(tileImage('Ramon Shop').findByType(Image), 'error', { nativeEvent: { error: 'Photo unavailable' } });
-  expect(tileImage('Ramon Shop').findByType(Image).props.source).toEqual(require('../assets/placeholders/shop.png'));
+  expect(tileImage('Ramon Shop').findByType(Image).props.source).toEqual(getShopPlaceholder('Barber shop', 'beauty'));
   fireEvent.press(screen.getByRole('button', { name: /^Ramon Shop,/ }));
   expect(mockPush).toHaveBeenCalledWith('/(app)/leads/photo-shop');
   mockLeads = mockLeads.map(lead => lead._id === 'photo-shop' ? { ...lead, photoUrl: 'https://images.example.com/replaced.jpg' } : lead);
   screen.rerender(<CommunityFinds />);
   expect(tileImage('Ramon Shop').findByType(Image).props.source.uri).toBe('https://images.example.com/replaced.jpg');
   expect(screen.getByRole('button', { name: /^Nena Store,/ })).toBeTruthy();
+});
+
+it('uses stored category metadata even when a business name suggests a different kind of shop', () => {
+  mockLeads = [{ ...find('repair', 0.5, 'Barber Food Store'), businessType: 'Auto repair', communityKind: 'repair' }];
+  const screen = render(<CommunityFinds />);
+  const image = screen.UNSAFE_getByType(ShopImage);
+  expect(image.props).toMatchObject({ category: 'Auto repair', kind: 'repair', name: 'Barber Food Store' });
+  expect(image.findByType(Image).props.source).toEqual(getShopPlaceholder('Auto repair', 'repair'));
 });

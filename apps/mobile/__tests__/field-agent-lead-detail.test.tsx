@@ -3,6 +3,8 @@ import { BackHandler, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import LeadDetailScreen from '../app/(app)/leads/[leadId]';
 import { Button } from '../components/v2';
+import { ShopImage } from '../components/ShopImage';
+import { getShopPlaceholder } from '../services/shopPlaceholder';
 import type { MapSearchArea } from '../services/workArea';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn() };
@@ -70,6 +72,7 @@ function communityDetail() {
     },
     business: null, notes: [], interviewers: [], isMine: true, submittedBy: null, adminContent: null,
     photoUrl: 'https://images.example.com/shop.jpg', needsWebsite: true, hasLiveWebsite: false,
+    communityKind: 'sari_sari',
     websiteUrl: null, businessWebsite: null, claimedBy: null, claimExpiresAt: null,
     businessLatitude: 14.65, businessLongitude: 121.10,
     spottedBy: { creatorId: 'spotter-1', displayName: 'Ana S.', profileImage: null },
@@ -217,18 +220,21 @@ it.each([false, undefined])('does not render raw capture media without explicit 
   mockDetail.photoUrl = null;
   screen.rerender(<LeadDetailScreen />);
   expect(screen.queryByLabelText('Nena Store photo')).toBeNull();
-  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(require('../assets/placeholders/shop.png'));
+  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(getShopPlaceholder('Sari-sari', 'sari_sari'));
 });
 
 it('uses the local placeholder after a public photo fails without exposing capture media, then recovers on a new photo URL', () => {
   mockDetail.canViewCaptureMedia = false;
+  mockDetail.lead.businessCategory = 'Barber shop';
+  mockDetail.communityKind = 'beauty';
   mockDetail.business = {
-    businessName: 'Nena Store', ownerName: 'Nena', ownerPhone: '09171234567',
+    businessName: 'Nena Store', businessType: 'Services', ownerName: 'Nena', ownerPhone: '09171234567',
     photos: ['https://media.example.com/private-owner.jpg'], status: 'submitted',
   };
   const screen = render(<LeadDetailScreen />);
+  expect(screen.UNSAFE_getByType(ShopImage).props).toMatchObject({ category: 'Barber shop', kind: 'beauty' });
   fireEvent(screen.getByLabelText('Nena Store photo'), 'error', { nativeEvent: { error: 'Photo unavailable' } });
-  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(require('../assets/placeholders/shop.png'));
+  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(getShopPlaceholder('Barber shop', 'beauty'));
   expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
   expect(screen.getByRole('header', { name: 'Nena Store' })).toBeTruthy();
   mockDetail.photoUrl = 'https://images.example.com/new-shop-photo.jpg';
@@ -236,6 +242,16 @@ it('uses the local placeholder after a public photo fails without exposing captu
   expect(screen.getByLabelText('Nena Store photo').props.source.uri).toBe(mockDetail.photoUrl);
   expect(screen.queryByLabelText('Nena Store photo unavailable')).toBeNull();
   expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
+});
+
+it('uses the saved CRM category and coarse kind when a shop has no finer detail category', () => {
+  mockDetail.photoUrl = null;
+  mockDetail.lead.businessCategory = null;
+  mockDetail.communityKind = null;
+  mockCrm.leads[0] = { _id: 'lead-1', businessType: 'Auto repair', communityKind: 'repair' };
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.UNSAFE_getByType(ShopImage).props).toMatchObject({ category: 'Auto repair', kind: 'repair' });
+  expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(getShopPlaceholder('Auto repair', 'repair'));
 });
 
 it('keeps capture photos available in detail when the server explicitly permits the capturing agent or admin', () => {

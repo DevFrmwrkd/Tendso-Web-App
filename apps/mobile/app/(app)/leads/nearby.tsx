@@ -34,6 +34,8 @@ type GeocodedLead = {
   isHot: boolean;
   isMine: boolean;
   photoUrl: string | null;
+  category: string | null;
+  kind: string | null;
   submitterName: string | null;
   submitterImage: string | null;
   latitude: number;
@@ -121,14 +123,14 @@ function ShopPin({
   onPress: () => void;
 }) {
   const [imageRevision, setImageRevision] = useState(0);
-  const track = useBriefTracking(`${selected}-${lead.photoUrl ?? ''}-${imageRevision}`);
+  const track = useBriefTracking(`${selected}-${lead.photoUrl ?? ''}-${lead.category ?? ''}-${lead.kind ?? ''}-${imageRevision}`);
   const imageFinished = useCallback(() => setImageRevision(value => value + 1), []);
   const live = isLiveOrYours(lead);
   const size = selected ? PIN_SELECTED : PIN;
 
   const photo = (box: number) => (
     <View style={[styles.photo, { width: box, height: box, borderRadius: box / 2 }]}>
-      <ShopImage uri={lead.photoUrl} name={lead.businessName} width={box} height={box} borderRadius={box / 2}
+      <ShopImage uri={lead.photoUrl} name={lead.businessName} category={lead.category} kind={lead.kind} width={box} height={box} borderRadius={box / 2}
         decorative onLoad={imageFinished} onError={imageFinished} />
     </View>
   );
@@ -202,14 +204,14 @@ function MeDot({ coordinate }: { coordinate: { latitude: number; longitude: numb
   );
 }
 
-function ShopTile({ uri, name, width, height }: { uri: string | null; name: string; width: number; height: number }) {
+function ShopTile({ uri, name, category, kind, width, height }: { uri: string | null; name: string; category: string | null; kind: string | null; width: number; height: number }) {
   return (
     <View
       style={[styles.tile, { width, height }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <ShopImage uri={uri} name={name} width="100%" height="100%" borderRadius={0} decorative />
+      <ShopImage uri={uri} name={name} category={category} kind={kind} width="100%" height="100%" borderRadius={0} decorative />
     </View>
   );
 }
@@ -258,6 +260,8 @@ export default function NearbyLeadsScreen() {
         isHot: !!l.isHot,
         isMine: !!l.isMine,
         photoUrl: (l.previewImageUrl as string | null | undefined) ?? null,
+        category: l.businessCategory?.trim() || l.businessType?.trim() || null,
+        kind: l.communityKind ?? null,
         submitterName: l.submittedBy?.displayName ?? null,
         submitterImage: l.submittedBy?.profileImage ?? null,
         addressString: fullAddress({ businessAddress: l.businessAddress, businessCity: l.businessCity }),
@@ -274,6 +278,8 @@ export default function NearbyLeadsScreen() {
         isHot: boolean;
         isMine: boolean;
         photoUrl: string | null;
+        category: string | null;
+        kind: string | null;
         submitterName: string | null;
         submitterImage: string | null;
         addressString: string | null;
@@ -312,6 +318,8 @@ export default function NearbyLeadsScreen() {
               isHot: l.isHot,
               isMine: l.isMine,
               photoUrl: l.photoUrl,
+              category: l.category,
+              kind: l.kind,
               submitterName: l.submitterName,
               submitterImage: l.submitterImage,
               latitude: m.latitude,
@@ -523,7 +531,7 @@ export default function NearbyLeadsScreen() {
                       cssInterop={false}
                       style={({ pressed }) => [styles.scard, shadow.soft, pressed ? { opacity: 0.85 } : null]}
                     >
-                      <ShopTile uri={lead.photoUrl} name={lead.businessName} width={184} height={104} />
+                      <ShopTile uri={lead.photoUrl} name={lead.businessName} category={lead.category} kind={lead.kind} width={184} height={104} />
                       <Text variant="body" weight="bold" numberOfLines={1} style={styles.scardTitle}>
                         {lead.businessName}
                       </Text>
@@ -557,7 +565,7 @@ function ActiveShop({
   return (
     <View style={styles.active}>
       <View style={styles.activeTop}>
-        <ShopTile uri={lead.photoUrl} name={lead.businessName} width={104} height={128} />
+        <ShopTile uri={lead.photoUrl} name={lead.businessName} category={lead.category} kind={lead.kind} width={104} height={128} />
         <View style={styles.activeText}>
           <Text variant="heading" numberOfLines={2}>
             {lead.businessName}

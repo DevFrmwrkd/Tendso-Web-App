@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 import { colors } from '../theme/v2';
+import { getShopPlaceholder } from '../services/shopPlaceholder';
 
-const PLACEHOLDER = require('../assets/placeholders/shop.png');
 type Props = {
   uri?: string | null;
   name?: string;
+  category?: string | null;
+  kind?: string | null;
   width?: DimensionValue;
   height?: DimensionValue;
   borderRadius?: number;
@@ -22,12 +24,12 @@ export function ShopImage(props: Props) {
   return <ShopImageContent key={uri ?? 'no-photo'} {...props} uri={uri} />;
 }
 
-function ShopImageContent({ uri, name = 'Shop', width = '100%', height = '100%', borderRadius = 16, style, decorative = false, onLoad, onError }: Props) {
+function ShopImageContent({ uri, name = 'Shop', category, kind, width = '100%', height = '100%', borderRadius = 16, style, decorative = false, onLoad, onError }: Props) {
   const [failed, setFailed] = useState(false);
   const fallback = !uri || failed;
   return <View style={[styles.frame, { width, height, borderRadius }, style]}
     accessibilityElementsHidden={decorative} importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}>
-    <Image source={fallback ? PLACEHOLDER : { uri }} style={StyleSheet.absoluteFill} resizeMode="cover"
+    <Image source={fallback ? getShopPlaceholder(category, kind) : { uri }} style={StyleSheet.absoluteFill} resizeMode={fallback ? 'contain' : 'cover'}
       accessible={!decorative} accessibilityRole="image" accessibilityLabel={`${name} ${fallback ? 'photo unavailable' : 'photo'}`}
       onLoad={onLoad} onError={() => { if (!fallback) { setFailed(true); onError?.(); } }} />
   </View>;

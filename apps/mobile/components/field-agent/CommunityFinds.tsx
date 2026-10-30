@@ -108,7 +108,8 @@ function FindTile({ lead, imageHeight, distanceLabel, onPress }: {
       accessibilityLabel={`${lead.businessName || 'Shop'}, ${label}${person ? `, spotted by ${person.displayName}` : ''}`}
       cssInterop={false} style={({ pressed }) => [styles.tile, pressed ? { opacity: 0.75 } : null]}>
       <View style={[styles.photo, { height: imageHeight }]}>
-        <ShopImage uri={photo} name={lead.businessName || 'Shop'} width="100%" height="100%" borderRadius={0} decorative />
+        <ShopImage uri={photo} name={lead.businessName || 'Shop'} category={lead.businessType} kind={lead.communityKind}
+          width="100%" height="100%" borderRadius={0} decorative />
         <View style={styles.tags}>
           <View style={[styles.tag, lead.hasLiveWebsite ? styles.liveTag : null]}>
             <Text variant="label" weight="bold" style={styles.tagText}>{label}</Text>

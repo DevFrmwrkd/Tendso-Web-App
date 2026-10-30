@@ -16,9 +16,17 @@ it('replaces a broken remote photo locally without retrying the broken URL', () 
   const fallback = screen.getByLabelText('Mika’s shop photo unavailable');
   expect(fallback.props.source).toEqual(placeholder);
   expect(onError).toHaveBeenCalledTimes(1);
+  expect(fallback.props.resizeMode).toBe('contain');
   fireEvent(fallback, 'error', { nativeEvent: { error: 'Unexpected local error' } });
   expect(onError).toHaveBeenCalledTimes(1);
   expect(screen.getByLabelText('Mika’s shop photo unavailable').props.source).toEqual(placeholder);
+});
+
+it('fits placeholder art inside the thumbnail while keeping real photos edge to edge', () => {
+  const screen = render(<ShopImage name="Shop" width={184} height={100} category="Barbershop" />);
+  expect(screen.getByLabelText('Shop photo unavailable').props.resizeMode).toBe('contain');
+  screen.rerender(<ShopImage name="Shop" width={184} height={100} uri="https://example.com/shop.jpg" category="Barbershop" />);
+  expect(screen.getByLabelText('Shop photo').props.resizeMode).toBe('cover');
 });
 
 it('loads a newly supplied photo after the old URL failed', () => {
