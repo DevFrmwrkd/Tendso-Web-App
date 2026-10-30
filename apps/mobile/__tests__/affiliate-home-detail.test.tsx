@@ -167,6 +167,17 @@ it('introduces the saved shop link with the fixed creator offer rather than a le
   expect(result.queryByText('₱2,661')).toBeNull();
 });
 
+it('groups the saved URL, copy and single share action in one shop-owner card', () => {
+  const result = render(<HomeContent {...access} portal={samplePortal} />);
+  const sharing = within(result.getByTestId('affiliate-shop-sharing'));
+  expect(sharing.getByText('Share with shop owners')).toBeTruthy();
+  expect(sharing.getByText('tendso.com/v2/a/sample-affiliate')).toBeTruthy();
+  expect(sharing.getByLabelText('Copy shop link')).toBeTruthy();
+  expect(sharing.getByLabelText('Share my shop link')).toBeTruthy();
+  expect(sharing.getByText('Share link')).toBeTruthy();
+  expect(result.getAllByLabelText('Share my shop link')).toHaveLength(1);
+});
+
 it('keeps copy and share unavailable for a suspended account or a missing creator handle', () => {
   const result = render(<HomeContent {...access} account={{ ...sampleAffiliate, status: 'suspended' }} portal={samplePortal} />);
   expect(result.getByLabelText('Copy shop link')).toBeDisabled();
@@ -183,11 +194,11 @@ it('reports copy and share failures while allowing a later retry', async () => {
   const share = jest.spyOn(Share, 'share').mockRejectedValueOnce(new Error('Sharing unavailable'));
   const result = render(<HomeContent {...access} portal={samplePortal} />);
   await act(async () => { fireEvent.press(result.getByLabelText('Copy shop link')); });
-  expect(result.getByText('Could not copy. Please try again.')).toBeTruthy();
+  expect(within(result.getByTestId('affiliate-shop-sharing')).getByText('Could not copy. Please try again.')).toBeTruthy();
   await act(async () => { fireEvent.press(result.getByLabelText('Copy shop link')); });
-  expect(result.getByText('Copied.')).toBeTruthy();
+  expect(within(result.getByTestId('affiliate-shop-sharing')).getByText('Copied.')).toBeTruthy();
   await act(async () => { fireEvent.press(result.getByLabelText('Share my shop link')); });
-  expect(result.getByText('Could not share your link. Please try again.')).toBeTruthy();
+  expect(within(result.getByTestId('affiliate-shop-sharing')).getByText('Could not share your link. Please try again.')).toBeTruthy();
   share.mockResolvedValueOnce({ action: Share.sharedAction });
   await act(async () => { fireEvent.press(result.getByLabelText('Share my shop link')); });
   expect(share).toHaveBeenCalledTimes(2);

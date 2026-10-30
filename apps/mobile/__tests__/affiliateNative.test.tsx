@@ -6,6 +6,7 @@ import { AffiliateAgentsScreen, AgentsContent } from '../components/affiliate/Ag
 import { AffiliatePageScreen } from '../components/affiliate/PageEditor';
 import { AffiliateSalesScreen } from '../components/affiliate/Sales';
 import { AffiliateFrame } from '../components/affiliate/Screen';
+import { ScreenShell } from '../components/v2/ScreenShell';
 import { affiliateDraft, affiliatePagePayload, sampleAffiliate, samplePortal } from '../components/affiliate/model';
 import { CREATOR_CODE_PRICE, commissionFor, creatorDiscount, WEBSITE_PRICE } from '../../../packages/shared/pricing';
 
@@ -69,16 +70,16 @@ beforeEach(() => {
 });
 
 describe('native affiliate access and live data', () => {
-  it('reserves normal layout space for the Home share action outside the card scroll body', () => {
+  it('keeps one Home share action inside the saved-link card and scroll body, without another footer', () => {
     const view = render(<HomeContent account={sampleAffiliate} isPreview={false} isOffline={false} isAuthenticated portal={samplePortal} />);
     const body = view.UNSAFE_getAllByType(ScrollView).find(node => node.findAllByProps({ accessibilityLabel: 'Copy shop link' }).length > 0);
     if (!body) throw new Error('Expected the real Home card scroll body');
-    const action = view.getByLabelText('Share my shop link');
-    expect(body.findAllByProps({ accessibilityLabel: 'Share my shop link' })).toHaveLength(0);
-    const footer = footerBeside(body, action);
-    expect(footer.props.pointerEvents).toBe('auto');
-    expect(footer.props.style).toBeDefined();
-    expect(StyleSheet.flatten(footer.props.style).position).not.toBe('absolute');
+    expect(view.getAllByLabelText('Share my shop link')).toHaveLength(1);
+    const sharing = view.getByTestId('affiliate-shop-sharing');
+    expect(sharing.findAllByProps({ accessibilityLabel: 'Copy shop link' }).length).toBeGreaterThan(0);
+    expect(sharing.findAllByProps({ accessibilityLabel: 'Share my shop link' }).length).toBeGreaterThan(0);
+    expect(body.findAllByProps({ accessibilityLabel: 'Share my shop link' }).length).toBeGreaterThan(0);
+    expect(view.UNSAFE_getByType(ScreenShell).props.footer).toBeUndefined();
     expect(view.getByText('Share with shop owners')).toBeTruthy();
   });
 

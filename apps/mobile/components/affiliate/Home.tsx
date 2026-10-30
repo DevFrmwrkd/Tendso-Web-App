@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { CREATOR_CODE_DISCOUNT, formatPHP } from '../../../../packages/shared/pricing';
-import { Avatar, Card, Text } from '../v2';
+import { Avatar, Card, ListRow, Text } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { AffiliateAccess, AffiliateFrame, type AffiliateAccessProps } from './Screen';
@@ -96,11 +96,7 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
     catch { setCopyMessage('Could not copy. Please try again.'); }
   };
 
-  return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline} floatingFooter={false}
-    footer={<>
-      {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel="Share my shop link" accessibilityState={{ disabled: !url || disabled }} onPress={share} disabled={!url || disabled} style={[styles.shareAction, (!url || disabled) && styles.disabled]}><Ionicons name="share-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.shareActionText}>Share my shop link</Text></Pressable>
-    </>}>
+  return <AffiliateFrame preview={isPreview} suspended={suspended} offline={isOffline}>
     <View style={styles.topline}>
       <Pressable onPress={() => router.push('/(app)/(affiliate-tabs)/profile')} accessibilityRole="button" accessibilityLabel="Open my profile" style={styles.greeting}>
         <Avatar uri={account.affiliatePhoto || undefined} name={affiliateName(account)} size={48} />
@@ -133,17 +129,11 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
     </Card>
 
     <Text variant="label" tone="muted" style={styles.sectionLabel}>Your tools</Text>
-    <View style={[styles.shortcuts, fontScale > 1.2 && styles.stacked]}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Sales" onPress={openSales} style={({ pressed }) => [styles.shortcut, fontScale > 1.2 && styles.sourceStacked, pressed && styles.toolPressed]}>
-        <View style={styles.toolHeading}><View style={styles.toolIcon}><Ionicons name="receipt-outline" size={22} color={colors.ink} /></View><Ionicons name="arrow-forward" size={19} color={colors.ink2} /></View>
-        <Text variant="bodyLg" weight="bold">Sales</Text><Text variant="label" tone="muted">Track shop progress</Text>
-      </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel="My page" onPress={() => router.push('/(app)/affiliate/page')} style={({ pressed }) => [styles.shortcut, fontScale > 1.2 && styles.sourceStacked, pressed && styles.toolPressed]}>
-        <View style={styles.toolHeading}><View style={styles.toolIcon}><Ionicons name="create-outline" size={22} color={colors.ink} /></View><Ionicons name="arrow-forward" size={19} color={colors.ink2} /></View>
-        <Text variant="bodyLg" weight="bold">My page</Text><Text variant="label" tone="muted">Edit & preview</Text>
-      </Pressable>
-    </View>
-    <Card variant="lg" style={styles.linkCard}>
+    <Card style={styles.tools}>
+      <ListRow title="Sales" subtitle="Track shops and payments" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="receipt-outline" accessibilityLabel="Sales" accessibilityHint="View your shops for the selected earnings month" onPress={openSales} divider style={styles.toolRow} />
+      <ListRow title="My page" subtitle="Edit and preview your page" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="create-outline" accessibilityLabel="My page" accessibilityHint="Open your creator page editor" onPress={() => router.push('/(app)/affiliate/page')} style={styles.toolRow} />
+    </Card>
+    <Card variant="lg" style={styles.linkCard} testID="affiliate-shop-sharing">
       <Text variant="bodyLg" weight="bold">Share with shop owners</Text>
       <Text variant="label" tone="muted">Your link gives {Math.round(CREATOR_CODE_DISCOUNT * 100)}% off.</Text>
       <View style={styles.link}>
@@ -154,6 +144,8 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
         </Pressable>
       </View>
       {copyMessage ? <Text variant="label" tone="muted" accessibilityLiveRegion="polite">{copyMessage}</Text> : null}
+      {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
+      <Pressable accessibilityRole="button" accessibilityLabel="Share my shop link" accessibilityState={{ disabled: !url || disabled }} onPress={share} disabled={!url || disabled} style={[styles.shareAction, (!url || disabled) && styles.disabled]}><Ionicons name="share-outline" size={22} color={colors.ink} /><Text variant="button" style={styles.shareActionText}>Share link</Text></Pressable>
     </Card>
 
     <Modal visible={choosingMonth} transparent animationType="slide" onRequestClose={() => setChoosingMonth(false)}>
@@ -198,16 +190,13 @@ const styles = StyleSheet.create({
   sourceRuleHorizontal: { height: 1, backgroundColor: 'rgba(255,255,255,0.16)' },
   sourcePressed: { opacity: 0.7 },
   sectionLabel: { marginTop: 4, marginBottom: -6 },
-  shortcuts: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
-  shortcut: { flex: 1, minWidth: 0, gap: 6, padding: 16, borderRadius: radius.card, backgroundColor: colors.card },
-  toolHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 },
-  toolIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg2 },
-  toolPressed: { backgroundColor: colors.bg2 },
+  tools: { paddingHorizontal: 16, paddingVertical: 4 },
+  toolRow: { minHeight: 80, paddingVertical: 16 },
   linkCard: { padding: 18, gap: 8 },
   link: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 12, paddingRight: 4, paddingVertical: 6, marginTop: 6, backgroundColor: colors.bg2, borderRadius: radius.field },
   copyButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
-  shareAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  shareAction: { minHeight: 60, paddingHorizontal: 18, paddingVertical: 12, marginTop: 8, borderRadius: radius.pill, backgroundColor: colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   shareActionText: { flexShrink: 1, textAlign: 'center' },
   monthModal: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   monthSheet: { backgroundColor: colors.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: space.gutter },
