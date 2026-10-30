@@ -29,10 +29,14 @@ function ShopImageContent({ uri, name = 'Shop', category, kind, width = '100%', 
   const fallback = !uri || failed;
   return <View style={[styles.frame, { width, height, borderRadius }, style]}
     accessibilityElementsHidden={decorative} importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}>
-    <Image source={fallback ? getShopPlaceholder(category, kind) : { uri }} style={StyleSheet.absoluteFill} resizeMode={fallback ? 'contain' : 'cover'}
+    <Image source={fallback ? getShopPlaceholder(category, kind) : { uri }} style={styles.image} resizeMode={fallback ? 'contain' : 'cover'}
       accessible={!decorative} accessibilityRole="image" accessibilityLabel={`${name} ${fallback ? 'photo unavailable' : 'photo'}`}
       onLoad={onLoad} onError={() => { if (!fallback) { setFailed(true); onError?.(); } }} />
   </View>;
 }
 
-const styles = StyleSheet.create({ frame: { overflow: 'hidden', flexShrink: 0, backgroundColor: colors.bg2 } });
+const styles = StyleSheet.create({
+  frame: { overflow: 'hidden', flexShrink: 0, backgroundColor: colors.bg2 },
+  // Bundled assets supply intrinsic dimensions; absolute edges alone do not override them.
+  image: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+});
