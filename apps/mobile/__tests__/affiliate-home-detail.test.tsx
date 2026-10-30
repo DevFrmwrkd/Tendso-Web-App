@@ -6,6 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import { AffiliateHomeScreen, HomeContent } from '../components/affiliate/Home';
 import { AffiliateAgentDetailScreen, AgentDetailContent } from '../components/affiliate/AgentDetail';
 import { sampleAffiliate, samplePortal, type AffiliatePortal } from '../components/affiliate/model';
+import { radius } from '../theme/v2';
 
 const mockPush = jest.fn();
 const mockQuery = jest.fn();
@@ -53,6 +54,27 @@ it('keeps current-month Sales and Agents links in the same calendar-month contex
   expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/(app)/affiliate/sales', params: { month: '2026-10' } });
   fireEvent.press(result.getByLabelText('View your agents earnings'));
   expect(mockPush).toHaveBeenLastCalledWith({ pathname: '/(app)/(affiliate-tabs)/agents', params: { month: '2026-10' } });
+});
+
+it('gives Sales and My page matching rounded press highlights with an independent separator', () => {
+  const result = render(<HomeContent {...access} portal={samplePortal} />);
+  const divider = result.getByTestId('affiliate-home-tools-divider');
+  expect(divider.props).toMatchObject({ pointerEvents: 'none', accessible: false });
+  expect(divider.props.onPress).toBeUndefined();
+
+  for (const label of ['Sales', 'My page']) {
+    const row = result.getByRole('button', { name: label });
+    const surface = ReactNative.StyleSheet.flatten(row.props.style);
+    const highlight = row.findByType(ReactNative.Animated.View);
+    expect(surface.borderRadius).toBe(radius.field);
+    expect(surface.borderBottomWidth ?? 0).toBe(0);
+    expect(ReactNative.StyleSheet.flatten(highlight.props.style).borderRadius).toBe(surface.borderRadius);
+    expect(row.findAllByProps({ testID: 'affiliate-home-tools-divider' })).toHaveLength(0);
+    fireEvent(row, 'pressIn', { nativeEvent: {} });
+    expect(ReactNative.StyleSheet.flatten(result.getByRole('button', { name: label }).props.style)).toEqual(surface);
+    expect(ReactNative.StyleSheet.flatten(highlight.props.style).borderRadius).toBe(radius.field);
+    fireEvent(result.getByRole('button', { name: label }), 'pressOut', { nativeEvent: {} });
+  }
 });
 
 it('loads each chosen month from the portal and carries it into Sales and Agents', () => {

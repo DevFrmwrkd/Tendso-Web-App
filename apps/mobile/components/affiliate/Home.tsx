@@ -131,7 +131,8 @@ export function HomeContent({ account, isPreview, isOffline, portal, selectedMon
 
     <Text variant="label" tone="muted" style={styles.sectionLabel}>Your tools</Text>
     <Card style={styles.tools}>
-      <ListRow title="Sales" subtitle="Track shops and payments" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="receipt-outline" accessibilityLabel="Sales" accessibilityHint="View your shops for the selected earnings month" onPress={openSales} divider style={styles.toolRow} softPress />
+      <ListRow title="Sales" subtitle="Track shops and payments" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="receipt-outline" accessibilityLabel="Sales" accessibilityHint="View your shops for the selected earnings month" onPress={openSales} style={styles.toolRow} softPress />
+      <View testID="affiliate-home-tools-divider" accessible={false} pointerEvents="none" style={styles.toolDivider} />
       <ListRow title="My page" subtitle="Edit and preview your page" titleNumberOfLines={0} subtitleNumberOfLines={0} icon="create-outline" accessibilityLabel="My page" accessibilityHint="Open your creator page editor" onPress={() => router.push('/(app)/affiliate/page')} style={styles.toolRow} softPress />
     </Card>
     <Card variant="lg" style={styles.linkCard} testID="affiliate-shop-sharing">
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
   sectionLabel: { marginTop: 4, marginBottom: -6 },
   tools: { paddingHorizontal: 16, paddingVertical: 4 },
   toolRow: { minHeight: 80, paddingVertical: 16 },
+  toolDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.rule, marginHorizontal: space.xs },
   linkCard: { padding: 18, gap: 8 },
   link: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 12, paddingRight: 4, paddingVertical: 6, marginTop: 6, backgroundColor: colors.bg2, borderRadius: radius.field },
   copyButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
