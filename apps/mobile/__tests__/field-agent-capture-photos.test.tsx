@@ -5,7 +5,7 @@ import SubmitPhotosScreen from '../app/(app)/submit/photos';
 import { Button } from '../components/v2';
 import type { ShotGuideProps } from '../components/v2/capture/ShotGuide';
 import { retainCapturePhoto } from '../services/capturePhotoFiles';
-import { CapturePhotoSwipeSurface } from '../components/field-agent/CapturePhotoSwipeSurface';
+import { CapturePhotoPager } from '../components/field-agent/CapturePhotoPager';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockUpload = jest.fn();
@@ -87,6 +87,26 @@ const screenReady = async () => {
   await waitFor(() => expect(screen.queryByRole('button', { name: 'Save changes' }) ?? screen.queryByRole('button', { name: 'Continue to interview' })
     ?? screen.queryByRole('button', { name: 'Replace missing photos' }) ?? screen.getByRole('button', { name: 'Start taking photos' })).toBeEnabled());
   return screen;
+};
+const measurePhotoPreview = (screen: ReturnType<typeof render>) => {
+  fireEvent(screen.getByTestId('capture-photo-pager'), 'layout', { nativeEvent: { layout: { width: 390, height: 500 } } });
+};
+const openPhotoPreview = (screen: ReturnType<typeof render>, name: string | RegExp) => {
+  fireEvent.press(screen.getByRole('button', { name }));
+  measurePhotoPreview(screen);
+};
+const nativePhotoScroll = (screen: ReturnType<typeof render>, index: number) => {
+  const pager = screen.UNSAFE_getByType(CapturePhotoPager);
+  const from = pager.props.photoIds.indexOf(pager.props.selectedPhotoId);
+  fireEvent(screen.getByTestId('capture-photo-pager'), 'layout', { nativeEvent: { layout: { width: 390, height: 500 } } });
+  const scroll = screen.getByTestId('capture-photo-pager-scroll');
+  const event = (page: number) => ({ nativeEvent: { contentOffset: { x: page * 390, y: 0 },
+    layoutMeasurement: { width: 390, height: 500 }, contentSize: { width: pager.props.photoIds.length * 390, height: 500 },
+    velocity: { x: 0, y: 0 }, targetContentOffset: { x: page * 390, y: 0 } } });
+  fireEvent(scroll, 'scrollBeginDrag', event(from));
+  fireEvent.scroll(scroll, event(index));
+  fireEvent(scroll, 'scrollEndDrag', event(index));
+  fireEvent(scroll, 'momentumScrollEnd', event(index));
 };
 beforeEach(() => {
   jest.clearAllMocks(); mockActor = 'agent-1'; mockOnline = true; mockRevision = 0; mockFocused = true; mockParams = {};
@@ -199,7 +219,7 @@ it('previews a local photo offline without cropping and closes without changing 
   expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
   expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
 
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: `${LOCAL_URI}photo-0.jpg` });
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('resizeMode', 'contain');
@@ -220,17 +240,17 @@ it('browses the photo sequence in full screen with counters and no wrapping or c
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
   const writes = mockWrite.mock.calls.length;
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByText('1 of 3')).toBeTruthy(); expect(screen.queryByText('Photo 1')).toBeNull();
   expect(screen.getByRole('button', { name: 'Previous photo' })).toBeDisabled();
-  act(() => screen.UNSAFE_getByType(CapturePhotoSwipeSurface).props.onNext());
+  nativePhotoScroll(screen, 1);
   expect(screen.getByText('2 of 3')).toBeTruthy();
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: localItems(3)[1].uri });
   fireEvent.press(screen.getByRole('button', { name: 'Next photo' }));
   expect(screen.getByText('3 of 3')).toBeTruthy(); expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled();
-  act(() => screen.UNSAFE_getByType(CapturePhotoSwipeSurface).props.onNext());
+  nativePhotoScroll(screen, 3);
   expect(screen.getByText('3 of 3')).toBeTruthy();
-  act(() => screen.UNSAFE_getByType(CapturePhotoSwipeSurface).props.onPrevious());
+  nativePhotoScroll(screen, 1);
   expect(screen.getByText('2 of 3')).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Previous photo' }));
   expect(screen.getByText('1 of 3')).toBeTruthy();
@@ -240,7 +260,7 @@ it('browses the photo sequence in full screen with counters and no wrapping or c
 it('ignores the previous image load failure after swiping to the next photo', async () => {
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   const oldFailure = screen.getByTestId('capture-photo-full-image').props.onError;
   fireEvent.press(screen.getByRole('button', { name: 'Next photo' }));
   act(() => oldFailure());
@@ -248,15 +268,42 @@ it('ignores the previous image load failure after swiping to the next photo', as
   expect(screen.queryByRole('alert')).toBeNull();
 });
 
+it('pauses editing during native paging and replaces only the photo where the gallery settles', async () => {
+  mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
+  fireEvent(screen.getByTestId('capture-photo-pager'), 'layout', { nativeEvent: { layout: { width: 390, height: 500 } } });
+  const scroll = screen.getByTestId('capture-photo-pager-scroll');
+  fireEvent(scroll, 'scrollBeginDrag', { nativeEvent: { contentOffset: { x: 0, y: 0 } } });
+  expect(screen.getByRole('button', { name: 'Retake photo' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Replace photo' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
+  expect(mockLibrary).not.toHaveBeenCalled();
+  const end = { nativeEvent: { contentOffset: { x: 390, y: 0 }, layoutMeasurement: { width: 390, height: 500 },
+    contentSize: { width: 1170, height: 500 }, velocity: { x: 0, y: 0 }, targetContentOffset: { x: 390, y: 0 } } };
+  fireEvent.scroll(scroll, end); fireEvent(scroll, 'scrollEndDrag', end); fireEvent(scroll, 'momentumScrollEnd', end);
+  expect(screen.getByText('2 of 3')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Replace photo' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
+  await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://jpeg-library.heic') }));
+  const saved = mockCache['agent-1'].submission_photo_tasks.items;
+  expect(saved[1]).toMatchObject({ id: 'local-1', taskIndex: 1, label: 'Profile picture' });
+  expect(saved[0]).toEqual(localItems(3)[0]); expect(saved[2]).toEqual(localItems(3)[2]);
+  expect(screen.getByText('2 of 3')).toBeTruthy();
+});
+
 it('retakes the viewed photo at the ten-photo limit and returns to that same image and position', async () => {
   mockOnline = false;
   const items = Array.from({ length: 10 }, (_, i) => ({ id: `view-${i}`, storageId: `key-${i}`, label: `Shop view ${i + 1}` }));
   mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 4: Shop view 4' }));
+  openPhotoPreview(screen, 'View photo 4: Shop view 4');
   fireEvent.press(screen.getByRole('button', { name: 'Retake photo' }));
   expect(mockGuide.tasks[0].t).toBe('Shop view 4'); expect(mockGuide.singleShot).toBe(true);
   act(() => { mockGuide.onShot!(0, 'file://full-retake.heic'); mockGuide.onClose([]); });
+  await waitFor(() => expect(screen.getByTestId('capture-photo-pager')).toBeTruthy());
+  measurePhotoPreview(screen);
   await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://jpeg-full-retake.heic') }));
   expect(screen.getByText('4 of 10')).toBeTruthy();
   const saved = mockCache['agent-1'].submission_photo_tasks;
@@ -278,9 +325,11 @@ it('retakes the viewed photo at the ten-photo limit and returns to that same ima
 it('returns to the unchanged viewed photo when a retake is cancelled', async () => {
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady(); const saved = mockClone(mockCache['agent-1']);
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Profile picture' }));
+  openPhotoPreview(screen, 'View photo 2: Profile picture');
   fireEvent.press(screen.getByRole('button', { name: 'Retake photo' }));
   act(() => mockGuide.onClose([]));
+  await waitFor(() => expect(screen.getByTestId('capture-photo-pager')).toBeTruthy());
+  measurePhotoPreview(screen);
   await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: localItems(3)[1].uri }));
   expect(screen.getByText('2 of 3')).toBeTruthy(); expect(mockCache['agent-1']).toEqual(saved);
 });
@@ -290,7 +339,7 @@ it('replaces the viewed image in place and preserves its label and every other p
   const items = ['owner', 'front', 'tools'].map((storageId, i) => ({ id: `stored-${i}`, storageId, label: ['The owner', 'Shop front', 'Tools'][i] }));
   mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Shop front' }));
+  openPhotoPreview(screen, 'View photo 2: Shop front');
   fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
   await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://jpeg-library.heic') }));
   expect(screen.getByText('2 of 3')).toBeTruthy();
@@ -312,7 +361,7 @@ it('keeps the viewer and its original photo when the library is cancelled', asyn
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   mockLibrary.mockResolvedValueOnce({ canceled: true, assets: [] });
   const screen = await screenReady(); const saved = mockClone(mockCache['agent-1']);
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Profile picture' }));
+  openPhotoPreview(screen, 'View photo 2: Profile picture');
   fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
   await waitFor(() => expect(screen.getByRole('button', { name: 'Replace photo' })).toBeEnabled());
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: localItems(3)[1].uri });
@@ -323,7 +372,7 @@ it('shows a replacement failure inside the viewer and retains the original image
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   mockLibrary.mockRejectedValueOnce(new Error('The photo library could not open.'));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Could not prepare those photos. Please choose them again.'));
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: localItems(3)[0].uri });
@@ -334,7 +383,7 @@ it('shows a replacement failure inside the viewer and retains the original image
 it('rejects old viewer actions after navigation and disables browsing during a replacement', async () => {
   mockOnline = false; mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   // RN/NativeWind can wrap Pressable, so capture the original action from the
   // accessible button's own ancestry rather than matching a component type.
   const viewerAction = (name: string): (() => void) => {
@@ -357,7 +406,7 @@ it('rejects old viewer actions after navigation and disables browsing during a r
   await waitFor(() => expect(mockPermission).toHaveBeenCalled());
   expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Close photo' })).toBeDisabled();
-  act(() => screen.UNSAFE_getByType(CapturePhotoSwipeSurface).props.onNext());
+  nativePhotoScroll(screen, 2);
   expect(screen.getByText('2 of 3')).toBeTruthy();
   await act(async () => release({ status: 'granted' }));
   await waitFor(() => expect(screen.getByRole('button', { name: 'Next photo' })).toBeEnabled());
@@ -368,7 +417,7 @@ it('does not replace a photo in a new account when permission resolves after an 
   let release!: (result: { status: string }) => void;
   mockPermission.mockImplementationOnce(() => new Promise(resolve => { release = resolve; }));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
   const original = mockClone(mockCache['agent-1']);
   mockActor = 'agent-2';
@@ -386,7 +435,7 @@ it('offers Add label for an unassigned photo and keeps it unlabeled when replaci
   const screen = await screenReady();
   expect(screen.queryByText('Photo 1')).toBeNull();
   expect(screen.getByRole('button', { name: 'Add label to photo 1' })).toBeTruthy();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Unlabeled photo' }));
+  openPhotoPreview(screen, 'View photo 1: Unlabeled photo');
   fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
   await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://jpeg-library.heic') }));
   fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
@@ -400,7 +449,7 @@ it('dismisses the preview through the native Android back request without naviga
   const screen = await screenReady();
   const saved = mockClone(mockCache['agent-1']);
   const writes = mockWrite.mock.calls.length;
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   fireEvent(screen.getByTestId('capture-photo-preview'), 'requestClose');
 
   expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
@@ -418,7 +467,7 @@ it('previews the selected stored extra using its resolved remote URL without add
   const saved = mockClone(mockCache['agent-1']);
   const writes = mockWrite.mock.calls.length;
 
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Unlabeled photo' }));
+  openPhotoPreview(screen, 'View photo 2: Unlabeled photo');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/stored-b' });
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('resizeMode', 'contain');
   fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
@@ -439,11 +488,11 @@ it('ignores a previous photo’s delayed load error and recovers from the curren
   const failure = { nativeEvent: { error: 'Photo could not load' } };
   const continueAction = screen.UNSAFE_getAllByType(Button).find(button => button.props.title === 'Continue to interview')!.props.onPress;
 
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   const previousError = screen.getByTestId('capture-photo-full-image').props.onError;
   expect(typeof previousError).toBe('function');
   fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
-  fireEvent.press(screen.getByRole('button', { name: /^View photo 2:/ }));
+  openPhotoPreview(screen, /^View photo 2:/);
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: `${LOCAL_URI}photo-1.jpg` });
 
   act(() => { previousError(failure); });
@@ -470,7 +519,7 @@ it('clears a preview when the capture actor changes and only opens the new actor
   mockOnline = false;
   mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: `${LOCAL_URI}photo-0.jpg` });
   const original = mockClone(mockCache['agent-1']);
 
@@ -481,7 +530,7 @@ it('clears a preview when the capture actor changes and only opens the new actor
   await waitFor(() => expect(screen.getByRole('button', { name: 'View photo 1: Owner headshot' })).toBeTruthy());
   expect(screen.queryByTestId('capture-photo-preview')).toBeNull();
   expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://other-local-0.jpg') });
   expect(mockCache['agent-1']).toEqual(original);
   expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
@@ -492,7 +541,7 @@ it('dismisses an open preview when the same actor switches to a different captur
   mockOnline = false;
   mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
 
   mockCache['agent-1'] = { current_submission_id: 'draft-2', submission_photo_tasks: photoDraft(
@@ -502,7 +551,7 @@ it('dismisses an open preview when the same actor switches to a different captur
   await act(async () => { mockRevision += 1; screen.rerender(<SubmitPhotosScreen />); });
   await waitFor(() => expect(screen.queryByTestId('capture-photo-preview')).toBeNull());
   expect(screen.queryByTestId('capture-photo-full-image')).toBeNull();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://next-local-0.jpg') });
   expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
   expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
@@ -513,7 +562,7 @@ it('dismisses the preview on focus loss and returns to the same saved draft with
   mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
   const saved = mockClone(mockCache['agent-1']);
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-preview')).toBeTruthy();
 
   mockFocused = false;
@@ -621,7 +670,7 @@ it('keeps a library JPEG in durable draft storage and restores it after unmounti
   expect(mockFileDirectory).toHaveBeenCalledWith(`${LOCAL_URI}`, { intermediates: true });
   screen.unmount();
   const reopened = await screenReady();
-  fireEvent.press(reopened.getByRole('button', { name: 'View photo 1: Unlabeled photo' }));
+  openPhotoPreview(reopened, 'View photo 1: Unlabeled photo');
   expect(reopened.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: saved.uri });
   expect(mockFileCopy).toHaveBeenCalledTimes(1);
 });
@@ -639,7 +688,7 @@ it('migrates an old cache photo once and keeps its file when shop suggestions ch
   expect(mockCache['agent-1'].submission_photo_tasks.items.map((item: any) => item.uri)).toEqual(retained);
   screen.unmount();
   const reopened = await screenReady();
-  fireEvent.press(reopened.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(reopened, 'View photo 1: Owner headshot');
   expect(reopened.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: retained[0] });
   expect(mockFileCopy).toHaveBeenCalledTimes(1);
   expect(reopened.getByText('3 of 10 photos added')).toBeTruthy();
@@ -837,7 +886,7 @@ it('recovers a missing cached local photo from its uploaded URL', async () => {
   mockFileInfo.mockImplementation(async (uri: string) => ({ exists: uri !== missing, isDirectory: false }));
   mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/uploaded-photo' });
   expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled();
   expect(mockCache['agent-1'].submission_photo_tasks.items[0]).toEqual(items[0]);
@@ -851,13 +900,14 @@ it('falls back after a local decode error and ignores a delayed thumbnail failur
   const thumbnail = screen.getByRole('button', { name: 'View photo 1: Owner headshot' });
   const oldThumbnailError = within(thumbnail).UNSAFE_getByType(require('react-native').Image).props.onError;
   fireEvent.press(thumbnail);
+  measurePhotoPreview(screen);
   fireEvent(screen.getByTestId('capture-photo-full-image'), 'error', { nativeEvent: { error: 'Missing local file' } });
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/uploaded-photo' });
   act(() => oldThumbnailError());
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/uploaded-photo' });
   expect(screen.queryByRole('alert')).toBeNull();
   fireEvent.press(screen.getByRole('button', { name: 'Close photo' }));
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/uploaded-photo' });
   expect(mockCache['agent-1'].submission_photo_tasks.items).toEqual(items);
 });
@@ -871,7 +921,7 @@ it('keeps an unavailable unsynced record and replaces it atomically even at the 
   expect(screen.queryByRole('button', { name: 'Continue to interview' })).toBeNull();
   expect(screen.getByRole('button', { name: 'Owner headshot, unavailable. Retake photo' })).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Add your own photos' })).toBeDisabled();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   const preview = within(screen.getByTestId('capture-photo-preview'));
   expect(preview.getByRole('alert')).toHaveTextContent('This photo is no longer on this device. Retake it or choose a replacement.');
   mockLibrary.mockResolvedValueOnce({ canceled: true, assets: [] });
@@ -919,7 +969,7 @@ it('returns a resumed capture to its own info step while full-screen Back just c
   mockParams = { resumed: '1' };
   mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
   const screen = await screenReady();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   fireEvent(screen.getByTestId('capture-photo-preview'), 'requestClose');
   expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole('button', { name: 'Back' }));
@@ -942,7 +992,7 @@ it('uses an uploaded URL when checking a legacy local file fails without blockin
   });
   const screen = await screenReady();
   expect(screen.getByText('3 of 10 photos added')).toBeTruthy();
-  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+  openPhotoPreview(screen, 'View photo 1: Owner headshot');
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: 'https://images.example.com/uploaded-photo' });
   expect(screen.queryByRole('alert')).toBeNull();
   expect(mockCache['agent-1'].submission_photo_tasks.items[0].uri).toBe(legacy);
@@ -957,7 +1007,7 @@ it('handles resumed hardware Back only outside full-screen media and waits for f
     mockParams = { resumed: '1' };
     mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
     const screen = await screenReady();
-    fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Owner headshot' }));
+    openPhotoPreview(screen, 'View photo 1: Owner headshot');
     expect(listeners.at(-1)!()).toBe(false);
     expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
     fireEvent(screen.getByTestId('capture-photo-preview'), 'requestClose');

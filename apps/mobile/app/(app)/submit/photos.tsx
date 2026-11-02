@@ -22,7 +22,7 @@ import { isLocalCapturePhoto, retainCapturePhoto, type RetainedCapturePhoto } fr
 import { capturePhotoReviewFor, needsCapturePhotoReview, type CapturePhotoReview } from '../../../services/capturePhotoReview';
 import { normalizeCaptureBusinessType } from '../../../../../lib/captureDesign';
 import { CapturePhotoGrid } from '../../../components/field-agent/CapturePhotoGrid';
-import { CapturePhotoSwipeSurface } from '../../../components/field-agent/CapturePhotoSwipeSurface';
+import { CapturePhotoPager } from '../../../components/field-agent/CapturePhotoPager';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
 type PhotoItem = { id: string; uri?: string; storageId?: string; taskIndex?: number; label?: string };
@@ -71,6 +71,8 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const [camera, setCamera] = useState<CameraRun | null>(null);
   const [preview, setPreview] = useState<{ id: string; submissionId: string } | null>(null);
   const previewRef = useRef(preview);
+  const [previewPaging, setPreviewPaging] = useState(false);
+  const previewPagingRef = useRef(false);
   const [failedPreviewUri, setFailedPreviewUri] = useState<string | null>(null);
   const [missingLocalUris, setMissingLocalUris] = useState<ReadonlySet<string>>(() => new Set());
   const [previewAttempt, setPreviewAttempt] = useState(0);
@@ -122,6 +124,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const discoveringType = session.canQuery && !offlinePending && !businessType;
   const locked = saving || preparing || finishingCamera || discoveringType || (!!submission && !isEditableCaptureStatus(submission.status));
   const awaitingRemote = session.canQuery && !!submissionId && !offlinePending && submission === undefined;
+  const previewActionsDisabled = locked || awaitingRemote || previewPaging;
   const tileSize = Math.max(48, (width - space.gutter * 2 - space.sm * 4) / 5);
   const uriFor = (item?: PhotoItem) => (item?.uri && !missingUrisRef.current.has(item.uri) ? item.uri : null)
     || (item?.storageId ? urlByKey.get(item.storageId) : null) || null;
@@ -129,24 +132,31 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     || (item.taskIndex !== undefined ? tasks[item.taskIndex]?.t : '') || '';
   const photoLabel = (item: PhotoItem) => descriptivePhotoLabel(item) || 'Unlabeled photo';
   const previewItem = preview?.submissionId === submissionId ? items.find((item) => item.id === preview.id) : undefined;
-  const previewUri = uriFor(previewItem);
   const previewOpen = !!previewItem && !camera && current();
   const previewIndex = previewItem ? items.indexOf(previewItem) : -1;
-  const closePreview = () => { previewVersion.current++; previewRef.current = null; setPreview(null); };
+  const updatePreviewPaging = (value: boolean) => { previewPagingRef.current = value; setPreviewPaging(value); };
+  const closePreview = () => { previewVersion.current++; previewRef.current = null; setPreview(null); updatePreviewPaging(false); };
   const openPreview = (item: PhotoItem) => {
     if (!current() || camera || locked || awaitingRemote || busy.current || pickerBusy.current || normalizing.current > 0 || !submissionId) return;
     setPreviewAttempt(++previewVersion.current); setFailedPreviewUri(null); setError(null);
     const next = { id: item.id, submissionId }; previewRef.current = next; setPreview(next);
   };
   const navigatePreview = (direction: -1 | 1) => {
+    if (previewPagingRef.current) return;
     const selected = previewRef.current;
     if (!selected || selected.submissionId !== idRef.current || !sameCapture(selected.submissionId)) return;
     const index = itemsRef.current.findIndex(item => item.id === selected.id);
     const next = itemsRef.current[index + direction];
     if (index >= 0 && next) openPreview(next);
   };
+  const selectPreviewPhoto = (photoId: string) => {
+    const selected = previewRef.current;
+    if (!selected || selected.submissionId !== idRef.current || !sameCapture(selected.submissionId)) return;
+    const next = itemsRef.current.find(item => item.id === photoId);
+    if (next && next.id !== selected.id) openPreview(next);
+  };
   const previewActionCurrent = (id: string, draftId: string) => sameCapture(draftId)
-    && previewRef.current?.submissionId === draftId && previewRef.current.id === id;
+    && !previewPagingRef.current && previewRef.current?.submissionId === draftId && previewRef.current.id === id;
   const requestClosePreview = () => {
     if (!busy.current && !pickerBusy.current && normalizing.current === 0) closePreview();
   };
@@ -225,7 +235,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   useFocusEffect(useCallback(() => () => {
     // Only leaving this screen/account dismisses the viewer. Cache refreshes
     // below may restart hydration while the same photo remains selected.
-    previewVersion.current++; previewRef.current = null; setPreview(null);
+    previewVersion.current++; previewRef.current = null; setPreview(null); updatePreviewPaging(false);
   }, [session.actorKey]));
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -255,7 +265,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         migration.current = migrating ? id : null;
         setSavedCapture(savedShop?.submissionId === id && savedShop.creatorId === session.actor?.creatorId ? savedShop : null);
         if (idRef.current && idRef.current !== id) {
-          previewVersion.current++; previewRef.current = null; setPreview(null);
+          previewVersion.current++; previewRef.current = null; setPreview(null); updatePreviewPaging(false);
           if (!migrating) { setHydrated(false); setCamera(null); }
         }
         const ownDraft = taskDraft?.submissionId === id || (migrating && taskDraft?.submissionId === 'offline_pending') ? taskDraft : null;
@@ -602,40 +612,45 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
             <Ionicons name="close" size={28} color={colors.onDark} />
           </Pressable>
         </View>
-        <CapturePhotoSwipeSurface photoId={`${submissionId}:${previewItem.id}`} canPrevious={previewIndex > 0} canNext={previewIndex >= 0 && previewIndex < total - 1}
-          disabled={locked || awaitingRemote} onPrevious={() => navigatePreview(-1)} onNext={() => navigatePreview(1)} style={styles.previewSurface}>
-        {!previewItem.storageId && previewItem.uri && missingLocalUris.has(previewItem.uri)
-          ? <View style={styles.previewFallback}><Text variant="body" align="center" style={styles.previewText} accessibilityRole="alert">This photo is no longer on this device. Retake it or choose a replacement.</Text></View>
-          : !previewUri || failedPreviewUri === previewUri ? <View style={styles.previewFallback}>
-            {!previewUri && session.canQuery && photoUrls === undefined ? <ActivityIndicator color={colors.onDark} />
-              : <><Text variant="body" align="center" style={styles.previewText} accessibilityRole="alert">Could not load this photo. Reconnect and try again.</Text>
-                <Button title="Try again" onPress={() => { setFailedPreviewUri(null); setPreviewAttempt(++previewVersion.current); }} /></>}
-          </View>
-            : <Image key={`${previewUri}:${previewAttempt}`} testID="capture-photo-full-image" source={{ uri: previewUri }} style={styles.previewImage} resizeMode="contain"
-              accessible accessibilityLabel={photoLabel(previewItem)} onError={() => {
-                if (previewVersion.current === previewAttempt) photoFailed(previewItem.id, previewUri, submissionId);
-              }} />}
-        </CapturePhotoSwipeSurface>
+        <CapturePhotoPager key={`${session.actorKey}:${submissionId}`} photoIds={items.map(item => item.id)} selectedPhotoId={previewItem.id}
+          disabled={locked || awaitingRemote} onSelectPhoto={selectPreviewPhoto}
+          onInteractionChange={value => { if (current()) updatePreviewPaging(value); }} style={styles.previewSurface}
+          renderPhoto={id => {
+            const item = items.find(photo => photo.id === id);
+            if (!item) return null;
+            const uri = uriFor(item); const active = item.id === previewItem.id;
+            return !item.storageId && item.uri && missingLocalUris.has(item.uri)
+              ? <View style={styles.previewFallback}><Text variant="body" align="center" style={styles.previewText} accessibilityRole={active ? 'alert' : undefined}>This photo is no longer on this device. Retake it or choose a replacement.</Text></View>
+              : !uri || (active && failedPreviewUri === uri) ? <View style={styles.previewFallback}>
+                {!uri && session.canQuery && photoUrls === undefined ? <ActivityIndicator color={colors.onDark} />
+                  : <><Text variant="body" align="center" style={styles.previewText} accessibilityRole={active ? 'alert' : undefined}>Could not load this photo. Reconnect and try again.</Text>
+                    {active ? <Button title="Try again" onPress={() => { setFailedPreviewUri(null); setPreviewAttempt(++previewVersion.current); }} /> : null}</>}
+              </View>
+                : <Image key={`${item.id}:${uri}:${active ? previewAttempt : 'adjacent'}`} testID={active ? 'capture-photo-full-image' : undefined}
+                  source={{ uri }} style={styles.previewImage} resizeMode="contain" accessible={active} accessibilityLabel={photoLabel(item)} onError={() => {
+                    if (previewRef.current?.id === item.id && previewVersion.current === previewAttempt) photoFailed(item.id, uri, submissionId);
+                  }} />;
+          }} />
         <View style={styles.previewFooter}>
           {total > 1 ? <View style={styles.previewNavigation}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous photo" accessibilityState={{ disabled: previewIndex <= 0 || locked || awaitingRemote }}
-              disabled={previewIndex <= 0 || locked || awaitingRemote} onPress={() => navigatePreview(-1)}
-              style={[styles.previewClose, (previewIndex <= 0 || locked || awaitingRemote) && styles.previewDisabled]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous photo" accessibilityState={{ disabled: previewIndex <= 0 || previewActionsDisabled }}
+              disabled={previewIndex <= 0 || previewActionsDisabled} onPress={() => navigatePreview(-1)}
+              style={[styles.previewClose, (previewIndex <= 0 || previewActionsDisabled) && styles.previewDisabled]}>
               <Ionicons name="chevron-back" size={25} color={colors.onDark} /></Pressable>
-            <Text variant="label" style={styles.previewText}>Swipe left or right</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next photo" accessibilityState={{ disabled: previewIndex >= total - 1 || locked || awaitingRemote }}
-              disabled={previewIndex >= total - 1 || locked || awaitingRemote} onPress={() => navigatePreview(1)}
-              style={[styles.previewClose, (previewIndex >= total - 1 || locked || awaitingRemote) && styles.previewDisabled]}>
+            <Text variant="label" style={styles.previewText}>Swipe between photos</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next photo" accessibilityState={{ disabled: previewIndex >= total - 1 || previewActionsDisabled }}
+              disabled={previewIndex >= total - 1 || previewActionsDisabled} onPress={() => navigatePreview(1)}
+              style={[styles.previewClose, (previewIndex >= total - 1 || previewActionsDisabled) && styles.previewDisabled]}>
               <Ionicons name="chevron-forward" size={25} color={colors.onDark} /></Pressable>
           </View> : null}
           {error ? <Text align="center" style={styles.previewText} accessibilityRole="alert">{error}</Text> : null}
           <View style={styles.previewActions}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Retake photo" disabled={locked || awaitingRemote}
-              accessibilityState={{ disabled: locked || awaitingRemote }} style={[styles.previewAction, (locked || awaitingRemote) && styles.previewDisabled]}
+            <Pressable accessibilityRole="button" accessibilityLabel="Retake photo" disabled={previewActionsDisabled}
+              accessibilityState={{ disabled: previewActionsDisabled }} style={[styles.previewAction, previewActionsDisabled && styles.previewDisabled]}
               onPress={() => { if (previewActionCurrent(previewItem.id, submissionId!)) retakePhoto(previewItem.id, true); }}>
               <Ionicons name="camera-outline" size={23} color={colors.onDark} /><Text weight="semibold" style={styles.previewText}>Retake</Text></Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="Replace photo" disabled={locked || awaitingRemote}
-              accessibilityState={{ disabled: locked || awaitingRemote }} style={[styles.previewAction, (locked || awaitingRemote) && styles.previewDisabled]}
+            <Pressable accessibilityRole="button" accessibilityLabel="Replace photo" disabled={previewActionsDisabled}
+              accessibilityState={{ disabled: previewActionsDisabled }} style={[styles.previewAction, previewActionsDisabled && styles.previewDisabled]}
               onPress={() => { if (previewActionCurrent(previewItem.id, submissionId!)) void pickImages(previewItem, true); }}>
               <Ionicons name="images-outline" size={23} color={colors.onDark} /><Text weight="semibold" style={styles.previewText}>Replace</Text></Pressable>
           </View>
