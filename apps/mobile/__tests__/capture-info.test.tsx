@@ -388,6 +388,79 @@ it('does not fabricate a pin from incomplete or invalid source coordinates', asy
 const olderDraftId = 'j123456789012345678901234567890';
 const newerDraftId = 'j123456789012345678901234567891';
 
+function existingLawCapture(status = 'draft') {
+  const row = { ...draft, _id: olderDraftId, status, businessType: 'Law Office',
+    photos: ['law-owner', 'law-office', 'law-sign'], videoUrl: 'https://example.test/saved-interview.mp4' };
+  mockParams = { draftId: olderDraftId };
+  mockRequestedDrafts[olderDraftId] = row;
+  const cache: Record<string, unknown> = { current_submission_id: olderDraftId,
+    submission_snapshot: { ...row, submissionId: olderDraftId },
+    submission_photo_tasks: { submissionId: olderDraftId, businessType: 'Law Office', items: [{ id: 'kept-photo', storageId: 'law-office' }] } };
+  mockCaptureRead.mockImplementation(async key => cache[key] ?? null);
+  return { row, cache };
+}
+
+it('requires photo review before saving a new business type and preserves the existing capture media', async () => {
+  const { row } = existingLawCapture();
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(row.businessName));
+  fireEvent.press(screen.getByRole('button', { name: 'Auto Shop' }));
+  await next(screen);
+  const write = mockCaptureWrite.mock.calls.find(([key]) => key === 'submission_photo_review');
+  expect(write?.[1]).toMatchObject({ submissionId: olderDraftId, previousBusinessType: 'Law Office', businessType: 'Auto Shop', requiredAt: expect.any(Number) });
+  expect(write?.[1]).not.toHaveProperty('confirmedAt');
+  const writeIndex = mockCaptureWrite.mock.calls.findIndex(([key]) => key === 'submission_photo_review');
+  expect(mockCaptureWrite.mock.invocationCallOrder[writeIndex]).toBeLessThan(mockUpdate.mock.invocationCallOrder[0]);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: olderDraftId, businessType: 'Auto Shop' }));
+  expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('photos');
+  expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('videoUrl');
+  expect(mockCaptureRemove).not.toHaveBeenCalledWith('submission_photo_tasks');
+  expect(mockCaptureRemove).not.toHaveBeenCalledWith('submission_pending_interview');
+});
+
+it('opens photos for a rejected capture type correction instead of skipping back to review', async () => {
+  existingLawCapture('rejected');
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save shop changes' })).toBeTruthy());
+  fireEvent.press(screen.getByRole('button', { name: 'Clinic' }));
+  await next(screen);
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+  expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
+it('queues the changed type offline only after its retained-photo review reminder is durable', async () => {
+  const { cache } = existingLawCapture();
+  mockOnline = false;
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  fireEvent.press(screen.getByRole('button', { name: 'Auto Shop' }));
+  await next(screen);
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_photo_review', expect.objectContaining({ submissionId: olderDraftId, businessType: 'Auto Shop' }));
+  expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({ existingDraftId: olderDraftId, formData: expect.objectContaining({ businessType: 'Auto Shop' }) }));
+  expect(cache.submission_photo_tasks).toMatchObject({ items: [{ id: 'kept-photo', storageId: 'law-office' }] });
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockCreate).not.toHaveBeenCalled();
+});
+
+it('does not add a category-change requirement for a name-only correction', async () => {
+  existingLawCapture();
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  fireEvent.changeText(screen.getByLabelText('Business name'), 'Corrected office name');
+  await next(screen);
+  expect(mockCaptureWrite.mock.calls.some(([key]) => key === 'submission_photo_review')).toBe(false);
+});
+
+it('stops saving a changed type when its photo-review reminder cannot be persisted', async () => {
+  existingLawCapture();
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  mockCaptureWrite.mockImplementation(async key => { if (key === 'submission_photo_review') throw new Error('Device storage unavailable'); });
+  fireEvent.press(screen.getByRole('button', { name: 'Auto Shop' }));
+  await next(screen);
+  expect(screen.getByText('Could not save the photo review reminder. Your photos are kept; try again.')).toBeTruthy();
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
 it('recovers unsaved business-type and detail changes for the exact draft after restart', async () => {
   mockParams = { draftId: olderDraftId };
   mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft' };

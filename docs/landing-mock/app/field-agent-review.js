@@ -245,6 +245,20 @@
     findFilter: 'All finds',
     range: '5',
     photoOpen: false,
+    photoCategory: 'Other',
+    photoChanged: false,
+    photoConfirmed: false,
+    photoReviewed: false,
+    photoSelecting: false,
+    photoSelected: [],
+    photoPreviewId: 'photo-1',
+    photoCounter: 5,
+    photos: [
+      { id: 'photo-1', label: 'Owner headshot', sourceType: 'Other' },
+      { id: 'photo-2', label: 'Profile picture', sourceType: 'Other' },
+      { id: 'photo-3', label: 'Outside', sourceType: 'Other' },
+      { id: 'photo-4', label: 'Inside', sourceType: 'Other' },
+    ],
     language: 'EN',
     design: 0,
     designCategory: 'Other',
@@ -350,6 +364,36 @@
     `<div class="fa-col"><span class="fa-label">${name}</span><div class="fa-card fa-inset-list">${content}</div></div>`;
   const step = (n) =>
     `<div class="fa-between"><div class="fa-steps fa-grow">${Array.from({ length: 5 }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div><span class="fa-small fa-muted">${n} / 5</span></div>`;
+  const photoType = interactive => interactive ? demo.photoCategory : 'Other';
+  const photoReviewPending = interactive => interactive && demo.photoChanged && !demo.photoReviewed;
+  const photoGuide = type => (window.FIELD_AGENT_PHOTO_GUIDES || {})[{
+    'Barber/Salon': 'barber', 'Spa/Massage': 'salon', 'Auto Shop': 'repair',
+    'Craft/Producer': 'craft', Restaurant: 'food', 'Law Office': 'law', Clinic: 'clinic', Other: 'shop',
+  }[type]] || [];
+  const capturePhotoUrl = type => '/capture-previews/photos/' + ({
+    'Barber/Salon': 'barber-sample-v1', 'Spa/Massage': 'spa-redesign-v1', 'Auto Shop': 'repair-sample-v1',
+    'Craft/Producer': 'wood-sample-v1', Restaurant: 'food-sample-v1', 'Law Office': 'law-office-sample-v1',
+    Clinic: 'clinic-redesign-v1', Other: 'store-redesign-v1',
+  }[type] || 'store-redesign-v1') + '.webp';
+  const capturePhoto = (type, height) => `<div class="fa-photo" style="height:${height}px"><img src="${capturePhotoUrl(type)}" alt="Sample ${escape(type)} capture photo"></div>`;
+  const makeSamplePhotos = type => photoGuide(type).slice(0, 4).map((task, index) => ({ id: `photo-${index + 1}`, label: task.t, sourceType: type }));
+  const samplePhotos = interactive => interactive ? demo.photos : makeSamplePhotos('Other');
+  const photoCards = interactive => {
+    const photos = samplePhotos(interactive), selecting = interactive && demo.photoSelecting;
+    return `<div class="fa-between"><span class="fa-label">Your photos · ${photos.length} / 10</span><button type="button" class="fa-link" data-action="select-photos" ${photos.length ? '' : 'disabled'}>${selecting ? 'Done' : 'Select'}</button></div><div class="fa-photo-grid">${photos.map((photo, index) => {
+      const selected = selecting && demo.photoSelected.includes(photo.id);
+      return `<div style="padding:8px;border:2px solid ${selected ? '#171715' : 'transparent'};border-radius:16px;background:${selected ? '#f4f8c7' : '#fff'}"><button type="button" data-action="photo-card" data-photo-id="${photo.id}" aria-label="${selecting ? 'Select' : 'Open'} Photo ${index + 1}: ${escape(photo.label)}" ${selecting ? `aria-pressed="${selected}"` : ''} style="width:100%;padding:0;background:none;text-align:left"><span class="fa-between fa-small"><b>Photo ${index + 1}</b>${selecting ? `<span aria-hidden="true">${selected ? '✓' : '○'}</span>` : ''}</span>${capturePhoto(photo.sourceType, 125)}<span class="fa-small" style="display:block;padding-top:6px;overflow-wrap:anywhere">${escape(photo.label || 'Added photo')}</span></button>${selecting ? '' : `<button type="button" class="fa-link" data-action="edit-photo-label" data-photo-id="${photo.id}" style="margin-top:6px">Edit label</button>`}</div>`;
+    }).join('')}</div>${selecting ? btn(`Remove ${demo.photoSelected.length} ${demo.photoSelected.length === 1 ? 'photo' : 'photos'}`, '', 'ghost', `data-action="remove-selected-photos" ${demo.photoSelected.length ? '' : 'disabled'}`) : ''}${photos.length < 3 ? '<p class="fa-small fa-muted">Add at least three clear photos to continue.</p>' : ''}`;
+  };
+  const photoReviewWarning = interactive => photoReviewPending(interactive)
+    ? `<div class="fa-banner warn"><b>Review photos for ${escape(photoType(interactive))}</b><p class="fa-small">The business type changed from Law Office. Your photos and interview are saved. Check the new suggestions, then keep, add or replace photos.</p></div>` : '';
+  const photoDialog = (title, content) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'fa-overlay';
+    overlay.innerHTML = `<section class="fa-modal" role="dialog" aria-modal="true" aria-label="${escape(title)}"><div class="fa-between"><h3>${escape(title)}</h3><button type="button" class="fa-round" data-action="close-modal" aria-label="Close photo action">${icon('close')}</button></div>${content}</section>`;
+    document.querySelector('#fa-live-phone .fa-app').append(overlay);
+    overlay.querySelector('input,button')?.focus();
+  };
   const statusBar = '<div class="fa-status"><span>9:41</span><span>▮▮▮　⌁　▰</span></div>';
   const nav = (active) =>
     `<nav class="fa-nav" aria-label="Sample app navigation">${[
@@ -471,21 +515,26 @@
                 : btn('Continue to photos', 'photos'),
           },
         );
-      case 'photos':
+      case 'photos': {
+        const type = photoType(interactive), pendingReview = photoReviewPending(interactive);
         return app(
-          `${step(2)}<h2>Show us the shop</h2><p class="fa-muted">Ten suggestions. Add 3–10 photos in total.</p><div class="fa-card"><b>Suggestions</b><div class="fa-photo-grid">${['Shop front', 'Inside the shop', 'Products', 'Owner at work'].map((label, i) => `<button type="button" style="padding:0;background:none;text-align:left" data-demo="Suggestion tiles open or retake a shot in the native camera.">${pic(['sari-sari', 'shop', 'food', 'barber'][i], 100)}<span class="fa-small">${label}</span></button>`).join('')}</div></div><span class="fa-label">Your photos · 4 / 10</span><div class="fa-photo-grid">${[0, 1, 2, 3].map((i) => `<button type="button" style="padding:0;background:none" data-go="photo-preview" aria-label="Open photo ${i + 1}">${pic('food', 138, '', true)}</button>`).join('')}</div>${btn('Add from library', '', 'ghost')}`,
+          `${step(2)}<h2>Show us the shop</h2><p class="fa-muted">Ten suggestions. Add 3–10 photos in total.</p>${photoReviewWarning(interactive)}<div class="fa-card"><b>${escape(type)} suggestions</b><div class="fa-photo-grid">${photoGuide(type).map((task, i) => `<button type="button" style="padding:12px;background:#f0f0eb;text-align:left;border-radius:14px;display:flex;flex-direction:column;gap:6px;min-height:145px" data-demo="The app opens or retakes this optional suggestion in the native camera."><span class="fa-small fa-muted">${i + 1} · Optional</span>${icon(task.kind === 'head' || task.kind === 'half' ? 'user' : 'camera')}<b class="fa-small">${escape(task.t)}</b><span class="fa-small fa-muted">${escape(task.h)}</span></button>`).join('')}</div></div><p class="fa-small fa-muted">Suggestions are optional. Three clear photos are enough to continue; extras share the same 10-photo limit.</p>${photoCards(interactive)}${pendingReview ? `<label class="fa-card fa-check-item" style="flex-direction:row"><input type="checkbox" data-photo-reviewed ${demo.photoConfirmed ? 'checked' : ''} style="width:24px;height:24px;flex-shrink:0;accent-color:#dfea14"><b>I reviewed these photos for ${escape(type)}</b></label>` : ''}${btn('Add from library', '', 'ghost', `data-action="add-sample-photo" ${samplePhotos(interactive).length >= 10 ? 'disabled' : ''}`)}`,
           {
-            footer:
-              interactive && demo.repair
+            footer: pendingReview ? btn('Save reviewed photos', '', '', `data-action="save-reviewed-photos" ${demo.photoConfirmed && samplePhotos(interactive).length >= 3 ? '' : 'disabled'}`)
+              : interactive && demo.repair
                 ? btn('Save changes', 'review')
-                : btn('Continue to interview', 'interview'),
+                : btn('Continue to interview', 'interview', '', samplePhotos(interactive).length >= 3 ? '' : 'disabled'),
           },
         );
-      case 'photo-preview':
+      }
+      case 'photo-preview': {
+        const photos = samplePhotos(interactive), photo = photos.find(item => item.id === demo.photoPreviewId) || photos[0];
+        if (!photo) return app('<h2>No photos yet</h2><p class="fa-muted">Add a photo before opening its preview.</p>', { back: 'photos' });
         return app(`<h2>Your photos</h2>`, { back: 'photos' }).replace(
           '<div class="fa-home-line">',
-          `<div class="fa-full-photo"><p>Photo 1 of 4</p><button type="button" class="fa-round" data-go="photos" aria-label="Close photo">${icon('close')}</button><img src="${PHOTO}" alt="Full sample shop photo"></div><div class="fa-home-line">`,
+          `<div class="fa-full-photo"><p>Photo ${photos.indexOf(photo) + 1} of ${photos.length} · ${escape(photo.label)}</p><button type="button" class="fa-round" data-go="photos" aria-label="Close photo">${icon('close')}</button><img src="${capturePhotoUrl(photo.sourceType)}" alt="${escape(photo.label)} — sample retained shop photo"></div><div class="fa-home-line">`,
         );
+      }
       case 'interview':
         return app(
           interactive && demo.repair
@@ -510,13 +559,13 @@
       }
       case 'review':
         return app(
-          `${step(5)}${interactive && demo.repair ? '<h2>Fix it, then resend</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><p class="fa-muted">Your saved capture is here. Edit only what needs fixing.</p>' : '<h2>Check it, then send</h2>'}<div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">${escape(sampleBusinessType(interactive))}</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>4 photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${pic('food', 80, '', true)}${pic('food', 80, '', true)}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : currentDesign(interactive).name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
+          `${step(5)}${photoReviewPending(interactive) ? photoReviewWarning(interactive) + link('Review photos', 'photos') : ''}${interactive && demo.repair ? '<h2>Fix it, then resend</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><p class="fa-muted">Your saved capture is here. Edit only what needs fixing.</p>' : '<h2>Check it, then send</h2>'}<div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">${escape(sampleBusinessType(interactive))}</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>${samplePhotos(interactive).length} photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${samplePhotos(interactive).slice(0, 4).map(photo => capturePhoto(photo.sourceType, 80)).join('')}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : currentDesign(interactive).name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
           {
             footer: btn(
               interactive && demo.repair ? 'Resend for review' : 'Send for review',
               '',
               '',
-              'data-action="confirm-send"',
+              `data-action="confirm-send" ${photoReviewPending(interactive) || samplePhotos(interactive).length < 3 ? 'disabled' : ''}`,
             ),
           },
         );
@@ -679,10 +728,12 @@
       `<div>${badge(s.status)} ${s.priority ? `<span class="fa-badge">${s.priority}</span>` : ''}</div><h3>${escape(s.title)}</h3><p>${escape(s.summary)}</p><div><h4>Present in the app</h4><ul>${s.implemented.map((t) => `<li>${escape(t)}</li>`).join('')}</ul></div><div><h4>${s.status === 'gap' ? 'Before calling it complete' : s.status === 'decision' ? 'Decision to make' : 'Check next'}</h4>${s.checks.map((t, i) => `<label class="fa-review-check"><input type="checkbox" data-check="${i}" ${saved.checks.includes(i) ? 'checked' : ''}><span>${escape(t)}</span></label>`).join('')}</div><div class="fa-source"><h4>Source evidence</h4>${s.sources.map((src) => `<code>${escape(src.path)}:${src.line}</code>`).join('')}<small>Current source references · initial baseline 69dddc04. Implementation evidence does not mean device approval.</small></div><div class="fa-note"><label for="fa-verdict">Your device review</label><select id="fa-verdict"><option value="unreviewed">Not checked on device</option><option value="polish">Needs polish</option><option value="verified">Checked on device — looks good</option></select><label for="fa-note-input">Review notes</label><textarea id="fa-note-input" placeholder="Device, screen, what happened, what to change…">${escape(saved.note)}</textarea><small>Saved in this browser only. This does not change implementation status or submit feedback to the team.</small></div>`;
     document.getElementById('fa-verdict').value = saved.verdict;
   }
-  function renderLive() {
+  function renderLive(keepScroll = false) {
     const node = document.getElementById('fa-live-phone');
+    const scrollTop = keepScroll ? node.querySelector('.fa-scroll')?.scrollTop ?? 0 : 0;
     node.replaceChildren(phone(current, true));
     T.fitPhones(node);
+    if (keepScroll) node.querySelector('.fa-scroll').scrollTop = scrollTop;
   }
   function showActivityDetails(kind) {
     const earning = kind === 'earning',
@@ -727,6 +778,7 @@
     renderReview();
     document.getElementById('fa-design-state').hidden = id !== 'review';
     document.getElementById('fa-design-category-tools').hidden = id !== 'design';
+    document.getElementById('fa-photo-guide-tools').hidden = id !== 'photos';
     document.getElementById('fa-shop-state').hidden = id !== 'shop';
     document.getElementById('fa-earn-details').hidden = id !== 'earn';
     if (scroll)
@@ -994,7 +1046,51 @@
       demo.cashAmount = value;
       renderLive();
     } else if (action === 'sample-cashout') toast('Preview only. No transfer has been created or sent.');
-    else if (action === 'confirm-send') {
+    else if (action === 'photo-card') {
+      if (demo.photoSelecting) {
+        demo.photoSelected = demo.photoSelected.includes(el.dataset.photoId)
+          ? demo.photoSelected.filter(id => id !== el.dataset.photoId) : [...demo.photoSelected, el.dataset.photoId];
+        renderLive(true);
+      } else {
+        demo.photoPreviewId = el.dataset.photoId;
+        select('photo-preview');
+      }
+    } else if (action === 'select-photos') {
+      demo.photoSelecting = !demo.photoSelecting;
+      demo.photoSelected = [];
+      renderLive(true);
+    } else if (action === 'edit-photo-label') {
+      const photo = demo.photos.find(item => item.id === el.dataset.photoId);
+      if (!photo) return;
+      photoDialog('Edit photo label', `${field('Photo label', photo.label, 'data-photo-label-input maxlength="80"')}<p class="fa-small fa-muted">Use a short description so you can recognize this photo. This does not change its suggestion assignment.</p>${btn('Save label', '', '', `data-action="save-photo-label" data-photo-id="${photo.id}"`)}${btn('Cancel', '', 'ghost', 'data-action="close-modal"')}`);
+    } else if (action === 'save-photo-label') {
+      const value = el.closest('.fa-modal').querySelector('[data-photo-label-input]').value.trim();
+      demo.photos = demo.photos.map(photo => photo.id === el.dataset.photoId ? { ...photo, label: value || 'Added photo' } : photo);
+      renderLive(true);
+    } else if (action === 'remove-selected-photos') {
+      if (!demo.photoSelected.length) return;
+      const count = demo.photoSelected.length;
+      photoDialog(`Remove ${count} ${count === 1 ? 'photo' : 'photos'}?`, `<p>Remove the selected photos from this sample capture? The other photos and saved interview stay attached.</p>${btn(`Remove ${count} ${count === 1 ? 'photo' : 'photos'}`, '', '', 'data-action="confirm-remove-photos" style="background:#fbe9e3;color:#b82e13"')}${btn('Keep photos', '', 'ghost', 'data-action="close-modal"')}`);
+    } else if (action === 'confirm-remove-photos') {
+      demo.photos = demo.photos.filter(photo => !demo.photoSelected.includes(photo.id));
+      demo.photoSelected = [];
+      demo.photoSelecting = false;
+      demo.photoConfirmed = false;
+      renderLive(true);
+      toast('Selected sample photos removed. The remaining media is kept.');
+    } else if (action === 'add-sample-photo') {
+      if (demo.photos.length >= 10) return;
+      demo.photos.push({ id: `photo-${demo.photoCounter++}`, label: 'Added photo', sourceType: demo.photoCategory });
+      demo.photoConfirmed = false;
+      renderLive(true);
+      toast('Added a sample photo. The board does not open your photo library.');
+    } else if (action === 'save-reviewed-photos') {
+      if (!demo.photoConfirmed || demo.photos.length < 3) return;
+      demo.photoReviewed = true;
+      select('review');
+      toast('Sample photo review saved. The original photos and interview are kept.');
+    } else if (action === 'confirm-send') {
+      if (photoReviewPending(true)) return;
       const root = document.querySelector('#fa-live-phone .fa-app');
       const modal = document.createElement('div');
       modal.className = 'fa-overlay';
@@ -1047,6 +1143,11 @@
     }
   });
   document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-photo-reviewed]')) {
+      demo.photoConfirmed = event.target.checked;
+      const saveButton = document.querySelector('#fa-live-phone [data-action="save-reviewed-photos"]');
+      if (saveButton) saveButton.disabled = !demo.photoConfirmed || demo.photos.length < 3;
+    }
     if (event.target.matches('[data-check]')) {
       const saved = reviewNotes(current),
         index = Number(event.target.dataset.check);
@@ -1102,6 +1203,35 @@
     demo.design = 0;
     document.getElementById('fa-design-state').setAttribute('aria-pressed', 'false');
     document.getElementById('fa-design-state').textContent = 'Preview with no design';
+    renderLive();
+  });
+  document.getElementById('fa-photo-category').addEventListener('change', (event) => {
+    if (!designGroups[event.target.value] || demo.photoChanged) return;
+    demo.photoCategory = event.target.value;
+    demo.photos = makeSamplePhotos(demo.photoCategory);
+    demo.photoSelecting = false;
+    demo.photoSelected = [];
+    demo.designCategory = event.target.value;
+    demo.design = 0;
+    document.getElementById('fa-design-category').value = event.target.value;
+    renderLive();
+  });
+  document.getElementById('fa-photo-change-state').addEventListener('click', (event) => {
+    demo.photoChanged = !demo.photoChanged;
+    demo.photoConfirmed = false;
+    demo.photoReviewed = false;
+    demo.photoCategory = demo.photoChanged ? 'Auto Shop' : 'Other';
+    demo.photos = makeSamplePhotos(demo.photoChanged ? 'Law Office' : 'Other');
+    demo.photoSelecting = false;
+    demo.photoSelected = [];
+    demo.designCategory = demo.photoCategory;
+    demo.design = 0;
+    const selector = document.getElementById('fa-photo-category');
+    selector.value = demo.photoCategory;
+    selector.disabled = demo.photoChanged;
+    document.getElementById('fa-design-category').value = demo.photoCategory;
+    event.currentTarget.setAttribute('aria-pressed', String(demo.photoChanged));
+    event.currentTarget.textContent = demo.photoChanged ? 'Show normal photo guide' : 'Preview Law Office → Auto Shop';
     renderLive();
   });
   document.getElementById('fa-shop-state').addEventListener('click', (e) => {

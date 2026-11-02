@@ -106,6 +106,134 @@ it('keeps a queued capture for a new matching choice after Barber changes to Law
   expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
 });
 
+it('retains media and the queued choice until the agent confirms photos for the changed category', async () => {
+  row('my-submission', { businessType: 'Law Office', photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
+  scoped('current_submission_id', 'my-submission');
+  const queued = { submissionId: 'my-submission', templateId: 'business:CP', sellPrice: 2499 };
+  const review = { submissionId: 'my-submission', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 };
+  scoped('submission_pending_submit', queued); scoped('submission_photo_review', review);
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+  expect(read('submission_pending_submit')).toEqual(queued); expect(read('submission_photo_review')).toEqual(review);
+  expect(mockRows.get('my-submission')).toMatchObject({ photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
+  expect(Alert.alert).toHaveBeenCalledWith('Review your photos', expect.any(String));
+  scoped('submission_photo_review', { ...review, confirmedAt: 101 });
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+  expect(mockUpload).not.toHaveBeenCalled();
+  expect(read('submission_photo_review')).toBeNull(); expect(read('submission_pending_submit')).toBeNull();
+});
+
+it('syncs changed details and uploaded photos while withholding financial changes and final send', async () => {
+  row('my-submission', { businessType: 'Barber/Salon', audioStorageId: 'saved-interview' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_sync', info({ existingDraftId: 'my-submission', formData: { ...formData, businessType: 'Law Office' } }));
+  const retainedPhotos = { ...photos(), entries: photos().entries.map((entry, index) => ({ ...entry, label: `Retained photo ${index + 1}` })) };
+  scoped('submission_pending_photos', retainedPhotos);
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', businessType: 'Barber/Salon', items: retainedPhotos.entries });
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'business:CP', sellPrice: 2499 });
+  scoped('submission_photo_review', { submissionId: 'my-submission', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockRows.get('my-submission')).toMatchObject({ businessType: 'Law Office', photos: ['images/photo-p1.jpg', 'images/photo-p2.jpg', 'images/photo-p3.jpg'], audioStorageId: 'saved-interview' });
+  expect(mockUpload).toHaveBeenCalledTimes(3);
+  expect(mockMutation.mock.calls.every(([name]) => name === 'submissions:update')).toBe(true);
+  expect(read('submission_pending_photos')).toBeNull(); expect(read('submission_pending_sync')).toBeNull();
+  expect(read('submission_photo_tasks').items[0]).toMatchObject({ id: 'p1', label: 'Retained photo 1', storageId: 'images/photo-p1.jpg' });
+  expect(read('submission_pending_submit')).not.toBeNull(); expect(read('submission_photo_review')).not.toBeNull();
+});
+
+it('does not accept confirmation for a different current business type', async () => {
+  row('my-submission', { businessType: 'Clinic' }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'business:CM', sellPrice: 2499 });
+  scoped('submission_photo_review', { submissionId: 'my-submission', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100, confirmedAt: 101 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_pending_submit')).not.toBeNull();
+});
+
+it('rechecks a new review requirement that appears while the design is being saved', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  mockMutation.mockImplementation((name, args) => {
+    const result = defaultMutation(name, args);
+    if (name === 'submissions:chooseDesign') scoped('submission_photo_review', {
+      submissionId: 'my-submission', previousBusinessType: 'Restaurant', businessType: 'Law Office', requiredAt: 100,
+    });
+    return result;
+  });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation.mock.calls.map(([name]) => name)).toEqual(['submissions:chooseDesign']);
+  expect(read('submission_pending_submit')).not.toBeNull(); expect(read('current_submission_id')).toBe('my-submission');
+});
+
+it('migrates required photo review from an offline placeholder without bypassing it on reconnect', async () => {
+  scoped('current_submission_id', 'offline_pending'); scoped('submission_pending_sync', info());
+  scoped('submission_pending_submit', { submissionId: 'offline_pending', templateId: 'restaurant:AM' });
+  const review = { submissionId: 'offline_pending', previousBusinessType: 'Barber/Salon', businessType: 'Restaurant', requiredAt: 100 };
+  scoped('submission_photo_review', review);
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(read('submission_photo_review')).toEqual({ ...review, submissionId: 'new-submission-1' });
+  expect(read('submission_pending_submit')).toMatchObject({ submissionId: 'new-submission-1' });
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:submit' || name === 'submissions:chooseDesign' || name === 'submissions:setDomainTier')).toBe(false);
+});
+
+it('neither uses nor clears another capture’s photo review marker', async () => {
+  row(); scoped('current_submission_id', 'my-submission'); scoped('submission_pending_submit', { submissionId: 'my-submission' });
+  const other = { submissionId: 'other-submission', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 };
+  scoped('submission_photo_review', other);
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+  expect(read('submission_photo_review')).toEqual(other);
+});
+
+it('does not upload or submit an older queued photo set after local deletion', async () => {
+  row(); scoped('current_submission_id', 'my-submission');
+  const pending = photos(); scoped('submission_pending_photos', pending);
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', items: pending.entries.slice(0, 2) });
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockUpload).not.toHaveBeenCalled(); expect(mockMutation).not.toHaveBeenCalled();
+  expect(read('submission_pending_photos')).toEqual(pending); expect(read('submission_pending_submit')).not.toBeNull();
+  expect(Alert.alert).toHaveBeenCalledWith('Save your photo changes', expect.any(String));
+});
+
+it('blocks final sending of saved server photos when an unsaved deletion leaves three photos', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three', 'deleted'], audioStorageId: 'saved-interview' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', items: ['one', 'two', 'three'].map(storageId => ({ storageId })), removedExistingPhotos: ['deleted'] });
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_photo_tasks').removedExistingPhotos).toEqual(['deleted']);
+  expect(read('submission_pending_submit')).not.toBeNull();
+});
+
+it('blocks a same-count local replacement while labels-only edits can still send', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three'] }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission' });
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', items: [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://replacement' }] });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled();
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', items: ['one', 'two', 'three'].map(storageId => ({ storageId, label: `Renamed ${storageId}` })) });
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+});
+
+it('rechecks local photo membership after an awaited design save before pricing or sending', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three'] }); scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'restaurant:AM', sellPrice: 2499 });
+  scoped('submission_photo_tasks', { submissionId: 'my-submission', items: ['one', 'two', 'three'].map(storageId => ({ storageId })) });
+  mockMutation.mockImplementation((name, args) => {
+    const result = defaultMutation(name, args);
+    if (name === 'submissions:chooseDesign') scoped('submission_photo_tasks', {
+      submissionId: 'my-submission', items: [{ storageId: 'one' }, { storageId: 'two' }], removedExistingPhotos: ['three'],
+    });
+    return result;
+  });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation.mock.calls.map(([name]) => name)).toEqual(['submissions:chooseDesign']);
+  expect(read('submission_pending_submit')).not.toBeNull();
+});
+
 it('syncs rejected detail corrections without a final resend request and keeps the rejection intact', async () => {
   row('my-submission', { status: 'rejected', photos: ['one', 'two', 'three'], videoStorageId: 'saved-video' });
   scoped('current_submission_id', 'my-submission');
@@ -397,10 +525,14 @@ it('stops before pricing or submitting if the account changes during a design sa
 
 it.each([undefined, '', '   ', 'not-an-email', 'owner@example', `${'a'.repeat(310)}@example.com`])(
   'keeps a legacy draft queued until its owner email is valid (%p)', async ownerEmail => {
-    row('my-submission', { ownerEmail }); scoped('current_submission_id', 'my-submission');
+    row('my-submission', { ownerEmail, photos: ['images/one.jpg', 'images/two.jpg', 'images/three.jpg'] });
+    scoped('current_submission_id', 'my-submission');
     const choice = { submissionId: 'my-submission', sellPrice: 2499, submissionType: 'standard' };
     scoped('submission_pending_submit', choice);
-    scoped('submission_photo_tasks', { submissionId: 'my-submission', items: [{ id: 'p1', uri: 'file://one.jpg', storageId: 'images/one.jpg' }] });
+    scoped('submission_photo_tasks', { submissionId: 'my-submission', items: [
+      { id: 'p1', uri: 'file://one.jpg', storageId: 'images/one.jpg' },
+      { id: 'p2', storageId: 'images/two.jpg' }, { id: 'p3', storageId: 'images/three.jpg' },
+    ] });
     scoped('submission_interview_draft', { submissionId: 'my-submission', recordingUri: 'file://interview.mp4', attached: true });
     const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
     expect(mockMutation).not.toHaveBeenCalled();

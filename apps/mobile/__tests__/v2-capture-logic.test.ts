@@ -239,7 +239,31 @@ describe('capture content', () => {
     expect(shotListKeyForBusinessType('Auto Shop')).toBe('repair');
     expect(shotListKeyForBusinessType('Craft/Producer')).toBe('craft');
     expect(shotListKeyForBusinessType('Restaurant')).toBe('food');
-    expect(shotListKeyForBusinessType('Law Office')).toBe('shop');
+    expect(shotListKeyForBusinessType('Law Office')).toBe('law');
+    expect(shotListKeyForBusinessType('Clinic')).toBe('clinic');
     expect(shotListKeyForBusinessType(undefined)).toBe('shop');
+  });
+
+  it.each([
+    ['Personal injury attorney', 'law'], ['Legal services', 'law'], ['Notary office', 'law'],
+    ['Clinic / Dental', 'clinic'], ['Dentist', 'clinic'], ['Medical practice', 'clinic'],
+    ['Hair salon', 'salon'], ['Massage', 'salon'], ['Garage', 'repair'], ['Florist', 'craft'],
+  ])('keeps legacy business category %s on its appropriate photo guide', (type, expected) => {
+    expect(shotListKeyForBusinessType(type)).toBe(expected);
+  });
+
+  it('gives legal and medical offices appropriate suggestions instead of retail product photos', () => {
+    const law = shotList(shotListKeyForBusinessType('Law Office'));
+    const clinic = shotList(shotListKeyForBusinessType('Clinic'));
+    expect(law).not.toBe(SHOT_LISTS.shop);
+    expect(clinic).not.toBe(SHOT_LISTS.shop);
+    expect(law.some(task => task.t === 'Lawyer portrait')).toBe(true);
+    expect(law.some(task => task.t === 'Consultation space' && /private documents/.test(task.h))).toBe(true);
+    expect(clinic.some(task => task.t === 'Consultation room' && /no patients or records/.test(task.h))).toBe(true);
+    expect(clinic.some(task => task.t === 'Equipment')).toBe(true);
+    for (const list of [law, clinic]) {
+      expect(list.some(task => /best seller|shelves|products|price list/i.test(task.t))).toBe(false);
+      expect(list.some(task => task.t === 'Services board' && /if displayed/.test(task.h))).toBe(true);
+    }
   });
 });

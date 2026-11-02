@@ -124,6 +124,237 @@ it('requires a Law Office design after a business-type change without clearing t
   expect(mockRemove).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
 });
 
+it.each([false, true])('requires checking retained photos after a category change before sending or queueing: offline=%s', async offline => {
+  mockOffline = offline;
+  const submissionId = offline ? 'offline_pending' : 'draft-1';
+  if (offline) {
+    stored('current_submission_id', submissionId);
+    stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, businessType: 'Law Office' } });
+    stored('submission_pending_photos', { submissionId, photoUris: ['file://one', 'file://two', 'file://three'], existingPhotos: [] });
+    stored('submission_pending_interview', { submissionId, recordingUri: 'file://interview.m4a', type: 'audio' });
+  } else mockSubmissions['draft-1'].businessType = 'Law Office';
+  stored('submission_photo_review', { submissionId, previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByText('Review photos for Law Office')).toBeTruthy();
+  expect(screen.getByText('The business type changed. Your photos and interview are saved. Check the updated photo suggestions before sending.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: offline ? 'Save and queue' : 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Review photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('allows the confirmed photo review on the same draft and removes its marker only after sending succeeds', async () => {
+  mockSubmissions['draft-1'].businessType = 'Law Office';
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100, confirmedAt: 200 });
+  let complete!: () => void;
+  mockSubmit.mockImplementation(() => new Promise<void>(resolve => { complete = resolve; }));
+  const screen = await review();
+  expect(screen.queryByText('Review photos for Law Office')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockStorage.has('agent-1:submission_photo_review')).toBe(true);
+  expect(mockRemove).not.toHaveBeenCalledWith('submission_photo_review');
+  await act(async () => { complete(); await flush(); });
+  expect(mockRemove).toHaveBeenCalledWith('submission_photo_review');
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/success', params: { submissionId: 'draft-1' } });
+});
+
+it('refreshes the confirmation when returning from Photos and retains the current price and media', async () => {
+  const marker = { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 };
+  stored('submission_photo_review', marker);
+  const screen = await review();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  stored('submission_photo_review', { ...marker, confirmedAt: 200 });
+  mockRevision++; screen.rerender(<SubmitReviewScreen />);
+  await act(flush);
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull());
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks a previous confirmation after the business type changes again', async () => {
+  mockSubmissions['draft-1'].businessType = 'Auto Shop';
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100, confirmedAt: 200 });
+  const screen = await review();
+  expect(screen.getByText('Review photos for Auto Shop')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('rechecks photo review after the send confirmation instead of using the earlier ready state', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 300 });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText(`Review photos for ${form.businessType}`)).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('stops the final send if a new review requirement arrives while the price save is in flight', async () => {
+  const marker = { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100, confirmedAt: 200 };
+  stored('submission_photo_review', marker);
+  let finishPrice!: () => void;
+  mockSetTier.mockImplementation(() => new Promise<void>(resolve => { finishPrice = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSetTier).toHaveBeenCalledTimes(1); expect(mockSubmit).not.toHaveBeenCalled();
+  stored('submission_photo_review', { ...marker, requiredAt: 300 });
+  await act(async () => { finishPrice(); await flush(); });
+  expect(screen.getByText(`Review photos for ${form.businessType}`)).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:current_submission_id')).toBe('draft-1');
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+});
+
+it('ignores and preserves another capture’s photo-review marker', async () => {
+  const foreign = { submissionId: 'other-draft', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 };
+  stored('submission_photo_review', foreign);
+  const screen = await review();
+  expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockRemove).not.toHaveBeenCalledWith('submission_photo_review');
+  expect(mockStorage.get('agent-1:submission_photo_review')).toEqual(foreign);
+});
+
+it('does not carry a pending photo review into the next signed-in account', async () => {
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  mockActor = 'agent-2';
+  stored('current_submission_id', 'draft-2');
+  mockSubmissions['draft-2'] = { ...mockSubmissions['draft-1'], _id: 'draft-2', creatorId: mockActor, businessName: 'Another shop' };
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Another shop')).toBeTruthy());
+  expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  expect(mockStorage.has('agent-1:submission_photo_review')).toBe(true);
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it.each([0, 2])('keeps a %i-photo edited draft authoritative when returning from Photos without saving', async count => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: ['one', 'two'].slice(0, count).map(storageId => ({ storageId })) });
+  const screen = await review();
+  expect(screen.getByText(`${count} photos`)).toBeTruthy();
+  expect(screen.queryAllByLabelText(/^Shop photo \d+$/)).toHaveLength(count);
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByText('You have photos to add, replace or remove. Review and save them before sending.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Review photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+  expect(mockSubmissions['draft-1'].photos).toEqual(['one', 'two', 'three']);
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks an unsaved replacement even when the photo count remains three', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [
+    { storageId: 'one' }, { storageId: 'two' }, { uri: 'file://replacement-three.jpg' },
+  ] });
+  const screen = await review();
+  expect(screen.getByText('3 photos')).toBeTruthy();
+  expect(screen.getByLabelText('Shop photo 3')).toHaveProp('source', { uri: 'file://replacement-three.jpg' });
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('allows label-only photo edits and keeps stored-image identity ahead of a local preview URI', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: ['one', 'two', 'three'].map((storageId, index) => ({
+    storageId, uri: `file://preview-${index}.jpg`, label: `Updated label ${index + 1}`,
+  })) });
+  const screen = await review();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
+it('accepts saved pending photos as the baseline and queues their matching edited list', async () => {
+  const items = [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://saved-replacement.jpg' }];
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items });
+  stored('submission_pending_photos', { submissionId: 'draft-1', existingPhotos: ['one', 'two'], photoUris: ['file://saved-replacement.jpg'], entries: items });
+  const screen = await review();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_photo_tasks')).toMatchObject({ submissionId: 'draft-1', items });
+});
+
+it('checks photo membership again after an already-open send confirmation', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://unsaved.jpg' }] });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks final submit if photos change during the awaited price update', async () => {
+  let finishPrice!: () => void;
+  mockSetTier.mockImplementation(() => new Promise<void>(resolve => { finishPrice = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSetTier).toHaveBeenCalledTimes(1);
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [] });
+  await act(async () => { finishPrice(); await flush(); });
+  expect(screen.getByText('0 photos')).toBeTruthy();
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('does not send stale server photos when a saved-photo queue appears after confirmation opens', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  const items = [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://saved-replacement.jpg' }];
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items });
+  stored('submission_pending_photos', { submissionId: 'draft-1', existingPhotos: ['one', 'two'], photoUris: ['file://saved-replacement.jpg'] });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeEnabled();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled();
+});
+
+it('uses one photos action when both unsaved photo edits and category review need attention', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ storageId: 'one' }, { storageId: 'two' }] });
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getAllByRole('button', { name: 'Review photos' })).toHaveLength(1);
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+});
+
+it('does not borrow unsaved photo changes from a different capture', async () => {
+  stored('submission_photo_tasks', { submissionId: 'other-draft', items: [] });
+  const screen = await review();
+  expect(screen.getByText('3 photos')).toBeTruthy();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+});
+
+it('returns an ordinary photo edit to Review rather than detouring through the interview', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+});
+
 it('opens the rejected record with its saved media, design, price and feedback and resends the same ID', async () => {
   Object.assign(mockSubmissions['draft-1'], { businessType: 'Craft/Producer', status: 'rejected', rejectionReason: 'Replace the blurry shop photo.',
     templateId: 'florist:BR', amount: 2999, domainCostPHP: 0, submissionType: 'standard' });

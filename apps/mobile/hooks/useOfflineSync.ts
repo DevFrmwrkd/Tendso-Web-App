@@ -10,17 +10,19 @@ import { commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../services/capturePrice';
 import { isEditableCaptureStatus } from '../services/captureEdit';
 import { captureDesignMatchesBusinessType } from '../services/captureDesign';
+import { capturePhotoReviewFor, needsCapturePhotoReview } from '../services/capturePhotoReview';
+import { capturePhotosNeedSave } from '../services/capturePhotoChanges';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
   initialSellPrice?: number; savedAt: number; legacyMigration?: boolean };
-type PhotoEntry = { id: string; uri: string; storageId?: string; taskIndex?: number };
+type PhotoEntry = { id: string; uri: string; storageId?: string; taskIndex?: number; label?: string };
 type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; entries?: PhotoEntry[]; savedAt?: number };
 type PendingInterview = { submissionId: string; recordingUri: string; parallelAudioUri?: string | null; type: 'video' | 'audio'; storageId?: string; audioStorageId?: string; savedAt?: number };
 type SubmitChoice = { submissionId: string; templateId?: string; sellPrice?: number; submissionType?: 'standard' | 'with_custom_domain'; requestedDomain?: string; domainPricePHP?: number; savedAt?: number };
 type QueuedSubmit = boolean | SubmitChoice;
 const PARTS = ['submission_pending_sync', 'submission_pending_photos', 'submission_pending_interview', 'submission_pending_submit'] as const;
-const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_design', 'submission_progress', 'submission_draft_form'] as const;
+const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_design', 'submission_progress', 'submission_draft_form', 'submission_photo_review'] as const;
 const clean = (value: unknown) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : '';
 
 /** Recover a response lost after create without reusing another business's draft. */
@@ -44,6 +46,8 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
   const busy = useRef(false);
   const emailWarning = useRef<string | null>(null);
   const designWarning = useRef<string | null>(null);
+  const photoReviewWarning = useRef<string | null>(null);
+  const photoChangesWarning = useRef<string | null>(null);
   const mounted = useRef(true);
   const live = useRef({ enabled, creatorId, isConnected });
   live.current = { enabled, creatorId, isConnected };
@@ -173,6 +177,8 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_pending_submit', 'submission_progress'] as const) await remove(key);
         const savedDesign = await readCaptureCache<CaptureDesignDraft>(actor, 'submission_design');
         if (await boundCurrent() && savedDesign?.submissionId === id) await remove('submission_design');
+        const savedPhotoReview = await readCaptureCache<unknown>(actor, 'submission_photo_review');
+        if (await boundCurrent() && capturePhotoReviewFor(savedPhotoReview, id!)) await remove('submission_photo_review');
         await remove('current_submission_id');
       };
       if (!isEditableCaptureStatus(submission.status)) {
@@ -182,6 +188,17 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         return;
       }
       const synced: string[] = [];
+      const photoChangesBlocked = async (baseline: unknown) => {
+        const draft = await readCaptureCache<unknown>(actor, 'submission_photo_tasks');
+        if (!await boundCurrent()) return true;
+        if (!capturePhotosNeedSave(draft, id!, baseline)) { photoChangesWarning.current = null; return false; }
+        const warning = `${actor}:${id}`;
+        if (photoChangesWarning.current !== warning) {
+          photoChangesWarning.current = warning;
+          Alert.alert('Save your photo changes', 'Open Photos and save your latest changes before sending. Your capture and interview are saved.');
+        }
+        return true;
+      };
       if (info) {
         if (!await boundCurrent()) return;
         await update({ id: id as Id<'submissions'>, ...info.formData,
@@ -212,9 +229,11 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         return target.fileKey;
       };
       if (photos) {
+        if (await photoChangesBlocked(photos)) return;
         const entries: PhotoEntry[] = photos.entries ?? photos.photoUris.map((uri, index) => ({ id: `legacy-${index}`, uri }));
         for (const entry of entries) {
           if (!entry.storageId) {
+            if (await photoChangesBlocked(photos)) return;
             entry.storageId = await upload(entry.uri, 'images', `photo-${entry.id}.jpg`, 'image/jpeg');
             photos = { ...photos, entries }; await save('submission_pending_photos', photos);
             const meta = await readCaptureCache<{ submissionId: string; items: PhotoEntry[] }>(actor, 'submission_photo_tasks');
@@ -224,6 +243,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         }
         const finalPhotos = [...new Set([...(photos.existingPhotos ?? []), ...entries.map(entry => entry.storageId!)])];
         if (finalPhotos.length < 3 || finalPhotos.length > 10 || !await boundCurrent()) return;
+        if (await photoChangesBlocked(photos)) return;
         await update({ id: id as Id<'submissions'>, photos: finalPhotos });
         if (!await boundCurrent()) return;
         await remove('submission_pending_photos'); synced.push('photos');
@@ -251,6 +271,21 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       // choice may send; it also wins over a subsequently cached draft preview.
       const templateId = queued && typeof queued === 'object' && queued.templateId !== undefined
         ? queued.templateId : design && matches(design.submissionId) ? design.templateId : undefined;
+      const photoReviewBlocked = async (businessType: string, savedPhotos: unknown) => {
+        const marker = await readCaptureCache<unknown>(actor, 'submission_photo_review');
+        if (!await boundCurrent()) return true;
+        if (!needsCapturePhotoReview(marker, id!, businessType)) {
+          photoReviewWarning.current = null;
+          return photoChangesBlocked(savedPhotos);
+        }
+        const review = capturePhotoReviewFor(marker, id!);
+        const warning = `${actor}:${id}:${review?.businessType}:${review?.requiredAt}`;
+        if (photoReviewWarning.current !== warning) {
+          photoReviewWarning.current = warning;
+          Alert.alert('Review your photos', 'The business type changed. Open this capture and check the updated photo suggestions before sending. Your photos and interview are saved.');
+        }
+        return true;
+      };
       if (queued && typeof queued === 'object' && await boundCurrent()) {
         // Re-read after syncing pending details and media: the initial row may
         // still have the old email, or another screen may have corrected it.
@@ -260,6 +295,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           await finishSent();
           return;
         }
+        if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
         const candidate = templateId ?? latest.templateId;
         if (candidate && !captureDesignMatchesBusinessType(latest.businessType, candidate)) {
           const warning = `${actor}:${id}:${latest.businessType}:${candidate}`;
@@ -283,6 +319,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         }
         emailWarning.current = null;
         if (templateId !== undefined) {
+          if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
           await chooseDesign({ id: id as Id<'submissions'>, templateId });
           if (!await boundCurrent()) return;
         }
@@ -293,16 +330,20 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
             && (requestedDomain ?? '') === (latest.requestedDomain ?? '')
             && (queued.sellPrice == null || queued.sellPrice + (latest.domainCostPHP ?? 0) === latest.amount)
             && (queued.domainPricePHP == null || queued.domainPricePHP === latest.domainCostPHP);
-          if (!unchanged) await setTier({ id: id as Id<'submissions'>, submissionType,
-            sellPrice: queued.sellPrice, requestedDomain, domainPricePHP: queued.domainPricePHP });
+          if (!unchanged) {
+            if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
+            await setTier({ id: id as Id<'submissions'>, submissionType,
+              sellPrice: queued.sellPrice, requestedDomain, domainPricePHP: queued.domainPricePHP });
+          }
         }
-        if (!await boundCurrent()) return;
+        if (!await boundCurrent() || await photoReviewBlocked(latest.businessType, latest.photos)) return;
         await submit({ id: id as Id<'submissions'> });
         if (!await boundCurrent()) return;
         await finishSent(); synced.push('submission');
       } else if (templateId !== undefined && await boundCurrent()) {
         const latest = await checkOwner(id);
         if (!latest || !isEditableCaptureStatus(latest.status) || !await boundCurrent()) return;
+        if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
         if (!captureDesignMatchesBusinessType(latest.businessType, templateId)) return;
         if (latest.templateId !== templateId) {
           await chooseDesign({ id: id as Id<'submissions'>, templateId });

@@ -19,6 +19,8 @@ import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } 
 import { looksLikeConvexId } from '../../../services/prospectPrefill';
 import { captureDesign, captureDesignMatchesBusinessType, selectedCaptureDesignCode } from '../../../services/captureDesign';
 import type { CaptureDesignDraft } from '../../../services/captureSession';
+import { capturePhotoReviewFor, needsCapturePhotoReview, type CapturePhotoReview } from '../../../services/capturePhotoReview';
+import { capturePhotosNeedSave } from '../../../services/capturePhotoChanges';
 
 type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
 type LocalPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[] };
@@ -57,6 +59,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const [attachedInterview, setAttachedInterview] = useState<LocalInterview | null>(null);
   const [snapshot, setSnapshot] = useState<(CaptureSnapshot & Form) | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ submissionId: string; items: { uri?: string; storageId?: string }[] } | null>(null);
+  const [photoReview, setPhotoReview] = useState<CapturePhotoReview | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
@@ -79,6 +82,8 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const focus = useRef(true);
   const liveId = useRef(id);
   liveId.current = id;
+  const liveBusinessType = useRef<string | null>(null);
+  const liveSavedPhotos = useRef<unknown>(undefined);
   const quoteVersion = useRef(0);
   const initialized = useRef<string | null>(null);
   const initializedDomain = useRef<string | null>(null);
@@ -96,7 +101,8 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
     ? { id: sourceLeadId as Id<'leads'> } : 'skip');
   const pricing = useQuery(api.submissions.getPricingContext, capture.canQuery && capture.actor
     ? { creatorId: capture.actor.creatorId } : 'skip');
-  const photoKeys = localPhotos?.existingPhotos ?? submission?.photos ?? [];
+  const photoKeys = photoMeta ? photoMeta.items.map(item => item.storageId).filter((key): key is string => !!key)
+    : localPhotos?.existingPhotos ?? submission?.photos ?? [];
   const photoUrls = useQuery(api.files.getMultipleUrls, capture.canQuery && photoKeys.length ? { storageIds: photoKeys } : 'skip');
   const remoteVideo = useQuery(api.files.getUrl, capture.canQuery && submission?.videoStorageId ? { storageId: submission.videoStorageId } : 'skip');
   const remoteAudio = useQuery(api.files.getUrl, capture.canQuery && submission?.audioStorageId ? { storageId: submission.audioStorageId } : 'skip');
@@ -110,7 +116,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
     let active = true;
     focus.current = true;
     void (async () => {
-      const [storedId, pendingInfo, pendingPhotos, pendingInterview, storedSnapshot, storedMeta, interviewDraft, pendingSubmit, design] = await Promise.all([
+      const [storedId, pendingInfo, pendingPhotos, pendingInterview, storedSnapshot, storedMeta, interviewDraft, pendingSubmit, design, storedPhotoReview] = await Promise.all([
         capture.read<string>('current_submission_id'),
         capture.read<{ creatorId: string; existingDraftId?: string; initialSellPrice?: number; formData: Form }>('submission_pending_sync'),
         capture.read<LocalPhotos>('submission_pending_photos'),
@@ -120,6 +126,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
         capture.read<LocalInterview>('submission_interview_draft'),
         capture.read<{ submissionId: string; sellPrice?: number; templateId?: string; savedAt?: number }>('submission_pending_submit'),
         capture.read<CaptureDesignDraft>('submission_design'),
+        capture.read<unknown>('submission_photo_review'),
       ]);
       if (!active || !isCurrent()) return;
       const target = requestedId !== undefined
@@ -132,6 +139,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       setLocalInterview(pendingInterview?.submissionId === target ? pendingInterview : null);
       setSnapshot(storedSnapshot?.submissionId === target && storedSnapshot.creatorId === capture.actor?.creatorId ? storedSnapshot : null);
       setPhotoMeta(storedMeta?.submissionId === target ? storedMeta : null);
+      setPhotoReview(target ? capturePhotoReviewFor(storedPhotoReview, target) : null);
       setAttachedInterview(interviewDraft?.submissionId === target && interviewDraft.attached ? interviewDraft : null);
       setLocalDesign(design?.submissionId === target ? design : null);
       setQueuedDesign(pendingSubmit?.submissionId === target ? pendingSubmit : null);
@@ -192,15 +200,22 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   }, [domain, capture.canQuery, capture.actorKey]);
 
   const form = localForm ?? submission ?? snapshot;
+  liveBusinessType.current = form?.businessType ?? null;
+  liveSavedPhotos.current = submission?.photos ?? snapshot?.photos;
+  const requiresPhotoReview = !!id && needsCapturePhotoReview(photoReview, id, form?.businessType);
+  const unsavedPhotoChanges = !!id && capturePhotosNeedSave(photoMeta, id, localPhotos ?? liveSavedPhotos.current);
   const emailError = captureEmailError(form?.ownerEmail);
-  const remotePhotos = (photoUrls ?? (capture.isOffline ? snapshot?.resolvedPhotoUrls : []) ?? []).filter((uri): uri is string => !!uri);
-  const savedLocalPhotos = (photoMeta?.items ?? []).map(item => item.uri).filter((uri): uri is string => !!uri);
-  const photos = [...new Set([...remotePhotos, ...(localPhotos?.photoUris ?? (remotePhotos.length ? [] : savedLocalPhotos))])];
+  const cachedPhotoUrls = new Map((snapshot?.photos ?? []).map((key, index) => [key, snapshot?.resolvedPhotoUrls?.[index]]));
+  const remotePhotos = (photoUrls ?? (capture.isOffline ? photoKeys.map(key => cachedPhotoUrls.get(key)) : [])).filter((uri): uri is string => !!uri);
+  const photoUrlByKey = new Map(photoKeys.map((key, index) => [key, photoUrls?.[index] ?? (capture.isOffline ? cachedPhotoUrls.get(key) : undefined)]));
+  const photos = photoMeta
+    ? [...new Set(photoMeta.items.map(item => item.storageId && photoUrlByKey.get(item.storageId) || item.uri).filter((uri): uri is string => !!uri))]
+    : [...new Set([...remotePhotos, ...(localPhotos?.photoUris ?? [])])];
   // The find's deliberately shared cover identifies the business. Capture
   // photos are website material and remain separate from the original find.
   const sharedCover = sourceFind && sourceFind.lead._id === sourceLeadId ? sourceFind.photoUrl : null;
   const thumbnailPhotos = sharedCover ? [sharedCover, ...photos] : photos;
-  const photoCount = localPhotos ? localPhotos.photoUris.length + localPhotos.existingPhotos.length : submission?.photos?.length ?? photoMeta?.items.length ?? 0;
+  const photoCount = photoMeta ? photoMeta.items.length : localPhotos ? localPhotos.photoUris.length + localPhotos.existingPhotos.length : submission?.photos?.length ?? 0;
   const previewInterview = localInterview ?? attachedInterview;
   const videoUri = previewInterview ? previewInterview.type === 'video' ? previewInterview.recordingUri : null : remoteVideo || submission?.videoUrl;
   const audioUri = previewInterview ? previewInterview.type === 'audio' ? previewInterview.recordingUri : null : remoteAudio || submission?.audioUrl;
@@ -227,7 +242,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const savedDesignCode = selectedCaptureDesignCode(id, localDesign, queuedDesign, submission?.templateId);
   const mismatchedDesign = !!savedDesignCode && !captureDesignMatchesBusinessType(form?.businessType, savedDesignCode);
   const selectedDesign = mismatchedDesign ? null : captureDesign(savedDesignCode);
-  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft && !mismatchedDesign;
+  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft && !mismatchedDesign && !requiresPhotoReview && !unsavedPhotoChanges;
   const queued = capture.isOffline || id === 'offline_pending' || !!localForm || !!localPhotos || !!localInterview;
   const editBusiness = () => {
     if (id && isCurrent()) router.push({ pathname: '/(app)/submit/info', params: { draftId: id } } as never);
@@ -237,10 +252,31 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
     if (!capture.isOffline && !capture.canMutate()) return;
     busy.current = true; setSaving(true); setError('');
     const sendingId = id;
+    const sendingBusinessType = form.businessType;
     const sameDraft = async () => {
-      if (!isCurrent() || !focus.current || liveId.current !== sendingId) return false;
-      const pointer = await capture.read<string>('current_submission_id');
-      return isCurrent() && focus.current && liveId.current === sendingId && pointer === sendingId;
+      if (!isCurrent() || !focus.current || liveId.current !== sendingId || liveBusinessType.current !== sendingBusinessType) return false;
+      // The confirmation may stay open while another capture step changes the
+      // business type. Recheck before each queued/server action, including after
+      // awaited design and price saves, rather than trusting the rendered state.
+      const [pointer, storedReview, storedPhotoMeta, storedPendingPhotos] = await Promise.all([
+        capture.read<string>('current_submission_id'), capture.read<unknown>('submission_photo_review'),
+        capture.read<typeof photoMeta>('submission_photo_tasks'), capture.read<LocalPhotos>('submission_pending_photos'),
+      ]);
+      if (!isCurrent() || !focus.current || liveId.current !== sendingId || pointer !== sendingId || liveBusinessType.current !== sendingBusinessType) return false;
+      const ownedPhotoMeta = storedPhotoMeta?.submissionId === sendingId ? storedPhotoMeta : null;
+      const ownedPendingPhotos = storedPendingPhotos?.submissionId === sendingId ? storedPendingPhotos : null;
+      setPhotoReview(capturePhotoReviewFor(storedReview, sendingId));
+      setPhotoMeta(ownedPhotoMeta);
+      setLocalPhotos(ownedPendingPhotos);
+      const freshPhotoCount = ownedPhotoMeta ? ownedPhotoMeta.items.length : ownedPendingPhotos
+        ? ownedPendingPhotos.existingPhotos.length + ownedPendingPhotos.photoUris.length
+        : Array.isArray(liveSavedPhotos.current) ? liveSavedPhotos.current.length : 0;
+      if (freshPhotoCount < 3 || freshPhotoCount > 10) return false;
+      // A saved offline-photo queue appearing after this confirmation must not
+      // turn into a direct server submit with the previous server photos.
+      if (ownedPendingPhotos && !queued) return false;
+      return !needsCapturePhotoReview(storedReview, sendingId, liveBusinessType.current)
+        && !capturePhotosNeedSave(ownedPhotoMeta, sendingId, ownedPendingPhotos ?? liveSavedPhotos.current);
     };
     try {
       if (!await sameDraft()) return;
@@ -270,7 +306,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
         const savedDesign = await capture.read<CaptureDesignDraft>('submission_design');
         if (!await sameDraft()) return;
         if (savedDesign?.submissionId === id) await capture.remove('submission_design');
-        for (const key of ['submission_interview_draft', 'submission_photo_tasks', 'submission_progress'] as const) {
+        for (const key of ['submission_interview_draft', 'submission_photo_tasks', 'submission_progress', 'submission_photo_review'] as const) {
           const part = await capture.read<{ submissionId: string }>(key);
           if (!await sameDraft()) return;
           if (part?.submissionId === id) await capture.remove(key);
@@ -323,6 +359,16 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
         body={submission.rejectionReason || 'Check the review feedback and correct the shop details, photos or interview. Your saved capture is kept.'} /> : null}
       {draft && emailError ? <Banner tone="warn" title="Owner’s email required" body={emailError}
         action={<TextLink label="Edit shop details" disabled={saving} onPress={editBusiness} />} /> : null}
+      {draft && unsavedPhotoChanges ? <Banner tone="warn" title="Save your photo changes"
+        body="You have photos to add, replace or remove. Review and save them before sending."
+        action={<Button title="Review photos" variant="ghost" disabled={saving} onPress={() => {
+          if (id && isCurrent()) router.push({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } } as never);
+        }} />} /> : null}
+      {draft && requiresPhotoReview && !unsavedPhotoChanges ? <Banner tone="warn" title={`Review photos for ${form.businessType}`}
+        body="The business type changed. Your photos and interview are saved. Check the updated photo suggestions before sending."
+        action={<Button title="Review photos" variant="ghost" disabled={saving} onPress={() => {
+          if (id && isCurrent()) router.push({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } } as never);
+        }} />} /> : null}
       {!draft ? <><Banner tone="neutral" title="Already sent" body="This capture is being processed. Your details are saved." />
         <Button title="View capture status" variant="ghost" onPress={() => router.replace({ pathname: '/(app)/submit/success', params: { submissionId: id } } as never)} /></> : null}
       <Card style={styles.card}>
@@ -336,7 +382,8 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
         <Text tone="muted">{[form.address, form.city].filter(Boolean).join(', ')}</Text>
       </Card>
       <Card style={styles.card}>
-        <View style={styles.row}><Text weight="bold" style={styles.flex}>{photoCount} photos</Text><TextLink label="Edit photos" disabled={saving || !draft} onPress={() => router.push('/(app)/submit/photos' as never)} /></View>
+        <View style={styles.row}><Text weight="bold" style={styles.flex}>{photoCount} photos</Text><TextLink label="Edit photos" disabled={saving || !draft}
+          onPress={() => router.push({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } } as never)} /></View>
         {photos.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
           {photos.map((uri, index) => <Image key={`${uri}-${index}`} source={{ uri }} style={styles.thumb} accessibilityLabel={`Shop photo ${index + 1}`} />)}
         </ScrollView> : <Text tone="muted">Add at least three shop photos.</Text>}

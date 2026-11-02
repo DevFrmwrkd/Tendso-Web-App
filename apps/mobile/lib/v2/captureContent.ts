@@ -6,6 +6,7 @@
  * The interview wording must match the backend (convex/lib/ownerApp.ts
  * OWNER_APP_QUESTIONS on feat/v2-backend-owners): index 0-9 = questions, 10 = extra.
  */
+import { mapCategoryToBusinessType } from '../../../../lib/prospectPrefill';
 
 export type Lang = 'en' | 'tl';
 
@@ -64,7 +65,7 @@ export interface ShotTask {
   kind: ShotKind;
 }
 
-export type ShotListKey = 'barber' | 'salon' | 'repair' | 'craft' | 'food' | 'shop';
+export type ShotListKey = 'barber' | 'salon' | 'repair' | 'craft' | 'food' | 'law' | 'clinic' | 'shop';
 
 export const SHOT_LISTS: Record<ShotListKey, readonly ShotTask[]> = {
   barber: [
@@ -127,6 +128,30 @@ export const SHOT_LISTS: Record<ShotListKey, readonly ShotTask[]> = {
     { t: 'Menu and prices', h: 'Straight on, readable', kind: 'sign' },
     { t: 'Customers', h: 'People eating, faces optional', kind: 'room' },
   ],
+  law: [
+    { t: 'Lawyer portrait', h: 'Face and shoulders, plain background', kind: 'head' },
+    { t: 'Office team', h: 'Staff together, with their permission', kind: 'half' },
+    { t: 'Outside', h: 'The whole office front from across', kind: 'front' },
+    { t: 'Office sign', h: 'Straight on, name readable', kind: 'sign' },
+    { t: 'Reception', h: 'Tidy and empty, no client files in view', kind: 'room' },
+    { t: 'Consultation space', h: 'Empty room, private documents put away', kind: 'room' },
+    { t: 'Workspace', h: 'A clear desk, no client information', kind: 'room' },
+    { t: 'Reference books', h: 'Law books or a detail of the office', kind: 'object' },
+    { t: 'Services board', h: 'Public service list, if displayed', kind: 'sign' },
+    { t: 'Entrance', h: 'Show how visitors reach the office', kind: 'front' },
+  ],
+  clinic: [
+    { t: 'Practitioner portrait', h: 'Face and shoulders, good light', kind: 'head' },
+    { t: 'Clinic team', h: 'Staff together, with their permission', kind: 'half' },
+    { t: 'Outside', h: 'The whole clinic front from across', kind: 'front' },
+    { t: 'Clinic sign', h: 'Straight on, name readable', kind: 'sign' },
+    { t: 'Reception', h: 'Empty reception, no patient records in view', kind: 'room' },
+    { t: 'Waiting area', h: 'Wide view when no patients are present', kind: 'room' },
+    { t: 'Consultation room', h: 'Tidy room, no patients or records in view', kind: 'room' },
+    { t: 'Equipment', h: 'Clean and ready, no patient information', kind: 'object' },
+    { t: 'Services board', h: 'Public service list, if displayed', kind: 'sign' },
+    { t: 'Entrance', h: 'Show the doorway and any steps or ramp', kind: 'front' },
+  ],
   shop: [
     { t: 'Owner headshot', h: 'Face and shoulders', kind: 'head' },
     { t: 'Profile picture', h: 'Owner at the counter', kind: 'half' },
@@ -160,6 +185,9 @@ export function shotList(key: string | null | undefined): readonly ShotTask[] {
  * Used by the field-agent flow, which only knows the type.
  */
 export function shotListKeyForBusinessType(businessType: string | null | undefined): ShotListKey {
+  const canonical = mapCategoryToBusinessType(businessType);
+  if (canonical === 'Law Office') return 'law';
+  if (canonical === 'Clinic') return 'clinic';
   const t = (businessType || '').toLowerCase();
   if (/barber/.test(t)) return 'barber';
   if (/salon|spa|massage|beauty|nail|hair/.test(t)) return 'salon';

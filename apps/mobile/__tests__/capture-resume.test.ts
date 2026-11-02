@@ -5,6 +5,55 @@ const activeId = 'a'.repeat(24);
 const otherId = 'b'.repeat(24);
 const creatorId = 'agent-mika';
 const server = { _id: activeId, creatorId, status: 'draft', photos: ['one', 'two', 'three'] };
+const photoReview = { submissionId: activeId, previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 };
+
+it.each(['draft', 'rejected'])('resumes unsaved photo deletions ahead of Review progress for a %s capture', status => {
+  expect(captureResumeStep(activeId, creatorId, {
+    submission_progress: { submissionId: activeId, step: 'review', savedAt: 100 },
+    submission_photo_tasks: { submissionId: activeId, items: [{ storageId: 'one' }, { storageId: 'two' }, { storageId: 'three' }], removedExistingPhotos: ['deleted'] },
+  }, { ...server, status, photos: ['one', 'two', 'three', 'deleted'] })).toBe('photos');
+});
+
+it('resumes a replacement missing from the queued set, while allowing labels-only changes', () => {
+  const cache: CaptureResumeCache = { submission_progress: { submissionId: activeId, step: 'review', savedAt: 100 },
+    submission_pending_photos: { submissionId: activeId, existingPhotos: ['one', 'two'], photoUris: ['file://old'] },
+    submission_photo_tasks: { submissionId: activeId, items: [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://new' }] } };
+  expect(captureResumeStep(activeId, creatorId, cache, server)).toBe('photos');
+  expect(captureResumeStep(activeId, creatorId, { ...cache, submission_photo_tasks: {
+    submissionId: activeId, items: [{ storageId: 'one', label: 'Renamed' }, { storageId: 'two' }, { uri: 'file://old' }],
+  } }, server)).toBe('review');
+});
+
+it('does not re-open saved photos when a legacy queue combines stored photos with local additions', () => {
+  expect(captureResumeStep(activeId, creatorId, {
+    submission_pending_photos: { submissionId: activeId, existingPhotos: ['one', 'two'], entries: [{ uri: 'file://three' }], photoUris: ['file://three'] },
+    submission_photo_tasks: { submissionId: activeId, items: [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://three' }] },
+  }, server)).toBe('interview');
+});
+
+it.each(['draft', 'rejected'])('resumes required photo review ahead of saved Review progress for a %s capture', status => {
+  const cache: CaptureResumeCache = { submission_progress: { submissionId: activeId, step: 'review', savedAt: 1 },
+    submission_photo_review: photoReview };
+  expect(captureResumeStep(activeId, creatorId, cache, { ...server, businessType: 'Law Office', status,
+    audioStorageId: 'saved-interview', templateId: 'business:CP' })).toBe('photos');
+});
+
+it('honors confirmed offline category corrections instead of a stale server category on resume', () => {
+  const cache: CaptureResumeCache = { submission_progress: { submissionId: activeId, step: 'review', savedAt: 1 },
+    submission_photo_review: { ...photoReview, confirmedAt: 100 },
+    submission_pending_sync: { creatorId, existingDraftId: activeId, formData: { businessType: 'Law Office' } } };
+  expect(captureResumeStep(activeId, creatorId, cache, { ...server, businessType: 'Barber/Salon' })).toBe('review');
+  expect(captureResumeStep(activeId, creatorId, { ...cache, submission_pending_sync: undefined },
+    { ...server, businessType: 'Clinic' })).toBe('photos');
+});
+
+it('preserves an unrelated capture’s outstanding review while ignoring it for this capture’s resume', () => {
+  const cache: CaptureResumeCache = { submission_photo_review: { ...photoReview, submissionId: otherId },
+    submission_progress: { submissionId: activeId, step: 'design', savedAt: 1 } };
+  expect(captureResumeStep(activeId, creatorId, cache, server)).toBe('design');
+  expect(hasOtherCaptureWork(activeId, cache)).toBe(true);
+  expect(hasOtherCaptureWork(activeId, { submission_photo_review: { ...photoReview, submissionId: otherId, confirmedAt: 100 } })).toBe(false);
+});
 
 it('chooses the active pointer ahead of unrelated form/progress data and recovers only owned offline info', () => {
   expect(activeCaptureId({ current_submission_id: activeId, submission_draft_form: { businessName: 'Another shop' },

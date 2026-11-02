@@ -1,3 +1,15 @@
+// Photo guide copy mirrors apps/mobile/lib/v2/captureContent.ts.
+window.FIELD_AGENT_PHOTO_GUIDES = {
+  barber: [{"t":"Owner headshot","h":"Face and shoulders, plain background","kind":"head"},{"t":"Profile picture","h":"Owner at work, half body","kind":"half"},{"t":"Haircut in progress","h":"Barber and client, side angle","kind":"half"},{"t":"Inside","h":"Wide, from the door","kind":"room"},{"t":"Chairs and equipment","h":"The chairs, mirrors and stations","kind":"room"},{"t":"Finished cut","h":"Back and side of the client","kind":"head"},{"t":"Outside","h":"The whole shop front from across","kind":"front"},{"t":"Sign","h":"Straight on, fill the frame","kind":"sign"},{"t":"Tools","h":"Clippers and scissors, close up","kind":"object"},{"t":"Price list","h":"Straight on, readable","kind":"sign"}],
+  salon: [{"t":"Owner headshot","h":"Face and shoulders","kind":"head"},{"t":"Profile picture","h":"Owner at the station","kind":"half"},{"t":"Outside","h":"The whole front","kind":"front"},{"t":"Inside","h":"Wide, from the door","kind":"room"},{"t":"Stations","h":"Chairs and mirrors","kind":"room"},{"t":"Products","h":"Shelf, straight on","kind":"object"},{"t":"Work in progress","h":"Stylist and client","kind":"half"},{"t":"Result","h":"Finished hair, good light","kind":"head"},{"t":"Detail","h":"Colour or nails, close up","kind":"object"},{"t":"Price list","h":"Readable","kind":"sign"}],
+  repair: [{"t":"Owner headshot","h":"Face and shoulders","kind":"head"},{"t":"Profile picture","h":"Owner at the shop, half body","kind":"half"},{"t":"Outside","h":"The whole shop from across","kind":"front"},{"t":"At work","h":"Hands on the job","kind":"half"},{"t":"Work bay","h":"Wide, a car inside","kind":"room"},{"t":"Wheels and tyres","h":"Close, side angle","kind":"object"},{"t":"Sign","h":"Straight on, fill the frame","kind":"sign"},{"t":"Tools","h":"The tools you use most","kind":"object"},{"t":"Finished job","h":"Clean, close up","kind":"object"},{"t":"Price list","h":"Straight on, readable","kind":"sign"}],
+  craft: [{"t":"Owner headshot","h":"Face and shoulders","kind":"head"},{"t":"At work","h":"Hands on the craft","kind":"half"},{"t":"Outside","h":"The whole front, with the sign","kind":"front"},{"t":"Workshop","h":"Wide, from the door","kind":"room"},{"t":"Best piece","h":"Close, good light","kind":"object"},{"t":"Another piece","h":"Something people often order","kind":"object"},{"t":"Tools","h":"The tools you use most","kind":"object"},{"t":"Materials","h":"Wood, fabric or flowers","kind":"object"},{"t":"Detail","h":"The fine work, close up","kind":"object"},{"t":"Price list","h":"Straight on, readable","kind":"sign"}],
+  food: [{"t":"Owner headshot","h":"Face and shoulders","kind":"head"},{"t":"Owner cooking","h":"At the stove or counter","kind":"half"},{"t":"Outside","h":"The whole front, with the sign","kind":"front"},{"t":"Dining area","h":"Wide, tables set","kind":"room"},{"t":"Best seller","h":"One plate, close, side light","kind":"object"},{"t":"Second dish","h":"Another favourite","kind":"object"},{"t":"Drinks","h":"Coffee, juice or merienda","kind":"object"},{"t":"Kitchen","h":"Clean, pots and prep","kind":"room"},{"t":"Menu and prices","h":"Straight on, readable","kind":"sign"},{"t":"Customers","h":"People eating, faces optional","kind":"room"}],
+  law: [{"t":"Lawyer portrait","h":"Face and shoulders, plain background","kind":"head"},{"t":"Office team","h":"Staff together, with their permission","kind":"half"},{"t":"Outside","h":"The whole office front from across","kind":"front"},{"t":"Office sign","h":"Straight on, name readable","kind":"sign"},{"t":"Reception","h":"Tidy and empty, no client files in view","kind":"room"},{"t":"Consultation space","h":"Empty room, private documents put away","kind":"room"},{"t":"Workspace","h":"A clear desk, no client information","kind":"room"},{"t":"Reference books","h":"Law books or a detail of the office","kind":"object"},{"t":"Services board","h":"Public service list, if displayed","kind":"sign"},{"t":"Entrance","h":"Show how visitors reach the office","kind":"front"}],
+  clinic: [{"t":"Practitioner portrait","h":"Face and shoulders, good light","kind":"head"},{"t":"Clinic team","h":"Staff together, with their permission","kind":"half"},{"t":"Outside","h":"The whole clinic front from across","kind":"front"},{"t":"Clinic sign","h":"Straight on, name readable","kind":"sign"},{"t":"Reception","h":"Empty reception, no patient records in view","kind":"room"},{"t":"Waiting area","h":"Wide view when no patients are present","kind":"room"},{"t":"Consultation room","h":"Tidy room, no patients or records in view","kind":"room"},{"t":"Equipment","h":"Clean and ready, no patient information","kind":"object"},{"t":"Services board","h":"Public service list, if displayed","kind":"sign"},{"t":"Entrance","h":"Show the doorway and any steps or ramp","kind":"front"}],
+  shop: [{"t":"Owner headshot","h":"Face and shoulders","kind":"head"},{"t":"Profile picture","h":"Owner at the counter","kind":"half"},{"t":"Outside","h":"The whole front from across","kind":"front"},{"t":"Inside","h":"Wide, from the door","kind":"room"},{"t":"Best seller","h":"Close, good light","kind":"object"},{"t":"Shelves","h":"Straight on, full shelves","kind":"room"},{"t":"Counter","h":"Where people pay","kind":"room"},{"t":"Sign","h":"Straight on, fill the frame","kind":"sign"},{"t":"Products","h":"A few things, close up","kind":"object"},{"t":"Price list","h":"Straight on, readable","kind":"sign"}],
+};
+
 window.FIELD_AGENT_REVIEW_CAPTURE = [
   {
     id: 'info',
@@ -10,6 +22,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'Choose on map / Edit map location confirms a pin, address and city; typing an address does not move the pin.',
       'Tap Submit to reopen the active unfinished capture at its saved step, keeping the same submission. The app does not automatically redirect away from Home on launch.',
       'Unsaved form edits are tagged to the capture and flushed when the app backgrounds or the screen closes; matching edits survive reopening.',
+      'Changing business type preserves the capture, photos and interview. The photo step asks the agent to review the retained photos for the new type before continuing.',
     ],
     checks: [
       'On a short phone, open the keyboard for email and City; verify the field and Continue remain reachable.',
@@ -32,25 +45,37 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
     title: 'Show us the shop',
     area: 'capture',
     status: 'device',
-    summary: '“Ten suggestions. Add 3–10 photos in total.” Suggestions are optional.',
+    summary: 'Eight business types have their own optional photo guide. A changed type keeps the media and requires a photo review.',
     implemented: [
       'Step 2 of 5 offers shop-specific suggestion tiles, direct retakes and a next-suggestion card.',
+      'Law Office and Clinic now have dedicated ten-shot suggestions, including office/consultation spaces and privacy-aware hints. They no longer use retail product prompts.',
       'Guided camera photos and library extras share the same ten-photo limit.',
-      'Three photos enable Continue to interview; Your photos includes separate preview and Remove actions.',
+      'Three photos enable Continue to interview; Your photos includes a photo number, saved label and full preview. Its options sheet offers Retake, Replace, Edit label and Remove; Select mode includes Select all and removes several photos after one confirmation.',
       'New capture photos are copied into durable phone storage before they are added to the draft.',
-      'Changing the business type keeps photo IDs and media; only their optional shot-suggestion labels reset.',
+      'Changing the business type keeps photo IDs, saved labels and media; their old optional suggestion assignments reset instead of being reassigned to the new guide.',
+      '“Review photos for {businessType}” explains that the interview is also saved. “I reviewed these photos for {businessType}” enables Save reviewed photos. A correction opened from Review returns to that same Review.',
+      'Older Law Office/Clinic drafts keep their original photos when the new dedicated guide replaces the old general-shop guide. Unassigned photos are not presented as completed new suggestions.',
+      'Added, replaced or removed photos must be saved before Review can send or queue the capture. Back flushes pending photo writes so the saved draft keeps the latest changes.',
     ],
     checks: [
       'Capture three suggestions, add library extras and retake at the ten-photo limit without creating an eleventh.',
       'Deny camera or library access and check the available recovery action on a real device.',
       'Interrupt an upload, reopen the capture and verify saved photos can continue without duplicate uploads.',
       'Add photos, close the app and reopen with Submit; then change the business type. Confirm every original photo still opens and can upload.',
+      'Compare Law Office and Clinic with Auto Shop. Confirm the ten suggestions are appropriate and the existing photos are not labeled as new shots.',
+      'Change Law Office to Auto Shop from Review. Confirm the warning and unchecked review box, review the saved photos, save and return to the same Review. The saved interview remains playable.',
+      'Edit one photo label, then select several photos. Cancel the removal once, then confirm it; only the selected photos should disappear and fewer than three must block Continue.',
+      'Open a photo’s options sheet and try Retake, Replace, Edit label and Remove; check Select all and clear the selection without changing the remaining photos.',
+      'Add, replace or remove a photo, then go Back to Review before saving. Confirm Send and offline queue stay blocked until the photo changes are saved; reopen Photos and verify the latest edits remain.',
     ],
     sources: [
       { path: 'apps/mobile/app/(app)/submit/photos.tsx', line: 290 },
       { path: 'apps/mobile/app/(app)/submit/photos.tsx', line: 299 },
       { path: 'apps/mobile/app/(app)/submit/photos.tsx', line: 313 },
       { path: 'apps/mobile/services/capturePhotoFiles.ts', line: 1 },
+      { path: 'apps/mobile/lib/v2/captureContent.ts', line: 131 },
+      { path: 'apps/mobile/components/field-agent/CapturePhotoGrid.tsx', line: 1 },
+      { path: 'apps/mobile/services/capturePhotoReview.ts', line: 1 },
     ],
   },
   {

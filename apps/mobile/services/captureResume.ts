@@ -2,12 +2,14 @@ import type { CaptureStorageKey } from './captureSession';
 import { looksLikeConvexId } from './prospectPrefill';
 import { MIN_PHOTOS } from '../lib/v2/captureContent';
 import { validCaptureDesignCode } from '../../../lib/captureDesign';
+import { capturePhotoReviewFor, needsCapturePhotoReview } from './capturePhotoReview';
+import { capturePhotosNeedSave } from './capturePhotoChanges';
 
 export const CAPTURE_RESUME_KEYS = [
   'current_submission_id', 'submission_pending_sync', 'submission_pending_photos',
   'submission_pending_interview', 'submission_pending_submit', 'submission_photo_tasks',
   'submission_interview_draft', 'submission_draft_form', 'submission_design',
-  'submission_snapshot', 'submission_progress', 'submission_last_sent',
+  'submission_snapshot', 'submission_progress', 'submission_last_sent', 'submission_photo_review',
 ] as const satisfies readonly CaptureStorageKey[];
 
 export type CaptureResumeCache = Partial<Record<CaptureStorageKey, unknown>>;
@@ -56,9 +58,6 @@ export function captureResumeStep(submissionId: string, creatorId: string, cache
   const snapshot = record(cache.submission_snapshot);
   const saved = snapshot?.submissionId === submissionId && snapshot.creatorId === creatorId ? snapshot : null;
   const submission = server?.creatorId === creatorId && server._id === submissionId ? server : saved;
-  if (submission?.status === 'rejected') return 'review';
-  const progress = captureProgressFor(cache.submission_progress, submissionId);
-  if (progress) return progress.step;
   const matching = (key: CaptureStorageKey) => {
     const value = record(cache[key]);
     return value?.submissionId === submissionId ? value : null;
@@ -67,17 +66,16 @@ export function captureResumeStep(submissionId: string, creatorId: string, cache
   const ownInfo = pendingInfo?.creatorId === creatorId && (submissionId === 'offline_pending'
     ? pendingInfo.existingDraftId == null || pendingInfo.existingDraftId === 'offline_pending'
     : pendingInfo.existingDraftId === submissionId) ? pendingInfo : null;
-  if (!submission && !ownInfo) return matching('submission_photo_tasks') ? 'photos' : 'info';
+  const form = matching('submission_draft_form');
+  const businessType = ownInfo?.formData?.businessType ?? form?.businessType ?? submission?.businessType;
+  if (needsCapturePhotoReview(cache.submission_photo_review, submissionId, businessType)) return 'photos';
   const photos = matching('submission_pending_photos');
   const photoDraft = matching('submission_photo_tasks');
-  const photoKeys = (items: unknown[]) => [...new Set(items.map((item: any) => typeof item === 'string' ? item : item?.storageId || item?.uri)
-    .filter((key: unknown) => typeof key === 'string' && key))].sort();
-  const queuedKeys = photos ? photoKeys(Array.isArray(photos.entries) ? photos.entries : [
-    ...(Array.isArray(photos.existingPhotos) ? photos.existingPhotos : []),
-    ...(Array.isArray(photos.photoUris) ? photos.photoUris : []),
-  ]) : [];
-  if (photos && Array.isArray(photoDraft?.items)
-    && JSON.stringify(photoKeys(photoDraft.items)) !== JSON.stringify(queuedKeys)) return 'photos';
+  if (capturePhotosNeedSave(photoDraft, submissionId, photos ?? submission?.photos)) return 'photos';
+  if (submission?.status === 'rejected') return 'review';
+  const progress = captureProgressFor(cache.submission_progress, submissionId);
+  if (progress) return progress.step;
+  if (!submission && !ownInfo) return matching('submission_photo_tasks') ? 'photos' : 'info';
   if (!photos && (photoDraft?.removedExistingPhotos?.length || photoDraft?.items?.some((item: any) => item?.uri && !item.storageId))) return 'photos';
   const photoCount = Array.isArray(submission?.photos) ? submission.photos.filter((key: unknown) => typeof key === 'string' && key).length : 0;
   const queuedPhotos = photos ? new Set([
@@ -100,6 +98,10 @@ export function captureResumeStep(submissionId: string, creatorId: string, cache
 
 /** A single active cache must not strand another shop's unsynced corrections. */
 export function hasOtherCaptureWork(targetId: string, cache: Cache): boolean {
+  const review = record(cache.submission_photo_review);
+  const photoReview = typeof review?.submissionId === 'string' ? capturePhotoReviewFor(review, review.submissionId) : null;
+  if (photoReview && photoReview.submissionId !== targetId
+    && needsCapturePhotoReview(photoReview, photoReview.submissionId, photoReview.businessType)) return true;
   const info = record(cache.submission_pending_sync);
   if (info && info.existingDraftId !== targetId) return true;
   for (const key of ['submission_pending_photos', 'submission_pending_interview', 'submission_pending_submit'] as const) {

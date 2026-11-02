@@ -27,6 +27,8 @@ import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/cap
 import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../../../services/capturePrice';
 import { isEditableCaptureStatus, type CaptureSnapshot } from '../../../services/captureEdit';
+import { capturePhotoReviewFor, needsCapturePhotoReview, type CapturePhotoReview } from '../../../services/capturePhotoReview';
+import { normalizeCaptureBusinessType } from '../../../../../lib/captureDesign';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
@@ -113,6 +115,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
   const initializing = useRef(false);
   const saving = useRef(false);
   const initialSellPrice = useRef<number | null>(null);
+  const originalBusinessType = useRef<string | null>(null);
   const lastFormPayload = useRef<string | null>(null);
   const isCurrent = () => mounted.current && capture.isCurrent();
   useCaptureProgress(capture, 'info', selectedDraftId ?? (requestedDraftId === 'offline_pending' ? requestedDraftId : null),
@@ -185,6 +188,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
           ?? (requestedDraftId === 'offline_pending' && storedId === 'offline_pending' ? matchingForm : null);
         if (!originalData) { setUnavailableDraft(true); return; }
         const data = matchingForm ?? originalData;
+        originalBusinessType.current = originalData.businessType || null;
         setUnavailableDraft(false);
         setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
         setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
@@ -236,6 +240,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
         const loadExisting = async () => {
           if (!isCurrent()) return;
           if (data) {
+            originalBusinessType.current = (existingDraft ?? pending?.formData ?? data).businessType || null;
             setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
             setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
             setOwnerEmail(data.ownerEmail || ''); setAddress(data.address || ''); setCity(data.city || '');
@@ -272,10 +277,12 @@ function SubmitInfoForm({ capture, prefillParams }: {
                   await capture.remove('submission_design');
                   await capture.remove('submission_progress');
                   await capture.remove('submission_photo_tasks');
+                  await capture.remove('submission_photo_review');
                   await capture.remove('submission_interview_draft');
                   await clearDraft();
                   if (!isCurrent()) return;
                   initialSellPrice.current = null;
+                  originalBusinessType.current = null;
                   setSelectedDraftId(null); setOwnerName(''); setOwnerEmail('');
                   applyPrefill();
                   setProspectLeadId(typeof prefillParams.prospectLeadId === 'string' ? prefillParams.prospectLeadId : undefined);
@@ -391,6 +398,47 @@ function SubmitInfoForm({ capture, prefillParams }: {
       saving.current = false;
       return;
     }
+    let photoReviewRequired = false;
+    try {
+      const [pointer, pending, snapshot, photoDraft, pendingPhotos, storedReview] = await Promise.all([
+        capture.read<string>('current_submission_id'), capture.read<PendingDetails>('submission_pending_sync'),
+        capture.read<CaptureSnapshot>('submission_snapshot'),
+        capture.read<{ submissionId: string; businessType?: string; items?: unknown[] }>('submission_photo_tasks'),
+        capture.read<{ submissionId: string; photoUris?: string[]; existingPhotos?: string[]; entries?: unknown[] }>('submission_pending_photos'),
+        capture.read<CapturePhotoReview>('submission_photo_review'),
+      ]);
+      if (!isCurrent()) return;
+      const id = selectedDraftId ?? (pointer === 'offline_pending' ? pointer : null);
+      if (id) {
+        const ownPending = pending?.creatorId === capture.actor.creatorId && (id === 'offline_pending'
+          ? !pending.existingDraftId || pending.existingDraftId === id : pending.existingDraftId === id) ? pending : null;
+        const ownSnapshot = snapshot?.submissionId === id && snapshot.creatorId === capture.actor.creatorId ? snapshot : null;
+        const ownServer = existingDraft?._id === id && existingDraft.creatorId === capture.actor.creatorId ? existingDraft : null;
+        const previousType = ownPending?.formData.businessType ?? ownServer?.businessType ?? ownSnapshot?.businessType
+          ?? (photoDraft?.submissionId === id ? photoDraft.businessType : null) ?? originalBusinessType.current;
+        const hasPhotos = !!(ownServer?.photos?.length || ownSnapshot?.photos?.length
+          || (photoDraft?.submissionId === id && photoDraft.items?.length)
+          || (pendingPhotos?.submissionId === id && (pendingPhotos.photoUris?.length || pendingPhotos.existingPhotos?.length || pendingPhotos.entries?.length)));
+        let marker = capturePhotoReviewFor(storedReview, id);
+        if (hasPhotos && previousType && (normalizeCaptureBusinessType(previousType) !== normalizeCaptureBusinessType(businessType)
+          || (marker && normalizeCaptureBusinessType(marker.businessType) !== normalizeCaptureBusinessType(businessType)))) {
+          marker = { submissionId: id, previousBusinessType: previousType, businessType,
+            requiredAt: Math.max(Date.now(), (marker?.requiredAt ?? 0) + 1) };
+          // Persist before changing details, so closing the app cannot skip review.
+          await capture.write('submission_photo_review', marker);
+          if (!isCurrent()) return;
+        }
+        photoReviewRequired = needsCapturePhotoReview(marker, id, businessType);
+      }
+    } catch {
+      if (isCurrent()) { setError('Could not save the photo review reminder. Your photos are kept; try again.'); setLoading(false); }
+      saving.current = false; return;
+    }
+    const continueFromInfo = () => {
+      if (correcting && photoReviewRequired) router.replace({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } } as never);
+      else if (correcting) router.back();
+      else router.push('/(app)/submit/photos');
+    };
     // Offline writes stay with the cached, signed-in field agent. The source
     // lead is retained so reconnecting does not create a duplicate shop.
     if (capture.isOffline) {
@@ -412,7 +460,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
         await capture.write('current_submission_id', selectedDraftId ?? 'offline_pending');
         if (!isCurrent()) return;
         await clearDraft();
-        if (isCurrent()) { if (correcting) router.back(); else router.push('/(app)/submit/photos'); }
+        if (isCurrent()) continueFromInfo();
       } catch (err) {
         if (isCurrent()) setError('Failed to save data locally');
       } finally {
@@ -460,7 +508,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
       await clearDraft();
       if (!isCurrent()) return;
       await capture.remove('submission_pending_sync');
-      if (isCurrent()) { if (correcting) router.back(); else router.push('/(app)/submit/photos'); }
+      if (isCurrent()) continueFromInfo();
     } catch (err: any) {
       console.error('Error saving business info:', err);
       if (isCurrent()) setError(err.message || 'Failed to save business information');

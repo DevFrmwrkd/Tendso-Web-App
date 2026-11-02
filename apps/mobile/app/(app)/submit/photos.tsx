@@ -12,19 +12,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, EmptyState, Loading, ScreenShell, Text } from '../../../components/v2';
 import { ShotGuide } from '../../../components/v2/capture';
-import { MAX_PHOTOS, MIN_PHOTOS, shotList, shotListKeyForBusinessType, type ShotKind } from '../../../lib/v2/captureContent';
+import { MAX_PHOTOS, MIN_PHOTOS, shotList, shotListKeyForBusinessType, type ShotKind, type ShotListKey, type ShotTask } from '../../../lib/v2/captureContent';
 import { colors, radius, space } from '../../../theme/v2';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { useCaptureProgress } from '../../../hooks/useCaptureProgress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
 import { isLocalCapturePhoto, retainCapturePhoto, type RetainedCapturePhoto } from '../../../services/capturePhotoFiles';
+import { capturePhotoReviewFor, needsCapturePhotoReview, type CapturePhotoReview } from '../../../services/capturePhotoReview';
+import { normalizeCaptureBusinessType } from '../../../../../lib/captureDesign';
+import { CapturePhotoGrid } from '../../../components/field-agent/CapturePhotoGrid';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
-type PhotoItem = { id: string; uri?: string; storageId?: string; taskIndex?: number };
-type PhotoDraft = { version: 1; submissionId: string; businessType?: string; items: PhotoItem[]; removedExistingPhotos: string[] };
-type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; savedAt: number; entries?: PhotoItem[] };
-type CameraRun = { id: number; initial: (string | null)[]; index: number; singleShot: boolean };
+type PhotoItem = { id: string; uri?: string; storageId?: string; taskIndex?: number; label?: string };
+type PhotoDraft = { version: 1; submissionId: string; businessType?: string; shotListKey?: ShotListKey; items: PhotoItem[]; removedExistingPhotos: string[] };
+type PendingPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[]; savedAt: number; entries?: PhotoItem[]; businessType?: string; shotListKey?: ShotListKey };
+type CameraRun = { id: number; initial: (string | null)[]; index: number; singleShot: boolean; replacementId?: string; tasks?: readonly ShotTask[] };
 const TASK_ICONS: Record<ShotKind, React.ComponentProps<typeof Ionicons>['name']> = {
   head: 'person-outline', half: 'body-outline', front: 'storefront-outline', sign: 'reader-outline', room: 'business-outline', object: 'cube-outline',
 };
@@ -33,7 +36,8 @@ function validItems(value: unknown): PhotoItem[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is PhotoItem => item && typeof item.id === 'string'
     && ((typeof item.uri === 'string' && !!item.uri) || (typeof item.storageId === 'string' && !!item.storageId)))
-    .map((item) => ({ ...item, taskIndex: Number.isInteger(item.taskIndex) && item.taskIndex! >= 0 && item.taskIndex! < 10 ? item.taskIndex : undefined }));
+    .map((item) => ({ ...item, taskIndex: Number.isInteger(item.taskIndex) && item.taskIndex! >= 0 && item.taskIndex! < 10 ? item.taskIndex : undefined,
+      label: typeof item.label === 'string' ? item.label.trim().replace(/\s+/g, ' ').slice(0, 60) || undefined : undefined }));
 }
 
 export default function SubmitPhotosScreen() {
@@ -50,7 +54,7 @@ export default function SubmitPhotosScreen() {
 
 function PhotoTasks({ session }: { session: CaptureSession }) {
   const router = useGuardedRouter();
-  const { resumed } = useLocalSearchParams<{ resumed?: string }>();
+  const { resumed, returnTo } = useLocalSearchParams<{ resumed?: string; returnTo?: string }>();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
@@ -69,6 +73,8 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const [missingLocalUris, setMissingLocalUris] = useState<ReadonlySet<string>>(() => new Set());
   const [previewAttempt, setPreviewAttempt] = useState(0);
   const [finishingCamera, setFinishingCamera] = useState(false);
+  const [photoReview, setPhotoReview] = useState<CapturePhotoReview | null>(null);
+  const [reviewChecked, setReviewChecked] = useState(false);
   const mounted = useRef(true);
   const busy = useRef(false);
   const pickerBusy = useRef(false);
@@ -87,6 +93,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const previewVersion = useRef(0);
   const migration = useRef<string | null>(null);
   const missingUrisRef = useRef<ReadonlySet<string>>(new Set());
+  const pendingTypeRef = useRef<string | null>(null);
   sessionRef.current = session;
   const current = () => mounted.current && sessionRef.current.actorKey === session.actorKey && session.isCurrent();
   const sameCapture = (id: string | null) => current() && !!id && (idRef.current === id
@@ -105,6 +112,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const missingPhotos = items.filter(item => !item.storageId && item.uri && missingLocalUris.has(item.uri));
   const enough = total >= MIN_PHOTOS && total <= MAX_PHOTOS && missingPhotos.length === 0;
   const remaining = Math.max(0, MAX_PHOTOS - total);
+  const reviewRequired = !!submissionId && needsCapturePhotoReview(photoReview, submissionId, businessType);
   const taskItems = tasks.map((_, index) => items.find((item) => item.taskIndex === index));
   const nextTask = taskItems.findIndex((item) => !item);
   const extras = items.filter((item) => item.taskIndex === undefined);
@@ -114,7 +122,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const tileSize = Math.max(48, (width - space.gutter * 2 - space.sm * 4) / 5);
   const uriFor = (item?: PhotoItem) => (item?.uri && !missingUrisRef.current.has(item.uri) ? item.uri : null)
     || (item?.storageId ? urlByKey.get(item.storageId) : null) || null;
-  const photoLabel = (item: PhotoItem) => item.taskIndex === undefined ? 'Added photo' : tasks[item.taskIndex]?.t ?? 'Photo';
+  const photoLabel = (item: PhotoItem) => item.label || (item.taskIndex === undefined ? 'Added photo' : tasks[item.taskIndex]?.t ?? 'Photo');
   const previewItem = preview?.submissionId === submissionId ? items.find((item) => item.id === preview.id) : undefined;
   const previewUri = uriFor(previewItem);
   const previewOpen = !!previewItem && !camera && current();
@@ -134,9 +142,20 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     else setFailedPreviewUri(uri);
   };
   const goBack = () => {
-    if (resumed === '1' && idRef.current) router.replace({ pathname: '/(app)/submit/info',
-      params: { draftId: idRef.current, resumed: '1' } } as never);
-    else router.back();
+    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    busy.current = true; setSaving(true);
+    void (async () => {
+      try {
+        // Labels/removals are queued device writes. Finish them before leaving
+        // so Review and offline sync see the same photo set as this screen.
+        await photoQueue.current; await persistQueue.current;
+        if (!current()) return;
+        if (resumed === '1' && idRef.current) router.replace({ pathname: '/(app)/submit/info',
+          params: { draftId: idRef.current, resumed: '1' } } as never);
+        else router.back();
+      } catch { if (current()) setError('Could not save your photo changes. Keep this screen open and try again.'); }
+      finally { busy.current = false; if (current()) setSaving(false); }
+    })();
   };
   useFocusEffect(useCallback(() => {
     if (resumed !== '1' || !submissionId) return;
@@ -152,7 +171,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
       && isEditableCaptureStatus(submission.status))));
 
   const snapshot = (next: PhotoItem[]): PhotoDraft => ({ version: 1, submissionId: idRef.current!,
-    businessType: typeRef.current, items: next, removedExistingPhotos: [...removed.current] });
+    businessType: typeRef.current, shotListKey: shotListKeyForBusinessType(typeRef.current), items: next, removedExistingPhotos: [...removed.current] });
   const persist = (next: PhotoItem[]) => {
     const draft = snapshot(next); const writer = sessionRef.current;
     persistQueue.current = persistQueue.current.catch(() => {}).then(async () => {
@@ -166,6 +185,23 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     return persistQueue.current;
   };
   const commit = (next: PhotoItem[]) => { itemsRef.current = next; setItems(next); return persist(next); };
+  const requirePhotoReview = async (id: string, previousType: string, nextType: string, stored: unknown) => {
+    const existing = capturePhotoReviewFor(stored, id);
+    if (existing && normalizeCaptureBusinessType(existing.businessType) === normalizeCaptureBusinessType(nextType)) {
+      setPhotoReview(existing); return;
+    }
+    // Info writes the new requirement before the server type update. An older
+    // server row must not overwrite that still-pending transition.
+    if (existing && existing.previousBusinessType === normalizeCaptureBusinessType(nextType)
+      && (existing.confirmedAt === undefined || existing.confirmedAt < existing.requiredAt)) {
+      setPhotoReview(existing); return;
+    }
+    const marker: CapturePhotoReview = { submissionId: id, previousBusinessType: previousType,
+      businessType: nextType, requiredAt: Math.max(Date.now(), (existing?.requiredAt ?? 0) + 1) };
+    setPhotoReview(marker); setReviewChecked(false);
+    if (sameCapture(id)) await sessionRef.current.write('submission_photo_review', marker);
+  };
+  useEffect(() => { setReviewChecked(false); }, [submissionId, businessType, photoReview?.requiredAt]);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useFocusEffect(useCallback(() => {
@@ -176,12 +212,13 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     const currentLoad = () => active && current() && version === hydrationVersion.current;
     void (async () => {
       try {
-        const [storedId, pendingInfo, taskDraft, pendingPhotos, form, savedShop] = await Promise.all([
+        const [storedId, pendingInfo, taskDraft, pendingPhotos, form, savedShop, storedReview] = await Promise.all([
           session.read<string>('current_submission_id'),
           session.read<{ creatorId?: string; existingDraftId?: string; formData?: { businessType?: string } }>('submission_pending_sync'),
           session.read<PhotoDraft>('submission_photo_tasks'), session.read<PendingPhotos>('submission_pending_photos'),
           session.read<{ submissionId?: string; businessType?: string }>('submission_draft_form'),
           session.read<CaptureSnapshot>('submission_snapshot'),
+          session.read<CapturePhotoReview>('submission_photo_review'),
         ]);
         if (!currentLoad()) return;
         const pendingActor = pendingInfo?.creatorId === session.actor?.creatorId;
@@ -204,19 +241,23 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (!ownDraft && !ownPending?.entries && Array.isArray(ownPending?.photoUris)) {
           ownPending.photoUris.forEach((uri, index) => { if (typeof uri === 'string' && uri) restored.push({ id: `restored-${index}`, uri }); });
         }
-        for (const key of ownPending?.existingPhotos ?? []) {
-          if (typeof key === 'string' && !restored.some((item) => item.storageId === key)) restored.push({ id: `stored-${key}`, storageId: key });
-        }
         removed.current = Array.isArray(ownDraft?.removedExistingPhotos) ? ownDraft.removedExistingPhotos : [];
+        for (const key of ownPending?.existingPhotos ?? []) {
+          if (typeof key === 'string' && !removed.current.includes(key) && !restored.some((item) => item.storageId === key)) restored.push({ id: `stored-${key}`, storageId: key });
+        }
         const snapshotType = savedShop?.submissionId === id || (migrating && savedShop?.submissionId === 'offline_pending') ? savedShop?.businessType : undefined;
         const ownPendingInfo = pendingActor && (id === 'offline_pending'
           ? !pendingInfo?.existingDraftId || pendingInfo.existingDraftId === 'offline_pending'
           : pendingInfo?.existingDraftId === id) ? pendingInfo : null;
         const ownForm = form?.submissionId === id || (migrating && form?.submissionId === 'offline_pending') ? form : null;
-        const restoredType = ownPendingInfo?.formData?.businessType || ownForm?.businessType || snapshotType || ownDraft?.businessType;
-        const differentSuggestions = ownDraft?.businessType && restoredType
-          && shotListKeyForBusinessType(ownDraft.businessType) !== shotListKeyForBusinessType(restoredType);
-        if (differentSuggestions) restored = restored.map((item) => ({ ...item, taskIndex: undefined }));
+        const restoredType = ownPendingInfo?.formData?.businessType || ownForm?.businessType || snapshotType || ownDraft?.businessType || ownPending?.businessType;
+        pendingTypeRef.current = ownPendingInfo?.formData?.businessType ?? null;
+        const oldGuide = ownDraft?.shotListKey ?? ownPending?.shotListKey
+          ?? (ownDraft?.businessType && ['law', 'clinic'].includes(shotListKeyForBusinessType(ownDraft.businessType))
+            ? 'shop' : shotListKeyForBusinessType(ownDraft?.businessType));
+        const differentSuggestions = (!!ownDraft || !!ownPending?.entries) && !!restoredType && oldGuide !== shotListKeyForBusinessType(restoredType);
+        if (differentSuggestions) restored = restored.map((item) => ({ ...item,
+          label: item.label || (item.taskIndex !== undefined ? shotList(oldGuide)[item.taskIndex]?.t : undefined), taskIndex: undefined }));
         const missing = new Set<string>();
         let migratedFiles = false;
         restored = await Promise.all(restored.map(async item => {
@@ -239,8 +280,18 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (!currentLoad()) return;
         missingUrisRef.current = missing; setMissingLocalUris(missing);
         typeRef.current = restoredType; setBusinessType(restoredType);
-        idRef.current = id; setSubmissionId(id); itemsRef.current = restored; setItems(restored); setHydrated(true);
-        if (differentSuggestions || migratedFiles) void persist(restored);
+        idRef.current = id; setSubmissionId(id); itemsRef.current = restored; setItems(restored);
+        const restoredReview = capturePhotoReviewFor(storedReview, id);
+        setPhotoReview(restoredReview);
+        const previousType = ownDraft?.businessType ?? restoredReview?.businessType;
+        if (restored.length && restoredType && ((previousType
+          && normalizeCaptureBusinessType(previousType) !== normalizeCaptureBusinessType(restoredType))
+          || (restoredReview && normalizeCaptureBusinessType(restoredReview.businessType) !== normalizeCaptureBusinessType(restoredType)))) {
+          await requirePhotoReview(id, previousType ?? restoredReview!.businessType, restoredType, storedReview);
+          if (!currentLoad()) return;
+        }
+        if (differentSuggestions || migratedFiles) await persist(restored);
+        if (currentLoad()) setHydrated(true);
       } catch { if (currentLoad()) setError('Could not load your photo draft. Reopen this step to try again.'); }
     })();
     return () => { active = false; previewVersion.current++; setPreview(null); };
@@ -251,11 +302,24 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     const serverId = String(submission._id);
     if (serverId !== idRef.current) return;
     let active = true;
-    const differentSuggestions = typeRef.current && shotListKeyForBusinessType(typeRef.current) !== shotListKeyForBusinessType(submission.businessType);
-    typeRef.current = submission.businessType; setBusinessType(submission.businessType);
+    // A queued local type edit wins over the older server row until it syncs.
+    const pendingType = pendingTypeRef.current;
+    const currentType = pendingType && normalizeCaptureBusinessType(pendingType) !== normalizeCaptureBusinessType(submission.businessType)
+      ? pendingType : submission.businessType;
+    if (currentType === submission.businessType) pendingTypeRef.current = null;
+    const previousType = typeRef.current;
+    const differentSuggestions = previousType && shotListKeyForBusinessType(previousType) !== shotListKeyForBusinessType(currentType);
+    typeRef.current = currentType; setBusinessType(currentType);
+    if (itemsRef.current.length && ((previousType && normalizeCaptureBusinessType(previousType) !== normalizeCaptureBusinessType(currentType))
+      || (photoReview && normalizeCaptureBusinessType(photoReview.businessType) !== normalizeCaptureBusinessType(currentType)))) {
+      void session.read<CapturePhotoReview>('submission_photo_review').then(stored => {
+        if (active && sameCapture(serverId) && typeRef.current === currentType) return requirePhotoReview(serverId, previousType ?? photoReview!.businessType, currentType, stored);
+      }).catch(() => { if (current()) setError('Could not save the photo review reminder. Try again.'); });
+    }
     if (differentSuggestions) {
       setCamera(null);
-      void commit(itemsRef.current.map((item) => ({ ...item, taskIndex: undefined })));
+      void commit(itemsRef.current.map((item) => ({ ...item,
+        label: item.label || (item.taskIndex !== undefined ? shotList(shotListKeyForBusinessType(previousType))[item.taskIndex]?.t : undefined), taskIndex: undefined })));
     }
     void session.read<PhotoDraft>('submission_photo_tasks').then((cached) => {
       if (!active || !current() || idRef.current !== serverId) return;
@@ -281,19 +345,25 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     if (retained?.missing) throw new Error('Could not save this photo. Please take it again.');
     return retained?.uri ?? null;
   };
-  const addCameraShot = (taskIndex: number, uri: string) => {
+  const addCameraShot = (taskIndex: number, uri: string, replacementId?: string) => {
     const fromDraft = idRef.current;
     const fromSuggestions = shotListKeyForBusinessType(typeRef.current);
+    const replacing = replacementId ? itemsRef.current.find(item => item.id === replacementId) : undefined;
+    const capturedLabel = replacing ? photoLabel(replacing) : tasks[taskIndex]?.t;
     normalizing.current += 1; setPreparing(true);
     photoQueue.current = photoQueue.current.catch(() => {}).then(async () => {
       if (!fromDraft || !sameCapture(fromDraft)) return;
       const normalized = await normalize(uri, fromDraft);
       if (!normalized || !sameCapture(fromDraft)) return;
-      const assignedIndex = fromSuggestions === shotListKeyForBusinessType(typeRef.current) ? taskIndex : undefined;
-      const previous = assignedIndex === undefined ? undefined : itemsRef.current.find((item) => item.taskIndex === assignedIndex);
+      const assignedIndex = fromSuggestions === shotListKeyForBusinessType(typeRef.current)
+        ? replacementId ? replacing?.taskIndex : taskIndex : undefined;
+      const previous = replacementId ? itemsRef.current.find(item => item.id === replacementId)
+        : assignedIndex === undefined ? undefined : itemsRef.current.find((item) => item.taskIndex === assignedIndex);
+      if (replacementId && !previous) return;
       if (!previous && itemsRef.current.length >= MAX_PHOTOS) throw new Error('Keep up to 10 photos. Remove one before adding another.');
       if (previous?.storageId) removed.current = [...new Set([...removed.current, previous.storageId])];
-      await commit([...itemsRef.current.filter((item) => item.id !== previous?.id), { id: previous?.id ?? localPhotoId(), uri: normalized, taskIndex: assignedIndex }]);
+      const photo: PhotoItem = { id: previous?.id ?? localPhotoId(), uri: normalized, taskIndex: assignedIndex, label: capturedLabel };
+      await commit(previous ? itemsRef.current.map(item => item.id === previous.id ? photo : item) : [...itemsRef.current, photo]);
     }).catch((cause) => { if (current()) setError(cause instanceof Error ? cause.message : 'Could not prepare that photo. Please try again.'); })
       .finally(() => { normalizing.current -= 1; if (current()) setPreparing(normalizing.current > 0); });
   };
@@ -307,6 +377,13 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     if (busy.current || pickerBusy.current || normalizing.current > 0 || !current() || index < 0) return;
     if (itemsRef.current.length >= MAX_PHOTOS && !taskItems[index]) return;
     closePreview(); setError(null); setCamera({ id: ++cameraSequence.current, initial: taskItems.map(uriFor), index, singleShot });
+  };
+  const retakePhoto = (id: string) => {
+    const item = itemsRef.current.find(photo => photo.id === id);
+    if (!item || locked || awaitingRemote || busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    closePreview(); setError(null);
+    setCamera({ id: ++cameraSequence.current, index: 0, singleShot: true, replacementId: id,
+      initial: [uriFor(item)], tasks: [{ t: photoLabel(item), h: 'Retake this photo clearly. The new image will replace this one.', kind: item.taskIndex !== undefined ? tasks[item.taskIndex]?.kind ?? 'object' : 'object' }] });
   };
   const pickImages = async (replacement?: PhotoItem) => {
     if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
@@ -329,7 +406,8 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         const uri = await normalize(asset.uri, fromDraft);
         if (!uri || !sameDraft()) return;
         const taskIndex = fromSuggestions === shotListKeyForBusinessType(typeRef.current) ? replacing?.taskIndex : undefined;
-        added.push({ id: replacing?.id ?? localPhotoId(), uri, ...(taskIndex !== undefined ? { taskIndex } : {}) });
+        added.push({ id: replacing?.id ?? localPhotoId(), uri, ...(taskIndex !== undefined ? { taskIndex } : {}),
+          ...(replacing ? { label: photoLabel(replacing) } : {}) });
       }
       if (replacing) {
         if (!added[0] || !itemsRef.current.some(item => item.id === replacing.id)) return;
@@ -343,10 +421,17 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     } catch { if (current()) setError('Could not prepare those photos. Please choose them again.'); }
     finally { pickerBusy.current = false; if (current()) setPreparing(false); }
   };
-  const removePhoto = (item: PhotoItem) => {
-    if (busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
-    if (item.storageId) removed.current = [...new Set([...removed.current, item.storageId])];
-    void commit(itemsRef.current.filter((photo) => photo.id !== item.id));
+  const removePhotos = (ids: string[]) => {
+    if (locked || awaitingRemote || busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    const selected = new Set(ids);
+    removed.current = [...new Set([...removed.current, ...itemsRef.current.filter(item => selected.has(item.id) && item.storageId).map(item => item.storageId!)])];
+    closePreview(); setReviewChecked(false);
+    void commit(itemsRef.current.filter(photo => !selected.has(photo.id)));
+  };
+  const renamePhoto = (id: string, value: string) => {
+    const label = value.trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (!label || locked || awaitingRemote || busy.current || pickerBusy.current || normalizing.current > 0 || !current()) return;
+    void commit(itemsRef.current.map(photo => photo.id === id ? { ...photo, label } : photo));
   };
 
   const handleNext = async () => {
@@ -356,17 +441,48 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     }
     if (itemsRef.current.length < MIN_PHOTOS || itemsRef.current.length > MAX_PHOTOS) { setError('Add 3–10 photos to continue.'); return; }
     const savingId = idRef.current;
-    const sameDraft = () => current() && idRef.current === savingId;
+    const savingType = typeRef.current;
+    const sameDraft = () => current() && idRef.current === savingId
+      && normalizeCaptureBusinessType(typeRef.current) === normalizeCaptureBusinessType(savingType);
+    const continueAfterPhotos = () => {
+      if (returnTo === 'review') router.back();
+      else if (submission?.status === 'rejected') router.back();
+      else router.push('/(app)/submit/interview');
+    };
     setPreview(null); busy.current = true; setSaving(true); setError(null);
     try {
+      const startedReview = capturePhotoReviewFor(await session.read('submission_photo_review'), savingId);
+      if (!sameDraft()) return;
+      if (needsCapturePhotoReview(startedReview, savingId, savingType)
+        && (!reviewChecked || startedReview?.requiredAt !== photoReview?.requiredAt)) {
+        setPhotoReview(startedReview); setReviewChecked(false);
+        throw new Error('Review your photos for this business type before continuing.');
+      }
+      const confirmReview = async () => {
+        const latest = capturePhotoReviewFor(await session.read('submission_photo_review'), savingId);
+        if (!sameDraft()) return false;
+        if (needsCapturePhotoReview(latest, savingId, savingType)) {
+          if (!reviewChecked || latest?.requiredAt !== startedReview?.requiredAt
+            || normalizeCaptureBusinessType(latest?.businessType) !== normalizeCaptureBusinessType(savingType)) {
+            setPhotoReview(latest); setReviewChecked(false);
+            throw new Error('The business type changed again. Review your photos before continuing.');
+          }
+          const confirmed = { ...latest!, confirmedAt: Math.max(Date.now(), latest!.requiredAt) };
+          await session.write('submission_photo_review', confirmed);
+          if (!sameDraft()) return false;
+          setPhotoReview(confirmed);
+        }
+        return true;
+      };
       await persist(itemsRef.current); if (!sameDraft()) return;
       if (!canMutate() || savingId === 'offline_pending') {
         await session.write('submission_pending_photos', {
           submissionId: savingId, photoUris: itemsRef.current.filter((item) => !item.storageId && item.uri).map((item) => item.uri!),
           existingPhotos: itemsRef.current.filter((item) => item.storageId).map((item) => item.storageId!),
-          entries: itemsRef.current.filter((item) => item.uri), savedAt: Date.now(),
+          entries: itemsRef.current.filter((item) => item.uri), savedAt: Date.now(), businessType: savingType,
+          shotListKey: shotListKeyForBusinessType(savingType),
         } satisfies PendingPhotos);
-        if (sameDraft()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/interview'); } return;
+        if (sameDraft() && await confirmReview()) continueAfterPhotos(); return;
       }
       if (!submission || String(submission.creatorId) !== String(session.actor?.creatorId) || !isEditableCaptureStatus(submission.status)) throw new Error('Reconnect to confirm this editable capture before saving photos.');
       for (const item of [...itemsRef.current]) {
@@ -390,8 +506,10 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
           resolvedPhotoUrls: itemsRef.current.map(uriFor).filter((uri): uri is string => !!uri) });
         if (!sameDraft()) return;
       }
-      removed.current = []; await persist(itemsRef.current); await session.remove('submission_pending_photos');
-      if (sameDraft()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/interview'); }
+      // Keep removed-key tombstones with this draft until it is sent. A stale
+      // query/queued baseline must not add an explicitly removed photo back.
+      await persist(itemsRef.current); await session.remove('submission_pending_photos');
+      if (sameDraft() && await confirmReview()) continueAfterPhotos();
     } catch (cause) { if (current()) setError(cause instanceof Error ? cause.message : 'Could not save these photos. Please try again.'); }
     finally { busy.current = false; if (current()) setSaving(false); }
   };
@@ -405,12 +523,14 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     contentStyle={styles.body} footer={<>
       {error ? <Text tone="danger" align="center" accessibilityRole="alert">{error}</Text> : null}
       {missingPhotos.length ? <Button title="Replace missing photos" onPress={() => { void pickImages(missingPhotos[0]); }} disabled={locked} />
-        : enough ? <Button title={submission?.status === 'rejected' ? 'Save changes' : 'Continue to interview'} onPress={handleNext} loading={saving} disabled={locked || awaitingRemote} />
+        : enough ? <Button title={reviewRequired ? 'Save reviewed photos' : submission?.status === 'rejected' ? 'Save changes' : 'Continue to interview'} onPress={handleNext} loading={saving} disabled={locked || awaitingRemote || (reviewRequired && !reviewChecked)} />
         : <Button title="Start taking photos" onPress={() => openCamera()} disabled={locked || remaining === 0} />}
       <Button title="Add your own photos" variant="ghost" icon="images-outline" onPress={() => { void pickImages(); }} disabled={locked || remaining === 0} />
     </>}>
     <OfflineBanner />
     {submission?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={submission.rejectionReason || 'Review the feedback and replace only the photos that need correcting.'} /> : null}
+    {reviewRequired ? <Banner tone="warn" title={`Review photos for ${businessType}`}
+      body={`The business type changed from ${photoReview?.previousBusinessType}. Your photos and interview are saved. Check the new suggestions, then keep, add or replace photos.`} /> : null}
     <View style={styles.between}><Text variant="label" tone="muted">Step 2 of 5</Text><Text variant="label" weight="bold">{`${total} of ${MAX_PHOTOS} photos added`}</Text></View>
     <View style={styles.grid}>{tasks.map((task, index) => {
       const item = taskItems[index]; const uri = uriFor(item); const disabled = locked || (!item && remaining === 0);
@@ -428,24 +548,20 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
       <Ionicons name="chevron-forward" size={22} color={colors.ink3} />
     </Card> : <Banner tone="neutral" title={remaining === 0 ? 'You have 10 photos' : 'Suggestions covered'} body="Keep the photos that show this shop best. You can retake a suggestion or replace an added photo." />}
     <Text variant="label" tone="muted" weight="medium">Suggestions are optional. Three clear photos are enough to continue; extras share the same 10-photo limit.</Text>
-    {items.length ? <View style={styles.photoSection}><Text variant="heading">Your photos</Text><View style={styles.addedGrid}>{items.map((item, index) => {
-      const uri = uriFor(item);
-      return <View key={item.id} style={styles.addedPhoto}>
-      <Pressable style={styles.addedThumb} accessibilityRole="button" accessibilityLabel={`View photo ${index + 1}: ${photoLabel(item)}`}
-        accessibilityHint="Opens the full photo" disabled={locked || awaitingRemote}
-        onPress={() => openPreview(item)}>
-        {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessible={false}
-          onError={() => photoFailed(item.id, uri, submissionId)} /> : item.uri && missingLocalUris.has(item.uri)
-          ? <Ionicons name="image-outline" size={32} color={colors.ink3} /> : <ActivityIndicator color={colors.ink3} />}
-      </Pressable>
-      <Text variant="label" numberOfLines={2}>{photoLabel(item)}</Text>
-      {!item.storageId && item.uri && missingLocalUris.has(item.uri) ? <>
-        <Text variant="label" tone="danger">Photo unavailable</Text>
-        <Button title="Replace photo" variant="ghost" onPress={() => { void pickImages(item); }} disabled={locked} />
-      </> : null}
-      <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${item.taskIndex === undefined ? 'added photo' : tasks[item.taskIndex]?.t ?? 'photo'}`} disabled={locked} onPress={() => removePhoto(item)} style={styles.removeButton}><Ionicons name="trash-outline" size={20} color={colors.danger} /><Text variant="label" tone="danger">Remove</Text></Pressable>
-    </View>;
-    })}</View></View> : null}
+    <CapturePhotoGrid key={`${session.actorKey}:${submissionId}`} items={items.map(item => ({ id: item.id, uri: uriFor(item),
+      label: photoLabel(item), missing: !item.storageId && !!item.uri && missingLocalUris.has(item.uri) }))}
+      disabled={locked || awaitingRemote} suggestedLabels={tasks.map(task => task.t)} onRetake={retakePhoto}
+      onPreview={id => { const item = itemsRef.current.find(photo => photo.id === id); if (item) openPreview(item); }}
+      onReplace={id => { const item = itemsRef.current.find(photo => photo.id === id); if (item) void pickImages(item); }}
+      onRename={renamePhoto} onRemove={removePhotos}
+      onImageError={(id, uri) => photoFailed(id, uri, submissionId)} />
+    {reviewRequired ? <Pressable accessibilityRole="checkbox" accessibilityLabel={`I reviewed these photos for ${businessType}`}
+      accessibilityState={{ checked: reviewChecked, disabled: locked || awaitingRemote }} disabled={locked || awaitingRemote}
+      onPress={() => setReviewChecked(value => !value)} style={styles.reviewConfirmation}>
+      <Ionicons name={reviewChecked ? 'checkbox' : 'square-outline'} size={26} color={colors.ink} />
+      <View style={styles.grow}><Text weight="semibold">{`I reviewed these photos for ${businessType}`}</Text>
+        <Text variant="label" tone="muted">Keep only photos of this business. You can continue with 3–10 photos.</Text></View>
+    </Pressable> : null}
     <Modal visible={!!camera || previewOpen} testID={previewOpen ? 'capture-photo-preview' : undefined}
       animationType="fade" presentationStyle="fullScreen" statusBarTranslucent onRequestClose={() => { if (previewOpen) closePreview(); else void finishCamera(); }}>
       {previewOpen && previewItem ? <View style={[styles.preview, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
@@ -471,24 +587,23 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
                 if (previewVersion.current === previewAttempt) photoFailed(previewItem.id, previewUri, submissionId);
               }} />}
       </View> : null}
-      {camera ? <ShotGuide key={camera.id} tasks={tasks} initial={camera.initial} initialIndex={camera.index} singleShot={camera.singleShot}
-        maxCaptured={Math.max(0, MAX_PHOTOS - extras.length)} onBusyChange={(value) => { cameraBusy.current = value; }}
-        onShot={addCameraShot} onDone={() => { cameraBusy.current = false; void finishCamera(); }} onClose={() => { void finishCamera(); }} /> : null}
+      {camera ? <ShotGuide key={camera.id} tasks={camera.tasks ?? tasks} initial={camera.initial} initialIndex={camera.index} singleShot={camera.singleShot}
+        maxCaptured={camera.replacementId ? 1 : Math.max(0, MAX_PHOTOS - extras.length)} onBusyChange={(value) => { cameraBusy.current = value; }}
+        onShot={(index, uri) => addCameraShot(index, uri, camera.replacementId)} onDone={() => { cameraBusy.current = false; void finishCamera(); }} onClose={() => { void finishCamera(); }} /> : null}
       {finishingCamera ? <View style={styles.cameraSaving}><ActivityIndicator color={colors.ink} /><Text variant="body" weight="bold">Saving your photos…</Text></View> : null}
     </Modal>
   </ScreenShell>;
 }
 
 const styles = StyleSheet.create({
+  reviewConfirmation: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.lg, backgroundColor: colors.card, borderRadius: radius.card },
   body: { gap: space.lg }, between: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: space.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   taskTile: { borderRadius: radius.field, backgroundColor: colors.bg2, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
   nextTile: { borderColor: colors.ink, backgroundColor: colors.accentSoft }, dim: { opacity: 0.45 },
   taskNumber: { position: 'absolute', bottom: 1, right: 4 }, tick: { position: 'absolute', right: 2, bottom: 2, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, justifyContent: 'center', alignItems: 'center' },
   nextCard: { flexDirection: 'row', alignItems: 'center', gap: space.md }, nextIcon: { width: 56, height: 64, backgroundColor: colors.bg2, borderRadius: radius.field, alignItems: 'center', justifyContent: 'center' },
-  grow: { flex: 1, minWidth: 0, gap: 2 }, photoSection: { gap: space.md }, addedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  addedPhoto: { width: '46%', gap: space.sm }, addedThumb: { height: 112, borderRadius: radius.field, overflow: 'hidden', backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
-  removeButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  grow: { flex: 1, minWidth: 0, gap: 2 },
   preview: { flex: 1, backgroundColor: colors.camera }, previewText: { color: colors.onDark },
   previewHeader: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.gutter, paddingVertical: space.sm },
   previewClose: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.onDarkMuted, alignItems: 'center', justifyContent: 'center' },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 import SubmitPhotosScreen from '../app/(app)/submit/photos';
 import { Button } from '../components/v2';
 import type { ShotGuideProps } from '../components/v2/capture/ShotGuide';
@@ -43,7 +43,7 @@ jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
     actor: { creatorId: actor, clerkId: `clerk-${actor}` }, actorKey: actor, isReady: true, revision: mockRevision,
     isOffline: !mockOnline, canQuery: mockOnline, isCurrent, canMutate: () => isCurrent() && mockOnline,
     read: async (key: string) => isCurrent() ? mockClone(mockCache[actor]?.[key]) : null,
-    write: async (key: string, value: unknown) => { if (!isCurrent()) throw new Error('Account changed'); mockWrite(actor, key, value); mockCache[actor][key] = mockClone(value); },
+    write: async (key: string, value: unknown) => { if (!isCurrent()) throw new Error('Account changed'); await mockWrite(actor, key, value); mockCache[actor][key] = mockClone(value); },
     remove: async (key: string) => { if (isCurrent()) delete mockCache[actor][key]; },
   };
 } }));
@@ -82,12 +82,14 @@ const copiedUri = (source: string) => mockFileCopy.mock.calls.find(call => call[
 const screenReady = async () => {
   const screen = render(<SubmitPhotosScreen />);
   await waitFor(() => expect(screen.getByText('Show us the shop')).toBeTruthy());
+  if (screen.queryByRole('button', { name: 'Save reviewed photos' })) return screen;
   await waitFor(() => expect(screen.queryByRole('button', { name: 'Save changes' }) ?? screen.queryByRole('button', { name: 'Continue to interview' })
     ?? screen.queryByRole('button', { name: 'Replace missing photos' }) ?? screen.getByRole('button', { name: 'Start taking photos' })).toBeEnabled());
   return screen;
 };
 beforeEach(() => {
   jest.clearAllMocks(); mockActor = 'agent-1'; mockOnline = true; mockRevision = 0; mockFocused = true; mockParams = {};
+  mockWrite.mockReset();
   mockCache = { 'agent-1': { current_submission_id: 'draft-1' } };
   mockSubmissions = { 'draft-1': { _id: 'draft-1', creatorId: 'agent-1', businessType: 'Barber/Salon', photos: [] } };
   mockUpload.mockReset().mockImplementation(async () => ({ uploadUrl: 'https://upload.example.com', fileKey: `uploaded-${mockUpload.mock.calls.length}` }));
@@ -457,10 +459,196 @@ it('migrates an old cache photo once and keeps its file when shop suggestions ch
   expect(mockCache['agent-1'].submission_photo_tasks.items.map((item: any) => item.uri)).toEqual(retained);
   screen.unmount();
   const reopened = await screenReady();
-  fireEvent.press(reopened.getByRole('button', { name: 'View photo 1: Added photo' }));
+  fireEvent.press(reopened.getByRole('button', { name: 'View photo 1: Owner headshot' }));
   expect(reopened.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: retained[0] });
   expect(mockFileCopy).toHaveBeenCalledTimes(1);
   expect(reopened.getByText('3 of 10 photos added')).toBeTruthy();
+});
+
+function changedLawPhotos() {
+  const items = [
+    { id: 'office-portrait', storageId: 'portrait-key', taskIndex: 0, label: 'Lawyer portrait' },
+    { id: 'office-sign', storageId: 'sign-key', taskIndex: 3, label: 'Office sign' },
+    { id: 'office-room', storageId: 'room-key', taskIndex: 5, label: 'Consultation space' },
+  ];
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], businessType: 'Auto Shop', photos: items.map(item => item.storageId), videoUrl: 'https://example.test/kept-interview.mp4' };
+  mockCache['agent-1'].submission_snapshot = { submissionId: 'draft-1', creatorId: 'agent-1', businessType: 'Auto Shop' };
+  mockCache['agent-1'].submission_photo_tasks = { ...photoDraft(items), businessType: 'Law Office', shotListKey: 'law' };
+  mockCache['agent-1'].submission_photo_review = { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: 'Auto Shop', requiredAt: 100 };
+  return items;
+}
+
+it('keeps old labels and photos but requires explicit review against the new shop guide', async () => {
+  const items = changedLawPhotos(); mockParams = { returnTo: 'review' };
+  const screen = await screenReady();
+  await waitFor(() => expect(screen.getByText('Review photos for Auto Shop')).toBeTruthy());
+  expect(screen.getByRole('button', { name: 'Work bay, not taken' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'View photo 2: Office sign' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Save reviewed photos' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('checkbox', { name: 'I reviewed these photos for Auto Shop' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Save reviewed photos' }));
+  await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith({ id: 'draft-1', photos: items.map(item => item.storageId) }));
+  await waitFor(() => expect(mockCache['agent-1'].submission_photo_review.confirmedAt).toEqual(expect.any(Number)));
+  expect(mockRouter.back).toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+  expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockCache['agent-1'].submission_photo_tasks.items.map((item: any) => item.label)).toEqual(items.map(item => item.label));
+});
+
+it('keeps review pending after a failed photo save and after reopening', async () => {
+  changedLawPhotos(); mockUpdate.mockRejectedValueOnce(new Error('Could not save photos'));
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('checkbox', { name: 'I reviewed these photos for Auto Shop' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Save reviewed photos' }));
+  await waitFor(() => expect(screen.getByText('Could not save photos')).toBeTruthy());
+  expect(mockCache['agent-1'].submission_photo_review.confirmedAt).toBeUndefined();
+  screen.unmount(); const reopened = await screenReady();
+  expect(reopened.getByRole('checkbox', { name: 'I reviewed these photos for Auto Shop' })).toHaveAccessibilityState({ checked: false });
+  expect(reopened.getByRole('button', { name: 'Save reviewed photos' })).toBeDisabled();
+});
+
+it('cannot confirm a newer business-type change that appeared during photo saving', async () => {
+  changedLawPhotos();
+  mockUpdate.mockImplementationOnce(async () => {
+    mockCache['agent-1'].submission_photo_review = { submissionId: 'draft-1', previousBusinessType: 'Auto Shop', businessType: 'Clinic', requiredAt: 101 };
+  });
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('checkbox', { name: 'I reviewed these photos for Auto Shop' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Save reviewed photos' }));
+  await waitFor(() => expect(screen.getByText('The business type changed again. Review your photos before continuing.')).toBeTruthy());
+  expect(mockCache['agent-1'].submission_photo_review).toMatchObject({ businessType: 'Clinic', requiredAt: 101 });
+  expect(mockCache['agent-1'].submission_photo_review.confirmedAt).toBeUndefined();
+  expect(mockRouter.back).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('keeps the queued local shop guide while reconnecting to an older server category', async () => {
+  changedLawPhotos();
+  mockSubmissions['draft-1'].businessType = 'Law Office';
+  mockCache['agent-1'].submission_pending_sync = { creatorId: 'agent-1', existingDraftId: 'draft-1', formData: { businessType: 'Auto Shop' } };
+  const screen = await screenReady();
+  expect(screen.getByRole('button', { name: 'Work bay, not taken' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Reference books, not taken' })).toBeNull();
+  expect(screen.getByText('Review photos for Auto Shop')).toBeTruthy();
+});
+
+it.each(['Law Office', 'Clinic'])('does not relabel older general-shop photos when installing the new %s guide', async businessType => {
+  mockSubmissions['draft-1'].businessType = businessType;
+  mockCache['agent-1'].submission_photo_tasks = { ...photoDraft(localItems(3)), businessType };
+  const screen = await screenReady();
+  await waitFor(() => expect(screen.getByRole('button', { name: 'View photo 1: Owner headshot' })).toBeTruthy());
+  expect(screen.getByRole('button', { name: `${businessType === 'Clinic' ? 'Practitioner' : 'Lawyer'} portrait, not taken` })).toBeTruthy();
+  const saved = mockCache['agent-1'].submission_photo_tasks;
+  expect(saved.shotListKey).toBe(businessType === 'Clinic' ? 'clinic' : 'law');
+  expect(saved.items.every((item: any) => item.taskIndex === undefined)).toBe(true);
+  expect(saved.items.map((item: any) => item.label)).toEqual(['Owner headshot', 'Profile picture', 'Outside']);
+});
+
+it('removes only the selected photos after confirmation and remembers removed uploaded keys', async () => {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  const items = ['owner', 'front', 'tools'].map((storageId, i) => ({ id: storageId, storageId, label: ['Owner', 'Shop front', 'Tools'][i] }));
+  mockSubmissions['draft-1'].photos = items.map(item => item.storageId);
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'Select photos' }));
+  fireEvent.press(screen.getByRole('checkbox', { name: 'Select photo 1: Owner' }));
+  fireEvent.press(screen.getByRole('checkbox', { name: 'Select photo 3: Tools' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Remove 2 selected photos' }));
+  expect(mockCache['agent-1'].submission_photo_tasks.items).toHaveLength(3);
+  act(() => alert.mock.calls.at(-1)![2]!.find(button => button.style === 'destructive')!.onPress?.());
+  await waitFor(() => expect(screen.getByText('1 of 10 photos added')).toBeTruthy());
+  expect(mockCache['agent-1'].submission_photo_tasks.items).toEqual([expect.objectContaining({ id: 'front', label: 'Shop front' })]);
+  expect(mockCache['agent-1'].submission_photo_tasks.removedExistingPhotos).toEqual(expect.arrayContaining(['owner', 'tools']));
+  expect(mockUpdate).not.toHaveBeenCalled(); alert.mockRestore();
+});
+
+it('saves a descriptive label with its photo and retains it when reopening', async () => {
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'Photo 2 options' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Edit label' }));
+  fireEvent.changeText(screen.getByLabelText('Photo label'), '  Shop front and sign  ');
+  fireEvent.press(screen.getByRole('button', { name: 'Save label' }));
+  await waitFor(() => expect(mockCache['agent-1'].submission_photo_tasks.items[1].label).toBe('Shop front and sign'));
+  screen.unmount(); const reopened = await screenReady();
+  expect(reopened.getByRole('button', { name: 'View photo 2: Shop front and sign' })).toBeTruthy();
+});
+
+it('retakes an individually labelled added photo at the 10-photo limit without altering the others', async () => {
+  const items = Array.from({ length: 10 }, (_, i) => ({ id: `image-${i}`, storageId: `key-${i}`, label: `Saved view ${i + 1}` }));
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'Photo 4 options' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Retake photo' }));
+  expect(mockGuide.tasks).toEqual([expect.objectContaining({ t: 'Saved view 4' })]);
+  expect(mockGuide.singleShot).toBe(true); expect(mockGuide.maxCaptured).toBe(1);
+  act(() => { mockGuide.onShot!(0, 'file://retake.heic'); mockGuide.onClose([]); });
+  await waitFor(() => expect(mockCache['agent-1'].submission_photo_tasks.items[3].uri).toEqual(expect.any(String)));
+  const saved = mockCache['agent-1'].submission_photo_tasks;
+  expect(saved.items).toHaveLength(10);
+  expect(saved.items[3]).toMatchObject({ id: 'image-3', label: 'Saved view 4' });
+  expect(saved.items[2]).toEqual(items[2]); expect(saved.items[4]).toEqual(items[4]);
+  expect(saved.removedExistingPhotos).toContain('key-3');
+});
+
+it('does not restore a removed uploaded photo from an older offline queue when reopened', async () => {
+  mockOnline = false;
+  mockCache['agent-1'].submission_pending_photos = { submissionId: 'draft-1', photoUris: [], existingPhotos: ['keep-1', 'remove-me', 'keep-2', 'keep-3'] };
+  mockCache['agent-1'].submission_photo_tasks = { ...photoDraft(['keep-1', 'keep-2', 'keep-3'].map(storageId => ({ id: storageId, storageId }))), removedExistingPhotos: ['remove-me'] };
+  const screen = await screenReady();
+  expect(screen.getByText('3 of 10 photos added')).toBeTruthy();
+  expect(mockCache['agent-1'].submission_photo_tasks.items.some((item: any) => item.storageId === 'remove-me')).toBe(false);
+  screen.unmount(); const reopened = await screenReady();
+  expect(reopened.getByText('3 of 10 photos added')).toBeTruthy();
+  expect(mockCache['agent-1'].submission_photo_tasks.removedExistingPhotos).toContain('remove-me');
+});
+
+it('confirms reviewed photos offline only after saving their updated queue and labels', async () => {
+  const items = changedLawPhotos(); mockOnline = false;
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('checkbox', { name: 'I reviewed these photos for Auto Shop' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Save reviewed photos' }));
+  await waitFor(() => expect(mockCache['agent-1'].submission_photo_review.confirmedAt).toEqual(expect.any(Number)));
+  expect(mockCache['agent-1'].submission_pending_photos).toMatchObject({ submissionId: 'draft-1', businessType: 'Auto Shop', shotListKey: 'repair', existingPhotos: items.map(item => item.storageId) });
+  expect(mockCache['agent-1'].submission_photo_tasks.items.map((item: any) => item.label)).toEqual(items.map(item => item.label));
+  expect(mockUpdate).not.toHaveBeenCalled(); expect(mockUpload).not.toHaveBeenCalled();
+});
+
+it('finishes a pending removal write before Back can return to Review', async () => {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const screen = await screenReady();
+  let release!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  mockWrite.mockImplementation(async (_actor, key) => { if (key === 'submission_photo_tasks') await blocked; });
+  fireEvent.press(screen.getByRole('button', { name: 'Select photos' }));
+  fireEvent.press(screen.getByRole('checkbox', { name: 'Select photo 1: Owner headshot' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Remove 1 selected photos' }));
+  act(() => alert.mock.calls.at(-1)![2]!.find(button => button.style === 'destructive')!.onPress?.());
+  fireEvent.press(screen.getByRole('button', { name: 'Back', exact: true }));
+  expect(mockRouter.back).not.toHaveBeenCalled();
+  await act(async () => { release(); await blocked; });
+  await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+  expect(mockCache['agent-1'].submission_photo_tasks.items).toHaveLength(2);
+  alert.mockRestore();
+});
+
+it('does not resurrect a saved removal while the live query still contains the older photo set', async () => {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  const items = ['remove-me', 'keep-1', 'keep-2', 'keep-3'].map(storageId => ({ id: storageId, storageId, label: storageId }));
+  mockSubmissions['draft-1'].photos = items.map(item => item.storageId);
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
+  const screen = await screenReady();
+  fireEvent.press(screen.getByRole('button', { name: 'Select photos' }));
+  fireEvent.press(screen.getByRole('checkbox', { name: 'Select photo 1: remove-me' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Remove 1 selected photos' }));
+  act(() => alert.mock.calls.at(-1)![2]!.find(button => button.style === 'destructive')!.onPress?.());
+  await waitFor(() => expect(screen.getByText('3 of 10 photos added')).toBeTruthy());
+  fireEvent.press(screen.getByRole('button', { name: 'Continue to interview' }));
+  await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith({ id: 'draft-1', photos: ['keep-1', 'keep-2', 'keep-3'] }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+  screen.unmount(); const reopened = await screenReady();
+  expect(reopened.getByText('3 of 10 photos added')).toBeTruthy();
+  expect(mockCache['agent-1'].submission_photo_tasks.removedExistingPhotos).toContain('remove-me');
+  alert.mockRestore();
 });
 
 it('recovers a missing cached local photo from its uploaded URL', async () => {
@@ -553,7 +741,7 @@ it('returns a resumed capture to its own info step while full-screen Back just c
   fireEvent(screen.getByTestId('capture-photo-preview'), 'requestClose');
   expect(mockRouter.replace).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole('button', { name: 'Back' }));
-  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1', resumed: '1' } });
+  await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1', resumed: '1' } }));
 });
 
 it('rejects unsafe media scopes without reading or copying a file', async () => {
@@ -600,6 +788,6 @@ it('handles resumed hardware Back only outside full-screen media and waits for f
     await act(async () => finishCopy());
     await waitFor(() => expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled());
     expect(listeners.at(-1)!()).toBe(true);
-    expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1', resumed: '1' } });
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1', resumed: '1' } }));
   } finally { spy.mockRestore(); }
 });
