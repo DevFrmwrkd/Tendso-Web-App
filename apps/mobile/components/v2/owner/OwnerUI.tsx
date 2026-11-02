@@ -221,6 +221,17 @@ export function Face({
   );
 }
 
+/** A bundled sample uses a safe canonical web URL for local section anchors. */
+function samplePreviewBaseUrl(uri: string | null | undefined): string | undefined {
+  if (!uri) return undefined;
+  try {
+    const base = new URL(uri);
+    if (!/^https?:$/.test(base.protocol) || base.username || base.password) return undefined;
+    base.hash = '';
+    return base.href;
+  } catch { return undefined; }
+}
+
 /**
  * A real website inside the app (template preview, private preview or the live site).
  * `scale` renders the page at phone width and shrinks it into a smaller card.
@@ -253,7 +264,9 @@ export function SiteFrame({
   onPreviewError?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
-  const source = html ? { html } : uri ? { uri } : null;
+  const baseUrl = html && samplePreview ? samplePreviewBaseUrl(uri) : undefined;
+  const source = html ? (baseUrl ? { html, baseUrl } : { html }) : uri ? { uri } : null;
+  const sampleDocumentUri = html ? baseUrl : uri;
   const inner = scale !== 1 && width && height ? { width: width / scale, height: height / scale } : null;
   const sampleScript = samplePreview ? SAMPLE_PREVIEW_SCRIPT + (samplePreviewCss ? `
 (function () {
@@ -295,8 +308,8 @@ export function SiteFrame({
             onHttpError={onPreviewError ? event => {
               if (!uri || isSamplePreviewNavigationAllowed(uri, event.nativeEvent.url)) { setLoading(false); onPreviewError(); }
             } : undefined}
-            onShouldStartLoadWithRequest={samplePreview ? request => !!uri && request.navigationType !== 'formsubmit'
-              && isSamplePreviewNavigationAllowed(uri, request.url) : undefined}
+            onShouldStartLoadWithRequest={samplePreview ? request => !!sampleDocumentUri && request.navigationType !== 'formsubmit'
+              && isSamplePreviewNavigationAllowed(sampleDocumentUri, request.url) : undefined}
             injectedJavaScriptBeforeContentLoaded={sampleScript}
             injectedJavaScript={sampleScript}
             scrollEnabled={interactive}

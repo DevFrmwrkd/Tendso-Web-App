@@ -1,24 +1,18 @@
 import { captureDesignByCode, validCaptureDesignCode } from '../../../lib/captureDesign';
 import { sellKindFromServer, type Design, type SellKindId } from '../lib/v2/ownerContent';
 import type { CaptureDesignDraft } from './captureSession';
-
-/** Field-agent suggestions only; the owner catalog and saved canonical choices stay available. */
-const FIELD_AGENT_DESIGN_CODES: Record<SellKindId, readonly string[]> = {
-  barber: ['barbershop:F', 'barbershop:I'],
-  salon: ['salonspa:L', 'salonspa:N'],
-  repair: ['autoshop:AF'],
-  craft: ['woodworks:BV', 'florist:BS'],
-  food: ['foodcraft:AL'],
-  other: ['generic:C'],
-};
+import { CAPTURE_PREVIEW_CATALOG } from './generated/capturePreviewCatalog';
 
 export function captureDesign(value: unknown): Design | null {
   const template = captureDesignByCode(value);
-  return template ? { code: template.code, name: template.label, preview: template.preview } : null;
+  if (!template) return null;
+  const sample = CAPTURE_PREVIEW_CATALOG.find(design => design.code === template.code);
+  return { code: template.code, name: template.label, preview: sample?.preview ?? template.preview };
 }
 
 function suggestedCaptureDesigns(kind: SellKindId): readonly Design[] {
-  return FIELD_AGENT_DESIGN_CODES[kind].map(captureDesign).filter((design): design is Design => design !== null);
+  return CAPTURE_PREVIEW_CATALOG.filter(design => design.category === kind)
+    .map(design => ({ code: design.code, name: design.name, preview: design.preview }));
 }
 
 /** Saved canonical designs stay available even outside the suggested shortlist. */

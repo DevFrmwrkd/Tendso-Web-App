@@ -89,12 +89,25 @@ it('uses the full-preview selection once while an async save is pending', async 
 });
 
 it('keeps offline choices available with an honest preview fallback', async () => {
-  const callbacks = props({ isOffline: true });
+  const callbacks = props({ isOffline: true, designs: [designs[1]], selectedCode: designs[1].code });
   const screen = render(<CaptureDesignGallery {...callbacks} />);
   expect(screen.queryByTestId('sample-webview')).toBeNull();
-  fireEvent.press(screen.getByLabelText('Forge design. Preview sample website.'));
+  fireEvent.press(screen.getByLabelText('Héla design. Preview sample website.'));
   expect(within(screen.getByTestId('capture-design-full-preview')).getByText('Reconnect to preview this sample.')).toBeTruthy();
   fireEvent.press(within(screen.getByTestId('capture-design-full-preview')).getByRole('button', { name: 'Use this design' }));
+  await waitFor(() => expect(callbacks.onUse).toHaveBeenCalledWith('salonspa:AN'));
+});
+
+it('opens the bundled example with photos while offline and still requires Use this design', async () => {
+  const callbacks = props({ isOffline: true, designs: [designs[0]] });
+  const screen = render(<CaptureDesignGallery {...callbacks} />);
+  expect(screen.getByTestId('sample-webview').props.source.html).toContain('data:image/webp;base64,');
+  fireEvent.press(screen.getByLabelText('Forge design. Preview sample website.'));
+  const full = within(screen.getByTestId('capture-design-full-preview'));
+  expect(full.getByTestId('sample-webview').props.source.html).toContain('Kanto Cuts');
+  expect(full.queryByText('Reconnect to preview this sample.')).toBeNull();
+  expect(callbacks.onUse).not.toHaveBeenCalled();
+  fireEvent.press(full.getByRole('button', { name: 'Use this design' }));
   await waitFor(() => expect(callbacks.onUse).toHaveBeenCalledWith('barbershop:F'));
 });
 
@@ -162,18 +175,45 @@ it('blocks forms and external actions in sample mode without changing normal own
 it.each([
   ['barbershop:I', 'Minimal', 'i'], ['salonspa:L', 'Botanica', 'l'],
   ['salonspa:N', 'Vogue', 'n'], ['generic:C', 'Cedar & Stone', 'c'],
-])('carries %s phone styles into both the thumbnail and full sample', (code, name, letter) => {
-  const design = { code, name, preview: `/template-previews/${letter}.html` };
+])('uses the current Astro %s document in both previews without stale authoring CSS', (code, name, letter) => {
+  const design = { code, name, preview: `/capture-previews/${letter}.html` };
   const screen = render(<CaptureDesignGallery {...props({ designs: [design], selectedCode: code })} />);
-  const expected = JSON.stringify(capturePreviewCss(code));
   const thumbnail = screen.getByTestId('sample-webview');
-  expect(thumbnail.props.injectedJavaScriptBeforeContentLoaded).toContain(expected);
+  expect(thumbnail.props.source.html).toContain(`data-page="${code.split(':')[1]}"`);
+  expect(thumbnail.props.source.baseUrl).toBe(`https://samples.example.com/capture-previews/${letter}.html`);
+  expect(thumbnail.props.injectedJavaScriptBeforeContentLoaded).not.toContain('tendso-sample-preview-css');
   expect(thumbnail.props.injectedJavaScript).toBe(thumbnail.props.injectedJavaScriptBeforeContentLoaded);
   fireEvent.press(screen.getByLabelText(`${name} design. Preview sample website.`));
   const full = within(screen.getByTestId('capture-design-full-preview')).getByTestId('sample-webview');
-  expect(full.props.injectedJavaScript).toContain(expected);
+  expect(full.props.source.html).toBe(thumbnail.props.source.html);
+  expect(full.props.injectedJavaScript).not.toContain(JSON.stringify(capturePreviewCss(code)));
   expect(full.props.injectedJavaScriptBeforeContentLoaded).toBe(full.props.injectedJavaScript);
 });
+
+it('uses the canonical HTTPS base for bundled sample anchors without changing owner HTML', () => {
+  const uri = 'https://samples.example.com/capture-previews/f.html#top';
+  const html = '<html><body><a href="#services">Services</a></body></html>';
+  const screen = render(<SiteFrame uri={uri} html={html} samplePreview />);
+  const frame = screen.getByTestId('sample-webview');
+  expect(frame.props.source).toEqual({ html, baseUrl: 'https://samples.example.com/capture-previews/f.html' });
+  expect(frame.props.onShouldStartLoadWithRequest({ url: 'https://samples.example.com/capture-previews/f.html#services', navigationType: 'click' })).toBe(true);
+  expect(frame.props.onShouldStartLoadWithRequest({ url: 'https://samples.example.com/capture-previews/i.html', navigationType: 'click' })).toBe(false);
+  expect(frame.props.onShouldStartLoadWithRequest({ url: uri, navigationType: 'formsubmit' })).toBe(false);
+  expect(frame.props.onShouldStartLoadWithRequest({ url: 'tel:+639000000001', navigationType: 'click' })).toBe(false);
+  screen.rerender(<SiteFrame uri={uri} html={html} />);
+  expect(screen.getByTestId('sample-webview').props.source).toEqual({ html });
+  expect(screen.getByTestId('sample-webview').props.onShouldStartLoadWithRequest).toBeUndefined();
+  expect(screen.getByTestId('sample-webview').props.injectedJavaScript).toBeUndefined();
+});
+
+it.each(['javascript:alert(1)', 'data:text/html,example', 'file:///sample.html', 'https://name:password@samples.example.com/f.html', 'not-a-url', '', null])(
+  'rejects unsafe/invalid HTML sample base URL %s', uri => {
+    const screen = render(<SiteFrame uri={uri} html="<p>Example</p>" samplePreview />);
+    const frame = screen.getByTestId('sample-webview');
+    expect(frame.props.source).toEqual({ html: '<p>Example</p>' });
+    expect(frame.props.onShouldStartLoadWithRequest({ url: 'https://samples.example.com/f.html#visit', navigationType: 'click' })).toBe(false);
+  },
+);
 
 it('adds sample CSS as text once and restores its precedence when the document becomes ready', () => {
   const css = 'a::after{content:"</style><script>window.injected=true</script>"}\n/* " \\ */';

@@ -1,0 +1,300 @@
+[
+  {
+    "id": "kanto-cuts",
+    "category": "barber",
+    "designs": [
+      "barbershop:F",
+      "barbershop:I",
+      "barbershop:J"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Kanto Cuts",
+        "tagline": "Your neighbourhood chair, with a little extra care.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "18 Narra Street, San Roque\nMarikina City, Philippines",
+          "phone": "+639000000001",
+          "email": "hello@kanto-cuts.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Barber/Salon",
+        "photos": [
+          "asset:barber"
+        ],
+        "navCtaText": "Plan your visit",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Marikina City · Neighbourhood barbershop",
+          "tag": "Walk in. We’ll help.",
+          "headlineLines": [
+            "Kanto Cuts"
+          ],
+          "headline": "Kanto Cuts",
+          "thin": "Fresh cuts. Easy days.",
+          "sub": "A clean cut and an easy conversation, right here in San Roque. Drop by for everyday trims, sharp fades and a tidy beard.",
+          "image": "asset:barber",
+          "imageCaption": "A day at Kanto Cuts",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See our services",
+            "href": "#services"
+          },
+          "meta1": "Marikina City",
+          "meta2": "GCash accepted",
+          "meta": [
+            "Marikina City",
+            "GCash accepted"
+          ],
+          "usps": [],
+          "marqueeWords": [
+            "Classic haircut",
+            "Skin fade",
+            "Beard tidy"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Walk-ins",
+              "label": "Welcome during shop hours"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            },
+            {
+              "num": "Local",
+              "label": "Here in Marikina City"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "Your neighbourhood chair, with a little extra care.",
+          "lead": "A clean cut and an easy conversation, right here in San Roque. Drop by for everyday trims, sharp fades and a tidy beard.",
+          "body": "A clean cut and an easy conversation, right here in San Roque. Drop by for everyday trims, sharp fades and a tidy beard. We take a moment to understand the look you want, then finish with the small details that make it yours.",
+          "paragraphs": [
+            "A clean cut and an easy conversation, right here in San Roque. Drop by for everyday trims, sharp fades and a tidy beard.",
+            "We take a moment to understand the look you want, then finish with the small details that make it yours."
+          ],
+          "image": "asset:barber",
+          "signature": "The Kanto Cuts team",
+          "stats": [
+            {
+              "k": "Payments",
+              "v": "Cash & GCash"
+            },
+            {
+              "k": "Find us",
+              "v": "Marikina City"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we do",
+          "headline": "A little time for yourself",
+          "sub": "Ask the team about current availability before your visit.",
+          "items": [
+            {
+              "title": "Classic haircut",
+              "desc": "A clean, everyday cut shaped to suit you.",
+              "price": "₱180",
+              "note": "30 min"
+            },
+            {
+              "title": "Skin fade",
+              "desc": "A close fade with a careful blend and tidy finish.",
+              "price": "₱250",
+              "note": "40 min"
+            },
+            {
+              "title": "Beard tidy",
+              "desc": "Shape the edges and clean up your beard.",
+              "price": "₱120",
+              "note": "20 min"
+            }
+          ]
+        },
+        "why": {
+          "tag": "The way we work",
+          "headline": "Simple service. Real care.",
+          "items": [
+            {
+              "title": "Your cut, your call",
+              "body": "Bring a reference or ask us to help you choose a style."
+            },
+            {
+              "title": "No rush in the chair",
+              "body": "We check the blend, edges and finish before you leave."
+            },
+            {
+              "title": "Easy to drop by",
+              "body": "A neighbourhood stop for your regular trim."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Your next visit",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Tell us what you need",
+              "body": "Send a quick message or stop by during shop hours."
+            },
+            {
+              "title": "Choose what works",
+              "body": "We’ll explain the options, price and timing before we begin."
+            },
+            {
+              "title": "Leave the rest to us",
+              "body": "We’ll take care of the details and let you know when you’re ready."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "Do I need an appointment?",
+              "a": "Walk-ins are welcome. Message first if you have a preferred time."
+            },
+            {
+              "q": "Can I show a reference photo?",
+              "a": "Of course. Bring a photo so we can talk through the look together."
+            },
+            {
+              "q": "How can I pay?",
+              "a": "We accept cash and GCash at the shop."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "Around the shop",
+          "headline": "A look at Kanto Cuts",
+          "sub": "Small details that make an everyday visit feel easier.",
+          "items": [
+            {
+              "image": "asset:barber",
+              "caption": "Kanto Cuts · Marikina City"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Find us nearby",
+          "sub": "Message before heading over if you have a special request.",
+          "address": "18 Narra Street, San Roque\nMarikina City, Philippines",
+          "phone": "+639000000001",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "directions": {
+            "text": "Get directions",
+            "href": "#visit"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "Just around the corner",
+          "places": [
+            "Marikina City"
+          ],
+          "rows": [
+            {
+              "place": "Marikina City",
+              "time": "Visit us in the neighbourhood"
+            }
+          ]
+        },
+        "ctaBand": {
+          "tag": "Let’s get you sorted",
+          "headline": "Make time for a fresh start.",
+          "sub": "Your neighbourhood chair, with a little extra care.",
+          "cta": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Kanto Cuts",
+          "blurb": "Your neighbourhood chair, with a little extra care.",
+          "brand_blurb": "Your neighbourhood chair, with a little extra care.",
+          "visit": {
+            "lines": [
+              "18 Narra Street, San Roque\nMarikina City, Philippines",
+              "+639000000001",
+              "hello@kanto-cuts.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Services",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Visit us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  }
+]

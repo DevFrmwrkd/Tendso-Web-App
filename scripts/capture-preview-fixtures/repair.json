@@ -1,0 +1,301 @@
+[
+  {
+    "id": "talyer-uno",
+    "category": "repair",
+    "designs": [
+      "autoshop:AF",
+      "autoshop:P",
+      "autoshop:AP"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Talyer Uno",
+        "tagline": "Straightforward care for the car you count on.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "36 Mabini Road, San Francisco\nGeneral Trias, Cavite, Philippines",
+          "phone": "+639000000003",
+          "email": "hello@talyer-uno.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Auto Shop",
+        "photos": [
+          "asset:repair"
+        ],
+        "navCtaText": "Ask about repairs",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "General Trias, Cavite · Vehicle care",
+          "tag": "Walk in. We’ll help.",
+          "headlineLines": [
+            "Keep your",
+            "day moving."
+          ],
+          "headline": "Keep your day moving.",
+          "thin": "Straightforward care for the car you count on.",
+          "sub": "From an oil change to that sound you’ve been meaning to check, we help keep your daily drive in shape. Find our small workshop in General Trias.",
+          "image": "asset:repair",
+          "imageCaption": "A day at Talyer Uno",
+          "cta1": {
+            "text": "Ask about a repair",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See our services",
+            "href": "#services"
+          },
+          "meta1": "General Trias, Cavite",
+          "meta2": "GCash accepted",
+          "meta": [
+            "General Trias, Cavite",
+            "GCash accepted"
+          ],
+          "usps": [],
+          "marqueeWords": [
+            "Oil & filter change",
+            "Brake inspection",
+            "Vehicle check-up"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Walk-ins",
+              "label": "Welcome during shop hours"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            },
+            {
+              "num": "Local",
+              "label": "Here in General Trias"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "Straightforward care for the car you count on.",
+          "lead": "From an oil change to that sound you’ve been meaning to check, we help keep your daily drive in shape. Find our small workshop in General Trias.",
+          "body": "From an oil change to that sound you’ve been meaning to check, we help keep your daily drive in shape. Find our small workshop in General Trias. We inspect first, explain what we find and confirm the work with you. No surprise additions while your car is in the bay.",
+          "paragraphs": [
+            "From an oil change to that sound you’ve been meaning to check, we help keep your daily drive in shape. Find our small workshop in General Trias.",
+            "We inspect first, explain what we find and confirm the work with you. No surprise additions while your car is in the bay."
+          ],
+          "image": "asset:repair",
+          "signature": "The Talyer Uno team",
+          "stats": [
+            {
+              "k": "Payments",
+              "v": "Cash & GCash"
+            },
+            {
+              "k": "Find us",
+              "v": "General Trias"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we do",
+          "headline": "Care for your daily drive",
+          "sub": "We explain the work and confirm the estimate before starting.",
+          "items": [
+            {
+              "title": "Oil & filter change",
+              "desc": "Engine oil and filter replacement, with a basic fluid check.",
+              "price": "Ask for an estimate",
+              "duration": "By vehicle"
+            },
+            {
+              "title": "Brake inspection",
+              "desc": "Check pads, discs and brake-fluid condition.",
+              "price": "Inspection available",
+              "duration": "30–45 min"
+            },
+            {
+              "title": "Vehicle check-up",
+              "desc": "Tell us what feels different and we’ll help trace the issue.",
+              "price": "By inspection",
+              "duration": "By issue"
+            }
+          ]
+        },
+        "why": {
+          "tag": "The way we work",
+          "headline": "Simple service. Real care.",
+          "items": [
+            {
+              "title": "Inspect before replacing",
+              "body": "We look for the cause and explain what needs attention."
+            },
+            {
+              "title": "The estimate comes first",
+              "body": "You approve the work before we begin."
+            },
+            {
+              "title": "Updates that make sense",
+              "body": "We’ll tell you what is happening in plain language."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Your next visit",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Tell us what you need",
+              "body": "Describe the issue and share your vehicle details."
+            },
+            {
+              "title": "Choose what works",
+              "body": "We’ll explain the options, price and timing before we begin."
+            },
+            {
+              "title": "Leave the rest to us",
+              "body": "We’ll update you when the work is ready for collection."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "Can I bring my own parts?",
+              "a": "Tell us before booking so we can check compatibility and explain the labour charge."
+            },
+            {
+              "q": "Will you confirm the price first?",
+              "a": "Yes. We explain the inspection findings and estimate before carrying out repairs."
+            },
+            {
+              "q": "Do I need to leave the car?",
+              "a": "Some jobs can be done while you wait. We’ll confirm the timing after checking your vehicle."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "Around the shop",
+          "headline": "A look at Talyer Uno",
+          "sub": "Small details that make an everyday visit feel easier.",
+          "items": [
+            {
+              "image": "asset:repair",
+              "caption": "Talyer Uno · General Trias"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Find us nearby",
+          "sub": "Message before heading over if you have a special request.",
+          "address": "36 Mabini Road, San Francisco\nGeneral Trias, Cavite, Philippines",
+          "phone": "+639000000003",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "directions": {
+            "text": "Get directions",
+            "href": "#visit"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "Just around the corner",
+          "places": [
+            "General Trias"
+          ],
+          "rows": [
+            {
+              "place": "General Trias",
+              "time": "Visit us in the neighbourhood"
+            }
+          ]
+        },
+        "ctaBand": {
+          "tag": "Let’s get you sorted",
+          "headline": "Give your car some care.",
+          "sub": "Straightforward care for the car you count on.",
+          "cta": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Talyer Uno",
+          "blurb": "Straightforward care for the car you count on.",
+          "brand_blurb": "Straightforward care for the car you count on.",
+          "visit": {
+            "lines": [
+              "36 Mabini Road, San Francisco\nGeneral Trias, Cavite, Philippines",
+              "+639000000003",
+              "hello@talyer-uno.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Services",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Visit us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  }
+]

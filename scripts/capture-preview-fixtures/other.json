@@ -1,0 +1,867 @@
+[
+  {
+    "id": "hardin-handy",
+    "category": "other",
+    "designs": [
+      "generic:C"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Hardin Handy",
+        "tagline": "Practical care for the green spaces around your home.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "14 Acacia Lane, Project 6\nQuezon City, Philippines",
+          "phone": "+639000000006",
+          "email": "hello@hardin-handy.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Other",
+        "photos": [
+          "asset:garden"
+        ],
+        "navCtaText": "Plan your visit",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Quezon City",
+          "headlineLines": [
+            "A little greener.",
+            "A little easier."
+          ],
+          "headline": "A little greener. A little easier.",
+          "thin": "Practical care for the green spaces around your home.",
+          "sub": "A small front garden, a busy balcony or a lawn that needs a tidy-up: we help you keep your outdoor space manageable.",
+          "image": "asset:garden",
+          "imageCaption": "A day at Hardin Handy",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See what we offer",
+            "href": "#services"
+          },
+          "meta1": "Quezon City",
+          "meta2": "Cash & GCash",
+          "marqueeWords": [
+            "Garden tidy-up",
+            "Lawn care",
+            "Plant care visit"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Local",
+              "label": "Here in Quezon City"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "Practical care for the green spaces around your home.",
+          "lead": "A small front garden, a busy balcony or a lawn that needs a tidy-up: we help you keep your outdoor space manageable.",
+          "paragraphs": [
+            "A small front garden, a busy balcony or a lawn that needs a tidy-up: we help you keep your outdoor space manageable.",
+            "Tell us what needs attention and show us a few photos. We’ll agree on the work and a clear estimate before we visit."
+          ],
+          "body": "A small front garden, a busy balcony or a lawn that needs a tidy-up: we help you keep your outdoor space manageable. Tell us what needs attention and show us a few photos. We’ll agree on the work and a clear estimate before we visit.",
+          "image": "asset:garden",
+          "signature": "The Hardin Handy team",
+          "stats": [
+            {
+              "n": "Local",
+              "l": "A neighbourhood business"
+            },
+            {
+              "n": "Clear",
+              "l": "Service and prices"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we offer",
+          "headline": "A little care for your green space",
+          "sub": "Tell us about your space. We confirm the work and estimate before a visit.",
+          "items": [
+            {
+              "title": "Garden tidy-up",
+              "desc": "Trim, weed and clear the everyday overgrowth around your home."
+            },
+            {
+              "title": "Lawn care",
+              "desc": "Mowing and edging for a clean, even finish."
+            },
+            {
+              "title": "Plant care visit",
+              "desc": "Repotting, pruning and practical help with your existing plants."
+            }
+          ]
+        },
+        "why": {
+          "tag": "The small details",
+          "headline": "Care in the everyday.",
+          "items": [
+            {
+              "title": "A practical plan",
+              "body": "We focus on what your space needs, at a pace that suits you."
+            },
+            {
+              "title": "Agreed before the visit",
+              "body": "You know the tasks and price before we start."
+            },
+            {
+              "title": "Tidy when we finish",
+              "body": "We gather the clippings and leave the work area neat."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Let’s get started",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Show us your space",
+              "body": "Share a few photos, the location and what needs attention."
+            },
+            {
+              "title": "Agree on the work",
+              "body": "We explain the tasks, timing and price before the visit."
+            },
+            {
+              "title": "Enjoy a tidier garden",
+              "body": "We do the agreed work and leave your space swept and ready."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "How do I get a quote?",
+              "a": "Send photos, your location and the work you have in mind. We’ll confirm whether an on-site assessment is needed."
+            },
+            {
+              "q": "Do you bring tools?",
+              "a": "We bring tools for the work we agree on. Any materials or special equipment are included in the estimate."
+            },
+            {
+              "q": "Can I book regular visits?",
+              "a": "Yes. Tell us how often you need help and we’ll discuss a suitable schedule."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "A look around",
+          "headline": "A greener everyday.",
+          "sub": "Practical care for the green spaces around your home.",
+          "items": [
+            {
+              "image": "asset:garden",
+              "caption": "Hardin Handy · Quezon City"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Find us nearby",
+          "headline": "Let’s talk about your garden.",
+          "sub": "Visits are arranged after we confirm your location and the work needed.",
+          "address": "14 Acacia Lane, Project 6\nQuezon City, Philippines",
+          "phone": "+639000000006",
+          "email": "hello@hardin-handy.example",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "8:00 AM – 5:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By arrangement"
+            }
+          ],
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Quezon%20City"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "Around your corner.",
+          "places": [
+            "Quezon City"
+          ],
+          "rows": [
+            {
+              "place": "Quezon City",
+              "time": "Ask about availability"
+            }
+          ]
+        },
+        "ctaBand": {
+          "headline": "Give your garden a little care.",
+          "sub": "Practical care for the green spaces around your home.",
+          "cta": {
+            "text": "Ask about a visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Hardin Handy",
+          "blurb": "Practical care for the green spaces around your home.",
+          "brand_blurb": "Practical care for the green spaces around your home.",
+          "visit": {
+            "lines": [
+              "14 Acacia Lane, Project 6\nQuezon City, Philippines",
+              "+639000000006",
+              "hello@hardin-handy.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Services",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Find us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "8:00 AM – 5:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By arrangement"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  },
+  {
+    "id": "linis-lane",
+    "category": "other",
+    "designs": [
+      "services:AS"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Linis Lane",
+        "tagline": "Your everyday laundry, handled with care.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "12 Ilang-Ilang Street, Kapitolyo\nPasig City, Philippines",
+          "phone": "+639000000004",
+          "email": "hello@linis-lane.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Other",
+        "photos": [
+          "asset:laundry"
+        ],
+        "navCtaText": "Plan a pickup",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Pasig City · Laundry & everyday care",
+          "tag": "Walk in. We’ll help.",
+          "headlineLines": [
+            "Fresh laundry.",
+            "More free time."
+          ],
+          "headline": "Fresh laundry. More free time.",
+          "thin": "Your everyday laundry, handled with care.",
+          "sub": "Bring your weekly wash to our neighbourhood laundry in Kapitolyo. We wash, dry and fold so you can get back to the rest of your day.",
+          "image": "asset:laundry",
+          "imageCaption": "A day at Linis Lane",
+          "cta1": {
+            "text": "Arrange a pickup",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See our services",
+            "href": "#services"
+          },
+          "meta1": "Pasig City",
+          "meta2": "GCash accepted",
+          "meta": [
+            "Pasig City",
+            "GCash accepted"
+          ],
+          "usps": [],
+          "marqueeWords": [
+            "Wash, dry & fold",
+            "Duvets & blankets",
+            "Local pickup"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Walk-ins",
+              "label": "Welcome during shop hours"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            },
+            {
+              "num": "Local",
+              "label": "Here in Pasig City"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "Your everyday laundry, handled with care.",
+          "lead": "Bring your weekly wash to our neighbourhood laundry in Kapitolyo. We wash, dry and fold so you can get back to the rest of your day.",
+          "body": "Bring your weekly wash to our neighbourhood laundry in Kapitolyo. We wash, dry and fold so you can get back to the rest of your day. Need help with a duvet or a busy week? Ask us about bulky items, collection times and pickup availability before you book.",
+          "paragraphs": [
+            "Bring your weekly wash to our neighbourhood laundry in Kapitolyo. We wash, dry and fold so you can get back to the rest of your day.",
+            "Need help with a duvet or a busy week? Ask us about bulky items, collection times and pickup availability before you book."
+          ],
+          "image": "asset:laundry",
+          "signature": "The Linis Lane team",
+          "stats": [
+            {
+              "k": "Payments",
+              "v": "Cash & GCash"
+            },
+            {
+              "k": "Find us",
+              "v": "Pasig City"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we do",
+          "headline": "One less chore on your list",
+          "sub": "Ask the team about current availability before your visit.",
+          "items": [
+            {
+              "title": "Wash, dry & fold",
+              "desc": "Your everyday laundry, washed and neatly folded.",
+              "price": "From ₱35 / kg",
+              "duration": "8 kg minimum"
+            },
+            {
+              "title": "Duvets & blankets",
+              "desc": "Separate care for bulky household laundry.",
+              "price": "From ₱250",
+              "duration": "By item"
+            },
+            {
+              "title": "Local pickup",
+              "desc": "Arrange a collection within nearby Kapitolyo streets.",
+              "price": "Ask about coverage",
+              "duration": "By arrangement"
+            }
+          ]
+        },
+        "why": {
+          "tag": "The way we work",
+          "headline": "Simple service. Real care.",
+          "items": [
+            {
+              "title": "Sorted with care",
+              "body": "Tell us about delicate items or special instructions at drop-off."
+            },
+            {
+              "title": "A clear collection time",
+              "body": "We confirm when your laundry will be ready."
+            },
+            {
+              "title": "Easy neighbourhood drop-off",
+              "body": "A simple stop for your weekly wash."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Your next visit",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Tell us what you need",
+              "body": "Send a quick message or stop by during shop hours."
+            },
+            {
+              "title": "Choose what works",
+              "body": "We’ll explain the options, price and timing before we begin."
+            },
+            {
+              "title": "Leave the rest to us",
+              "body": "We’ll take care of the details and let you know when you’re ready."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "When will my laundry be ready?",
+              "a": "Standard loads are usually ready the next day. We’ll confirm collection time when you drop off."
+            },
+            {
+              "q": "Are loads washed separately?",
+              "a": "Yes. Each customer’s everyday load is handled separately."
+            },
+            {
+              "q": "Can you collect from my address?",
+              "a": "Send your street and preferred time so we can confirm pickup availability and any delivery fee."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "Around the shop",
+          "headline": "A look at Linis Lane",
+          "sub": "Small details that make an everyday visit feel easier.",
+          "items": [
+            {
+              "image": "asset:laundry",
+              "caption": "Linis Lane · Pasig City"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Find us nearby",
+          "sub": "Message before heading over if you have a special request.",
+          "address": "12 Ilang-Ilang Street, Kapitolyo\nPasig City, Philippines",
+          "phone": "+639000000004",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "directions": {
+            "text": "Get directions",
+            "href": "#visit"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "Just around the corner",
+          "places": [
+            "Pasig City"
+          ],
+          "rows": [
+            {
+              "place": "Pasig City",
+              "time": "Visit us in the neighbourhood"
+            }
+          ]
+        },
+        "ctaBand": {
+          "tag": "Let’s get you sorted",
+          "headline": "Make room for your day.",
+          "sub": "Your everyday laundry, handled with care.",
+          "cta": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Linis Lane",
+          "blurb": "Your everyday laundry, handled with care.",
+          "brand_blurb": "Your everyday laundry, handled with care.",
+          "visit": {
+            "lines": [
+              "12 Ilang-Ilang Street, Kapitolyo\nPasig City, Philippines",
+              "+639000000004",
+              "hello@linis-lane.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Services",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Visit us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  },
+  {
+    "id": "liwanag-cafe",
+    "category": "other",
+    "designs": [
+      "generic:A"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Liwanag Cafe",
+        "tagline": "Coffee, a small bite and a little room to pause.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "8 Yakal Street, Sto. Niño\nMarikina City, Philippines",
+          "phone": "+639000000007",
+          "email": "hello@liwanag-cafe.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Other",
+        "photos": [
+          "asset:cafe"
+        ],
+        "navCtaText": "Plan your visit",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Marikina City",
+          "headlineLines": [
+            "Good coffee.",
+            "A brighter day."
+          ],
+          "headline": "Good coffee. A brighter day.",
+          "thin": "Coffee, a small bite and a little room to pause.",
+          "sub": "A neighbourhood coffee stop for a slow morning or a quick cup on your way. Find us on a quiet corner in Sto. Niño.",
+          "image": "asset:cafe",
+          "imageCaption": "A day at Liwanag Cafe",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See what we offer",
+            "href": "#services"
+          },
+          "meta1": "Marikina City",
+          "meta2": "Cash & GCash",
+          "marqueeWords": [
+            "Americano",
+            "Cafe latte",
+            "Banana bread"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Local",
+              "label": "Here in Marikina City"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "Coffee, a small bite and a little room to pause.",
+          "lead": "A neighbourhood coffee stop for a slow morning or a quick cup on your way. Find us on a quiet corner in Sto. Niño.",
+          "paragraphs": [
+            "A neighbourhood coffee stop for a slow morning or a quick cup on your way. Find us on a quiet corner in Sto. Niño.",
+            "We keep the menu simple: familiar espresso drinks, iced favourites and a few good things from the counter."
+          ],
+          "body": "A neighbourhood coffee stop for a slow morning or a quick cup on your way. Find us on a quiet corner in Sto. Niño. We keep the menu simple: familiar espresso drinks, iced favourites and a few good things from the counter.",
+          "image": "asset:cafe",
+          "signature": "The Liwanag Cafe team",
+          "stats": [
+            {
+              "n": "Local",
+              "l": "A neighbourhood business"
+            },
+            {
+              "n": "Clear",
+              "l": "Service and prices"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we offer",
+          "headline": "Your everyday favourites",
+          "sub": "Ask about today’s selection when you come by.",
+          "items": [
+            {
+              "title": "Americano",
+              "desc": "A straightforward espresso coffee, served hot or over ice.",
+              "price": "₱100",
+              "note": "Hot or iced"
+            },
+            {
+              "title": "Cafe latte",
+              "desc": "Espresso and milk for an easy everyday cup.",
+              "price": "₱130",
+              "note": "Hot or iced"
+            },
+            {
+              "title": "Banana bread",
+              "desc": "A slice from the counter to go with your coffee.",
+              "price": "₱85",
+              "note": "While available"
+            }
+          ]
+        },
+        "why": {
+          "tag": "The small details",
+          "headline": "Care in the everyday.",
+          "items": [
+            {
+              "title": "A simple, familiar menu",
+              "body": "Easy favourites for your everyday coffee break."
+            },
+            {
+              "title": "Prepared your way",
+              "body": "Tell us whether you like it hot, iced or less sweet."
+            },
+            {
+              "title": "A neighbourhood welcome",
+              "body": "Come for a quick stop or take a little time to sit."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Let’s get started",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Take a look",
+              "body": "Check the drinks and small bites at the counter."
+            },
+            {
+              "title": "Make it your cup",
+              "body": "Choose hot or iced, and tell us your preferences."
+            },
+            {
+              "title": "Stay or take away",
+              "body": "Find a seat, or take a little pause with you."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "Can I order for takeaway?",
+              "a": "Yes. All drinks can be prepared to take with you."
+            },
+            {
+              "q": "Do you have non-dairy milk?",
+              "a": "Ask the counter about the options available that day and any added charge."
+            },
+            {
+              "q": "Can I reserve a table?",
+              "a": "Message the cafe for a small gathering. We’ll confirm the space and timing."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "A look around",
+          "headline": "A corner for your coffee.",
+          "sub": "Coffee, a small bite and a little room to pause.",
+          "items": [
+            {
+              "image": "asset:cafe",
+              "caption": "Liwanag Cafe · Marikina City"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Find us nearby",
+          "headline": "Come by for a cup.",
+          "sub": "Check in with the counter for today’s selection.",
+          "address": "8 Yakal Street, Sto. Niño\nMarikina City, Philippines",
+          "phone": "+639000000007",
+          "email": "hello@liwanag-cafe.example",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "8:00 AM – 8:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "9:00 AM – 6:00 PM"
+            }
+          ],
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Marikina%20City"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "A local place to pause.",
+          "places": [
+            "Marikina City"
+          ],
+          "rows": [
+            {
+              "place": "Marikina City",
+              "time": "Ask about availability"
+            }
+          ]
+        },
+        "ctaBand": {
+          "headline": "There’s time for a good cup.",
+          "sub": "Coffee, a small bite and a little room to pause.",
+          "cta": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Liwanag Cafe",
+          "blurb": "Coffee, a small bite and a little room to pause.",
+          "brand_blurb": "Coffee, a small bite and a little room to pause.",
+          "visit": {
+            "lines": [
+              "8 Yakal Street, Sto. Niño\nMarikina City, Philippines",
+              "+639000000007",
+              "hello@liwanag-cafe.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Menu",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Find us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "8:00 AM – 8:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "9:00 AM – 6:00 PM"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  }
+]

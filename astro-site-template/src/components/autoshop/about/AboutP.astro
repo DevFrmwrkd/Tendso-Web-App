@@ -71,6 +71,8 @@ const hasAbout = Boolean(image) || paragraphs.length > 0 || stats.length > 0;
   .about-side .k { font-family: var(--display); font-size: 34px; color: var(--accent); line-height: 1; }
   .about-side .v { font-size: 14px; color: var(--muted); margin-top: 4px; }
   @media (max-width: 860px) {
+    .sec-head > div { min-width: 0; }
+    .sec-head .h-sect { overflow-wrap: anywhere; }
     .about-grid { grid-template-columns: 1fr; }
     .about-side { border-left: none; border-top: 2px solid var(--ink); padding-left: 0; padding-top: 24px; }
   }

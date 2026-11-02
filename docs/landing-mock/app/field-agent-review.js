@@ -2,28 +2,21 @@
   'use strict';
   const A = '../assets/field-agent-review/';
   const PHOTO = '../assets/photos/kalan-hero.jpg';
-  const designs = [
-    { name: 'Forge', file: 'f' },
-    { name: 'Minimal', file: 'i' },
-    { name: 'Botanica', file: 'l' },
-    { name: 'Vogue', file: 'n' },
-    { name: 'Job-Sheet Industrial', file: 'af' },
-    { name: 'Narra & Co.', file: 'bv' },
-    { name: 'Kalachuchi', file: 'bs' },
-    { name: 'Pastel Deco Panaderia', file: 'al' },
-    { name: 'Cedar & Stone', file: 'c' },
-  ];
+  const designs = (window.CAPTURE_PREVIEW_CATALOG?.designs ?? []).map(design => ({
+    ...design, file: design.code.split(':')[1].toLowerCase(),
+  }));
+  const group = category => designs.filter(design => design.category === category).map(design => design.file);
   const designGroups = {
-    'Barber/Salon': ['f', 'i', 'l', 'n'],
-    'Spa/Massage': ['l', 'n'],
-    'Auto Shop': ['af'],
-    'Craft/Producer': ['bv', 'bs'],
-    Restaurant: ['al'],
-    Clinic: ['c'],
-    'Law Office': ['c'],
-    Other: ['c'],
+    'Barber/Salon': [...group('barber'), ...group('salon')],
+    'Spa/Massage': group('salon'),
+    'Auto Shop': group('repair'),
+    'Craft/Producer': group('craft'),
+    Restaurant: group('food'),
+    Clinic: group('other'),
+    'Law Office': group('other'),
+    Other: group('other'),
   };
-  const savedRepairDesign = { name: 'Tindahan', file: 'bb' };
+  const savedRepairDesign = { name: 'Tindahan', file: 'bb', preview: '/template-previews/bb.html' };
   const AREA = {
     access: 'Join & training',
     discovery: 'Map & Finds',
@@ -506,7 +499,7 @@
           index = interactive ? Math.max(0, Math.min(choices.length - 1, demo.design)) : 0,
           design = choices[index];
         return app(
-          `${step(4)}<h2>Choose your design</h2><p class="fa-muted">Example photos and text. This shop’s content is added after review.</p><button type="button" class="fa-design" data-action="full-design" aria-label="${design.name} design. Preview sample website." style="padding:0;height:350px;overflow:hidden"><iframe class="fa-sample-frame fa-sample-inert fa-design-sample" title="${design.name} design sample" src="/template-previews/${design.file}.html" sandbox="allow-same-origin" tabindex="-1" referrerpolicy="no-referrer"></iframe></button><div class="fa-between"><h3>${design.name}</h3><span class="fa-muted">${index + 1} of ${choices.length}</span></div><div class="fa-between"><button type="button" class="fa-round" data-design-move="-1" aria-label="Previous design" ${index === 0 ? 'disabled' : ''}>${icon('arrow')}</button><p class="fa-small fa-muted" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p><button type="button" class="fa-round" data-design-move="1" aria-label="Next design" ${index >= choices.length - 1 ? 'disabled' : ''}>${icon('chevron')}</button></div>`,
+          `${step(4)}<h2>Choose your design</h2><p class="fa-muted">Example photos and text. This shop’s content is added after review.</p><button type="button" class="fa-design" data-action="full-design" aria-label="${design.name} design. Preview sample website." style="padding:0;height:350px;overflow:hidden"><iframe class="fa-sample-frame fa-sample-inert fa-design-sample" title="${design.name} design sample" src="${escape(design.preview)}" sandbox="allow-same-origin" tabindex="-1" referrerpolicy="no-referrer"></iframe></button><div class="fa-between"><h3>${design.name}</h3><span class="fa-muted">${index + 1} of ${choices.length}</span></div><div class="fa-between"><button type="button" class="fa-round" data-design-move="-1" aria-label="Previous design" ${index === 0 ? 'disabled' : ''}>${icon('arrow')}</button><p class="fa-small fa-muted" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p><button type="button" class="fa-round" data-design-move="1" aria-label="Next design" ${index >= choices.length - 1 ? 'disabled' : ''}>${icon('chevron')}</button></div>`,
           { footer: btn('Use this design', 'review') },
         );
       }
@@ -1017,9 +1010,9 @@
         icon('close') +
         '</button></div><p class="fa-design-sample-label fa-muted">Sample website · Scroll to explore</p><iframe class="fa-sample-frame fa-design-sample" title="Full ' +
         design.name +
-        ' sample" src="/template-previews/' +
-        design.file +
-        '.html" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe><div class="fa-design-use">' +
+        ' sample" src="' +
+        escape(design.preview) +
+        '" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe><div class="fa-design-use">' +
         btn('Use this design', 'review') + '</div></div>';
       root.append(overlay);
       overlay.querySelector('button').focus();

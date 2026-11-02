@@ -50,7 +50,15 @@ const col2 = items.slice(mid);
 <style>
   .faq { background: var(--panel); }
   .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
-  @media (max-width: 900px) { .faq-grid { grid-template-columns: 1fr; gap: 6px; } }
+  @media (max-width: 900px) {
+    .faq-grid { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .faq-grid > div { min-width: 0; }
+    summary > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+    summary .pm {
+      flex: 0 0 24px; width: 24px; height: 24px; align-self: flex-start;
+      display: grid; place-items: center; line-height: 1;
+    }
+  }
   details { border-bottom: 1px solid var(--line); }
   summary {
     list-style: none; cursor: pointer; padding: 20px 0; font-family: var(--cond); font-weight: bold;

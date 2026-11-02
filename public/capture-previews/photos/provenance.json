@@ -1,0 +1,57 @@
+{
+  "created": "2026-11-02",
+  "generator": "Built-in image_gen",
+  "purpose": "AI-generated photographs for fictional Tendso sample businesses",
+  "images": [
+    {
+      "key": "barber",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a fictional Philippine neighborhood barbershop sample website. Create one natural editorial photograph, landscape 3:2 composition. A clean modest Filipino barbershop in Marikina, two vintage barber chairs, warm mirrors, dark green and brass details, daylight through the storefront. A friendly Filipino male barber in his thirties stands beside an empty chair wearing a plain navy apron, relaxed smile. Authentic small business, natural skin and proportions, believable hands, tidy realistic tools placed on counter. Keep the main person and chairs in central 60% so a mobile portrait crop still works. No haircut in progress, no client, no tools touching anybody, no floating objects, no text, no branding, no watermark. High quality documentary photography, not luxury showroom, not illustration.",
+      "asset": "/capture-previews/photos/barber-sample-v1.webp"
+    },
+    {
+      "key": "bakery",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a fictional Philippine panaderia sample website. Create one natural editorial landscape 3:2 photo inside a warm neighborhood bakery in Pampanga. Foreground center is a wooden counter with fresh pandesal, ensaymada, Spanish bread and a tray of golden rolls, each physically believable. A friendly Filipino woman baker in a cream apron stands behind the counter, smiling naturally, hands resting visibly and naturally on the counter. Soft early morning window light, warm wood, restrained pastel details, realistic neighborhood business. Main baked goods and baker centered for mobile crops. No logos, no signs or text, no watermark, no collage, no cartoon, no distorted hands or food.",
+      "asset": "/capture-previews/photos/bakery-sample-v1.webp"
+    },
+    {
+      "key": "salon",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A bright modest modern neighborhood hair salon in Quezon City, pale sage walls, two cream salon chairs, mirrors, indoor plants. A friendly Filipino woman hairstylist wearing a plain black apron stands beside an empty chair smiling naturally, relaxed hands at her sides. Soft window daylight, welcoming practical working studio, no beauty treatment in progress, no customers.",
+      "asset": "/capture-previews/photos/salon-sample-v1.webp"
+    },
+    {
+      "key": "repair",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. An orderly neighborhood auto service garage in Laguna. A Filipino mechanic in clean navy work clothes stands beside a stationary silver compact sedan with its hood raised; two service bays and organized tools are visible. Calm workshop daylight, honest approachable neighborhood business, safe working environment, no active tool use, no car lifted above a person, hands resting naturally, no tools touching bodies.",
+      "asset": "/capture-previews/photos/repair-sample-v1.webp"
+    },
+    {
+      "key": "wood",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A finished solid acacia dining table and four chairs displayed in a small family furniture workshop in Pampanga, warm visible wood grain, simple joinery and a carefully finished edge. Wooden shelves, a workbench and stacked timber in the background, natural afternoon daylight. Furniture is the central subject, no people, no power tools in use, realistic functional proportions.",
+      "asset": "/capture-previews/photos/wood-sample-v1.webp"
+    },
+    {
+      "key": "floral",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A small flower studio in Quezon City, lush freshly arranged bouquets of white chrysanthemums, peach roses and tropical green foliage on a light wooden worktable, neutral kraft wrapping and a few ceramic vases. A Filipino florist stands naturally behind the table with relaxed hands, no clipping or scissors in use. Bright soft daylight, welcoming everyday shop rather than extravagant wedding set, realistic botanical forms.",
+      "asset": "/capture-previews/photos/floral-sample-v1.webp"
+    },
+    {
+      "key": "cafe",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A neighborhood Philippine coffee shop in a converted small concrete house, warm wood counter, two well-made coffees in simple ceramic cups with believable latte art and a plate of pandesal in the centered foreground. Small espresso machine and house plants in the background, quiet morning light, warm cream and terracotta tones, no people, no advertising or signage.",
+      "asset": "/capture-previews/photos/cafe-sample-v1.webp"
+    },
+    {
+      "key": "food",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A welcoming Filipino neighborhood carinderia with a neat wooden serving counter. Central foreground is a freshly served plate of chicken adobo, steamed rice and vegetables beside covered stainless food trays. In the background a friendly Filipina cook in a plain light apron stands behind the counter, with relaxed hands clearly separated from food. Bright natural lunchtime light, appetizing realistic Filipino home cooking, no steamy giant pot, no utensils touching people.",
+      "asset": "/capture-previews/photos/food-sample-v1.webp"
+    },
+    {
+      "key": "garden",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A small Philippine plant nursery and garden service showroom. Center composition contains healthy potted tropical plants, a small well-made stone path, wooden shelving, terracotta pots and a simple shaded work area; lush but tidy and accessible. Warm natural morning daylight, tropical leaves with realistic shapes, modest neighborhood business, no people, no branded pots or signage.",
+      "asset": "/capture-previews/photos/garden-sample-v1.webp"
+    },
+    {
+      "key": "laundry",
+      "prompt": "Use case: photorealistic-natural. Asset type: hero photograph for a clearly fictional Philippine local-business sample website. Create one landscape 3:2 editorial photograph, natural detailed documentary photography with convincing materials and correct proportions. Keep the main subject centered in the middle 60 percent for a mobile crop. No text, signs, logos, branding, watermark, collage, illustration, excessive HDR, or distorted hands. A clean approachable neighborhood self-service laundry in the Philippines. Three front-loading washing machines, neat cream shelves with folded white and pale blue towels, wicker laundry baskets and a simple wooden folding counter. Bright soft daylight, white and sage palette, practical small business rather than luxury hotel, no people, machines without visible logos, no written instructions or text.",
+      "asset": "/capture-previews/photos/laundry-sample-v1.webp"
+    }
+  ]
+}
