@@ -12,6 +12,7 @@ import { isEditableCaptureStatus } from '../services/captureEdit';
 import { captureDesignMatchesBusinessType } from '../services/captureDesign';
 import { capturePhotoReviewFor, needsCapturePhotoReview } from '../services/capturePhotoReview';
 import { capturePhotosNeedSave } from '../services/capturePhotoChanges';
+import { captureInterviewNeedsSave } from '../services/captureInterviewChanges';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
@@ -48,6 +49,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
   const designWarning = useRef<string | null>(null);
   const photoReviewWarning = useRef<string | null>(null);
   const photoChangesWarning = useRef<string | null>(null);
+  const interviewChangesWarning = useRef<string | null>(null);
   const mounted = useRef(true);
   const live = useRef({ enabled, creatorId, isConnected });
   live.current = { enabled, creatorId, isConnected };
@@ -199,6 +201,24 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         }
         return true;
       };
+      const interviewChangesBlocked = async (baseline: unknown, expectedPending?: PendingInterview) => {
+        const [draft, pending] = await Promise.all([
+          readCaptureCache<unknown>(actor, 'submission_interview_draft'),
+          readCaptureCache<unknown>(actor, 'submission_pending_interview'),
+        ]);
+        if (!await boundCurrent()) return true;
+        if (!captureInterviewNeedsSave(draft, id!, pending, baseline)
+          && (!expectedPending || (pending !== null && typeof pending === 'object'
+            && (pending as { submissionId?: string }).submissionId === id && !captureInterviewNeedsSave(expectedPending, id!, pending)))) {
+          interviewChangesWarning.current = null; return false;
+        }
+        const warning = `${actor}:${id}`;
+        if (interviewChangesWarning.current !== warning) {
+          interviewChangesWarning.current = warning;
+          Alert.alert('Save your interview changes', 'Open Interview and save your latest take before sending. Your recording stays on this phone.');
+        }
+        return true;
+      };
       if (info) {
         if (!await boundCurrent()) return;
         await update({ id: id as Id<'submissions'>, ...info.formData,
@@ -249,21 +269,25 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await remove('submission_pending_photos'); synced.push('photos');
       }
       if (interview) {
+        if (await interviewChangesBlocked(submission, interview)) return;
         if (!interview.storageId) {
           interview.storageId = await upload(interview.recordingUri, interview.type === 'video' ? 'videos' : 'audio',
             interview.type === 'video' ? 'interview.mp4' : 'interview.m4a', interview.type === 'video' ? 'video/mp4' : 'audio/m4a');
+          if (await interviewChangesBlocked(submission, interview)) return;
           await save('submission_pending_interview', interview);
         }
         if (interview.type === 'video' && interview.parallelAudioUri && !interview.audioStorageId) {
           interview.audioStorageId = await upload(interview.parallelAudioUri, 'audio', 'interview-audio.m4a', 'audio/m4a');
+          if (await interviewChangesBlocked(submission, interview)) return;
           await save('submission_pending_interview', interview);
         }
-        if (!await boundCurrent()) return;
+        if (!await boundCurrent() || await interviewChangesBlocked(submission, interview)) return;
         await update({ id: id as Id<'submissions'>,
           ...(interview.type === 'video' ? { videoStorageId: interview.storageId, audioStorageId: interview.audioStorageId }
             : { audioStorageId: interview.storageId }) });
-        if (!await boundCurrent()) return;
+        if (!await boundCurrent() || await interviewChangesBlocked(submission, interview)) return;
         const previous = await readCaptureCache<Record<string, unknown>>(actor, 'submission_interview_draft');
+        if (await interviewChangesBlocked(submission, interview)) return;
         await save('submission_interview_draft', { ...(previous?.submissionId === id ? previous : {}), ...interview, attached: true });
         await remove('submission_pending_interview'); synced.push('interview');
       }
@@ -271,12 +295,12 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       // choice may send; it also wins over a subsequently cached draft preview.
       const templateId = queued && typeof queued === 'object' && queued.templateId !== undefined
         ? queued.templateId : design && matches(design.submissionId) ? design.templateId : undefined;
-      const photoReviewBlocked = async (businessType: string, savedPhotos: unknown) => {
+      const photoReviewBlocked = async (businessType: string, savedPhotos: unknown, savedInterview: unknown) => {
         const marker = await readCaptureCache<unknown>(actor, 'submission_photo_review');
         if (!await boundCurrent()) return true;
         if (!needsCapturePhotoReview(marker, id!, businessType)) {
           photoReviewWarning.current = null;
-          return photoChangesBlocked(savedPhotos);
+          return await photoChangesBlocked(savedPhotos) || await interviewChangesBlocked(savedInterview);
         }
         const review = capturePhotoReviewFor(marker, id!);
         const warning = `${actor}:${id}:${review?.businessType}:${review?.requiredAt}`;
@@ -295,7 +319,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           await finishSent();
           return;
         }
-        if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
+        if (await photoReviewBlocked(latest.businessType, latest.photos, latest)) return;
         const candidate = templateId ?? latest.templateId;
         if (candidate && !captureDesignMatchesBusinessType(latest.businessType, candidate)) {
           const warning = `${actor}:${id}:${latest.businessType}:${candidate}`;
@@ -319,7 +343,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         }
         emailWarning.current = null;
         if (templateId !== undefined) {
-          if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
+          if (await photoReviewBlocked(latest.businessType, latest.photos, latest)) return;
           await chooseDesign({ id: id as Id<'submissions'>, templateId });
           if (!await boundCurrent()) return;
         }
@@ -331,19 +355,19 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
             && (queued.sellPrice == null || queued.sellPrice + (latest.domainCostPHP ?? 0) === latest.amount)
             && (queued.domainPricePHP == null || queued.domainPricePHP === latest.domainCostPHP);
           if (!unchanged) {
-            if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
+            if (await photoReviewBlocked(latest.businessType, latest.photos, latest)) return;
             await setTier({ id: id as Id<'submissions'>, submissionType,
               sellPrice: queued.sellPrice, requestedDomain, domainPricePHP: queued.domainPricePHP });
           }
         }
-        if (!await boundCurrent() || await photoReviewBlocked(latest.businessType, latest.photos)) return;
+        if (!await boundCurrent() || await photoReviewBlocked(latest.businessType, latest.photos, latest)) return;
         await submit({ id: id as Id<'submissions'> });
         if (!await boundCurrent()) return;
         await finishSent(); synced.push('submission');
       } else if (templateId !== undefined && await boundCurrent()) {
         const latest = await checkOwner(id);
         if (!latest || !isEditableCaptureStatus(latest.status) || !await boundCurrent()) return;
-        if (await photoReviewBlocked(latest.businessType, latest.photos)) return;
+        if (await photoReviewBlocked(latest.businessType, latest.photos, latest)) return;
         if (!captureDesignMatchesBusinessType(latest.businessType, templateId)) return;
         if (latest.templateId !== templateId) {
           await chooseDesign({ id: id as Id<'submissions'>, templateId });

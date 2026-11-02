@@ -88,6 +88,107 @@ it('returns a resumed design step to its saved interview', async () => {
   expect(mockRouter.back).not.toHaveBeenCalled();
 });
 
+it('returns a rejected design correction to Review even when the capture was resumed', async () => {
+  mockParams = { draftId: 'draft-1', resumed: '1', returnTo: 'review' };
+  mockSubmissions['draft-1'].status = 'rejected';
+  await gallery();
+  act(() => mockGallery.onBack());
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it('does not replace an explicit draft route with another shop from the current pointer', async () => {
+  mockParams = { draftId: 'draft-2', resumed: '1' };
+  const screen = render(<SubmitDesignScreen />);
+  await waitFor(() => expect(screen.getByText('Open your capture first')).toBeTruthy());
+  expect(screen.queryByTestId('design-gallery')).toBeNull();
+  expect(mockCache['agent-1'].current_submission_id).toBe('draft-1');
+  expect(mockChoose).not.toHaveBeenCalled();
+  expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it.each([
+  ['already sent', { status: 'submitted' }],
+  ['owner app', { status: 'draft', contentSource: 'owner_app' }],
+  ['owner intake', { status: 'draft', contentSource: 'owner_intake' }],
+])('does not allow an offline design edit for the known %s capture', async (_label, overrides) => {
+  mockOffline = true;
+  mockCache['agent-1'].submission_snapshot = { submissionId: 'draft-1', creatorId: 'agent-1',
+    businessType: 'Barber/Salon', ...overrides };
+  const screen = render(<SubmitDesignScreen />);
+  await waitFor(() => expect(screen.getByText('Open your capture first')).toBeTruthy());
+  expect(screen.queryByTestId('design-gallery')).toBeNull();
+  expect(mockChoose).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('keeps rejected feedback and the same capture when correcting a design offline', async () => {
+  mockOffline = true;
+  mockParams = { draftId: 'draft-1', returnTo: 'review' };
+  mockCache['agent-1'].submission_snapshot = { submissionId: 'draft-1', creatorId: 'agent-1',
+    status: 'rejected', businessType: 'Law Office', rejectionReason: 'Choose a legal-office design.', templateId: 'business:CP' };
+  await gallery();
+  expect(mockGallery.reviewFeedback).toBe('Choose a legal-office design.');
+  await act(async () => { await mockGallery.onUse('business:CQ'); });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'business:CQ' });
+  expect(mockChoose).not.toHaveBeenCalled();
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('preserves a locally confirmed design while the same offline capture receives its server ID', async () => {
+  mockOffline = true;
+  mockParams = { draftId: 'offline_pending', resumed: '1' };
+  mockCache['agent-1'] = { current_submission_id: 'offline_pending',
+    submission_pending_sync: { creatorId: 'agent-1', formData: { businessType: 'Barber/Salon' } },
+    submission_snapshot: { submissionId: 'offline_pending', creatorId: 'agent-1', businessType: 'Barber/Salon' },
+    submission_design: { submissionId: 'offline_pending', templateId: 'business:CB', savedAt: 1 } };
+  const screen = await gallery();
+  expect(mockGallery.selectedCode).toBe('business:CB');
+  mockOffline = false; mockRevision++;
+  mockCache['agent-1'].current_submission_id = 'draft-1';
+  mockCache['agent-1'].submission_pending_sync.existingDraftId = 'draft-1';
+  screen.rerender(<SubmitDesignScreen />);
+  await act(async () => { await flush(); });
+  await waitFor(() => expect(mockGallery.selectedCode).toBe('business:CB'));
+  await act(async () => { await mockGallery.onUse('business:CB'); });
+  expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'business:CB' });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'business:CB' });
+  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review');
+});
+
+it('uses the queued category while reconnecting without applying its design to the old server category', async () => {
+  mockCache['agent-1'].submission_pending_sync = { creatorId: 'agent-1', existingDraftId: 'draft-1',
+    formData: { businessType: 'Law Office' } };
+  const original = mockClone(mockSubmissions['draft-1']);
+  await gallery();
+  expect(mockGallery.designs.map(design => design.code)).toEqual(['business:CP', 'business:CQ', 'business:CR']);
+  await act(async () => { await mockGallery.onUse('business:CP'); });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'business:CP' });
+  expect(mockChoose).not.toHaveBeenCalled();
+  expect(mockSubmissions['draft-1']).toEqual(original);
+  expect(mockCache['agent-1'].submission_pending_sync.formData.businessType).toBe('Law Office');
+  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review');
+});
+
+it('requires a matching choice if the business category changes during the design save', async () => {
+  let resolve!: () => void;
+  mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+  const screen = await gallery(); selectForge(screen);
+  fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
+  await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], businessType: 'Law Office' };
+  screen.rerender(<SubmitDesignScreen />);
+  await act(async () => { resolve(); await flush(); });
+  await waitFor(() => expect(screen.getByText('The business type changed. Choose a matching design.')).toBeTruthy());
+  expect(mockGallery.selectedCode).toBeNull();
+  expect(mockGallery.designs.map(design => design.code)).toEqual(['business:CP', 'business:CQ', 'business:CR']);
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
+  mockChoose.mockResolvedValue({ ok: true });
+  await act(async () => { await mockGallery.onUse('business:CP'); });
+  expect(mockChoose).toHaveBeenLastCalledWith({ id: 'draft-1', templateId: 'business:CP' });
+  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review');
+});
+
 it('drops the old barber selection when the same capture becomes a Law Office', async () => {
   mockSubmissions['draft-1'].businessType = 'Law Office';
   mockSubmissions['draft-1'].templateId = 'barbershop:F';

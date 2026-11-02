@@ -55,7 +55,7 @@ export default function SubmitPhotosScreen() {
 
 function PhotoTasks({ session }: { session: CaptureSession }) {
   const router = useGuardedRouter();
-  const { resumed, returnTo } = useLocalSearchParams<{ resumed?: string; returnTo?: string }>();
+  const { resumed, returnTo, draftId: requestedDraftId } = useLocalSearchParams<{ resumed?: string; returnTo?: string; draftId?: string }>();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const generateR2UploadUrl = useAction(api.r2.generateUploadUrl);
@@ -64,6 +64,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const [businessType, setBusinessType] = useState<string | undefined>();
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [unavailableTarget, setUnavailableTarget] = useState(false);
   const [savedCapture, setSavedCapture] = useState<CaptureSnapshot | null>(null);
   const [saving, setSaving] = useState(false);
   const [preparing, setPreparing] = useState(false);
@@ -91,11 +92,13 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const sessionRef = useRef(session);
   const persistQueue = useRef<Promise<void>>(Promise.resolve());
   const photoQueue = useRef<Promise<void>>(Promise.resolve());
+  const photoVersion = useRef(0);
   const normalizing = useRef(0);
   const cameraSequence = useRef(0);
   const hydrationVersion = useRef(0);
   const previewVersion = useRef(0);
   const migration = useRef<string | null>(null);
+  const migratedRoute = useRef<string | null>(null);
   const missingUrisRef = useRef<ReadonlySet<string>>(new Set());
   const pendingTypeRef = useRef<string | null>(null);
   sessionRef.current = session;
@@ -212,7 +215,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     void persistQueue.current.catch(() => { if (current()) setError('Could not save these photos on this device. Keep this screen open and try again.'); });
     return persistQueue.current;
   };
-  const commit = (next: PhotoItem[]) => { itemsRef.current = next; setItems(next); return persist(next); };
+  const commit = (next: PhotoItem[]) => { photoVersion.current++; itemsRef.current = next; setItems(next); return persist(next); };
   const requirePhotoReview = async (id: string, previousType: string, nextType: string, stored: unknown) => {
     const existing = capturePhotoReviewFor(stored, id);
     if (existing && normalizeCaptureBusinessType(existing.businessType) === normalizeCaptureBusinessType(nextType)) {
@@ -242,6 +245,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     mounted.current = true;
     if (!idRef.current) setHydrated(false);
     const version = ++hydrationVersion.current;
+    const startedPhotoVersion = photoVersion.current;
     const currentLoad = () => active && current() && version === hydrationVersion.current;
     void (async () => {
       try {
@@ -257,11 +261,18 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         const pendingActor = pendingInfo?.creatorId === session.actor?.creatorId;
         const id = storedId || (pendingActor ? 'offline_pending' : null);
         if (!id) { router.replace('/(app)/(tabs)/' as never); return; }
+        const ownedCheckpoint = id !== 'offline_pending' && pendingActor && pendingInfo?.existingDraftId === id;
+        if (requestedDraftId === 'offline_pending' && ownedCheckpoint) migratedRoute.current = id;
+        const followsOfflineRoute = requestedDraftId === 'offline_pending' && migratedRoute.current === id;
+        if (requestedDraftId !== undefined && (typeof requestedDraftId !== 'string' || (requestedDraftId !== id && !followsOfflineRoute))) {
+          closePreview(); setCamera(null); setUnavailableTarget(true); setHydrated(true); return;
+        }
         if (!storedId) await session.write('current_submission_id', id);
         if (!currentLoad()) return;
-        const migrating = idRef.current === 'offline_pending' && id !== 'offline_pending'
-          && ((pendingActor && pendingInfo?.existingDraftId === id) || (taskDraft?.submissionId === id && itemsRef.current.length > 0
-            && itemsRef.current.every(item => taskDraft.items?.some(saved => saved.id === item.id))));
+        const migrating = id !== 'offline_pending' && ((idRef.current === 'offline_pending'
+          && (ownedCheckpoint || (taskDraft?.submissionId === id && itemsRef.current.length > 0
+            && itemsRef.current.every(item => taskDraft.items?.some(saved => saved.id === item.id)))))
+          || (ownedCheckpoint && (followsOfflineRoute || taskDraft?.submissionId === 'offline_pending' || pendingPhotos?.submissionId === 'offline_pending')));
         migration.current = migrating ? id : null;
         setSavedCapture(savedShop?.submissionId === id && savedShop.creatorId === session.actor?.creatorId ? savedShop : null);
         if (idRef.current && idRef.current !== id) {
@@ -274,16 +285,18 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (!ownDraft && !ownPending?.entries && Array.isArray(ownPending?.photoUris)) {
           ownPending.photoUris.forEach((uri, index) => { if (typeof uri === 'string' && uri) restored.push({ id: `restored-${index}`, uri }); });
         }
-        removed.current = Array.isArray(ownDraft?.removedExistingPhotos) ? ownDraft.removedExistingPhotos : [];
+        const restoredRemoved = Array.isArray(ownDraft?.removedExistingPhotos) ? ownDraft.removedExistingPhotos : [];
         for (const key of ownPending?.existingPhotos ?? []) {
-          if (typeof key === 'string' && !removed.current.includes(key) && !restored.some((item) => item.storageId === key)) restored.push({ id: `stored-${key}`, storageId: key });
+          if (typeof key === 'string' && !restoredRemoved.includes(key) && !restored.some((item) => item.storageId === key)) restored.push({ id: `stored-${key}`, storageId: key });
         }
         const snapshotType = savedShop?.submissionId === id || (migrating && savedShop?.submissionId === 'offline_pending') ? savedShop?.businessType : undefined;
         const ownPendingInfo = pendingActor && (id === 'offline_pending'
           ? !pendingInfo?.existingDraftId || pendingInfo.existingDraftId === 'offline_pending'
           : pendingInfo?.existingDraftId === id) ? pendingInfo : null;
         const ownForm = form?.submissionId === id || (migrating && form?.submissionId === 'offline_pending') ? form : null;
-        const restoredType = ownPendingInfo?.formData?.businessType || ownForm?.businessType || snapshotType || ownDraft?.businessType || ownPending?.businessType;
+        const sameIdentity = idRef.current === id || migrating;
+        const restoredType = ownPendingInfo?.formData?.businessType || ownForm?.businessType || snapshotType || ownDraft?.businessType || ownPending?.businessType
+          || (sameIdentity ? typeRef.current : undefined);
         pendingTypeRef.current = ownPendingInfo?.formData?.businessType ?? null;
         const oldGuide = ownDraft?.shotListKey ?? ownPending?.shotListKey
           ?? (ownDraft?.businessType && ['law', 'clinic'].includes(shotListKeyForBusinessType(ownDraft.businessType))
@@ -311,7 +324,16 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
           return { ...item, uri: retained.uri };
         }));
         if (!currentLoad()) return;
-        missingUrisRef.current = missing; setMissingLocalUris(missing);
+        // A same-capture refresh may be reading files while Retake/Replace or
+        // a label edit finishes. The newer live edit owns the photo selection.
+        const keepLivePhotos = sameIdentity && photoVersion.current !== startedPhotoVersion;
+        if (keepLivePhotos) {
+          restored = differentSuggestions ? itemsRef.current.map(item => ({ ...item,
+            label: item.label || (item.taskIndex !== undefined ? shotList(oldGuide)[item.taskIndex]?.t : undefined), taskIndex: undefined })) : itemsRef.current;
+        } else {
+          removed.current = restoredRemoved;
+          missingUrisRef.current = missing; setMissingLocalUris(missing);
+        }
         typeRef.current = restoredType; setBusinessType(restoredType);
         idRef.current = id; setSubmissionId(id); itemsRef.current = restored; setItems(restored);
         const restoredReview = capturePhotoReviewFor(storedReview, id);
@@ -324,11 +346,11 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
           if (!currentLoad()) return;
         }
         if (differentSuggestions || migratedFiles) await persist(restored);
-        if (currentLoad()) setHydrated(true);
+        if (currentLoad()) { setUnavailableTarget(false); setHydrated(true); }
       } catch { if (currentLoad()) setError('Could not load your photo draft. Reopen this step to try again.'); }
     })();
     return () => { active = false; };
-  }, [session.revision, session.actorKey]));
+  }, [session.revision, session.actorKey, requestedDraftId]));
 
   useEffect(() => {
     if (!hydrated || !submission || String(submission.creatorId) !== String(session.actor?.creatorId)) return;
@@ -551,6 +573,9 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
     finally { busy.current = false; if (current()) setSaving(false); }
   };
 
+  if (unavailableTarget) return <ScreenShell onBack={() => router.back()}><EmptyState icon="lock-closed-outline" title="Photo draft unavailable"
+    body="Open this capture again from your submissions before editing its photos." actionLabel="Back to the map"
+    onAction={() => router.replace('/(app)/(tabs)/' as never)} /></ScreenShell>;
   if (!hydrated) return <ScreenShell onBack={goBack}>{error ? <Banner tone="danger" body={error} /> : <Loading fill={false} label="Loading your photo draft" />}</ScreenShell>;
   if (submission === null || (submission && (String(submission.creatorId) !== String(session.actor?.creatorId) || !isEditableCaptureStatus(submission.status)))) return <ScreenShell onBack={goBack}><EmptyState icon="lock-closed-outline" title="Capture unavailable" body="Open a draft or rejected capture from your account to edit photos." /></ScreenShell>;
 

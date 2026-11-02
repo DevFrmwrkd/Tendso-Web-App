@@ -139,6 +139,14 @@ it('allows another ordinary server draft without erasing its record or requiring
   })).toBe(false);
 });
 
+it('returns an unsaved replacement interview before stale progress or a rejected review', () => {
+  const take = { submissionId: activeId, recordingUri: 'file://new.m4a', type: 'audio', attached: false };
+  const cache = { submission_interview_draft: take, submission_progress: { submissionId: activeId, step: 'review', savedAt: Date.now() } };
+  expect(captureResumeStep(activeId, creatorId, cache, { ...server, audioStorageId: 'old-audio', status: 'rejected' })).toBe('interview');
+  expect(captureResumeStep(activeId, creatorId, { ...cache, submission_pending_interview: take },
+    { ...server, audioStorageId: 'old-audio', status: 'rejected' })).toBe('review');
+});
+
 it.each([
   { submission_pending_sync: { existingDraftId: 'other', formData: { businessName: 'Unsynced shop' } } },
   { submission_pending_sync: { formData: { businessName: 'New offline shop' } } },

@@ -23,6 +23,7 @@ let mockActor: string;
 let mockOnline: boolean;
 let mockRevision: number;
 let mockFocused: boolean;
+let mockStableServer: boolean;
 let mockGuide: ShotGuideProps;
 let mockCache: Record<string, Record<string, any>>;
 let mockSubmissions: Record<string, any>;
@@ -53,7 +54,7 @@ jest.mock('@tendso/convex-client', () => ({ api: {
 } }));
 jest.mock('convex/react', () => ({
   useQuery: (reference: string, args: any) => args === 'skip' ? undefined : reference === 'submission'
-    ? mockSubmissions[args.id] == null ? mockSubmissions[args.id] : { status: 'draft', ...mockSubmissions[args.id] }
+    ? mockSubmissions[args.id] == null || mockStableServer ? mockSubmissions[args.id] : { status: 'draft', ...mockSubmissions[args.id] }
     : args.storageIds.map((key: string) => `https://images.example.com/${key}`),
   useMutation: () => mockUpdate, useAction: () => mockUpload,
 }));
@@ -109,7 +110,7 @@ const nativePhotoScroll = (screen: ReturnType<typeof render>, index: number) => 
   fireEvent(scroll, 'momentumScrollEnd', event(index));
 };
 beforeEach(() => {
-  jest.clearAllMocks(); mockActor = 'agent-1'; mockOnline = true; mockRevision = 0; mockFocused = true; mockParams = {};
+  jest.clearAllMocks(); mockActor = 'agent-1'; mockOnline = true; mockRevision = 0; mockFocused = true; mockStableServer = false; mockParams = {};
   mockWrite.mockReset();
   mockCache = { 'agent-1': { current_submission_id: 'draft-1' } };
   mockSubmissions = { 'draft-1': { _id: 'draft-1', creatorId: 'agent-1', businessType: 'Barber/Salon', photos: [] } };
@@ -320,6 +321,77 @@ it('retakes the viewed photo at the ten-photo limit and returns to that same ima
   await waitFor(() => expect(mockFileInfo.mock.calls.length).toBeGreaterThan(fileChecks));
   expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: copiedUri('file://jpeg-full-retake.heic') });
   expect(screen.getByText('4 of 10')).toBeTruthy();
+});
+
+it('keeps the known server business type usable after a same-draft refresh omits legacy cached type', async () => {
+  mockStableServer = true;
+  mockSubmissions['draft-1'].status = 'draft';
+  const legacy = photoDraft(localItems(3)) as Record<string, unknown>;
+  delete legacy.businessType;
+  mockCache['agent-1'].submission_photo_tasks = legacy;
+  const screen = await screenReady(); const checked = mockFileInfo.mock.calls.length;
+  mockRevision++; screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(mockFileInfo.mock.calls.length).toBeGreaterThan(checked));
+  expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled();
+  openPhotoPreview(screen, 'View photo 2: Profile picture');
+  expect(screen.getByRole('button', { name: 'Retake photo' })).toBeEnabled();
+  mockLibrary.mockResolvedValueOnce({ canceled: true, assets: [] });
+  fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
+  await waitFor(() => expect(mockLibrary).toHaveBeenCalled());
+  expect(screen.getByText('2 of 3')).toBeTruthy();
+});
+
+it('keeps a completed in-place replacement when an older same-draft file refresh finishes afterward', async () => {
+  mockStableServer = true;
+  mockSubmissions['draft-1'].status = 'draft'; mockSubmissions['draft-1'].photos = ['old-key'];
+  const items = localItems(3).map((item, index) => index === 0 ? { ...item, storageId: 'old-key' } : item);
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(items);
+  const screen = await screenReady(); openPhotoPreview(screen, 'View photo 1: Owner headshot');
+  let release!: (value: { exists: boolean; isDirectory: boolean }) => void;
+  let pause = true;
+  mockFileInfo.mockImplementation(async (uri: string) => {
+    if (uri === items[0].uri && pause) { pause = false; return new Promise(resolve => { release = resolve; }); }
+    return { exists: true, isDirectory: false, uri };
+  });
+  mockRevision++; screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(release).toBeDefined());
+  fireEvent.press(screen.getByRole('button', { name: 'Replace photo' }));
+  await waitFor(() => expect(copiedUri('file://jpeg-library.heic')).toBeTruthy());
+  const replacement = copiedUri('file://jpeg-library.heic');
+  await waitFor(() => expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: replacement }));
+  await act(async () => { release({ exists: true, isDirectory: false }); });
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: replacement });
+  expect(mockCache['agent-1'].submission_photo_tasks.items[0]).toMatchObject({ id: items[0].id, uri: replacement, label: 'Owner headshot' });
+  expect(mockCache['agent-1'].submission_photo_tasks.removedExistingPhotos).toContain('old-key');
+  expect(screen.getByText('1 of 3')).toBeTruthy();
+});
+
+it('refuses a stale explicit photo route instead of editing the current pointer’s other capture', async () => {
+  mockParams = { draftId: 'other-draft', resumed: '1' };
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3));
+  const saved = mockClone(mockCache['agent-1']);
+  const screen = render(<SubmitPhotosScreen />);
+  await waitFor(() => expect(screen.getByText('Photo draft unavailable')).toBeTruthy());
+  expect(screen.queryByText('Show us the shop')).toBeNull();
+  expect(mockCache['agent-1']).toEqual(saved); expect(mockLibrary).not.toHaveBeenCalled();
+  expect(mockUpload).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('follows an owned offline placeholder migration without borrowing another capture or losing the selected photo', async () => {
+  mockParams = { draftId: 'offline_pending', resumed: '1' };
+  mockCache['agent-1'].submission_pending_sync = { creatorId: 'agent-1', existingDraftId: 'draft-1', formData: { businessType: 'Barber/Salon' } };
+  mockCache['agent-1'].submission_photo_tasks = photoDraft(localItems(3), 'offline_pending');
+  const screen = await screenReady();
+  expect(screen.getByText('3 of 10 photos added')).toBeTruthy();
+  openPhotoPreview(screen, 'View photo 2: Profile picture');
+  const checked = mockFileInfo.mock.calls.length;
+  mockCache['agent-1'].submission_photo_tasks.submissionId = 'draft-1';
+  delete mockCache['agent-1'].submission_pending_sync;
+  mockRevision++; screen.rerender(<SubmitPhotosScreen />);
+  await waitFor(() => expect(mockFileInfo.mock.calls.length).toBeGreaterThan(checked));
+  expect(screen.getByText('2 of 3')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Replace photo' })).toBeEnabled();
+  expect(screen.getByTestId('capture-photo-full-image')).toHaveProp('source', { uri: localItems(3)[1].uri });
 });
 
 it('returns to the unchanged viewed photo when a retake is cancelled', async () => {
@@ -1019,7 +1091,9 @@ it('handles resumed hardware Back only outside full-screen media and waits for f
     expect(mockRouter.replace).not.toHaveBeenCalled();
     await act(async () => finishCopy());
     await waitFor(() => expect(screen.getByRole('button', { name: 'Continue to interview' })).toBeEnabled());
-    expect(listeners.at(-1)!()).toBe(true);
+    let handled = false;
+    act(() => { handled = listeners.at(-1)!(); });
+    expect(handled).toBe(true);
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1', resumed: '1' } }));
   } finally { spy.mockRestore(); }
 });

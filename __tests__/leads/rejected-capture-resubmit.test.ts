@@ -45,6 +45,31 @@ async function setup(overrides: Partial<Doc<'submissions'>> = {}, account: Parti
 }
 
 describe('rejected field-agent capture corrections', () => {
+    it('saves replacement media, design and price, then submits the same draft exactly once', async () => {
+        const { agent, id, row, effects } = await setup({ status: 'draft' });
+        await agent.mutation(api.submissions.update, { id, photos: ['new/one.jpg', 'new/two.jpg', 'new/three.jpg'] });
+        await agent.mutation(api.submissions.update, { id, audioStorageId: 'new/interview.m4a' });
+        await agent.mutation(api.submissions.chooseDesign, { id, templateId: 'business:CA' });
+        await agent.mutation(api.submissions.setDomainTier, { id, submissionType: 'standard', sellPrice: 2499 });
+        await agent.mutation(api.submissions.submit, { id });
+        expect(await row()).toMatchObject({ _id: id, status: 'submitted', photos: ['new/one.jpg', 'new/two.jpg', 'new/three.jpg'],
+            audioStorageId: 'new/interview.m4a', templateId: 'business:CA', amount: 2499, creatorPayout: 1250 });
+        expect(await row()).not.toHaveProperty('videoStorageId');
+        expect(await row()).not.toHaveProperty('transcript');
+        const sent = await effects();
+        expect(sent.submissions).toHaveLength(1); expect(sent.leads).toHaveLength(1);
+        await agent.mutation(api.submissions.submit, { id });
+        expect(await effects()).toEqual(sent);
+    });
+
+    it.each(['draft', 'rejected'])('drops the old parallel audio when saving a replacement video without one on %s', async status => {
+        const { agent, id, row } = await setup({ status });
+        await agent.mutation(api.submissions.update, { id, videoStorageId: 'new/video.mp4' });
+        expect(await row()).toMatchObject({ videoStorageId: 'new/video.mp4' });
+        expect(await row()).not.toHaveProperty('audioStorageId');
+        expect(await row()).not.toHaveProperty('transcript');
+    });
+
     it('edits the same rejected record without losing feedback or untouched capture assets', async () => {
         const { agent, id, row, effects } = await setup();
         const before = await row();
@@ -123,32 +148,32 @@ describe('rejected field-agent capture corrections', () => {
         await expect(agent.mutation(api.submissions.update, { id, creatorPayout: 999999 })).rejects.toThrow('capture pricing');
     });
 
-    it('clears a replaced rejected video and stale transcript when the agent saves a new voice-only interview', async () => {
-        const { agent, id, row, effects } = await setup({ videoUrl: 'https://old.example.test/take.mp4', audioUrl: 'https://old.example.test/take.m4a', transcriptionStatus: 'complete', transcriptionError: 'old' });
+    it.each(['draft', 'rejected'])('clears the old video and transcript for a new voice-only interview on %s', async status => {
+        const { agent, id, row, effects } = await setup({ status, videoUrl: 'https://old.example.test/take.mp4', audioUrl: 'https://old.example.test/take.m4a', transcriptionStatus: 'complete', transcriptionError: 'old' });
         await agent.mutation(api.submissions.update, { id, audioStorageId: 'audio/corrected.m4a' });
-        expect(await row()).toMatchObject({ status: 'rejected', audioStorageId: 'audio/corrected.m4a', rejectionReason: original.rejectionReason, photos: original.photos });
+        expect(await row()).toMatchObject({ status, audioStorageId: 'audio/corrected.m4a', rejectionReason: original.rejectionReason, photos: original.photos });
         for (const key of ['videoStorageId', 'videoUrl', 'audioUrl', 'transcript', 'transcriptionStatus', 'transcriptionError']) expect(await row()).not.toHaveProperty(key);
         expect((await effects()).jobs).toHaveLength(1);
         expect(JSON.stringify((await effects()).jobs)).toContain('audio/corrected.m4a');
     });
 
-    it('retains the transcript on a retry of the exact same recording', async () => {
-        const { agent, id, row, effects } = await setup();
+    it.each(['draft', 'rejected'])('retains the transcript when retrying the same recording on %s', async status => {
+        const { agent, id, row, effects } = await setup({ status });
         await agent.mutation(api.submissions.update, { id, videoStorageId: original.videoStorageId, audioStorageId: original.audioStorageId });
         expect((await row())?.transcript).toBe(original.transcript);
         expect((await effects()).jobs).toEqual([]);
     });
 
-    it('clears an old public video URL when replacing the rejected recording, retaining the new parallel audio', async () => {
-        const { agent, id, row, effects } = await setup({ videoUrl: 'https://old.example.test/video.mp4', audioUrl: 'https://old.example.test/audio.m4a' });
+    it.each(['draft', 'rejected'])('clears obsolete public URLs but retains new parallel audio on %s', async status => {
+        const { agent, id, row, effects } = await setup({ status, videoUrl: 'https://old.example.test/video.mp4', audioUrl: 'https://old.example.test/audio.m4a' });
         await agent.mutation(api.submissions.update, { id, videoStorageId: 'videos/new.mp4', audioStorageId: 'audio/new.m4a' });
-        expect(await row()).toMatchObject({ videoStorageId: 'videos/new.mp4', audioStorageId: 'audio/new.m4a', status: 'rejected' });
+        expect(await row()).toMatchObject({ videoStorageId: 'videos/new.mp4', audioStorageId: 'audio/new.m4a', status });
         for (const key of ['videoUrl', 'audioUrl', 'transcript']) expect(await row()).not.toHaveProperty(key);
         expect(JSON.stringify((await effects()).jobs)).toContain('videos/new.mp4');
     });
 
-    it('does not delete an explicitly retained video when correcting its parallel audio track', async () => {
-        const { agent, id, row } = await setup();
+    it.each(['draft', 'rejected'])('keeps an explicitly retained video when correcting its parallel audio on %s', async status => {
+        const { agent, id, row } = await setup({ status });
         await agent.mutation(api.submissions.update, { id, videoStorageId: original.videoStorageId, audioStorageId: 'audio/new-track.m4a' });
         expect(await row()).toMatchObject({ videoStorageId: original.videoStorageId, audioStorageId: 'audio/new-track.m4a' });
     });

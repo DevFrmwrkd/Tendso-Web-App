@@ -651,12 +651,15 @@ export const update = mutation({
                 }
             }
         }
-        // A corrected interview must not keep the transcript or recording from
-        // the rejected take. Ordinary detail/photo edits retain every asset.
-        const replacedVideo = submission.status === 'rejected' && !!(updates.videoStorageId || updates.videoUrl)
+        // Replacing a field-agent take must not retain the previous recording
+        // or transcript. Ordinary detail/photo edits retain every asset.
+        const canReplaceInterview = submission.status === 'rejected' || (submission.status === 'draft'
+            && attributedAccount?.role === 'creator' && submission.contentSource !== 'owner_app'
+            && submission.contentSource !== 'owner_intake' && !submission.giveawayApplication);
+        const replacedVideo = canReplaceInterview && !!(updates.videoStorageId || updates.videoUrl)
             && (updates.videoStorageId !== undefined && updates.videoStorageId !== submission.videoStorageId
                 || updates.videoUrl !== undefined && updates.videoUrl !== submission.videoUrl);
-        const replacedAudio = submission.status === 'rejected' && !!(updates.audioStorageId || updates.audioUrl)
+        const replacedAudio = canReplaceInterview && !!(updates.audioStorageId || updates.audioUrl)
             && (updates.audioStorageId !== undefined && updates.audioStorageId !== submission.audioStorageId
                 || updates.audioUrl !== undefined && updates.audioUrl !== submission.audioUrl);
         if (replacedVideo || replacedAudio) {

@@ -21,6 +21,7 @@ import { captureDesign, captureDesignMatchesBusinessType, selectedCaptureDesignC
 import type { CaptureDesignDraft } from '../../../services/captureSession';
 import { capturePhotoReviewFor, needsCapturePhotoReview, type CapturePhotoReview } from '../../../services/capturePhotoReview';
 import { capturePhotosNeedSave } from '../../../services/capturePhotoChanges';
+import { captureInterviewNeedsSave } from '../../../services/captureInterviewChanges';
 
 type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
 type LocalPhotos = { submissionId: string; photoUris: string[]; existingPhotos: string[] };
@@ -56,7 +57,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const [localForm, setLocalForm] = useState<Form | null>(null);
   const [localPhotos, setLocalPhotos] = useState<LocalPhotos | null>(null);
   const [localInterview, setLocalInterview] = useState<LocalInterview | null>(null);
-  const [attachedInterview, setAttachedInterview] = useState<LocalInterview | null>(null);
+  const [interviewDraft, setInterviewDraft] = useState<LocalInterview | null>(null);
   const [snapshot, setSnapshot] = useState<(CaptureSnapshot & Form) | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ submissionId: string; items: { uri?: string; storageId?: string }[] } | null>(null);
   const [photoReview, setPhotoReview] = useState<CapturePhotoReview | null>(null);
@@ -76,6 +77,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const [audioLoading, setAudioLoading] = useState(false);
   const sound = useRef<Audio.Sound | null>(null);
   const playbackBusy = useRef(false);
+  const playbackVersion = useRef(0);
   const busy = useRef(false);
   const confirmOpen = useRef(false);
   const mounted = useRef(true);
@@ -84,6 +86,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   liveId.current = id;
   const liveBusinessType = useRef<string | null>(null);
   const liveSavedPhotos = useRef<unknown>(undefined);
+  const liveSavedInterview = useRef<unknown>(undefined);
   const quoteVersion = useRef(0);
   const initialized = useRef<string | null>(null);
   const initializedDomain = useRef<string | null>(null);
@@ -111,7 +114,14 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const submit = useMutation(api.submissions.submit);
   const checkDomain = useAction(api.domains.checkDomainAvailability);
 
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; void sound.current?.unloadAsync().catch(() => {}); }; }, []);
+  const stopPlayback = () => {
+    playbackVersion.current++; playbackBusy.current = false;
+    const player = sound.current; sound.current = null;
+    if (isCurrent()) { setAudioPlaying(false); setAudioLoading(false); setVideoOpen(false); }
+    void player?.unloadAsync().catch(() => {});
+  };
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useFocusEffect(useCallback(() => () => { stopPlayback(); }, [capture.actorKey]));
   useFocusEffect(useCallback(() => {
     let active = true;
     focus.current = true;
@@ -140,7 +150,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       setSnapshot(storedSnapshot?.submissionId === target && storedSnapshot.creatorId === capture.actor?.creatorId ? storedSnapshot : null);
       setPhotoMeta(storedMeta?.submissionId === target ? storedMeta : null);
       setPhotoReview(target ? capturePhotoReviewFor(storedPhotoReview, target) : null);
-      setAttachedInterview(interviewDraft?.submissionId === target && interviewDraft.attached ? interviewDraft : null);
+      setInterviewDraft(interviewDraft?.submissionId === target ? interviewDraft : null);
       setLocalDesign(design?.submissionId === target ? design : null);
       setQueuedDesign(pendingSubmit?.submissionId === target ? pendingSubmit : null);
       const matchingPending = !!pendingInfo && pendingInfo.creatorId === capture.actor?.creatorId
@@ -202,8 +212,10 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const form = localForm ?? submission ?? snapshot;
   liveBusinessType.current = form?.businessType ?? null;
   liveSavedPhotos.current = submission?.photos ?? snapshot?.photos;
+  liveSavedInterview.current = submission ?? snapshot;
   const requiresPhotoReview = !!id && needsCapturePhotoReview(photoReview, id, form?.businessType);
   const unsavedPhotoChanges = !!id && capturePhotosNeedSave(photoMeta, id, localPhotos ?? liveSavedPhotos.current);
+  const unsavedInterviewChanges = !!id && captureInterviewNeedsSave(interviewDraft, id, localInterview, liveSavedInterview.current);
   const emailError = captureEmailError(form?.ownerEmail);
   const cachedPhotoUrls = new Map((snapshot?.photos ?? []).map((key, index) => [key, snapshot?.resolvedPhotoUrls?.[index]]));
   const remotePhotos = (photoUrls ?? (capture.isOffline ? photoKeys.map(key => cachedPhotoUrls.get(key)) : [])).filter((uri): uri is string => !!uri);
@@ -216,9 +228,10 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const sharedCover = sourceFind && sourceFind.lead._id === sourceLeadId ? sourceFind.photoUrl : null;
   const thumbnailPhotos = sharedCover ? [sharedCover, ...photos] : photos;
   const photoCount = photoMeta ? photoMeta.items.length : localPhotos ? localPhotos.photoUris.length + localPhotos.existingPhotos.length : submission?.photos?.length ?? 0;
-  const previewInterview = localInterview ?? attachedInterview;
+  const previewInterview = interviewDraft ?? localInterview;
   const videoUri = previewInterview ? previewInterview.type === 'video' ? previewInterview.recordingUri : null : remoteVideo || submission?.videoUrl;
   const audioUri = previewInterview ? previewInterview.type === 'audio' ? previewInterview.recordingUri : null : remoteAudio || submission?.audioUrl;
+  useEffect(() => () => { stopPlayback(); }, [audioUri]);
   const hasInterview = !!(previewInterview || submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl);
   const wantsDomain = !!domain.trim();
   const correcting = submission?.status === 'rejected';
@@ -242,7 +255,7 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
   const savedDesignCode = selectedCaptureDesignCode(id, localDesign, queuedDesign, submission?.templateId);
   const mismatchedDesign = !!savedDesignCode && !captureDesignMatchesBusinessType(form?.businessType, savedDesignCode);
   const selectedDesign = mismatchedDesign ? null : captureDesign(savedDesignCode);
-  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft && !mismatchedDesign && !requiresPhotoReview && !unsavedPhotoChanges;
+  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft && !mismatchedDesign && !requiresPhotoReview && !unsavedPhotoChanges && !unsavedInterviewChanges;
   const queued = capture.isOffline || id === 'offline_pending' || !!localForm || !!localPhotos || !!localInterview;
   const editBusiness = () => {
     if (id && isCurrent()) router.push({ pathname: '/(app)/submit/info', params: { draftId: id } } as never);
@@ -258,9 +271,10 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       // The confirmation may stay open while another capture step changes the
       // business type. Recheck before each queued/server action, including after
       // awaited design and price saves, rather than trusting the rendered state.
-      const [pointer, storedReview, storedPhotoMeta, storedPendingPhotos] = await Promise.all([
+      const [pointer, storedReview, storedPhotoMeta, storedPendingPhotos, storedInterview, storedPendingInterview] = await Promise.all([
         capture.read<string>('current_submission_id'), capture.read<unknown>('submission_photo_review'),
         capture.read<typeof photoMeta>('submission_photo_tasks'), capture.read<LocalPhotos>('submission_pending_photos'),
+        capture.read<LocalInterview>('submission_interview_draft'), capture.read<LocalInterview>('submission_pending_interview'),
       ]);
       if (!isCurrent() || !focus.current || liveId.current !== sendingId || pointer !== sendingId || liveBusinessType.current !== sendingBusinessType) return false;
       const ownedPhotoMeta = storedPhotoMeta?.submissionId === sendingId ? storedPhotoMeta : null;
@@ -268,6 +282,11 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       setPhotoReview(capturePhotoReviewFor(storedReview, sendingId));
       setPhotoMeta(ownedPhotoMeta);
       setLocalPhotos(ownedPendingPhotos);
+      const ownedInterview = storedInterview?.submissionId === sendingId ? storedInterview : null;
+      const ownedPendingInterview = storedPendingInterview?.submissionId === sendingId ? storedPendingInterview : null;
+      setInterviewDraft(ownedInterview); setLocalInterview(ownedPendingInterview);
+      if (captureInterviewNeedsSave(ownedInterview, sendingId, ownedPendingInterview, liveSavedInterview.current)
+        || (ownedPendingInterview && !queued)) return false;
       const freshPhotoCount = ownedPhotoMeta ? ownedPhotoMeta.items.length : ownedPendingPhotos
         ? ownedPendingPhotos.existingPhotos.length + ownedPendingPhotos.photoUris.length
         : Array.isArray(liveSavedPhotos.current) ? liveSavedPhotos.current.length : 0;
@@ -330,21 +349,23 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       ], { cancelable: true, onDismiss: () => { confirmOpen.current = false; } });
   };
   const playAudio = async () => {
-    if (!audioUri || playbackBusy.current || !isCurrent()) return;
+    if (!audioUri || playbackBusy.current || !isCurrent() || !focus.current) return;
+    const version = ++playbackVersion.current;
+    const activePlayback = () => isCurrent() && focus.current && playbackVersion.current === version;
     playbackBusy.current = true;
     setAudioLoading(true);
     try {
-      if (sound.current) { await sound.current.unloadAsync(); sound.current = null; if (isCurrent()) setAudioPlaying(false); return; }
+      if (sound.current) { const player = sound.current; sound.current = null; await player.unloadAsync(); if (activePlayback()) setAudioPlaying(false); return; }
       const result = await Audio.Sound.createAsync({ uri: audioUri }, { shouldPlay: true });
-      if (!isCurrent()) { await result.sound.unloadAsync(); return; }
+      if (!activePlayback()) { await result.sound.unloadAsync(); return; }
       sound.current = result.sound; setAudioPlaying(true);
       result.sound.setOnPlaybackStatusUpdate(status => {
-        if (status.isLoaded && status.didJustFinish && isCurrent()) {
+        if (status.isLoaded && status.didJustFinish && activePlayback() && sound.current === result.sound) {
           sound.current = null; setAudioPlaying(false); void result.sound.unloadAsync().catch(() => {});
         }
       });
-    } catch { if (isCurrent()) setError('Could not play this recording.'); }
-    finally { playbackBusy.current = false; if (isCurrent()) setAudioLoading(false); }
+    } catch { if (activePlayback()) setError('Could not play this recording.'); }
+    finally { if (activePlayback()) { playbackBusy.current = false; setAudioLoading(false); } }
   };
   if (!hydrated || (canQuery && raw === undefined)) return <Loading />;
   if (!id || !form || (canQuery && raw === null) || (raw && !submission)) return <ScreenShell onBack={() => router.back()}><EmptyState title="Open your capture first"
@@ -369,6 +390,11 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
         action={<Button title="Review photos" variant="ghost" disabled={saving} onPress={() => {
           if (id && isCurrent()) router.push({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } } as never);
         }} />} /> : null}
+      {draft && unsavedInterviewChanges ? <Banner tone="warn" title="Save your interview changes"
+        body="A newer recording is saved on this phone. Open Interview and save it before sending."
+        action={<Button title="Save interview" variant="ghost" disabled={saving} onPress={() => {
+          if (id && isCurrent()) router.push({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } } as never);
+        }} />} /> : null}
       {!draft ? <><Banner tone="neutral" title="Already sent" body="This capture is being processed. Your details are saved." />
         <Button title="View capture status" variant="ghost" onPress={() => router.replace({ pathname: '/(app)/submit/success', params: { submissionId: id } } as never)} /></> : null}
       <Card style={styles.card}>
@@ -390,12 +416,12 @@ function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: b
       </Card>
       <Card style={styles.card}>
         <View style={styles.row}><Ionicons name={videoUri || submission?.videoStorageId ? 'videocam-outline' : 'mic-outline'} size={22} color={colors.ink} />
-          <Text weight="bold" style={styles.flex}>{hasInterview ? 'Interview ready' : 'Interview needed'}</Text>
+          <Text weight="bold" style={styles.flex}>{unsavedInterviewChanges ? 'Interview needs saving' : hasInterview ? 'Interview ready' : 'Interview needed'}</Text>
           {videoUri ? <TextLink label="Play interview" onPress={() => setVideoOpen(true)} />
             : audioUri ? <TextLink label={audioLoading ? 'Loading…' : audioPlaying ? 'Stop interview' : 'Play interview'} onPress={() => { void playAudio(); }} /> : null}</View>
         {submission?.transcript ? <Text tone="ink2">“{submission.transcript.slice(0, 220)}{submission.transcript.length > 220 ? '…' : ''}”</Text>
           : <Text tone="muted">The owner’s words and your photos help us build their site.</Text>}
-        <TextLink label="Edit interview" disabled={saving || !draft} onPress={() => router.push('/(app)/submit/interview' as never)} />
+        <TextLink label="Edit interview" disabled={saving || !draft} onPress={() => router.push({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } } as never)} />
       </Card>
       <Card style={styles.card}>
         <View style={styles.row}><Ionicons name="color-palette-outline" size={24} color={colors.ink} />

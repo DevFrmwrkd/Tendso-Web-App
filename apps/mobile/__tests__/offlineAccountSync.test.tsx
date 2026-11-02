@@ -106,6 +106,51 @@ it('keeps a queued capture for a new matching choice after Barber changes to Law
   expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
 });
 
+it('keeps an older queued interview and final submission paused while a newer take needs saving', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three'], audioStorageId: 'old-audio' });
+  scoped('current_submission_id', 'my-submission');
+  const pending = { submissionId: 'my-submission', type: 'audio', recordingUri: 'file://old.m4a' };
+  const draft = { ...pending, recordingUri: 'file://new.m4a', attached: false };
+  scoped('submission_pending_interview', pending); scoped('submission_interview_draft', draft);
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockUpload).not.toHaveBeenCalled(); expect(mockMutation).not.toHaveBeenCalled();
+  expect(read('submission_interview_draft')).toEqual(draft);
+  expect(read('submission_pending_interview')).toEqual(pending);
+  expect(read('submission_pending_submit')).not.toBeNull();
+  expect(Alert.alert).toHaveBeenCalledWith('Save your interview changes', expect.any(String));
+  scoped('submission_pending_interview', draft);
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+});
+
+it('does not overwrite a newer local take that arrives during an older queued upload', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three'], audioStorageId: 'old-audio' });
+  scoped('current_submission_id', 'my-submission');
+  const pending = { submissionId: 'my-submission', type: 'audio', recordingUri: 'file://queued.m4a' };
+  const newer = { ...pending, recordingUri: 'file://newer.m4a', attached: false };
+  scoped('submission_pending_interview', pending); scoped('submission_interview_draft', pending);
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  mockUpload.mockImplementationOnce(async () => {
+    scoped('submission_interview_draft', newer);
+    return { uploadUrl: 'https://upload.example/audio', fileKey: 'uploaded-old-audio' };
+  });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled();
+  expect(read('submission_interview_draft')).toEqual(newer);
+  expect(read('submission_pending_interview')).toEqual(pending);
+  expect(read('submission_pending_submit')).not.toBeNull();
+});
+
+it('withholds final sending for an unsaved take even without a pending interview queue', async () => {
+  row('my-submission', { photos: ['one', 'two', 'three'], audioStorageId: 'old-audio' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_interview_draft', { submissionId: 'my-submission', recordingUri: 'file://new.m4a', type: 'audio', attached: false });
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  const { result } = renderHook(() => useOfflineSync({ creatorId })); await sync(result);
+  expect(mockMutation).not.toHaveBeenCalled(); expect(read('submission_pending_submit')).not.toBeNull();
+});
+
 it('retains media and the queued choice until the agent confirms photos for the changed category', async () => {
   row('my-submission', { businessType: 'Law Office', photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
   scoped('current_submission_id', 'my-submission');

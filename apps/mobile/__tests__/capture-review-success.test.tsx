@@ -4,6 +4,7 @@ import { Alert, StyleSheet } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitReviewScreen from '../app/(app)/submit/review';
 import SubmitSuccessScreen from '../app/(app)/submit/success';
+import { Audio } from 'expo-av';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockSetTier = jest.fn();
@@ -17,6 +18,7 @@ const mockFindLookup = jest.fn();
 let mockActor = 'agent-1';
 let mockOffline = false;
 let mockRevision = 0;
+let mockFocused = true;
 let mockParams: Record<string, string>;
 let mockSubmissions: Record<string, any>;
 let mockFinds: Record<string, any>;
@@ -35,7 +37,7 @@ jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
-  useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
+  useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(() => mockFocused ? effect() : undefined, [effect, mockFocused]),
 }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   submissions: { getById: 'get', getPricingContext: 'pricing', setDomainTier: 'tier', chooseDesign: 'choose-design', submit: 'submit' },
@@ -88,7 +90,8 @@ async function review() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockActor = 'agent-1'; mockOffline = false; mockRevision = 0; mockParams = {};
+  mockActor = 'agent-1'; mockOffline = false; mockRevision = 0; mockFocused = true; mockParams = {};
+  jest.mocked(Audio.Sound.createAsync).mockReset();
   mockFinds = {};
   mockStorage.clear(); stored('current_submission_id', 'draft-1');
   mockSubmissions = { 'draft-1': { _id: 'draft-1', creatorId: mockActor, status: 'draft',
@@ -111,6 +114,58 @@ it('returns a resumed review to Design while keeping the same draft', async () =
   fireEvent.press(screen.getByRole('button', { name: 'Back' }));
   expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { draftId: 'draft-1', resumed: '1' } });
   expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it.each([false, true])('blocks an unsaved replacement interview instead of sending an older one: attached=%s', async attached => {
+  const take = { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached, storageId: attached ? 'new-audio' : undefined };
+  stored('submission_interview_draft', take);
+  const screen = await review();
+  expect(screen.getByText('Save your interview changes')).toBeTruthy();
+  expect(screen.getByText('Interview needs saving')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Save interview' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('queues the matching saved new take and keeps its Review return route', async () => {
+  const take = { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached: false };
+  stored('submission_interview_draft', take); stored('submission_pending_interview', take);
+  const screen = await review();
+  expect(screen.queryByText('Save your interview changes')).toBeNull();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit interview' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } });
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('rechecks interview changes that arrive while final confirmation or price save is pending', async () => {
+  let finish!: () => void;
+  mockSetTier.mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  stored('submission_interview_draft', { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached: false });
+  await act(async () => { finish(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(screen.getByText('Save your interview changes')).toBeTruthy();
+});
+
+it.each([false, true])('stops Review audio on blur, including a late player load: pending=%s', async pending => {
+  Object.assign(mockSubmissions['draft-1'], { videoStorageId: undefined, audioStorageId: 'voice' });
+  const player = { unloadAsync: jest.fn().mockResolvedValue(undefined), setOnPlaybackStatusUpdate: jest.fn() };
+  let finish!: (value: any) => void;
+  if (pending) jest.mocked(Audio.Sound.createAsync).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  else jest.mocked(Audio.Sound.createAsync).mockResolvedValueOnce({ sound: player } as any);
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Play interview' }));
+  await act(flush);
+  mockFocused = false; screen.rerender(<SubmitReviewScreen />);
+  if (pending) await act(async () => { finish({ sound: player }); await flush(); });
+  await waitFor(() => expect(player.unloadAsync).toHaveBeenCalledTimes(1));
+  expect(screen.queryByRole('link', { name: 'Stop interview' })).toBeNull();
 });
 
 it('requires a Law Office design after a business-type change without clearing the saved media', async () => {

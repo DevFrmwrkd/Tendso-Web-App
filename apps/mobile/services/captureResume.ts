@@ -4,6 +4,7 @@ import { MIN_PHOTOS } from '../lib/v2/captureContent';
 import { validCaptureDesignCode } from '../../../lib/captureDesign';
 import { capturePhotoReviewFor, needsCapturePhotoReview } from './capturePhotoReview';
 import { capturePhotosNeedSave } from './capturePhotoChanges';
+import { captureInterviewNeedsSave } from './captureInterviewChanges';
 
 export const CAPTURE_RESUME_KEYS = [
   'current_submission_id', 'submission_pending_sync', 'submission_pending_photos',
@@ -72,6 +73,8 @@ export function captureResumeStep(submissionId: string, creatorId: string, cache
   const photos = matching('submission_pending_photos');
   const photoDraft = matching('submission_photo_tasks');
   if (capturePhotosNeedSave(photoDraft, submissionId, photos ?? submission?.photos)) return 'photos';
+  if (captureInterviewNeedsSave(matching('submission_interview_draft'), submissionId,
+    matching('submission_pending_interview'), submission)) return 'interview';
   if (submission?.status === 'rejected') return 'review';
   const progress = captureProgressFor(cache.submission_progress, submissionId);
   if (progress) return progress.step;

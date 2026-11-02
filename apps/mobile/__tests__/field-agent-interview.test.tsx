@@ -12,6 +12,7 @@ const mockUpload = jest.fn();
 const mockUpdate = jest.fn();
 const mockFetch = jest.fn();
 const mockWrite = jest.fn();
+const mockFileLookup = jest.fn();
 let mockActor = 'agent-1';
 let mockOffline = false;
 let mockRevision = 0;
@@ -51,7 +52,7 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('convex/react', () => ({
   useQuery: (ref: unknown, args: any) => args === 'skip' ? undefined
-    : ref === 'file-url' ? `https://media.example.com/${args.storageId}` : mockSubmission,
+    : ref === 'file-url' ? (mockFileLookup(args), `https://media.example.com/${args.storageId}`) : mockSubmission,
   useAction: () => mockUpload,
   useMutation: () => mockUpdate,
 }));
@@ -336,4 +337,134 @@ it('keeps a voice-only take as one durable file and uploads it once', async () =
   await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/design'));
   expect(mockUpload).toHaveBeenCalledTimes(1);
   expect(mockUpdate).toHaveBeenCalledWith({ id: 'draft-1', audioStorageId: 'audio/take.m4a' });
+});
+
+it.each([false, true])('returns a saved interview edit to Review rather than Design: offline=%s', async offline => {
+  mockOffline = offline; mockParams = { returnTo: 'review' };
+  mockStorage.set('agent-1:submission_interview_draft', draft);
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled());
+  fireEvent.press(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('does not resolve media URLs from a foreign server capture', async () => {
+  mockSubmission = { _id: 'draft-1', creatorId: 'agent-other', status: 'draft', videoStorageId: 'private-video' };
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByText('Capture unavailable')).toBeTruthy());
+  expect(mockFileLookup).not.toHaveBeenCalled();
+  expect(screen.queryByTestId('interview-playback')).toBeNull();
+});
+
+it('does not attach or navigate an old take after a same-account pointer switch during upload preparation', async () => {
+  const screen = await open(); await record(screen);
+  let finish!: (value: { uploadUrl: string; fileKey: string }) => void;
+  mockUpload.mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+  await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(1));
+  mockStorage.set('agent-1:current_submission_id', 'different-capture');
+  const nextInterview = { ...draft, submissionId: 'different-capture', recordingUri: 'file://other-take.mp4' };
+  mockStorage.set('agent-1:submission_pending_interview', nextInterview);
+  await act(async () => { finish({ uploadUrl: 'https://upload.example.com/videos', fileKey: 'old-take' }); await flush(); });
+  expect(mockFetch).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_pending_interview')).toBe(nextInterview);
+});
+
+it('does not silently adopt an unrelated pointer for a previously offline take', async () => {
+  mockOffline = true; mockStorage.set('agent-1:current_submission_id', 'offline_pending');
+  mockStorage.set('agent-1:submission_interview_draft', { ...draft, submissionId: 'offline_pending' });
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Save and continue' })).toBeEnabled());
+  mockStorage.set('agent-1:current_submission_id', 'different-capture');
+  fireEvent.press(screen.getByRole('button', { name: 'Save and continue' }));
+  await act(flush);
+  expect(mockStorage.has('agent-1:submission_pending_interview')).toBe(false);
+  expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('rejects a delayed camera result after another capture becomes current', async () => {
+  const screen = await open();
+  fireEvent.press(screen.getByRole('button', { name: 'Start' }));
+  const oldCamera = mockCameraProps;
+  mockStorage.set('agent-1:current_submission_id', 'draft-2'); mockRevision++;
+  mockSubmission = { _id: 'draft-2', creatorId: mockActor, status: 'draft' };
+  await act(async () => { screen.rerender(<SubmitInterviewScreen />); await flush(); });
+  await waitFor(() => expect(screen.queryByTestId('recording-camera')).toBeNull());
+  await act(async () => { oldCamera.onFinish(result); await flush(); });
+  expect(mockStorage.get('agent-1:submission_interview_draft')).toBeUndefined();
+  expect(FileSystem.copyAsync).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('falls back to the uploaded recording after a retained local video fails to decode', async () => {
+  mockStorage.set('agent-1:submission_interview_draft', { ...draft, storageId: 'uploaded-video', audioStorageId: 'uploaded-audio' });
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByTestId('interview-playback')).toBeTruthy());
+  expect(screen.getByTestId('interview-playback').props.source.uri).toMatch(/^file:/);
+  fireEvent(screen.getByTestId('interview-playback'), 'error', 'Decode failed');
+  await waitFor(() => expect(screen.getByTestId('interview-playback').props.source.uri).toBe('https://media.example.com/uploaded-video'));
+  expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_interview_draft')).toMatchObject({ storageId: 'uploaded-video' });
+});
+
+it('does not open an unrelated current capture through an explicit resumed draft route', async () => {
+  mockParams = { draftId: 'other-draft', resumed: '1' };
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByText('This interview belongs to a different capture. Go back and reopen the correct draft.')).toBeTruthy());
+  expect(screen.queryByRole('button', { name: 'Start' })).toBeNull();
+  expect(mockWrite).not.toHaveBeenCalled(); expect(FileSystem.copyAsync).not.toHaveBeenCalled();
+});
+
+it('loads an old offline route only through its owned server-migration checkpoint', async () => {
+  mockParams = { draftId: 'offline_pending', resumed: '1' };
+  mockStorage.set('agent-1:submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1' });
+  mockStorage.set('agent-1:submission_interview_draft', { ...draft, submissionId: 'offline_pending' });
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
+  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+  await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: 'draft-1' })));
+});
+
+it('keeps an active recorder through a verified offline-to-server migration and saves its result to that target', async () => {
+  mockOffline = true; mockStorage.set('agent-1:current_submission_id', 'offline_pending');
+  const screen = await open(); fireEvent.press(screen.getByRole('button', { name: 'Start' }));
+  mockStorage.set('agent-1:current_submission_id', 'draft-1');
+  mockStorage.set('agent-1:submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1' });
+  mockOffline = false; mockRevision++;
+  await act(async () => { screen.rerender(<SubmitInterviewScreen />); await flush(); });
+  expect(screen.getByTestId('recording-camera')).toBeTruthy();
+  await act(async () => { mockCameraProps.onFinish(result); await flush(); });
+  await waitFor(() => expect(mockStorage.get('agent-1:submission_interview_draft')).toMatchObject({ submissionId: 'draft-1' }));
+  expect(screen.getByText('Interview recorded.')).toBeTruthy();
+});
+
+it('keeps the queued parallel backup when legacy draft metadata omits that field for the exact same take', async () => {
+  const { parallelAudioUri: _parallel, ...legacy } = draft;
+  mockStorage.set('agent-1:submission_interview_draft', legacy);
+  mockStorage.set('agent-1:submission_pending_interview', draft);
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
+  expect(FileSystem.copyAsync).toHaveBeenCalledTimes(2);
+  expect(mockStorage.get('agent-1:submission_interview_draft')).toMatchObject({ parallelAudioUri: expect.stringMatching(/\.m4a$/) });
+});
+
+it('respects an explicit removal of parallel audio instead of restoring an older queued backup', async () => {
+  mockStorage.set('agent-1:submission_interview_draft', { ...draft, parallelAudioUri: null });
+  mockStorage.set('agent-1:submission_pending_interview', draft);
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
+  expect(FileSystem.copyAsync).toHaveBeenCalledTimes(1);
+  expect(mockStorage.get('agent-1:submission_interview_draft')).toMatchObject({ parallelAudioUri: null });
+});
+
+it('uses an uploaded take when checking the old local recording fails', async () => {
+  mockStorage.set('agent-1:submission_interview_draft', { ...draft, storageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' });
+  mockSubmission = { ...mockSubmission, videoStorageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' };
+  jest.mocked(FileSystem.getInfoAsync).mockRejectedValueOnce(new Error('Local storage unavailable'));
+  const screen = render(<SubmitInterviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled());
+  expect(screen.getByTestId('interview-playback').props.source.uri).toBe('https://media.example.com/videos/take.mp4');
+  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/design'));
+  expect(mockUpload).not.toHaveBeenCalled();
 });
