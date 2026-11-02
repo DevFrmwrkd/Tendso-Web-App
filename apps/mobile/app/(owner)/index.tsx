@@ -3,12 +3,14 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useOwnerSubmission } from '../../lib/v2/ownerData';
-import { resumeStep, STEP_ROUTE } from '../../lib/v2/ownerFlow';
+import { ownerDraftSnapshot, resumeStep, STEP_ROUTE } from '../../lib/v2/ownerFlow';
+import { useOwnerIntake } from '../../lib/v2/ownerIntake';
 import { useOwnerSite } from '../../lib/v2/useOwnerSite';
 import { colors } from '../../theme/v2';
 
 export default function OwnerIndex() {
   const { me, site } = useOwnerSite();
+  const intake = useOwnerIntake();
   const draft = useOwnerSubmission(site?.phase === 'draft' ? site.submissionId : null);
 
   if (me === undefined || (site?.phase === 'draft' && draft === undefined)) {
@@ -19,12 +21,6 @@ export default function OwnerIndex() {
     );
   }
 
-  const step = resumeStep(site?.phase ?? null, draft ? {
-    businessName: draft.businessName,
-    businessType: draft.businessType,
-    answered: draft.interview.filter((a) => a.mediaUrl || a.answerText?.trim()).map((a) => a.index),
-    photos: draft.shots.length,
-    templateId: draft.templateId,
-  } : null);
+  const step = resumeStep(site?.phase ?? null, ownerDraftSnapshot(site?.submissionId ?? null, draft, intake));
   return <Redirect href={STEP_ROUTE[step] as never} />;
 }

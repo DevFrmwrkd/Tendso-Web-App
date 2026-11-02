@@ -33,6 +33,8 @@ export interface OwnerIntake {
   coordinates?: { lat: number; lng: number };
   /** self = the owner films themselves (front camera); friend = someone holds the phone (back camera). */
   how?: 'self' | 'friend';
+  /** Only Next on this draft confirms the filming setup; `how` alone is a preference. */
+  howConfirmedFor?: SubmissionId;
   audioOnly?: boolean;
   lang?: Lang;
   /** The draft on the server, once created. */

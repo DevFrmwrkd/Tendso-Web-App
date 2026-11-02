@@ -55,7 +55,9 @@ describe('resume', () => {
   it('resumes a draft at the first missing piece', () => {
     expect(resumeStep('draft', null)).toBe('sell');
     const base = { businessName: 'Forge', businessType: 'Barber/Salon', answered: [] as number[], photos: 0 };
-    expect(resumeStep('draft', base)).toBe('talk-intro');
+    expect(resumeStep('draft', base)).toBe('how');
+    expect(resumeStep('draft', { ...base, howConfirmed: false })).toBe('how');
+    expect(resumeStep('draft', { ...base, howConfirmed: true })).toBe('talk-intro');
     expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i) })).toBe('photos-intro');
     expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i), photos: 2 })).toBe('photos-intro');
     expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, i) => i), photos: 3 })).toBe('design');
@@ -70,6 +72,14 @@ describe('resume', () => {
     expect(firstMissingAnswer(withGap)).toBe(3);
     expect(firstMissingAnswer([])).toBe(0);
     expect(firstMissingAnswer(Array.from({ length: 10 }, (_, i) => i))).toBe(10);
+  });
+
+  it('does not send an existing interview back to setup merely because its old draft lacks a confirmation marker', () => {
+    const base = { businessName: 'Forge', businessType: 'Barber/Salon', photos: 0, howConfirmed: false };
+    expect(resumeStep('draft', { ...base, answered: [0] })).toBe('talk');
+    expect(resumeStep('draft', { ...base, answered: [10] })).toBe('talk');
+    expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, index) => index) })).toBe('photos-intro');
+    expect(resumeStep('draft', { ...base, answered: Array.from({ length: 10 }, (_, index) => index), photos: 3 })).toBe('design');
   });
 
   it('sends every server phase to the right screen', () => {

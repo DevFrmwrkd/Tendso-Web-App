@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ListRow, ScreenShell, Text } from '../../../components/v2';
 import { Buddy, SiteFrame } from '../../../components/v2/owner/OwnerUI';
 import { useOwnerSubmission, usePreview } from '../../../lib/v2/ownerData';
-import { phaseLine, resumeStep, STEP_ROUTE, todayAction } from '../../../lib/v2/ownerFlow';
+import { ownerDraftSnapshot, phaseLine, resumeStep, STEP_ROUTE, todayAction } from '../../../lib/v2/ownerFlow';
+import { useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { firstName, greeting, useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { hostOf } from '../../../lib/v2/ownerContent';
 import { colors, shadow, space } from '../../../theme/v2';
@@ -13,16 +14,14 @@ import { colors, shadow, space } from '../../../theme/v2';
 export default function Today() {
   const router = useRouter();
   const { me, site, id } = useOwnerSite();
+  const intake = useOwnerIntake();
   const preview = usePreview(site && site.phase !== 'draft' && site.phase !== 'building' ? id : null);
   const draft = useOwnerSubmission(site?.phase === 'draft' ? id : null);
   const name = firstName(me);
   const phase = site?.phase ?? null;
   const action = todayAction(phase, site);
-  const step = phase === 'draft' ? resumeStep('draft', draft ? {
-    businessName: draft.businessName, businessType: draft.businessType,
-    answered: draft.interview.filter(answer => answer.mediaUrl || answer.answerText?.trim()).map(answer => answer.index),
-    photos: draft.shots.length, templateId: draft.templateId,
-  } : null) : action.step === 'home' ? null : action.step;
+  const step = phase === 'draft' ? resumeStep('draft', ownerDraftSnapshot(id, draft, intake))
+    : action.step === 'home' ? null : action.step;
   const go = () => {
     if (phase === 'in_review' || phase === 'rejected' || phase === 'offline') router.push('/(owner)/(tabs)/agents' as never);
     else if (step) router.push(STEP_ROUTE[step] as never);
@@ -39,7 +38,7 @@ export default function Today() {
   return <ScreenShell title={name ? `${greeting()}, ${name}` : greeting()} insetBottom={false} contentStyle={styles.content}
     headerRight={<Pressable onPress={() => router.push('/(owner)/me/inbox' as never)} accessibilityRole="button" accessibilityLabel="Open owner inbox" style={styles.bell}>
       <Ionicons name="notifications-outline" size={24} color={colors.ink} /></Pressable>}
-    footer={<Button title={action.label} onPress={go} />}>
+    footer={<Button title={action.label} disabled={phase === 'draft' && !draft} onPress={go} />}>
     {site ? <>
       <Pressable onPress={() => router.push('/(owner)/(tabs)/site' as never)} accessibilityRole="button"
         accessibilityLabel={`${site.businessName}, ${phaseLine(phase)}`} style={[styles.card, shadow.soft]}>

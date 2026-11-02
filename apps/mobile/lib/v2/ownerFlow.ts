@@ -6,7 +6,9 @@
  *   sell → place → how → talk → photos → design → building → check → pay → live → home
  */
 import { INTERVIEW_QUESTIONS } from './captureContent';
-import type { OwnerPhase, SiteSummary } from './ownerTypes';
+import type { OwnerPhase, OwnerSubmission, SiteSummary, SubmissionId } from './ownerTypes';
+import type { OwnerIntake } from './ownerIntake';
+import { ownerAnswersFor, ownerPhotosFor } from './ownerMedia';
 import { peso } from './ownerContent';
 
 export type OwnerStep =
@@ -78,6 +80,22 @@ export interface DraftSnapshot {
   /** Photos saved (guided + extras). */
   photos: number;
   templateId?: string | null;
+  /** The phone choice was confirmed for this draft, rather than another shop. */
+  howConfirmed?: boolean;
+}
+
+/** Shared by cold-start routing and Today, including work still uploading. */
+export function ownerDraftSnapshot(id: SubmissionId | null, draft: OwnerSubmission | undefined, intake: OwnerIntake): DraftSnapshot | null {
+  if (!id || draft?.submissionId !== id) return null;
+  return {
+    businessName: draft.businessName,
+    businessType: draft.businessType,
+    answered: ownerAnswersFor(id, draft, intake).map(answer => answer.index),
+    photos: ownerPhotosFor(id, draft, intake).length,
+    templateId: draft.templateId,
+    howConfirmed: intake.submissionId === id && intake.howConfirmedFor === id
+      && (intake.how === 'self' || intake.how === 'friend'),
+  };
 }
 
 export const MIN_PHOTOS_TO_SEND = 3;
@@ -99,6 +117,8 @@ export function resumeStep(phase: OwnerPhase | null, draft?: DraftSnapshot | nul
       return 'sell';
     case 'draft': {
       if (!draft || !draft.businessName || !draft.businessType) return 'sell';
+      // Existing recordings prove setup was passed on an older app or device.
+      if (draft.answered.length === 0 && !draft.howConfirmed) return 'how';
       if (firstMissingAnswer(draft.answered) < INTERVIEW_QUESTIONS.length) {
         return draft.answered.length === 0 ? 'talk-intro' : 'talk';
       }

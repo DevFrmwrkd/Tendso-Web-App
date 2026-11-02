@@ -34,5 +34,5 @@ function OwnerRecorder({ scope, redo }: { scope: ReturnType<typeof useOwnerScope
     onFinish={result => {
       if (!scope.isDraftCurrent()) return;
       ownerIntake.set({ lang: result.lang }); router.replace(STEP_ROUTE['talk-done'] as never);
-    }} onClose={() => { if (scope.isCurrent()) router.back(); }} />;
+    }} onClose={() => { if (scope.isCurrent()) router.dismissTo(STEP_ROUTE['talk-intro'] as never); }} />;
 }

@@ -16,6 +16,7 @@ const mockClear = jest.fn();
 const mockResume = jest.fn();
 const mockOwnerQuery = jest.fn();
 const mockStackUnmount = jest.fn();
+const mockStackMount = jest.fn();
 let mockAuth: any;
 let mockMobile: any;
 let mockMe: any;
@@ -28,9 +29,12 @@ jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRout
 jest.mock('../lib/v2/ownerFlags', () => ({ OWNER_SAMPLE_DATA: false }));
 jest.mock('../lib/v2/ownerData', () => ({
   WEB_ORIGIN: 'https://tendso.test', useOwnerMe: () => { mockOwnerQuery(); return mockMe; },
-  useEnsureOwner: () => mockEnsure, useOwnerSubmission: () => ({ submissionId: 'site-a' }),
+  useEnsureOwner: () => mockEnsure, useOwnerSubmission: (id: string | null) => id ? { submissionId: id } : undefined,
 }));
-jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ me: mockMe, site: mockMe?.sites[0] ?? null, id: mockMe?.sites[0]?.submissionId ?? null }) }));
+jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => {
+  const site = mockMe?.sites.find((item: any) => item.submissionId === mockIntake.submissionId) ?? mockMe?.sites[0] ?? null;
+  return { me: mockMe, site, id: site?.submissionId ?? null };
+} }));
 jest.mock('../lib/v2/ownerUploads', () => ({ useOwnerUploads: () => ({ resume: mockResume }) }));
 jest.mock('../lib/v2/ownerIntake', () => ({
   ownerIntake: {
@@ -43,7 +47,7 @@ jest.mock('../components/CreatorAttributionGate', () => ({ CreatorAttributionGat
 jest.mock('expo-router', () => {
   const { createElement: makeElement, useEffect } = require('react'); const { View, Text } = require('react-native');
   const Stack = ({ children }: any) => {
-    useEffect(() => () => mockStackUnmount(), []);
+    useEffect(() => { mockStackMount(mockIntake.submissionId); return () => mockStackUnmount(); }, []);
     return makeElement(View, { testID: 'owner-stack' }, children);
   };
   Stack.Screen = () => null;
@@ -72,6 +76,10 @@ beforeEach(() => {
   mockMobile = { isLoading: false, isOffline: false, account: null, role: null };
   mockScope = 1; mockActor = 'owner-a'; mockIntake = { ownerName: 'Juan', submissionId: 'site-a' };
   mockMe = meFixture();
+  mockSet.mockReset().mockImplementation((patch: any) => {
+    if (patch.submissionId && mockIntake.submissionId && patch.submissionId !== mockIntake.submissionId) mockScope += 1;
+    mockIntake = { ...mockIntake, ...patch };
+  });
   mockEnsure.mockReset().mockResolvedValue({ ownerId: 'owner-record-a' });
   mockSignOut.mockReset().mockResolvedValue(undefined);
   mockMigrate.mockReset().mockResolvedValue(undefined);
@@ -124,6 +132,62 @@ it('waits for verified legacy migration before rendering uploads or owner routes
   expect(screen.queryByTestId('owner-stack')).toBeNull(); expect(mockResume).not.toHaveBeenCalled();
   await act(async () => { finish(); await flush(); });
   expect(screen.getByTestId('owner-stack')).toBeTruthy(); expect(mockResume).toHaveBeenCalledTimes(1);
+});
+
+it('selects the newest owned server draft before mounting capture or resuming uploads on a clean install', async () => {
+  mockIntake = { ownerName: 'Juan' };
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockSet).toHaveBeenCalledWith({ submissionId: 'site-a' });
+  expect(mockStackMount).toHaveBeenCalledWith('site-a');
+  expect(mockResume).toHaveBeenCalledWith('site-a', { submissionId: 'site-a' });
+});
+
+it('keeps an owned selected draft instead of resetting it to the newest site', async () => {
+  mockIntake = { ownerName: 'Juan', submissionId: 'selected-older-site' };
+  mockMe = { ...mockMe, sites: [...mockMe.sites, { ...mockMe.sites[0], submissionId: 'selected-older-site' }] };
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockSet).not.toHaveBeenCalled();
+  expect(mockStackMount).toHaveBeenCalledWith('selected-older-site');
+  expect(mockResume).toHaveBeenCalledWith('selected-older-site', { submissionId: 'selected-older-site' });
+});
+
+it('replaces a foreign pointer with the current actor’s newest owned site even when that write advances scope', async () => {
+  mockIntake = { ownerName: 'Juan', submissionId: 'foreign-site' };
+  const scope = mockScope;
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockSet).toHaveBeenCalledWith({ submissionId: 'site-a' });
+  expect(mockScope).toBe(scope + 1);
+  expect(mockStackMount).toHaveBeenCalledWith('site-a');
+  expect(mockResume).toHaveBeenCalledWith('site-a', { submissionId: 'site-a' });
+});
+
+it('never adopts a stale actor’s site when legacy migration finishes after an account switch', async () => {
+  mockIntake = { ownerName: 'Juan', submissionId: 'foreign-site' };
+  let finish!: () => void;
+  mockMigrate.mockReturnValueOnce(new Promise<void>(resolve => { finish = resolve; }));
+  const screen = render(<OwnerLayout />);
+  await waitFor(() => expect(mockMigrate).toHaveBeenCalledTimes(1));
+  mockAuth = { ...mockAuth, userId: 'owner-b', sessionId: 'session-b' };
+  mockMe = { owner: { _id: 'owner-record-b', name: 'B', email: 'b@example.test' }, sites: [{ ...mockMe.sites[0], submissionId: 'site-b' }] };
+  screen.rerender(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  await act(async () => { finish(); await flush(); });
+  expect(mockSet).toHaveBeenCalledTimes(1);
+  expect(mockSet).toHaveBeenCalledWith({ submissionId: 'site-b' });
+  expect(mockStackMount).toHaveBeenCalledWith('site-b');
+  expect(mockSet).not.toHaveBeenCalledWith({ submissionId: 'site-a' });
+});
+
+it('does not adopt a foreign pointer when the actor owns no sites', async () => {
+  mockIntake = { submissionId: 'foreign-site' };
+  mockMe = { ...mockMe, sites: [] };
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockSet).not.toHaveBeenCalled();
+  expect(mockResume).not.toHaveBeenCalled();
 });
 
 it('does not retain the previous actor’s ensure error or permanent asked flag', async () => {

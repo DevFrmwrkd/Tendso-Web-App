@@ -93,7 +93,7 @@ it('switches owned sites without relabeling the previous shop photos or details'
   const { intake } = runtime();
   await intake.bindActor('owner-a');
   intake.set({ submissionId: 'draft-a' as SubmissionId, businessName: 'A shop', kind: 'barber', design: 'barbershop:F',
-    address: 'A street', shots: ['file://a.jpg'], lang: 'tl',
+    address: 'A street', shots: ['file://a.jpg'], lang: 'tl', how: 'friend', howConfirmedFor: 'draft-a' as SubmissionId,
     uploads: [{ kind: 'photo', submissionId: 'draft-a' as SubmissionId, index: 0, extra: false, uri: 'file://a.jpg' }] });
   const oldScope = intake.scope();
   intake.set({ submissionId: 'draft-b' as SubmissionId });
@@ -103,4 +103,31 @@ it('switches owned sites without relabeling the previous shop photos or details'
   expect(intake.get().businessName).toBeUndefined();
   expect(intake.get().kind).toBeUndefined();
   expect(intake.get().design).toBeUndefined();
+  expect(intake.get().how).toBe('friend');
+  expect(intake.get().howConfirmedFor).toBeUndefined();
+});
+
+it('restores a flushed phone-holder confirmation after restarting the process for the same owner and draft', async () => {
+  const { intake } = runtime();
+  await intake.bindActor('owner-a');
+  intake.set({ submissionId: 'draft-a' as SubmissionId, how: 'self', howConfirmedFor: 'draft-a' as SubmissionId });
+  await intake.flush();
+  jest.resetModules();
+  const restarted = runtime().intake;
+  await restarted.bindActor('owner-a');
+  expect(restarted.get()).toMatchObject({ submissionId: 'draft-a', how: 'self', howConfirmedFor: 'draft-a' });
+  await restarted.bindActor('owner-b');
+  expect(restarted.get().howConfirmedFor).toBeUndefined();
+});
+
+it('does not turn a saved camera preference into a confirmed setup on restart', async () => {
+  const { intake } = runtime();
+  await intake.bindActor('owner-a');
+  intake.set({ submissionId: 'draft-a' as SubmissionId, how: 'friend' });
+  await intake.flush();
+  jest.resetModules();
+  const restarted = runtime().intake;
+  await restarted.bindActor('owner-a');
+  expect(restarted.get().how).toBe('friend');
+  expect(restarted.get().howConfirmedFor).toBeUndefined();
 });

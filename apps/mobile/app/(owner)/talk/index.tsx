@@ -25,7 +25,7 @@ export default function TalkIntro() {
     ownerIntake.set({ audioOnly }); router.push(STEP_ROUTE.talk as never);
   };
   return <ScreenShell title="10 short questions" subtitle="Answer in English or Tagalog, one at a time." progress={0.25}
-    onBack={() => router.back()} contentStyle={styles.content} footer={<>
+    onBack={() => { if (scope.isCurrent()) router.dismissTo((readOnly ? '/(owner)/(tabs)/site' : STEP_ROUTE.how) as never); }} contentStyle={styles.content} footer={<>
       <Button title={complete || readOnly ? 'Review your answers' : 'Start'} disabled={!scope.id}
         onPress={() => { if (scope.isCurrent()) complete || readOnly ? router.push(STEP_ROUTE['talk-done'] as never) : start(false); }} />
       {!readOnly ? <Pressable onPress={() => start(true)} accessibilityRole="button" style={styles.voice}><Text weight="bold">Voice only, no video</Text></Pressable> : null}

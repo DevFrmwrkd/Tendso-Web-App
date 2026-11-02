@@ -82,7 +82,17 @@ function OwnerAccount({ actorId, signOut, offline }: {
     let active = true;
     const scope = ownerIntake.scope();
     void ownerIntake.migrateLegacy(me.sites.map(site => site.submissionId)).then(() => {
-      if (active && ownerIntake.isCurrent(scope)) setMigrated(membership);
+      if (!active || !mounted.current || !ownerIntake.isCurrent(scope)) return;
+      const owned = liveMe.current;
+      if (!owned || owned.owner._id !== me.owner._id) return;
+      const selected = ownerIntake.get().submissionId;
+      if (!owned.sites.some(site => site.submissionId === selected) && owned.sites[0]) {
+        ownerIntake.set({ submissionId: owned.sites[0].submissionId });
+      }
+      // Replacing a foreign selection intentionally advances the journal epoch.
+      // The new owned pointer must be ready before capture/upload children mount.
+      const selectedScope = ownerIntake.scope();
+      if (active && mounted.current && ownerIntake.isCurrent(selectedScope)) setMigrated(membership);
     }).catch(() => {
       if (active && ownerIntake.isCurrent(scope)) setError('We could not restore your saved progress. Please try again.');
     });
