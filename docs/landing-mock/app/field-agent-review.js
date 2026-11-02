@@ -245,10 +245,12 @@
     read: false,
     history: 'All',
     profileReview: false,
+    referralBack: 'me',
+    referralCopied: false,
     repair: false,
     resubmitted: false,
   };
-  let toastTimer;
+  let toastTimer, referralCopyTimer;
   const escape = (value) =>
     String(value ?? '').replace(
       /[&<>"']/g,
@@ -268,6 +270,8 @@
     Number(n).toLocaleString('en-PH', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
   const paths = {
     arrow: '<path d="m14 6-6 6 6 6m-6-6h13"/>',
+    copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4m-6.8 7 6.8 4"/>',
     check: '<path d="m5 12 4 4L19 6"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
     chevron: '<path d="m9 5 7 7-7 7"/>',
@@ -532,7 +536,7 @@
           email = long ? 'mika.santos.creator.payouts@example.com' : 'mika@example.com',
           previewLayout = earnPreviewLayout(['+₱2,000', '−₱1,000']);
         return app(
-          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between" aria-live="polite"><span class="fa-label" data-earned-month>Earned in ${month.name}</span><b data-earned-total>${peso(month.total)}</b></div><div class="fa-chart" role="group" aria-label="Monthly credited earnings">${earnMonths.map((m, i) => `<button type="button" class="fa-bar" data-earn-month="${i}" aria-pressed="${i === selected}" aria-label="${m.name} 2026, ${peso(m.total)} earned"><i aria-hidden="true" style="height:${(m.total / 6000) * 36}px"></i><span>${m.short}</span></button>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div>${earnActivity(business, 'Earnings · Nov 1', '+₱2,000', 'shop', previewLayout)}<div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div>${earnActivity('To Wise · Oct 30', email, '−₱1,000', 'send', previewLayout, 'Processing')}<div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
+          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between" aria-live="polite"><span class="fa-label" data-earned-month>Earned in ${month.name}</span><b data-earned-total>${peso(month.total)}</b></div><div class="fa-chart" role="group" aria-label="Monthly credited earnings">${earnMonths.map((m, i) => `<button type="button" class="fa-bar" data-earn-month="${i}" aria-pressed="${i === selected}" aria-label="${m.name} 2026, ${peso(m.total)} earned"><i aria-hidden="true" style="height:${(m.total / 6000) * 36}px"></i><span>${m.short}</span></button>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div>${earnActivity(business, 'Earnings · Nov 1', '+₱2,000', 'shop', previewLayout)}<div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div>${earnActivity('To Wise · Oct 30', email, '−₱1,000', 'send', previewLayout, 'Processing')}<div class="fa-card">${row('Invite field agents', '₱1,000 after their first fully paid site', 'gift', 'referrals')}</div>`,
           { nav: 'earn', noHead: true, footer: btn('Cash out to Wise', 'cashout') },
         );
       }
@@ -559,9 +563,25 @@
               ) + btn('Not now', 'earn', 'ghost'),
           },
         );
+      case 'referrals': {
+        const people = [
+          { name: 'Ramon Cruz', joined: 'today', status: 'Signed up', tone: 'info' },
+          { name: 'Joy Dizon', joined: '2d ago', status: 'Qualified', tone: 'lime' },
+          { name: 'Lea Reyes', joined: '5d ago', status: 'Rewarded', tone: 'lime' },
+        ];
+        const steps = [
+          ['Share your code', 'Send it to someone who visits shops.'],
+          ['They join with it', 'They choose a field agent account and enter your code.'],
+          ['You earn ₱1,000', 'Once their first website is fully paid, the one-time bonus is added to your Earn balance.'],
+        ];
+        return app(
+          `<div><h2>Invite field agents</h2><p class="fa-muted">Earn ₱1,000 when a friend’s first site is fully paid.</p></div><div class="fa-card fa-referral-reward"><h3>₱1,000 per friend</h3><p>A one-time bonus when their first website is fully paid. It’s added to your Earn balance.</p></div><div class="fa-card fa-referral-code"><span class="fa-label">Your code</span><strong class="fa-amount">MIKA8K2Q</strong>${btn(icon('share') + ' Share', '', '', 'data-action="referral-share" aria-label="Share referral code"')}${btn(icon(interactive && demo.referralCopied ? 'check' : 'copy') + (interactive && demo.referralCopied ? ' Copied' : ' Copy code'), '', 'ghost', 'data-action="referral-copy" aria-label="Copy referral code"')}</div><div class="fa-referral-counts">${[['3', 'Invited'], ['2', 'Qualified'], ['₱2,000', 'Earned']].map(([value, label]) => `<div class="fa-card" aria-label="${label}, ${value}"><b>${value}</b><span class="fa-label">${label}</span></div>`).join('')}</div><span class="fa-label">People you invited</span><div class="fa-card fa-referral-people">${people.map((person) => `<div class="fa-referral-person"><span class="fa-referral-avatar" aria-hidden="true">${person.name[0]}</span><span class="fa-referral-person-copy"><b>${person.name}</b><small class="fa-muted">Joined ${person.joined}</small></span><span class="fa-flag ${person.tone}">${person.status}</span></div>`).join('')}</div><span class="fa-label">How it works</span>${steps.map(([title, subtitle]) => `<div class="fa-card fa-referral-step"><span class="fa-dot" aria-hidden="true"></span><div><b>${title}</b><p class="fa-muted">${subtitle}</p></div></div>`).join('')}`,
+          { title: '', back: interactive ? demo.referralBack : 'me' },
+        );
+      }
       case 'me':
         return app(
-          `<div class="fa-card"><div class="fa-row">${avatar()}<div><h3>Mika Santos</h3><p class="fa-muted">Field agent</p><span class="fa-flag lime">Certified</span></div></div><div class="fa-between"><span class="fa-label">Your code</span><b>MIKA8K2Q</b></div></div><div class="fa-card"><div class="fa-between fa-center"><div><b>12</b><p class="fa-small fa-muted">Submitted</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Balance</p></div><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div></div></div>${section('Your work', row('Show my certificate', 'View and share it', 'check') + row('Dashboard', 'Your sites and recent activity', 'grid') + row('Your submissions', 'Includes drafts', 'shop') + row('Invite field agents', '', 'gift'))}${section('Settings', row('Edit profile', '', 'edit', 'profile') + row('Notifications', 'See your latest updates', 'bell', 'notifications') + row('Change password', '', 'lock'))}${section('Help', row('Learn & help', '', 'book', 'training') + row('Help & FAQ', '', 'book'))}${section('Legal', row('Terms of Service', '', 'book') + row('Privacy Policy', '', 'lock'))}${btn('Sign out', '', 'danger')}`,
+          `<div class="fa-card"><div class="fa-row">${avatar()}<div><h3>Mika Santos</h3><p class="fa-muted">Field agent</p><span class="fa-flag lime">Certified</span></div></div><div class="fa-between"><span class="fa-label">Your code</span><b>MIKA8K2Q</b></div></div><div class="fa-card"><div class="fa-between fa-center"><div><b>12</b><p class="fa-small fa-muted">Submitted</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Balance</p></div><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div></div></div>${section('Your work', row('Show my certificate', 'View and share it', 'check') + row('Dashboard', 'Your sites and recent activity', 'grid') + row('Your submissions', 'Includes drafts', 'shop') + row('Invite field agents', '', 'gift', 'referrals'))}${section('Settings', row('Edit profile', '', 'edit', 'profile') + row('Notifications', 'See your latest updates', 'bell', 'notifications') + row('Change password', '', 'lock'))}${section('Help', row('Learn & help', '', 'book', 'training') + row('Help & FAQ', '', 'book'))}${section('Legal', row('Terms of Service', '', 'book') + row('Privacy Policy', '', 'lock'))}${btn('Sign out', '', 'danger')}`,
           { nav: 'me', noHead: true },
         );
       case 'profile':
@@ -797,6 +817,7 @@
     }
     if (el.dataset.go) {
       if (el.dataset.go === 'profile') demo.profileReview = current === 'rejected';
+      if (el.dataset.go === 'referrals') demo.referralBack = current === 'earn' ? 'earn' : 'me';
       select(el.dataset.go);
       return;
     }
@@ -870,7 +891,19 @@
       return;
     }
     const action = el.dataset.action;
-    if (action === 'activity-history') {
+    if (action === 'referral-share') {
+      toast('Preview only. In the app, Share opens your device’s share sheet with your saved referral code.');
+    } else if (action === 'referral-copy') {
+      demo.referralCopied = true;
+      el.innerHTML = icon('check') + ' Copied';
+      toast('Preview only. The app copies your saved code; this board has not changed your clipboard.');
+      clearTimeout(referralCopyTimer);
+      referralCopyTimer = setTimeout(() => {
+        demo.referralCopied = false;
+        const button = document.querySelector('#fa-live-phone [data-action="referral-copy"]');
+        if (button) button.innerHTML = icon('copy') + ' Copy code';
+      }, 2500);
+    } else if (action === 'activity-history') {
       demo.history = el.dataset.activityKind === 'earning' ? 'Earned' : 'Cashed out';
       select('history');
       document.querySelector('#fa-live-phone [aria-label="Back"]')?.focus();

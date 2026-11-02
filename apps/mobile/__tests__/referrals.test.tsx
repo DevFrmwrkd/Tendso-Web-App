@@ -77,14 +77,21 @@ describe("ReferralsScreen", () => {
     expect(await findByText("Copied")).toBeTruthy();
   });
 
-  it("says the 5% rule for creators and makes no peso claim for field agents", () => {
+  it("shows each account’s reward rule and the field-agent full-payment condition", () => {
     mockRole = "affiliate";
     const creatorView = render(<ReferralsScreen />);
     expect(creatorView.getByText("You earn 5% of their sales")).toBeTruthy();
+    expect(creatorView.queryByText('₱1,000 per friend')).toBeNull();
+    expect(creatorView.queryByText('You earn ₱1,000')).toBeNull();
     creatorView.unmount();
     mockRole = "creator";
     const agentView = render(<ReferralsScreen />);
     expect(agentView.queryByText(/5%/)).toBeNull();
+    expect(agentView.getByText('Earn ₱1,000 when a friend’s first site is fully paid.')).toBeTruthy();
+    expect(agentView.getByRole('header', { name: '₱1,000 per friend' })).toBeTruthy();
+    expect(agentView.getByText('A one-time bonus when their first website is fully paid. It’s added to your Earn balance.')).toBeTruthy();
+    expect(agentView.getByText('You earn ₱1,000')).toBeTruthy();
+    expect(agentView.getByText('Once their first website is fully paid, the one-time bonus is added to your Earn balance.')).toBeTruthy();
   });
 
   it("shows post-cutover recruits even when there are no legacy referral records", () => {

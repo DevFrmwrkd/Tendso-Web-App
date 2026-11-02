@@ -24,9 +24,9 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Check long peso totals and the floating button on a narrow phone with larger text.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 212 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 342 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 458 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 213 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 343 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 459 },
       { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 79 },
       { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 208 },
     ],
@@ -50,7 +50,7 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Use Back to return to Earn; check Android hardware Back only closes the focused history view.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 347 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 348 },
       { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 177 },
       { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 246 },
     ],
@@ -76,9 +76,9 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Review request success, failure and repeated-tap feedback using a non-payment test flow.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 238 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 471 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 526 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 239 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 472 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 527 },
     ],
   },
   {
@@ -153,6 +153,33 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       { path: 'apps/mobile/app/(app)/notifications.tsx', line: 134 },
       { path: 'apps/mobile/app/(app)/notifications.tsx', line: 183 },
       { path: 'apps/mobile/app/(app)/notifications.tsx', line: 300 },
+    ],
+  },
+  {
+    id: 'referrals',
+    title: 'Invite field agents',
+    area: 'account',
+    status: 'device',
+    summary:
+      'A field agent earns a one-time ₱1,000 bonus per invited friend when that friend’s first real website is fully paid. Signing up alone does not earn a bonus.',
+    implemented: [
+      'Earn and Me both open Invite field agents, with a clear ₱1,000 per friend reward card before the saved referral code.',
+      'Share and Copy use the signed-in agent’s saved code in the app; the board demonstrates these controls without opening a share sheet or changing the clipboard.',
+      'Invited, Qualified and Earned summarize the account’s invitations, including rewarded invitations in Qualified.',
+      'How it works explains that the one-time bonus is added to Earn after the friend’s first website is fully paid.',
+    ],
+    checks: [
+      'Open the invitation screen from Earn and Me, then return to the originating screen.',
+      'Read the reward card and all three steps at standard and larger text sizes; keep the code and actions within the phone.',
+      'On a phone, verify Share and Copy use your own saved referral code, and handle cancelled sharing without losing the list.',
+      'Compare Signed up, Qualified and Rewarded invitations: do not imply a sign-up or training completion alone earns ₱1,000.',
+    ],
+    sources: [
+      { path: 'apps/mobile/app/(app)/referrals.tsx', line: 104 },
+      { path: 'apps/mobile/app/(app)/referrals.tsx', line: 126 },
+      { path: 'apps/mobile/app/(app)/referrals.tsx', line: 132 },
+      { path: 'packages/shared/pricing.ts', line: 75 },
+      { path: 'convex/referrals.ts', line: 79 },
     ],
   },
 ];

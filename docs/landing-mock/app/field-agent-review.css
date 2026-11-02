@@ -1161,6 +1161,104 @@ code {
 .fa-history-detail {
   overflow-wrap: anywhere;
 }
+.fa-referral-reward {
+  background: #f6f9c4;
+  gap: 8px;
+}
+.fa-referral-reward h3 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+.fa-referral-code {
+  gap: 16px;
+}
+.fa-referral-code .fa-amount {
+  max-width: 100%;
+  font-size: 48px;
+  letter-spacing: -0.04em;
+}
+.fa-referral-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.fa-referral-counts .fa-card {
+  padding: 16px;
+  gap: 4px;
+}
+.fa-referral-counts b {
+  font-size: 24px;
+  white-space: nowrap;
+  letter-spacing: -0.04em;
+}
+.fa-referral-counts .fa-label {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fa-referral-people {
+  padding: 4px 16px;
+  gap: 0;
+}
+.fa-referral-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 4px;
+}
+.fa-referral-person + .fa-referral-person {
+  border-top: 1px solid #ecece6;
+}
+.fa-referral-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f6f9c4;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.fa-referral-person-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.fa-referral-person-copy b {
+  font-size: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fa-referral-person-copy small {
+  font-size: 16px;
+}
+.fa-referral-person .fa-flag {
+  align-self: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.fa-referral-person .fa-flag.info {
+  background: #e7ecf3;
+  color: #1f3654;
+}
+.fa-referral-step {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.fa-referral-step > div {
+  min-width: 0;
+}
+.fa-referral-step b {
+  font-size: 18px;
+}
+.fa-referral-step p {
+  font-size: 16px;
+}
 .fa-chart {
   display: flex;
   height: 64px;
@@ -1375,6 +1473,22 @@ code {
 }
 .fa-app.large .fa-earn-activity {
   --earn-font-scale: 1.1875;
+}
+.fa-app.large .fa-referral-reward h3 {
+  font-size: 28px;
+}
+.fa-app.large .fa-referral-code .fa-amount {
+  font-size: 57px;
+}
+.fa-app.large .fa-referral-person-copy b,
+.fa-app.large .fa-referral-step b {
+  font-size: 21px;
+}
+.fa-app.large .fa-referral-person-copy small,
+.fa-app.large .fa-referral-person .fa-flag,
+.fa-app.large .fa-referral-step p,
+.fa-app.large .fa-referral-code .fa-btn {
+  font-size: 19px;
 }
 .fa-interview-dark {
   background: #121210;

@@ -9,9 +9,10 @@ import {
   UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { REFERRAL_BONUS } from '@tendso/shared/pricing';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
-import { Card, ScreenShell, Text } from '../../components/v2';
+import { Card, ScreenShell, Text, formatPeso } from '../../components/v2';
 import { colors, hit, radius, space } from '../../theme/v2';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -146,7 +147,7 @@ const FAQ_ITEMS: FAQItem[] = [
     audience: 'agent',
     question: 'How do referrals work?',
     answer:
-      'Share your code from the Me tab with a friend who wants to join as a field agent. When their first site is paid, your bonus lands in your wallet. Referrals that were already pending keep their ₱1,000.',
+      `Share your code from Invite field agents with a friend who wants to join as a field agent. They must enter your code when joining. You earn a one-time ${formatPeso(REFERRAL_BONUS)} bonus per friend when their first website is fully paid. The bonus is added to your Earn balance.`,
     icon: 'people-outline',
   },
   // ---- Account ----

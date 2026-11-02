@@ -3,6 +3,7 @@ import { Share, StyleSheet, View } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
+import { REFERRAL_BONUS } from '@tendso/shared/pricing';
 import * as Clipboard from 'expo-clipboard';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useNetwork } from '../../providers/NetworkProvider';
@@ -29,6 +30,7 @@ const STATUS_META: Record<string, { label: string; tone: ChipTone }> = {
   qualified: { label: 'Qualified', tone: 'ok' },
   paid: { label: 'Rewarded', tone: 'ok' },
 };
+const referralBonus = formatPeso(REFERRAL_BONUS);
 
 function timeAgo(ts: number): string {
   const d = Math.floor((Date.now() - ts) / 86_400_000);
@@ -99,7 +101,7 @@ export default function ReferralsScreen() {
   const qualifiedCount = (stats?.qualified ?? 0) + (stats?.paid ?? 0);
   const people: any[] = referralList ?? [];
 
-  // How it works. Creators earn a share of sales; field agents get no peso claim here.
+  // Affiliate recruits earn a sales share; field-agent invites earn a one-time bonus.
   const steps = isAffiliate
     ? [
         { title: 'Share your code', subtitle: 'Send it to someone who visits shops.' },
@@ -112,17 +114,25 @@ export default function ReferralsScreen() {
     : [
         { title: 'Share your code', subtitle: 'Send it to someone who visits shops.' },
         { title: 'They join with it', subtitle: 'They choose a field agent account and enter your code.' },
-        { title: 'They get started', subtitle: 'They complete training and build their first site.' },
+        {
+          title: `You earn ${referralBonus}`,
+          subtitle: 'Once their first website is fully paid, the one-time bonus is added to your Earn balance.',
+        },
       ];
 
   return (
     <ScreenShell
       title="Invite field agents"
-      subtitle={isAffiliate ? 'They join with your code. You earn from their sales.' : 'Bring a friend to Tendso.'}
+      subtitle={isAffiliate ? 'They join with your code. You earn from their sales.' : `Earn ${referralBonus} when a friend’s first site is fully paid.`}
       onBack={() => router.back()}
       contentStyle={styles.content}
     >
       {isOffline ? <Banner tone="warn" icon="cloud-offline-outline" body="You're offline. Reconnect to see your list." /> : null}
+
+      {!isAffiliate ? <Card variant="tint" style={styles.bonusCard}>
+        <Text variant="title" accessibilityRole="header">{referralBonus} per friend</Text>
+        <Text tone="ink2">A one-time bonus when their first website is fully paid. It’s added to your Earn balance.</Text>
+      </Card> : null}
 
       {/* Code card */}
       <Card variant="lg" style={styles.codeCard}>
@@ -218,6 +228,7 @@ export default function ReferralsScreen() {
 
 const styles = StyleSheet.create({
   content: { gap: space.lg },
+  bonusCard: { gap: space.sm },
   codeCard: { gap: space.lg },
   codeHead: { gap: space.xs },
   buttons: { gap: space.sm },

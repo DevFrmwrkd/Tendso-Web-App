@@ -3,6 +3,7 @@ import { Alert, BackHandler, Keyboard, Linking, Platform, Pressable, ScrollView,
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
+import { REFERRAL_BONUS } from '@tendso/shared/pricing';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useNetwork } from '../../../providers/NetworkProvider';
@@ -450,7 +451,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
         </View>
         <Card style={styles.linkCard}>
           <ListRow icon="people-outline" title="Invite field agents"
-            subtitle={isAffiliate ? 'See your team commissions' : 'Bring a friend to Tendso'}
+            subtitle={isAffiliate ? 'See your team commissions' : `${formatPeso(REFERRAL_BONUS)} after their first fully paid site`}
             onPress={() => router.push('/(app)/referrals' as any)} accessibilityLabel="View your referrals" />
         </Card>
       </View>
