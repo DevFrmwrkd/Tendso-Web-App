@@ -88,6 +88,8 @@ import type * as lib_quality from "../lib/quality.js";
 import type * as lib_referralCodes from "../lib/referralCodes.js";
 import type * as lib_reminders from "../lib/reminders.js";
 import type * as lib_settlement from "../lib/settlement.js";
+import type * as lib_shopCaptureProgress from "../lib/shopCaptureProgress.js";
+import type * as lib_submissionAccess from "../lib/submissionAccess.js";
 import type * as lib_submissionReview from "../lib/submissionReview.js";
 import type * as lib_tendsoGoogle from "../lib/tendsoGoogle.js";
 import type * as lib_wise from "../lib/wise.js";
@@ -209,6 +211,8 @@ declare const fullApi: ApiFromModules<{
   "lib/referralCodes": typeof lib_referralCodes;
   "lib/reminders": typeof lib_reminders;
   "lib/settlement": typeof lib_settlement;
+  "lib/shopCaptureProgress": typeof lib_shopCaptureProgress;
+  "lib/submissionAccess": typeof lib_submissionAccess;
   "lib/submissionReview": typeof lib_submissionReview;
   "lib/tendsoGoogle": typeof lib_tendsoGoogle;
   "lib/wise": typeof lib_wise;
