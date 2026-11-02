@@ -6,6 +6,7 @@ import { Banner, Button, ScreenShell, Text } from '../v2';
 import { SiteFrame } from '../v2/owner/OwnerUI';
 import type { Design } from '../../lib/v2/ownerContent';
 import { SITE_URL } from '../../services/links';
+import { capturePreviewCss } from '../../services/capturePreviewStyles';
 import { colors, radius, shadow, space } from '../../theme/v2';
 
 const GAP = 12;
@@ -43,7 +44,8 @@ function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
     </Pressable> : null}
   </View>;
   return <SiteFrame key={request} uri={uri} width={width} height={height}
-    scale={scale} interactive={width === undefined} samplePreview onPreviewError={() => setFailedRequest(request)}
+    scale={scale} interactive={width === undefined} samplePreview samplePreviewCss={capturePreviewCss(design.code)}
+    onPreviewError={() => setFailedRequest(request)}
     style={width === undefined ? styles.flex : undefined} testID={testID} />;
 }
 

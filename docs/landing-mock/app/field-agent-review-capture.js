@@ -99,6 +99,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'Barber/Salon offers Forge, Minimal, Botanica and Vogue; Spa/Massage offers Botanica and Vogue.',
       'Auto Shop offers Job-Sheet Industrial; Craft/Producer offers Narra & Co. and Kalachuchi; Restaurant offers Pastel Deco Panaderia; Other, Clinic and Law Office offer Cedar & Stone.',
       'Recommendations are limited to the field-agent picker. The owner catalog is unchanged, and an existing saved canonical design remains available even when outside this shortlist.',
+      'Minimal, Botanica, Vogue and Cedar & Stone carry their phone layout fixes with the app, so the samples do not have to wait for a hosted website update.',
       'Use this design explicitly saves the owned draft choice and continues to Review; selection does not build or submit.',
       'Offline choices remain available with “Reconnect to preview this sample.” External sample actions are blocked. The board keeps sample scripts disabled and makes reveal content visible for static review.',
     ],
@@ -111,6 +112,8 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
     sources: [
       { path: 'apps/mobile/services/captureDesign.ts', line: 6 },
       { path: 'apps/mobile/services/captureDesign.ts', line: 27 },
+      { path: 'apps/mobile/services/capturePreviewStyles.ts', line: 67 },
+      { path: 'apps/mobile/components/v2/owner/OwnerUI.tsx', line: 258 },
       { path: 'apps/mobile/components/field-agent/CaptureDesignGallery.tsx', line: 28 },
       { path: 'apps/mobile/components/field-agent/CaptureDesignGallery.tsx', line: 124 },
       { path: 'apps/mobile/components/field-agent/CaptureDesignGallery.tsx', line: 159 },

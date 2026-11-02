@@ -235,6 +235,7 @@ export function SiteFrame({
   style,
   testID,
   samplePreview = false,
+  samplePreviewCss = '',
   onPreviewError,
 }: {
   uri?: string | null;
@@ -247,11 +248,31 @@ export function SiteFrame({
   testID?: string;
   /** Read-only public template document; default owner site behavior stays unchanged. */
   samplePreview?: boolean;
+  /** Optional phone CSS for this sample; ignored for ordinary owner websites. */
+  samplePreviewCss?: string;
   onPreviewError?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const source = html ? { html } : uri ? { uri } : null;
   const inner = scale !== 1 && width && height ? { width: width / scale, height: height / scale } : null;
+  const sampleScript = samplePreview ? SAMPLE_PREVIEW_SCRIPT + (samplePreviewCss ? `
+(function () {
+  var css = ${JSON.stringify(samplePreviewCss)};
+  function apply() {
+    var host = document.head || document.documentElement;
+    if (!host) return;
+    var style = document.getElementById('tendso-sample-preview-css');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'tendso-sample-preview-css';
+    }
+    if (style.textContent !== css) style.textContent = css;
+    host.appendChild(style);
+  }
+  apply();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
+})(); true;
+` : '') : undefined;
   return (
     <View style={[styles.frame, width ? { width } : null, height ? { height } : null, style]} testID={testID} pointerEvents={interactive ? 'auto' : 'none'}>
       {source ? (
@@ -276,8 +297,8 @@ export function SiteFrame({
             } : undefined}
             onShouldStartLoadWithRequest={samplePreview ? request => !!uri && request.navigationType !== 'formsubmit'
               && isSamplePreviewNavigationAllowed(uri, request.url) : undefined}
-            injectedJavaScriptBeforeContentLoaded={samplePreview ? SAMPLE_PREVIEW_SCRIPT : undefined}
-            injectedJavaScript={samplePreview ? SAMPLE_PREVIEW_SCRIPT : undefined}
+            injectedJavaScriptBeforeContentLoaded={sampleScript}
+            injectedJavaScript={sampleScript}
             scrollEnabled={interactive}
             showsVerticalScrollIndicator={false}
             setSupportMultipleWindows={false}

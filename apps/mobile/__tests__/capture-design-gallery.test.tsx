@@ -1,8 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react-native';
 import { Modal, StyleSheet } from 'react-native';
+import { runInNewContext } from 'node:vm';
 import { CaptureDesignGallery, type CaptureDesignGalleryProps } from '../components/field-agent/CaptureDesignGallery';
 import { SiteFrame, isSamplePreviewNavigationAllowed } from '../components/v2/owner/OwnerUI';
+import { capturePreviewCss } from '../services/capturePreviewStyles';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
@@ -151,7 +153,70 @@ it('blocks forms and external actions in sample mode without changing normal own
   expect(frame.props.onShouldStartLoadWithRequest({ url: uri, navigationType: 'formsubmit' })).toBe(false);
   expect(frame.props.onShouldStartLoadWithRequest({ url: 'tel:123', navigationType: 'click' })).toBe(false);
   expect(frame.props.injectedJavaScriptBeforeContentLoaded).toContain("document.addEventListener('submit', block, true)");
-  screen.rerender(<SiteFrame uri={uri} />);
+  screen.rerender(<SiteFrame uri={uri} samplePreviewCss="body{color:red}" />);
   expect(screen.getByTestId('sample-webview').props.onShouldStartLoadWithRequest).toBeUndefined();
+  expect(screen.getByTestId('sample-webview').props.injectedJavaScriptBeforeContentLoaded).toBeUndefined();
   expect(screen.getByTestId('sample-webview').props.injectedJavaScript).toBeUndefined();
+});
+
+it.each([
+  ['barbershop:I', 'Minimal', 'i'], ['salonspa:L', 'Botanica', 'l'],
+  ['salonspa:N', 'Vogue', 'n'], ['generic:C', 'Cedar & Stone', 'c'],
+])('carries %s phone styles into both the thumbnail and full sample', (code, name, letter) => {
+  const design = { code, name, preview: `/template-previews/${letter}.html` };
+  const screen = render(<CaptureDesignGallery {...props({ designs: [design], selectedCode: code })} />);
+  const expected = JSON.stringify(capturePreviewCss(code));
+  const thumbnail = screen.getByTestId('sample-webview');
+  expect(thumbnail.props.injectedJavaScriptBeforeContentLoaded).toContain(expected);
+  expect(thumbnail.props.injectedJavaScript).toBe(thumbnail.props.injectedJavaScriptBeforeContentLoaded);
+  fireEvent.press(screen.getByLabelText(`${name} design. Preview sample website.`));
+  const full = within(screen.getByTestId('capture-design-full-preview')).getByTestId('sample-webview');
+  expect(full.props.injectedJavaScript).toContain(expected);
+  expect(full.props.injectedJavaScriptBeforeContentLoaded).toBe(full.props.injectedJavaScript);
+});
+
+it('adds sample CSS as text once and restores its precedence when the document becomes ready', () => {
+  const css = 'a::after{content:"</style><script>window.injected=true</script>"}\n/* " \\ */';
+  const screen = render(<SiteFrame uri="https://samples.example.com/template-previews/c.html" samplePreview samplePreviewCss={css} />);
+  const frame = screen.getByTestId('sample-webview');
+  type StyleNode = { id: string; textContent: string };
+  const rootNodes: StyleNode[] = [];
+  const headNodes: StyleNode[] = [];
+  const nodes = new Map<string, StyleNode>();
+  const host = (children: StyleNode[]) => ({ appendChild: (node: StyleNode) => {
+    for (const list of [rootNodes, headNodes]) {
+      const oldIndex = list.indexOf(node);
+      if (oldIndex >= 0) list.splice(oldIndex, 1);
+    }
+    children.push(node); nodes.set(node.id, node);
+  } });
+  const document = {
+    head: null as ReturnType<typeof host> | null,
+    documentElement: host(rootNodes),
+    readyState: 'loading',
+    getElementById: (id: string) => nodes.get(id) ?? null,
+    createElement: jest.fn((): StyleNode => ({ id: '', textContent: '' })),
+    addEventListener: jest.fn(),
+  };
+  const window: Record<string, unknown> = {};
+  const context = { document, window, location: { href: frame.props.source.uri }, URL };
+  runInNewContext(frame.props.injectedJavaScriptBeforeContentLoaded, context);
+  expect(rootNodes).toHaveLength(1);
+  const style = rootNodes[0];
+  expect(style.textContent).toBe(css);
+  expect(window.injected).toBeUndefined();
+  const ready = document.addEventListener.mock.calls.find(call => call[0] === 'DOMContentLoaded');
+  expect(ready?.[2]).toEqual({ once: true });
+
+  document.head = host(headNodes);
+  headNodes.push({ id: 'author-style', textContent: 'a{color:red}' });
+  document.readyState = 'complete';
+  ready?.[1]();
+  runInNewContext(frame.props.injectedJavaScript, context);
+  expect(rootNodes).toHaveLength(0);
+  expect(headNodes).toHaveLength(2);
+  expect(headNodes[1]).toBe(style);
+  expect(document.createElement).toHaveBeenCalledTimes(1);
+  expect(document.createElement).toHaveBeenCalledWith('style');
+  expect(document.addEventListener.mock.calls.filter(call => call[0] === 'submit')).toHaveLength(1);
 });
