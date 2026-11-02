@@ -15,7 +15,6 @@ import {
   Banner,
   Button,
   Card,
-  CheckRow,
   Chip,
   Loading,
   ScreenShell,
@@ -101,7 +100,7 @@ export default function ReferralsScreen() {
   const qualifiedCount = (stats?.qualified ?? 0) + (stats?.paid ?? 0);
   const people: any[] = referralList ?? [];
 
-  // Affiliate recruits earn a sales share; field-agent invites earn a one-time bonus.
+  // Affiliate inviters earn a sales share; field-agent invites earn a one-time bonus.
   const steps = isAffiliate
     ? [
         { title: 'Share your code', subtitle: 'Send it to someone who visits shops.' },
@@ -216,11 +215,20 @@ export default function ReferralsScreen() {
       {/* How it works */}
       <View style={styles.section}>
         <SectionLabel>How it works</SectionLabel>
-        <View style={styles.steps}>
-          {steps.map((s) => (
-            <CheckRow key={s.title} title={s.title} subtitle={s.subtitle} state="todo" />
+        <Card style={styles.steps}>
+          {steps.map((s, index) => (
+            <View key={s.title} accessible accessibilityLabel={`Step ${index + 1}. ${s.title}. ${s.subtitle}`}
+              style={[styles.step, index > 0 && styles.stepDivider]}>
+              <View style={styles.stepNumber} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <Text variant="label" weight="bold" align="center">{index + 1}</Text>
+              </View>
+              <View style={styles.stepText}>
+                <Text variant="label" weight="semibold">{s.title}</Text>
+                <Text variant="label" weight="medium" tone="muted">{s.subtitle}</Text>
+              </View>
+            </View>
           ))}
-        </View>
+        </Card>
       </View>
     </ScreenShell>
   );
@@ -240,5 +248,10 @@ const styles = StyleSheet.create({
   person: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.xs },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
   personText: { flex: 1, minWidth: 0, gap: 2 },
-  steps: { gap: space.sm },
+  steps: { paddingHorizontal: space.lg, paddingVertical: space.xs },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.lg },
+  stepDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule },
+  stepNumber: { minWidth: 32, minHeight: 32, paddingHorizontal: space.sm, paddingVertical: 6, borderRadius: 16,
+    flexShrink: 0, alignSelf: 'flex-start', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
+  stepText: { flex: 1, minWidth: 0, gap: space.xs },
 });

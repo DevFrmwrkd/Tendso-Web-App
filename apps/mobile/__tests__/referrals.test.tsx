@@ -58,6 +58,8 @@ describe("ReferralsScreen", () => {
     expect(getByText("RHEA123")).toBeTruthy();
     expect(getByLabelText("Share referral code")).toBeTruthy();
     expect(getByLabelText("Copy referral code")).toBeTruthy();
+    expect(getByLabelText('Step 1. Share your code. Send it to someone who visits shops.')).toBeTruthy();
+    expect(getByLabelText('Step 2. They join with it. They choose a field agent account and enter your code.')).toBeTruthy();
   });
 
   it("shows a status chip per person and keeps the pending bonus amount", () => {
@@ -81,6 +83,7 @@ describe("ReferralsScreen", () => {
     mockRole = "affiliate";
     const creatorView = render(<ReferralsScreen />);
     expect(creatorView.getByText("You earn 5% of their sales")).toBeTruthy();
+    expect(creatorView.getByLabelText('Step 3. You earn 5% of their sales. For 12 months, one level only, paid once the shop has paid in full.')).toBeTruthy();
     expect(creatorView.queryByText('₱1,000 per friend')).toBeNull();
     expect(creatorView.queryByText('You earn ₱1,000')).toBeNull();
     creatorView.unmount();
@@ -92,6 +95,7 @@ describe("ReferralsScreen", () => {
     expect(agentView.getByText('A one-time bonus when their first website is fully paid. It’s added to your Earn balance.')).toBeTruthy();
     expect(agentView.getByText('You earn ₱1,000')).toBeTruthy();
     expect(agentView.getByText('Once their first website is fully paid, the one-time bonus is added to your Earn balance.')).toBeTruthy();
+    expect(agentView.getByLabelText('Step 3. You earn ₱1,000. Once their first website is fully paid, the one-time bonus is added to your Earn balance.')).toBeTruthy();
   });
 
   it("shows post-cutover recruits even when there are no legacy referral records", () => {

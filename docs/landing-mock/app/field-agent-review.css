@@ -1245,19 +1245,50 @@ code {
   background: #e7ecf3;
   color: #1f3654;
 }
+.fa-card.fa-referral-steps {
+  margin: 0;
+  list-style: none;
+  padding: 4px 16px;
+  gap: 0;
+}
 .fa-referral-step {
-  flex-direction: row;
-  align-items: center;
+  display: flex;
+  align-items: start;
   gap: 12px;
+  padding: 16px 0;
+}
+.fa-referral-step + .fa-referral-step {
+  border-top: 1px solid #ecece6;
+}
+.fa-referral-step-number {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px 8px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
 }
 .fa-referral-step > div {
+  flex: 1;
   min-width: 0;
+  display: grid;
+  gap: 4px;
 }
 .fa-referral-step b {
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
 }
 .fa-referral-step p {
   font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  overflow-wrap: anywhere;
 }
 .fa-chart {
   display: flex;
@@ -1480,15 +1511,21 @@ code {
 .fa-app.large .fa-referral-code .fa-amount {
   font-size: 57px;
 }
-.fa-app.large .fa-referral-person-copy b,
-.fa-app.large .fa-referral-step b {
+.fa-app.large .fa-referral-person-copy b {
   font-size: 21px;
 }
 .fa-app.large .fa-referral-person-copy small,
 .fa-app.large .fa-referral-person .fa-flag,
+.fa-app.large .fa-referral-step b,
+.fa-app.large .fa-referral-step-number,
 .fa-app.large .fa-referral-step p,
 .fa-app.large .fa-referral-code .fa-btn {
   font-size: 19px;
+}
+.fa-app.large .fa-referral-step b,
+.fa-app.large .fa-referral-step p,
+.fa-app.large .fa-referral-step-number {
+  line-height: 24px;
 }
 .fa-interview-dark {
   background: #121210;
