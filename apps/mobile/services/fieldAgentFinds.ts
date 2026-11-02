@@ -63,7 +63,7 @@ export function filterCommunityFinds(
 
 export function findWebsiteLabel(lead: CommunityFind): string {
   if (lead.hasLiveWebsite === true) return 'Live';
-  if (hasSubmittedInterview(lead)) return 'Interview submitted';
-  if (lead.needsWebsite === true) return 'Needs a site';
-  return lead.needsWebsite === false ? 'Has a website' : 'Check for a website';
+  if (hasSubmittedInterview(lead)) return 'Submitted';
+  if (lead.needsWebsite === true) return 'Needs website';
+  return lead.needsWebsite === false ? 'Has website' : 'Check website';
 }

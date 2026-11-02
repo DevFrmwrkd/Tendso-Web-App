@@ -306,7 +306,7 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
           </Pressable>
         </View>
         <View style={styles.filters}>
-          <FilterPill label={`Needs a site · ${needsCount}`} on={filter === 'needs'} dashed onPress={() => selectFilter('needs')} />
+          <FilterPill label={`Needs website · ${needsCount}`} on={filter === 'needs'} dashed onPress={() => selectFilter('needs')} />
           <FilterPill label={`Yours · ${mineCount}`} on={filter === 'mine'} onPress={() => selectFilter('mine')} />
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel={`Map area: ${area?.label ?? 'Choose an area'}. Change area`}

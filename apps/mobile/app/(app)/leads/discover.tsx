@@ -702,9 +702,9 @@ export default function DiscoverLeadsScreen() {
       <View style={[styles.floatCol, { top: insets.top + space.sm + 48 + space.md }]} pointerEvents="box-none">
         {!isLoading && pinned.length > 0 ? (
           <View style={styles.legend}>
-            <View style={[styles.legendPill, shadow.soft, styles.legendOn]} accessible accessibilityLabel={`Needs a site, ${needsCount}`}>
+            <View style={[styles.legendPill, shadow.soft, styles.legendOn]} accessible accessibilityLabel={`Needs website, ${needsCount}`}>
               <View style={styles.legendRing} />
-              <Text variant="chip" tone="onDark">{`Needs a site · ${needsCount}`}</Text>
+              <Text variant="chip" tone="onDark">{`Needs website · ${needsCount}`}</Text>
             </View>
             <View style={[styles.legendPill, shadow.soft]} accessible accessibilityLabel={`Yours, ${yoursCount}`}>
               <View style={styles.legendDot} />
@@ -744,7 +744,7 @@ export default function DiscoverLeadsScreen() {
                   {`${activeLead.distanceLabel} · ${CATEGORY_STYLES[activeLead.category].label}`}
                 </Text>
               </View>
-              <Chip label={isYours(activeLead) ? 'Yours' : 'Needs a site'} tone={isYours(activeLead) ? 'ok' : 'info'} />
+              <Chip label={isYours(activeLead) ? 'Yours' : 'Needs website'} tone={isYours(activeLead) ? 'ok' : 'info'} />
             </View>
 
             <View style={styles.whoRow}>
@@ -841,7 +841,7 @@ export default function DiscoverLeadsScreen() {
                     {biz.businessName}
                   </Text>
                   <Text variant="label" tone="muted" weight="medium" numberOfLines={1}>
-                    {`${biz.distanceLabel} · ${isYours(biz) ? 'Yours' : 'Needs a site'}`}
+                    {`${biz.distanceLabel} · ${isYours(biz) ? 'Yours' : 'Needs website'}`}
                   </Text>
                 </Pressable>
               ))}

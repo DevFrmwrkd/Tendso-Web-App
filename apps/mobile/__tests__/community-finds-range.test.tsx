@@ -92,7 +92,7 @@ it('retains a search and orders its matching shops by real distance after expand
   expect(screen.queryByRole('button', { name: /^Ramon Repair,/ })).toBeNull();
 });
 
-it.each(['All finds', 'Needs a site', 'Food'])('hides distance controls in %s and remembers the range when returning to Near me', (filter) => {
+it.each(['All finds', 'Needs website', 'Food'])('hides distance controls in %s and remembers the range when returning to Near me', (filter) => {
   const screen = render(<CommunityFinds />);
   fireEvent.press(screen.getByRole('button', { name: 'Within 25 km' }));
   fireEvent.changeText(screen.getByLabelText('Search community finds'), 'shop');
@@ -192,7 +192,7 @@ it('keeps submitted shops in the feed with automatic progress and discovery-only
     { ...find('captured-with-photo', 0.6, 'Spotted Shop'), hasSubmittedCapture: true,
       photoUrl: 'https://photos.example/discovery.jpg', previewImageUrl: 'https://private.example/submission-photo.jpg' }];
   const screen = render(<CommunityFinds />);
-  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  expect(screen.getAllByText('Submitted')).toHaveLength(2);
   const photos = screen.UNSAFE_getAllByType(ShopImage);
   expect(photos.find(node => node.props.name === 'Interviewed Shop')!.findByType(Image).props.source)
     .toEqual(getShopPlaceholder('Food', 'food'));
@@ -201,7 +201,7 @@ it('keeps submitted shops in the feed with automatic progress and discovery-only
   expect(photos.some(node => node.props.uri === 'https://private.example/submission-photo.jpg')).toBe(false);
   fireEvent.press(screen.getByRole('button', { name: /^Interviewed Shop,/ }));
   expect(mockPush).toHaveBeenCalledWith('/(app)/leads/captured');
-  const needsFilter = screen.getAllByRole('button', { name: 'Needs a site' })
+  const needsFilter = screen.getAllByRole('button', { name: 'Needs website' })
     .find(node => typeof node.props.accessibilityState?.selected === 'boolean')!;
   fireEvent.press(needsFilter);
   expect(screen.queryByRole('button', { name: /^Interviewed Shop,/ })).toBeNull();

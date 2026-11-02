@@ -415,10 +415,10 @@ it.each(['qualified', 'converted'])('does not call the CRM %s status Visiting or
   expect(screen.queryByText('Live')).toBeNull();
 });
 
-it.each([null, false])('does not infer Needs a site from missing website data (%s)', (needsWebsite) => {
+it.each([null, false])('does not infer Needs website from missing website data (%s)', (needsWebsite) => {
   mockDetail.needsWebsite = needsWebsite;
   const screen = render(<LeadDetailScreen />);
-  expect(screen.queryByText('Needs a site')).toBeNull();
+  expect(screen.queryByText('Needs website')).toBeNull();
 });
 
 it('uses verified website availability for Live and does not offer another capture', () => {
@@ -427,7 +427,7 @@ it('uses verified website availability for Live and does not offer another captu
   mockDetail.websiteUrl = 'https://nena.tendso.site';
   const screen = render(<LeadDetailScreen />);
   expect(screen.getAllByText('Live')).toHaveLength(2);
-  expect(screen.queryByText('Needs a site')).toBeNull();
+  expect(screen.queryByText('Needs website')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
   fireEvent.press(screen.getByRole('button', { name: 'View website' }));
   expect(mockExternalUrl).toHaveBeenCalledWith('https://nena.tendso.site');
@@ -489,7 +489,7 @@ it('uses automatic capture progress and attribution without exposing another age
   mockDetail.interviewers = [{ creatorId: 'other-agent', creatorName: 'Ben Cruz', creatorProfileImage: null,
     interviewedAt: Date.now(), submissionId: 'private-submission', submissionStatus: 'submitted', isMine: false }];
   const screen = render(<LeadDetailScreen />);
-  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  expect(screen.getAllByText('Submitted')).toHaveLength(2);
   expect(screen.getByText('Ben Cruz')).toBeTruthy();
   expect(screen.getByText('Recorded automatically from submitted interviews.')).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
@@ -514,7 +514,7 @@ it('treats automatically created capture shops as read-only even when their lega
   mockDetail.isCaptureShop = true;
   mockDetail.hasSubmittedCapture = true;
   const screen = render(<LeadDetailScreen />);
-  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  expect(screen.getAllByText('Submitted')).toHaveLength(2);
   expect(screen.queryByRole('button', { name: 'Set status to Qualified' })).toBeNull();
 });
 

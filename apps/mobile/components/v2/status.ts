@@ -7,7 +7,7 @@ export interface StatusLabel {
 
 /**
  * Submission status -> the chip the field agent sees. Words follow the creator board
- * (Live, Paid, Website ready, In review, Draft, Rejected). `isDraft` is true when the
+ * (Live, Paid, Site ready, In review, Draft, Rejected). `isDraft` is true when the
  * submission is still missing photos or the interview even if the backend says otherwise.
  */
 export function submissionStatus(status: string | undefined, isDraft = false): StatusLabel {
@@ -22,7 +22,7 @@ export function submissionStatus(status: string | undefined, isDraft = false): S
       return { label: 'Live', tone: 'ok' };
     case 'website_generated':
     case 'pending_payment':
-      return { label: 'Website ready', tone: 'info' };
+      return { label: 'Site ready', tone: 'info' };
     case 'approved':
       return { label: 'Approved', tone: 'info' };
     case 'submitted':

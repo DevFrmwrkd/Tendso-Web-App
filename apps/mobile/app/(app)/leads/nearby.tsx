@@ -536,7 +536,7 @@ export default function NearbyLeadsScreen() {
                         {lead.businessName}
                       </Text>
                       <Text variant="label" weight="medium" tone="muted" numberOfLines={1} style={styles.scardMeta}>
-                        {lead.distanceLabel} · {st ? 'Live' : 'Needs a site'}
+                        {lead.distanceLabel} · {st ? 'Live' : 'Needs website'}
                       </Text>
                     </Pressable>
                   );

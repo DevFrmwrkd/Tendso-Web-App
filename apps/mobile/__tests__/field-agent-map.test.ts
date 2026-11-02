@@ -42,7 +42,7 @@ describe('field agent shop states', () => {
     expect(spotted.canVisit).toBe(true);
     const captured = normalizeCommunityFind(find({ isMine: true, status: 'converted', submissionStatus: 'submitted' }), area)!;
     expect(captured.isMine).toBe(true);
-    expect(shopStatus(captured)).toBe('Interview submitted');
+    expect(shopStatus(captured)).toBe('Submitted');
     expect(captured.canVisit).toBe(false);
     const published = normalizeCommunityFind(find({ isMine: true, status: 'converted', submissionStatus: 'deployed', hasLiveWebsite: true }), area)!;
     expect(published.isMine).toBe(true);
@@ -55,10 +55,10 @@ describe('field agent shop states', () => {
     const needs = normalizeCommunityFind(find(), area)!;
     expect(reportedWebsite.needsWebsite).toBe(false);
     expect(reportedWebsite.hasLiveWebsite).toBe(false);
-    expect(shopStatus(reportedWebsite)).toBe('Has a website');
+    expect(shopStatus(reportedWebsite)).toBe('Has website');
     expect(unknown.needsWebsite).toBeNull();
-    expect(shopStatus(unknown)).toBe('Check for a website');
-    expect(shopStatus(needs)).toBe('Needs a site');
+    expect(shopStatus(unknown)).toBe('Check website');
+    expect(shopStatus(needs)).toBe('Needs website');
   });
 
   it('uses the live response instead of an old needs-site answer and prevents visiting it', () => {
@@ -73,7 +73,7 @@ describe('field agent shop states', () => {
     const interviewedBy = { ...spotter, interviewedAt: NOW - 1000 };
     const shop = normalizeCommunityFind(find({ hasSubmittedCapture: true, captureStatus: 'under_review',
       interviewedBy, isMine: false, status: 'new' }), area)!;
-    expect(shopStatus(shop)).toBe('Interview submitted');
+    expect(shopStatus(shop)).toBe('Submitted');
     expect(shop.interviewedBy).toEqual(interviewedBy);
     expect(shop.canVisit).toBe(false);
     expect(shop.canInterview).toBe(false);
@@ -96,13 +96,13 @@ describe('field agent shop states', () => {
     expect(draft.hasSubmittedCapture).toBe(false);
     expect(draft.canInterview).toBe(true);
     const authoritative = normalizeCommunityFind(find({ hasSubmittedCapture: false, submissionStatus: 'submitted' }), area)!;
-    expect(shopStatus(authoritative)).toBe('Needs a site');
+    expect(shopStatus(authoritative)).toBe('Needs website');
     expect(authoritative.hasSubmittedCapture).toBe(false);
   });
 
   it('does not infer no website from an imported prospect with a missing URL', () => {
     const shop = normalizeProspect(prospect(), area)!;
-    expect(shopStatus(shop)).toBe('Check for a website');
+    expect(shopStatus(shop)).toBe('Check website');
     expect(shop.needsWebsite).toBeNull();
     expect(shop.photoUrl).toBeNull();
     expect(shop.spottedBy).toBeNull();
@@ -166,7 +166,7 @@ describe('claims, provenance, and capture', () => {
   it('does not let another agent interview an active claim', () => {
     const shop = normalizeCommunityFind(find({ claimedBy: { ...claimant, isMine: false }, claimExpiresAt: NOW + 1000 }), area)!;
     expect(shop.isMine).toBe(false);
-    expect(shopStatus(shop)).toBe('Agent visiting');
+    expect(shopStatus(shop)).toBe('Reserved');
     expect(shop.canVisit).toBe(false);
     expect(shop.canInterview).toBe(false);
   });

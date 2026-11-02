@@ -208,10 +208,10 @@ export function mergeMapShops(
 
 export function shopStatus(shop: FieldAgentShop): string {
   if (shop.hasLiveWebsite) return 'Live';
-  if (shop.hasSubmittedCapture) return 'Interview submitted';
+  if (shop.hasSubmittedCapture) return 'Submitted';
   if (shop.isMine) return 'Yours';
-  if (shop.claimedBy) return 'Agent visiting';
-  return shop.needsWebsite === true ? 'Needs a site' : shop.needsWebsite === false ? 'Has a website' : 'Check for a website';
+  if (shop.claimedBy) return 'Reserved';
+  return shop.needsWebsite === true ? 'Needs website' : shop.needsWebsite === false ? 'Has website' : 'Check website';
 }
 
 export function shopPrefill(shop: FieldAgentShop) {

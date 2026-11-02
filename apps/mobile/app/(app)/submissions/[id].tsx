@@ -290,7 +290,7 @@ export default function SubmissionDetailScreen() {
     },
     {
       key: 'ready',
-      title: 'Website ready',
+      title: 'Site ready',
       subtitle: readyDone ? 'The owner sees it first' : 'About 20 minutes after approval',
       done: readyDone,
     },

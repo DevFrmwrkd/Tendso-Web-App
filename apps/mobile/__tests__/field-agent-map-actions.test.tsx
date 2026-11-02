@@ -210,18 +210,18 @@ it('keeps the active site filter when expanding and allows list scrolling and se
   mockData['leads:listForMobileCRM'] = { leads: [community, { ...community, _id: 'lead-live',
     businessName: 'Live shop', hasLiveWebsite: true, needsWebsite: false }] };
   const screen = renderMap();
-  fireEvent.press(screen.getByRole('button', { name: 'Needs a site · 1' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Needs website · 1' }));
   fireEvent.press(screen.getByRole('button', { name: 'Show all nearby shops' }));
   const list = screen.getByTestId('nearby-shops-full-list');
   fireEvent.scroll(list, { nativeEvent: { contentOffset: { x: 0, y: 100 }, contentSize: { width: 300, height: 1500 }, layoutMeasurement: { width: 300, height: 500 } } });
   expect(screen.queryByRole('button', { name: /Live shop,/ })).toBeNull();
-  expect(screen.getByRole('button', { name: 'Needs a site · 1' }).props.accessibilityState.selected).toBe(true);
+  expect(screen.getByRole('button', { name: 'Needs website · 1' }).props.accessibilityState.selected).toBe(true);
   fireEvent.press(screen.getByRole('button', { name: /Aling Nena’s,/ }));
   expect(screen.getByRole('button', { name: 'I’m visiting' })).toBeTruthy();
   expect(mockVisit).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole('link', { name: 'Close shop details' }));
   expect(screen.getByTestId('nearby-shops-full-list')).toBeTruthy();
-  expect(screen.getByRole('button', { name: 'Needs a site · 1' }).props.accessibilityState.selected).toBe(true);
+  expect(screen.getByRole('button', { name: 'Needs website · 1' }).props.accessibilityState.selected).toBe(true);
 });
 
 it('preserves selected shop details when minimized and reopened without making the map a modal', () => {
@@ -366,11 +366,11 @@ describe('settled map viewport searches', () => {
       { ...community, _id: 'far-needs', businessName: 'Far needs site', businessLatitude: 14.55 },
       { ...community, _id: 'far-live', businessName: 'Far live site', businessLatitude: 14.56, hasLiveWebsite: true, needsWebsite: false }] };
     const screen = renderMap();
-    fireEvent.press(screen.getByRole('button', { name: 'Needs a site · 1' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Needs website · 1' }));
     fireEvent.press(screen.getByRole('button', { name: 'Show all nearby shops' }));
     settleRegion(screen, wideRegion);
     expect(screen.getByTestId('nearby-shops-full-list')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Needs a site · 2' }).props.accessibilityState.selected).toBe(true);
+    expect(screen.getByRole('button', { name: 'Needs website · 2' }).props.accessibilityState.selected).toBe(true);
     expect(screen.getByRole('button', { name: /Far needs site,/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Far live site,/ })).toBeNull();
   });

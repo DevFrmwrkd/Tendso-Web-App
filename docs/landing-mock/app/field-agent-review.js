@@ -54,12 +54,12 @@
       summary:
         'Search, filters and adjustable nearby range are implemented. Review long labels and photo states.',
       implemented: [
-        'All finds / Near me / Needs a site and shop-type filters.',
+        'All finds / Near me / Needs website and shop-type filters.',
         'Nearby ranges: 1, 3, 5, 10 or 25 km; distances name the saved area.',
         'Masonry cards show the spotter, actual photo or category placeholder, and website status.',
       ],
       checks: [
-        'Check “Check for a website” pills with narrow cards and large text.',
+        'Check “Check website” pills with narrow cards and large text.',
         'Compare real, missing and failed photos; open a card and return to the same list.',
         'Increase the range and confirm an empty result can recover without losing the search.',
       ],
@@ -74,13 +74,13 @@
         'Shared shops now show automatic interview progress and a published website, with capture originals kept private.',
       implemented: [
         'Discovery photo or category placeholder stays on the shared shop; submitted capture photos do not replace it.',
-        'Interview submitted and Live are automatic; field agents cannot manually change shared-shop progress.',
+        'Submitted and Live are automatic; field agents cannot manually change shared-shop progress.',
         'Interview attribution comes from the linked submitted capture. Original assets require capture-owner or reviewer permission.',
         'A verified published site appears inline; draft, build and unpublished URLs do not.',
         'Back returns to the originating screen, with Finds as the fallback.',
       ],
       checks: [
-        'Decide on a shorter, clearer unknown-website label.',
+        'Verify the one- or two-word status badges fit narrow cards and large text.',
         'Review missing address/contact fields and long email wrapping.',
         'Compare a spotter, another agent, the submitting agent and an admin: originals stay private and shared progress is read-only.',
         'Publish, unpublish and reconnect: show only the live site; verify preview error and retry.',
@@ -99,7 +99,7 @@
       summary:
         'A small discovery form shares a shop with the team; owner contact is gathered during capture.',
       implemented: [
-        'Shop photo, name, kind, Needs a site toggle and a map pin.',
+        'Shop photo, name, kind, Needs website toggle and a map pin.',
         'Tap or drag the pin; manual pin changes do not reset the zoom.',
         'Address and city remain editable; Save find is guarded by required data and connection state.',
       ],
@@ -320,16 +320,16 @@
     return `<div class="fa-app ${options.nav ? 'has-nav' : ''} ${options.footer ? 'has-footer' : ''} ${options.noHead ? 'no-head' : ''} ${large ? 'large' : ''}">${statusBar}${options.noHead ? '' : `<header class="fa-phone-head"><button type="button" class="fa-round" data-go="${options.back || 'map'}" aria-label="Back">${icon('arrow')}</button><strong>${options.title || ''}</strong><span></span></header>`}<div class="fa-scroll">${body}</div>${options.footer ? `<div class="fa-footer">${options.footer}</div>` : ''}${options.nav ? nav(options.nav) : ''}<div class="fa-home-line"></div></div>`;
   }
   const shops = [
-    { name: 'Ramon’s Barber', type: 'barber', distance: '350 m', status: 'Check for a website' },
-    { name: 'Lilu Resto', type: 'food', distance: '600 m', status: 'Needs a site' },
-    { name: 'Nena’s Sari-Sari', type: 'sari-sari', distance: '800 m', status: 'Needs a site' },
+    { name: 'Ramon’s Barber', type: 'barber', distance: '350 m', status: 'Check website' },
+    { name: 'Lilu Resto', type: 'food', distance: '600 m', status: 'Needs website' },
+    { name: 'Nena’s Sari-Sari', type: 'sari-sari', distance: '800 m', status: 'Needs website' },
     { name: 'Héla Salon', type: 'beauty', distance: '1.2 km', status: 'Live' },
     { name: 'Vulca Garage', type: 'repair', distance: '1.6 km', status: 'Yours' },
   ];
   function mapScreen(interactive) {
     const mode = interactive ? demo.sheet : 'preview';
     const selected = interactive && demo.selectedShop;
-    return `<div class="fa-app has-nav">${statusBar}<div class="fa-map"><div class="fa-map-grid"></div><div class="fa-map-river"></div></div><div class="fa-map-chrome"><div class="fa-row"><button type="button" data-go="me" style="background:none;padding:0">${avatar()}</button><button type="button" class="fa-map-money" data-go="earn">₱6,000 <span>this month</span></button><button type="button" class="fa-round" data-go="notifications" aria-label="Notifications">${icon('bell')}</button></div><div class="fa-chip-row">${chip('◌ Needs a site · 2', false, 'data-action="map-filter"')}${chip('● Yours · 1', false, 'data-action="map-filter"')}</div><button type="button" class="fa-map-area" data-demo="In the app, choose your saved work area or current location.">${icon('pin')} Distances from Marikina</button></div>${shops
+    return `<div class="fa-app has-nav">${statusBar}<div class="fa-map"><div class="fa-map-grid"></div><div class="fa-map-river"></div></div><div class="fa-map-chrome"><div class="fa-row"><button type="button" data-go="me" style="background:none;padding:0">${avatar()}</button><button type="button" class="fa-map-money" data-go="earn">₱6,000 <span>this month</span></button><button type="button" class="fa-round" data-go="notifications" aria-label="Notifications">${icon('bell')}</button></div><div class="fa-chip-row">${chip('◌ Needs website · 2', false, 'data-action="map-filter"')}${chip('● Yours · 1', false, 'data-action="map-filter"')}</div><button type="button" class="fa-map-area" data-demo="In the app, choose your saved work area or current location.">${icon('pin')} Distances from Marikina</button></div>${shops
       .slice(0, 4)
       .map(
         (s, i) =>
@@ -337,7 +337,7 @@
       )
       .join(
         '',
-      )}<section class="fa-map-sheet ${mode}" aria-label="Nearby shops"><button type="button" class="fa-grab" data-action="sheet" aria-label="Change nearby shops panel height"><i></i></button><div class="fa-sheet-head"><strong>${selected ? 'Shop details' : 'Shops in view'}</strong>${selected ? '<button type="button" class="fa-link" data-action="close-map-shop">Close</button>' : link('See list', 'finds')}</div>${selected ? `<div class="fa-map-detail"><div class="fa-row">${pic('barber', 140, '', false, 'width:110px')}<div class="fa-col"><h3>Ramon’s Barber</h3><span class="fa-muted">350 m from Marikina</span><b>Check for a website</b><span class="fa-small fa-muted">From the shop directory</span></div></div><div class="fa-row">${icon('pin')}10 Main Street, Marikina</div><div class="fa-card"><b>Earn up to ₱2,500</b><p class="fa-small fa-muted">Set the price, ₱999–₱4,999. You keep half when the owner pays.</p></div><div class="fa-row">${demo.visiting ? btn('Start interview', 'info') : btn('I’m visiting', '', '', 'data-action="visit"')}${btn('Route', '', 'ghost', 'data-route-preview')}</div></div>` : `<div class="fa-map-cards">${shops.map((s) => `<button type="button" class="fa-map-card" data-action="select-map-shop">${pic(s.type)}<b>${s.name}</b><small>${s.distance} from Marikina</small><em>${s.status}</em></button>`).join('')}</div>`}</section>${nav('map')}<div class="fa-home-line"></div></div>`;
+      )}<section class="fa-map-sheet ${mode}" aria-label="Nearby shops"><button type="button" class="fa-grab" data-action="sheet" aria-label="Change nearby shops panel height"><i></i></button><div class="fa-sheet-head"><strong>${selected ? 'Shop details' : 'Shops in view'}</strong>${selected ? '<button type="button" class="fa-link" data-action="close-map-shop">Close</button>' : link('See list', 'finds')}</div>${selected ? `<div class="fa-map-detail"><div class="fa-row">${pic('barber', 140, '', false, 'width:110px')}<div class="fa-col"><h3>Ramon’s Barber</h3><span class="fa-muted">350 m from Marikina</span><b>Check website</b><span class="fa-small fa-muted">From the shop directory</span></div></div><div class="fa-row">${icon('pin')}10 Main Street, Marikina</div><div class="fa-card"><b>Earn up to ₱2,500</b><p class="fa-small fa-muted">Set the price, ₱999–₱4,999. You keep half when the owner pays.</p></div><div class="fa-row">${demo.visiting ? btn('Start interview', 'info') : btn('I’m visiting', '', '', 'data-action="visit"')}${btn('Route', '', 'ghost', 'data-route-preview')}</div></div>` : `<div class="fa-map-cards">${shops.map((s) => `<button type="button" class="fa-map-card" data-action="select-map-shop">${pic(s.type)}<b>${s.name}</b><small>${s.distance} from Marikina</small><em>${s.status}</em></button>`).join('')}</div>`}</section>${nav('map')}<div class="fa-home-line"></div></div>`;
   }
   function screenMarkup(id, interactive = true) {
     const price = interactive ? demo.price : 999;
@@ -346,7 +346,7 @@
         return mapScreen(interactive);
       case 'finds':
         return app(
-          `<div class="fa-between"><div><h2>Community finds</h2><p class="fa-small fa-muted">17 shops shared by the team</p></div><button type="button" class="fa-round" data-demo="More find tools: Open map or Team CRM & search.">•••</button></div><label class="fa-field"><span>Search shops or agents</span><input placeholder="Search shops or agents" aria-label="Search sample finds"></label><div class="fa-chip-row">${['All finds', 'Near me', 'Needs a site', 'Food', 'Beauty'].map((f) => chip(f, (interactive ? demo.findFilter : 'All finds') === f, `data-find-filter="${f}"`)).join('')}</div>${interactive && demo.findFilter === 'Near me' ? `<span class="fa-label">Within ${demo.range} km of Marikina</span><div class="fa-chip-row">${[1, 3, 5, 10, 25].map((km) => chip(`${km} km`, demo.range === String(km), `data-range="${km}"`)).join('')}</div>` : ''}<div class="fa-photo-grid">${shops
+          `<div class="fa-between"><div><h2>Community finds</h2><p class="fa-small fa-muted">17 shops shared by the team</p></div><button type="button" class="fa-round" data-demo="More find tools: Open map or Team CRM & search.">•••</button></div><label class="fa-field"><span>Search shops or agents</span><input placeholder="Search shops or agents" aria-label="Search sample finds"></label><div class="fa-chip-row">${['All finds', 'Near me', 'Needs website', 'Food', 'Beauty'].map((f) => chip(f, (interactive ? demo.findFilter : 'All finds') === f, `data-find-filter="${f}"`)).join('')}</div>${interactive && demo.findFilter === 'Near me' ? `<span class="fa-label">Within ${demo.range} km of Marikina</span><div class="fa-chip-row">${[1, 3, 5, 10, 25].map((km) => chip(`${km} km`, demo.range === String(km), `data-range="${km}"`)).join('')}</div>` : ''}<div class="fa-photo-grid">${shops
             .filter((s) => !interactive || demo.findFilter !== 'Food' || s.type === 'food')
             .map(
               (s, i) =>
@@ -363,7 +363,7 @@
       case 'shop': {
         const stage = interactive ? demo.shopStage : 'submitted';
         const label =
-          stage === 'live' ? 'Live' : stage === 'submitted' ? 'Interview submitted' : 'Needs a site';
+          stage === 'live' ? 'Live' : stage === 'submitted' ? 'Submitted' : 'Needs website';
         return app(
           `${pic('barber', 196, label)}<div><h2>Ramon’s Barber</h2><p class="fa-muted">350 m · 10 Main Street, Marikina</p></div><span class="fa-label">Notes (0)</span><label class="fa-field"><span>Add a note</span><textarea placeholder="Best time to visit, who to ask for" aria-label="Sample shop note"></textarea></label><p class="fa-small fa-muted">No notes yet.</p><div class="fa-card"><div class="fa-between"><b>Shop progress</b><span class="fa-flag">${label}</span></div><p class="fa-small fa-muted">${stage === 'live' ? 'This shop’s website is live. Progress updates automatically.' : stage === 'submitted' ? 'An interview has been submitted for this shop. Progress updates automatically.' : 'Progress updates automatically when an interview is submitted and the website goes live.'}</p></div>${stage === 'live' ? '<div class="fa-card"><b>Published website</b><p class="fa-small fa-muted">The live site made for this shop. Scroll inside to explore it.</p><iframe class="fa-sample-frame" title="Published barber website example" src="/template-previews/f.html" sandbox="allow-same-origin" style="height:420px;width:100%;border:0;border-radius:18px"></iframe><button type="button" class="fa-btn ghost" data-demo="The app opens this shop’s verified published URL in its in-app browser.">View website</button></div>' : ''}<div class="fa-card"><b>Interviewed by</b><p class="fa-small fa-muted">Recorded automatically from submitted interviews.</p>${stage === 'new' ? '<p class="fa-small fa-muted">No one has interviewed this shop yet.</p>' : '<div class="fa-row">' + avatar() + '<div><b>Mika Santos</b><p class="fa-small fa-muted">Just now</p></div><span class="fa-flag">In review</span></div>'}</div>`,
           { back: 'finds', footer: stage === 'new' ? btn('Start the capture', 'info') : '' },
@@ -371,7 +371,7 @@
       }
       case 'spot':
         return app(
-          `<p class="fa-muted">Take a photo and share it with the team.</p><button type="button" class="fa-card fa-center" style="min-height:150px;align-items:center;justify-content:center" data-demo="The mobile app requests camera/photo-library access here.">${icon('camera')}<b>Add a shop photo</b></button>${field('Shop name', 'Nena’s Sari-Sari')}<span class="fa-label">Kind of shop</span><div class="fa-chip-row">${['Food', 'Sari-sari', 'Beauty', 'Repair', 'Other'].map((k) => chip(k, k === 'Sari-sari', 'data-action="kind"')).join('')}</div><div class="fa-card fa-between"><b>Needs a site</b><input type="checkbox" checked aria-label="Sample shop needs a site"></div><span class="fa-label">Pin the shop</span><p class="fa-small fa-muted">Tap the map at the shop, or use your location while standing there.</p><div class="fa-mini-map"><button type="button" data-demo="Drag or tap a pin in the mobile app; the chosen zoom should stay." aria-label="Sample shop location"></button></div>${field('Address (optional)', '12 Main Street')}${field('City (optional)', 'Marikina')}`,
+          `<p class="fa-muted">Take a photo and share it with the team.</p><button type="button" class="fa-card fa-center" style="min-height:150px;align-items:center;justify-content:center" data-demo="The mobile app requests camera/photo-library access here.">${icon('camera')}<b>Add a shop photo</b></button>${field('Shop name', 'Nena’s Sari-Sari')}<span class="fa-label">Kind of shop</span><div class="fa-chip-row">${['Food', 'Sari-sari', 'Beauty', 'Repair', 'Other'].map((k) => chip(k, k === 'Sari-sari', 'data-action="kind"')).join('')}</div><div class="fa-card fa-between"><b>Needs website</b><input type="checkbox" checked aria-label="Sample shop needs a site"></div><span class="fa-label">Pin the shop</span><p class="fa-small fa-muted">Tap the map at the shop, or use your location while standing there.</p><div class="fa-mini-map"><button type="button" data-demo="Drag or tap a pin in the mobile app; the chosen zoom should stay." aria-label="Sample shop location"></button></div>${field('Address (optional)', '12 Main Street')}${field('City (optional)', 'Marikina')}`,
           { title: 'Spot a shop', back: 'finds', footer: btn('Save find', 'finds', '', 'disabled') },
         );
       case 'heard':
@@ -912,7 +912,7 @@
     demo.shopStage = stages[(stages.indexOf(demo.shopStage) + 1) % stages.length];
     e.currentTarget.textContent =
       'Shop example: ' +
-      { new: 'Needs a site', submitted: 'Interview submitted', live: 'Live' }[demo.shopStage];
+      { new: 'Needs website', submitted: 'Submitted', live: 'Live' }[demo.shopStage];
     renderLive();
   });
   document.getElementById('fa-reset').addEventListener('click', () => {

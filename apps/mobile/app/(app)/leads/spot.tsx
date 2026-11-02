@@ -155,7 +155,7 @@ function SpotShopForm({ creator }: { creator: Doc<'creators'> }) {
       <Text variant="label" tone="muted">Kind of shop</Text>
       <View style={styles.kinds}>{KINDS.map((item) => <ChoiceChip key={item.key} label={item.label} selected={kind === item.key}
         onPress={() => { if (!saving) setKind(item.key); }} disabled={saving} />)}</View>
-      <ToggleRow title="Needs a site" subtitle="No website, or only a social media page." value={needsWebsite} onValueChange={setNeedsWebsite} disabled={saving} />
+      <ToggleRow title="Needs website" subtitle="No website, or only a social media page." value={needsWebsite} onValueChange={setNeedsWebsite} disabled={saving} />
       <Text variant="label" tone="muted">Pin the shop</Text>
       <Text variant="body" tone="ink2">Tap the map at the shop, or use your location while standing there.</Text>
       <MapView ref={map} style={styles.map} provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}

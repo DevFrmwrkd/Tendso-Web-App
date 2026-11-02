@@ -152,7 +152,7 @@ it('uploads a normalized JPEG and saves only the selected shop details and exact
   await fillForm(screen);
   fireEvent.changeText(screen.getByLabelText('Address (optional)'), '  12 Rizal Street  ');
   fireEvent.changeText(screen.getByLabelText('City (optional)'), '  Marikina  ');
-  fireEvent(screen.getByLabelText('Needs a site'), 'valueChange', false);
+  fireEvent(screen.getByLabelText('Needs website'), 'valueChange', false);
   fireEvent.press(screen.getByRole('button', { name: 'Save find' }));
   await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/leads/lead-created'));
   expect(mockResize).toHaveBeenCalledWith({ width: 1600, height: 800 });

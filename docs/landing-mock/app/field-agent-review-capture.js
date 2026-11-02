@@ -194,7 +194,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
     priority: 'P1',
     summary: 'Rejected captures show the reason, but the detail screen has no repair-and-resend action.',
     implemented: [
-      'Owned captures can be searched and filtered, with status labels such as Draft, In review, Website ready, Live and Paid.',
+      'Owned captures can be searched and filtered, with status labels such as Draft, In review, Site ready, Live and Paid.',
       'The detail screen shows status progress, media and payment-dependent earnings.',
       'A rejected capture shows Not approved and the rejection reason.',
       'Continue submission is available only when the actual saved status is draft.',

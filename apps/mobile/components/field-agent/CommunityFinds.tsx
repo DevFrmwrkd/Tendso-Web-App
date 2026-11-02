@@ -13,7 +13,7 @@ import { ShopImage } from '../ShopImage';
 
 const FILTERS: { key: FindFilter; title: string }[] = [
   { key: 'all', title: 'All finds' }, { key: 'near', title: 'Near me' },
-  { key: 'needs', title: 'Needs a site' }, { key: 'food', title: 'Food' },
+  { key: 'needs', title: 'Needs website' }, { key: 'food', title: 'Food' },
   { key: 'beauty', title: 'Beauty' }, { key: 'repair', title: 'Repair' },
   { key: 'sari_sari', title: 'Sari-sari' }, { key: 'other', title: 'Other' },
 ];

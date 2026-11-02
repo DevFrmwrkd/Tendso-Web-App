@@ -204,17 +204,17 @@ describe('filterCommunityFinds', () => {
 
 describe('findWebsiteLabel', () => {
   it('describes confirmed need, an existing website and unknown data distinctly', () => {
-    expect(findWebsiteLabel(find('needs', { needsWebsite: true }))).toBe('Needs a site');
-    expect(findWebsiteLabel(find('existing', { needsWebsite: false }))).toBe('Has a website');
-    expect(findWebsiteLabel(find('unknown', { needsWebsite: null }))).toBe('Check for a website');
-    expect(findWebsiteLabel(find('legacy'))).toBe('Check for a website');
+    expect(findWebsiteLabel(find('needs', { needsWebsite: true }))).toBe('Needs website');
+    expect(findWebsiteLabel(find('existing', { needsWebsite: false }))).toBe('Has website');
+    expect(findWebsiteLabel(find('unknown', { needsWebsite: null }))).toBe('Check website');
+    expect(findWebsiteLabel(find('legacy'))).toBe('Check website');
     expect(findWebsiteLabel(find('live', { needsWebsite: true, hasLiveWebsite: true }))).toBe('Live');
   });
 
   it('uses submitted capture progress ahead of the original website answer, with Live still taking priority', () => {
-    expect(findWebsiteLabel(find('submitted', { hasSubmittedCapture: true, needsWebsite: true }))).toBe('Interview submitted');
-    expect(findWebsiteLabel(find('legacy-submitted', { submissionStatus: 'under_review' }))).toBe('Interview submitted');
-    expect(findWebsiteLabel(find('draft', { submissionStatus: 'draft', needsWebsite: true }))).toBe('Needs a site');
+    expect(findWebsiteLabel(find('submitted', { hasSubmittedCapture: true, needsWebsite: true }))).toBe('Submitted');
+    expect(findWebsiteLabel(find('legacy-submitted', { submissionStatus: 'under_review' }))).toBe('Submitted');
+    expect(findWebsiteLabel(find('draft', { submissionStatus: 'draft', needsWebsite: true }))).toBe('Needs website');
     expect(findWebsiteLabel(find('live', { hasSubmittedCapture: true, hasLiveWebsite: true }))).toBe('Live');
   });
 });
