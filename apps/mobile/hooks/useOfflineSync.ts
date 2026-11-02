@@ -8,6 +8,7 @@ import { readCaptureCache, writeCaptureCache, removeCaptureCache, type CaptureSt
 import { captureEmailError } from '../../../lib/captureEmail';
 import { commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../services/capturePrice';
+import { isEditableCaptureStatus } from '../services/captureEdit';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
@@ -75,12 +76,14 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       if (info && info.creatorId !== actor) return;
       let id = scopedId ?? (useScoped ? null : legacyId);
       if ((!id || id === 'offline_pending') && typeof queued === 'object' && queued?.submissionId !== 'offline_pending') id = queued?.submissionId ?? id;
+      let boundId: string | null = null;
+      const boundCurrent = async () => current() && (!boundId || await readCaptureCache<string>(actor, 'current_submission_id') === boundId);
       const save = async <T,>(key: CaptureStorageKey, value: T) => {
-        if (!current()) throw new Error('Capture account changed');
+        if (!await boundCurrent()) throw new Error('Capture changed');
         await writeCaptureCache(actor, key, value);
       };
       const remove = async (key: CaptureStorageKey) => {
-        if (current()) await removeCaptureCache(actor, key);
+        if (await boundCurrent()) await removeCaptureCache(actor, key);
       };
       const checkOwner = async (target: string) => {
         const row = await client.query(api.submissions.getById, { id: target as Id<'submissions'> });
@@ -127,7 +130,8 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       const matches = (target: string) => target === id || (!!info && target === 'offline_pending');
       if ((photos && !matches(photos.submissionId)) || (interview && !matches(interview.submissionId))
         || (typeof queued === 'object' && queued && !matches(queued.submissionId))) return;
-      if (submission.status !== 'draft' && !queued) return;
+      if (!isEditableCaptureStatus(submission.status) && !queued) return;
+      if (useScoped && await readCaptureCache<string>(actor, 'current_submission_id') !== scopedId) return;
       // Checkpoint the successful create first. A partial cache migration can
       // then be retried without creating another submission or losing media.
       if (info) {
@@ -135,6 +139,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await save('submission_pending_sync', info);
       }
       await save('current_submission_id', id);
+      boundId = id;
       if (photos) { photos = { ...photos, submissionId: id }; await save('submission_pending_photos', photos); }
       if (interview) { interview = { ...interview, submissionId: id }; await save('submission_pending_interview', interview); }
       if (queued) { queued = typeof queued === 'object' ? { ...queued, submissionId: id } : { submissionId: id }; await save('submission_pending_submit', queued); }
@@ -143,8 +148,12 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         if (!current()) return;
         if (part && matches(String(part.submissionId))) await save(key, { ...part, submissionId: id });
       }
-      if (info) await save('submission_snapshot', { ...info.formData, creatorId: actor, submissionId: id,
-        ...(validCapturePrice(info.initialSellPrice) !== null ? { initialSellPrice: info.initialSellPrice } : {}) });
+      if (info) {
+        const previousSnapshot = await readCaptureCache<Record<string, unknown>>(actor, 'submission_snapshot');
+        await save('submission_snapshot', { ...(previousSnapshot?.submissionId === id ? previousSnapshot : {}),
+          ...info.formData, creatorId: actor, submissionId: id,
+          ...(validCapturePrice(info.initialSellPrice) !== null ? { initialSellPrice: info.initialSellPrice } : {}) });
+      }
       // Legacy globals are removed only after every matching part is copied to
       // the owned scope. Never touch another login's remaining global records.
       if (migration && (!legacyInfo || legacyInfo.creatorId === actor)) {
@@ -159,11 +168,12 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       const finishSent = async () => {
         await save('submission_last_sent', { submissionId: id, queued: false, sentAt: Date.now(), businessName: submission?.businessName });
         for (const key of ['submission_pending_sync', 'submission_draft_form', 'submission_pending_photos', 'submission_pending_interview',
-          'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'current_submission_id', 'submission_pending_submit'] as const) await remove(key);
+          'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_pending_submit'] as const) await remove(key);
         const savedDesign = await readCaptureCache<CaptureDesignDraft>(actor, 'submission_design');
-        if (current() && savedDesign?.submissionId === id) await remove('submission_design');
+        if (await boundCurrent() && savedDesign?.submissionId === id) await remove('submission_design');
+        await remove('current_submission_id');
       };
-      if (submission.status !== 'draft') {
+      if (!isEditableCaptureStatus(submission.status)) {
         // The server accepted a previous submit whose local cleanup failed.
         // Do not re-price, edit or re-submit an already-sent capture.
         if (queued) await finishSent();
@@ -171,22 +181,22 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       }
       const synced: string[] = [];
       if (info) {
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await update({ id: id as Id<'submissions'>, ...info.formData,
           ...(info.prospectLeadId ? { prospectLeadId: info.prospectLeadId as Id<'leads'> } : {}) });
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await remove('submission_pending_sync'); await remove('submission_draft_form'); synced.push('shop details');
       }
       const upload = async (uri: string, folder: string, filename: string, contentType: string) => {
-        if (!current()) throw new Error('Capture account changed');
+        if (!await boundCurrent()) throw new Error('Capture account changed');
         const target = await uploadTarget({ folder, filename, contentType });
-        if (!current()) throw new Error('Capture account changed');
+        if (!await boundCurrent()) throw new Error('Capture account changed');
         const local = await fetch(uri.startsWith('/') ? `file://${uri}` : uri);
         const body = await local.blob();
-        if (!current()) throw new Error('Capture account changed');
+        if (!await boundCurrent()) throw new Error('Capture account changed');
         const result = await fetch(target.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body });
         if (!result.ok) throw new Error('Upload failed. Your capture is saved for retry.');
-        if (!current()) throw new Error('Capture account changed');
+        if (!await boundCurrent()) throw new Error('Capture account changed');
         return target.fileKey;
       };
       if (photos) {
@@ -201,9 +211,9 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           }
         }
         const finalPhotos = [...new Set([...(photos.existingPhotos ?? []), ...entries.map(entry => entry.storageId!)])];
-        if (finalPhotos.length < 3 || finalPhotos.length > 10 || !current()) return;
+        if (finalPhotos.length < 3 || finalPhotos.length > 10 || !await boundCurrent()) return;
         await update({ id: id as Id<'submissions'>, photos: finalPhotos });
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await remove('submission_pending_photos'); synced.push('photos');
       }
       if (interview) {
@@ -216,11 +226,11 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           interview.audioStorageId = await upload(interview.parallelAudioUri, 'audio', 'interview-audio.m4a', 'audio/m4a');
           await save('submission_pending_interview', interview);
         }
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await update({ id: id as Id<'submissions'>,
           ...(interview.type === 'video' ? { videoStorageId: interview.storageId, audioStorageId: interview.audioStorageId }
             : { audioStorageId: interview.storageId }) });
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         const previous = await readCaptureCache<Record<string, unknown>>(actor, 'submission_interview_draft');
         await save('submission_interview_draft', { ...(previous?.submissionId === id ? previous : {}), ...interview, attached: true });
         await remove('submission_pending_interview'); synced.push('interview');
@@ -229,12 +239,12 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       // choice may send; it also wins over a subsequently cached draft preview.
       const templateId = queued && typeof queued === 'object' && queued.templateId !== undefined
         ? queued.templateId : design && matches(design.submissionId) ? design.templateId : undefined;
-      if (queued && typeof queued === 'object' && current()) {
+      if (queued && typeof queued === 'object' && await boundCurrent()) {
         // Re-read after syncing pending details and media: the initial row may
         // still have the old email, or another screen may have corrected it.
         const latest = await checkOwner(id);
-        if (!latest || !current()) return;
-        if (latest.status !== 'draft') {
+        if (!latest || !await boundCurrent()) return;
+        if (!isEditableCaptureStatus(latest.status)) {
           await finishSent();
           return;
         }
@@ -252,26 +262,32 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         emailWarning.current = null;
         if (templateId !== undefined) {
           await chooseDesign({ id: id as Id<'submissions'>, templateId });
-          if (!current()) return;
+          if (!await boundCurrent()) return;
         }
         if (queued.sellPrice != null || queued.submissionType || queued.requestedDomain) {
-          await setTier({ id: id as Id<'submissions'>, submissionType: queued.submissionType ?? 'standard',
-            sellPrice: queued.sellPrice, requestedDomain: queued.requestedDomain, domainPricePHP: queued.domainPricePHP });
+          const submissionType = queued.submissionType ?? (latest.status === 'rejected' ? latest.submissionType : undefined) ?? 'standard';
+          const requestedDomain = queued.requestedDomain ?? (latest.status === 'rejected' && submissionType === 'with_custom_domain' ? latest.requestedDomain : undefined);
+          const unchanged = latest.status === 'rejected' && submissionType === (latest.submissionType ?? 'standard')
+            && (requestedDomain ?? '') === (latest.requestedDomain ?? '')
+            && (queued.sellPrice == null || queued.sellPrice + (latest.domainCostPHP ?? 0) === latest.amount)
+            && (queued.domainPricePHP == null || queued.domainPricePHP === latest.domainCostPHP);
+          if (!unchanged) await setTier({ id: id as Id<'submissions'>, submissionType,
+            sellPrice: queued.sellPrice, requestedDomain, domainPricePHP: queued.domainPricePHP });
         }
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await submit({ id: id as Id<'submissions'> });
-        if (!current()) return;
+        if (!await boundCurrent()) return;
         await finishSent(); synced.push('submission');
-      } else if (templateId !== undefined && current()) {
+      } else if (templateId !== undefined && await boundCurrent()) {
         const latest = await checkOwner(id);
-        if (!latest || latest.status !== 'draft' || !current()) return;
+        if (!latest || !isEditableCaptureStatus(latest.status) || !await boundCurrent()) return;
         if (latest.templateId !== templateId) {
           await chooseDesign({ id: id as Id<'submissions'>, templateId });
-          if (!current()) return;
+          if (!await boundCurrent()) return;
           synced.push('design');
         }
       }
-      if (current() && synced.length) Alert.alert('Capture synced', `Your ${synced.join(', ')} are saved.`, [{ text: 'OK' }]);
+      if (await boundCurrent() && synced.length) Alert.alert('Capture synced', `Your ${synced.join(', ')} are saved.`, [{ text: 'OK' }]);
     } catch (error) {
       console.warn('[OfflineSync] Capture retained for retry:', error instanceof Error ? error.message : 'Sync failed');
     } finally { busy.current = false; }

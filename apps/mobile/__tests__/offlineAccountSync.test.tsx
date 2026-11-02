@@ -73,6 +73,74 @@ beforeEach(() => {
 });
 afterEach(() => { global.fetch = originalFetch; jest.restoreAllMocks(); jest.useRealTimers(); });
 
+it('uploads rejected corrections and resends the same record instead of discarding the queue as already sent', async () => {
+  row('my-submission', { status: 'rejected', photos: ['original-photo'], videoStorageId: 'original-interview',
+    templateId: 'restaurant:AM', amount: 2499, domainCostPHP: 0, submissionType: 'standard' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_photos', { submissionId: 'my-submission', photoUris: ['file://fixed.jpg'],
+    existingPhotos: ['kept-one', 'kept-two'], entries: [{ id: 'fixed', uri: 'file://fixed.jpg' }] });
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499, submissionType: 'standard' });
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:update', expect.objectContaining({ id: 'my-submission',
+    photos: ['kept-one', 'kept-two', 'images/photo-fixed.jpg'] }));
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:create')).toBe(false);
+  expect(mockRows.get('my-submission')).toMatchObject({ status: 'submitted', videoStorageId: 'original-interview', templateId: 'restaurant:AM', amount: 2499 });
+  expect(read('submission_pending_submit')).toBeNull(); expect(read('current_submission_id')).toBeNull();
+  expect(read('submission_last_sent')).toMatchObject({ submissionId: 'my-submission', queued: false });
+});
+
+it('syncs rejected detail corrections without a final resend request and keeps the rejection intact', async () => {
+  row('my-submission', { status: 'rejected', photos: ['one', 'two', 'three'], videoStorageId: 'saved-video' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_snapshot', { submissionId: 'my-submission', creatorId, status: 'rejected', photos: ['one', 'two', 'three'], videoStorageId: 'saved-video' });
+  scoped('submission_pending_sync', info({ existingDraftId: 'my-submission', formData: { ...formData, ownerName: 'Corrected owner' } }));
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(mockRows.get('my-submission')).toMatchObject({ status: 'rejected', ownerName: 'Corrected owner', videoStorageId: 'saved-video' });
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:submit')).toBe(false);
+  expect(read('submission_snapshot')).toMatchObject({ status: 'rejected', videoStorageId: 'saved-video', ownerName: 'Corrected owner' });
+});
+
+it('retains the rejected resend queue when submission fails and retries without creating or uploading twice', async () => {
+  row('my-submission', { status: 'rejected', photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview', amount: 2499 });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', sellPrice: 2499 });
+  mockMutation.mockImplementation((name, args) => {
+    if (name === 'submissions:submit') throw new Error('Try again later');
+    return defaultMutation(name, args);
+  });
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(read('submission_pending_submit')).toMatchObject({ submissionId: 'my-submission' });
+  expect(read('submission_last_sent')).toBeNull();
+  mockMutation.mockImplementation(defaultMutation);
+  await sync(result);
+  expect(mockRows.get('my-submission')?.status).toBe('submitted');
+  expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:create')).toBe(false);
+});
+
+it('does not clear a newly opened capture after an older rejected resend finishes', async () => {
+  row('my-submission', { status: 'rejected', photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
+  scoped('current_submission_id', 'my-submission'); scoped('submission_pending_submit', { submissionId: 'my-submission' });
+  mockMutation.mockImplementation((name, args) => {
+    const result = defaultMutation(name, args);
+    if (name === 'submissions:submit') {
+      scoped('current_submission_id', 'new-capture');
+      scoped('submission_snapshot', { submissionId: 'new-capture', creatorId, businessName: 'New shop' });
+      scoped('submission_pending_submit', { submissionId: 'new-capture' });
+    }
+    return result;
+  });
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(read('current_submission_id')).toBe('new-capture');
+  expect(read('submission_snapshot')).toMatchObject({ submissionId: 'new-capture' });
+  expect(read('submission_pending_submit')).toMatchObject({ submissionId: 'new-capture' });
+});
+
 it('does not sync when the live account is ineligible or foreground capture pauses sync', async () => {
   mockStorage.set('submission_pending_submit', 'true');
   const { result } = renderHook(() => useOfflineSync({ enabled: false, creatorId }));

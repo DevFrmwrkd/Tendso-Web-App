@@ -8,6 +8,7 @@ import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { captureDesign, captureDesignChoices, selectedCaptureDesignCode } from '../../../services/captureDesign';
 import type { CaptureDesignDraft } from '../../../services/captureSession';
+import { isEditableCaptureStatus, type CaptureSnapshot } from '../../../services/captureEdit';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
 type QueuedChoice = { submissionId: string; templateId?: string; savedAt?: number };
@@ -56,7 +57,7 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
         const [storedId, pending, snapshot, saved, queued] = await Promise.all([
           capture.read<string>('current_submission_id'),
           capture.read<{ creatorId: string; existingDraftId?: string; formData?: { businessType?: string } }>('submission_pending_sync'),
-          capture.read<{ submissionId: string; creatorId: string; businessType?: string }>('submission_snapshot'),
+          capture.read<CaptureSnapshot>('submission_snapshot'),
           capture.read<CaptureDesignDraft>('submission_design'),
           capture.read<QueuedChoice>('submission_pending_submit'),
         ]);
@@ -68,7 +69,9 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
           (target === 'offline_pending' || pending.existingDraftId === target);
         setBusinessType(matchingPending ? pending?.formData?.businessType ?? null
           : snapshot?.submissionId === target && snapshot.creatorId === capture.actor?.creatorId ? snapshot.businessType ?? null : null);
-        const local = saved?.submissionId === target ? saved : null;
+        const local = saved?.submissionId === target ? saved
+          : snapshot?.submissionId === target && snapshot.creatorId === capture.actor?.creatorId && snapshot.templateId
+            ? { submissionId: snapshot.submissionId, templateId: snapshot.templateId, savedAt: 0 } : null;
         const finalChoice = queued?.submissionId === target ? queued : null;
         setLocalChoice(local); setQueuedChoice(finalChoice);
         if (!touched.current) setSelectedCode(selectedCaptureDesignCode(target, local, finalChoice));
@@ -85,7 +88,7 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
   const useDesign = async (code: string) => {
     const design = captureDesign(code);
     if (!design || !id || busy.current || !current()) return;
-    if (canQuery && (!submission || submission.status !== 'draft'
+    if (canQuery && (!submission || !isEditableCaptureStatus(submission.status)
       || submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake')) return;
     if (!capture.isOffline && !capture.canMutate()) { setError('Reconnect with your field-agent account to save this design.'); return; }
     const savingId = id;
@@ -113,13 +116,14 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
   };
 
   if (!focused || !hydrated || (canQuery && raw === undefined)) return <Loading label="Loading designs" />;
-  const unavailable = !id || (canQuery && (!submission || submission.status !== 'draft'
+  const unavailable = !id || (canQuery && (!submission || !isEditableCaptureStatus(submission.status)
     || submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake')) || (!capture.canQuery && !businessType);
   if (unavailable) return <ScreenShell onBack={() => router.back()}><EmptyState title="Open your capture first"
-    body="Choose a design for a draft from your field-agent account." actionLabel="About the shop"
+    body="Choose a design for a draft or rejected capture from your field-agent account." actionLabel="About the shop"
     onAction={() => router.replace('/(app)/submit/info' as never)} /></ScreenShell>;
   return <CaptureDesignGallery key={id} designs={captureDesignChoices(submission?.businessType ?? businessType, selectedCode)}
     selectedCode={selectedCode} onSelect={code => { if (!busy.current && current()) { touched.current = true; setSelectedCode(code); } }}
     onUse={useDesign} onBack={() => { if (!busy.current) router.back(); }} busy={saving} error={error}
+    reviewFeedback={submission?.status === 'rejected' ? submission.rejectionReason || 'Review the feedback and keep or change the saved design.' : undefined}
     disabled={!capture.isOffline && !capture.canMutate()} isOffline={capture.isOffline} />;
 }

@@ -98,7 +98,8 @@ beforeEach(() => {
   mockWrite.mockReset().mockImplementation(async (actor: string, key: string, value: unknown) => { mockCache[actor][key] = mockClone(value); });
 });
 
-it('saves the own-draft design before opening Review and never submits from the picker', async () => {
+it.each(['draft', 'rejected'])('saves the own %s design before opening Review and never submits from the picker', async status => {
+  mockSubmissions['draft-1'].status = status;
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
   const screen = await gallery(); selectGlacier(screen);

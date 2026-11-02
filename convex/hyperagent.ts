@@ -60,6 +60,7 @@ export const triggerStudioRenderPublic = mutation({
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
         if (!giveawayCanRender(submission)) throw new Error('Approve the giveaway poster before enhancing its photos.');
+        if (submission.status === 'draft' || submission.status === 'rejected') throw new Error('Submit the corrected capture before enhancing its photos.');
         await ctx.db.patch(args.submissionId, { airtableSyncStatus: 'pending_push' });
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.submissionId,
@@ -76,7 +77,7 @@ export const triggerStudioRenderPublic = mutation({
 export const triggerStudioRender = internalAction({
     // viaStudio: always use Studio, even when the AI pipeline is on (the admin's
     // Enhance Images button, and the pipeline's own fallback).
-    args: { submissionId: v.id('submissions'), viaStudio: v.optional(v.boolean()) },
+    args: { submissionId: v.id('submissions'), viaStudio: v.optional(v.boolean()), resubmitted: v.optional(v.boolean()) },
     handler: async (ctx, args) => {
         const submission = await ctx.runQuery(internal.hyperagent.getSubmissionForStudio, {
             submissionId: args.submissionId,
@@ -85,7 +86,7 @@ export const triggerStudioRender = internalAction({
 
         // Ignore an old job if eligibility has not been approved or the owner
         // was rejected before the job started. No webhook or paid work is sent.
-        if (!giveawayCanRender(submission)) return;
+        if (submission.status === 'draft' || submission.status === 'rejected' || !giveawayCanRender(submission)) return;
 
         // AI pipeline (v2, docs/v2-ai-pipeline.md). Every automatic trigger —
         // submissions.submit, ownerIntake.submitOwnerIntake, giveaway approval —
@@ -94,7 +95,8 @@ export const triggerStudioRender = internalAction({
         if (!args.viaStudio && aiPipelineEnabled(process.env)) {
             await ctx.runMutation(internal.aiPipeline.orchestrator.start, {
                 submissionId: args.submissionId,
-                reason: 'submitted',
+                reason: args.resubmitted ? 'resubmitted' : 'submitted',
+                ...(args.resubmitted ? { force: true } : {}),
             });
             return;
         }
@@ -291,6 +293,8 @@ function normalizeCopy(raw: Record<string, unknown>): Record<string, unknown> {
 export const saveStudioContent = internalMutation({
     args: { submissionId: v.id('submissions'), enhancedImages: v.any(), content: v.any() },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || submission.status === 'rejected' || submission.status === 'draft') return;
         const content = normalizeCopy((args.content || {}) as Record<string, unknown>);
         const copy: Record<string, unknown> = {};
         for (const key of COPY_KEYS) {

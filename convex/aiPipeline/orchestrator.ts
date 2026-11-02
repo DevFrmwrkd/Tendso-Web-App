@@ -67,7 +67,14 @@ async function startImpl(
         .first();
     // Idempotent: a double trigger joins the run in flight; a finished run is
     // not repeated unless asked (force).
-    if (latest?.status === 'running') return { runId: latest._id, started: false, reason: 'already running' };
+    if (latest?.status === 'running') {
+        if (reason !== 'resubmitted' || !args.force) return { runId: latest._id, started: false, reason: 'already running' };
+        // A corrected interview/photo set starts a fresh episode. Old actions
+        // check isCurrent before writing and must not finish the rejected take.
+        await ctx.db.patch(latest._id, {
+            status: 'canceled', error: 'Replaced by a corrected capture', finishedAt: Date.now(), updatedAt: Date.now(),
+        });
+    }
     if (latest?.status === 'done' && !args.force) return { runId: latest._id, started: false, reason: 'already built' };
 
     const now = Date.now();
@@ -84,7 +91,7 @@ async function startImpl(
         steps: pendingSteps(),
         // A rebuild keeps the photos already polished (they cost money and the
         // owner has seen them). The other steps run again.
-        ...(args.force && latest?.photos ? { photos: latest.photos } : {}),
+        ...(args.force && reason !== 'resubmitted' && latest?.photos ? { photos: latest.photos } : {}),
     });
     await ctx.scheduler.runAfter(0, internal.aiPipeline.steps.runStep, { runId, step: STEPS[0], attempt: 1 });
     await ctx.scheduler.runAt(now + pipelineTimeoutMs(process.env), internal.aiPipeline.steps.checkTimeout, { runId });
@@ -113,7 +120,11 @@ export const adminStart = mutation({
 
 export const getRunInternal = internalQuery({
     args: { runId: v.id('aiPipelineRuns') },
-    handler: async (ctx, args) => ctx.db.get(args.runId),
+    handler: async (ctx, args) => {
+        const run = await ctx.db.get(args.runId);
+        const submission = run ? await ctx.db.get(run.submissionId) : null;
+        return !submission || submission.status === 'rejected' || submission.status === 'draft' ? null : run;
+    },
 });
 
 /** The submission as a PipelineInput, with every photo / recording as a fetchable URL. */
@@ -200,7 +211,11 @@ export const markStep = internalMutation({
     },
     handler: async (ctx, args) => {
         const run = await ctx.db.get(args.runId);
-        if (!run) return;
+        const submission = run ? await ctx.db.get(run.submissionId) : null;
+        if (!run || run.status === 'canceled' || run.status === 'failed' && args.status !== 'failed' || !submission
+            || submission.status === 'draft' || submission.status === 'rejected') return false;
+        const latest = await ctx.db.query('aiPipelineRuns').withIndex('by_submission', q => q.eq('submissionId', run.submissionId)).order('desc').first();
+        if (latest && latest._id !== run._id) return false;
         const steps = { ...pendingSteps(), ...(run.steps ?? {}) } as Record<StepKey, StepRecord>;
         const prev = steps[args.step];
         const now = Date.now();
@@ -212,6 +227,7 @@ export const markStep = internalMutation({
             ...(args.status === 'failed' ? { error: (args.error ?? 'failed').slice(0, 500) } : {}),
         };
         await ctx.db.patch(args.runId, { steps, updatedAt: now });
+        return true;
     },
 });
 

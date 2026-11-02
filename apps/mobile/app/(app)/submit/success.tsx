@@ -44,7 +44,7 @@ function CaptureReceipt() {
   const raw = useQuery(api.submissions.getById, capture.canQuery && id && id !== 'offline_pending'
     ? { id: id as Id<'submissions'> } : 'skip');
   const submission = raw?.creatorId === capture.actor?.creatorId ? raw : null;
-  const received = !!submission && submission.status !== 'draft';
+  const received = !!submission && submission.status !== 'draft' && submission.status !== 'rejected';
   const pending = matchingReceipt?.queued === true && !received;
   const locallySent = !capture.canQuery && !!id && id !== 'offline_pending' && matchingReceipt?.queued === false;
   const paid = submission?.status === 'paid' || submission?.status === 'completed';

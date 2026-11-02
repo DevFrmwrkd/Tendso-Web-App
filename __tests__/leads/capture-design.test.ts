@@ -130,7 +130,7 @@ describe('field-agent draft design choices', () => {
         expect(await effects()).toEqual(beforeEffects);
     });
 
-    it.each(['submitted', 'in_review', 'approved', 'rejected', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated'])
+    it.each(['submitted', 'in_review', 'approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated'])
     ('rejects a %s capture without changing an existing choice', async (status) => {
         const { agent, draft, row, effects } = await setup();
         const id = await draft({ status, templateId: 'generic:B' });

@@ -124,12 +124,13 @@ describe('capture owner email', () => {
         expect(await effects()).toEqual({ leads: [], scheduled: [] });
     });
 
-    it('keeps existing submitted captures without email readable, editable, and idempotent', async () => {
+    it('keeps legacy submitted captures readable and idempotent while reserving sent corrections for admin review', async () => {
         const { creatorId, agent, admin, draft, row, effects } = await setup();
         const id = await draft({ status: 'submitted' });
         expect(await agent.query(api.submissions.getByCreatorId, { creatorId })).toHaveLength(1);
-        await agent.mutation(api.submissions.update, { id, businessName: 'Renamed Shop' });
+        await expect(agent.mutation(api.submissions.update, { id, businessName: 'Unreviewed change' })).rejects.toThrow('draft or rejected');
         await agent.mutation(api.submissions.submit, { id });
+        await admin.mutation(api.submissions.update, { id, businessName: 'Renamed Shop' });
         await admin.mutation(api.submissions.updateStatus, { id, status: 'in_review' });
         expect(await row(id)).toMatchObject({ businessName: 'Renamed Shop', status: 'in_review' });
         expect(await effects()).toEqual({ leads: [], scheduled: [] });

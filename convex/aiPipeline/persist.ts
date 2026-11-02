@@ -48,6 +48,8 @@ export const prepareBuild = internalMutation({
     handler: async (ctx, args) => {
         const run = await ctx.db.get(args.runId);
         if (!run || run.status !== 'running' || run.submissionId !== args.submissionId) return { ok: false as const, code: 'stale', message: 'run is no longer running' };
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || submission.status === 'rejected' || submission.status === 'draft') return { ok: false as const, code: 'stale', message: 'capture is not awaiting a build' };
         const existing = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
@@ -61,10 +63,15 @@ export const prepareBuild = internalMutation({
         const images = args.enhancedImages && typeof args.enhancedImages === 'object' && Object.keys(args.enhancedImages).length > 0
             ? args.enhancedImages as Record<string, unknown>
             : null;
+        // A correction can remove or replace individual photos. Do not retain
+        // old primary slots (or fall back to legacy websiteContent maps) when
+        // the new episode deliberately supplies no enhanced images.
+        const freshImages = run.reason === 'resubmitted' ? images ?? {}
+            : images ? mergeEnhancedImages(existing?.enhancedImages, images) : undefined;
         if (existing) {
             await ctx.db.patch(existing._id, {
                 extractedContent: args.content,
-                enhancedImages: images ? mergeEnhancedImages(existing.enhancedImages, images) : undefined,
+                enhancedImages: freshImages,
                 updatedAt: Date.now(),
             });
         } else {
@@ -73,7 +80,7 @@ export const prepareBuild = internalMutation({
                 templateName: 'astro',
                 extractedContent: args.content,
                 status: 'draft',
-                ...(images ? { enhancedImages: images } : {}),
+                ...(freshImages !== undefined ? { enhancedImages: freshImages } : {}),
                 updatedAt: Date.now(),
             });
         }
@@ -93,9 +100,11 @@ export const saveBuiltSite = internalMutation({
     },
     handler: async (ctx, args) => {
         const run = await ctx.db.get(args.runId);
+        const submission = await ctx.db.get(args.submissionId);
         const existing = await ctx.db.query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId)).first();
-        if (!run || run.status !== 'running' || run.submissionId !== args.submissionId
+        if (!submission || submission.status === 'rejected' || submission.status === 'draft'
+            || !run || run.status !== 'running' || run.submissionId !== args.submissionId
             || (existing?.htmlStorageId !== args.htmlStorageId && buildBlockReason(existing, run.force))) {
             // An admin can build/publish while the HTTP builder is running.
             // Recheck in this transaction before either row writer can replace

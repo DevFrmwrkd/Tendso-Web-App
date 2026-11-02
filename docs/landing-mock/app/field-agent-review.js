@@ -243,6 +243,8 @@
     read: false,
     history: 'All',
     profileReview: false,
+    repair: false,
+    resubmitted: false,
   };
   let toastTimer;
   const escape = (value) =>
@@ -362,8 +364,7 @@
         );
       case 'shop': {
         const stage = interactive ? demo.shopStage : 'submitted';
-        const label =
-          stage === 'live' ? 'Live' : stage === 'submitted' ? 'Submitted' : 'Needs website';
+        const label = stage === 'live' ? 'Live' : stage === 'submitted' ? 'Submitted' : 'Needs website';
         return app(
           `${pic('barber', 196, label)}<div><h2>Ramon’s Barber</h2><p class="fa-muted">350 m · 10 Main Street, Marikina</p></div><span class="fa-label">Notes (0)</span><label class="fa-field"><span>Add a note</span><textarea placeholder="Best time to visit, who to ask for" aria-label="Sample shop note"></textarea></label><p class="fa-small fa-muted">No notes yet.</p><div class="fa-card"><div class="fa-between"><b>Shop progress</b><span class="fa-flag">${label}</span></div><p class="fa-small fa-muted">${stage === 'live' ? 'This shop’s website is live. Progress updates automatically.' : stage === 'submitted' ? 'An interview has been submitted for this shop. Progress updates automatically.' : 'Progress updates automatically when an interview is submitted and the website goes live.'}</p></div>${stage === 'live' ? '<div class="fa-card"><b>Published website</b><p class="fa-small fa-muted">The live site made for this shop. Scroll inside to explore it.</p><iframe class="fa-sample-frame" title="Published barber website example" src="/template-previews/f.html" sandbox="allow-same-origin" style="height:420px;width:100%;border:0;border-radius:18px"></iframe><button type="button" class="fa-btn ghost" data-demo="The app opens this shop’s verified published URL in its in-app browser.">View website</button></div>' : ''}<div class="fa-card"><b>Interviewed by</b><p class="fa-small fa-muted">Recorded automatically from submitted interviews.</p>${stage === 'new' ? '<p class="fa-small fa-muted">No one has interviewed this shop yet.</p>' : '<div class="fa-row">' + avatar() + '<div><b>Mika Santos</b><p class="fa-small fa-muted">Just now</p></div><span class="fa-flag">In review</span></div>'}</div>`,
           { back: 'finds', footer: stage === 'new' ? btn('Start the capture', 'info') : '' },
@@ -417,12 +418,22 @@
       case 'info':
         return app(
           `${step(1)}<h2>About the shop</h2>${field('Shop name', 'Nena’s Sari-Sari')}<span class="fa-label">Kind of business</span><div class="fa-chip-row">${chip('Other', true)}${chip('Restaurant')}${chip('Barber/Salon')}</div>${field('Owner’s name', 'Nena Reyes')}${field('Mobile', '+63 917 000 0000', 'type="tel"')}${field('Email', 'owner@example.com', 'type="email"')}<p class="fa-small fa-muted">Required so the owner can access their website.</p>${field('Address', '12 Main Street')}${field('City', 'Marikina')}${btn('Choose on map', '', 'ghost')}<div class="fa-mini-map"><button type="button" aria-label="Shop pin" data-demo="The app opens its capture map picker here."></button></div>`,
-          { footer: btn('Continue to photos', 'photos') },
+          {
+            footer:
+              interactive && demo.repair
+                ? btn('Save changes', 'review')
+                : btn('Continue to photos', 'photos'),
+          },
         );
       case 'photos':
         return app(
           `${step(2)}<h2>Show us the shop</h2><p class="fa-muted">Ten suggestions. Add 3–10 photos in total.</p><div class="fa-card"><b>Suggestions</b><div class="fa-photo-grid">${['Shop front', 'Inside the shop', 'Products', 'Owner at work'].map((label, i) => `<button type="button" style="padding:0;background:none;text-align:left" data-demo="Suggestion tiles open or retake a shot in the native camera.">${pic(['sari-sari', 'shop', 'food', 'barber'][i], 100)}<span class="fa-small">${label}</span></button>`).join('')}</div></div><span class="fa-label">Your photos · 4 / 10</span><div class="fa-photo-grid">${[0, 1, 2, 3].map((i) => `<button type="button" style="padding:0;background:none" data-go="photo-preview" aria-label="Open photo ${i + 1}">${pic('food', 138, '', true)}</button>`).join('')}</div>${btn('Add from library', '', 'ghost')}`,
-          { footer: btn('Continue to interview', 'interview') },
+          {
+            footer:
+              interactive && demo.repair
+                ? btn('Save changes', 'review')
+                : btn('Continue to interview', 'interview'),
+          },
         );
       case 'photo-preview':
         return app(`<h2>Your photos</h2>`, { back: 'photos' }).replace(
@@ -431,8 +442,15 @@
         );
       case 'interview':
         return app(
-          `${step(3)}<h2>Now ask the owner.</h2><p class="fa-muted">10 short questions. About 5 minutes.</p><div class="fa-chip-row">${chip('EN', demo.language === 'EN', 'data-language="EN"')}${chip('TL', demo.language === 'TL', 'data-language="TL"')}</div><div class="fa-card"><b>1</b><h3>${demo.language === 'TL' ? 'Ano ang pangalan ng tindahan mo?' : 'What’s your shop called?'}</h3></div><div class="fa-between"><button type="button" class="fa-round" disabled aria-label="Previous question">${icon('arrow')}</button><span class="fa-label">Question 1 of 10</span><button type="button" class="fa-round" data-demo="The app previews all ten prompts plus optional Anything else." aria-label="Next question">${icon('chevron')}</button></div><p>Ask one question at a time. Let the owner answer in their own words.</p><p class="fa-muted">One recording, from the first question to “Anything else?”.</p>`,
-          { footer: btn('Start', '', '', 'data-camera-preview') + btn('Voice only, no video', '', 'ghost') },
+          interactive && demo.repair
+            ? `${step(3)}<h2>Now ask the owner.</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><div class="fa-card"><b>Saved interview</b><p class="fa-small fa-muted">Your existing recording is kept.</p><button type="button" class="fa-btn ghost" data-demo="The app plays the saved interview here.">Play interview</button><button type="button" class="fa-btn ghost" data-demo="The app requests recording access only when you choose to replace the take.">Record again</button></div>`
+            : `${step(3)}<h2>Now ask the owner.</h2><p class="fa-muted">10 short questions. About 5 minutes.</p><div class="fa-chip-row">${chip('EN', demo.language === 'EN', 'data-language="EN"')}${chip('TL', demo.language === 'TL', 'data-language="TL"')}</div><div class="fa-card"><b>1</b><h3>${demo.language === 'TL' ? 'Ano ang pangalan ng tindahan mo?' : 'What’s your shop called?'}</h3></div><div class="fa-between"><button type="button" class="fa-round" disabled aria-label="Previous question">${icon('arrow')}</button><span class="fa-label">Question 1 of 10</span><button type="button" class="fa-round" data-demo="The app previews all ten prompts plus optional Anything else." aria-label="Next question">${icon('chevron')}</button></div><p>Ask one question at a time. Let the owner answer in their own words.</p><p class="fa-muted">One recording, from the first question to “Anything else?”.</p>`,
+          {
+            footer:
+              interactive && demo.repair
+                ? btn('Save changes', 'review')
+                : btn('Start', '', '', 'data-camera-preview') + btn('Voice only, no video', '', 'ghost'),
+          },
         );
       case 'design': {
         const index = interactive ? Math.max(0, demo.design) : 0,
@@ -444,8 +462,15 @@
       }
       case 'review':
         return app(
-          `${step(5)}<h2>Check it, then send</h2><div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">Other</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>4 photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${pic('food', 80, '', true)}${pic('food', 80, '', true)}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : designs[Math.max(0, demo.design)].name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
-          { footer: btn('Send for review', '', '', 'data-action="confirm-send"') },
+          `${step(5)}${interactive && demo.repair ? '<h2>Fix it, then resend</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><p class="fa-muted">Your saved capture is here. Edit only what needs fixing.</p>' : '<h2>Check it, then send</h2>'}<div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">Other</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>4 photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${pic('food', 80, '', true)}${pic('food', 80, '', true)}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : designs[Math.max(0, demo.design)].name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
+          {
+            footer: btn(
+              interactive && demo.repair ? 'Resend for review' : 'Send for review',
+              '',
+              '',
+              'data-action="confirm-send"',
+            ),
+          },
         );
       case 'sent':
       case 'queued': {
@@ -468,11 +493,17 @@
           { footer: btn('Back to the map', 'map') + btn('Spot another shop', 'spot', 'ghost') },
         );
       }
-      case 'submission':
+      case 'submission': {
+        const resent = interactive && demo.resubmitted;
         return app(
-          `<div class="fa-between"><h2>Nena’s Sari-Sari</h2><span class="fa-flag danger">Rejected</span></div><div class="fa-banner danger">${icon('warning')}<div><b>Review feedback</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div></div>${pic('sari-sari', 160)}<div class="fa-card"><b>Submission details</b><p class="fa-small fa-muted">Photos, interview and the review reason are shown here.</p></div>`,
-          { title: 'Submission', back: 'me' },
+          `<div class="fa-between"><h2>Nena’s Sari-Sari</h2><span class="fa-flag ${resent ? '' : 'danger'}">${resent ? 'In review' : 'Rejected'}</span></div>${resent ? '<div class="fa-card"><b>Resent for review</b><p class="fa-small fa-muted">Your corrections are saved on the same submission.</p></div>' : '<div class="fa-banner danger">' + icon('warning') + '<div><b>Review feedback</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div></div><div class="fa-card"><b>Keep what’s correct</b><p class="fa-small fa-muted">Your saved details, photos and interview are ready to edit. Fix the review feedback and resend this same submission.</p></div>'}${pic('sari-sari', 160)}<div class="fa-card"><b>Submission details</b><p class="fa-small fa-muted">4 photos · Interview saved · Tindahan · ₱999</p><p class="fa-small fa-muted">Photos, interview and the review reason stay with this capture.</p></div>`,
+          {
+            title: 'Submission',
+            back: 'me',
+            footer: resent ? '' : btn('Edit and resend', '', '', 'data-action="edit-rejected"'),
+          },
         );
+      }
       case 'earn':
         return app(
           `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between"><span class="fa-label">Earned in November</span><b>₱6,000</b></div><div class="fa-chart" role="img" aria-label="Six-month credited earnings chart, current bars are display only">${[1200, 1800, 2400, 3200, 4800, 6000].map((n, i) => `<div class="fa-bar"><i style="height:${(n / 6000) * 64}px"></i><span>${['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][i]}</span></div>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div><div class="fa-card">${row('Kalan', 'Earnings · Nov 1 · +₱2,000', 'shop', 'history')}</div><div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div><div class="fa-card">${row('To Wise', 'Processing · Oct 30 · −₱1,000', 'send', 'history')}</div><div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
@@ -560,7 +591,12 @@
     }, 4200);
   }
   function reviewNotes(id) {
-    return notes[id] || { checks: [], note: '', verdict: 'unreviewed' };
+    const saved = notes[id] || { checks: [], note: '', verdict: 'unreviewed' };
+    return {
+      ...saved,
+      checks: saved.checkRevision === byId[id].checkRevision ? saved.checks : [],
+      checkRevision: byId[id].checkRevision,
+    };
   }
   function renderReview() {
     const s = byId[current],
@@ -664,10 +700,10 @@
       .join('');
     document.getElementById('fa-queue').innerHTML = [
       [
-        'submission',
-        'P1 · Repair flow',
-        'Rejected capture needs a next action',
-        'The current detail shows the reason but no repair-and-resend CTA. Keep this separate from account profile correction.',
+        'pending',
+        'P2 · Copy review',
+        'Confirm the approval timing promise',
+        'The waiting screen promises a review within 24 hours. Check that this matches the team’s review coverage.',
       ],
       [
         'earn',
@@ -712,6 +748,8 @@
     }
     if (el.dataset.select) {
       demo.profileReview = false;
+      demo.repair = false;
+      demo.resubmitted = false;
       select(el.dataset.select, true);
       return;
     }
@@ -765,7 +803,15 @@
       return;
     }
     const action = el.dataset.action;
-    if (action === 'sheet') {
+    if (action === 'edit-rejected') {
+      demo.repair = true;
+      select('review', true);
+    } else if (action === 'resend-sample') {
+      demo.repair = false;
+      demo.resubmitted = true;
+      select('submission', true);
+      toast('Sample resent with the same saved submission. No backend action was performed.');
+    } else if (action === 'sheet') {
       demo.sheet =
         demo.sheet === 'preview' ? 'expanded' : demo.sheet === 'expanded' ? 'collapsed' : 'preview';
       renderLive();
@@ -820,7 +866,7 @@
       const root = document.querySelector('#fa-live-phone .fa-app');
       const modal = document.createElement('div');
       modal.className = 'fa-overlay';
-      modal.innerHTML = `<div class="fa-modal" role="dialog" aria-modal="true" aria-label="Sample send confirmation"><h3>Send for review?</h3><p>Your ${peso(demo.price / 2)} commission depends on the shop completing payment.</p>${btn('Send sample capture', 'sent')}${btn('Preview offline queue', 'queued', 'ghost')}<button type="button" class="fa-btn ghost" data-action="close-modal">Keep editing</button></div>`;
+      modal.innerHTML = `<div class="fa-modal" role="dialog" aria-modal="true" aria-label="Sample send confirmation"><h3>${demo.repair ? 'Resend for review?' : 'Send for review?'}</h3><p>Your ${peso(demo.price / 2)} commission depends on the shop completing payment.</p>${demo.repair ? btn('Resend sample capture', '', '', 'data-action="resend-sample"') : btn('Send sample capture', 'sent')}${btn('Preview offline queue', 'queued', 'ghost')}<button type="button" class="fa-btn ghost" data-action="close-modal">Keep editing</button></div>`;
       root.append(modal);
       modal.querySelector('button').focus();
     } else if (action === 'full-design') {
@@ -885,7 +931,11 @@
       renderStats();
     }
   });
-  document.getElementById('fa-picker').addEventListener('change', (e) => select(e.target.value));
+  document.getElementById('fa-picker').addEventListener('change', (e) => {
+    demo.repair = false;
+    demo.resubmitted = false;
+    select(e.target.value);
+  });
   document
     .getElementById('fa-prev')
     .addEventListener('click', () =>
@@ -911,8 +961,7 @@
     const stages = ['new', 'submitted', 'live'];
     demo.shopStage = stages[(stages.indexOf(demo.shopStage) + 1) % stages.length];
     e.currentTarget.textContent =
-      'Shop example: ' +
-      { new: 'Needs website', submitted: 'Submitted', live: 'Live' }[demo.shopStage];
+      'Shop example: ' + { new: 'Needs website', submitted: 'Submitted', live: 'Live' }[demo.shopStage];
     renderLive();
   });
   document.getElementById('fa-reset').addEventListener('click', () => {
@@ -931,7 +980,9 @@
             board: 'field-agent-review',
             source: '69dddc04',
             exportedAt: new Date().toISOString(),
-            reviews: notes,
+            reviews: Object.fromEntries(
+              Object.keys(notes).map((id) => [id, byId[id] ? reviewNotes(id) : notes[id]]),
+            ),
           },
           null,
           2,

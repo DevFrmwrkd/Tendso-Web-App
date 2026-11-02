@@ -25,6 +25,7 @@ import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../../../services/capturePrice';
+import { isEditableCaptureStatus, type CaptureSnapshot } from '../../../services/captureEdit';
 
 // Keep all existing API values while placing the board's common choices first.
 const TYPE_CHOICES = ['Restaurant', 'Barber/Salon', 'Auto Shop', 'Spa/Massage',
@@ -98,6 +99,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
   const [coordinates, setCoordinates] = useState<CaptureCoordinates | undefined>();
   const [choosingLocation, setChoosingLocation] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [correcting, setCorrecting] = useState(false);
   const [unavailableDraft, setUnavailableDraft] = useState(false);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const mounted = useRef(true);
@@ -150,7 +152,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
     void (async () => {
       try {
         if (capture.canQuery && requestedDraftId !== 'offline_pending'
-          && (!requestedDraft || requestedDraft.creatorId !== capture.actor?.creatorId || requestedDraft.status !== 'draft')) {
+          && (!requestedDraft || requestedDraft.creatorId !== capture.actor?.creatorId || !isEditableCaptureStatus(requestedDraft.status))) {
           if (isCurrent()) setUnavailableDraft(true);
           return;
         }
@@ -176,6 +178,11 @@ function SubmitInfoForm({ capture, prefillParams }: {
         setCoordinates(validCaptureCoordinates(data.coordinates) ? data.coordinates : undefined);
         setProspectLeadId(matchingPending?.prospectLeadId ?? data.prospectLeadId);
         setSelectedDraftId(requestedDraftId === 'offline_pending' ? null : requestedDraftId);
+        const original = capture.canQuery && requestedDraftId !== 'offline_pending' ? requestedDraft : matchingSnapshot;
+        setCorrecting((original as { status?: string } | null | undefined)?.status === 'rejected');
+        const originalQuote = original as { amount?: number; domainCostPHP?: number } | null | undefined;
+        if (typeof originalQuote?.amount === 'number')
+          initialSellPrice.current = validCapturePrice(originalQuote.amount - (originalQuote.domainCostPHP ?? 0));
         await capture.write('current_submission_id', requestedDraftId);
         if (isCurrent()) setInitialized(true);
       } catch {
@@ -368,13 +375,15 @@ function SubmitInfoForm({ capture, prefillParams }: {
           savedAt: Date.now(),
         });
         if (!isCurrent()) return;
-        await capture.write('submission_snapshot', { submissionId: selectedDraftId ?? 'offline_pending', creatorId: capture.actor.creatorId,
+        const previousSnapshot = await capture.read<CaptureSnapshot>('submission_snapshot');
+        await capture.write('submission_snapshot', { ...(previousSnapshot?.submissionId === selectedDraftId ? previousSnapshot : {}),
+          submissionId: selectedDraftId ?? 'offline_pending', creatorId: capture.actor.creatorId,
           ...formData, initialSellPrice: capturedPrice });
         if (!isCurrent()) return;
         await capture.write('current_submission_id', selectedDraftId ?? 'offline_pending');
         if (!isCurrent()) return;
         await clearDraft();
-        if (isCurrent()) router.push('/(app)/submit/photos');
+        if (isCurrent()) { if (correcting) router.back(); else router.push('/(app)/submit/photos'); }
       } catch (err) {
         if (isCurrent()) setError('Failed to save data locally');
       } finally {
@@ -413,14 +422,16 @@ function SubmitInfoForm({ capture, prefillParams }: {
       // Remember a successful create even if a later local write fails. A
       // retry must update that draft, rather than create a second interview.
       setSelectedDraftId(submissionId);
-      await capture.write('submission_snapshot', { submissionId, creatorId: capture.actor.creatorId, ...formData, initialSellPrice: capturedPrice });
+      const previousSnapshot = await capture.read<CaptureSnapshot>('submission_snapshot');
+      await capture.write('submission_snapshot', { ...(previousSnapshot?.submissionId === submissionId ? previousSnapshot : {}),
+        submissionId, creatorId: capture.actor.creatorId, ...formData, initialSellPrice: capturedPrice });
       if (!isCurrent()) return;
       await capture.write('current_submission_id', submissionId);
       if (!isCurrent()) return;
       await clearDraft();
       if (!isCurrent()) return;
       await capture.remove('submission_pending_sync');
-      if (isCurrent()) router.push('/(app)/submit/photos');
+      if (isCurrent()) { if (correcting) router.back(); else router.push('/(app)/submit/photos'); }
     } catch (err: any) {
       console.error('Error saving business info:', err);
       if (isCurrent()) setError(err.message || 'Failed to save business information');
@@ -453,11 +464,12 @@ function SubmitInfoForm({ capture, prefillParams }: {
         progress={0.2}
         headerRight={<Text variant="label" tone="muted">1 / 5</Text>}
         contentStyle={styles.content}
-        footer={<Button title={loading ? 'Saving…' : capture.isOffline ? 'Save & continue offline' : 'Continue to photos'}
+        footer={<Button title={loading ? 'Saving…' : correcting ? 'Save changes' : capture.isOffline ? 'Save & continue offline' : 'Continue to photos'}
           loading={loading} disabled={loading || !initialized} onPress={handleNext}
-          accessibilityLabel="Continue to photos step" />}
+          accessibilityLabel={correcting ? 'Save shop changes' : 'Continue to photos step'} />}
       >
         <OfflineBanner />
+        {requestedDraft?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={requestedDraft.rejectionReason || 'Correct the requested shop details. Your saved photos and interview are kept.'} /> : null}
         {error ? <Banner tone="danger" body={error} /> : null}
 
         <Field label="Business name" icon="storefront-outline" placeholder="Shop name"

@@ -14,6 +14,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { groqService } from '@/lib/services/groq.service';
 import { checkRateLimit } from '@/lib/security';
 import { POST } from '@/app/api/transcribe/route';
+import { interviewRecordingFingerprint } from '@/convex/lib/interviewRecording';
 
 type ClientMock = { setAuth: jest.Mock; query: jest.Mock; mutation: jest.Mock };
 const authMock = auth as unknown as jest.Mock;
@@ -23,7 +24,7 @@ const getToken = jest.fn();
 const originalSecret = process.env.INTERNAL_API_SECRET;
 const mediaUrl = 'https://media.example.test/audio/interview.webm';
 let actor: { _id: string; role?: string; status?: string; isDeleted?: boolean } | null;
-let submission: { creatorId: string; audioUrl?: string } | null;
+let submission: { creatorId: string; audioUrl?: string; videoUrl?: string; audioStorageId?: string; videoStorageId?: string } | null;
 let clients: ClientMock[];
 let network: jest.SpyInstance;
 
@@ -126,8 +127,11 @@ describe('transcription caller authorization', () => {
         expect(getToken).toHaveBeenCalledWith({ template: 'convex' });
         expect(clients[0].setAuth).toHaveBeenCalledWith('verified-creator-token');
         expect(clients[0].query).toHaveBeenNthCalledWith(1, 'session', {});
-        expect(clients[0].mutation).toHaveBeenNthCalledWith(1, 'update', { id: 'submission-1', transcriptionStatus: 'processing' });
-        expect(clients[0].mutation).toHaveBeenNthCalledWith(2, 'update', {
+        expect(clients[0].mutation).toHaveBeenNthCalledWith(1, 'serverTranscript', {
+            id: 'submission-1', internalSecret: 'test-internal-secret', expectedRecording: interviewRecordingFingerprint(submission!), transcriptionStatus: 'processing',
+        });
+        expect(clients[0].mutation).toHaveBeenNthCalledWith(2, 'serverTranscript', {
+            internalSecret: 'test-internal-secret', expectedRecording: interviewRecordingFingerprint(submission!),
             id: 'submission-1', transcript: 'The owner tells their story.', transcriptionStatus: 'complete', transcriptionUpdatedAt: expect.any(Number),
         });
         expect(transcribe).toHaveBeenCalledWith(mediaUrl);
@@ -138,7 +142,7 @@ describe('transcription caller authorization', () => {
         getToken.mockResolvedValue('verified-admin-token');
         expect((await POST(request())).status).toBe(200);
         expect(clients[0].setAuth).toHaveBeenCalledWith('verified-admin-token');
-        expect(clients[0].mutation).toHaveBeenCalledWith('update', expect.objectContaining({ id: 'submission-1', transcriptionStatus: 'complete' }));
+        expect(clients[0].mutation).toHaveBeenCalledWith('serverTranscript', expect.objectContaining({ id: 'submission-1', transcriptionStatus: 'complete' }));
     });
 
     it('preserves legacy creator accounts and transcript-only requests without an attached submission', async () => {
@@ -151,6 +155,55 @@ describe('transcription caller authorization', () => {
     it('uses saved media when the caller has not received the new uploaded URL yet', async () => {
         expect((await POST(request({ submissionId: 'submission-1' }))).status).toBe(200);
         expect(transcribe).toHaveBeenCalledWith(mediaUrl);
+    });
+
+    it('uses the saved replacement interview instead of the stale URL from an older browser tab', async () => {
+        const replacement = 'https://media.example.test/audio/replacement.webm';
+        submission = { creatorId: 'creator-1', audioUrl: replacement };
+        expect((await POST(request())).status).toBe(200);
+        expect(transcribe).toHaveBeenCalledWith(replacement);
+        expect(clients[0].mutation).toHaveBeenLastCalledWith('serverTranscript', expect.objectContaining({
+            expectedRecording: interviewRecordingFingerprint(submission),
+        }));
+    });
+
+    it('does not report an old transcript as saved when the interview changes while the provider is working', async () => {
+        const original = interviewRecordingFingerprint(submission!);
+        transcribe.mockImplementationOnce(async () => {
+            submission = { creatorId: 'creator-1', audioUrl: 'https://media.example.test/audio/new-take.webm' };
+            return 'Words from the old recording.';
+        });
+        clientConstructor.mockImplementationOnce(() => {
+            const client: ClientMock = { setAuth: jest.fn(), query: jest.fn(), mutation: jest.fn() };
+            client.query.mockImplementation(async (query: string) => query === 'session'
+                ? { clerkId: 'creator-session', creator: actor } : submission);
+            client.mutation.mockImplementation(async (_method, args) => args.expectedRecording === interviewRecordingFingerprint(submission!));
+            clients.push(client);
+            return client;
+        });
+        const response = await POST(request());
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'The interview changed. Open the current recording and try again.' });
+        expect(clients[0].mutation).toHaveBeenLastCalledWith('serverTranscript', expect.objectContaining({ expectedRecording: original }));
+    });
+
+    it('stops before paid work when the processing callback sees a replacement recording', async () => {
+        clientConstructor.mockImplementationOnce(() => {
+            const client: ClientMock = { setAuth: jest.fn(), query: jest.fn(), mutation: jest.fn().mockResolvedValue(false) };
+            client.query.mockImplementation(async (query: string) => query === 'session'
+                ? { clerkId: 'creator-session', creator: actor } : submission);
+            clients.push(client);
+            return client;
+        });
+        expect((await POST(request())).status).toBe(409);
+        expect(network).not.toHaveBeenCalled();
+        expect(transcribe).not.toHaveBeenCalled();
+    });
+
+    it('requires its server write capability before transcribing an attached submission', async () => {
+        delete process.env.INTERNAL_API_SECRET;
+        expect((await POST(request())).status).toBe(503);
+        expectNoSideEffects();
     });
 
     it('does not contact Groq if the backend revokes access before the processing write', async () => {
@@ -186,9 +239,11 @@ describe('internal transcription bridge and request isolation', () => {
         expect(checkRateLimit).not.toHaveBeenCalled();
         expect(clients[0].query).not.toHaveBeenCalledWith('session', expect.anything());
         expect(clients[0].mutation).toHaveBeenNthCalledWith(1, 'serverTranscript', {
+            expectedRecording: interviewRecordingFingerprint(submission!),
             id: 'submission-1', internalSecret: 'test-internal-secret', transcriptionStatus: 'processing',
         });
         expect(clients[0].mutation).toHaveBeenNthCalledWith(2, 'serverTranscript', {
+            expectedRecording: interviewRecordingFingerprint(submission!),
             id: 'submission-1', internalSecret: 'test-internal-secret', transcript: 'The owner tells their story.',
             transcriptionStatus: 'complete', transcriptionUpdatedAt: expect.any(Number),
         });
@@ -213,8 +268,9 @@ describe('internal transcription bridge and request isolation', () => {
         transcribe.mockRejectedValueOnce(new Error('Timeout from provider'));
         const response = await POST(request(undefined, mode === 'internal' ? 'test-internal-secret' : undefined));
         expect(response.status).toBe(504);
-        expect(clients[0].mutation).toHaveBeenLastCalledWith(mode === 'internal' ? 'serverTranscript' : 'update', {
-            id: 'submission-1', transcriptionStatus: 'failed', ...(mode === 'internal' ? { internalSecret: 'test-internal-secret' } : {}),
+        expect(clients[0].mutation).toHaveBeenLastCalledWith('serverTranscript', {
+            id: 'submission-1', transcriptionStatus: 'failed', internalSecret: 'test-internal-secret',
+            expectedRecording: interviewRecordingFingerprint(submission!),
         });
     });
 

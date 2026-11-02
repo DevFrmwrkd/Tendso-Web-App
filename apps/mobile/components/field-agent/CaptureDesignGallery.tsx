@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, ScreenShell, Text } from '../v2';
+import { Banner, Button, ScreenShell, Text } from '../v2';
 import { SiteFrame } from '../v2/owner/OwnerUI';
 import type { Design } from '../../lib/v2/ownerContent';
 import { SITE_URL } from '../../services/links';
@@ -23,6 +23,7 @@ export type CaptureDesignGalleryProps = {
   disabled?: boolean;
   error?: string | null;
   isOffline?: boolean;
+  reviewFeedback?: string;
 };
 
 function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
@@ -48,7 +49,7 @@ function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
 
 /** Presentation only: a choice is saved and submitted exclusively by the capture route. */
 export function CaptureDesignGallery({ designs, selectedCode, onSelect, onUse, onBack,
-  busy = false, disabled = false, error, isOffline = false }: CaptureDesignGalleryProps) {
+  busy = false, disabled = false, error, isOffline = false, reviewFeedback }: CaptureDesignGalleryProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const cardWidth = Math.max(140, Math.min(300, width - 112));
@@ -127,6 +128,7 @@ export function CaptureDesignGallery({ designs, selectedCode, onSelect, onUse, o
       {useButton(current?.code)}
     </>}>
     <Text variant="label" tone="muted">Step 4 of 5</Text>
+    {reviewFeedback ? <Banner tone="danger" title="What needs fixing" body={reviewFeedback} /> : null}
     <Text variant="body" tone="ink2">Example photos and text. This shop’s content is added after review.</Text>
     {designs.length ? <>
       <FlatList ref={list} horizontal data={designs as Design[]} keyExtractor={design => design.code}

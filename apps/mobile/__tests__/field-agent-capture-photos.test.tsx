@@ -41,7 +41,8 @@ jest.mock('@tendso/convex-client', () => ({ api: {
 } }));
 jest.mock('convex/react', () => ({
   useQuery: (reference: string, args: any) => args === 'skip' ? undefined : reference === 'submission'
-    ? mockSubmissions[args.id] : args.storageIds.map((key: string) => `https://images.example.com/${key}`),
+    ? mockSubmissions[args.id] == null ? mockSubmissions[args.id] : { status: 'draft', ...mockSubmissions[args.id] }
+    : args.storageIds.map((key: string) => `https://images.example.com/${key}`),
   useMutation: () => mockUpdate, useAction: () => mockUpload,
 }));
 jest.mock('../components/OfflineBanner', () => ({ OfflineBanner: () => null }));
@@ -68,7 +69,7 @@ const photoDraft = (items: unknown[], submissionId = 'draft-1') => ({ version: 1
 const screenReady = async () => {
   const screen = render(<SubmitPhotosScreen />);
   await waitFor(() => expect(screen.getByText('Show us the shop')).toBeTruthy());
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'Continue to interview' })
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Save changes' }) ?? screen.queryByRole('button', { name: 'Continue to interview' })
     ?? screen.getByRole('button', { name: 'Start taking photos' })).toBeEnabled());
   return screen;
 };
@@ -84,6 +85,18 @@ beforeEach(() => {
   global.fetch = mockFetch as unknown as typeof fetch;
 });
 afterAll(() => { global.fetch = originalFetch; });
+
+it('keeps all stored photos on a rejected capture and saves the same ID without requiring new pictures', async () => {
+  mockSubmissions['draft-1'] = { _id: 'draft-1', creatorId: 'agent-1', status: 'rejected',
+    businessType: 'Barber/Salon', photos: ['kept-one', 'kept-two', 'kept-three'], rejectionReason: 'Correct the owner name.' };
+  const screen = await screenReady();
+  await waitFor(() => expect(screen.getByText('3 of 10 photos added')).toBeTruthy());
+  expect(screen.getByText('Correct the owner name.')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith({ id: 'draft-1', photos: ['kept-one', 'kept-two', 'kept-three'] }));
+  expect(mockUpload).not.toHaveBeenCalled();
+  expect(mockRouter.back).toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+});
 
 it('offers ten real suggestions and records a camera photo against its actual task without requiring all ten', async () => {
   const screen = await screenReady();
@@ -361,7 +374,7 @@ it('ignores metadata for another draft and refuses a server draft owned by anoth
   expect(screen.getByText('0 of 10 photos added')).toBeTruthy();
   mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], creatorId: 'someone-else' };
   screen.rerender(<SubmitPhotosScreen />);
-  expect(screen.getByText('Draft unavailable')).toBeTruthy();
+  expect(screen.getByText('Capture unavailable')).toBeTruthy();
   expect(mockUpdate).not.toHaveBeenCalled();
 });
 

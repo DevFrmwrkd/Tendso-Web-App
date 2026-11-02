@@ -5,6 +5,7 @@ import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import type { Doc, Id } from '@/convex/_generated/dataModel'
 import { isCreatorAccount } from '@/lib/accounts'
+import { interviewRecordingFingerprint } from '@/convex/lib/interviewRecording'
 
 type TranscriptionUpdate = {
     transcriptionStatus: 'processing' | 'complete' | 'failed'
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { audioUrl, useConvexStorage, videoStorageId, audioStorageId, videoUrl } = body
+        const { useConvexStorage } = body
         if (body.submissionId !== undefined && (typeof body.submissionId !== 'string' || !body.submissionId.trim())) {
             return NextResponse.json({ error: 'Invalid submission ID' }, { status: 400 })
         }
@@ -73,10 +74,18 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: 'You can only transcribe your own submissions' }, { status: 403 })
             }
             const id = submissionId as Id<'submissions'>
-            updateTranscription = (update) => isInternalCall
-                ? convex.mutation(api.submissions.recordTranscriptionFromServer, { id, internalSecret: providedSecret!, ...update })
-                : convex.mutation(api.submissions.update, { id, ...update })
+            if (!expectedSecret) return NextResponse.json({ error: 'Transcription service is not configured' }, { status: 503 })
+            const expectedRecording = interviewRecordingFingerprint(submission)
+            // Authorization above is checked with the caller's token. Only
+            // this server capability may write derived transcription metadata
+            // after a capture has left its editable review state.
+            updateTranscription = (update) => convex.mutation(api.submissions.recordTranscriptionFromServer, {
+                id, internalSecret: expectedSecret, expectedRecording, ...update,
+            })
         }
+        // The saved interview is authoritative. An old browser tab may still
+        // hold the previous take's URL after a correction was uploaded.
+        const { audioUrl, videoStorageId, audioStorageId, videoUrl } = submission ?? body
 
         if (!isInternalCall) {
             // Rate limit: expensive operation (5/min) — only applied to user-initiated calls.
@@ -172,7 +181,8 @@ export async function POST(request: NextRequest) {
         if (updateTranscription) {
             // This also rechecks backend authorization before paid work. A
             // rejected write must stop here, even if access just changed.
-            await updateTranscription({ transcriptionStatus: 'processing' })
+            const applied = await updateTranscription({ transcriptionStatus: 'processing' })
+            if (applied === false) return NextResponse.json({ error: 'The interview changed. Open the current recording and try again.' }, { status: 409 })
         }
 
         // Check file size before transcribing
@@ -202,11 +212,12 @@ export async function POST(request: NextRequest) {
         // Update submission with transcript and status if submissionId provided
         if (updateTranscription) {
             try {
-                await updateTranscription({
+                const applied = await updateTranscription({
                     transcript: transcript,
                     transcriptionStatus: 'complete',
                     transcriptionUpdatedAt: Date.now(),
                 })
+                if (applied === false) return NextResponse.json({ error: 'The interview changed. Open the current recording and try again.' }, { status: 409 })
             } catch (err) {
                 console.error('Error updating submission:', err)
                 return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 })

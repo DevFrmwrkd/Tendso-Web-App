@@ -29,6 +29,7 @@ import { v } from 'convex/values';
 import { internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { chunkMediaFile, getFileExtension } from './lib/mediaChunker';
+import { interviewRecordingFingerprint, interviewRecordingSources } from './lib/interviewRecording';
 
 /** The file and its chunks, twice this, have to fit in a Node action's 512 MB. */
 const MAX_MEDIA_BYTES = 200 * 1024 * 1024;
@@ -163,17 +164,35 @@ export const transcribeMedia = internalAction({
         audioFallback: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const recording = await ctx.runQuery(internal.submissions.getByIdInternal, { id: args.submissionId });
+        if (!recording) return;
+        // A queued job may start after a rejected interview was replaced. It
+        // must neither transcribe the old take nor overwrite the new spinner.
+        const sources = interviewRecordingSources(recording);
+        const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
+        const resolvedSources = await Promise.all(sources.map(async source => {
+            const url = mediaUrlOf(source, r2Prefix);
+            if (url) return url;
+            try { return await ctx.storage.getUrl(source.replace(/^convex:/, '') as any); }
+            catch { return null; }
+        }));
+        const belongsToRecording = (source: string) => sources.includes(source) || resolvedSources.includes(source);
+        if (!sources.length || (args.storageId && !belongsToRecording(args.storageId))) return;
+        const expectedRecording = interviewRecordingFingerprint(recording);
         // Mark as processing so UIs can show a spinner while Groq works.
         const startedAt = Date.now();
-        await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
+        const processing = await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
             submissionId: args.submissionId,
             status: 'processing',
+            expectedRecording,
         });
+        if (processing === false) return;
         // Nothing below runs if this action is killed (out of memory, or past
         // its time limit), so a later check fails it if it never finished.
         await ctx.scheduler.runAfter(STALL_AFTER_MS, internal.submissions.failStalledTranscription, {
             submissionId: args.submissionId,
             startedAt,
+            expectedRecording,
         });
 
         try {
@@ -183,20 +202,17 @@ export const transcribeMedia = internalAction({
             }
 
             // Resolve the storageId/URL/path to a fetchable HTTPS URL.
-            const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
             let mediaUrl = mediaUrlOf(args.storageId, r2Prefix);
             // Fallback: re-read the submission fields directly.
             if (!mediaUrl) {
-                const fresh = await ctx.runQuery(internal.submissions.getByIdInternal, {
-                    id: args.submissionId,
-                });
-                const candidates = [fresh?.videoUrl, fresh?.audioUrl, fresh?.videoStorageId, fresh?.audioStorageId];
-                mediaUrl = candidates.map((c) => mediaUrlOf(c, r2Prefix)).find(Boolean) ?? null;
+                const candidates = [recording.videoUrl, recording.audioUrl, recording.videoStorageId, recording.audioStorageId];
+                mediaUrl = candidates.map((c) => c ? mediaUrlOf(c, r2Prefix) ?? resolvedSources[sources.indexOf(c)] : null).find(Boolean) ?? null;
             }
             if (!mediaUrl) {
                 throw new Error(`Could not resolve a fetchable URL for storageId "${args.storageId}"`);
             }
-            const fallbackUrl = mediaUrlOf(args.audioFallback, r2Prefix);
+            const fallbackUrl = args.audioFallback && belongsToRecording(args.audioFallback)
+                ? mediaUrlOf(args.audioFallback, r2Prefix) ?? resolvedSources[sources.indexOf(args.audioFallback)] : null;
 
             let fullTranscript: string;
             try {
@@ -208,10 +224,12 @@ export const transcribeMedia = internalAction({
                 fullTranscript = await transcribeFrom(fallbackUrl, groqKey);
             }
 
-            await ctx.runMutation(internal.submissions.updateTranscription, {
+            const saved = await ctx.runMutation(internal.submissions.updateTranscription, {
                 submissionId: args.submissionId,
                 transcription: fullTranscript,
+                expectedRecording,
             });
+            if (saved === false) return;
             console.log(`[transcribeMedia] Saved transcript for ${args.submissionId} (${fullTranscript.length} chars)`);
         } catch (error) {
             const reason = error instanceof Error ? error.message : 'Unknown transcription error';
@@ -220,6 +238,7 @@ export const transcribeMedia = internalAction({
                 submissionId: args.submissionId,
                 status: 'failed',
                 error: reason,
+                expectedRecording,
             });
         }
     },

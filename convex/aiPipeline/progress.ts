@@ -27,12 +27,13 @@ export async function reportBuildStep(
     const error = args.status === 'failed' ? (args.error ?? 'failed').slice(0, 500) : undefined;
     console.log(`[ai-pipeline] progress ${args.submissionId} ${args.step} → ${args.status}${error ? ` (${error})` : ''}`);
 
-    await ctx.runMutation(internal.aiPipeline.orchestrator.markStep, {
+    const current = await ctx.runMutation(internal.aiPipeline.orchestrator.markStep, {
         runId: args.runId,
         step: args.step,
         status: args.status,
         ...(error ? { error } : {}),
     });
+    if (current === false) return;
 
     try {
         await ctx.runMutation(internal.buildProgress.setStep, {

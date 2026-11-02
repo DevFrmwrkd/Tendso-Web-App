@@ -61,7 +61,7 @@ beforeEach(() => {
     row('foreign', 'Private Other Shop', 'paid', 'Manila', 'agent-two')];
   mockDetail = mockData[0]; mockPointer = 'previous-draft';
   mockWrite.mockReset().mockImplementation(async (_key, value) => { mockPointer = value; });
-  mockRead.mockReset().mockImplementation(async () => mockPointer);
+  mockRead.mockReset().mockImplementation(async (key) => key === 'current_submission_id' ? mockPointer : null);
 });
 
 it('searches owned shops by name, type or city and combines the status filter', () => {
@@ -94,16 +94,80 @@ it('uses the existing read query and scopes resume to the owned draft through ex
   expect(mockWrite).toHaveBeenCalledWith('current_submission_id', 'draft-one');
 });
 
-it('rejects another creator’s submission before any private media resolution or resume', () => {
-  mockDetail = row('foreign', 'Private Other Shop', 'draft', 'Manila', 'agent-two');
+it.each(['draft', 'rejected'])('rejects another creator’s %s submission before any private media resolution or resume', (status) => {
+  mockDetail = row('foreign', 'Private Other Shop', status, 'Manila', 'agent-two');
   mockDetail.photos = ['private-photo']; mockDetail.videoStorageId = 'private-video';
   const screen = render(<SubmissionDetail />);
   expect(screen.getByText('Shop not found')).toBeTruthy();
   expect(screen.queryByText('Private Other Shop')).toBeNull();
   expect(screen.queryByText('Continue submission')).toBeNull();
+  expect(screen.queryByText('Edit and resend')).toBeNull();
   expect(mockQuery).not.toHaveBeenCalledWith('photos', expect.objectContaining({ storageIds: ['private-photo'] }));
   expect(mockQuery).not.toHaveBeenCalledWith('stream', { fileKey: 'private-video' });
   expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('opens an owned rejected capture at its saved review without making a new submission', async () => {
+  mockId = 'rejected-one';
+  mockDetail = { ...row(mockId, 'Kalan Kitchen', 'rejected'), photos: ['front', 'owner', 'craft'],
+    audioStorageId: 'saved-interview', amount: 2499, templateId: 'generic:A',
+    rejectionReason: 'Replace the blurry storefront photo.' };
+  const screen = render(<SubmissionDetail />);
+  expect(screen.getByText('Replace the blurry storefront photo.')).toBeTruthy();
+  expect(screen.getByText('Keep what’s correct')).toBeTruthy();
+  expect(screen.queryByText('Continue submission')).toBeNull();
+  fireEvent.press(screen.getByRole('button', { name: 'Edit and resend' }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith({
+    pathname: '/(app)/submit/review', params: { draftId: 'rejected-one' },
+  }));
+  expect(mockWrite).toHaveBeenCalledWith('current_submission_id', 'rejected-one');
+  expect(mockWrite).toHaveBeenCalledWith('submission_snapshot', expect.objectContaining({
+    submissionId: 'rejected-one', photos: ['front', 'owner', 'craft'], audioStorageId: 'saved-interview',
+    amount: 2499, initialSellPrice: 2499, templateId: 'generic:A', rejectionReason: 'Replace the blurry storefront photo.',
+  }));
+  expect(mockQuery).toHaveBeenCalledWith('photos', { storageIds: ['front', 'owner', 'craft'] });
+  expect(mockQuery).toHaveBeenCalledWith('stream', { fileKey: 'saved-interview' });
+});
+
+it.each(['route', 'status', 'unmount'])('does not open a rejected editor after %s changes during its scoped write', async (change) => {
+  mockId = 'rejected-one';
+  mockDetail = row(mockId, 'Kalan Kitchen', 'rejected');
+  let finish!: () => void;
+  mockWrite.mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
+  const screen = render(<SubmissionDetail />);
+  fireEvent.press(screen.getByRole('button', { name: 'Edit and resend' }));
+  await waitFor(() => expect(mockWrite).toHaveBeenCalled());
+  if (change === 'unmount') screen.unmount();
+  else {
+    if (change === 'route') mockId = 'different-capture';
+    if (change === 'status') mockDetail = { ...mockDetail, status: 'approved' };
+    screen.rerender(<SubmissionDetail />);
+  }
+  await act(async () => { finish(); });
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('keeps another shop’s unsynced capture intact instead of switching its active cache', async () => {
+  mockId = 'rejected-one'; mockDetail = row(mockId, 'Kalan Kitchen', 'rejected');
+  mockRead.mockImplementation(async (key) => key === 'submission_pending_photos'
+    ? { submissionId: 'offline-other-shop', photoUris: ['file://unsynced-owner-photo'] }
+    : key === 'current_submission_id' ? 'offline-other-shop' : null);
+  const screen = render(<SubmissionDetail />);
+  fireEvent.press(screen.getByRole('button', { name: 'Edit and resend' }));
+  await waitFor(() => expect(screen.getByText('Finish the other capture on this phone before reopening this submission. Your saved work has not been changed.')).toBeTruthy());
+  expect(mockWrite).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('allows retry after a rejected capture cannot be reopened from storage', async () => {
+  mockId = 'rejected-one';
+  mockDetail = row(mockId, 'Kalan Kitchen', 'rejected');
+  mockWrite.mockRejectedValueOnce(new Error('Device storage full'));
+  const screen = render(<SubmissionDetail />);
+  fireEvent.press(screen.getByRole('button', { name: 'Edit and resend' }));
+  await waitFor(() => expect(screen.getByText('Could not reopen this submission. Please try again.')).toBeTruthy());
+  fireEvent.press(screen.getByRole('button', { name: 'Edit and resend' }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/review', params: { draftId: 'rejected-one' } }));
 });
 
 it('does not turn an incomplete sent submission into an editable draft', () => {

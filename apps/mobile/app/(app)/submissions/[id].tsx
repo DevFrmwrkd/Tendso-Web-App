@@ -19,6 +19,7 @@ import type { Id } from '@tendso/convex-client';
 import { useUser } from '@clerk/clerk-expo';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { CAPTURE_RESUME_KEYS, hasOtherCaptureWork } from '../../../services/captureResume';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import { openExternalUrl } from '../../../services/links';
 import { colors, radius, shadow, space } from '../../../theme/v2';
@@ -85,6 +86,10 @@ export default function SubmissionDetailScreen() {
   const resumeBusy = useRef(false);
   const liveId = useRef(id);
   liveId.current = id;
+  const liveStatus = useRef(submission?.status);
+  liveStatus.current = submission?.status;
+  const resumeMounted = useRef(true);
+  useEffect(() => { resumeMounted.current = true; return () => { resumeMounted.current = false; }; }, []);
 
   // Preserve the legacy response's URL preference while using canonical types.
   const legacyDeployedUrl = submission && 'deployedUrl' in submission &&
@@ -346,26 +351,47 @@ export default function SubmissionDetailScreen() {
         title={submission.businessName}
         onBack={() => router.back()}
         footer={
-          submission.status === 'draft' ? (
+          submission.status === 'draft' || isRejected ? (
             <Button
-              title="Continue submission"
+              title={isRejected ? 'Edit and resend' : 'Continue submission'}
               loading={resuming}
               disabled={resuming || !capture.canMutate()}
               onPress={async () => {
                 const draftId = submission._id;
+                const openingStatus = submission.status;
                 if (resumeBusy.current || !capture.canMutate() || capture.actor?.creatorId !== submission.creatorId) return;
                 resumeBusy.current = true; setResuming(true); setResumeError('');
                 try {
+                  if (isRejected) {
+                    const values = await Promise.all(CAPTURE_RESUME_KEYS.map(key => capture.read(key)));
+                    if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
+                      || liveStatus.current !== openingStatus) return;
+                    if (hasOtherCaptureWork(draftId, Object.fromEntries(CAPTURE_RESUME_KEYS.map((key, index) => [key, values[index]])))) {
+                      setResumeError('Finish the other capture on this phone before reopening this submission. Your saved work has not been changed.');
+                      return;
+                    }
+                    await capture.write('submission_snapshot', {
+                      ...submission, submissionId: draftId, creatorId: submission.creatorId,
+                      initialSellPrice: typeof submission.amount === 'number'
+                        ? submission.amount - (submission.domainCostPHP ?? 0) : undefined,
+                      resolvedPhotoUrls: photoUrls?.filter((uri): uri is string => !!uri && !uri.startsWith('convex:')),
+                    });
+                    if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
+                      || liveStatus.current !== openingStatus) return;
+                  }
                   await capture.write('current_submission_id', draftId);
                   const pointer = await capture.read<string>('current_submission_id');
-                  if (!capture.canMutate() || liveId.current !== draftId || pointer !== draftId) return;
+                  if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
+                    || liveStatus.current !== openingStatus || pointer !== draftId) return;
                   // Explicit hydration also preserves only this draft's local edits.
-                  router.push({ pathname: '/(app)/submit/info', params: { draftId } } as never);
+                  router.push({ pathname: isRejected ? '/(app)/submit/review' : '/(app)/submit/info', params: { draftId } } as never);
                 } catch {
-                  if (capture.isCurrent()) setResumeError('Could not reopen this draft. Please try again.');
+                  if (resumeMounted.current && capture.isCurrent()) setResumeError(isRejected
+                    ? 'Could not reopen this submission. Please try again.'
+                    : 'Could not reopen this draft. Please try again.');
                 } finally {
                   resumeBusy.current = false;
-                  if (capture.isCurrent()) setResuming(false);
+                  if (resumeMounted.current && capture.isCurrent()) setResuming(false);
                 }
               }}
             />
@@ -381,6 +407,10 @@ export default function SubmissionDetailScreen() {
         ) : null}
 
         {note ? <Banner tone={note.tone} title={note.title} body={note.body} /> : null}
+        {isRejected ? <Card style={styles.stack}>
+          <Text variant="body" weight="bold">Keep what’s correct</Text>
+          <Text variant="label" tone="muted">Your saved details, photos and interview are ready to edit. Fix the review feedback and resend this same submission.</Text>
+        </Card> : null}
 
         {/* Website link */}
         {showWebsiteRow ? (
@@ -784,6 +814,7 @@ export default function SubmissionDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  stack: { gap: space.sm },
   flex: { flex: 1 },
   centerBody: { flexGrow: 1, justifyContent: 'center' },
   body: { gap: space.md, paddingTop: space.lg },

@@ -103,6 +103,84 @@ beforeEach(() => {
 });
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
 
+it('opens the rejected record with its saved media, design, price and feedback and resends the same ID', async () => {
+  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', rejectionReason: 'Replace the blurry shop photo.',
+    templateId: 'florist:BR', amount: 2999, domainCostPHP: 0, submissionType: 'standard' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('Replace the blurry shop photo.')).toBeTruthy();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(screen.getByText('Bloom')).toBeTruthy(); expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockChooseDesign).not.toHaveBeenCalled();
+  expect(mockWrite).toHaveBeenCalledWith('submission_last_sent', expect.objectContaining({ submissionId: 'draft-1', queued: false }));
+});
+
+it('keeps the saved custom domain quote during a correction without requiring it to be available again', async () => {
+  mockCheckDomain.mockResolvedValue({ valid: true, available: false, withinBudget: true, pricePHP: 600 });
+  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', amount: 3449, domainCostPHP: 450,
+    submissionType: 'with_custom_domain', requestedDomain: 'nenastore.com' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText('Custom domain (optional)').props.value).toBe('nenastore.com'));
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
+it('refuses an explicit repair route that no longer matches the current capture pointer', async () => {
+  mockParams = { draftId: 'jd7avrwvz69mqk3fpjftg8m6vn8hm7qm' };
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Open your capture first')).toBeTruthy());
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('queues an offline correction with its original capture and does not claim the rejected server record was resent', async () => {
+  const rejected = { ...mockSubmissions['draft-1'], status: 'rejected', rejectionReason: 'Fix the photo.', amount: 2499 };
+  stored('submission_snapshot', { ...rejected, submissionId: 'draft-1', resolvedPhotoUrls: ['https://images.example/one.jpg'] });
+  mockOffline = true;
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({ submissionId: 'draft-1', sellPrice: 2499 });
+  screen.unmount(); mockOffline = false; mockSubmissions['draft-1'] = rejected; mockParams = { submissionId: 'draft-1', queued: 'true' };
+  const receipt = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(receipt.getByText('Saved on this phone')).toBeTruthy());
+  expect(receipt.queryByText(/Sent! We’ll build/)).toBeNull();
+  mockSubmissions['draft-1'].status = 'submitted'; receipt.rerender(<SubmitSuccessScreen />);
+  await waitFor(() => expect(receipt.getByText('Sent! We’ll build Nena Store’s site.')).toBeTruthy());
+});
+
+it('does not resend when the pointer switches after the correction confirmation opens', async () => {
+  mockSubmissions['draft-1'].status = 'rejected';
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled());
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  stored('current_submission_id', 'different-capture');
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it.each(['videoUrl', 'audioUrl'])('keeps a legacy rejected %s interview ready to resend without recording again', async field => {
+  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', videoStorageId: undefined, audioStorageId: undefined,
+    [field]: 'https://media.example.com/saved-interview', amount: 1999 });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('Interview ready')).toBeTruthy(); expect(screen.getByRole('link', { name: 'Play interview' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
 it('shows the canonical design name and changes it through the existing Review route', async () => {
   mockSubmissions['draft-1'].templateId = 'florist:BR';
   const screen = await review();

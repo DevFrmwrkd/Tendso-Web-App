@@ -5,6 +5,16 @@ import { assertGiveawayCanActivate } from './giveaway';
 
 type GiveawayReviewSource = 'otr' | 'admin';
 
+/** A rejected capture cannot be finished later by its old automatic build. */
+export async function cancelRejectedSubmissionBuilds(ctx: MutationCtx, submissionId: Id<'submissions'>) {
+    const running = await ctx.db.query('aiPipelineRuns')
+        .withIndex('by_submission', q => q.eq('submissionId', submissionId))
+        .filter(q => q.eq(q.field('status'), 'running')).collect();
+    for (const run of running) await ctx.db.patch(run._id, {
+        status: 'canceled', error: 'Capture rejected for correction', finishedAt: Date.now(), updatedAt: Date.now(),
+    });
+}
+
 /** Legacy records only identify OTR when their exact reviewer subject is invited. */
 export function resolveGiveawayReviewSource(
     submission: Pick<Doc<'submissions'>, 'giveawayApplication' | 'giveawayReviewSource' | 'reviewedBy'>,
@@ -147,6 +157,7 @@ export async function rejectReviewedSubmission(ctx: MutationCtx, args: { submiss
     }
     if (submission.giveawayApplication) updates.giveawayRejectedEmailSentAt = undefined;
     await ctx.db.patch(args.submissionId, updates);
+    await cancelRejectedSubmissionBuilds(ctx, args.submissionId);
     // Scheduling and releasing the held slot commit together. Delivery runs
     // later, so a mail outage can never roll the rejection back.
     if (submission.giveawayApplication) {

@@ -7,12 +7,13 @@ import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RA
 import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
 import { requireAccountOwner, requireAdmin, requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
-import { resolveGiveawayReviewSource } from './lib/submissionReview';
+import { cancelRejectedSubmissionBuilds, resolveGiveawayReviewSource } from './lib/submissionReview';
 import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
 import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
 import { validCaptureDesignCode } from '../lib/captureDesign';
 import { canReadPrivateSubmission } from './lib/submissionAccess';
 import { isCaptureShopLead } from './lib/shopCaptureProgress';
+import { interviewRecordingFingerprint } from './lib/interviewRecording';
 
 function requireCaptureOwnerEmail(value: string | undefined): string {
     const error = captureEmailError(value);
@@ -21,11 +22,26 @@ function requireCaptureOwnerEmail(value: string | undefined): string {
 }
 
 /** Capture edits belong to their creator; admin publishing can edit any account's content. */
-async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>) {
+async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators'>, submission?: Doc<'submissions'>) {
     const { me } = await requireCreatorAccount(ctx);
     if (me.role !== 'admin' && me._id !== creatorId) {
         throw new Error('Forbidden: you can only edit your own submission');
     }
+    if (me.role !== 'admin' && submission) {
+        if (submission.status !== 'draft' && submission.status !== 'rejected') {
+            throw new Error('Only draft or rejected captures can be edited');
+        }
+        if (submission.status === 'rejected') {
+            await requireCertifiedFieldAgent(ctx);
+            if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake' || submission.giveawayApplication) {
+                throw new Error('Use the owner submission review flow for this order');
+            }
+            if ((submission.amountPaid ?? 0) > 0 || submission.paidAt || submission.paidInFullAt || submission.depositPaidAt) {
+                throw new Error('A capture with an owner payment cannot be edited');
+            }
+        }
+    }
+    return me;
 }
 
 /** The price-only subscription can start before a mobile token hydrates. */
@@ -501,9 +517,12 @@ export const chooseDesign = mutation({
         if (submission.creatorId !== me._id) {
             throw new Error('Forbidden: you can only choose a design for your own draft');
         }
-        if (submission.status !== 'draft') throw new Error('Design choices can only be changed on a draft');
-        if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake') {
+        if (submission.status !== 'draft' && submission.status !== 'rejected') throw new Error('Design choices can only be changed on a draft or rejected capture');
+        if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake' || submission.giveawayApplication) {
             throw new Error('Choose the design in the owner submission flow');
+        }
+        if (submission.status === 'rejected' && ((submission.amountPaid ?? 0) > 0 || submission.paidAt || submission.paidInFullAt || submission.depositPaidAt)) {
+            throw new Error('A capture with an owner payment cannot be edited');
         }
         const templateId = validCaptureDesignCode(args.templateId);
         if (!templateId) throw new Error('Choose a valid website design');
@@ -554,6 +573,7 @@ export const update = mutation({
         amount: v.optional(v.number()),
         creatorPayout: v.optional(v.number()),
         platformFee: v.optional(v.number()),
+        expectedRecording: v.optional(v.string()),
         // See create(). Set-once — never re-pointed or cleared here.
         prospectLeadId: v.optional(v.id('leads')),
     },
@@ -562,7 +582,7 @@ export const update = mutation({
         // needs validation, and letting it flow through filteredUpdates would
         // let a re-entry silently re-point an in-progress interview at a
         // different business.
-        const { id, prospectLeadId, ...updates } = args;
+        const { id, prospectLeadId, expectedRecording, ...updates } = args;
 
         // Filter out undefined values
         const filteredUpdates: Record<string, unknown> = Object.fromEntries(
@@ -572,7 +592,12 @@ export const update = mutation({
 
         const submission = await ctx.db.get(id);
         if (!submission) throw new Error('Submission not found');
-        await requireSubmissionEditor(ctx, submission.creatorId);
+        const editor = await requireSubmissionEditor(ctx, submission.creatorId, submission);
+        if (expectedRecording !== undefined && interviewRecordingFingerprint(submission) !== expectedRecording) return false;
+        if (submission.status === 'rejected' && editor.role !== 'admin' &&
+            ['amount', 'creatorPayout', 'platformFee', 'websiteUrl', 'websiteCode'].some(key => key in filteredUpdates)) {
+            throw new Error('Use capture pricing to change a rejected capture’s price');
+        }
         const attributedAccount = await ctx.db.get(submission.creatorId);
         if (submission.contentSource === 'owner_intake' || attributedAccount?.role === 'affiliate') {
             // Shared publish/transcription callers can still edit content. They
@@ -600,6 +625,9 @@ export const update = mutation({
             }
         }
 
+        if (prospectLeadId && submission.status === 'rejected' && prospectLeadId !== submission.prospectLeadId) {
+            throw new Error('A rejected capture must keep its original shop');
+        }
         if (prospectLeadId) {
             const existing = await ctx.db.get(id);
             // Only ever SET the link — never overwrite one that's already there.
@@ -617,6 +645,32 @@ export const update = mutation({
                 if (!lead.isCaptureShop && isCaptureShopLead(lead, submission)) {
                     await ctx.db.patch(lead._id, { isCaptureShop: true });
                 }
+            }
+        }
+        // A corrected interview must not keep the transcript or recording from
+        // the rejected take. Ordinary detail/photo edits retain every asset.
+        const replacedVideo = submission.status === 'rejected' && !!(updates.videoStorageId || updates.videoUrl)
+            && (updates.videoStorageId !== undefined && updates.videoStorageId !== submission.videoStorageId
+                || updates.videoUrl !== undefined && updates.videoUrl !== submission.videoUrl);
+        const replacedAudio = submission.status === 'rejected' && !!(updates.audioStorageId || updates.audioUrl)
+            && (updates.audioStorageId !== undefined && updates.audioStorageId !== submission.audioStorageId
+                || updates.audioUrl !== undefined && updates.audioUrl !== submission.audioUrl);
+        if (replacedVideo || replacedAudio) {
+            for (const field of ['transcript', 'transcriptionStatus', 'transcriptionError', 'transcriptionUpdatedAt', 'interviewQa', 'aiGeneratedContent', 'businessDescription']) {
+                if (!(field in filteredUpdates)) filteredUpdates[field] = undefined;
+            }
+            if (replacedVideo) {
+                if (updates.videoStorageId === undefined) filteredUpdates.videoStorageId = undefined;
+                if (updates.videoUrl === undefined) filteredUpdates.videoUrl = undefined;
+                if (updates.audioStorageId === undefined) filteredUpdates.audioStorageId = undefined;
+                if (updates.audioUrl === undefined) filteredUpdates.audioUrl = undefined;
+            } else {
+                if (!updates.videoStorageId && !updates.videoUrl) {
+                    filteredUpdates.videoStorageId = undefined;
+                    filteredUpdates.videoUrl = undefined;
+                }
+                if (updates.audioStorageId === undefined) filteredUpdates.audioStorageId = undefined;
+                if (updates.audioUrl === undefined) filteredUpdates.audioUrl = undefined;
             }
         }
         await ctx.db.patch(id, filteredUpdates);
@@ -682,7 +736,7 @@ export const setDomainTier = mutation({
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
-        await requireSubmissionEditor(ctx, submission.creatorId);
+        await requireSubmissionEditor(ctx, submission.creatorId, submission);
         const account = await ctx.db.get(submission.creatorId);
         if (account?.role === 'affiliate') throw new Error('Affiliate orders cannot use creator pricing.');
         if (submission.contentSource === 'owner_intake' && !submission.giveawayApplication) {
@@ -724,7 +778,11 @@ export const setDomainTier = mutation({
         // Resolve the domain add-on from the REAL registrar price when present,
         // else fall back to the flat CUSTOM_DOMAIN_ADDON. domainAddOnFor returns
         // 0 for the standard tier.
-        const domainAddOn = domainAddOnFor(args.submissionType, args.domainPricePHP);
+        const sameRejectedDomain = submission.status === 'rejected' && isWithDomain
+            && submission.submissionType === 'with_custom_domain'
+            && submission.requestedDomain?.trim().toLowerCase() === args.requestedDomain?.trim().toLowerCase();
+        const domainAddOn = sameRejectedDomain && args.domainPricePHP === undefined && submission.domainCostPHP !== undefined
+            ? submission.domainCostPHP : domainAddOnFor(args.submissionType, args.domainPricePHP);
 
         const updates: any = {
             submissionType: args.submissionType,
@@ -782,6 +840,7 @@ export const updateStatus = mutation({
         }
         if (args.status !== 'rejected') await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.id, { status: args.status });
+        if (args.status === 'rejected') await cancelRejectedSubmissionBuilds(ctx, args.id);
     },
 });
 
@@ -823,7 +882,21 @@ export const submit = mutation({
         // Idempotency. Without this a double-tap on the review page re-inserts
         // the lead, double-fires both analytics increments, and re-triggers the
         // Studio render. Applies to every submission, not just prospect ones.
-        if (submission.status !== 'draft') return;
+        const isResubmission = submission.status === 'rejected';
+        if (submission.status !== 'draft' && !isResubmission) return;
+        if (isResubmission) {
+            const { me } = await requireCertifiedFieldAgent(ctx);
+            if (me._id !== submission.creatorId) throw new Error('You can only resend your own capture');
+            if (submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake' || submission.giveawayApplication) {
+                throw new Error('Use the owner submission review flow for this order');
+            }
+            if ((submission.amountPaid ?? 0) > 0 || submission.paidAt || submission.paidInFullAt || submission.depositPaidAt) {
+                throw new Error('A capture with an owner payment cannot be resent');
+            }
+            if (!submission.videoStorageId && !submission.audioStorageId && !submission.videoUrl && !submission.audioUrl) {
+                throw new Error('Save the shop interview before resending');
+            }
+        }
 
         // Legacy rows remain readable/editable. Every capture needs the owner's
         // email before processing starts or its shared lead is created.
@@ -833,6 +906,7 @@ export const submit = mutation({
         if (!submission.photos || submission.photos.length < 3) {
             throw new Error('At least 3 photos are required');
         }
+        if (isResubmission && submission.photos.length > 10) throw new Error('Keep up to 10 photos before resending');
 
         // 1. Update submission status
         // Preserve tier-based amount set by setDomainTier (base + domain add-on
@@ -847,6 +921,7 @@ export const submit = mutation({
             // only fall back to the base tier price if it was never set.
             amount: submission.amount ?? ownerTotal(BASE_PRICE, tier),
             airtableSyncStatus: 'pending_push',
+            ...(isResubmission ? { rejectionReason: undefined, reviewedBy: undefined, reviewedAt: undefined } : {}),
         });
 
         // 2. Link the interview to its source prospect, or create a fresh lead.
@@ -867,7 +942,12 @@ export const submit = mutation({
                     if (me._id !== submission.creatorId) throw new Error('You can only capture a shop for your own field-agent account');
                     // Recheck at submit: a draft can outlive a 24h visit. A new
                     // active reservation or completed interview must win.
-                    assertCommunityFindAvailable(prospect, me._id, Date.now());
+                    if (String(prospect.submissionId) !== String(args.id)) {
+                        assertCommunityFindAvailable(prospect, me._id, Date.now());
+                    }
+                }
+                if (isResubmission && prospect.submissionId && String(prospect.submissionId) !== String(args.id)) {
+                    throw new Error('This shop is linked to a different capture. Contact the team before resending.');
                 }
                 if (!prospect.submissionId) {
                     await ctx.db.patch(prospect._id, {
@@ -890,10 +970,25 @@ export const submit = mutation({
                     });
                     converted = true;
                 } else if (String(prospect.submissionId) === String(args.id)) {
+                    if (isResubmission && prospect.creatorId !== submission.creatorId) {
+                        throw new Error('This shop belongs to a different field agent');
+                    }
                     converted = true; // idempotent replay
+                    if (isResubmission) await ctx.db.patch(prospect._id, { name: submission.ownerName, email: ownerEmail });
                 }
                 // else: someone else converted it first. Fall through and create
                 // a normal lead — never destroy an interview already completed.
+            } else if (isResubmission) throw new Error('The original shop is unavailable. Contact the team before resending.');
+        }
+        if (!converted && isResubmission) {
+            const linkedLeads = await ctx.db.query('leads').withIndex('by_submission', q => q.eq('submissionId', args.id)).collect();
+            const capturedShops = linkedLeads.filter(lead => isCaptureShopLead(lead, submission));
+            if (capturedShops.some(lead => lead.creatorId !== submission.creatorId)) {
+                throw new Error('This shop belongs to a different field agent');
+            }
+            if (capturedShops.length) {
+                converted = true;
+                for (const lead of capturedShops) await ctx.db.patch(lead._id, { name: submission.ownerName, phone: submission.ownerPhone, email: ownerEmail });
             }
         }
         if (!converted) {
@@ -913,25 +1008,28 @@ export const submit = mutation({
         // 3. Increment analytics (daily + monthly)
         const today = new Date().toISOString().split('T')[0];
         const month = today.substring(0, 7);
-        await ctx.scheduler.runAfter(0, internal.analytics.incrementStat, {
-            creatorId: submission.creatorId,
-            period: today,
-            periodType: 'daily',
-            field: 'submissionsCount',
-            delta: 1,
-        });
-        await ctx.scheduler.runAfter(0, internal.analytics.incrementStat, {
-            creatorId: submission.creatorId,
-            period: month,
-            periodType: 'monthly',
-            field: 'submissionsCount',
-            delta: 1,
-        });
+        if (!isResubmission) {
+            await ctx.scheduler.runAfter(0, internal.analytics.incrementStat, {
+                creatorId: submission.creatorId,
+                period: today,
+                periodType: 'daily',
+                field: 'submissionsCount',
+                delta: 1,
+            });
+            await ctx.scheduler.runAfter(0, internal.analytics.incrementStat, {
+                creatorId: submission.creatorId,
+                period: month,
+                periodType: 'monthly',
+                field: 'submissionsCount',
+                delta: 1,
+            });
+        }
 
         // 4. Trigger Tendso Studio (Hyperagent) render — replaces the Airtable AI step.
         // airtable.ts stays wired as the rollback (revert this one line to restore it).
         await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.id,
+            ...(isResubmission ? { resubmitted: true } : {}),
         });
 
         // 5. Owner app v2: invite the owner ("Sign in with this email to see
@@ -1082,17 +1180,20 @@ export const recordTranscriptionFromServer = mutation({
         transcriptionStatus: v.union(v.literal('processing'), v.literal('complete'), v.literal('failed')),
         transcript: v.optional(v.string()),
         transcriptionUpdatedAt: v.optional(v.number()),
+        expectedRecording: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const expectedSecret = process.env.INTERNAL_API_SECRET;
         if (!expectedSecret || args.internalSecret !== expectedSecret) throw new Error('Forbidden: internal access required');
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
+        if (args.expectedRecording !== undefined && interviewRecordingFingerprint(submission) !== args.expectedRecording) return false;
         await ctx.db.patch(args.id, {
             transcriptionStatus: args.transcriptionStatus,
             ...(args.transcript !== undefined ? { transcript: args.transcript } : {}),
             ...(args.transcriptionUpdatedAt !== undefined ? { transcriptionUpdatedAt: args.transcriptionUpdatedAt } : {}),
         });
+        return true;
     },
 });
 //
@@ -1112,13 +1213,17 @@ export const updateTranscription = internalMutation({
     args: {
         submissionId: v.id('submissions'),
         transcription: v.string(),
+        expectedRecording: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || args.expectedRecording !== undefined && interviewRecordingFingerprint(submission) !== args.expectedRecording) return false;
         await ctx.db.patch(args.submissionId, {
             transcript: args.transcription,
             transcriptionStatus: 'complete',
             transcriptionUpdatedAt: Date.now(),
         });
+        return true;
     },
 });
 
@@ -1131,8 +1236,11 @@ export const updateTranscriptionStatus = internalMutation({
         submissionId: v.id('submissions'),
         status: v.string(), // processing | complete | failed (string for cross-deploy safety)
         error: v.optional(v.string()),
+        expectedRecording: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || args.expectedRecording !== undefined && interviewRecordingFingerprint(submission) !== args.expectedRecording) return false;
         const patch: Record<string, unknown> = {
             transcriptionStatus: args.status,
         };
@@ -1141,6 +1249,7 @@ export const updateTranscriptionStatus = internalMutation({
             patch.transcriptionUpdatedAt = Date.now();
         }
         await ctx.db.patch(args.submissionId, patch);
+        return true;
     },
 });
 
@@ -1154,9 +1263,11 @@ export const failStalledTranscription = internalMutation({
     args: {
         submissionId: v.id('submissions'),
         startedAt: v.number(),
+        expectedRecording: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId);
+        if (submission && args.expectedRecording !== undefined && interviewRecordingFingerprint(submission) !== args.expectedRecording) return false;
         if (!submission || submission.transcriptionStatus !== 'processing') return;
         // Finished or failed since then, and processing again: a later attempt.
         if ((submission.transcriptionUpdatedAt ?? 0) > args.startedAt) return;

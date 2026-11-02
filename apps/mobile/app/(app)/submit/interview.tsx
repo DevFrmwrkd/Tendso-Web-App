@@ -17,6 +17,7 @@ import { InterviewCam, type InterviewResult } from '../../../components/v2/captu
 import { formatClock } from '../../../components/v2/capture/level';
 import { EXTRA_QUESTION, INTERVIEW_QUESTIONS, type Lang } from '../../../lib/v2/captureContent';
 import { colors, hit, radius, shadow, space } from '../../../theme/v2';
+import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
 type RecordingDraft = {
@@ -62,6 +63,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   const generateUploadUrl = useAction(api.r2.generateUploadUrl);
   const updateSubmission = useMutation(api.submissions.update);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [savedCapture, setSavedCapture] = useState<CaptureSnapshot | null>(null);
   const [ready, setReady] = useState(false);
   const [recording, setRecording] = useState<RecordingDraft | null>(null);
   const [lang, setLang] = useState<Lang>('en');
@@ -77,10 +79,11 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   const live = useRef(session);
   live.current = session;
   const current = () => mounted.current && live.current.isCurrent();
-  const submission = useQuery(api.submissions.getById,
+  const serverSubmission = useQuery(api.submissions.getById,
     session.canQuery && submissionId && submissionId !== 'offline_pending'
       ? { id: submissionId as Id<'submissions'> } : 'skip');
-  const hasExisting = !!(submission?.videoStorageId || submission?.audioStorageId);
+  const submission = serverSubmission ?? (session.isOffline ? cachedRejectedCapture(savedCapture, submissionId, session.actor?.creatorId) ?? serverSubmission : serverSubmission);
+  const hasExisting = !!(submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl);
   const latest = useRef({ recording, camera, loading });
   latest.current = { recording, camera, loading };
 
@@ -102,8 +105,10 @@ function InterviewStep({ session }: { session: CaptureSession }) {
         if (!id) { router.replace('/(app)/(tabs)/dashboard'); return; }
         const draft = recordingFor(await live.current.read('submission_interview_draft'), id)
           ?? recordingFor(await live.current.read('submission_pending_interview'), id);
+        const snapshot = await live.current.read<CaptureSnapshot>('submission_snapshot');
         if (!current() || !active) return;
         setSubmissionId(id);
+        setSavedCapture(snapshot?.submissionId === id && snapshot.creatorId === live.current.actor?.creatorId ? snapshot : null);
         setRecording(draft);
         if (draft) setLang(draft.lang);
       } catch {
@@ -155,7 +160,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
     finally { busy.current = false; if (mounted.current) setLoading(false); }
   };
   const openCamera = (audioOnly: boolean) => {
-    if (busy.current || !current() || !submissionId || camera) return;
+    if (busy.current || !current() || !submissionId || camera || (submission && !isEditableCaptureStatus(submission.status))) return;
     setCloseRequest(0); setError(null); setCamera({ audioOnly });
   };
   const recordAgain = () => Alert.alert('Record another take?', 'Your saved interview stays available until the new recording is ready.', [
@@ -164,7 +169,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   ]);
 
   const handleNext = async () => {
-    if (busy.current || !current() || !submissionId || (!recording && !hasExisting)) return;
+    if (busy.current || !current() || !submissionId || (!recording && !hasExisting) || (submission && !isEditableCaptureStatus(submission.status))) return;
     busy.current = true; setLoading(true); setProgress(0); setError(null);
     const origin = live.current;
     const valid = () => mounted.current && origin.isCurrent();
@@ -173,6 +178,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       // A queued draft may have acquired its real server id while recording.
       const storedId = await origin.read<string>('current_submission_id');
       if (!valid()) return;
+      if (storedId && storedId !== submissionId && submissionId !== 'offline_pending') throw new Error('Your capture changed. Reopen this interview to continue.');
       const targetId = storedId || submissionId;
       let draft = recording ? { ...recording, submissionId: targetId } : null;
       if (draft) {
@@ -181,7 +187,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       }
       if (!online() || targetId === 'offline_pending') {
         if (draft) await origin.write('submission_pending_interview', draft);
-        if (valid()) router.push('/(app)/submit/design');
+        if (valid()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/design'); }
         return;
       }
       const upload = async (uri: string, folder: string, contentType: string, filename: string) => {
@@ -234,7 +240,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
         setProgress(1);
         await origin.remove('submission_pending_interview');
       }
-      if (valid()) router.push('/(app)/submit/design');
+      if (valid()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/design'); }
     } catch (cause) {
       if (valid()) setError(cause instanceof Error ? cause.message : 'Could not save your interview. Please try again.');
     } finally {
@@ -247,7 +253,8 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   if (!submissionId) return <ScreenShell title="Could not open your interview" onBack={goBack}>
     <Banner tone="danger" body={error ?? 'Go back and reopen this capture.'} />
   </ScreenShell>;
-  if (session.canQuery && submissionId !== 'offline_pending' && submission === null) return <ScreenShell
+  if (session.canQuery && submissionId !== 'offline_pending' && (submission === null || (submission
+    && (submission.creatorId !== session.actor?.creatorId || !isEditableCaptureStatus(submission.status))))) return <ScreenShell
     title="Capture unavailable" subtitle="Go back and reopen the business you are capturing." onBack={goBack} />;
 
   const modal = <Modal visible={camera !== null} animationType="fade" presentationStyle="fullScreen"
@@ -262,13 +269,15 @@ function InterviewStep({ session }: { session: CaptureSession }) {
     footer={<>
       {loading ? <ProgressBar value={progress} tone="accent" label="Saving interview" /> : null}
       {error ? <Banner tone="danger" body={error} /> : null}
-      <Button title={session.isOffline ? 'Save and continue' : 'Continue'} loading={loading} onPress={() => { void handleNext(); }} />
+      <Button title={submission?.status === 'rejected' ? 'Save changes' : session.isOffline ? 'Save and continue' : 'Continue'} loading={loading} onPress={() => { void handleNext(); }} />
       <Button title="Record again" variant="ghost" disabled={loading} onPress={recordAgain} />
     </>}>
     <OfflineBanner />
+    {submission?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={submission.rejectionReason || 'Keep the saved take or record a replacement if the interview needs correcting.'} /> : null}
     {recording?.interrupted ? <Banner tone="warn" title="Your recording stopped early"
       body="The take so far is saved. Listen back, or record again to finish the questions." /> : null}
-    {recording ? <Playback key={recording.recordingUri} uri={recording.recordingUri} kind={recording.type} /> :
+    {recording ? <Playback key={recording.recordingUri} uri={recording.recordingUri} kind={recording.type} /> : submission?.videoUrl || submission?.audioUrl
+      ? <Playback key={submission.videoUrl || submission.audioUrl} uri={(submission.videoUrl || submission.audioUrl)!} kind={submission.videoUrl ? 'video' : 'audio'} /> :
       <Card style={styles.saved}><Ionicons name="checkmark-circle" size={64} color={colors.ink} />
         <Text variant="body" align="center">You can continue or record a replacement.</Text></Card>}
     {modal}
@@ -287,6 +296,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       {recording || hasExisting ? <TextLink label="Keep saved recording" onPress={() => setRetaking(false)} style={styles.keep} /> : null}
     </>}>
     <OfflineBanner />
+    {submission?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={submission.rejectionReason || 'Keep the saved take or record a replacement if the interview needs correcting.'} /> : null}
     <QuestionPreview lang={lang} />
     <Text variant="body" tone="ink2">Ask one question at a time. Let the owner answer in their own words.</Text>
     <Text variant="label" tone="muted">One recording, from the first question to “{EXTRA_QUESTION[lang]}”.</Text>

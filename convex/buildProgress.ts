@@ -54,6 +54,7 @@ async function setStepImpl(
     const s = await ctx.db.get(args.submissionId);
     if (!s) throw new Error('Submission not found');
     if (s.status === 'draft') throw new Error('Cannot report build progress on a draft');
+    if (s.status === 'rejected') throw new Error('Cannot report build progress on a rejected capture');
 
     const now = Date.now();
     const steps = { ...(s.buildSteps ?? {}) } as NonNullable<typeof s.buildSteps>;

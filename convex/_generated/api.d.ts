@@ -77,6 +77,7 @@ import type * as lib_fxRate from "../lib/fxRate.js";
 import type * as lib_giveaway from "../lib/giveaway.js";
 import type * as lib_h3 from "../lib/h3.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
+import type * as lib_interviewRecording from "../lib/interviewRecording.js";
 import type * as lib_mediaChunker from "../lib/mediaChunker.js";
 import type * as lib_ownerApp from "../lib/ownerApp.js";
 import type * as lib_ownerAuth from "../lib/ownerAuth.js";
@@ -200,6 +201,7 @@ declare const fullApi: ApiFromModules<{
   "lib/giveaway": typeof lib_giveaway;
   "lib/h3": typeof lib_h3;
   "lib/hostinger": typeof lib_hostinger;
+  "lib/interviewRecording": typeof lib_interviewRecording;
   "lib/mediaChunker": typeof lib_mediaChunker;
   "lib/ownerApp": typeof lib_ownerApp;
   "lib/ownerAuth": typeof lib_ownerAuth;

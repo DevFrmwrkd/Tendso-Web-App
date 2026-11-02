@@ -13,7 +13,9 @@ import { Banner, Button, Card, EmptyState, Field, Loading, ProgressBar, ScreenSh
 import { colors, hit, radius, space } from '../../../theme/v2';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 import { validCapturePrice } from '../../../services/capturePrice';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
+import { looksLikeConvexId } from '../../../services/prospectPrefill';
 import { captureDesign, selectedCaptureDesignCode } from '../../../services/captureDesign';
 import type { CaptureDesignDraft } from '../../../services/captureSession';
 
@@ -37,12 +39,13 @@ function CaptureShopThumbnail({ photos, businessName }: { photos: string[]; busi
 
 export default function SubmitReviewScreen() {
   const capture = useCaptureSession();
+  const params = useLocalSearchParams<{ draftId?: string }>();
   if (!capture.isReady) return <Loading />;
   if (!capture.actor) return <ScreenShell><EmptyState title="Reconnect to open your capture" body="Sign in with your field-agent account to continue." /></ScreenShell>;
-  return <ReviewForm key={capture.actorKey} />;
+  return <ReviewForm key={`${capture.actorKey}:${params.draftId ?? ''}`} requestedId={params.draftId} />;
 }
 
-function ReviewForm() {
+function ReviewForm({ requestedId }: { requestedId?: string }) {
   const capture = useCaptureSession();
   const router = useGuardedRouter();
   const [id, setId] = useState<string | null>(null);
@@ -51,7 +54,7 @@ function ReviewForm() {
   const [localPhotos, setLocalPhotos] = useState<LocalPhotos | null>(null);
   const [localInterview, setLocalInterview] = useState<LocalInterview | null>(null);
   const [attachedInterview, setAttachedInterview] = useState<LocalInterview | null>(null);
-  const [snapshot, setSnapshot] = useState<(Form & { submissionId: string; creatorId: string }) | null>(null);
+  const [snapshot, setSnapshot] = useState<(CaptureSnapshot & Form) | null>(null);
   const [photoMeta, setPhotoMeta] = useState<{ submissionId: string; items: { uri?: string; storageId?: string }[] } | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -83,7 +86,8 @@ function ReviewForm() {
   const isCurrent = () => mounted.current && capture.isCurrent();
   const canQuery = capture.canQuery && !!id && id !== 'offline_pending';
   const raw = useQuery(api.submissions.getById, canQuery ? { id: id as Id<'submissions'> } : 'skip');
-  const submission = raw?.creatorId === capture.actor?.creatorId ? raw : null;
+  const submission = raw?.creatorId === capture.actor?.creatorId ? raw
+    : capture.isOffline ? cachedRejectedCapture(snapshot, id, capture.actor?.creatorId) : null;
   const sourceLeadId = submission?.prospectLeadId;
   const sourceFind = useQuery(api.leads.getDetailForMobileCRM, capture.canQuery && submission && sourceLeadId
     ? { id: sourceLeadId as Id<'leads'> } : 'skip');
@@ -91,8 +95,8 @@ function ReviewForm() {
     ? { creatorId: capture.actor.creatorId } : 'skip');
   const photoKeys = localPhotos?.existingPhotos ?? submission?.photos ?? [];
   const photoUrls = useQuery(api.files.getMultipleUrls, capture.canQuery && photoKeys.length ? { storageIds: photoKeys } : 'skip');
-  const remoteVideo = useQuery(api.files.getUrl, submission?.videoStorageId ? { storageId: submission.videoStorageId } : 'skip');
-  const remoteAudio = useQuery(api.files.getUrl, submission?.audioStorageId ? { storageId: submission.audioStorageId } : 'skip');
+  const remoteVideo = useQuery(api.files.getUrl, capture.canQuery && submission?.videoStorageId ? { storageId: submission.videoStorageId } : 'skip');
+  const remoteAudio = useQuery(api.files.getUrl, capture.canQuery && submission?.audioStorageId ? { storageId: submission.audioStorageId } : 'skip');
   const setTier = useMutation(api.submissions.setDomainTier);
   const chooseDesign = useMutation(api.submissions.chooseDesign);
   const submit = useMutation(api.submissions.submit);
@@ -108,14 +112,16 @@ function ReviewForm() {
         capture.read<{ creatorId: string; existingDraftId?: string; initialSellPrice?: number; formData: Form }>('submission_pending_sync'),
         capture.read<LocalPhotos>('submission_pending_photos'),
         capture.read<LocalInterview>('submission_pending_interview'),
-        capture.read<Form & { submissionId: string; creatorId: string; initialSellPrice?: number }>('submission_snapshot'),
+        capture.read<CaptureSnapshot & Form>('submission_snapshot'),
         capture.read<{ submissionId: string; items: { uri?: string; storageId?: string }[] }>('submission_photo_tasks'),
         capture.read<LocalInterview>('submission_interview_draft'),
         capture.read<{ submissionId: string; sellPrice?: number; templateId?: string; savedAt?: number }>('submission_pending_submit'),
         capture.read<CaptureDesignDraft>('submission_design'),
       ]);
       if (!active || !isCurrent()) return;
-      const target = storedId ?? (pendingInfo?.creatorId === capture.actor?.creatorId ? 'offline_pending' : null);
+      const target = requestedId !== undefined
+        ? typeof requestedId === 'string' && (looksLikeConvexId(requestedId) || requestedId === 'offline_pending') && requestedId === storedId ? requestedId : null
+        : storedId ?? (pendingInfo?.creatorId === capture.actor?.creatorId ? 'offline_pending' : null);
       setId(target);
       setLocalForm(pendingInfo && pendingInfo.creatorId === capture.actor?.creatorId
         && (target === 'offline_pending' || pendingInfo.existingDraftId === target) ? pendingInfo.formData : null);
@@ -138,7 +144,7 @@ function ReviewForm() {
       setHydrated(true);
     })().catch(() => { if (active && isCurrent()) { setError('Could not open your saved capture. Try again.'); setHydrated(true); } });
     return () => { active = false; focus.current = false; };
-  }, [capture.actorKey, capture.read, capture.revision, capture.canQuery]));
+  }, [requestedId, capture.actorKey, capture.read, capture.revision, capture.canQuery]));
   useEffect(() => {
     if (!submission || initializedDomain.current === submission._id) return;
     initializedDomain.current = submission._id;
@@ -184,7 +190,7 @@ function ReviewForm() {
 
   const form = localForm ?? submission ?? snapshot;
   const emailError = captureEmailError(form?.ownerEmail);
-  const remotePhotos = (photoUrls ?? []).filter((uri): uri is string => !!uri);
+  const remotePhotos = (photoUrls ?? (capture.isOffline ? snapshot?.resolvedPhotoUrls : []) ?? []).filter((uri): uri is string => !!uri);
   const savedLocalPhotos = (photoMeta?.items ?? []).map(item => item.uri).filter((uri): uri is string => !!uri);
   const photos = [...new Set([...remotePhotos, ...(localPhotos?.photoUris ?? (remotePhotos.length ? [] : savedLocalPhotos))])];
   // The find's deliberately shared cover identifies the business. Capture
@@ -193,18 +199,21 @@ function ReviewForm() {
   const thumbnailPhotos = sharedCover ? [sharedCover, ...photos] : photos;
   const photoCount = localPhotos ? localPhotos.photoUris.length + localPhotos.existingPhotos.length : submission?.photos?.length ?? photoMeta?.items.length ?? 0;
   const previewInterview = localInterview ?? attachedInterview;
-  const videoUri = previewInterview?.type === 'video' ? previewInterview.recordingUri : remoteVideo;
-  const audioUri = previewInterview?.type === 'audio' ? previewInterview.recordingUri : remoteAudio;
-  const hasInterview = !!(previewInterview || submission?.videoStorageId || submission?.audioStorageId);
+  const videoUri = previewInterview ? previewInterview.type === 'video' ? previewInterview.recordingUri : null : remoteVideo || submission?.videoUrl;
+  const audioUri = previewInterview ? previewInterview.type === 'audio' ? previewInterview.recordingUri : null : remoteAudio || submission?.audioUrl;
+  const hasInterview = !!(previewInterview || submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl);
   const wantsDomain = !!domain.trim();
-  const validDomain = !wantsDomain || (quotedFor === domain.trim().toLowerCase()
+  const correcting = submission?.status === 'rejected';
+  const keepsSavedDomain = correcting && !!submission.requestedDomain
+    && domain.trim().toLowerCase() === submission.requestedDomain.trim().toLowerCase();
+  const validDomain = !wantsDomain || keepsSavedDomain || (quotedFor === domain.trim().toLowerCase()
     && !!quote?.valid && !!quote.available && !!quote.withinBudget && typeof quote.pricePHP === 'number');
-  const domainCost = wantsDomain && validDomain ? quote?.pricePHP ?? 0 : 0;
+  const domainCost = keepsSavedDomain ? submission.domainCostPHP ?? 0 : wantsDomain && validDomain ? quote?.pricePHP ?? 0 : 0;
   const earnings = commissionFor(sellPrice);
   const priceReady = capture.isOffline || !!pricing;
-  const draft = !submission || submission.status === 'draft';
+  const draft = !submission || isEditableCaptureStatus(submission.status);
   const selectedDesign = captureDesign(selectedCaptureDesignCode(id, localDesign, queuedDesign, submission?.templateId));
-  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && !checkingDomain && priceReady && draft;
+  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft;
   const queued = capture.isOffline || id === 'offline_pending' || !!localForm || !!localPhotos || !!localInterview;
   const editBusiness = () => {
     if (id && isCurrent()) router.push({ pathname: '/(app)/submit/info', params: { draftId: id } } as never);
@@ -235,7 +244,10 @@ function ReviewForm() {
           if (!await sameDraft() || !capture.canMutate()) return;
         }
         if (!await sameDraft() || !capture.canMutate()) return;
-        await setTier({ id: id as Id<'submissions'>, submissionType: choice.submissionType, requestedDomain: choice.requestedDomain,
+        const unchangedQuote = correcting && choice.submissionType === (submission?.submissionType ?? 'standard')
+          && (choice.requestedDomain ?? '') === (submission?.requestedDomain ?? '')
+          && choice.sellPrice + domainCost === submission?.amount;
+        if (!unchangedQuote) await setTier({ id: id as Id<'submissions'>, submissionType: choice.submissionType, requestedDomain: choice.requestedDomain,
           sellPrice: choice.sellPrice, domainPricePHP: choice.domainPricePHP });
         if (!await sameDraft() || !capture.canMutate()) return;
         await submit({ id: id as Id<'submissions'> });
@@ -261,10 +273,10 @@ function ReviewForm() {
   const confirm = () => {
     if (confirmOpen.current || busy.current || !ready || !isCurrent()) return;
     confirmOpen.current = true;
-    Alert.alert(queued ? 'Save and send when online?' : 'Send this capture for review?',
+    Alert.alert(queued ? 'Save and send when online?' : correcting ? 'Resend this capture for review?' : 'Send this capture for review?',
       `Website price: ${formatPeso(sellPrice + domainCost)}. Your ${formatPeso(earnings)} commission depends on the shop completing payment.`, [
         { text: 'Cancel', style: 'cancel', onPress: () => { confirmOpen.current = false; } },
-        { text: queued ? 'Save and queue' : 'Send for review', onPress: () => { confirmOpen.current = false; if (isCurrent()) void send(); } },
+        { text: queued ? 'Save and queue' : correcting ? 'Resend for review' : 'Send for review', onPress: () => { confirmOpen.current = false; if (isCurrent()) void send(); } },
       ], { cancelable: true, onDismiss: () => { confirmOpen.current = false; } });
   };
   const playAudio = async () => {
@@ -288,11 +300,13 @@ function ReviewForm() {
   if (!id || !form || (canQuery && raw === null) || (raw && !submission)) return <ScreenShell onBack={() => router.back()}><EmptyState title="Open your capture first"
     body="Your saved shop details are available from the capture form." actionLabel="About the shop" onAction={() => router.replace('/(app)/submit/info' as never)} /></ScreenShell>;
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScreenShell onBack={() => router.back()} title="Check it, then send" contentStyle={styles.content}
-      footer={<Button title={queued ? 'Save and queue' : 'Send for review'} onPress={confirm} loading={saving} disabled={!ready || saving} />}>
+    <ScreenShell onBack={() => router.back()} title={correcting ? 'Fix it, then resend' : 'Check it, then send'} contentStyle={styles.content}
+      footer={<Button title={queued ? 'Save and queue' : correcting ? 'Resend for review' : 'Send for review'} onPress={confirm} loading={saving} disabled={!ready || saving} />}>
       <ProgressBar value={1} label="Step 5 of 5" />
       <OfflineBanner />
       {error ? <Banner tone="danger" body={error} /> : null}
+      {correcting ? <Banner tone="danger" icon="alert-circle-outline" title="What needs fixing"
+        body={submission.rejectionReason || 'Check the review feedback and correct the shop details, photos or interview. Your saved capture is kept.'} /> : null}
       {draft && emailError ? <Banner tone="warn" title="Owner’s email required" body={emailError}
         action={<TextLink label="Edit shop details" disabled={saving} onPress={editBusiness} />} /> : null}
       {!draft ? <><Banner tone="neutral" title="Already sent" body="This capture is being processed. Your details are saved." />
@@ -301,14 +315,14 @@ function ReviewForm() {
         <View style={styles.row}>
           <CaptureShopThumbnail key={`${capture.actorKey}:${id}`} photos={thumbnailPhotos} businessName={form.businessName} />
           <View style={styles.businessDetails}><Text variant="bodyLg" weight="bold">{form.businessName}</Text><Text tone="muted">{form.businessType}</Text></View>
-          <View style={styles.businessAction}><TextLink label="Edit" disabled={saving} onPress={editBusiness} /></View>
+          <View style={styles.businessAction}><TextLink label="Edit" disabled={saving || !draft} onPress={editBusiness} /></View>
         </View>
         <Text>{form.ownerName} · {form.ownerPhone}</Text>
         {normalizeCaptureEmail(form.ownerEmail) ? <Text tone="muted">{normalizeCaptureEmail(form.ownerEmail)}</Text> : null}
         <Text tone="muted">{[form.address, form.city].filter(Boolean).join(', ')}</Text>
       </Card>
       <Card style={styles.card}>
-        <View style={styles.row}><Text weight="bold" style={styles.flex}>{photoCount} photos</Text><TextLink label="Edit photos" disabled={saving} onPress={() => router.push('/(app)/submit/photos' as never)} /></View>
+        <View style={styles.row}><Text weight="bold" style={styles.flex}>{photoCount} photos</Text><TextLink label="Edit photos" disabled={saving || !draft} onPress={() => router.push('/(app)/submit/photos' as never)} /></View>
         {photos.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
           {photos.map((uri, index) => <Image key={`${uri}-${index}`} source={{ uri }} style={styles.thumb} accessibilityLabel={`Shop photo ${index + 1}`} />)}
         </ScrollView> : <Text tone="muted">Add at least three shop photos.</Text>}
@@ -320,7 +334,7 @@ function ReviewForm() {
             : audioUri ? <TextLink label={audioLoading ? 'Loading…' : audioPlaying ? 'Stop interview' : 'Play interview'} onPress={() => { void playAudio(); }} /> : null}</View>
         {submission?.transcript ? <Text tone="ink2">“{submission.transcript.slice(0, 220)}{submission.transcript.length > 220 ? '…' : ''}”</Text>
           : <Text tone="muted">The owner’s words and your photos help us build their site.</Text>}
-        <TextLink label="Edit interview" disabled={saving} onPress={() => router.push('/(app)/submit/interview' as never)} />
+        <TextLink label="Edit interview" disabled={saving || !draft} onPress={() => router.push('/(app)/submit/interview' as never)} />
       </Card>
       <Card style={styles.card}>
         <View style={styles.row}><Ionicons name="color-palette-outline" size={24} color={colors.ink} />
@@ -332,7 +346,7 @@ function ReviewForm() {
       </Card>
       <Card style={styles.card}>
         <View style={styles.row}><Ionicons name="globe-outline" size={24} color={colors.ink} /><View style={styles.flex}><Text weight="bold">Website address</Text><Text tone="muted">{wantsDomain ? domain.trim() : 'A Tendso address is included.'}</Text></View>
-          <TextLink label={domainOpen ? 'Close' : 'Add custom'} disabled={saving} onPress={() => setDomainOpen(value => !value)} /></View>
+          <TextLink label={domainOpen ? 'Close' : 'Add custom'} disabled={saving || !draft} onPress={() => setDomainOpen(value => !value)} /></View>
         {domainOpen ? <>
           <Field label="Custom domain (optional)" placeholder="yourshop.com" value={domain} onChangeText={setDomain} autoCapitalize="none" autoCorrect={false} editable={!saving && !capture.isOffline} />
           {capture.isOffline ? <Text tone="muted">Connect to check a custom domain. A Tendso address is included.</Text>
@@ -346,7 +360,7 @@ function ReviewForm() {
       <Card style={styles.card}>
         <View style={styles.row}><Text variant="bodyLg" weight="bold" style={styles.flex}>Your price</Text><Text tone="muted">Lower price, easier yes</Text></View>
         {priceReady ? <PriceSlider floor={pricing?.basePrice ?? BASE_PRICE} ceiling={pricing?.priceCeiling ?? PRICE_CEILING} anchor={WEBSITE_PRICE}
-          commissionRate={0.5} initialValue={sellPrice} onChange={price => { priceEdited.current = true; setSellPrice(price); }} disabled={saving} showEarnings={false} /> : <Loading fill={false} />}
+          commissionRate={0.5} initialValue={sellPrice} onChange={price => { priceEdited.current = true; setSellPrice(price); }} disabled={saving || !draft} showEarnings={false} /> : <Loading fill={false} />}
         <View style={styles.statsRow} testID="capture-price-stats"><View style={[styles.stat, styles.accent]} testID="capture-earnings"><Text variant="heading">{formatPeso(earnings)}</Text><Text>You keep after payment</Text></View>
           <View style={styles.stat} testID="capture-savings"><Text variant="heading">{formatPeso(Math.max(0, WEBSITE_PRICE - sellPrice))}</Text><Text>The shop saves</Text></View></View>
         {wantsDomain && validDomain ? <Text weight="bold">Owner total: {formatPeso(sellPrice + domainCost)}</Text> : null}

@@ -215,12 +215,12 @@ it('follows a migrated offline capture id without dropping its saved take', asyn
   await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: 'draft-1' })));
 });
 
-it('does not reupload or reattach a take already saved on the server', async () => {
+it.each(['draft', 'rejected'])('does not reupload or reattach a take already saved on the %s server record', async status => {
   mockStorage.set('agent-1:submission_interview_draft', { ...draft, storageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' });
-  mockSubmission = { ...mockSubmission, videoStorageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' };
+  mockSubmission = { ...mockSubmission, status, videoStorageId: 'videos/take.mp4', audioStorageId: 'audio/take.m4a' };
   const screen = render(<SubmitInterviewScreen />);
   await waitFor(() => expect(screen.getByText('Interview recorded.')).toBeTruthy());
-  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-  await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+  fireEvent.press(screen.getByRole('button', { name: status === 'rejected' ? 'Save changes' : 'Continue' }));
+  await waitFor(() => expect(status === 'rejected' ? mockRouter.back : mockRouter.push).toHaveBeenCalled());
   expect(mockUpload).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
 });

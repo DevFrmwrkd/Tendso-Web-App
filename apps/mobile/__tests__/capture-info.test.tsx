@@ -112,8 +112,9 @@ async function completePrefilled(screen: ReturnType<typeof render>) {
   fireEvent.changeText(screen.getByLabelText('Owner’s email'), ' nena@example.com ');
 }
 async function next(screen: ReturnType<typeof render>) {
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Continue to photos step' })).not.toBeDisabled());
-  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Continue to photos step' })); });
+  const button = () => screen.queryByRole('button', { name: 'Save shop changes' }) ?? screen.getByRole('button', { name: 'Continue to photos step' });
+  await waitFor(() => expect(button()).not.toBeDisabled());
+  await act(async () => { fireEvent.press(button()); });
 }
 
 it('preserves real prospect details, normalizes its phone and never invents an owner identity', async () => {
@@ -465,10 +466,10 @@ it('does not create or cache a capture when its actor changes while the saved qu
   expect(mockCreate).not.toHaveBeenCalled(); expect(mockCaptureWrite).not.toHaveBeenCalled();
 });
 
-it('repairs the exact older owned draft without loading the newest draft or discarding its media', async () => {
+it.each(['draft', 'rejected'])('repairs the exact older owned %s without loading the newest draft or discarding its media', async status => {
   mockParams = { draftId: olderDraftId, ...source };
   mockDraft = { ...draft, _id: newerDraftId, businessName: 'Newer shop', status: 'draft' };
-  mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft', ownerEmail: '', prospectLeadId: 'original-lead' };
+  mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status, ownerEmail: '', prospectLeadId: 'original-lead' };
   const screen = render(<SubmitInfo />);
   await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
   expect(screen.getByLabelText('Owner’s email').props.value).toBe('');

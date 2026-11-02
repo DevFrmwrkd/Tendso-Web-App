@@ -16,6 +16,7 @@ import { MAX_PHOTOS, MIN_PHOTOS, shotList, shotListKeyForBusinessType, type Shot
 import { colors, radius, space } from '../../../theme/v2';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
+import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
 type PhotoItem = { id: string; uri?: string; storageId?: string; taskIndex?: number };
@@ -55,6 +56,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const [businessType, setBusinessType] = useState<string | undefined>();
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [savedCapture, setSavedCapture] = useState<CaptureSnapshot | null>(null);
   const [saving, setSaving] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +83,9 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const current = () => mounted.current && sessionRef.current.actorKey === session.actorKey && session.isCurrent();
   const canMutate = () => current() && sessionRef.current.canMutate();
   const offlinePending = submissionId === 'offline_pending';
-  const submission = useQuery(api.submissions.getById,
+  const serverSubmission = useQuery(api.submissions.getById,
     session.canQuery && submissionId && !offlinePending ? { id: submissionId as Id<'submissions'> } : 'skip');
+  const submission = serverSubmission ?? (session.isOffline ? cachedRejectedCapture(savedCapture, submissionId, session.actor?.creatorId) ?? serverSubmission : serverSubmission);
   const storedKeys = items.filter((item) => !!item.storageId).map((item) => item.storageId!);
   const photoUrls = useQuery(api.files.getMultipleUrls,
     session.canQuery && storedKeys.length ? { storageIds: storedKeys } : 'skip');
@@ -95,7 +98,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
   const nextTask = taskItems.findIndex((item) => !item);
   const extras = items.filter((item) => item.taskIndex === undefined);
   const discoveringType = session.canQuery && !offlinePending && !businessType;
-  const locked = saving || preparing || finishingCamera || discoveringType;
+  const locked = saving || preparing || finishingCamera || discoveringType || (!!submission && !isEditableCaptureStatus(submission.status));
   const awaitingRemote = session.canQuery && !!submissionId && !offlinePending && submission === undefined;
   const tileSize = Math.max(48, (width - space.gutter * 2 - space.sm * 4) / 5);
   const uriFor = (item?: PhotoItem) => item?.uri || (item?.storageId ? urlByKey.get(item.storageId) : null) || null;
@@ -130,7 +133,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
           session.read<{ formData?: { businessType?: string } }>('submission_pending_sync'),
           session.read<PhotoDraft>('submission_photo_tasks'), session.read<PendingPhotos>('submission_pending_photos'),
           session.read<{ businessType?: string }>('submission_draft_form'),
-          session.read<{ submissionId: string; businessType?: string }>('submission_snapshot'),
+          session.read<CaptureSnapshot>('submission_snapshot'),
         ]);
         if (!currentLoad()) return;
         const id = storedId || (pendingInfo ? 'offline_pending' : null);
@@ -138,6 +141,7 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
         if (!storedId) await session.write('current_submission_id', id);
         if (!currentLoad()) return;
         const migrating = idRef.current === 'offline_pending' && id !== 'offline_pending';
+        setSavedCapture(savedShop?.submissionId === id && savedShop.creatorId === session.actor?.creatorId ? savedShop : null);
         if (idRef.current && idRef.current !== id) {
           setPreview(null);
           if (!migrating) setCamera(null);
@@ -261,9 +265,9 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
           existingPhotos: itemsRef.current.filter((item) => item.storageId).map((item) => item.storageId!),
           entries: itemsRef.current.filter((item) => item.uri), savedAt: Date.now(),
         } satisfies PendingPhotos);
-        if (sameDraft()) router.push('/(app)/submit/interview'); return;
+        if (sameDraft()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/interview'); } return;
       }
-      if (!submission || String(submission.creatorId) !== String(session.actor?.creatorId)) throw new Error('Reconnect to confirm this draft before saving photos.');
+      if (!submission || String(submission.creatorId) !== String(session.actor?.creatorId) || !isEditableCaptureStatus(submission.status)) throw new Error('Reconnect to confirm this editable capture before saving photos.');
       for (const item of [...itemsRef.current]) {
         if (item.storageId || !item.uri) continue;
         if (!sameDraft() || !canMutate()) throw new Error('Your connection changed. Your photos remain on this device; try again.');
@@ -278,23 +282,31 @@ function PhotoTasks({ session }: { session: CaptureSession }) {
       if (!sameDraft() || !canMutate()) return;
       await updateSubmission({ id: savingId as Id<'submissions'>, photos: itemsRef.current.map((item) => item.storageId!) });
       if (!sameDraft()) return;
+      const savedCapture = await session.read<CaptureSnapshot>('submission_snapshot');
+      if (!sameDraft()) return;
+      if (savedCapture?.submissionId === savingId && savedCapture.creatorId === session.actor?.creatorId) {
+        await session.write('submission_snapshot', { ...savedCapture, photos: itemsRef.current.map(item => item.storageId!),
+          resolvedPhotoUrls: itemsRef.current.map(uriFor).filter((uri): uri is string => !!uri) });
+        if (!sameDraft()) return;
+      }
       removed.current = []; await persist(itemsRef.current); await session.remove('submission_pending_photos');
-      if (sameDraft()) router.push('/(app)/submit/interview');
+      if (sameDraft()) { if (submission?.status === 'rejected') router.back(); else router.push('/(app)/submit/interview'); }
     } catch (cause) { if (current()) setError(cause instanceof Error ? cause.message : 'Could not save these photos. Please try again.'); }
     finally { busy.current = false; if (current()) setSaving(false); }
   };
 
   if (!hydrated) return <ScreenShell onBack={() => router.back()}>{error ? <Banner tone="danger" body={error} /> : <Loading fill={false} label="Loading your photo draft" />}</ScreenShell>;
-  if (submission === null || (submission && String(submission.creatorId) !== String(session.actor?.creatorId))) return <ScreenShell onBack={() => router.back()}><EmptyState icon="lock-closed-outline" title="Draft unavailable" body="Open a draft from your account to add photos." /></ScreenShell>;
+  if (submission === null || (submission && (String(submission.creatorId) !== String(session.actor?.creatorId) || !isEditableCaptureStatus(submission.status)))) return <ScreenShell onBack={() => router.back()}><EmptyState icon="lock-closed-outline" title="Capture unavailable" body="Open a draft or rejected capture from your account to edit photos." /></ScreenShell>;
 
   return <ScreenShell title="Show us the shop" subtitle="Ten suggestions. Add 3–10 photos in total." progress={0.4} onBack={() => { if (!busy.current && !pickerBusy.current) router.back(); }}
     contentStyle={styles.body} footer={<>
       {error ? <Text tone="danger" align="center" accessibilityRole="alert">{error}</Text> : null}
-      {enough ? <Button title="Continue to interview" onPress={handleNext} loading={saving} disabled={locked || awaitingRemote} />
+      {enough ? <Button title={submission?.status === 'rejected' ? 'Save changes' : 'Continue to interview'} onPress={handleNext} loading={saving} disabled={locked || awaitingRemote} />
         : <Button title="Start taking photos" onPress={() => openCamera()} disabled={locked || remaining === 0} />}
       <Button title="Add your own photos" variant="ghost" icon="images-outline" onPress={pickImages} disabled={locked || remaining === 0} />
     </>}>
     <OfflineBanner />
+    {submission?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={submission.rejectionReason || 'Review the feedback and replace only the photos that need correcting.'} /> : null}
     <View style={styles.between}><Text variant="label" tone="muted">Step 2 of 5</Text><Text variant="label" weight="bold">{`${total} of ${MAX_PHOTOS} photos added`}</Text></View>
     <View style={styles.grid}>{tasks.map((task, index) => {
       const item = taskItems[index]; const uri = uriFor(item); const disabled = locked || (!item && remaining === 0);
