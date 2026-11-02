@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Chip, Pill, ScreenShell, SectionLabel, Text, type ChipTone } from '../v2';
 import { colors, radius, space } from '../../theme/v2';
@@ -142,6 +142,7 @@ export function PayoutRow({ withdrawal, divider = false, compact = false, showDe
 }
 
 export function EarningsTrend({ earnings }: { earnings: WalletEarning[] }) {
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, index) => {
     const start = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
@@ -149,25 +150,31 @@ export function EarningsTrend({ earnings }: { earnings: WalletEarning[] }) {
     const total = earnings.filter(row => isCredited(row) && activityTime(row) >= start.getTime() && activityTime(row) < end)
       .reduce((sum, row) => sum + row.amount, 0);
     return { key: `${start.getFullYear()}-${start.getMonth()}`, label: start.toLocaleDateString('en-PH', { month: 'short' }),
+      heading: start.toLocaleDateString('en-PH', { month: 'long', ...(start.getFullYear() !== now.getFullYear() ? { year: 'numeric' as const } : {}) }),
       fullLabel: start.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' }), total };
   });
   const maximum = Math.max(0, ...months.map(month => month.total));
   const current = months[5];
+  const selected = months.find(month => month.key === selectedMonthKey) ?? current;
   return <Card style={styles.trend}>
     <View style={styles.trendHeader}>
-      <Text variant="label" tone="muted">Earned in {now.toLocaleDateString('en-PH', { month: 'long' })}</Text>
-      <Text variant="heading" tabular accessibilityLabel={`Earned this month, ${walletPeso(current.total)}`}
-        accessibilityHint="Includes credited available and withdrawn earnings. Pending earnings are excluded." style={styles.trendAmount}>{walletPeso(current.total)}</Text>
+      <Text variant="label" tone="muted">Earned in {selected.heading}</Text>
+      <Text variant="heading" tabular accessibilityLiveRegion="polite"
+        accessibilityLabel={`${selected.key === current.key ? 'Earned this month' : `Earned in ${selected.fullLabel}`}, ${walletPeso(selected.total)}`}
+        accessibilityHint="Includes credited available and withdrawn earnings. Pending earnings are excluded." style={styles.trendAmount}>{walletPeso(selected.total)}</Text>
     </View>
     {maximum > 0 ? <View style={styles.chart} testID="earnings-six-month-trend">
-      {months.map((month, index) => <View key={month.key} style={styles.barColumn} accessible
-        accessibilityLabel={`${month.fullLabel}, ${walletPeso(month.total)} earned`}>
+      {months.map(month => <Pressable key={month.key} style={styles.barColumn} accessible accessibilityRole="button"
+        accessibilityLabel={`${month.fullLabel}, ${walletPeso(month.total)} earned`}
+        accessibilityHint="Show this month's earned total."
+        accessibilityState={{ selected: month.key === selected.key }}
+        onPress={() => setSelectedMonthKey(month.key === current.key ? null : month.key)} cssInterop={false}>
         <View style={styles.barWell}>
           <View testID={`earnings-bar-${month.key}`} style={[styles.bar,
-            { height: maximum > 0 ? Math.max(0, month.total / maximum) * 36 : 0 }, index === 5 && month.total > 0 && styles.currentBar]} />
+            { height: maximum > 0 ? Math.max(0, month.total / maximum) * 36 : 0 }, month.key === selected.key && month.total > 0 && styles.currentBar]} />
         </View>
-        <Text variant="label" tone={index === 5 ? 'ink' : 'muted'}>{month.label}</Text>
-      </View>)}
+        <Text variant="label" tone={month.key === selected.key ? 'ink' : 'muted'} weight={month.key === selected.key ? 'bold' : 'regular'}>{month.label}</Text>
+      </Pressable>)}
     </View> : <Text tone="muted">No earnings recorded in the last six months.</Text>}
   </Card>;
 }
@@ -252,7 +259,7 @@ const styles = StyleSheet.create({
   trendHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, flexWrap: 'wrap' },
   trendAmount: { maxWidth: '100%', fontSize: 20, lineHeight: 24, letterSpacing: -0.4 },
   chart: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
-  barColumn: { flex: 1, alignItems: 'center', gap: space.sm, minWidth: 0 },
+  barColumn: { flex: 1, alignItems: 'center', gap: space.sm, minWidth: 0, minHeight: 64 },
   barWell: { height: 36, alignSelf: 'stretch', justifyContent: 'flex-end' },
   bar: { borderRadius: 8, backgroundColor: colors.ruleStrong },
   currentBar: { backgroundColor: colors.accent, borderWidth: 1.5, borderColor: colors.ink },

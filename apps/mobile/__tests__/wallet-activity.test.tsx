@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { EarningRow, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
+import { StyleSheet } from 'react-native';
+import { EarningRow, EarningsTrend, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
+import { colors } from '../theme/v2';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
@@ -61,4 +63,90 @@ it('keeps the compact Payouts history mixed, fully filterable and complete with 
   expect(view.getByRole('image', { name: 'Kalan photo' })).toBeTruthy();
   fireEvent.press(view.getByLabelText('Back'));
   expect(onBack).toHaveBeenCalledTimes(1);
+});
+
+describe('selecting earned months', () => {
+  const january = new Date(2027, 0, 2, 12).getTime();
+  const december = new Date(2026, 11, 31, 12).getTime();
+  const august = new Date(2026, 7, 1, 12).getTime();
+  const rows = [
+    earning({ _id: 'january', amount: 600, createdAt: january }),
+    earning({ _id: 'december', amount: 400.5, createdAt: december }),
+    earning({ _id: 'december-withdrawn', amount: 100, status: 'withdrawn', createdAt: december }),
+    earning({ _id: 'december-pending', amount: 9000, status: 'pending', createdAt: december }),
+    earning({ _id: 'august', amount: 100, createdAt: august }),
+  ];
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2027, 0, 15, 12));
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it('selects a bar and displays that calendar month’s credited total, including centavos and its year', () => {
+    const view = render(<EarningsTrend earnings={rows} />);
+    const current = view.getByRole('button', { name: 'January 2027, ₱600 earned' });
+    const previous = view.getByRole('button', { name: 'December 2026, ₱500.50 earned' });
+    expect(current).toHaveAccessibilityState({ selected: true });
+    expect(previous).toHaveAccessibilityState({ selected: false });
+    expect(view.getByLabelText('Earned this month, ₱600')).toBeTruthy();
+
+    fireEvent.press(previous);
+
+    expect(previous).toHaveAccessibilityState({ selected: true });
+    expect(current).toHaveAccessibilityState({ selected: false });
+    expect(view.getByText('Earned in December 2026')).toBeTruthy();
+    expect(view.getByLabelText('Earned in December 2026, ₱500.50')).toBeTruthy();
+    expect(StyleSheet.flatten(view.getByTestId('earnings-bar-2026-11').props.style).backgroundColor).toBe(colors.accent);
+    expect(StyleSheet.flatten(view.getByTestId('earnings-bar-2027-0').props.style).backgroundColor).not.toBe(colors.accent);
+
+    fireEvent.press(current);
+    expect(view.getByText('Earned in January')).toBeTruthy();
+    expect(view.getByLabelText('Earned this month, ₱600')).toBeTruthy();
+  });
+
+  it('lets an empty month be selected without drawing an invented earning', () => {
+    const view = render(<EarningsTrend earnings={rows} />);
+    fireEvent.press(view.getByRole('button', { name: 'November 2026, ₱0 earned' }));
+    expect(view.getByText('Earned in November 2026')).toBeTruthy();
+    expect(view.getByLabelText('Earned in November 2026, ₱0')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'November 2026, ₱0 earned' })).toHaveAccessibilityState({ selected: true });
+    const bar = StyleSheet.flatten(view.getByTestId('earnings-bar-2026-10').props.style);
+    expect(bar.height).toBe(0);
+    expect(bar.borderWidth ?? 0).toBe(0);
+  });
+
+  it('keeps the selected month as live ledger totals change', () => {
+    const view = render(<EarningsTrend earnings={rows} />);
+    fireEvent.press(view.getByRole('button', { name: 'December 2026, ₱500.50 earned' }));
+    view.rerender(<EarningsTrend earnings={[...rows, earning({ _id: 'new-credit', amount: 250, createdAt: december })]} />);
+    expect(view.getByLabelText('Earned in December 2026, ₱750.50')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'December 2026, ₱750.50 earned' })).toHaveAccessibilityState({ selected: true });
+  });
+
+  it('follows the current month by default and falls back to it when an old selection leaves the window', () => {
+    const view = render(<EarningsTrend earnings={rows} />);
+    jest.setSystemTime(new Date(2027, 1, 1, 12));
+    view.rerender(<EarningsTrend earnings={rows} />);
+    expect(view.getByText('Earned in February')).toBeTruthy();
+    expect(view.getByRole('button', { name: 'February 2027, ₱0 earned' })).toHaveAccessibilityState({ selected: true });
+
+    jest.setSystemTime(new Date(2027, 0, 15, 12));
+    view.rerender(<EarningsTrend earnings={rows} />);
+    fireEvent.press(view.getByRole('button', { name: 'August 2026, ₱100 earned' }));
+    jest.setSystemTime(new Date(2027, 1, 1, 12));
+    view.rerender(<EarningsTrend earnings={rows} />);
+    expect(view.getByLabelText('Earned this month, ₱0')).toBeTruthy();
+    expect(view.queryByRole('button', { name: 'August 2026, ₱100 earned' })).toBeNull();
+    expect(view.getByRole('button', { name: 'February 2027, ₱0 earned' })).toHaveAccessibilityState({ selected: true });
+  });
+
+  it('keeps all-zero and pending-only ledgers in the honest empty state', () => {
+    const view = render(<EarningsTrend earnings={[]} />);
+    expect(view.getByLabelText('Earned this month, ₱0')).toBeTruthy();
+    expect(view.queryByTestId('earnings-six-month-trend')).toBeNull();
+    view.rerender(<EarningsTrend earnings={[earning({ status: 'pending', createdAt: january, amount: 9000 })]} />);
+    expect(view.getByText('No earnings recorded in the last six months.')).toBeTruthy();
+    expect(view.queryAllByRole('button')).toHaveLength(0);
+  });
 });

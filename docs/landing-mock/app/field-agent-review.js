@@ -238,6 +238,7 @@
     language: 'EN',
     design: 0,
     price: 999,
+    earnMonth: 5,
     cashAmount: '3750',
     message: false,
     read: false,
@@ -253,6 +254,14 @@
       (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
     );
   const peso = (n) => '₱' + Math.round(n).toLocaleString('en-PH');
+  const earnMonths = [
+    { name: 'June', short: 'Jun', total: 1200 },
+    { name: 'July', short: 'Jul', total: 1800 },
+    { name: 'August', short: 'Aug', total: 2400 },
+    { name: 'September', short: 'Sep', total: 3200 },
+    { name: 'October', short: 'Oct', total: 4800 },
+    { name: 'November', short: 'Nov', total: 6000 },
+  ];
   const cashPeso = (n) =>
     '₱' +
     Number(n).toLocaleString('en-PH', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
@@ -504,11 +513,14 @@
           },
         );
       }
-      case 'earn':
+      case 'earn': {
+        const selected = interactive ? demo.earnMonth : 5,
+          month = earnMonths[selected];
         return app(
-          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between"><span class="fa-label">Earned in November</span><b>₱6,000</b></div><div class="fa-chart" role="img" aria-label="Six-month credited earnings chart, current bars are display only">${[1200, 1800, 2400, 3200, 4800, 6000].map((n, i) => `<div class="fa-bar"><i style="height:${(n / 6000) * 64}px"></i><span>${['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'][i]}</span></div>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div><div class="fa-card">${row('Kalan', 'Earnings · Nov 1 · +₱2,000', 'shop', 'history')}</div><div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div><div class="fa-card">${row('To Wise', 'Processing · Oct 30 · −₱1,000', 'send', 'history')}</div><div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
-          { nav: 'earn', noHead: true, footer: btn('Cash out ₱3,750 to Wise', 'cashout') },
+          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between" aria-live="polite"><span class="fa-label" data-earned-month>Earned in ${month.name}</span><b data-earned-total>${peso(month.total)}</b></div><div class="fa-chart" role="group" aria-label="Monthly credited earnings">${earnMonths.map((m, i) => `<button type="button" class="fa-bar" data-earn-month="${i}" aria-pressed="${i === selected}" aria-label="${m.name} 2026, ${peso(m.total)} earned"><i aria-hidden="true" style="height:${(m.total / 6000) * 36}px"></i><span>${m.short}</span></button>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div><div class="fa-card">${row('Kalan', 'Earnings · Nov 1 · +₱2,000', 'shop', 'history')}</div><div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div><div class="fa-card">${row('To Wise', 'Processing · Oct 30 · −₱1,000', 'send', 'history')}</div><div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
+          { nav: 'earn', noHead: true, footer: btn('Cash out to Wise', 'cashout') },
         );
+      }
       case 'history':
         return app(
           `<div class="fa-card"><div class="fa-between"><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div><div><b>₱15,650</b><p class="fa-small fa-muted">Cashed out</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Ready</p></div></div></div><div class="fa-chip-row">${['All', 'Earned', 'Cashed out'].map((f) => chip(f, demo.history === f, `data-history="${f}"`)).join('')}</div><span class="fa-label">November</span>${demo.history !== 'Cashed out' ? '<div class="fa-card"><b>Kalan <span style="float:right">+₱2,000</span></b><p class="fa-small fa-muted">Paid Nov 1</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">October</span><div class="fa-card"><div class="fa-between"><b>To Wise</b><b>−₱1,000</b></div><p class="fa-small fa-muted">Oct 30 · mika@example.com</p><span class="fa-flag">Processing</span><p class="fa-small fa-muted">Reference: SAMPLE-1030</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">Earlier</span><div class="fa-card"><b>To Wise</b><span class="fa-flag warn">Failed</span><p class="fa-small fa-muted">Read the reason and verify your Wise details before retrying.</p></div>' : ''}`,
@@ -706,12 +718,6 @@
         'The waiting screen promises a review within 24 hours. Check that this matches the team’s review coverage.',
       ],
       [
-        'earn',
-        'P2 · Missing interaction',
-        'Month bars are display-only',
-        'The field-agent chart uses accessible Views. Tapping a month to inspect its earnings is still a build item.',
-      ],
-      [
         'review',
         'Decision · Capture gate',
         'Can a capture send with no design?',
@@ -800,6 +806,19 @@
     if (el.dataset.history) {
       demo.history = el.dataset.history;
       renderLive();
+      return;
+    }
+    if (el.hasAttribute('data-earn-month') && el.closest('#fa-live-phone')) {
+      const index = Number(el.dataset.earnMonth),
+        month = earnMonths[index],
+        card = el.closest('.fa-card');
+      if (!month || !card) return;
+      demo.earnMonth = index;
+      card.querySelector('[data-earned-month]').textContent = 'Earned in ' + month.name;
+      card.querySelector('[data-earned-total]').textContent = peso(month.total);
+      card.querySelectorAll('[data-earn-month]').forEach((bar) => {
+        bar.setAttribute('aria-pressed', String(Number(bar.dataset.earnMonth) === index));
+      });
       return;
     }
     const action = el.dataset.action;

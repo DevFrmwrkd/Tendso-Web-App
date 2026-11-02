@@ -165,7 +165,7 @@ describe("WalletScreen", () => {
     const { getByText, getByTestId } = render(<WalletScreen />);
     expect(getByText('Available to cash out')).toBeTruthy();
     expect(getByTestId('wallet-balance-value')).toHaveTextContent('₱1,500');
-    expect(getByText("Cash out ₱1,500 to Wise")).toBeTruthy();
+    expect(getByText("Cash out to Wise")).toBeTruthy();
     expect(getByTestId("withdraw-button")).toBeTruthy();
   });
 
@@ -515,9 +515,10 @@ describe('Earn design and complete history', () => {
     const view = render(<WalletScreen />);
     expect(view.getByText(businessName).props.numberOfLines).toBe(2);
     expect(view.getByText('+₱1,234,567.89').props.numberOfLines).toBeUndefined();
-    expect(view.getByText('₱1,234,567.89 to Wise')).toBeTruthy();
+    expect(view.getByTestId('wallet-balance-value').props.children).toBe('₱1,234,567.89');
+    expect(view.queryByText('₱1,234,567.89 to Wise')).toBeNull();
     expect(view.getByText('Cash out')).toBeTruthy();
-    expect(view.getByTestId('withdraw-button').props.accessibilityLabel).toBe('Cash out ₱1,234,567.89 to Wise');
+    expect(view.getByTestId('withdraw-button').props.accessibilityLabel).toBe('Cash out to Wise');
     fireEvent.press(view.getByLabelText('View all earnings and payouts'));
     expect(view.getByText(wiseEmail).props.numberOfLines).toBe(2);
     expect(view.getByText('−₱1,234,567.89').props.numberOfLines).toBeUndefined();
@@ -537,10 +538,14 @@ describe('Earn design and complete history', () => {
     expect(view.getByLabelText('Earned this month, ₱1,400.50')).toBeTruthy();
     expect(view.getByLabelText(`${new Date(lastMonth).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}, ₱400 earned`)).toBeTruthy();
     expect(view.getByTestId('earnings-six-month-trend').children).toHaveLength(6);
-    expect(view.getByText('Cash out ₱1,500 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out to Wise')).toBeTruthy();
+    fireEvent.press(view.getByRole('button', { name: `${new Date(lastMonth).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}, ₱400 earned` }));
+    expect(view.getByLabelText(`Earned in ${new Date(lastMonth).toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}, ₱400`)).toBeTruthy();
+    expect(view.getByTestId('wallet-balance-value')).toHaveTextContent('₱1,500');
     expect(view.getByText('Kalan')).toBeTruthy();
     expect(view.queryByText('Pending shop')).toBeNull();
     expect(view.queryByText('Your price')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
     fireEvent.press(view.getByLabelText('View all earnings and payouts'));
     fireEvent.press(view.getByLabelText('History: Earned'));
     expect(view.getByText('Pending shop')).toBeTruthy();
@@ -750,7 +755,7 @@ describe('Earn design and complete history', () => {
       return undefined;
     });
     const view = render(<WalletScreen />);
-    expect(view.getByText('Cash out ₱250.75 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out to Wise')).toBeTruthy();
     expect(view.getByText('Team shop')).toBeTruthy();
     expect(view.getByText('₱4,000')).toBeTruthy();
     expect(view.queryByTestId('field-agent-price-card')).toBeNull();
@@ -789,7 +794,7 @@ describe('Wise payout lifecycle safety', () => {
     setupQueries({ ...mockCreator, balance: 0.5 });
     mockCreateWithdrawal.mockResolvedValue('tiny-payout');
     const view = render(<WalletScreen />);
-    expect(view.getByText('Cash out ₱0.50 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out to Wise')).toBeTruthy();
     fireEvent.press(view.getByTestId('withdraw-button'));
     fireEvent.press(view.getByLabelText('Confirm withdrawal'));
     await waitFor(() => expect(mockCreateWithdrawal).toHaveBeenCalledWith({ creatorId: mockCreator._id, amount: 0.5, wiseEmail: mockCreator.wiseEmail }));
@@ -849,7 +854,7 @@ describe('Wise payout lifecycle safety', () => {
     setupQueries({ ...mockCreator, _id: 'creator-2', clerkId: mockClerkId, balance: 12, wiseEmail: 'second@wise.com' }, [], []);
     view.rerender(<WalletScreen />);
     expect(view.queryByTestId('amount-input')).toBeNull();
-    expect(view.getByText('Cash out ₱12 to Wise')).toBeTruthy();
+    expect(view.getByText('Cash out to Wise')).toBeTruthy();
     await act(async () => { resolve('old-withdrawal'); });
     expect(alert).not.toHaveBeenCalled();
     expect(view.queryByTestId('amount-input')).toBeNull();

@@ -4,25 +4,25 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
     id: 'earn',
     title: 'Earn home',
     area: 'money',
-    status: 'gap',
-    priority: 'P2',
+    status: 'device',
+    checkRevision: 'earn-months-v1',
     summary:
-      'The balance-first layout is implemented. Chart bars describe each month, but tapping a month does not select it yet.',
+      'Select a month to see its credited earnings above the chart. The shorter Cash out to Wise action keeps the balance in its own card.',
     implemented: [
       'Available balance, Total earned and Withdrawn use real account values.',
-      'The six-month chart counts credited earnings and excludes pending money.',
+      'Each of the six month bars is tappable: the selected bar and displayed month total update together, excluding pending money.',
       'One recent earning and one cash-out preview link to complete Payouts history.',
-      'The Wise cash-out button floats above navigation with content space reserved below it.',
+      'Cash out to Wise floats above navigation, with content space reserved below it. The amount stays in the balance card and cash-out sheet.',
     ],
     checks: [
-      'Review month selection as a remaining interaction: choose whether a tapped bar should update the displayed amount and activity.',
+      'Tap an earlier month and the current month: highlight and total must match. Recent activity stays the latest overall.',
       'Compare loading, true zero and pending-only earnings without showing invented growth.',
       'Check long peso totals and the floating button on a narrow phone with larger text.',
     ],
     sources: [
       { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 313 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 354 },
-      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 145 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 353 },
+      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 144 },
     ],
   },
   {
