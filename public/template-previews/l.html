@@ -209,6 +209,8 @@ header{position:sticky;top:0;z-index:1000;background:rgba(var(--paper-rgb),.85);
 .cred-card b{font-family:var(--serif);font-size:19px;display:block;margin-bottom:4px}
 .cred-card span{font-size:13px;color:rgba(var(--ink-rgb),.66)}
 @media(max-width:760px){.cred-grid{grid-template-columns:1fr 1fr}}
+/* Like the generated CredentialsK layout, give each phone card enough room for its text. */
+@media(max-width:520px){.cred-grid{grid-template-columns:minmax(0,1fr)}.cred-card{min-width:0}}
 
 /* LOCATION: full-bleed map + floating card */
 .loc{position:relative}

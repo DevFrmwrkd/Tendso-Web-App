@@ -314,6 +314,11 @@
     .about-media{order:-1;}
     .about-media image-slot{height:48vh;}
   }
+  /* Match AboutF.astro: keep the overlapping stamp inside narrow phone gutters. */
+  @media (max-width:520px){
+    .about-media .stamp{width:96px;height:96px;right:-8px;bottom:-14px;}
+    .about-media .stamp .y{font-size:26px;}
+  }
 
   /* ---------- services ---------- */
   .sect-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:54px;}
@@ -620,6 +625,18 @@
   @keyframes mRule{to{width:min(440px,72%);}}
   @keyframes mGlow{to{opacity:1;}}
   @keyframes mReveal{to{clip-path:inset(0 0 0 0);}}
+  /* Use the generated HeroI / BarbershopSpine phone type sizes. */
+  @media(max-width:760px){
+    .heroM{padding-top:116px;}
+    .heroM-title{font-size:clamp(52px,15vw,120px);}
+    .h-sect,.cta-band .h-sect{font-size:clamp(34px,8.5vw,60px);}
+  }
+  @media(max-width:520px){
+    .heroM{padding-top:104px;}
+    .heroM-title{font-size:clamp(36px,12vw,56px);}
+    .heroM-eyebrow{font-size:clamp(18px,5vw,24px);}
+    .h-sect,.cta-band .h-sect{font-size:clamp(30px,9vw,44px);}
+  }
   @media (prefers-reduced-motion:reduce){.heroM *{animation:none!important;opacity:1!important;transform:none!important;}.heroM-rule{width:min(440px,72%);}.heroM-strip{clip-path:none;}}
 </style>
 <section class="heroM" id="top">

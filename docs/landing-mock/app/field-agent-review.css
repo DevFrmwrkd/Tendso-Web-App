@@ -324,6 +324,40 @@ code {
   background: var(--ink);
   color: white;
 }
+.fa-design-review-tools {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 260px);
+  align-items: center;
+  gap: 10px 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+}
+.fa-design-review-tools label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.fa-design-review-tools select {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+.fa-design-review-tools p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+@media (max-width: 520px) {
+  .fa-design-review-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .fa-inspector {
   display: grid;
   grid-template-columns: minmax(340px, 0.85fr) minmax(0, 1.15fr);
@@ -2062,6 +2096,17 @@ code {
 }
 .fa-design-modal .fa-sample-frame {
   border-radius: 0;
+}
+.fa-design-sample-label,
+.fa-design-use {
+  padding-inline: 20px;
+  flex-shrink: 0;
+}
+.fa-design-sample-label {
+  font-size: 16px;
+}
+.fa-design-use .fa-btn {
+  width: 100%;
 }
 .fa-row > .fa-field {
   flex: 1;

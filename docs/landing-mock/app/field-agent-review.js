@@ -3,12 +3,27 @@
   const A = '../assets/field-agent-review/';
   const PHOTO = '../assets/photos/kalan-hero.jpg';
   const designs = [
-    { name: 'Tindahan', file: 'bb' },
-    { name: 'Domingo', file: 'ao' },
-    { name: 'Labaná', file: 'as' },
-    { name: 'Ironwood', file: 'a' },
+    { name: 'Forge', file: 'f' },
+    { name: 'Minimal', file: 'i' },
+    { name: 'Botanica', file: 'l' },
+    { name: 'Vogue', file: 'n' },
+    { name: 'Job-Sheet Industrial', file: 'af' },
+    { name: 'Narra & Co.', file: 'bv' },
+    { name: 'Kalachuchi', file: 'bs' },
+    { name: 'Pastel Deco Panaderia', file: 'al' },
     { name: 'Cedar & Stone', file: 'c' },
   ];
+  const designGroups = {
+    'Barber/Salon': ['f', 'i', 'l', 'n'],
+    'Spa/Massage': ['l', 'n'],
+    'Auto Shop': ['af'],
+    'Craft/Producer': ['bv', 'bs'],
+    Restaurant: ['al'],
+    Clinic: ['c'],
+    'Law Office': ['c'],
+    Other: ['c'],
+  };
+  const savedRepairDesign = { name: 'Tindahan', file: 'bb' };
   const AREA = {
     access: 'Join & training',
     discovery: 'Map & Finds',
@@ -237,6 +252,7 @@
     photoOpen: false,
     language: 'EN',
     design: 0,
+    designCategory: 'Other',
     price: 999,
     earnMonth: 5,
     earnLong: false,
@@ -251,6 +267,15 @@
     resubmitted: false,
   };
   let toastTimer, referralCopyTimer;
+  const sampleBusinessType = (interactive = true) => interactive ? demo.designCategory : 'Other';
+  const designChoices = (interactive = true) => {
+    const choices = designGroups[sampleBusinessType(interactive)].map((file) => designs.find((design) => design.file === file));
+    return interactive && demo.repair ? [savedRepairDesign, ...choices] : choices;
+  };
+  const currentDesign = (interactive = true) => {
+    const choices = designChoices(interactive);
+    return choices[Math.max(0, Math.min(choices.length - 1, interactive ? demo.design : 0))];
+  };
   const escape = (value) =>
     String(value ?? '').replace(
       /[&<>"']/g,
@@ -477,16 +502,17 @@
           },
         );
       case 'design': {
-        const index = interactive ? Math.max(0, demo.design) : 0,
-          design = designs[index];
+        const choices = designChoices(interactive),
+          index = interactive ? Math.max(0, Math.min(choices.length - 1, demo.design)) : 0,
+          design = choices[index];
         return app(
-          `${step(4)}<h2>Choose your design</h2><p class="fa-muted">Example photos and text. This shop’s content is added after review.</p><button type="button" class="fa-design" data-action="full-design" aria-label="${design.name} design. Preview sample website." style="padding:0;height:350px;overflow:hidden">${interactive ? '<iframe class="fa-sample-frame fa-sample-inert" title="' + design.name + ' design sample" src="/template-previews/' + design.file + '.html" sandbox="allow-same-origin" tabindex="-1" referrerpolicy="no-referrer"></iframe>' : '<img style="height:350px" src="../assets/sites/showcase/sarisari-m.jpg" alt="Tindahan sample">'}</button><div class="fa-between"><h3>${design.name}</h3><span class="fa-muted">${index + 1} of 5</span></div><div class="fa-between"><button type="button" class="fa-round" data-design-move="-1" aria-label="Previous design" ${index === 0 ? 'disabled' : ''}>${icon('arrow')}</button><p class="fa-small fa-muted" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p><button type="button" class="fa-round" data-design-move="1" aria-label="Next design" ${index === 4 ? 'disabled' : ''}>${icon('chevron')}</button></div>`,
+          `${step(4)}<h2>Choose your design</h2><p class="fa-muted">Example photos and text. This shop’s content is added after review.</p><button type="button" class="fa-design" data-action="full-design" aria-label="${design.name} design. Preview sample website." style="padding:0;height:350px;overflow:hidden"><iframe class="fa-sample-frame fa-sample-inert fa-design-sample" title="${design.name} design sample" src="/template-previews/${design.file}.html" sandbox="allow-same-origin" tabindex="-1" referrerpolicy="no-referrer"></iframe></button><div class="fa-between"><h3>${design.name}</h3><span class="fa-muted">${index + 1} of ${choices.length}</span></div><div class="fa-between"><button type="button" class="fa-round" data-design-move="-1" aria-label="Previous design" ${index === 0 ? 'disabled' : ''}>${icon('arrow')}</button><p class="fa-small fa-muted" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p><button type="button" class="fa-round" data-design-move="1" aria-label="Next design" ${index >= choices.length - 1 ? 'disabled' : ''}>${icon('chevron')}</button></div>`,
           { footer: btn('Use this design', 'review') },
         );
       }
       case 'review':
         return app(
-          `${step(5)}${interactive && demo.repair ? '<h2>Fix it, then resend</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><p class="fa-muted">Your saved capture is here. Edit only what needs fixing.</p>' : '<h2>Check it, then send</h2>'}<div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">Other</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>4 photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${pic('food', 80, '', true)}${pic('food', 80, '', true)}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : designs[Math.max(0, demo.design)].name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
+          `${step(5)}${interactive && demo.repair ? '<h2>Fix it, then resend</h2><div class="fa-banner danger"><b>What needs fixing</b><p class="fa-small">Please replace the blurry shop-front photo.</p></div><p class="fa-muted">Your saved capture is here. Edit only what needs fixing.</p>' : '<h2>Check it, then send</h2>'}<div class="fa-card"><div class="fa-row">${pic('sari-sari', 64, '', false, 'width:64px')}<div class="fa-grow"><b>Nena’s Sari-Sari</b><p class="fa-small fa-muted">${escape(sampleBusinessType(interactive))}</p></div>${link('Edit', 'info')}</div><p class="fa-small">Nena Reyes · 0917 000 0000<br>owner@example.com</p><p class="fa-small fa-muted">12 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-between"><b>4 photos</b>${link('Edit photos', 'photos')}</div><div class="fa-photo-grid">${pic('food', 80, '', true)}${pic('food', 80, '', true)}</div></div><div class="fa-card"><div class="fa-between"><b>Interview ready</b><button type="button" class="fa-link" data-demo="The app plays the saved video or audio here.">Play interview</button></div><p class="fa-small fa-muted">The owner’s words and your photos help us build their site.</p>${link('Edit interview', 'interview')}</div><div class="fa-card fa-between"><div><b>Website design</b><p class="fa-small fa-muted">${interactive && demo.design === -1 ? 'No design selected' : currentDesign(interactive).name}</p></div>${link('Change', 'design')}</div><div class="fa-card fa-between"><div><b>Website address</b><p class="fa-small fa-muted">A Tendso address is included.</p></div><button type="button" class="fa-link" data-demo="The app checks and quotes an optional custom domain before it is added.">Add custom</button></div><div class="fa-card"><div class="fa-between"><b>Your price</b><span class="fa-small fa-muted">Lower price, easier yes</span></div><span class="fa-label">Set your price</span><div class="fa-amount" data-price-label>${peso(price)}</div><label class="sr-only" for="fa-price-${interactive ? 'live' : 'mini'}">Sample site price</label><input id="fa-price-${interactive ? 'live' : 'mini'}" class="fa-range" type="range" min="999" max="4999" step="500" value="${price}" data-price><div class="fa-between fa-small fa-muted"><span>₱999</span><span>₱4,999</span></div><div class="fa-metrics"><div class="fa-card" style="background:#f6f9c4"><b data-keep>${peso(price / 2)}</b><span class="fa-small">You keep after payment</span></div><div class="fa-card" style="background:#efefea"><b data-save>${peso(4999 - price)}</b><span class="fa-small">The shop saves</span></div></div></div>`,
           {
             footer: btn(
               interactive && demo.repair ? 'Resend for review' : 'Send for review',
@@ -702,6 +728,7 @@
     renderLive();
     renderReview();
     document.getElementById('fa-design-state').hidden = id !== 'review';
+    document.getElementById('fa-design-category-tools').hidden = id !== 'design';
     document.getElementById('fa-shop-state').hidden = id !== 'shop';
     document.getElementById('fa-earn-details').hidden = id !== 'earn';
     if (scroll)
@@ -811,7 +838,7 @@
       return;
     }
     if (el.dataset.designMove) {
-      demo.design = Math.max(0, Math.min(4, Math.max(0, demo.design) + Number(el.dataset.designMove)));
+      demo.design = Math.max(0, Math.min(designChoices().length - 1, Math.max(0, demo.design) + Number(el.dataset.designMove)));
       renderLive();
       return;
     }
@@ -909,6 +936,9 @@
       document.querySelector('#fa-live-phone [aria-label="Back"]')?.focus();
     } else if (action === 'edit-rejected') {
       demo.repair = true;
+      demo.designCategory = 'Other';
+      demo.design = 0;
+      document.getElementById('fa-design-category').value = 'Other';
       select('review', true);
     } else if (action === 'resend-sample') {
       demo.repair = false;
@@ -974,7 +1004,7 @@
       root.append(modal);
       modal.querySelector('button').focus();
     } else if (action === 'full-design') {
-      const design = designs[Math.max(0, demo.design)],
+      const design = currentDesign(),
         root = document.querySelector('#fa-live-phone .fa-app'),
         overlay = document.createElement('div');
       overlay.className = 'fa-overlay';
@@ -985,11 +1015,12 @@
         design.name +
         '</h3><button type="button" class="fa-round" data-action="close-modal" aria-label="Close design preview">' +
         icon('close') +
-        '</button></div><iframe class="fa-sample-frame" title="Full ' +
+        '</button></div><p class="fa-design-sample-label fa-muted">Sample website · Scroll to explore</p><iframe class="fa-sample-frame fa-design-sample" title="Full ' +
         design.name +
         ' sample" src="/template-previews/' +
         design.file +
-        '.html" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe></div>';
+        '.html" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe><div class="fa-design-use">' +
+        btn('Use this design', 'review') + '</div></div>';
       root.append(overlay);
       overlay.querySelector('button').focus();
     } else if (action === 'close-modal') {
@@ -1067,6 +1098,14 @@
     e.currentTarget.textContent = demo.design === -1 ? 'Show saved design' : 'Preview with no design';
     renderLive();
   });
+  document.getElementById('fa-design-category').addEventListener('change', (event) => {
+    if (!designGroups[event.target.value]) return;
+    demo.designCategory = event.target.value;
+    demo.design = 0;
+    document.getElementById('fa-design-state').setAttribute('aria-pressed', 'false');
+    document.getElementById('fa-design-state').textContent = 'Preview with no design';
+    renderLive();
+  });
   document.getElementById('fa-shop-state').addEventListener('click', (e) => {
     const stages = ['new', 'submitted', 'live'];
     demo.shopStage = stages[(stages.indexOf(demo.shopStage) + 1) % stages.length];
@@ -1142,6 +1181,14 @@
       const frame = event.target;
       if (!frame.matches?.('.fa-sample-frame')) return;
       try {
+        if (frame.classList.contains('fa-design-sample')) {
+          // The reviewed local samples stay script-disabled. Reveal effects
+          // must not hide their content in this static comparison board.
+          const doc = frame.contentDocument,
+            style = doc.createElement('style');
+          style.textContent = '.reveal,[data-reveal]{opacity:1!important;visibility:visible!important;transform:none!important;transition:none!important}';
+          doc.head.append(style);
+        }
         frame.contentDocument.addEventListener(
           'click',
           (e) => {

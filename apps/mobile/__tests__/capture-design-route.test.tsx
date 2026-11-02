@@ -61,8 +61,8 @@ jest.mock('../components/field-agent/CaptureDesignGallery', () => ({
     return require('react').createElement(View, { testID: 'design-gallery' },
       require('react').createElement(Text, null, `Selected: ${props.selectedCode ?? 'none'}`),
       props.error ? require('react').createElement(Text, null, props.error) : null,
-      require('react').createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: 'Select Glacier',
-        disabled: props.busy || props.disabled, onPress: () => props.onSelect('barbershop:BP') }, require('react').createElement(Text, null, 'Select Glacier')),
+      require('react').createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: 'Select Forge',
+        disabled: props.busy || props.disabled, onPress: () => props.onSelect('barbershop:F') }, require('react').createElement(Text, null, 'Select Forge')),
       require('react').createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: 'Use design',
         disabled: props.busy || props.disabled, onPress: () => props.onUse(props.selectedCode ?? props.designs[0].code) },
       require('react').createElement(Text, null, 'Use design')));
@@ -78,8 +78,8 @@ async function gallery() {
   await waitFor(() => expect(screen.getByTestId('design-gallery')).toBeTruthy());
   return screen;
 }
-function selectGlacier(screen: ReturnType<typeof render>) {
-  fireEvent.press(screen.getByRole('button', { name: 'Select Glacier' }));
+function selectForge(screen: ReturnType<typeof render>) {
+  fireEvent.press(screen.getByRole('button', { name: 'Select Forge' }));
 }
 function expectNoSubmit() {
   expect(mockSubmit).not.toHaveBeenCalled();
@@ -102,10 +102,10 @@ it.each(['draft', 'rejected'])('saves the own %s design before opening Review an
   mockSubmissions['draft-1'].status = status;
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
-  await waitFor(() => expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:BP' }));
-  expect(mockCache['agent-1'].submission_design).toEqual({ submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: expect.any(Number) });
+  await waitFor(() => expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:F' }));
+  expect(mockCache['agent-1'].submission_design).toEqual({ submissionId: 'draft-1', templateId: 'barbershop:F', savedAt: expect.any(Number) });
   expect(mockRouter.push).not.toHaveBeenCalled(); expectNoSubmit();
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   expect(mockChoose).toHaveBeenCalledTimes(1);
@@ -122,21 +122,24 @@ it.each(['draft-1', 'offline_pending'])('stores only draft-scoped design metadat
     ...(submissionId === 'offline_pending' ? { submission_pending_sync: { creatorId: 'agent-1', formData: { businessType: 'Barber/Salon' } } } : {}),
   };
   const before = mockClone(mockCache['agent-1']);
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review'));
   expect(mockCache['agent-1']).toEqual({ ...before,
-    submission_design: { submissionId, templateId: 'barbershop:BP', savedAt: expect.any(Number) },
+    submission_design: { submissionId, templateId: 'barbershop:F', savedAt: expect.any(Number) },
   });
   expect(mockChoose).not.toHaveBeenCalled(); expectNoSubmit();
 });
 
-it('restores a canonical server choice outside the suggested designs without silently replacing it', async () => {
-  mockSubmissions['draft-1'].templateId = 'florist:BR';
+it.each([
+  ['florist:BR', 'Bloom', '/template-previews/br.html'],
+  ['barbershop:BP', 'Glacier', '/template-previews/bp.html'],
+])('restores the saved %s design outside the suggestions without silently replacing it', async (code, name, preview) => {
+  mockSubmissions['draft-1'].templateId = code;
   const screen = await gallery();
-  await waitFor(() => expect(mockGallery.selectedCode).toBe('florist:BR'));
-  expect(mockGallery.designs[0]).toMatchObject({ code: 'florist:BR', name: 'Bloom', preview: '/template-previews/br.html' });
-  expect(screen.getByText('Selected: florist:BR')).toBeTruthy();
+  await waitFor(() => expect(mockGallery.selectedCode).toBe(code));
+  expect(mockGallery.designs[0]).toMatchObject({ code, name, preview });
+  expect(screen.getByText(`Selected: ${code}`)).toBeTruthy();
   expect(mockChoose).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled(); expectNoSubmit();
 });
 
@@ -156,11 +159,11 @@ it.each([
 it('keeps the local choice after a failed save and retries back to the existing Review', async () => {
   mockParams = { returnTo: 'review' };
   mockChoose.mockRejectedValueOnce(new Error('Design could not sync')).mockResolvedValueOnce({ ok: true });
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(screen.getByText('Design could not sync')).toBeTruthy());
-  expect(mockGallery.selectedCode).toBe('barbershop:BP');
-  expect(mockCache['agent-1'].submission_design.templateId).toBe('barbershop:BP');
+  expect(mockGallery.selectedCode).toBe('barbershop:F');
+  expect(mockCache['agent-1'].submission_design.templateId).toBe('barbershop:F');
   expect(mockRouter.back).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
@@ -169,7 +172,7 @@ it('keeps the local choice after a failed save and retries back to the existing 
 
 it('reports a device-storage failure without claiming that the choice was saved', async () => {
   mockWrite.mockRejectedValueOnce(new Error('Device storage is full'));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(screen.getByText('Device storage is full')).toBeTruthy());
   expect(mockCache['agent-1'].submission_design).toBeUndefined();
@@ -179,21 +182,21 @@ it('reports a device-storage failure without claiming that the choice was saved'
 it('does not navigate or copy a pending save into the next signed-in account', async () => {
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
   mockActor = 'agent-2'; screen.rerender(<SubmitDesignScreen />);
   await waitFor(() => expect(mockGallery.selectedCode).toBe('generic:B'));
   await act(async () => { resolve(); await flush(); });
   expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
-  expect(mockCache['agent-1'].submission_design.templateId).toBe('barbershop:BP');
+  expect(mockCache['agent-1'].submission_design.templateId).toBe('barbershop:F');
   expect(mockCache['agent-2'].submission_design).toBeUndefined(); expectNoSubmit();
 });
 
 it('does not finish an older draft save after the current capture changes', async () => {
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
   mockCache['agent-1'].current_submission_id = 'draft-new'; mockRevision++;
@@ -210,27 +213,27 @@ it('does not finish an older draft save after the current capture changes', asyn
 it('rechecks the stored draft pointer after saving even before cache revisions rerender the route', async () => {
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
   mockCache['agent-1'].current_submission_id = 'draft-new';
   await act(async () => { resolve(); await flush(); });
   expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
   expect(mockCache['agent-1'].current_submission_id).toBe('draft-new');
-  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:F' });
   expect(mockWrite).toHaveBeenCalledTimes(1); expectNoSubmit();
 });
 
 it('does not navigate from a pending save after the design route loses focus', async () => {
   let resolve!: () => void;
   mockChoose.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
-  const screen = await gallery(); selectGlacier(screen);
+  const screen = await gallery(); selectForge(screen);
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
   mockFocused = false; screen.rerender(<SubmitDesignScreen />);
   await waitFor(() => expect(screen.queryByTestId('design-gallery')).toBeNull());
   await act(async () => { resolve(); await flush(); });
   expect(mockRouter.push).not.toHaveBeenCalled(); expect(mockRouter.back).not.toHaveBeenCalled();
-  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:F' });
   expect(mockCache['agent-1'].current_submission_id).toBe('draft-1'); expectNoSubmit();
 });
