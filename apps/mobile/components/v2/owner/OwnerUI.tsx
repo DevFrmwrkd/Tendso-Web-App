@@ -137,7 +137,7 @@ export function WayCard({
       style={({ pressed }) => [styles.way, shadow.soft, selected && styles.optOn, pressed && { transform: [{ scale: 0.99 }] }]}
     >
       <View style={styles.wayImg}>
-        <Image source={photo} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image source={photo} style={styles.wayPhoto} resizeMode="cover" />
         {selected ? <Tick style={styles.wayTick} /> : null}
       </View>
       <View style={styles.wayText}>
@@ -358,6 +358,7 @@ const styles = StyleSheet.create({
   optIcon: { width: 52, height: 52, borderRadius: 14, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   way: { backgroundColor: colors.card, borderRadius: 24, borderWidth: 2, borderColor: 'transparent', padding: 8 },
   wayImg: { height: 120, borderRadius: 17, overflow: 'hidden', backgroundColor: colors.bg2 },
+  wayPhoto: { width: '100%', height: '100%' },
   wayTick: { position: 'absolute', top: 10, right: 10 },
   wayText: { paddingHorizontal: 8, paddingTop: 10, paddingBottom: 4, gap: 2 },
   ring: { borderRadius: radius.field + 3, padding: 3, margin: -3 },
