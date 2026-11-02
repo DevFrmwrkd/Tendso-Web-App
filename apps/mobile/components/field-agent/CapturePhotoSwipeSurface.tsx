@@ -16,6 +16,7 @@ export type CapturePhotoSwipeSurfaceProps = {
 const CLAIM_DISTANCE = 10;
 const SWIPE_DISTANCE = 48;
 const HORIZONTAL_BIAS = 1.35;
+const VERTICAL_CANCEL_DISTANCE = 16;
 
 /** Place around the image only; the parent owns navigation and its controls. */
 export function CapturePhotoSwipeSurface(props: CapturePhotoSwipeSurfaceProps) {
@@ -57,7 +58,13 @@ export function CapturePhotoSwipeSurface(props: CapturePhotoSwipeSurfaceProps) {
       onPanResponderStart: (event, gesture) => { if (!onePointer(event, gesture)) cancel(); },
       onPanResponderMove: (event, gesture) => {
         if (!sameDrag(gesture)) return;
-        if (!enabled() || !onePointer(event, gesture) || !horizontal(gesture, CLAIM_DISTANCE)) { cancel(); return; }
+        if (!enabled() || !onePointer(event, gesture) || !Number.isFinite(gesture.dx) || !Number.isFinite(gesture.dy)
+          || (Math.abs(gesture.dy) >= VERTICAL_CANCEL_DISTANCE && Math.abs(gesture.dy) > Math.abs(gesture.dx) * HORIZONTAL_BIAS)) {
+          cancel(); return;
+        }
+        // Native PanResponder resets dx/dy to zero on grant. Small subsequent
+        // moves are normal: keep the acquired gesture until release/cancel.
+        if (!horizontal(gesture, CLAIM_DISTANCE)) { resetFeedback(); return; }
         translateX.setValue(!reducedMotion.current && available(gesture.dx)
           ? Math.max(-32, Math.min(32, gesture.dx * 0.18)) : 0);
       },
