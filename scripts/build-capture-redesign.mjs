@@ -129,7 +129,8 @@ async function standalone(source, dist) {
     html = html.replace(match[0], `<script type="module">${result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')}</script>`);
   }
   if (/(?:href|src)=["']\/_astro\//.test(html)) throw new Error('Review page contains an unresolved build asset.');
-  return html.replace('<head>', '<head><!-- Review-only actual template; fictional sample data. Not the live mobile catalog. -->');
+  return html.replace('<head>', '<head><!-- Review-only actual template; fictional sample data. Not the live mobile catalog. -->')
+    .replace(/[\t ]+$/gm, '');
 }
 
 /** Check the rendered visitor content, rather than mirroring template source. */

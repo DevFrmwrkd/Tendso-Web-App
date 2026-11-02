@@ -1,9 +1,9 @@
 {
   "version": 1,
   "reviewOnly": true,
-  "sourceHash": "3b24d496bea7a9479350f57ba06712ba4f3bef0a0e715dfb52d6c38c7dbd6ab5",
-  "catalogSha256": "ebf06ed0f2221b7c44200647b660b43e996181a13e8ce9fed8d337b578895665",
-  "catalogJsSha256": "518e5249b23eeeb91af2ceecf96352a625c48a95bb0063af67eea4eef0296bae",
+  "sourceHash": "2d846880179e3e34fb45dc037796d909cb2b508017e2cb5c07034616e4c60976",
+  "catalogSha256": "ed8ce0f3ee8926fa1f3cbb35a58b80eb534897d27f41f84d08d4d12b04b0487b",
+  "catalogJsSha256": "2c53e569da7d5fd4b62188ab55b15b5e6d0378c5d19955d600c2becae25fe941",
   "documents": [
     {
       "id": "barber-editorial",
@@ -13,7 +13,7 @@
     {
       "id": "barber-immersive",
       "file": "barber-immersive.html",
-      "sha256": "115d5016860fbc6e2034e6272c61434c4144b54080f53f164093eee0b79969b0"
+      "sha256": "598b8c82fca2aa34ef63e8403a8ab0f2c662c579721e6d57bbc815b9db758579"
     },
     {
       "id": "barber-studio",
@@ -28,7 +28,7 @@
     {
       "id": "repair-immersive",
       "file": "repair-immersive.html",
-      "sha256": "df981e0054110eaf13c1c4eb8f1f42a214be6cadab1b142fafe9250dff878d3d"
+      "sha256": "1ae3b0f90503aeb84e4f5ad9c5b88003ab912ec8f73887169652e6b9aeed9413"
     },
     {
       "id": "repair-studio",
@@ -43,7 +43,7 @@
     {
       "id": "spa-immersive",
       "file": "spa-immersive.html",
-      "sha256": "8108c3ec25e0dc17e7178dd49a3994fb8fdcee1a67ffd08ffebf9d395fbeaa64"
+      "sha256": "b0bd82a54831923fbde0e03bb914d6e983280100e05d4cf2ef0424e17602a367"
     },
     {
       "id": "spa-studio",
@@ -58,7 +58,7 @@
     {
       "id": "food-immersive",
       "file": "food-immersive.html",
-      "sha256": "b8d00e60fa2bfdcf4f11fee3595c77f702793c144dedc6321346675e75dc5892"
+      "sha256": "6c4e6f4c917d5b3f89d32185eab78803274c3a0c48afbdf084abf2b588f3d697"
     },
     {
       "id": "food-studio",
@@ -73,7 +73,7 @@
     {
       "id": "clinic-immersive",
       "file": "clinic-immersive.html",
-      "sha256": "109b24cf039c269a18e3d31453c6a19f99f0df456619384889e7fe371e0cb854"
+      "sha256": "ee3ded2ea4178981f598ecb0b2029daa6471c7ea6353c829e6d10a263dd0e599"
     },
     {
       "id": "clinic-studio",
@@ -88,7 +88,7 @@
     {
       "id": "law-immersive",
       "file": "law-immersive.html",
-      "sha256": "b46ecc35c1c9cbe61155f1613b48f88cbeba5ca5515373c29061c3e1c92c1c74"
+      "sha256": "90a74e328116e956a55c18944c8af24a197dac59c0ad3ea968405d732142ca31"
     },
     {
       "id": "law-studio",
@@ -103,7 +103,7 @@
     {
       "id": "craft-immersive",
       "file": "craft-immersive.html",
-      "sha256": "43a77e7e31f28ba3be2ded2587e388da95aef1df3f4830b38cbeac2fd92b1a38"
+      "sha256": "060a107c3ad789985af45bd9bb6b71e284000ce499f11cb71c2f930b949d2062"
     },
     {
       "id": "craft-studio",
@@ -118,7 +118,7 @@
     {
       "id": "other-immersive",
       "file": "other-immersive.html",
-      "sha256": "76bd5badf4f09b8238da96ff19559d2379dcbd9fa1a7f67d88749394a7308dc1"
+      "sha256": "ee234fd69a7e93029ca36e93e6c62643245b7ff61b4c5842eb54d9f6f1679440"
     },
     {
       "id": "other-studio",
