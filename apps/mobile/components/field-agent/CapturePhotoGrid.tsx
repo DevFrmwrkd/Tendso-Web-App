@@ -135,12 +135,13 @@ export function CapturePhotoGrid(props: CapturePhotoGridProps) {
     <View style={styles.grid}>
       {items.map((item, index) => {
         const chosen = currentSelection.includes(item.id);
+        const description = labelText(item.label);
         const failedKey = `${item.id}:${item.uri}`;
         const showImage = !!item.uri && !item.missing && !failedThumbnails.has(failedKey);
         return <View key={item.id} style={[styles.tile, chosen && styles.selectedTile]}>
           <View style={styles.photoFrame}>
             <Pressable accessibilityRole={selecting ? 'checkbox' : 'button'}
-              accessibilityLabel={selecting ? `Select photo ${index + 1}: ${item.label}` : `View photo ${index + 1}: ${item.label}`}
+              accessibilityLabel={selecting ? `Select photo ${index + 1}: ${description || 'Unlabeled photo'}` : `View photo ${index + 1}: ${description || 'Unlabeled photo'}`}
               accessibilityHint={selecting ? 'Adds or removes this photo from the selection' : 'Opens the photo full screen'}
               accessibilityState={{ disabled, ...(selecting ? { checked: chosen } : {}) }} disabled={disabled}
               onPress={() => { if (!available(item.id)) return; if (selecting) toggle(item.id); else live.current.onPreview(item.id); }}
@@ -159,16 +160,20 @@ export function CapturePhotoGrid(props: CapturePhotoGridProps) {
               <Ionicons name="ellipsis-horizontal" size={22} color={colors.ink} />
             </Pressable>}
           </View>
-          <View style={styles.caption}><Text variant="label" weight="bold">Photo {index + 1}</Text>
-            <Text variant="label" tone="muted">{item.label || 'Added photo'}</Text></View>
+          <View style={styles.caption}>{description ? <Text variant="label" weight="semibold">{description}</Text>
+            : <Pressable accessibilityRole="button" accessibilityLabel={`Add label to photo ${index + 1}`} disabled={disabled || selecting}
+              accessibilityState={{ disabled: disabled || selecting }} onPress={() => editLabel(item.id)}
+              style={[styles.addLabel, (disabled || selecting) && styles.disabled]}>
+              <Ionicons name="create-outline" size={18} color={colors.ink} /><Text variant="label" weight="bold" style={styles.presetText}>Add label</Text>
+            </Pressable>}</View>
         </View>;
       })}
     </View>
     {sheet && activeItem && <SwipeSheet visible onClose={() => setSheet(null)} testID="capture-photo-actions-sheet">
       <ScrollView style={{ maxHeight: maxSheetHeight }} contentContainerStyle={styles.sheetContent} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <View style={styles.sheetHeader}>
-          <View style={styles.flex}><Text variant="title" accessibilityRole="header">{sheet.mode === 'label' ? 'Edit photo label' : `Photo ${activeIndex + 1}`}</Text>
-            <Text tone="muted">{sheet.mode === 'label' ? `Photo ${activeIndex + 1} · Make it easy to recognise` : activeItem.label}</Text></View>
+          <View style={styles.flex}><Text variant="title" accessibilityRole="header">{sheet.mode === 'label' ? 'Edit photo label' : 'Photo options'}</Text>
+            <Text tone="muted">{sheet.mode === 'label' ? 'Make this photo easy to recognise' : labelText(activeItem.label) || 'Choose what to do with this photo'}</Text></View>
           <Pressable accessibilityRole="button" accessibilityLabel={sheet.mode === 'label' ? 'Cancel label editing' : 'Close photo options'}
             style={styles.close} onPress={() => setSheet(null)}><Ionicons name="close" size={23} color={colors.ink} /></Pressable>
         </View>
@@ -206,6 +211,7 @@ const styles = StyleSheet.create({
   options: { position: 'absolute', right: space.xs, top: space.xs, width: hit.min, height: hit.min, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
   selectionTick: { position: 'absolute', right: space.sm, top: space.sm, width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: colors.card, backgroundColor: colors.scrim, alignItems: 'center', justifyContent: 'center' },
   checked: { backgroundColor: colors.accent, borderColor: colors.ink }, caption: { gap: space.xs, padding: space.md, flexGrow: 1 },
+  addLabel: { minHeight: hit.min, flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.sm, borderRadius: radius.field, backgroundColor: colors.bg2 },
   sheetContent: { gap: space.lg, paddingBottom: space.sm }, sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   close: { width: hit.min, height: hit.min, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg2 },
   actionList: { backgroundColor: colors.card, borderRadius: radius.card, paddingHorizontal: space.md },

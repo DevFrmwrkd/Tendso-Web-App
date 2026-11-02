@@ -50,7 +50,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'Step 2 of 5 offers shop-specific suggestion tiles, direct retakes and a next-suggestion card.',
       'Law Office and Clinic now have dedicated ten-shot suggestions, including office/consultation spaces and privacy-aware hints. They no longer use retail product prompts.',
       'Guided camera photos and library extras share the same ten-photo limit.',
-      'Three photos enable Continue to interview; Your photos includes a photo number, saved label and full preview. Its options sheet offers Retake, Replace, Edit label and Remove; Select mode includes Select all and removes several photos after one confirmation.',
+      'Three photos enable Continue to interview; Your photos shows only each descriptive saved label, without Photo 1/Photo 2 headings. Truly unlabelled cards offer Add label. Full preview keeps its position counter. The photo options offer Retake, Replace, Edit label and Remove; Select mode includes Select all and removes several photos after one confirmation.',
       'New capture photos are copied into durable phone storage before they are added to the draft.',
       'Changing the business type keeps photo IDs, saved labels and media; their old optional suggestion assignments reset instead of being reassigned to the new guide.',
       '“Review photos for {businessType}” explains that the interview is also saved. “I reviewed these photos for {businessType}” enables Save reviewed photos. A correction opened from Review returns to that same Review.',
@@ -67,6 +67,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'Edit one photo label, then select several photos. Cancel the removal once, then confirm it; only the selected photos should disappear and fewer than three must block Continue.',
       'Open a photo’s options sheet and try Retake, Replace, Edit label and Remove; check Select all and clear the selection without changing the remaining photos.',
       'Add, replace or remove a photo, then go Back to Review before saving. Confirm Send and offline queue stay blocked until the photo changes are saved; reopen Photos and verify the latest edits remain.',
+      'Check labelled and truly unlabelled photos: card headings must not say Photo 1/Photo 2; only unlabelled cards offer Add label. Clear a custom label and confirm no label is invented from the image or its position.',
     ],
     sources: [
       { path: 'apps/mobile/app/(app)/submit/photos.tsx', line: 290 },
@@ -85,7 +86,8 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
     status: 'device',
     summary: 'Tap a photo under Your photos to inspect the whole image without cropping.',
     implemented: [
-      'The full-screen preview uses contain sizing, the photo label, a count and Close.',
+      'The full-screen preview uses contain sizing, the saved descriptive label, a position count such as 2 of 6, and Close.',
+      'Swipe left or right to move between photos. Previous/Next controls support the same navigation, and Retake or Replace can be started directly from the full preview.',
       'Native Back and accessibility escape dismiss the preview without changing the draft.',
       'When connected, an unavailable local image falls back to its uploaded copy when one exists. A missing unsent photo offers Replace photo without clearing the other photos.',
       '“This photo is no longer on this device. Retake it or choose a replacement.” Continue stays blocked until that missing photo is replaced or removed.',
@@ -96,6 +98,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'Close using the button and Android Back; confirm the same draft and photo list remain.',
       'Open a local photo offline and a broken remote photo; verify the error stays readable and dismissible.',
       'After reopening, test an uploaded photo whose old local cache file is gone; confirm the uploaded copy opens. For a missing unsent photo, replace only that photo.',
+      'Swipe left and right through the full preview, including the first and last photo; check the count and label. Retake or Replace should target the photo currently shown and keep the original until a replacement is ready.',
     ],
     sources: [
       { path: 'apps/mobile/app/(app)/submit/photos.tsx', line: 314 },

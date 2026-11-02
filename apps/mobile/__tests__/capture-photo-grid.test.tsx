@@ -22,14 +22,15 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
-it('shows a distinct number and descriptive label for each photo and previews the tapped identity', () => {
+it('shows descriptive labels alone while keeping photo numbers in accessible actions', () => {
   const screen = render(draw());
   expect(screen.getByText('Your photos')).toBeTruthy();
   expect(screen.getByText('3 photos added')).toBeTruthy();
   for (const [index, item] of photos.entries()) {
-    expect(screen.getByText(`Photo ${index + 1}`)).toBeTruthy();
     expect(screen.getByText(item.label)).toBeTruthy();
+    expect(screen.getByRole('button', { name: `View photo ${index + 1}: ${item.label}` })).toBeTruthy();
   }
+  expect(screen.queryAllByText(/^Photo \d+$/)).toHaveLength(0);
   fireEvent.press(screen.getByRole('button', { name: 'View photo 2: Shop entrance' }));
   expect(callbacks.onPreview).toHaveBeenCalledWith('front');
   expect(callbacks.onRetake).not.toHaveBeenCalled(); expect(callbacks.onRemove).not.toHaveBeenCalled();
@@ -39,6 +40,8 @@ it('offers photo actions in a sheet and retakes or replaces the same item', () =
   const screen = render(draw());
   fireEvent.press(screen.getByRole('button', { name: 'Photo 2 options' }));
   expect(screen.getByTestId('capture-photo-actions-sheet')).toBeTruthy();
+  expect(screen.getByText('Photo options')).toBeTruthy();
+  expect(screen.queryAllByText(/^Photo \d+$/)).toHaveLength(0);
   for (const name of ['Retake photo', 'Replace from library', 'Edit label', 'Remove photo']) expect(screen.getByRole('button', { name })).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Retake photo' }));
   expect(callbacks.onRetake).toHaveBeenCalledWith('front');
@@ -47,6 +50,30 @@ it('offers photo actions in a sheet and retakes or replaces the same item', () =
   fireEvent.press(screen.getByRole('button', { name: 'Replace from library' }));
   expect(callbacks.onReplace).toHaveBeenCalledWith('front');
   expect(callbacks.onRemove).not.toHaveBeenCalled();
+});
+
+it('offers Add label for an unlabeled photo and opens its existing editor directly', () => {
+  const screen = render(draw({ items: [{ ...photos[0], label: '' }], suggestedLabels: ['Owner portrait'] }));
+  expect(screen.getByText('Add label')).toBeTruthy();
+  expect(screen.queryByText('Added photo')).toBeNull();
+  expect(screen.queryAllByText(/^Photo \d+$/)).toHaveLength(0);
+  fireEvent.press(screen.getByRole('button', { name: 'View photo 1: Unlabeled photo' }));
+  expect(callbacks.onPreview).toHaveBeenCalledWith('portrait');
+  fireEvent.press(screen.getByRole('button', { name: 'Add label to photo 1' }));
+  expect(screen.getByText('Edit photo label')).toBeTruthy();
+  expect(screen.getByLabelText('Photo label')).toHaveProp('value', '');
+  fireEvent.press(screen.getByRole('button', { name: 'Use label: Owner portrait' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Save label' }));
+  expect(callbacks.onRename).toHaveBeenCalledWith('portrait', 'Owner portrait');
+});
+
+it('keeps an unlabeled photo identifiable while Add label is disabled for a busy capture', () => {
+  const screen = render(draw({ items: [{ ...photos[0], label: '   ' }], disabled: true }));
+  expect(screen.getByRole('button', { name: 'Add label to photo 1' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'View photo 1: Unlabeled photo' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Add label to photo 1' }));
+  expect(screen.queryByText('Edit photo label')).toBeNull();
+  expect(callbacks.onRename).not.toHaveBeenCalled();
 });
 
 it('edits the visible label with a photo preview, presets and a 60-character limit', () => {

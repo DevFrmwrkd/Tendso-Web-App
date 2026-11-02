@@ -251,13 +251,15 @@
     photoReviewed: false,
     photoSelecting: false,
     photoSelected: [],
-    photoPreviewId: 'photo-1',
-    photoCounter: 5,
+    photoPreviewId: 'photo-2',
+    photoCounter: 7,
     photos: [
       { id: 'photo-1', label: 'Owner headshot', sourceType: 'Other' },
       { id: 'photo-2', label: 'Profile picture', sourceType: 'Other' },
       { id: 'photo-3', label: 'Outside', sourceType: 'Other' },
       { id: 'photo-4', label: 'Inside', sourceType: 'Other' },
+      { id: 'photo-5', label: '', sourceType: 'Other' },
+      { id: 'photo-6', label: '', sourceType: 'Other' },
     ],
     language: 'EN',
     design: 0,
@@ -376,13 +378,13 @@
     Clinic: 'clinic-redesign-v1', Other: 'store-redesign-v1',
   }[type] || 'store-redesign-v1') + '.webp';
   const capturePhoto = (type, height) => `<div class="fa-photo" style="height:${height}px"><img src="${capturePhotoUrl(type)}" alt="Sample ${escape(type)} capture photo"></div>`;
-  const makeSamplePhotos = type => photoGuide(type).slice(0, 4).map((task, index) => ({ id: `photo-${index + 1}`, label: task.t, sourceType: type }));
+  const makeSamplePhotos = type => photoGuide(type).slice(0, 6).map((task, index) => ({ id: `photo-${index + 1}`, label: index < 4 ? task.t : '', sourceType: type }));
   const samplePhotos = interactive => interactive ? demo.photos : makeSamplePhotos('Other');
   const photoCards = interactive => {
     const photos = samplePhotos(interactive), selecting = interactive && demo.photoSelecting;
     return `<div class="fa-between"><span class="fa-label">Your photos · ${photos.length} / 10</span><button type="button" class="fa-link" data-action="select-photos" ${photos.length ? '' : 'disabled'}>${selecting ? 'Done' : 'Select'}</button></div><div class="fa-photo-grid">${photos.map((photo, index) => {
       const selected = selecting && demo.photoSelected.includes(photo.id);
-      return `<div style="padding:8px;border:2px solid ${selected ? '#171715' : 'transparent'};border-radius:16px;background:${selected ? '#f4f8c7' : '#fff'}"><button type="button" data-action="photo-card" data-photo-id="${photo.id}" aria-label="${selecting ? 'Select' : 'Open'} Photo ${index + 1}: ${escape(photo.label)}" ${selecting ? `aria-pressed="${selected}"` : ''} style="width:100%;padding:0;background:none;text-align:left"><span class="fa-between fa-small"><b>Photo ${index + 1}</b>${selecting ? `<span aria-hidden="true">${selected ? '✓' : '○'}</span>` : ''}</span>${capturePhoto(photo.sourceType, 125)}<span class="fa-small" style="display:block;padding-top:6px;overflow-wrap:anywhere">${escape(photo.label || 'Added photo')}</span></button>${selecting ? '' : `<button type="button" class="fa-link" data-action="edit-photo-label" data-photo-id="${photo.id}" style="margin-top:6px">Edit label</button>`}</div>`;
+      return `<div style="padding:8px;border:2px solid ${selected ? '#171715' : 'transparent'};border-radius:16px;background:${selected ? '#f4f8c7' : '#fff'}"><button type="button" data-action="photo-card" data-photo-id="${photo.id}" aria-label="${selecting ? 'Select' : 'Open'} photo ${index + 1}${photo.label ? ': ' + escape(photo.label) : ', unlabelled'}" ${selecting ? `aria-pressed="${selected}"` : ''} style="width:100%;padding:0;background:none;text-align:left;position:relative">${selecting ? `<span aria-hidden="true" style="position:absolute;right:8px;top:8px;z-index:1;background:white;border-radius:50%;width:24px;height:24px;text-align:center">${selected ? '✓' : '○'}</span>` : ''}${capturePhoto(photo.sourceType, 125)}${photo.label ? `<span class="fa-small" style="display:block;padding-top:6px;overflow-wrap:anywhere">${escape(photo.label)}</span>` : ''}</button>${selecting ? '' : `<button type="button" class="fa-link" data-action="edit-photo-label" data-photo-id="${photo.id}" style="margin-top:6px">${photo.label ? 'Edit label' : 'Add label'}</button>`}</div>`;
     }).join('')}</div>${selecting ? btn(`Remove ${demo.photoSelected.length} ${demo.photoSelected.length === 1 ? 'photo' : 'photos'}`, '', 'ghost', `data-action="remove-selected-photos" ${demo.photoSelected.length ? '' : 'disabled'}`) : ''}${photos.length < 3 ? '<p class="fa-small fa-muted">Add at least three clear photos to continue.</p>' : ''}`;
   };
   const photoReviewWarning = interactive => photoReviewPending(interactive)
@@ -393,6 +395,14 @@
     overlay.innerHTML = `<section class="fa-modal" role="dialog" aria-modal="true" aria-label="${escape(title)}"><div class="fa-between"><h3>${escape(title)}</h3><button type="button" class="fa-round" data-action="close-modal" aria-label="Close photo action">${icon('close')}</button></div>${content}</section>`;
     document.querySelector('#fa-live-phone .fa-app').append(overlay);
     overlay.querySelector('input,button')?.focus();
+  };
+  const movePreviewPhoto = direction => {
+    const index = Math.max(0, demo.photos.findIndex(photo => photo.id === demo.photoPreviewId));
+    const next = Math.max(0, Math.min(demo.photos.length - 1, index + direction));
+    if (next !== index && demo.photos[next]) {
+      demo.photoPreviewId = demo.photos[next].id;
+      renderLive();
+    }
   };
   const statusBar = '<div class="fa-status"><span>9:41</span><span>▮▮▮　⌁　▰</span></div>';
   const nav = (active) =>
@@ -529,10 +539,11 @@
       }
       case 'photo-preview': {
         const photos = samplePhotos(interactive), photo = photos.find(item => item.id === demo.photoPreviewId) || photos[0];
+        const index = photos.indexOf(photo);
         if (!photo) return app('<h2>No photos yet</h2><p class="fa-muted">Add a photo before opening its preview.</p>', { back: 'photos' });
         return app(`<h2>Your photos</h2>`, { back: 'photos' }).replace(
           '<div class="fa-home-line">',
-          `<div class="fa-full-photo"><p>Photo ${photos.indexOf(photo) + 1} of ${photos.length} · ${escape(photo.label)}</p><button type="button" class="fa-round" data-go="photos" aria-label="Close photo">${icon('close')}</button><img src="${capturePhotoUrl(photo.sourceType)}" alt="${escape(photo.label)} — sample retained shop photo"></div><div class="fa-home-line">`,
+          `<div class="fa-full-photo" style="padding:110px 18px 190px"><p>${index + 1} of ${photos.length}</p><button type="button" class="fa-round" data-go="photos" aria-label="Close photo">${icon('close')}</button><div data-photo-swipe style="width:100%;height:100%;touch-action:pan-y;user-select:none"><img src="${capturePhotoUrl(photo.sourceType)}" alt="${escape(photo.label || 'Unlabelled photo')} — sample retained shop photo" draggable="false"></div><button type="button" data-action="previous-photo" aria-label="Previous photo" ${index === 0 ? 'disabled' : ''} style="position:absolute;left:18px;top:45%;border-radius:50%;width:44px;height:44px;background:white;opacity:${index === 0 ? '.35' : '.9'}">${icon('arrow')}</button><button type="button" data-action="next-photo" aria-label="Next photo" ${index === photos.length - 1 ? 'disabled' : ''} style="position:absolute;right:18px;top:45%;border-radius:50%;width:44px;height:44px;background:white;opacity:${index === photos.length - 1 ? '.35' : '.9'}">${icon('chevron')}</button><div style="position:absolute;left:18px;right:18px;bottom:35px;display:flex;flex-direction:column;gap:12px;color:white">${photo.label ? `<b style="overflow-wrap:anywhere">${escape(photo.label)}</b>` : ''}<span class="fa-small" style="color:#c3c3bc">Swipe left or right to see your photos</span><div style="display:flex;gap:10px"><button type="button" class="fa-btn ghost" style="flex:1;background:#30302c;color:white" data-demo="In the app, Retake opens the camera for only this photo. The saved photo stays until the new take is ready. This board does not open the camera.">Retake</button><button type="button" class="fa-btn ghost" style="flex:1;background:#30302c;color:white" data-demo="In the app, Replace lets you choose a new image for only this photo. This board does not open your photo library.">Replace</button></div></div></div><div class="fa-home-line">`,
         );
       }
       case 'interview':
@@ -1062,10 +1073,10 @@
     } else if (action === 'edit-photo-label') {
       const photo = demo.photos.find(item => item.id === el.dataset.photoId);
       if (!photo) return;
-      photoDialog('Edit photo label', `${field('Photo label', photo.label, 'data-photo-label-input maxlength="80"')}<p class="fa-small fa-muted">Use a short description so you can recognize this photo. This does not change its suggestion assignment.</p>${btn('Save label', '', '', `data-action="save-photo-label" data-photo-id="${photo.id}"`)}${btn('Cancel', '', 'ghost', 'data-action="close-modal"')}`);
+      photoDialog(photo.label ? 'Edit photo label' : 'Add photo label', `${field('Photo label', photo.label, 'data-photo-label-input maxlength="80"')}<p class="fa-small fa-muted">Use a short description so you can recognize this photo. This does not change its suggestion assignment.</p>${btn('Save label', '', '', `data-action="save-photo-label" data-photo-id="${photo.id}"`)}${btn('Cancel', '', 'ghost', 'data-action="close-modal"')}`);
     } else if (action === 'save-photo-label') {
       const value = el.closest('.fa-modal').querySelector('[data-photo-label-input]').value.trim();
-      demo.photos = demo.photos.map(photo => photo.id === el.dataset.photoId ? { ...photo, label: value || 'Added photo' } : photo);
+      demo.photos = demo.photos.map(photo => photo.id === el.dataset.photoId ? { ...photo, label: value } : photo);
       renderLive(true);
     } else if (action === 'remove-selected-photos') {
       if (!demo.photoSelected.length) return;
@@ -1080,10 +1091,12 @@
       toast('Selected sample photos removed. The remaining media is kept.');
     } else if (action === 'add-sample-photo') {
       if (demo.photos.length >= 10) return;
-      demo.photos.push({ id: `photo-${demo.photoCounter++}`, label: 'Added photo', sourceType: demo.photoCategory });
+      demo.photos.push({ id: `photo-${demo.photoCounter++}`, label: '', sourceType: demo.photoCategory });
       demo.photoConfirmed = false;
       renderLive(true);
       toast('Added a sample photo. The board does not open your photo library.');
+    } else if (action === 'previous-photo' || action === 'next-photo') {
+      movePreviewPhoto(action === 'next-photo' ? 1 : -1);
     } else if (action === 'save-reviewed-photos') {
       if (!demo.photoConfirmed || demo.photos.length < 3) return;
       demo.photoReviewed = true;
@@ -1337,8 +1350,33 @@
     },
     true,
   );
+  let photoSwipeStart = null;
+  document.addEventListener('pointerdown', event => {
+    const viewer = event.target.closest?.('[data-photo-swipe]');
+    if (current !== 'photo-preview' || !viewer || event.button > 0) return;
+    photoSwipeStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    viewer.setPointerCapture?.(event.pointerId);
+  });
+  document.addEventListener('pointerup', event => {
+    const start = photoSwipeStart;
+    photoSwipeStart = null;
+    if (!start || current !== 'photo-preview' || start.pointerId !== event.pointerId) return;
+    const x = event.clientX - start.x, y = event.clientY - start.y;
+    if (Math.abs(x) >= 45 && Math.abs(x) > Math.abs(y) * 1.2) movePreviewPhoto(x < 0 ? 1 : -1);
+  });
+  document.addEventListener('pointercancel', () => { photoSwipeStart = null; });
   document.addEventListener('keydown', (event) => {
     const overlay = event.target.closest?.('.fa-overlay');
+    if (current === 'photo-preview' && !overlay) {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        movePreviewPhoto(event.key === 'ArrowRight' ? 1 : -1);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        select('photos');
+      }
+      return;
+    }
     if (!overlay) return;
     if (event.key === 'Escape') {
       event.preventDefault();
