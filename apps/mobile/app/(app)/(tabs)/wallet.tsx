@@ -23,8 +23,8 @@ import {
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { PreviewWallet } from '../../../components/AccountPreview';
-import { activityTime, EarningRow, EarningsTrend, isCredited, PayoutRow, WalletHistory, walletPeso as peso,
-  type HistoryFilter, type WalletEarning, type WalletWithdrawal } from '../../../components/wallet/WalletActivity';
+import { activityTime, EarningRow, EarningsTrend, isCredited, PayoutRow, WalletActivityDetails, WalletHistory, walletPeso as peso,
+  type HistoryFilter, type WalletActivityDetail, type WalletActivitySelection, type WalletEarning, type WalletWithdrawal } from '../../../components/wallet/WalletActivity';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { useWalletThumbnails } from '../../../hooks/useWalletThumbnails';
@@ -152,6 +152,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const [setupError, setSetupError] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
+  const [activitySelection, setActivitySelection] = useState<WalletActivitySelection | null>(null);
   const mounted = useRef(true);
   const submitBusy = useRef(false);
   const setupBusy = useRef(false);
@@ -163,9 +164,12 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   live.current = { creatorId: creator?._id, canWrite, balance };
   const sortedEarnings = earnings ? [...earnings].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
   const recentEarnings = sortedEarnings?.slice(0, 1) ?? [];
+  const activityOwned = !!creator && isAuthenticated && activitySelection?.creatorId === creator._id;
+  const selectedEarning = activityOwned && activitySelection?.kind === 'earning' ? earnings?.find(row => row._id === activitySelection.id) : undefined;
+  const selectedWithdrawal = activityOwned && activitySelection?.kind === 'payout' ? withdrawals?.find(row => row._id === activitySelection.id) : undefined;
   const submissionDetails = useWalletThumbnails({ creatorId: creator?._id, clerkId,
     isAuthenticated, isAffiliate, isOffline,
-    submissionIds: (showHistory ? sortedEarnings ?? [] : recentEarnings)
+    submissionIds: [...(showHistory ? sortedEarnings ?? [] : recentEarnings), ...(selectedEarning ? [selectedEarning] : [])]
       .map(row => row.submissionId).filter((id): id is string => typeof id === 'string'),
   });
 
@@ -185,6 +189,13 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { setShowHistory(false); return true; });
     return () => subscription.remove();
   }, [showHistory]));
+  useFocusEffect(useCallback(() => () => setActivitySelection(null), []));
+  useEffect(() => {
+    if (!activitySelection) return;
+    const rows = activitySelection.kind === 'earning' ? earnings : withdrawals;
+    if (!isAuthenticated || !clerkId || activitySelection.creatorId !== creator?._id
+      || (rows !== undefined && !rows.some(row => row._id === activitySelection.id))) setActivitySelection(null);
+  }, [activitySelection, creator?._id, earnings, withdrawals, isAuthenticated, clerkId]);
   const sheetMaxHeight = Math.max(160, height - insets.top - insets.bottom - keyboardHeight - 90);
 
   if (isAuthenticated && !isOffline && (creator === undefined || (isAffiliate && creator && portal === undefined))) {
@@ -212,11 +223,20 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const totalWithdrawn = creator ? (isAffiliate ? portal?.summary.totalWithdrawn : creator.totalWithdrawn)
     ?? (withdrawals ? withdrawals.filter(row => row.status === 'completed').reduce((sum, row) => sum + row.amount, 0) : null) : null;
 
-  function openHistory(filter: HistoryFilter) { setHistoryFilter(filter); setShowHistory(true); }
+  function openHistory(filter: HistoryFilter) { setActivitySelection(null); setHistoryFilter(filter); setShowHistory(true); }
   function sameActor(creatorId: string) { return mounted.current && live.current.creatorId === creatorId; }
 
+  function openActivity(kind: WalletActivitySelection['kind'], id: string) {
+    if (!creator?._id || !isAuthenticated || showModal || showWiseSetup || submitBusy.current || setupBusy.current) return;
+    Keyboard.dismiss();
+    setActivitySelection({ kind, id, creatorId: creator._id });
+  }
+  const activityDetail: WalletActivityDetail | null = selectedEarning ? { kind: 'earning', earning: selectedEarning,
+    submission: selectedEarning.submissionId ? submissionDetails.bySubmission.get(selectedEarning.submissionId) : undefined }
+    : selectedWithdrawal ? { kind: 'payout', withdrawal: selectedWithdrawal } : null;
+
   function openWithdrawFlow() {
-    if (!canWrite || !balance || submitBusy.current || setupBusy.current) return;
+    if (!canWrite || !balance || submitBusy.current || setupBusy.current || activitySelection) return;
     if (savedWiseEmail) {
       // The whole balance is pre-picked; quick-pick pills change it.
       setForm({ amount: String(balance), wiseEmail: savedWiseEmail });
@@ -402,7 +422,8 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
               body={isAffiliate ? 'Your first sale shows up here.' : 'Your first paid site shows up here.'}
             />
           ) : (
-            <Card style={styles.listCard}>
+            <Card style={styles.listCard} onPress={() => openActivity('earning', recentEarnings[0]._id)}
+              accessibilityLabel={`View recent earning details, ${recentEarnings[0].businessName?.trim() || 'Earnings'}, +${peso(recentEarnings[0].amount)}`}>
               {recentEarnings.map((earning, idx) => {
                 const details = earning.submissionId ? submissionDetails.bySubmission.get(earning.submissionId) : undefined;
                 return <EarningRow key={earning._id} earning={earning} compact previewLayout={previewLayout} divider={idx < recentEarnings.length - 1}
@@ -421,7 +442,8 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             : recentWithdrawals.length === 0 ? (
             <EmptyRow title="Nothing here yet" body="Your withdrawal history will show up here once you cash out." />
           ) : (
-            <Card style={styles.listCard}>
+            <Card style={styles.listCard} onPress={() => openActivity('payout', recentWithdrawals[0]._id)}
+              accessibilityLabel={`View recent cash-out details, ${recentWithdrawals[0].wiseEmail || recentWithdrawals[0].bankName || 'Cash out'}, ${peso(recentWithdrawals[0].amount)}`}>
               {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} compact previewLayout={previewLayout} divider={idx < recentWithdrawals.length - 1} />)}
             </Card>
           )}
@@ -432,6 +454,18 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             onPress={() => router.push('/(app)/referrals' as any)} accessibilityLabel="View your referrals" />
         </Card>
       </View>
+
+      {activityDetail ? <SwipeSheet testID="wallet-activity-modal" visible onClose={() => setActivitySelection(null)}>
+        <ScrollView testID="wallet-activity-scroll" style={[styles.sheetScroll, { maxHeight: sheetMaxHeight }]} contentContainerStyle={styles.sheetStack}
+          keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+          <WalletActivityDetails activity={activityDetail} />
+          <View style={styles.sheetButtons}>
+            <Button title="Done" onPress={() => setActivitySelection(null)} accessibilityLabel="Close activity details" />
+            <Button title={activityDetail.kind === 'earning' ? 'View all earnings' : 'View all cash-outs'} variant="ghost"
+              onPress={() => openHistory(activityDetail.kind === 'earning' ? 'earned' : 'cashed-out')} />
+          </View>
+        </ScrollView>
+      </SwipeSheet> : null}
 
       {/* Wise account setup sheet */}
       <SwipeSheet testID="wise-setup-modal" visible={showWiseSetup} onClose={closeWiseSetup} dismissable={!savingEmail}>

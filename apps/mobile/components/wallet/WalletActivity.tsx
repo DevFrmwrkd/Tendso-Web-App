@@ -13,10 +13,15 @@ export type WalletSubmissionDetail = { thumbnailUrl: string | null; submissionPr
 export type WalletWithdrawal = {
   _id: string; amount: number; status: string; wiseEmail?: string; bankName?: string;
   wiseTransferId?: string; reference?: string; failureReason?: string; errorMessage?: string;
+  wiseTransactionId?: string; transactionRef?: string; processedAt?: number;
   createdAt?: number; _creationTime?: number;
 };
 export type HistoryFilter = 'all' | 'earned' | 'cashed-out';
 export type WalletPreviewLayout = { stacked: boolean; amountLines: number };
+export type WalletActivitySelection = { kind: 'earning' | 'payout'; id: string; creatorId: string };
+export type WalletActivityDetail =
+  | { kind: 'earning'; earning: WalletEarning; submission?: WalletSubmissionDetail }
+  | { kind: 'payout'; withdrawal: WalletWithdrawal };
 
 const EARNING_TITLE: Record<string, string> = {
   submission_approved: 'Site earnings', referral_bonus: 'From your invites',
@@ -25,6 +30,10 @@ const EARNING_TITLE: Record<string, string> = {
 const WITHDRAWAL_STATUS: Record<string, { label: string; tone: ChipTone }> = {
   pending: { label: 'Pending', tone: 'warn' }, processing: { label: 'Processing', tone: 'info' },
   completed: { label: 'Completed', tone: 'ok' }, failed: { label: 'Failed', tone: 'danger' },
+};
+const EARNING_STATUS: Record<string, { label: string; tone: ChipTone }> = {
+  pending: { label: 'Pending', tone: 'warn' }, available: { label: 'Available', tone: 'ok' },
+  withdrawn: { label: 'Withdrawn', tone: 'muted' },
 };
 
 /** Keep centavos exact: a displayed available balance must never round up. */
@@ -51,6 +60,54 @@ function activityDate(time: number): string {
 
 function shortActivityDate(time: number): string {
   return time ? new Date(time).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : 'Date unavailable';
+}
+
+function detailActivityDate(time: number): string {
+  return time ? new Date(time).toLocaleString('en-PH', {
+    month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+  }) : 'Date unavailable';
+}
+
+function ActivityDetailField({ label, value, danger = false }: { label: string; value: string; danger?: boolean }) {
+  return <View style={styles.detailField}>
+    <Text variant="label" tone="muted">{label}</Text>
+    <Text selectable tone={danger ? 'danger' : 'ink'}>{value}</Text>
+  </View>;
+}
+
+/** Full stored values for the read-only activity sheet; home previews stay compact. */
+export function WalletActivityDetails({ activity }: { activity: WalletActivityDetail }) {
+  const earning = activity.kind === 'earning' ? activity.earning : undefined;
+  const withdrawal = activity.kind === 'payout' ? activity.withdrawal : undefined;
+  const row = earning ?? withdrawal!;
+  const status = row.status ? (earning ? EARNING_STATUS : WITHDRAWAL_STATUS)[row.status] : undefined;
+  const businessName = earning?.businessName?.trim();
+  const hasBusiness = !!businessName && businessName !== 'Unknown';
+  const price = activity.kind === 'earning' ? activity.submission?.submissionPrice : null;
+  const hasPrice = typeof price === 'number' && Number.isFinite(price) && price >= 0;
+  const failure = withdrawal?.failureReason || withdrawal?.errorMessage;
+  return <View testID="wallet-activity-details" style={styles.detailStack}>
+    <Text variant="title" accessibilityRole="header">{earning ? 'Earning details' : 'Cash-out details'}</Text>
+    <Card style={styles.detailHero}>
+      <Text variant="label" tone="muted">{earning ? 'Amount earned' : 'Cash-out amount'}</Text>
+      <Text variant="title" tabular selectable>{earning ? '+' : '−'}{walletPeso(row.amount)}</Text>
+      {hasBusiness ? <Text variant="bodyLg" weight="bold" selectable>{businessName}</Text> : null}
+      {status ? <Chip label={status.label} tone={status.tone} /> : row.status ? <Text selectable>{row.status}</Text> : null}
+    </Card>
+    <Card style={styles.detailStack}>
+      {earning?.type ? <ActivityDetailField label="Type" value={EARNING_TITLE[earning.type] ?? earning.type} /> : null}
+      <ActivityDetailField label="Date" value={detailActivityDate(activityTime(row))} />
+      {hasPrice ? <ActivityDetailField label="Site price" value={walletPeso(price)} /> : null}
+      {withdrawal?.wiseEmail ? <ActivityDetailField label="Wise email" value={withdrawal.wiseEmail} /> : null}
+      {withdrawal?.bankName ? <ActivityDetailField label="Bank" value={withdrawal.bankName} /> : null}
+      {withdrawal && (withdrawal.reference || withdrawal.transactionRef) ? <ActivityDetailField label="Reference" value={withdrawal.reference || withdrawal.transactionRef!} /> : null}
+      {withdrawal?.wiseTransferId ? <ActivityDetailField label="Wise transfer ID" value={withdrawal.wiseTransferId} /> : null}
+      {withdrawal?.wiseTransactionId && withdrawal.wiseTransactionId !== withdrawal.wiseTransferId ? <ActivityDetailField label="Wise transaction ID" value={withdrawal.wiseTransactionId} /> : null}
+      {typeof withdrawal?.processedAt === 'number' && Number.isFinite(withdrawal.processedAt) && withdrawal.processedAt > 0
+        ? <ActivityDetailField label="Processed" value={detailActivityDate(withdrawal.processedAt)} /> : null}
+      {withdrawal?.status === 'failed' && failure ? <ActivityDetailField label="What happened" value={failure} danger /> : null}
+    </Card>
+  </View>;
 }
 
 function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status, leading, divider = false, previewLayout }: {
@@ -284,4 +341,7 @@ const styles = StyleSheet.create({
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   historyMonth: { gap: space.md },
   historyCard: { paddingVertical: 0 },
+  detailStack: { gap: space.lg },
+  detailHero: { gap: space.sm },
+  detailField: { gap: space.xs },
 });

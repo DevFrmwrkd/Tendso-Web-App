@@ -1077,6 +1077,10 @@ code {
   flex-direction: row;
   align-items: center;
   gap: 12px;
+  text-align: left;
+}
+.fa-earn-activity:active {
+  background: #f6f6f3;
 }
 .fa-earn-icon {
   width: 44px;
@@ -1280,6 +1284,80 @@ code {
   gap: 16px;
   max-height: 760px;
   overflow: auto;
+}
+.fa-activity-modal {
+  gap: 20px;
+}
+.fa-activity-modal h3 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+.fa-activity-modal .fa-round {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.fa-activity-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 22px;
+  background: white;
+}
+.fa-activity-amount {
+  max-width: 100%;
+  font-size: 38px;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+.fa-activity-hero .fa-flag.info {
+  background: #e7ecf3;
+  color: #1f3654;
+}
+.fa-activity-identity {
+  display: grid;
+  gap: 6px;
+}
+.fa-activity-identity b,
+.fa-activity-facts dd {
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.fa-activity-facts {
+  margin: 0;
+  display: grid;
+}
+.fa-activity-facts > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+  border-top: 1px solid #ecece6;
+}
+.fa-activity-facts dt {
+  font-size: 16px;
+  color: #6b6a63;
+}
+.fa-activity-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.fa-activity-actions {
+  display: grid;
+  gap: 8px;
+}
+.fa-app.large .fa-activity-modal,
+.fa-app.large .fa-activity-facts dt,
+.fa-app.large .fa-activity-actions .fa-btn {
+  font-size: 19px;
+}
+.fa-app.large .fa-activity-modal h3 {
+  font-size: 28px;
+}
+.fa-app.large .fa-activity-amount {
+  font-size: 45px;
 }
 .fa-app.large .fa-scroll {
   font-size: 19px;

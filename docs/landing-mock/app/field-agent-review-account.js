@@ -5,13 +5,14 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
     title: 'Earn home',
     area: 'money',
     status: 'device',
-    checkRevision: 'earn-previews-v2',
+    checkRevision: 'earn-details-v3',
     summary:
-      'Recent earning and cash-out previews share the same height, with long names and emails shortened at the end. Select a chart month to inspect its credited earnings.',
+      'Tap a recent earning or cash-out card to read its full details in a sheet. The previews keep equal heights and shorten long names and emails at the end.',
     implemented: [
       'Available balance, Total earned and Withdrawn use real account values.',
       'Each of the six month bars is tappable: the selected bar and displayed month total update together, excluding pending money.',
       'Recent earnings and Cash outs use equal-height preview cards. Long names and emails end with an ellipsis; amounts and statuses remain visible.',
+      'Both preview cards open a details sheet with full names or email, the exact amount, date, status and saved transfer reference when present.',
       'See all opens complete Payouts history, where full names, emails and transfer details remain readable.',
       'Cash out to Wise floats above navigation, with content space reserved below it. The amount stays in the balance card and cash-out sheet.',
     ],
@@ -19,13 +20,15 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Tap an earlier month and the current month: highlight and total must match. Recent activity stays the latest overall.',
       'Compare loading, true zero and pending-only earnings without showing invented growth.',
       'Use Preview long details with standard and larger text: both cards stay the same height, long names/emails end with an ellipsis, and amounts/statuses remain readable.',
+      'Open both cards with long details enabled: read the complete text, close the sheet and return to the same Earn position. Check Back, Escape and screen-reader focus.',
       'Check long peso totals and the floating button on a narrow phone with larger text.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 201 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 322 },
-      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 56 },
-      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 151 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 212 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 342 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 458 },
+      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 79 },
+      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 208 },
     ],
   },
   {
@@ -47,9 +50,9 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Use Back to return to Earn; check Android hardware Back only closes the focused history view.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 327 },
-      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 120 },
-      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 189 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 347 },
+      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 177 },
+      { path: 'apps/mobile/components/wallet/WalletActivity.tsx', line: 246 },
     ],
   },
   {
@@ -73,9 +76,9 @@ window.FIELD_AGENT_REVIEW_ACCOUNT = [
       'Review request success, failure and repeated-tap feedback using a non-payment test flow.',
     ],
     sources: [
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 218 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 437 },
-      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 492 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 238 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 471 },
+      { path: 'apps/mobile/app/(app)/(tabs)/wallet.tsx', line: 526 },
     ],
   },
   {

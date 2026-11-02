@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { act, render, fireEvent, waitFor } from "@testing-library/react-native";
+import { act, render, fireEvent, waitFor, within } from "@testing-library/react-native";
 import { Alert, BackHandler, Keyboard, Platform, StyleSheet } from 'react-native';
 import WalletScreen from "../app/(app)/(tabs)/wallet";
 import { Button } from '../components/v2';
@@ -544,6 +544,124 @@ describe('Earn design and complete history', () => {
     fireEvent.press(view.getByLabelText('All cash-outs'));
     expect(view.queryByTestId('wallet-status-slot-payout-large-preview')).toBeNull();
     expect(view.getByText('mika@example.com').props.numberOfLines).toBe(2);
+  });
+
+  it('opens the whole recent earning card to show full read-only details and its real site price', () => {
+    const businessName = 'A long shop name that needs its full details to be read';
+    setupQueries(mockCreator, [{ ...mockEarnings[0], businessName, amount: 1000.5 }]);
+    const view = render(<WalletScreen />);
+    expect(view.getByText(businessName).props.ellipsizeMode).toBe('tail');
+    fireEvent.press(view.getByRole('button', { name: /^View recent earning details/ }));
+    const details = within(view.getByTestId('wallet-activity-details'));
+    expect(details.getByRole('header', { name: 'Earning details' })).toBeTruthy();
+    expect(details.getByText(businessName).props.numberOfLines).toBeUndefined();
+    expect(details.getByText('+₱1,000.50')).toBeTruthy();
+    expect(details.getByText('Site earnings')).toBeTruthy();
+    expect(details.getByText('Available')).toBeTruthy();
+    expect(details.getByText('₱1,999')).toBeTruthy();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
+    fireEvent.press(view.getByLabelText('Close activity details'));
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    expect(view.getByText(businessName).props.numberOfLines).toBe(1);
+  });
+
+  it('opens complete cash-out details without sending money and supports native Back and backdrop dismissal', () => {
+    const wiseEmail = 'a.long.actual.recipient.account@example.com';
+    setupQueries(mockCreator, mockEarnings, [{ ...mockWithdrawals[0], status: 'failed', amount: 3750.5, wiseEmail,
+      reference: 'real-reference', failureReason: 'The recipient needs verification.' }]);
+    const view = render(<WalletScreen />);
+    const open = () => fireEvent.press(view.getByRole('button', { name: /^View recent cash-out details/ }));
+    open();
+    const details = within(view.getByTestId('wallet-activity-details'));
+    expect(details.getByRole('header', { name: 'Cash-out details' })).toBeTruthy();
+    expect(details.getByText(wiseEmail).props.numberOfLines).toBeUndefined();
+    expect(details.getByText('−₱3,750.50')).toBeTruthy();
+    expect(details.getByText('Failed')).toBeTruthy();
+    expect(details.getByText('real-reference')).toBeTruthy();
+    expect(details.getByText('12345')).toBeTruthy();
+    expect(details.getByText('The recipient needs verification.')).toBeTruthy();
+    fireEvent(view.getByTestId('wallet-activity-modal'), 'requestClose');
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    open();
+    fireEvent.press(view.getByRole('button', { name: 'Dismiss', exact: true }));
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
+  });
+
+  it('closes details before opening the correctly filtered full history', () => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent earning details/ }));
+    fireEvent.press(view.getByRole('button', { name: 'View all earnings', exact: true }));
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    expect(view.getByLabelText('History: Earned')).toHaveAccessibilityState({ selected: true });
+    expect(view.queryByTestId('payout-w1')).toBeNull();
+    fireEvent.press(view.getByLabelText('Back'));
+    fireEvent.press(view.getByRole('button', { name: /^View recent cash-out details/ }));
+    fireEvent.press(view.getByRole('button', { name: 'View all cash-outs', exact: true }));
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    expect(view.getByLabelText('History: Cashed out')).toHaveAccessibilityState({ selected: true });
+    expect(view.queryByTestId('earning-e1')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('keeps selected earning metadata when a newer earning replaces the home preview', () => {
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent earning details/ }));
+    setupQueries(mockCreator, [{ _id: 'newest', submissionId: 'new-submission', businessName: 'A newer shop', type: 'submission_approved',
+      amount: 2000, status: 'available', createdAt: Date.now() }, ...mockEarnings]);
+    view.rerender(<WalletScreen />);
+    expect(view.getByText('A newer shop')).toBeTruthy();
+    const details = within(view.getByTestId('wallet-activity-details'));
+    expect(details.getByText('Kalan')).toBeTruthy();
+    expect(details.getByText('+₱1,000')).toBeTruthy();
+    expect(details.getByText('₱1,999')).toBeTruthy();
+  });
+
+  it('refreshes an open cash-out status from live data and dismisses it if the record disappears', () => {
+    setupQueries(mockCreator, mockEarnings, [{ ...mockWithdrawals[0], status: 'processing' }]);
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent cash-out details/ }));
+    expect(within(view.getByTestId('wallet-activity-details')).getByText('Processing')).toBeTruthy();
+    setupQueries();
+    view.rerender(<WalletScreen />);
+    expect(within(view.getByTestId('wallet-activity-details')).getByText('Completed')).toBeTruthy();
+    setupQueries(mockCreator, mockEarnings, []);
+    view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+  });
+
+  it('dismisses details on blur and account change, and never stacks them with a Wise editor', () => {
+    const dismissKeyboard = jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => {});
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent earning details/ }));
+    expect(dismissKeyboard).toHaveBeenCalledTimes(1);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    mockFocused = false;
+    view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    mockFocused = true;
+    view.rerender(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent cash-out details/ }));
+    mockClerkId = 'clerk-user-2';
+    setupQueries({ ...mockCreator, _id: 'creator-2', clerkId: mockClerkId }, [], []);
+    view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('wallet-activity-modal')).toBeNull();
+    expect(view.queryByText('juan@wise.com')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
+  });
+
+  it('keeps stored activity readable offline while cashing out remains unavailable', () => {
+    mockConnected = false;
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByRole('button', { name: /^View recent cash-out details/ }));
+    expect(within(view.getByTestId('wallet-activity-details')).getByText('juan@wise.com')).toBeTruthy();
+    expect(view.getByTestId('wallet-activity-scroll').props.keyboardShouldPersistTaps).toBe('handled');
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
   });
 
   it('uses real credited calendar-month earnings and keeps pending money out of the trend', () => {

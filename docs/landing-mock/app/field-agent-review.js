@@ -318,7 +318,7 @@
     return { stacked, amountLines: stacked ? Math.max(1, Math.ceil(amountWidth / width)) : 1 };
   };
   const earnActivity = (title, subtitle, amount, ico, layout, status = '') =>
-    `<div class="fa-card fa-earn-activity ${layout.stacked ? 'stacked' : ''}" style="--earn-amount-lines:${layout.amountLines}" role="group" aria-label="${escape([title, subtitle, amount, status].filter(Boolean).join(', '))}"><div class="fa-earn-icon ${status ? 'dark' : ''}">${icon(ico)}</div><div class="fa-earn-copy"><b title="${escape(title)}">${escape(title)}</b><span class="fa-muted" title="${escape(subtitle)}">${escape(subtitle)}</span></div><div class="fa-earn-end"><strong>${amount}</strong>${status ? `<span class="fa-flag info">${escape(status)}</span>` : '<span class="fa-earn-status-slot" aria-hidden="true"></span>'}</div></div>`;
+    `<button type="button" class="fa-card fa-earn-activity ${layout.stacked ? 'stacked' : ''}" style="--earn-amount-lines:${layout.amountLines}" data-activity-details="${status ? 'cashout' : 'earning'}" aria-haspopup="dialog" aria-label="${escape('View ' + (status ? 'cash-out' : 'earning') + ' details, ' + [title, subtitle, amount, status].filter(Boolean).join(', '))}"><span class="fa-earn-icon ${status ? 'dark' : ''}" aria-hidden="true">${icon(ico)}</span><span class="fa-earn-copy"><b title="${escape(title)}">${escape(title)}</b><span class="fa-muted" title="${escape(subtitle)}">${escape(subtitle)}</span></span><span class="fa-earn-end"><strong>${amount}</strong>${status ? `<span class="fa-flag info">${escape(status)}</span>` : '<span class="fa-earn-status-slot" aria-hidden="true"></span>'}</span></button>`;
   const badge = (status) => `<span class="fa-badge ${status}">${STATUS[status]}</span>`;
   const section = (name, content) =>
     `<div class="fa-col"><span class="fa-label">${name}</span><div class="fa-card fa-inset-list">${content}</div></div>`;
@@ -540,7 +540,7 @@
         const business = interactive && demo.earnLong ? 'Kalan Family Restaurant and Catering Services' : 'Kalan',
           email = interactive && demo.earnLong ? 'mika.santos.creator.payouts@example.com' : 'mika@example.com';
         return app(
-          `<div class="fa-card"><div class="fa-between"><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div><div><b>₱15,650</b><p class="fa-small fa-muted">Cashed out</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Ready</p></div></div></div><div class="fa-chip-row">${['All', 'Earned', 'Cashed out'].map((f) => chip(f, demo.history === f, `data-history="${f}"`)).join('')}</div><span class="fa-label">November</span>${demo.history !== 'Cashed out' ? '<div class="fa-card fa-history-detail"><b>' + escape(business) + ' <span style="float:right">+₱2,000</span></b><p class="fa-small fa-muted">Paid Nov 1</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">October</span><div class="fa-card fa-history-detail"><div class="fa-between"><b>To Wise</b><b>−₱1,000</b></div><p class="fa-small fa-muted">Oct 30 · ' + escape(email) + '</p><span class="fa-flag">Processing</span><p class="fa-small fa-muted">Reference: SAMPLE-1030</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">Earlier</span><div class="fa-card"><b>To Wise</b><span class="fa-flag warn">Failed</span><p class="fa-small fa-muted">Read the reason and verify your Wise details before retrying.</p></div>' : ''}`,
+          `<div class="fa-card"><div class="fa-between"><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div><div><b>₱15,650</b><p class="fa-small fa-muted">Cashed out</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Ready</p></div></div></div><div class="fa-chip-row">${['All', 'Earned', 'Cashed out'].map((f) => chip(f, demo.history === f, `data-history="${f}"`)).join('')}</div>${demo.history !== 'Cashed out' ? '<span class="fa-label">November</span><div class="fa-card fa-history-detail"><b>' + escape(business) + ' <span style="float:right">+₱2,000</span></b><p class="fa-small fa-muted">Paid Nov 1</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">October</span><div class="fa-card fa-history-detail"><div class="fa-between"><b>To Wise</b><b>−₱1,000</b></div><p class="fa-small fa-muted">Oct 30 · ' + escape(email) + '</p><span class="fa-flag">Processing</span><p class="fa-small fa-muted">Reference: SAMPLE-1030</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">Earlier</span><div class="fa-card"><b>To Wise</b><span class="fa-flag warn">Failed</span><p class="fa-small fa-muted">Read the reason and verify your Wise details before retrying.</p></div>' : ''}`,
           { title: 'Payouts', back: 'earn' },
         );
       }
@@ -640,6 +640,22 @@
     node.replaceChildren(phone(current, true));
     T.fitPhones(node);
   }
+  function showActivityDetails(kind) {
+    const earning = kind === 'earning',
+      title = earning ? 'Earning details' : 'Cash-out details',
+      name = earning
+        ? demo.earnLong ? 'Kalan Family Restaurant and Catering Services' : 'Kalan'
+        : demo.earnLong ? 'mika.santos.creator.payouts@example.com' : 'mika@example.com',
+      facts = earning
+        ? [['Date', 'November 1, 2026, 10:30 AM'], ['Type', 'Earnings']]
+        : [['Date', 'October 30, 2026, 2:15 PM'], ['Reference', 'SAMPLE-1030']],
+      overlay = document.createElement('div');
+    overlay.className = 'fa-overlay';
+    overlay.dataset.activity = kind;
+    overlay.innerHTML = `<section class="fa-modal fa-activity-modal" role="dialog" aria-modal="true" aria-label="${title}"><div class="fa-between"><h3>${title}</h3><button type="button" class="fa-round" data-action="close-modal" aria-label="Close ${title.toLowerCase()}">${icon('close')}</button></div><div class="fa-activity-hero"><span class="fa-label">${earning ? 'Earned' : 'Cash out to Wise'}</span><strong class="fa-activity-amount">${earning ? '+₱2,000' : '−₱1,000'}</strong><span class="fa-flag ${earning ? 'lime' : 'info'}">${earning ? 'Available' : 'Processing'}</span></div><div class="fa-activity-identity"><span class="fa-label">${earning ? 'Shop' : 'Your Wise email'}</span><b>${escape(name)}</b></div><dl class="fa-activity-facts">${facts.map(([label, value]) => `<div><dt>${label}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl><div class="fa-activity-actions">${btn('Done', '', '', 'data-action="close-modal"')}${btn(earning ? 'View all earnings' : 'View all cash-outs', '', 'ghost', `data-action="activity-history" data-activity-kind="${kind}"`)}</div></section>`;
+    document.querySelector('#fa-live-phone .fa-app').append(overlay);
+    overlay.querySelector('[data-action="close-modal"]').focus();
+  }
   function closeOverlay(overlay) {
     if (overlay.querySelector('[data-action="close-message"]')) {
       demo.message = false;
@@ -647,7 +663,12 @@
       document.querySelector('#fa-live-phone [data-action="message"]')?.focus();
       return;
     }
+    const activity = overlay.dataset.activity;
     overlay.remove();
+    if (activity) {
+      document.querySelector(`#fa-live-phone [data-activity-details="${activity}"]`)?.focus({ preventScroll: true });
+      return;
+    }
     document
       .querySelector('#fa-live-phone [data-action="confirm-send"],#fa-live-phone [data-action="full-design"]')
       ?.focus();
@@ -753,8 +774,16 @@
     select(current);
   }
   document.addEventListener('click', (event) => {
+    if (event.target.matches?.('.fa-overlay[data-activity]')) {
+      closeOverlay(event.target);
+      return;
+    }
     const el = event.target.closest('button,a');
     if (!el) return;
+    if (el.dataset.activityDetails && el.closest('#fa-live-phone')) {
+      showActivityDetails(el.dataset.activityDetails);
+      return;
+    }
     if (el.hasAttribute('data-quiz-preview')) {
       toast(
         'The app opens the five-question certification quiz here. Passing and submitting the profile come before review.',
@@ -841,7 +870,11 @@
       return;
     }
     const action = el.dataset.action;
-    if (action === 'edit-rejected') {
+    if (action === 'activity-history') {
+      demo.history = el.dataset.activityKind === 'earning' ? 'Earned' : 'Cashed out';
+      select('history');
+      document.querySelector('#fa-live-phone [aria-label="Back"]')?.focus();
+    } else if (action === 'edit-rejected') {
       demo.repair = true;
       select('review', true);
     } else if (action === 'resend-sample') {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { EarningRow, EarningsTrend, PayoutRow, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
+import { EarningRow, EarningsTrend, PayoutRow, WalletActivityDetails, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
 import { colors } from '../theme/v2';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -80,6 +80,43 @@ it('reserves equal financial lines in stacked home previews without truncating e
   expect(StyleSheet.flatten(view.getByTestId('wallet-status-slot-earning-income-a').props.style).minHeight).toBe(52);
   expect(StyleSheet.flatten(view.getByTestId('wallet-status-slot-payout-large').props.style).minHeight).toBe(52);
   expect(view.getByText('Completed')).toBeTruthy();
+});
+
+it('shows full earning details and only the actual owned site price', () => {
+  const businessName = 'A very long shop name that must be completely readable in the details popup';
+  const view = render(<WalletActivityDetails activity={{ kind: 'earning', earning: earning({ businessName, amount: 1250.5, status: 'withdrawn' }),
+    submission: { thumbnailUrl: null, submissionPrice: 2999, paid: true } }} />);
+  expect(view.getByRole('header', { name: 'Earning details' })).toBeTruthy();
+  expect(view.getByText(businessName).props.numberOfLines).toBeUndefined();
+  expect(view.getByText('+₱1,250.50').props.numberOfLines).toBeUndefined();
+  expect(view.getByText('Site earnings')).toBeTruthy();
+  expect(view.getByText('Withdrawn')).toBeTruthy();
+  expect(view.getByText('₱2,999')).toBeTruthy();
+  expect(view.getByText(new Date(october).toLocaleString('en-PH', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }))).toBeTruthy();
+  view.rerender(<WalletActivityDetails activity={{ kind: 'earning', earning: earning({ status: undefined, type: undefined, businessName: 'Unknown' }) }} />);
+  expect(view.queryByText('Site price')).toBeNull();
+  expect(view.queryByText('Type')).toBeNull();
+  expect(view.queryByText('Unknown')).toBeNull();
+  expect(view.queryByText('Available')).toBeNull();
+});
+
+it('shows complete payout recipient, reference, processing date and stored failure information', () => {
+  const wiseEmail = 'a.very.long.recipient.account.that.must.be.readable@example.com';
+  const failureReason = 'The recipient needs to complete their verification before this transfer can proceed.';
+  const view = render(<WalletActivityDetails activity={{ kind: 'payout', withdrawal: { _id: 'failed', amount: 1234567.89, status: 'failed',
+    wiseEmail, bankName: 'Bank from the saved transfer', reference: 'saved-reference', wiseTransferId: 'transfer-123', wiseTransactionId: 'transaction-456',
+    processedAt: october + 60000, createdAt: october, failureReason } }} />);
+  expect(view.getByRole('header', { name: 'Cash-out details' })).toBeTruthy();
+  for (const value of ['−₱1,234,567.89', wiseEmail, 'Bank from the saved transfer', 'saved-reference', 'transfer-123', 'transaction-456', failureReason]) {
+    expect(view.getByText(value).props.numberOfLines).toBeUndefined();
+  }
+  expect(view.getByText('Processed')).toBeTruthy();
+  expect(view.getByText('Failed')).toBeTruthy();
+  view.rerender(<WalletActivityDetails activity={{ kind: 'payout', withdrawal: { _id: 'legacy', amount: 300, status: 'completed',
+    transactionRef: 'legacy-reference', processedAt: Number.NaN } }} />);
+  expect(view.getByText('legacy-reference')).toBeTruthy();
+  expect(view.getByText('Date unavailable')).toBeTruthy();
+  for (const absent of ['Wise email', 'Bank', 'Processed', 'Wise transfer ID', 'Wise transaction ID', 'What happened']) expect(view.queryByText(absent)).toBeNull();
 });
 
 it('keeps the compact Payouts history mixed, fully filterable and complete with references and failure details', () => {
