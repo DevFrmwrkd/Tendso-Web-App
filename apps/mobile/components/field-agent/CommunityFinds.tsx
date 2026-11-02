@@ -100,7 +100,8 @@ export function CommunityFinds() {
 function FindTile({ lead, imageHeight, distanceLabel, onPress }: {
   lead: CommunityFind; imageHeight: number; distanceLabel?: string; onPress: () => void;
 }) {
-  const photo = publicImage(lead.photoUrl || lead.previewImageUrl);
+  // The shared feed only shows the discovery photo, never capture assets.
+  const photo = publicImage(lead.photoUrl);
   const person = lead.spottedBy ?? lead.submittedBy;
   const label = findWebsiteLabel(lead);
   return (

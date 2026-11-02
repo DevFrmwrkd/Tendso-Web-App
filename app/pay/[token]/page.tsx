@@ -42,7 +42,7 @@ export default function PaymentPage() {
     const paymentToken = useQuery(api.paymentTokens.getByToken, { token });
 
     // Fetch submission details
-    const submission = useQuery(api.submissions.getById, paymentToken?.submissionId ? { id: paymentToken.submissionId } : "skip");
+    const submission = useQuery(api.paymentTokens.getSubmissionByToken, paymentToken ? { token } : "skip");
 
     const wiseEmail = paymentConfig.wiseEmail || "support@negosyo.digital";
 

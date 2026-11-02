@@ -451,7 +451,7 @@ export function StartFlow() {
                 giveawayApplication: draft.giveawayApplication ? true : undefined,
                 giveawayPosterPhoto: draft.giveawayApplication ? (draft.giveawayPosterPhoto ?? undefined) : undefined,
             });
-            const submitted = await convex.query(api.submissions.getById, { id: submissionId }).catch(() => null);
+            const submitted = await convex.query(api.submissions.getIntakeReceiptSummary, { id: submissionId }).catch(() => null);
             const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication, affiliatePrice);
             const amount = submitted ? ownerChargeFor(submitted) : affiliateHandle !== null ? null : quoted.total;
             rememberSubmitted({

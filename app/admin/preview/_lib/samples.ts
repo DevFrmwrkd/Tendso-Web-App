@@ -148,4 +148,9 @@ export const sampleLeads: FeedLead[] = [{
     previewImageUrl: null,
     externalPreviewUrl: null,
     hasEnrichedContent: false,
+    publicWebsiteUrl: null,
+    isCaptureShop: true,
+    hasSubmittedCapture: false,
+    captureStatus: null,
+    interviewedBy: null,
 }];

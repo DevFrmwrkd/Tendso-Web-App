@@ -13,7 +13,7 @@ export default function WebsitePage() {
     // Get generated website from Convex. The id comes straight from the URL;
     // Convex validates it, and a malformed one throws to app/error.tsx.
     const website = useQuery(
-        api.generatedWebsites.getBySubmissionId,
+        api.generatedWebsites.getPublishedBySubmissionId,
         submissionId ? { submissionId: submissionId as Id<'submissions'> } : "skip"
     )
 

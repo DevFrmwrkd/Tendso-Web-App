@@ -42,7 +42,7 @@ describe('field agent shop states', () => {
     expect(spotted.canVisit).toBe(true);
     const captured = normalizeCommunityFind(find({ isMine: true, status: 'converted', submissionStatus: 'submitted' }), area)!;
     expect(captured.isMine).toBe(true);
-    expect(shopStatus(captured)).toBe('Yours');
+    expect(shopStatus(captured)).toBe('Interview submitted');
     expect(captured.canVisit).toBe(false);
     const published = normalizeCommunityFind(find({ isMine: true, status: 'converted', submissionStatus: 'deployed', hasLiveWebsite: true }), area)!;
     expect(published.isMine).toBe(true);
@@ -67,6 +67,37 @@ describe('field agent shop states', () => {
     expect(shop.website).toBe('https://nena.example');
     expect(shop.canVisit).toBe(false);
     expect(shop.canInterview).toBe(false);
+  });
+
+  it('shows automatic capture progress for another agent without making it available for a duplicate interview', () => {
+    const interviewedBy = { ...spotter, interviewedAt: NOW - 1000 };
+    const shop = normalizeCommunityFind(find({ hasSubmittedCapture: true, captureStatus: 'under_review',
+      interviewedBy, isMine: false, status: 'new' }), area)!;
+    expect(shopStatus(shop)).toBe('Interview submitted');
+    expect(shop.interviewedBy).toEqual(interviewedBy);
+    expect(shop.canVisit).toBe(false);
+    expect(shop.canInterview).toBe(false);
+    expect(shop.isMine).toBe(false);
+  });
+
+  it('keeps discovery photos separate from private capture previews, including older responses', () => {
+    const discovery = normalizeCommunityFind(find({ hasSubmittedCapture: true,
+      previewImageUrl: 'https://private.example/interview-photo.jpg' }), area)!;
+    const noDiscovery = normalizeCommunityFind(find({ photoUrl: null,
+      previewImageUrl: 'https://private.example/interview-photo.jpg', hasSubmittedCapture: true }), area)!;
+    expect(discovery.photoUrl).toBe('https://photos.example/nena.jpg');
+    expect(noDiscovery.photoUrl).toBeNull();
+  });
+
+  it('does not describe a draft as an interview submitted or override the current server flag', () => {
+    const draft = normalizeCommunityFind(find({ submissionStatus: 'draft', claimedBy: claimant,
+      claimExpiresAt: NOW + 1000 }), area)!;
+    expect(shopStatus(draft)).toBe('Yours');
+    expect(draft.hasSubmittedCapture).toBe(false);
+    expect(draft.canInterview).toBe(true);
+    const authoritative = normalizeCommunityFind(find({ hasSubmittedCapture: false, submissionStatus: 'submitted' }), area)!;
+    expect(shopStatus(authoritative)).toBe('Needs a site');
+    expect(authoritative.hasSubmittedCapture).toBe(false);
   });
 
   it('does not infer no website from an imported prospect with a missing URL', () => {

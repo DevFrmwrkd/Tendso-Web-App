@@ -70,18 +70,26 @@
       title: 'Shop details',
       area: 'discovery',
       status: 'polish',
-      summary: 'The detail screen is implemented. Review wording and incomplete contact information.',
+      summary:
+        'Shared shops now show automatic interview progress and a published website, with capture originals kept private.',
       implemented: [
-        'Public shop image or a bounded local placeholder, address, contact actions, notes and permitted status changes.',
-        'Capture media stays behind the existing server permission gate.',
+        'Discovery photo or category placeholder stays on the shared shop; submitted capture photos do not replace it.',
+        'Interview submitted and Live are automatic; field agents cannot manually change shared-shop progress.',
+        'Interview attribution comes from the linked submitted capture. Original assets require capture-owner or reviewer permission.',
+        'A verified published site appears inline; draft, build and unpublished URLs do not.',
         'Back returns to the originating screen, with Finds as the fallback.',
       ],
       checks: [
         'Decide on a shorter, clearer unknown-website label.',
         'Review missing address/contact fields and long email wrapping.',
-        'Verify only permitted users can see capture photos and update status.',
+        'Compare a spotter, another agent, the submitting agent and an admin: originals stay private and shared progress is read-only.',
+        'Publish, unpublish and reconnect: show only the live site; verify preview error and retry.',
       ],
-      sources: [{ path: 'apps/mobile/app/(app)/leads/[leadId].tsx', line: 304 }],
+      sources: [
+        { path: 'apps/mobile/app/(app)/leads/[leadId].tsx', line: 520 },
+        { path: 'apps/mobile/components/field-agent/PublishedShopWebsite.tsx', line: 20 },
+        { path: 'convex/leads.ts', line: 399 },
+      ],
     },
     {
       id: 'spot',
@@ -220,6 +228,7 @@
     large = false;
   const phoneCache = new Map();
   const demo = {
+    shopStage: 'submitted',
     sheet: 'preview',
     selectedShop: false,
     visiting: false,
@@ -351,11 +360,15 @@
             icon('camera') +
             'Spot a shop</button><div class="fa-home-line">',
         );
-      case 'shop':
+      case 'shop': {
+        const stage = interactive ? demo.shopStage : 'submitted';
+        const label =
+          stage === 'live' ? 'Live' : stage === 'submitted' ? 'Interview submitted' : 'Needs a site';
         return app(
-          `${pic('barber', 196, 'New')}<div><h2>Ramon’s Barber</h2><p class="fa-muted">350 m · 10 Main Street, Marikina</p></div><div class="fa-card"><div class="fa-row">${avatar()}<div><b>Business contact</b><p class="fa-small fa-muted">Phone not added</p></div></div><div class="fa-row"><p class="fa-small fa-muted">Add contact details during capture.</p></div></div><span class="fa-label">Notes (0)</span><label class="fa-field"><span>Add a note</span><textarea placeholder="Best time to visit, who to ask for" aria-label="Sample shop note"></textarea></label><p class="fa-small fa-muted">No notes yet.</p><span class="fa-label">Status</span><div class="fa-chip-row">${chip('New', true)}${chip('Contacted')}${chip('Qualified')}</div>`,
-          { back: 'finds', footer: btn('Start the capture', 'info') },
+          `${pic('barber', 196, label)}<div><h2>Ramon’s Barber</h2><p class="fa-muted">350 m · 10 Main Street, Marikina</p></div><span class="fa-label">Notes (0)</span><label class="fa-field"><span>Add a note</span><textarea placeholder="Best time to visit, who to ask for" aria-label="Sample shop note"></textarea></label><p class="fa-small fa-muted">No notes yet.</p><div class="fa-card"><div class="fa-between"><b>Shop progress</b><span class="fa-flag">${label}</span></div><p class="fa-small fa-muted">${stage === 'live' ? 'This shop’s website is live. Progress updates automatically.' : stage === 'submitted' ? 'An interview has been submitted for this shop. Progress updates automatically.' : 'Progress updates automatically when an interview is submitted and the website goes live.'}</p></div>${stage === 'live' ? '<div class="fa-card"><b>Published website</b><p class="fa-small fa-muted">The live site made for this shop. Scroll inside to explore it.</p><iframe class="fa-sample-frame" title="Published barber website example" src="/template-previews/f.html" sandbox="allow-same-origin" style="height:420px;width:100%;border:0;border-radius:18px"></iframe><button type="button" class="fa-btn ghost" data-demo="The app opens this shop’s verified published URL in its in-app browser.">View website</button></div>' : ''}<div class="fa-card"><b>Interviewed by</b><p class="fa-small fa-muted">Recorded automatically from submitted interviews.</p>${stage === 'new' ? '<p class="fa-small fa-muted">No one has interviewed this shop yet.</p>' : '<div class="fa-row">' + avatar() + '<div><b>Mika Santos</b><p class="fa-small fa-muted">Just now</p></div><span class="fa-flag">In review</span></div>'}</div>`,
+          { back: 'finds', footer: stage === 'new' ? btn('Start the capture', 'info') : '' },
         );
+      }
       case 'spot':
         return app(
           `<p class="fa-muted">Take a photo and share it with the team.</p><button type="button" class="fa-card fa-center" style="min-height:150px;align-items:center;justify-content:center" data-demo="The mobile app requests camera/photo-library access here.">${icon('camera')}<b>Add a shop photo</b></button>${field('Shop name', 'Nena’s Sari-Sari')}<span class="fa-label">Kind of shop</span><div class="fa-chip-row">${['Food', 'Sari-sari', 'Beauty', 'Repair', 'Other'].map((k) => chip(k, k === 'Sari-sari', 'data-action="kind"')).join('')}</div><div class="fa-card fa-between"><b>Needs a site</b><input type="checkbox" checked aria-label="Sample shop needs a site"></div><span class="fa-label">Pin the shop</span><p class="fa-small fa-muted">Tap the map at the shop, or use your location while standing there.</p><div class="fa-mini-map"><button type="button" data-demo="Drag or tap a pin in the mobile app; the chosen zoom should stay." aria-label="Sample shop location"></button></div>${field('Address (optional)', '12 Main Street')}${field('City (optional)', 'Marikina')}`,
@@ -553,7 +566,7 @@
     const s = byId[current],
       saved = reviewNotes(current);
     document.getElementById('fa-review').innerHTML =
-      `<div>${badge(s.status)} ${s.priority ? `<span class="fa-badge">${s.priority}</span>` : ''}</div><h3>${escape(s.title)}</h3><p>${escape(s.summary)}</p><div><h4>Present in the app</h4><ul>${s.implemented.map((t) => `<li>${escape(t)}</li>`).join('')}</ul></div><div><h4>${s.status === 'gap' ? 'Before calling it complete' : s.status === 'decision' ? 'Decision to make' : 'Check next'}</h4>${s.checks.map((t, i) => `<label class="fa-review-check"><input type="checkbox" data-check="${i}" ${saved.checks.includes(i) ? 'checked' : ''}><span>${escape(t)}</span></label>`).join('')}</div><div class="fa-source"><h4>Source evidence</h4>${s.sources.map((src) => `<code>${escape(src.path)}:${src.line}</code>`).join('')}<small>Source snapshot 69dddc04 · these references support behavior, not a claim of device approval.</small></div><div class="fa-note"><label for="fa-verdict">Your device review</label><select id="fa-verdict"><option value="unreviewed">Not checked on device</option><option value="polish">Needs polish</option><option value="verified">Checked on device — looks good</option></select><label for="fa-note-input">Review notes</label><textarea id="fa-note-input" placeholder="Device, screen, what happened, what to change…">${escape(saved.note)}</textarea><small>Saved in this browser only. This does not change implementation status or submit feedback to the team.</small></div>`;
+      `<div>${badge(s.status)} ${s.priority ? `<span class="fa-badge">${s.priority}</span>` : ''}</div><h3>${escape(s.title)}</h3><p>${escape(s.summary)}</p><div><h4>Present in the app</h4><ul>${s.implemented.map((t) => `<li>${escape(t)}</li>`).join('')}</ul></div><div><h4>${s.status === 'gap' ? 'Before calling it complete' : s.status === 'decision' ? 'Decision to make' : 'Check next'}</h4>${s.checks.map((t, i) => `<label class="fa-review-check"><input type="checkbox" data-check="${i}" ${saved.checks.includes(i) ? 'checked' : ''}><span>${escape(t)}</span></label>`).join('')}</div><div class="fa-source"><h4>Source evidence</h4>${s.sources.map((src) => `<code>${escape(src.path)}:${src.line}</code>`).join('')}<small>Current source references · initial baseline 69dddc04. Implementation evidence does not mean device approval.</small></div><div class="fa-note"><label for="fa-verdict">Your device review</label><select id="fa-verdict"><option value="unreviewed">Not checked on device</option><option value="polish">Needs polish</option><option value="verified">Checked on device — looks good</option></select><label for="fa-note-input">Review notes</label><textarea id="fa-note-input" placeholder="Device, screen, what happened, what to change…">${escape(saved.note)}</textarea><small>Saved in this browser only. This does not change implementation status or submit feedback to the team.</small></div>`;
     document.getElementById('fa-verdict').value = saved.verdict;
   }
   function renderLive() {
@@ -582,6 +595,7 @@
     renderLive();
     renderReview();
     document.getElementById('fa-design-state').hidden = id !== 'review';
+    document.getElementById('fa-shop-state').hidden = id !== 'shop';
     if (scroll)
       document.getElementById('inspect').scrollIntoView({
         behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
@@ -891,6 +905,14 @@
     demo.design = demo.design === -1 ? 0 : -1;
     e.currentTarget.setAttribute('aria-pressed', String(demo.design === -1));
     e.currentTarget.textContent = demo.design === -1 ? 'Show saved design' : 'Preview with no design';
+    renderLive();
+  });
+  document.getElementById('fa-shop-state').addEventListener('click', (e) => {
+    const stages = ['new', 'submitted', 'live'];
+    demo.shopStage = stages[(stages.indexOf(demo.shopStage) + 1) % stages.length];
+    e.currentTarget.textContent =
+      'Shop example: ' +
+      { new: 'Needs a site', submitted: 'Interview submitted', live: 'Live' }[demo.shopStage];
     renderLive();
   });
   document.getElementById('fa-reset').addEventListener('click', () => {

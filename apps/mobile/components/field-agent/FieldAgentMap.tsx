@@ -180,9 +180,9 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
   }, [prospects, reservations, crm?.leads, area, pendingShops, clockVersion, actorKey]);
   const shops = useMemo(() => knownShops.filter((shop) => isInViewport(shop, bounds)), [knownShops, bounds]);
   const visibleShops = shops.filter((shop) => filter === 'mine' ? shop.isMine
-    : filter === 'needs' ? shop.needsWebsite === true && !shop.hasLiveWebsite : true);
+    : filter === 'needs' ? shop.needsWebsite === true && !shop.hasLiveWebsite && !shop.hasSubmittedCapture : true);
   const selected = knownShops.find((shop) => `${shop.source}:${shop.id}` === selectedId) ?? null;
-  const needsCount = shops.filter((shop) => shop.needsWebsite === true && !shop.hasLiveWebsite).length;
+  const needsCount = shops.filter((shop) => shop.needsWebsite === true && !shop.hasLiveWebsite && !shop.hasSubmittedCapture).length;
   const mineCount = shops.filter((shop) => shop.isMine).length;
   const refreshing = isAuthenticated && viewportResult === undefined;
   const loading = isAuthenticated && shops.length === 0 && (crm === undefined || viewportResult === undefined);

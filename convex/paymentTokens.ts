@@ -5,7 +5,7 @@ import type { PaymentTokenStatus } from '../types/payment-tokens'
 import { isComped } from '../lib/pricing'
 import { requireAccountOwner, requireAdmin } from './lib/auth'
 import { validatePaymentPricing } from './lib/paymentPricing'
-import type { Id } from './_generated/dataModel'
+import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 
 async function orderPricing(ctx: Pick<QueryCtx, 'db'>, submissionId: Id<'submissions'>) {
@@ -111,6 +111,34 @@ export const getByToken = query({
         return token
     },
 })
+
+export type PaymentSubmissionSummary = Pick<Doc<'submissions'>,
+    '_id' | 'businessName' | 'status' | 'amount' | 'amountPaid' | 'depositPaidAt' | 'paidInFullAt' |
+    'paidAt' | 'pricingMode' | 'contentSource' | 'requestedDomain' | 'domainCostPHP' | 'domainChargedPHP' |
+    'websiteListPrice' | 'domainStatus' | 'websiteUrl' | 'unpublishedAt'>;
+
+/** A payment link grants receipt access, never access to capture originals. */
+export const getSubmissionByToken = query({
+    args: { token: v.string() },
+    handler: async (ctx, args): Promise<PaymentSubmissionSummary | null> => {
+        const token = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (!token || token.status === 'cancelled') return null;
+        const submission = await ctx.db.get(token.submissionId);
+        if (!submission) return null;
+        const website = await ctx.db.query('generatedWebsites').withIndex('by_submissionId', q => q.eq('submissionId', token.submissionId)).first();
+        const websiteUrl = website?.status === 'published' && website.offlineAt === undefined ? website.publishedUrl : undefined;
+        return {
+            _id: submission._id, businessName: submission.businessName, status: submission.status,
+            amount: submission.amount, amountPaid: submission.amountPaid, depositPaidAt: submission.depositPaidAt,
+            paidInFullAt: submission.paidInFullAt, paidAt: submission.paidAt, pricingMode: submission.pricingMode,
+            contentSource: submission.contentSource, requestedDomain: submission.requestedDomain,
+            domainCostPHP: submission.domainCostPHP, domainChargedPHP: submission.domainChargedPHP,
+            websiteListPrice: submission.websiteListPrice, domainStatus: submission.domainStatus,
+            websiteUrl: websiteUrl && /^https?:\/\//i.test(websiteUrl) ? websiteUrl : undefined,
+            unpublishedAt: submission.unpublishedAt,
+        };
+    },
+});
 
 /** Public receipt capability: expose the current live URL, never private preview content. */
 export const getPublicationByToken = query({

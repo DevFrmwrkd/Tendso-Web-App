@@ -57,6 +57,8 @@ jest.mock('../services/links', () => ({
     !!(target.address || target.label || (typeof target.latitude === 'number' && typeof target.longitude === 'number')),
 }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('react-native-webview', () => ({ WebView: (props: unknown) =>
+  require('react').createElement(require('react-native').View, { ...(props as object), testID: 'shop-site-webview' }) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('react-native-svg', () => ({
   __esModule: true, default: 'MockSvg', Path: 'MockPath', Defs: 'MockDefs',
@@ -254,7 +256,7 @@ it('uses the saved CRM category and coarse kind when a shop has no finer detail 
   expect(screen.getByLabelText('Nena Store photo unavailable').props.source).toEqual(getShopPlaceholder('Auto repair', 'repair'));
 });
 
-it('keeps capture photos available in detail when the server explicitly permits the capturing agent or admin', () => {
+it('keeps authorized capture photos separate from the shared discovery hero', () => {
   mockDetail.canViewCaptureMedia = true;
   mockDetail.photoUrl = null;
   mockDetail.business = {
@@ -263,7 +265,8 @@ it('keeps capture photos available in detail when the server explicitly permits 
   };
   const screen = render(<LeadDetailScreen />);
   expect(screen.getByLabelText('Shop photo 1').props.source.uri).toBe('https://media.example.com/private-owner.jpg');
-  expect(screen.getByLabelText('Nena Store photo').props.source.uri).toBe('https://media.example.com/private-owner.jpg');
+  expect(screen.getByLabelText('Nena Store photo unavailable')).toBeTruthy();
+  expect(screen.getByText('Your capture')).toBeTruthy();
 });
 
 it('reserves a community find before opening capture with its original binding and details', async () => {
@@ -407,7 +410,7 @@ it.each(['qualified', 'converted'])('does not call the CRM %s status Visiting or
   mockDetail.lead.status = status;
   mockDetail.needsWebsite = null;
   const screen = render(<LeadDetailScreen />);
-  expect(screen.getByRole('button', { name: `Set status to ${status === 'qualified' ? 'Qualified' : 'Converted'}` })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: `Set status to ${status === 'qualified' ? 'Qualified' : 'Converted'}` })).toBeNull();
   expect(screen.queryByText('Visiting')).toBeNull();
   expect(screen.queryByText('Live')).toBeNull();
 });
@@ -423,7 +426,7 @@ it('uses verified website availability for Live and does not offer another captu
   mockDetail.needsWebsite = false;
   mockDetail.websiteUrl = 'https://nena.tendso.site';
   const screen = render(<LeadDetailScreen />);
-  expect(screen.getByText('Live')).toBeTruthy();
+  expect(screen.getAllByText('Live')).toHaveLength(2);
   expect(screen.queryByText('Needs a site')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
   fireEvent.press(screen.getByRole('button', { name: 'View website' }));
@@ -442,7 +445,8 @@ it('keeps phone, message, email and native directions actions connected to actua
   expect(mockDirections).toHaveBeenCalledWith(expect.objectContaining({ latitude: 14.65, longitude: 121.10, address: '12 Rizal Street, Marikina' }));
 });
 
-it('saves trimmed notes and updates only an owned lead using backend status values', async () => {
+it('saves trimmed notes and preserves manual CRM status only for a private inquiry', async () => {
+  mockDetail.lead.source = 'direct';
   const screen = render(<LeadDetailScreen />);
   fireEvent.changeText(screen.getByLabelText('Add a note about this lead'), '  Ask for Nena in the morning.  ');
   fireEvent.press(screen.getByRole('button', { name: 'Save note' }));
@@ -455,16 +459,18 @@ it('saves trimmed notes and updates only an owned lead using backend status valu
   expect(mockUpdateStatus).toHaveBeenCalledTimes(1);
 });
 
-it('allows an authorized visiting agent to update status while conversion comes from actual capture', async () => {
+it('does not offer manual shared-shop status controls even to its visitor or original spotter', async () => {
   mockDetail.isMine = false;
   mockDetail.canUpdateStatus = true;
   mockDetail.canMarkConverted = false;
   const screen = render(<LeadDetailScreen />);
-  fireEvent.press(screen.getByRole('button', { name: 'Set status to Qualified' }));
-  await waitFor(() => expect(mockUpdateStatus).toHaveBeenCalledWith({ id: 'lead-1', status: 'qualified' }));
+  expect(screen.queryByRole('button', { name: 'Set status to Qualified' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Set status to Converted' })).toBeNull();
-  expect(screen.getByText('Converted is set when the capture is submitted.')).toBeTruthy();
-  expect(mockUpdateStatus).toHaveBeenCalledTimes(1);
+  expect(screen.getByText('Shop progress')).toBeTruthy();
+  expect(mockUpdateStatus).not.toHaveBeenCalled();
+  mockDetail.isMine = true;
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.queryByRole('button', { name: 'Set status to Qualified' })).toBeNull();
 });
 
 it('honors explicit read-only status permission even for the original spotter', () => {
@@ -473,6 +479,59 @@ it('honors explicit read-only status permission even for the original spotter', 
   const screen = render(<LeadDetailScreen />);
   expect(screen.queryByRole('button', { name: 'Set status to Contacted' })).toBeNull();
   expect(mockUpdateStatus).not.toHaveBeenCalled();
+});
+
+it('uses automatic capture progress and attribution without exposing another agent’s originals', () => {
+  mockDetail.hasSubmittedCapture = true;
+  mockDetail.canViewCaptureMedia = false;
+  mockDetail.business = { submissionId: 'private-submission', businessName: 'Nena Store', status: 'submitted',
+    photos: ['https://private.example.com/owner.jpg'], websiteUrl: 'https://private.example.com/build' };
+  mockDetail.interviewers = [{ creatorId: 'other-agent', creatorName: 'Ben Cruz', creatorProfileImage: null,
+    interviewedAt: Date.now(), submissionId: 'private-submission', submissionStatus: 'submitted', isMine: false }];
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  expect(screen.getByText('Ben Cruz')).toBeTruthy();
+  expect(screen.getByText('Recorded automatically from submitted interviews.')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
+  expect(screen.queryByText('Your capture')).toBeNull();
+  expect(screen.queryByLabelText('Shop photo 1')).toBeNull();
+  expect(screen.queryByTestId('shop-site-webview')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'View website' })).toBeNull();
+});
+
+it('links an authorized agent to their private submission without a second capture', () => {
+  mockDetail.hasSubmittedCapture = true;
+  mockDetail.canViewCaptureMedia = true;
+  mockDetail.business = { submissionId: 'my-submission', businessName: 'Nena Store', status: 'submitted', photos: [] };
+  const screen = render(<LeadDetailScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'View submission' }));
+  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submissions/my-submission');
+  expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
+});
+
+it('treats automatically created capture shops as read-only even when their legacy source is direct', () => {
+  mockDetail.lead.source = 'direct';
+  mockDetail.isCaptureShop = true;
+  mockDetail.hasSubmittedCapture = true;
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  expect(screen.queryByRole('button', { name: 'Set status to Qualified' })).toBeNull();
+});
+
+it('embeds only the server-verified published website and keeps pre-live previews out of the shared page', () => {
+  mockDetail.hasSubmittedCapture = true;
+  mockDetail.publicWebsiteUrl = 'https://nena.tendso.site';
+  mockDetail.hasLiveWebsite = false;
+  const screen = render(<LeadDetailScreen />);
+  expect(screen.queryByTestId('shop-site-webview')).toBeNull();
+  mockDetail.hasLiveWebsite = true;
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.getByTestId('shop-site-webview').props.source.uri).toBe('https://nena.tendso.site/');
+  expect(screen.getByText('Published website')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Start the capture' })).toBeNull();
+  mockDetail.hasLiveWebsite = false;
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.queryByTestId('shop-site-webview')).toBeNull();
 });
 
 it('does not offer another capture for a converted community find', () => {

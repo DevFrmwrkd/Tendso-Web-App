@@ -64,7 +64,7 @@ import {
  */
 
 type Token = Doc<"paymentTokens">;
-type Submission = Doc<"submissions"> | null;
+type Submission = import("@/convex/paymentTokens").PaymentSubmissionSummary | null;
 type ViewProps = { token: Token; submission: Submission; now: number };
 
 async function copyText(text: string, done: string) {

@@ -3,14 +3,14 @@ import { query, mutation, action, internalQuery, internalMutation } from './_gen
 import { internal } from './_generated/api';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { normalizePhone } from './lib/phone';
+import { isCaptureShopLead } from './lib/shopCaptureProgress';
 import { requireCreatorAccount } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 import { isValidWorkCoordinates } from '../lib/fieldAgentOnboarding';
 import type { QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import {
-    activeCommunityClaim, assertCommunityFindAvailable, assertCommunityFindManagement, canManageCommunityFind, communityWebUrl,
+    activeCommunityClaim, assertCommunityFindAvailable, assertCommunityFindManagement, communityWebUrl,
     COMMUNITY_VISIT_DURATION_MS, requireCertifiedFieldAgent,
 } from './lib/communityFinds';
 
@@ -159,6 +159,8 @@ export const updateStatus = mutation({
         const { me } = await requireCreatorAccount(ctx);
         const lead = await ctx.db.get(args.id);
         if (!lead) throw new Error('Lead not found');
+        const submission = lead.submissionId ? await ctx.db.get(lead.submissionId) : null;
+        assertLeadStatusManagement(lead, me, submission);
         assertCommunityFindManagement(lead, me, 'status', args.status);
         await ctx.db.patch(args.id, { status: args.status });
     },
@@ -186,10 +188,15 @@ export const update = mutation({
         const { me } = await requireCreatorAccount(ctx);
         const lead = await ctx.db.get(args.id);
         if (!lead) throw new Error('Lead not found');
+        const submission = lead.submissionId ? await ctx.db.get(lead.submissionId) : null;
+        if (args.status !== undefined) {
+            assertLeadStatusManagement(lead, me, submission);
+        }
         assertCommunityFindManagement(lead, me, 'edit', args.status);
         const { id, ...updates } = args
         // Remove undefined fields so we don't overwrite with undefined
         const patch: Record<string, any> = {}
+        if (isCaptureShopLead(lead, submission) && lead.isCaptureShop !== true) patch.isCaptureShop = true;
         if (updates.name !== undefined) patch.name = updates.name
         if (updates.phone !== undefined) patch.phone = updates.phone
         if (updates.email !== undefined) patch.email = updates.email
@@ -376,16 +383,42 @@ export function formatCreatorDisplayName(
     return `${first} ${last[0]}.`;
 }
 
+function canUpdateLeadStatus(lead: Doc<'leads'>, actor: Doc<'creators'>, submission: Doc<'submissions'> | null) {
+    if (actor.role === 'admin') return true;
+    if (isCaptureShopLead(lead, submission)) return false;
+    return lead.creatorId === actor._id;
+}
+
+function assertLeadStatusManagement(lead: Doc<'leads'>, actor: Doc<'creators'>, submission: Doc<'submissions'> | null) {
+    if (canUpdateLeadStatus(lead, actor, submission)) return;
+    if (isCaptureShopLead(lead, submission)) {
+        throw new Error('Shop progress updates automatically when a capture is submitted');
+    }
+    throw new Error('Only the assigned creator or an administrator can update this lead');
+}
+
 /** Additive presentation fields shared by map, community feed, and detail. */
 async function mobileFindFields(ctx: QueryCtx, lead: Doc<'leads'>, submission: Doc<'submissions'> | null) {
     const websites = submission ? await ctx.db.query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', submission._id)).order('desc').take(20)
         : [];
-    const published = websites.find((website) => communityWebUrl(website.publishedUrl));
-    const websiteUrl = communityWebUrl(submission?.websiteUrl) ?? communityWebUrl(published?.publishedUrl)
-        ?? communityWebUrl(lead.businessWebsite);
-    // Hosted sites retain their URL while a holding page is being served.
-    const hasLiveWebsite = !!websiteUrl && published?.offlineAt === undefined;
+    // A saved URL is not publication proof: private builds and holding pages
+    // retain URLs too. Only a genuinely published, online site can be embedded.
+    const published = submission?.status !== 'unpublished'
+        ? websites.find((website) => website.status === 'published') : null;
+    // Do not skip a newer offline publication and accidentally revive an older
+    // row whose URL now serves the same holding page.
+    const publicWebsiteUrl = published?.offlineAt === undefined ? communityWebUrl(published?.publishedUrl) : null;
+    const websiteUrl = publicWebsiteUrl ?? communityWebUrl(lead.businessWebsite);
+    const hasLiveWebsite = !!websiteUrl;
+    const hasSubmittedCapture = !!submission && submission.status !== 'draft';
+    const interviewer = hasSubmittedCapture ? await ctx.db.get(submission!.creatorId) : null;
+    const interviewedBy = interviewer ? {
+        creatorId: String(interviewer._id),
+        displayName: formatCreatorDisplayName(interviewer.firstName, interviewer.lastName),
+        profileImage: interviewer.profileImage ?? null,
+        interviewedAt: submission!._creationTime,
+    } : null;
     // Only explicitly shared shop covers belong in the team feed. Capture
     // originals are website-building material, not a fallback community photo.
     const photoUrl = communityWebUrl(lead.communityPhotoUrl) ?? communityWebUrl(lead.previewImageUrl);
@@ -399,8 +432,11 @@ async function mobileFindFields(ctx: QueryCtx, lead: Doc<'leads'>, submission: D
     const activeClaim = activeCommunityClaim(lead, Date.now());
     const claimer = activeClaim ? await ctx.db.get(activeClaim.creatorId) : null;
     return {
-        photoUrl, websiteUrl, businessWebsite: communityWebUrl(lead.businessWebsite), hasLiveWebsite,
-        needsWebsite: websiteUrl ? false : lead.needsWebsite ?? null,
+        photoUrl, websiteUrl, publicWebsiteUrl, businessWebsite: communityWebUrl(lead.businessWebsite), hasLiveWebsite,
+        isCaptureShop: isCaptureShopLead(lead, submission),
+        hasSubmittedCapture, captureStatus: hasSubmittedCapture ? submission!.status : null, interviewedBy,
+        // An offline generated site does not put this shop back in the needs-a-site pool.
+        needsWebsite: websiteUrl || hasSubmittedCapture ? false : lead.needsWebsite ?? null,
         communityKind: lead.communityKind ?? null,
         spottedBy, spottedAt: lead.spottedAt ?? null,
         claimedBy: claimer ? {
@@ -505,18 +541,9 @@ export const listForMobileCRM = query({
                     }
                 }
 
-                // Count distinct creators who interviewed the same business by normalized phone.
-                let interviewerCount = 0;
-                if (submission) {
-                    const targetPhone = normalizePhone(submission.ownerPhone);
-                    if (targetPhone) {
-                        const matches = allSubmissions.filter(
-                            (s) => normalizePhone(s.ownerPhone) === targetPhone,
-                        );
-                        const creatorIds = new Set(matches.map((s) => String(s.creatorId)));
-                        interviewerCount = creatorIds.size;
-                    }
-                }
+                // Attribution follows this shop's linked submitted capture. A
+                // draft or another shop sharing a phone does not prove a visit.
+                const interviewerCount = submission && submission.status !== 'draft' ? 1 : 0;
 
                 const isMine = lead.creatorId
                     ? String(lead.creatorId) === String(currentCreator._id)
@@ -556,9 +583,8 @@ export const listForMobileCRM = query({
                     ownerPhone: submission?.ownerPhone ?? null,
                     interviewerCount,
                     ...findFields,
-                    canUpdateStatus: lead.source === 'community'
-                        ? canManageCommunityFind(lead, currentCreator, Date.now()) : isMine || currentCreator.role === 'admin',
-                    canMarkConverted: lead.source !== 'community' || currentCreator.role === 'admin',
+                    canUpdateStatus: canUpdateLeadStatus(lead, currentCreator, submission),
+                    canMarkConverted: canUpdateLeadStatus(lead, currentCreator, submission),
                     claimedBy: findFields.claimedBy ? {
                         ...findFields.claimedBy, isMine: findFields.claimedBy.creatorId === String(currentCreator._id),
                     } : null,
@@ -637,23 +663,6 @@ export const listForMap = query({
         for (const sub of allSubmissions) submissionCache.set(String(sub._id), sub);
         const creatorCache = new Map<string, any>();
 
-        // Build a submissionId → publishedUrl lookup from the generatedWebsites
-        // table. The canonical "live URL" lives on submission.websiteUrl, but
-        // when the auto-backfill hasn't run yet (or got cleared by unpublish),
-        // submission.websiteUrl is null even though generatedWebsites.publishedUrl
-        // is populated. The admin code at convex/admin.ts:354-361 does the
-        // same fallback resolution — we mirror it here so Map A actually pins
-        // leads whose websites are live but whose submission rows haven't
-        // been backfilled.
-        const allWebsites = await ctx.db.query('generatedWebsites').collect();
-        const publishedUrlBySubmission = new Map<string, string>();
-        for (const w of allWebsites) {
-            const url = (w as any).publishedUrl;
-            if (url && w.submissionId) {
-                publishedUrlBySubmission.set(String(w.submissionId), url);
-            }
-        }
-
         const result: Array<{
             _id: any;
             businessName: string;
@@ -669,6 +678,16 @@ export const listForMap = query({
             hasSubmission: boolean;
             websiteUrl: string | null;
             hasLiveWebsite: boolean;
+            publicWebsiteUrl: string | null;
+            isCaptureShop: boolean;
+            hasSubmittedCapture: boolean;
+            captureStatus: string | null;
+            interviewedBy: {
+                creatorId: string;
+                displayName: string;
+                profileImage: string | null;
+                interviewedAt: number;
+            } | null;
             submissionId: string | null;
             submittedBy: {
                 creatorId: string;
@@ -729,13 +748,7 @@ export const listForMap = query({
                 }
             }
 
-            // Same fallback chain admin.ts:354-361 uses to resolve a live URL:
-            // submission.websiteUrl → generatedWebsites.publishedUrl.
-            const websiteUrl =
-                (sub as any)?.websiteUrl ??
-                (lead.submissionId
-                    ? publishedUrlBySubmission.get(String(lead.submissionId)) ?? null
-                    : null);
+            const findFields = await mobileFindFields(ctx, lead, sub ?? null);
             result.push({
                 _id: lead._id,
                 businessName,
@@ -746,8 +759,13 @@ export const listForMap = query({
                 status: lead.status,
                 source: lead.source,
                 hasSubmission: !!sub,
-                websiteUrl,
-                hasLiveWebsite: !!websiteUrl,
+                websiteUrl: findFields.websiteUrl,
+                hasLiveWebsite: findFields.hasLiveWebsite,
+                publicWebsiteUrl: findFields.publicWebsiteUrl,
+                isCaptureShop: findFields.isCaptureShop,
+                hasSubmittedCapture: findFields.hasSubmittedCapture,
+                captureStatus: findFields.captureStatus,
+                interviewedBy: findFields.interviewedBy,
                 submissionId: sub ? String(sub._id) : null,
                 submittedBy,
             });
@@ -789,34 +807,6 @@ export const getDetailForMobileCRM = query({
             isMine: boolean;
         }> = [];
 
-        if (submission) {
-            const targetPhone = normalizePhone(submission.ownerPhone);
-            if (targetPhone) {
-                const allSubs = await ctx.db.query('submissions').collect();
-                const matches = allSubs.filter(
-                    (s) => normalizePhone(s.ownerPhone) === targetPhone,
-                );
-                interviewers = await Promise.all(
-                    matches.map(async (s) => {
-                        const interviewerCreator = await ctx.db.get(s.creatorId);
-                        return {
-                            creatorId: String(s.creatorId),
-                            creatorName: formatCreatorDisplayName(
-                                interviewerCreator?.firstName,
-                                interviewerCreator?.lastName,
-                            ),
-                            creatorProfileImage: interviewerCreator?.profileImage ?? null,
-                            interviewedAt: s._creationTime,
-                            submissionId: String(s._id),
-                            submissionStatus: s.status,
-                            isMine: String(s.creatorId) === String(currentCreator._id),
-                        };
-                    }),
-                );
-                interviewers.sort((a, b) => b.interviewedAt - a.interviewedAt);
-            }
-        }
-
         const notes = await ctx.db
             .query('leadNotes')
             .withIndex('by_lead', (q) => q.eq('leadId', args.id))
@@ -824,6 +814,18 @@ export const getDetailForMobileCRM = query({
             .collect();
 
         const findFields = await mobileFindFields(ctx, lead, submission);
+        if (submission && findFields.interviewedBy) {
+            const interviewer = findFields.interviewedBy;
+            interviewers = [{
+                creatorId: interviewer.creatorId,
+                creatorName: interviewer.displayName,
+                creatorProfileImage: interviewer.profileImage,
+                interviewedAt: interviewer.interviewedAt,
+                submissionId: String(submission._id),
+                submissionStatus: submission.status,
+                isMine: submission.creatorId === currentCreator._id,
+            }];
+        }
         const coordinates = isValidWorkCoordinates(lead.businessLatitude, lead.businessLongitude)
             ? { lat: lead.businessLatitude, lng: lead.businessLongitude }
             : isValidWorkCoordinates(submission?.coordinates?.lat, submission?.coordinates?.lng)
@@ -832,10 +834,8 @@ export const getDetailForMobileCRM = query({
         return {
             ...findFields,
             canViewCaptureMedia,
-            canUpdateStatus: lead.source === 'community'
-                ? canManageCommunityFind(lead, currentCreator, Date.now())
-                : lead.creatorId === currentCreator._id || currentCreator.role === 'admin',
-            canMarkConverted: lead.source !== 'community' || currentCreator.role === 'admin',
+            canUpdateStatus: canUpdateLeadStatus(lead, currentCreator, submission),
+            canMarkConverted: canUpdateLeadStatus(lead, currentCreator, submission),
             claimedBy: findFields.claimedBy ? {
                 ...findFields.claimedBy, isMine: findFields.claimedBy.creatorId === String(currentCreator._id),
             } : null,
@@ -880,8 +880,8 @@ export const getDetailForMobileCRM = query({
                       city: submission.city,
                       province: (submission as any).province ?? null,
                       barangay: (submission as any).barangay ?? null,
-                      websiteUrl: (submission as any).websiteUrl ?? null,
-                      businessDescription: (submission as any).businessDescription ?? null,
+                      websiteUrl: findFields.publicWebsiteUrl,
+                      businessDescription: canViewCaptureMedia ? submission.businessDescription ?? null : null,
                       photos: canViewCaptureMedia ? submission.photos ?? [] : [],
                       status: submission.status,
                   }

@@ -1,6 +1,7 @@
 import { v, type ObjectType } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import { requireAdmin } from './lib/auth';
+import { canReadPrivateSubmission } from './lib/submissionAccess';
 
 // ==================== QUERIES ====================
 
@@ -8,8 +9,10 @@ import { requireAdmin } from './lib/auth';
  * Get website content by website ID
  */
 export const getByWebsiteId = query({
-    args: { websiteId: v.id('generatedWebsites') },
+    args: { websiteId: v.id('generatedWebsites'), internalSecret: v.optional(v.string()) },
     handler: async (ctx, args) => {
+        const website = await ctx.db.get(args.websiteId);
+        if (!website || !await canReadPrivateSubmission(ctx, await ctx.db.get(website.submissionId), args.internalSecret)) return null;
         return await ctx.db
             .query('websiteContent')
             .withIndex('by_websiteId', (q) => q.eq('websiteId', args.websiteId))
@@ -21,8 +24,9 @@ export const getByWebsiteId = query({
  * Get website content by submission ID (convenience query)
  */
 export const getBySubmissionId = query({
-    args: { submissionId: v.id('submissions') },
+    args: { submissionId: v.id('submissions'), internalSecret: v.optional(v.string()) },
     handler: async (ctx, args) => {
+        if (!await canReadPrivateSubmission(ctx, await ctx.db.get(args.submissionId), args.internalSecret)) return null;
         // First find the generatedWebsite
         const website = await ctx.db
             .query('generatedWebsites')
@@ -44,8 +48,9 @@ export const getBySubmissionId = query({
  * This is a fallback for when the generatedWebsites chain doesn't have the data
  */
 export const getDirectBySubmissionId = query({
-    args: { submissionId: v.id('submissions') },
+    args: { submissionId: v.id('submissions'), internalSecret: v.optional(v.string()) },
     handler: async (ctx, args) => {
+        if (!await canReadPrivateSubmission(ctx, await ctx.db.get(args.submissionId), args.internalSecret)) return null;
         return await ctx.db
             .query('websiteContent')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))

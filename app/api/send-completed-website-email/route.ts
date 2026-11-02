@@ -28,15 +28,20 @@ export async function POST(request: NextRequest) {
     try {
         // Auth: admin Clerk session OR internal secret
         let authorized = false
+        let token: string | undefined
+        let internalSecret: string | undefined
         const providedSecret = request.headers.get('x-internal-secret')
         const expectedSecret = process.env.INTERNAL_API_SECRET
         if (expectedSecret && providedSecret === expectedSecret) {
             authorized = true
+            internalSecret = expectedSecret
         } else {
-            const { userId } = await auth()
+            const { userId, getToken } = await auth()
             if (userId) {
-                const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-                if (creator?.role === 'admin') {
+                token = await getToken({ template: 'convex' }) ?? undefined
+                if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+                const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+                if (creator?.role === 'admin' && !creator.isDeleted && creator.status !== 'deleted' && creator.status !== 'suspended') {
                     authorized = true
                 }
             }
@@ -53,7 +58,8 @@ export async function POST(request: NextRequest) {
 
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<'submissions'>,
-        })
+            ...(internalSecret ? { internalSecret } : {}),
+        }, { token })
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
@@ -108,7 +114,8 @@ export async function POST(request: NextRequest) {
         // No custom domain — fall back to the payment-confirmation template with workers.dev URL
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as Id<'submissions'>,
-        })
+            ...(internalSecret ? { internalSecret } : {}),
+        }, { token })
         const websiteUrl = website?.publishedUrl || ''
         if (!websiteUrl) {
             return NextResponse.json({ error: 'No published website URL found' }, { status: 400 })

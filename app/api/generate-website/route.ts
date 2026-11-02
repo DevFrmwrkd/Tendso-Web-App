@@ -118,7 +118,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Get submission from Convex
-        const submissionData = await fetchQuery(api.submissions.getById, { id: submissionId as any }, { token })
+        const privateRead = pipelineCall ? { internalSecret: process.env.INTERNAL_API_SECRET } : {}
+        const submissionData = await fetchQuery(api.submissions.getById, { id: submissionId as any, ...privateRead }, { token })
 
         if (!submissionData) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
 
         // Check if there's an existing generated website with edited content (from Convex)
         const existingWebsite = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
-            submissionId: submissionData._id
+            submissionId: submissionData._id, ...privateRead
         }, { token })
 
         // Get or extract content - prioritization:
@@ -509,7 +510,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             // Source 3: websiteContent via generatedWebsites chain
             if (!enhancedImages) {
                 const wcViaChain = await fetchQuery(api.websiteContent.getBySubmissionId, {
-                    submissionId: submissionData._id
+                    submissionId: submissionData._id, ...privateRead
                 }, { token })
                 enhancedImages = wcViaChain?.enhancedImages || null
                 enhancedSource = enhancedImages ? 'websiteContent (via websiteId chain)' : null
@@ -518,7 +519,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             // Source 4: websiteContent directly by submissionId (fallback)
             if (!enhancedImages) {
                 const wcDirect = await fetchQuery(api.websiteContent.getDirectBySubmissionId, {
-                    submissionId: submissionData._id
+                    submissionId: submissionData._id, ...privateRead
                 }, { token })
                 enhancedImages = wcDirect?.enhancedImages || null
                 enhancedSource = enhancedImages ? 'websiteContent (direct by submissionId)' : null

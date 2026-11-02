@@ -151,6 +151,20 @@ describe('filterCommunityFinds', () => {
     expect(filterCommunityFinds(rows, 'needs', '', null).map((row) => row._id)).toEqual(['confirmed-need']);
   });
 
+  it('keeps interviewed shops visible in All and Near me but excludes them from work still needing a capture', () => {
+    const rows = [
+      find('available', { needsWebsite: true, businessLatitude: 14.65, businessLongitude: 121.10 }),
+      find('submitted', { needsWebsite: true, hasSubmittedCapture: true, captureStatus: 'submitted',
+        businessLatitude: 14.65, businessLongitude: 121.10 }),
+      find('legacy-submitted', { needsWebsite: true, submissionStatus: 'rejected',
+        businessLatitude: 14.65, businessLongitude: 121.10 }),
+      find('draft', { needsWebsite: true, submissionStatus: 'draft', businessLatitude: 14.65, businessLongitude: 121.10 }),
+    ];
+    expect(filterCommunityFinds(rows, 'needs', '', null).map((row) => row._id)).toEqual(['available', 'draft']);
+    expect(filterCommunityFinds(rows, 'all', '', null)).toHaveLength(4);
+    expect(filterCommunityFinds(rows, 'near', '', area)).toHaveLength(4);
+  });
+
   it('uses the saved community category and falls back to legacy business-type categories', () => {
     const rows = [
       find('saved-food', { communityKind: 'food', businessType: 'Auto Shop' }),
@@ -195,5 +209,12 @@ describe('findWebsiteLabel', () => {
     expect(findWebsiteLabel(find('unknown', { needsWebsite: null }))).toBe('Check for a website');
     expect(findWebsiteLabel(find('legacy'))).toBe('Check for a website');
     expect(findWebsiteLabel(find('live', { needsWebsite: true, hasLiveWebsite: true }))).toBe('Live');
+  });
+
+  it('uses submitted capture progress ahead of the original website answer, with Live still taking priority', () => {
+    expect(findWebsiteLabel(find('submitted', { hasSubmittedCapture: true, needsWebsite: true }))).toBe('Interview submitted');
+    expect(findWebsiteLabel(find('legacy-submitted', { submissionStatus: 'under_review' }))).toBe('Interview submitted');
+    expect(findWebsiteLabel(find('draft', { submissionStatus: 'draft', needsWebsite: true }))).toBe('Needs a site');
+    expect(findWebsiteLabel(find('live', { hasSubmittedCapture: true, hasLiveWebsite: true }))).toBe('Live');
   });
 });

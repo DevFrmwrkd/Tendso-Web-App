@@ -185,3 +185,25 @@ it('uses stored category metadata even when a business name suggests a different
   expect(image.props).toMatchObject({ category: 'Auto repair', kind: 'repair', name: 'Barber Food Store' });
   expect(image.findByType(Image).props.source).toEqual(getShopPlaceholder('Auto repair', 'repair'));
 });
+
+it('keeps submitted shops in the feed with automatic progress and discovery-only thumbnails', () => {
+  mockLeads = [{ ...find('captured', 0.5, 'Interviewed Shop'), hasSubmittedCapture: true,
+    previewImageUrl: 'https://private.example/submission-photo.jpg' },
+    { ...find('captured-with-photo', 0.6, 'Spotted Shop'), hasSubmittedCapture: true,
+      photoUrl: 'https://photos.example/discovery.jpg', previewImageUrl: 'https://private.example/submission-photo.jpg' }];
+  const screen = render(<CommunityFinds />);
+  expect(screen.getAllByText('Interview submitted')).toHaveLength(2);
+  const photos = screen.UNSAFE_getAllByType(ShopImage);
+  expect(photos.find(node => node.props.name === 'Interviewed Shop')!.findByType(Image).props.source)
+    .toEqual(getShopPlaceholder('Food', 'food'));
+  expect(photos.find(node => node.props.name === 'Spotted Shop')!.findByType(Image).props.source.uri)
+    .toBe('https://photos.example/discovery.jpg');
+  expect(photos.some(node => node.props.uri === 'https://private.example/submission-photo.jpg')).toBe(false);
+  fireEvent.press(screen.getByRole('button', { name: /^Interviewed Shop,/ }));
+  expect(mockPush).toHaveBeenCalledWith('/(app)/leads/captured');
+  const needsFilter = screen.getAllByRole('button', { name: 'Needs a site' })
+    .find(node => typeof node.props.accessibilityState?.selected === 'boolean')!;
+  fireEvent.press(needsFilter);
+  expect(screen.queryByRole('button', { name: /^Interviewed Shop,/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /^Spotted Shop,/ })).toBeNull();
+});

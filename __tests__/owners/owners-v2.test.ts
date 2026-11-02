@@ -503,7 +503,7 @@ describe('owner security regressions', () => {
         const stranger = t.withIdentity({ subject: 'stranger', email: 'stranger@example.com', emailVerified: true });
         await stranger.mutation(api.owners.ensure, {});
         for (const caller of [t, stranger, agent]) {
-            await expect(caller.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).rejects.toThrow();
+            expect(await caller.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).toBeNull();
             await expect(caller.query(api.ownerApp.getPreview, { submissionId: id })).rejects.toThrow();
         }
         for (const caller of [owner, admin]) {
@@ -512,7 +512,8 @@ describe('owner security regressions', () => {
         }
         expect(await t.query(api.generatedWebsites.getPublishedBySlug, { slug: 'private' })).toBeNull();
         await t.run((ctx) => ctx.db.patch(website._id, { status: 'published' }));
-        expect(await t.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).not.toBeNull();
+        expect(await t.query(api.generatedWebsites.getBySubmissionId, { submissionId: id })).toBeNull();
+        expect(await t.query(api.generatedWebsites.getPublishedBySubmissionId, { submissionId: id })).not.toBeNull();
     });
 
     it('cancels checkouts when changes reset approval, and requires a fresh review after resolution', async () => {

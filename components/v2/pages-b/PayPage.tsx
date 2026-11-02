@@ -3,8 +3,8 @@
 /**
  * /v2/pay/[token]: the page every payment email links to (pages/pay.html).
  *
- * It reads the same things /pay/[token] reads, unchanged: `paymentTokens.getByToken`
- * and `submissions.getById`, and decides which of the four states to show with the
+ * It reads the same token-scoped receipt as /pay/[token]: `paymentTokens.getByToken`
+ * and `paymentTokens.getSubmissionByToken`, and decides which of the four states to show with the
  * same `payView` (pending, paid, expired, not found), live through Convex.
  *
  * The facts it states follow the brief:
@@ -45,6 +45,7 @@ import LiveSitePreview from "@/components/landing/LiveSitePreview";
 import { Button } from "@/components/v2";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
+import type { PaymentSubmissionSummary } from "@/convex/paymentTokens";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
 import { getPaymentConfig } from "@/lib/payment/config";
@@ -55,7 +56,7 @@ import { CheckIcon, PbBrand, PlusIcon, copyWithToast, usePbToast } from "./share
 import { XENDIT_ENABLED, useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
 
 type Token = Doc<"paymentTokens">;
-type Submission = Doc<"submissions"> | null;
+type Submission = PaymentSubmissionSummary | null;
 
 const paymentConfig = getPaymentConfig();
 
@@ -69,7 +70,7 @@ export function PayPage() {
     const { isOwner } = useOwnerAuth();
 
     const paymentToken = useQuery(api.paymentTokens.getByToken, { token });
-    const submission = useQuery(api.submissions.getById, paymentToken?.submissionId ? { id: paymentToken.submissionId } : "skip");
+    const submission = useQuery(api.paymentTokens.getSubmissionByToken, paymentToken ? { token } : "skip");
     const publication = useQuery(api.paymentTokens.getPublicationByToken, paymentToken ? { token } : "skip");
     const wiseEmail = paymentConfig.wiseEmail || "support@negosyo.digital";
     // Wait for the submission too: its status decides "paid" when an admin matched the transfer by hand.

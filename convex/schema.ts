@@ -740,6 +740,9 @@ export default defineSchema({
         creatorId: v.optional(v.id('creators')),        // Optional — auto-filled from submission if linked
         businessOwnerId: v.optional(v.string()),
         source: v.string(), // "website" | "qr_code" | "direct" | "outscraper" | "community"
+        // Server-stamped on leads created by an agent capture. Customer
+        // inquiries keep their separate, manually managed CRM pipeline.
+        isCaptureShop: v.optional(v.boolean()),
         // name + phone are optional — Outscraper-scraped prospect businesses
         // use businessName + (optional) businessPhone instead. Existing
         // customer leads continue to populate these as before.

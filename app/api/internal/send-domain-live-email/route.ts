@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
         // Fetch submission
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<'submissions'>,
+            internalSecret: expectedSecret,
         })
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })

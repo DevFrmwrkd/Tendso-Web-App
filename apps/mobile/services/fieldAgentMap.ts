@@ -44,12 +44,16 @@ export interface CommunityFind {
   source?: string;
   status?: string;
   submissionStatus?: string | null;
+  hasSubmittedCapture?: boolean;
+  captureStatus?: string | null;
+  interviewedBy?: (FindPerson & { interviewedAt: number | null }) | null;
   photoUrl?: string | null;
   previewImageUrl?: string | null;
   hasLiveWebsite?: boolean;
   needsWebsite?: boolean | null;
   communityKind?: FindKind | null;
   websiteUrl?: string | null;
+  publicWebsiteUrl?: string | null;
   isMine?: boolean;
   spottedBy?: FindPerson | null;
   submittedBy?: FindPerson | null;
@@ -91,6 +95,9 @@ export interface FieldAgentShop {
   distanceKm: number | null;
   distanceLabel: string;
   hasLiveWebsite: boolean;
+  hasSubmittedCapture: boolean;
+  captureStatus: string | null;
+  interviewedBy: (FindPerson & { interviewedAt: number | null }) | null;
   needsWebsite: boolean | null;
   isMine: boolean;
   spottedBy: FindPerson | null;
@@ -122,28 +129,38 @@ export function publicImage(value?: string | null): string | null {
   return value && /^https?:\/\//i.test(value) ? value : null;
 }
 
+/** New server flags are authoritative; older responses still identify submitted captures. */
+export function hasSubmittedInterview(lead: CommunityFind): boolean {
+  if (typeof lead.hasSubmittedCapture === 'boolean') return lead.hasSubmittedCapture;
+  const status = lead.captureStatus ?? lead.submissionStatus;
+  return !!status && status !== 'draft';
+}
+
 export function normalizeCommunityFind(lead: CommunityFind, area: MapSearchArea | null): FieldAgentShop | null {
   const coordinate = { latitude: lead.businessLatitude as number, longitude: lead.businessLongitude as number };
   if (!validMapCoordinate(coordinate)) return null;
   const distance = area ? distanceKm(area, coordinate) : null;
   const hasLiveWebsite = lead.hasLiveWebsite === true;
+  const hasSubmittedCapture = hasSubmittedInterview(lead);
   const claimedBy = lead.claimedBy && (lead.claimExpiresAt == null || lead.claimExpiresAt > Date.now())
     ? lead.claimedBy : null;
   const community = lead.source === 'community';
-  const interviewable = community && !lead.submissionStatus && !hasLiveWebsite
+  const interviewable = community && !hasSubmittedCapture && !hasLiveWebsite
     && lead.status !== 'converted' && lead.status !== 'lost';
   return {
     id: String(lead._id), source: community ? 'community' : 'crm',
     name: lead.businessName?.trim() || 'Unnamed shop', address: lead.businessAddress ?? null,
     city: lead.businessCity ?? null, category: lead.businessType ?? null,
     kind: lead.communityKind ?? findKind(lead.businessType), phone: lead.ownerPhone || lead.phone || null,
-    website: publicImage(lead.websiteUrl || lead.businessWebsite),
-    photoUrl: publicImage(lead.photoUrl || lead.previewImageUrl),
+    website: publicImage(lead.publicWebsiteUrl || lead.websiteUrl || lead.businessWebsite),
+    // previewImageUrl can belong to a private submission on older responses.
+    photoUrl: publicImage(lead.photoUrl),
     googlePlaceId: lead.businessGooglePlaceId ?? null, ...coordinate,
     distanceKm: distance, distanceLabel: mapDistanceLabel(distance, area),
-    hasLiveWebsite, needsWebsite: lead.needsWebsite ?? null,
+    hasLiveWebsite, hasSubmittedCapture, captureStatus: lead.captureStatus ?? lead.submissionStatus ?? null,
+    interviewedBy: lead.interviewedBy ?? null, needsWebsite: lead.needsWebsite ?? null,
     isMine: claimedBy ? claimedBy.isMine
-      : !!lead.isMine && (!community || !!lead.submissionStatus || hasLiveWebsite),
+      : !!lead.isMine && (!community || hasSubmittedCapture || hasLiveWebsite),
     spottedBy: lead.spottedBy ?? lead.submittedBy ?? null,
     spottedAt: lead.spottedAt ?? lead.createdAt ?? null,
     claimedBy, claimExpiresAt: lead.claimExpiresAt ?? null,
@@ -164,7 +181,7 @@ export function normalizeProspect(prospect: MapProspect, area: MapSearchArea | n
     website, photoUrl: null, googlePlaceId: prospect.googlePlaceId ?? null,
     latitude: prospect.latitude, longitude: prospect.longitude,
     distanceKm: distance, distanceLabel: mapDistanceLabel(distance, area),
-    hasLiveWebsite: website != null,
+    hasLiveWebsite: website != null, hasSubmittedCapture: false, captureStatus: null, interviewedBy: null,
     // A scraper's missing URL is not proof that a shop has no website.
     needsWebsite: website ? false : null, isMine: mine, spottedBy: null, spottedAt: null,
     claimedBy: null, claimExpiresAt: mine ? prospect.reservationExpiresAt ?? null : null,
@@ -191,6 +208,7 @@ export function mergeMapShops(
 
 export function shopStatus(shop: FieldAgentShop): string {
   if (shop.hasLiveWebsite) return 'Live';
+  if (shop.hasSubmittedCapture) return 'Interview submitted';
   if (shop.isMine) return 'Yours';
   if (shop.claimedBy) return 'Agent visiting';
   return shop.needsWebsite === true ? 'Needs a site' : shop.needsWebsite === false ? 'Has a website' : 'Check for a website';

@@ -4,8 +4,8 @@ import type { MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
-import { isOwnerApp } from './lib/ownerApp';
-import { getOwner, ownsSubmission, ownerAppPublishBlockReason } from './lib/ownerAuth';
+import { ownerAppPublishBlockReason } from './lib/ownerAuth';
+import { canReadPrivateSubmission } from './lib/submissionAccess';
 
 async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissions'>) {
     const submission = await ctx.db.get(submissionId);
@@ -13,12 +13,12 @@ async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissio
     if (blocked) throw new Error(`This owner made the site in the app: publish after they pay in full and approve with no open changes (${blocked}).`);
 }
 
-// Get generated website by submission ID.
+// Private generated website by submission ID (capturer, admin or linked owner).
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
 // instead of inline htmlContent — the built HTML can exceed Convex's 1 MiB
 // document limit). Readers use htmlContent when present, else fetch htmlUrl.
 export const getBySubmissionId = query({
-    args: { submissionId: v.id('submissions') },
+    args: { submissionId: v.id('submissions'), internalSecret: v.optional(v.string()) },
     handler: async (ctx, args) => {
         const doc = await ctx.db
             .query('generatedWebsites')
@@ -26,12 +26,24 @@ export const getBySubmissionId = query({
             .first();
         if (!doc) return null;
         const submission = await ctx.db.get(args.submissionId);
-        if (isOwnerApp(submission) && (doc.status !== 'published' || doc.offlineAt)) {
-            const owner = await getOwner(ctx);
-            if (!owner || !(await ownsSubmission(ctx, owner._id, args.submissionId))) await requireAdmin(ctx);
-        }
+        if (!await canReadPrivateSubmission(ctx, submission, args.internalSecret)) return null;
         const htmlUrl = doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null;
         return { ...doc, htmlUrl };
+    },
+});
+
+/** Public rendering only: never the row's extracted interview, draft content or assets. */
+export const getPublishedBySubmissionId = query({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        const doc = await ctx.db.query('generatedWebsites')
+            .withIndex('by_submissionId', q => q.eq('submissionId', args.submissionId)).first();
+        if (!doc || doc.status !== 'published' || doc.offlineAt !== undefined) return null;
+        return {
+            htmlContent: doc.htmlContent ?? null,
+            htmlUrl: doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null,
+            publishedUrl: doc.publishedUrl ?? null,
+        };
     },
 });
 

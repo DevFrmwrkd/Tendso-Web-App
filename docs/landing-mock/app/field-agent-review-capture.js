@@ -198,6 +198,7 @@ window.FIELD_AGENT_REVIEW_CAPTURE = [
       'The detail screen shows status progress, media and payment-dependent earnings.',
       'A rejected capture shows Not approved and the rejection reason.',
       'Continue submission is available only when the actual saved status is draft.',
+      'Screen 18 review note implemented: shared Finds retain discovery photos, automatic interview progress and attribution; capture originals remain private and only a published website is embedded.',
     ],
     checks: [
       'Decide the permitted correction path for rejected captures and what content must remain saved.',

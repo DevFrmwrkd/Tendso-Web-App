@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
             || typeof reason !== 'string' || !reason.trim()) {
             return NextResponse.json({ error: 'submissionId, reviewedAt and reason required' }, { status: 400 })
         }
-        const submission = await fetchQuery(api.submissions.getById, { id: submissionId as Id<'submissions'> })
+        const submission = await fetchQuery(api.submissions.getById, { id: submissionId as Id<'submissions'>, internalSecret: expected })
         if (!submission) return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         const storedReason = submission.rejectionReason
         // Do not deliver an old rejection after another review has changed the

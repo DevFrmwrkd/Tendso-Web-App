@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         submissionId = body.submissionId
         const submission = submissionId ? await convex.query(api.submissions.getById, {
             id: submissionId as Id<'submissions'>,
+            ...(isInternalCall ? { internalSecret: expectedSecret } : {}),
         }) : null
         if (submissionId) {
             if (!submission) return NextResponse.json({ error: 'Submission not found' }, { status: 404 })

@@ -24,6 +24,9 @@ import { openDirections, canOpenDirections, openExternalUrl } from '../../../ser
 import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
 import { distanceKm } from '../../../services/fieldAgentMap';
 import { ShopImage } from '../../../components/ShopImage';
+import { PublishedShopWebsite, publicShopWebsiteUrl } from '../../../components/field-agent/PublishedShopWebsite';
+import { hasSubmittedInterview } from '../../../services/fieldAgentMap';
+import { findWebsiteLabel } from '../../../services/fieldAgentFinds';
 import {
   Avatar,
   Banner,
@@ -164,7 +167,8 @@ export default function LeadDetailScreen() {
 
   const detail = data as any;
   const { lead, business, interviewers, notes, submittedBy, isMine, adminContent } = detail;
-  const canManageStatus = detail.canUpdateStatus ?? isMine;
+  const isSharedShop = detail.isCaptureShop === true || lead.source === 'community' || lead.source === 'outscraper';
+  const canManageStatus = !isSharedShop && (detail.canUpdateStatus ?? isMine);
   const canMarkConverted = detail.canMarkConverted !== false;
   const crmLead: any =
     crm?.leads?.find((l: any) => String(l._id) === String(lead._id)) ?? null;
@@ -302,15 +306,17 @@ export default function LeadDetailScreen() {
   const city: string | null = business?.city?.trim() || lead.businessCity?.trim() || crmLead?.businessCity?.trim() || null;
   const address = street ? `${street}${city ? `, ${city}` : ''}` : city || 'Address not added';
   const canViewCaptureMedia = detail.canViewCaptureMedia === true;
-  const heroUri: string | null = detail.photoUrl || adminContent?.previewImageUrl
-    || (canViewCaptureMedia ? business?.photos?.[0] : null) || null;
+  // Shared shop imagery stays the discovery photo, even for the capturing agent.
+  const heroUri: string | null = detail.photoUrl || null;
   const heroCategory: string | null = lead.businessCategory?.trim() || business?.businessType?.trim() || crmLead?.businessType?.trim() || null;
   const heroKind: string | null = detail.communityKind ?? lead.communityKind ?? crmLead?.communityKind ?? null;
   const status = STATUS_OPTIONS.find((option) => option.key === lead.status)
     ?? { label: 'Status unavailable', tone: 'muted' as const };
-  const hasLiveWebsite = typeof detail.hasLiveWebsite === 'boolean' ? detail.hasLiveWebsite
-    : !!business?.websiteUrl && ['deployed', 'paid', 'completed'].includes(business.status);
-  const heroLabel = hasLiveWebsite ? 'Live' : detail.needsWebsite === true ? 'Needs a site' : status.label;
+  const hasLiveWebsite = detail.hasLiveWebsite === true;
+  const hasSubmittedCapture = hasSubmittedInterview({ ...detail, submissionStatus: business?.status });
+  const publicWebsiteUrl = hasLiveWebsite ? publicShopWebsiteUrl(detail.publicWebsiteUrl) : null;
+  const heroLabel = isSharedShop ? findWebsiteLabel({ ...detail, hasSubmittedCapture })
+    : hasLiveWebsite ? 'Live' : status.label;
   const confirmedOwnerName: string | null = business?.ownerName?.trim() || crmLead?.ownerName?.trim() || null;
   const contactName: string | null = confirmedOwnerName || (!isProspect && !isCommunityFind ? lead.name?.trim() : null) || null;
   const ownerName = contactName || 'Business contact';
@@ -318,7 +324,7 @@ export default function LeadDetailScreen() {
   const roleLabel = confirmedOwnerName ? 'Owner' : 'Contact';
   const canSave = noteContent.trim().length > 0 && !postingNote && !!creator?._id && canUpdate;
   const hasContact = !!(phone || email || hasDirections);
-  const needsInterview = (isProspect || isCommunityFind) && !business && !hasLiveWebsite && lead.status !== 'lost'
+  const needsInterview = (isProspect || isCommunityFind) && !business && !hasSubmittedCapture && !hasLiveWebsite && lead.status !== 'lost'
     && !(isCommunityFind && lead.status === 'converted');
   const spotter = detail.spottedBy ?? submittedBy;
   const spottedAt = [detail.spottedAt, lead.createdAt, lead._creationTime]
@@ -334,7 +340,7 @@ export default function LeadDetailScreen() {
         accessibilityLabel="Show directions"
       />
     ) : null}
-    {!business && (detail.websiteUrl || detail.businessWebsite) ? (
+    {!publicWebsiteUrl && !business && (detail.websiteUrl || detail.businessWebsite) ? (
       <Button
         title={hasLiveWebsite ? 'View website' : 'View existing website'}
         variant="ghost"
@@ -366,7 +372,7 @@ export default function LeadDetailScreen() {
       contentStyle={styles.body}
     >
       {isConnected === false ? (
-        <Banner tone="warn" icon="cloud-offline-outline" title="You're offline" body="Reconnect to save notes or change this shop's status." />
+        <Banner tone="warn" icon="cloud-offline-outline" title="You're offline" body="Reconnect to save notes and see the latest shop progress." />
       ) : null}
       {/* Public/authorized photo, or the shared local placeholder, with the status chip. */}
       <View style={styles.hero}>
@@ -511,8 +517,17 @@ export default function LeadDetailScreen() {
         )}
       </View>
 
-      {/* Status */}
-      <View style={styles.section}>
+      {/* Shared discovery progress comes from the submitted capture and published site. */}
+      {isSharedShop ? <Card style={styles.stack}>
+        <View style={styles.between}>
+          <SectionLabel>Shop progress</SectionLabel>
+          <Chip label={heroLabel} tone={hasLiveWebsite ? 'ok' : hasSubmittedCapture ? 'info' : 'muted'} />
+        </View>
+        <Text variant="label" tone="muted">{hasSubmittedCapture
+          ? hasLiveWebsite ? 'This shop’s website is live. Progress updates automatically.'
+            : 'An interview has been submitted for this shop. Progress updates automatically.'
+          : 'Progress updates automatically when an interview is submitted and the website goes live.'}</Text>
+      </Card> : <View style={styles.section}>
         <View style={styles.between}>
           <SectionLabel>Status</SectionLabel>
           {updatingStatus ? <ActivityIndicator size="small" color={colors.ink} accessibilityLabel="Updating status" /> : null}
@@ -544,7 +559,7 @@ export default function LeadDetailScreen() {
         {!canMarkConverted ? (
           <Text variant="label" tone="muted" weight="medium">Converted is set when the capture is submitted.</Text>
         ) : null}
-      </View>
+      </View>}
 
       {spotter ? (
         <Card style={styles.row}>
@@ -559,10 +574,11 @@ export default function LeadDetailScreen() {
         </Card>
       ) : null}
 
-      {/* The shop on the submission, if it has been interviewed */}
-      {business ? (
+      {/* Original capture assets are available only with explicit server permission. */}
+      {business && canViewCaptureMedia ? (
         <Card style={styles.stack}>
-          <SectionLabel>The shop</SectionLabel>
+          <SectionLabel>Your capture</SectionLabel>
+          <Text variant="label" tone="muted">Submitted photos and interview details are private to the submitting agent and reviewers.</Text>
           <View style={styles.row}>
             <View style={styles.flex1}>
               <Text variant="heading">{business.businessName}</Text>
@@ -578,21 +594,22 @@ export default function LeadDetailScreen() {
               ))}
             </ScrollView>
           ) : null}
-          {business.websiteUrl ? (
+          {business.submissionId ? (
             <Button
-              title="View website"
+              title="View submission"
               variant="ghost"
               size="md"
-              icon="globe-outline"
-              onPress={() => void openExternalUrl(business.websiteUrl!)}
-              accessibilityLabel="Open business website"
+              icon="document-text-outline"
+              onPress={() => router.push(`/(app)/submissions/${business.submissionId}` as never)}
             />
           ) : null}
         </Card>
       ) : null}
 
+      {publicWebsiteUrl ? <PublishedShopWebsite url={publicWebsiteUrl} isOffline={isConnected === false} /> : null}
+
       {/* Live preview the team prepared for this shop */}
-      {adminContent?.hasEnrichedContent && (adminContent.description || adminContent.externalPreviewUrl) ? (
+      {!publicWebsiteUrl && adminContent?.hasEnrichedContent && (adminContent.description || adminContent.externalPreviewUrl) ? (
         <Card style={styles.stack}>
           <SectionLabel>Preview</SectionLabel>
           {adminContent.description ? (
@@ -619,6 +636,7 @@ export default function LeadDetailScreen() {
           <SectionLabel>Interviewed by</SectionLabel>
           <Chip label={`${interviewers.length} field agent${interviewers.length === 1 ? '' : 's'}`} tone="muted" />
         </View>
+        <Text variant="label" tone="muted">Recorded automatically from submitted interviews.</Text>
         {interviewers.length === 0 ? (
           <Text variant="label" tone="muted" weight="medium">
             No one has interviewed this shop yet.

@@ -264,18 +264,18 @@ describe('community finds through legacy CRM mutations', () => {
         await expect(agent.mutation(api.leads.update, { id, message: 'Interfere' })).rejects.toThrow();
         await expect(agent.mutation(api.leads.remove, { id })).rejects.toThrow();
         await expect(other.mutation(api.leads.remove, { id })).rejects.toThrow('original spotter');
-        await other.mutation(api.leads.updateStatus, { id, status: 'contacted' });
+        await expect(other.mutation(api.leads.updateStatus, { id, status: 'contacted' })).rejects.toThrow('automatically');
         await other.mutation(api.leads.update, { id, message: 'Owner asked me to return tomorrow' });
-        expect(await row(id)).toMatchObject({ status: 'contacted', message: 'Owner asked me to return tomorrow' });
+        expect(await row(id)).toMatchObject({ status: 'new', message: 'Owner asked me to return tomorrow' });
         expect(await agent.query(api.leads.getDetailForMobileCRM, { id })).toMatchObject({ canUpdateStatus: false, canMarkConverted: false });
-        expect(await other.query(api.leads.getDetailForMobileCRM, { id })).toMatchObject({ canUpdateStatus: true, canMarkConverted: false });
+        expect(await other.query(api.leads.getDetailForMobileCRM, { id })).toMatchObject({ canUpdateStatus: false, canMarkConverted: false });
     });
 
     it('requires actual capture to convert a find and keeps completed finds immutable to agents', async () => {
         const { t, ids, agent, createFind, row } = await setup();
         const id = await createFind();
-        await expect(agent.mutation(api.leads.updateStatus, { id, status: 'converted' })).rejects.toThrow('Complete the shop capture');
-        await expect(agent.mutation(api.leads.update, { id, status: 'converted' })).rejects.toThrow('Complete the shop capture');
+        await expect(agent.mutation(api.leads.updateStatus, { id, status: 'converted' })).rejects.toThrow('automatically');
+        await expect(agent.mutation(api.leads.update, { id, status: 'converted' })).rejects.toThrow('automatically');
         const draftId = await agent.mutation(api.submissions.create, { ...capture, creatorId: ids.agent, prospectLeadId: id });
         await agent.mutation(api.submissions.submit, { id: draftId });
         const converted = await row(id);
@@ -291,8 +291,8 @@ describe('community finds through legacy CRM mutations', () => {
         const { t, agent, createFind, row } = await setup();
         const id = await createFind();
         await agent.mutation(api.leads.update, { id, message: 'Closes at 7' });
-        await agent.mutation(api.leads.updateStatus, { id, status: 'contacted' });
-        expect(await row(id)).toMatchObject({ message: 'Closes at 7', status: 'contacted' });
+        await expect(agent.mutation(api.leads.updateStatus, { id, status: 'contacted' })).rejects.toThrow('automatically');
+        expect(await row(id)).toMatchObject({ message: 'Closes at 7', status: 'new' });
         await agent.mutation(api.leads.remove, { id });
         expect(await row(id)).toBeNull();
         await t.run((ctx) => ctx.db.insert('creators', { clerkId: 'admin', email: 'admin@example.com', role: 'admin', status: 'active' }));

@@ -442,7 +442,7 @@ export default function StartPage() {
             // Read the committed figures: the offer may have changed since the
             // last review render. A failed receipt read must never retry a
             // successful mutation or create a duplicate order.
-            const submitted = await convex.query(api.submissions.getById, { id: submissionId }).catch(() => null);
+            const submitted = await convex.query(api.submissions.getIntakeReceiptSummary, { id: submissionId }).catch(() => null);
             const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication, affiliatePrice);
             const amount = submitted ? ownerChargeFor(submitted) : affiliateHandle !== null ? null : quoted.total;
             rememberSubmitted({

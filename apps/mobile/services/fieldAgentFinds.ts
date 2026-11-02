@@ -1,5 +1,5 @@
 import { isCreatorAccount } from '../../../lib/accounts';
-import { distanceKm, findKind, type CommunityFind, type FindKind } from './fieldAgentMap';
+import { distanceKm, findKind, hasSubmittedInterview, type CommunityFind, type FindKind } from './fieldAgentMap';
 import { validMapCoordinate, type MapSearchArea } from './workArea';
 
 export type WorkspaceAccount = {
@@ -51,8 +51,8 @@ export function filterCommunityFinds(
   };
   const rows = leads.filter((lead) => {
     if (needle && ![lead.businessName, lead.businessAddress, lead.businessCity,
-      lead.spottedBy?.displayName, lead.submittedBy?.displayName].some((value) => value?.toLocaleLowerCase().includes(needle))) return false;
-    if (filter === 'needs') return lead.needsWebsite === true && lead.hasLiveWebsite !== true;
+      lead.spottedBy?.displayName, lead.submittedBy?.displayName, lead.interviewedBy?.displayName].some((value) => value?.toLocaleLowerCase().includes(needle))) return false;
+    if (filter === 'needs') return lead.needsWebsite === true && lead.hasLiveWebsite !== true && !hasSubmittedInterview(lead);
     if (filter === 'near') { const km = nearbyDistance(lead); return km != null && km <= radius; }
     return filter === 'all' || (lead.communityKind ?? findKind(lead.businessType)) === filter;
   });
@@ -63,6 +63,7 @@ export function filterCommunityFinds(
 
 export function findWebsiteLabel(lead: CommunityFind): string {
   if (lead.hasLiveWebsite === true) return 'Live';
+  if (hasSubmittedInterview(lead)) return 'Interview submitted';
   if (lead.needsWebsite === true) return 'Needs a site';
   return lead.needsWebsite === false ? 'Has a website' : 'Check for a website';
 }

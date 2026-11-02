@@ -11,6 +11,8 @@ import { resolveGiveawayReviewSource } from './lib/submissionReview';
 import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
 import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
 import { validCaptureDesignCode } from '../lib/captureDesign';
+import { canReadPrivateSubmission } from './lib/submissionAccess';
+import { isCaptureShopLead } from './lib/shopCaptureProgress';
 
 function requireCaptureOwnerEmail(value: string | undefined): string {
     const error = captureEmailError(value);
@@ -26,7 +28,7 @@ async function requireSubmissionEditor(ctx: MutationCtx, creatorId: Id<'creators
     }
 }
 
-/** Mobile reads drafts before its token hydrates; preserve that read contract. */
+/** The price-only subscription can start before a mobile token hydrates. */
 async function canReadCreatorContext(ctx: QueryCtx, creatorId: Id<'creators'>): Promise<boolean> {
     if (await ctx.auth.getUserIdentity()) {
         await requireCreatorAccount(ctx, creatorId);
@@ -43,9 +45,25 @@ async function canReadCreatorContext(ctx: QueryCtx, creatorId: Id<'creators'>): 
  * Get submission by ID
  */
 export const getById = query({
+    args: { id: v.id('submissions'), internalSecret: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        return await canReadPrivateSubmission(ctx, submission, args.internalSecret) ? submission : null;
+    },
+});
+
+/** The public intake confirmation needs its committed quote, never capture data. */
+export const getIntakeReceiptSummary = query({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.id);
+        const submission = await ctx.db.get(args.id);
+        if (!submission || submission.contentSource !== 'owner_intake') return null;
+        return {
+            amount: submission.amount, pricingMode: submission.pricingMode,
+            campaign: submission.campaign, submissionType: submission.submissionType,
+            domainCostPHP: submission.domainCostPHP, domainChargedPHP: submission.domainChargedPHP,
+            websiteListPrice: submission.websiteListPrice,
+        };
     },
 });
 
@@ -123,7 +141,8 @@ export const getByCreatorId = query({
 export const getDraftByCreatorId = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
-        if (!await canReadCreatorContext(ctx, args.creatorId)) return null;
+        if (!await ctx.auth.getUserIdentity()) return null;
+        await requireCreatorAccount(ctx, args.creatorId);
         const drafts = await ctx.db
             .query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
@@ -590,6 +609,16 @@ export const update = mutation({
             }
         }
 
+        // Preserve legacy capture provenance before an owner-name/phone edit
+        // would stop the migration detector from recognizing its linked shop.
+        if (updates.ownerName !== undefined || updates.ownerPhone !== undefined) {
+            const linkedLeads = await ctx.db.query('leads').withIndex('by_submission', q => q.eq('submissionId', id)).collect();
+            for (const lead of linkedLeads) {
+                if (!lead.isCaptureShop && isCaptureShopLead(lead, submission)) {
+                    await ctx.db.patch(lead._id, { isCaptureShop: true });
+                }
+            }
+        }
         await ctx.db.patch(id, filteredUpdates);
 
         // Auto-schedule transcription when media is freshly attached and there's
@@ -843,6 +872,7 @@ export const submit = mutation({
                 if (!prospect.submissionId) {
                     await ctx.db.patch(prospect._id, {
                         submissionId: args.id,
+                        isCaptureShop: true,
                         // Credit the interviewer, not the scraper. outscraper.ts
                         // always stamps the SCRAPER's creatorId on scraped rows,
                         // so a `??` fallback would never fire and the business
@@ -869,6 +899,7 @@ export const submit = mutation({
         if (!converted) {
             await ctx.db.insert('leads', {
                 submissionId: args.id,
+                isCaptureShop: true,
                 creatorId: submission.creatorId,
                 source: 'direct',
                 name: submission.ownerName,
