@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "reviewOnly": true,
+  "sourceHash": "3b24d496bea7a9479350f57ba06712ba4f3bef0a0e715dfb52d6c38c7dbd6ab5",
+  "catalogSha256": "ebf06ed0f2221b7c44200647b660b43e996181a13e8ce9fed8d337b578895665",
+  "catalogJsSha256": "518e5249b23eeeb91af2ceecf96352a625c48a95bb0063af67eea4eef0296bae",
+  "documents": [
+    {
+      "id": "barber-editorial",
+      "file": "barber-editorial.html",
+      "sha256": "e7beb70e94ac3d92e663978f53caa4bb2b9e69c9c46d49df96fd5e1171d60e2c"
+    },
+    {
+      "id": "barber-immersive",
+      "file": "barber-immersive.html",
+      "sha256": "115d5016860fbc6e2034e6272c61434c4144b54080f53f164093eee0b79969b0"
+    },
+    {
+      "id": "barber-studio",
+      "file": "barber-studio.html",
+      "sha256": "a7896c46969c0c07e18ba54c44c991db98e33cf5076992da1398027fd5cbc019"
+    },
+    {
+      "id": "repair-editorial",
+      "file": "repair-editorial.html",
+      "sha256": "4b1fd265ed97eae829edb07e60f5a2b05f95dd563478e2bac1b66fd2b5056da7"
+    },
+    {
+      "id": "repair-immersive",
+      "file": "repair-immersive.html",
+      "sha256": "df981e0054110eaf13c1c4eb8f1f42a214be6cadab1b142fafe9250dff878d3d"
+    },
+    {
+      "id": "repair-studio",
+      "file": "repair-studio.html",
+      "sha256": "f308ca370783491567139b63159b1f3ebf53b162ef9e13f56478744195276ffe"
+    },
+    {
+      "id": "spa-editorial",
+      "file": "spa-editorial.html",
+      "sha256": "3b8c2adc133728134053496e47f39845bd47a4396e0159c33744d8fd5f0de309"
+    },
+    {
+      "id": "spa-immersive",
+      "file": "spa-immersive.html",
+      "sha256": "8108c3ec25e0dc17e7178dd49a3994fb8fdcee1a67ffd08ffebf9d395fbeaa64"
+    },
+    {
+      "id": "spa-studio",
+      "file": "spa-studio.html",
+      "sha256": "ac0389d04d37a8348ec66b5630ac85723de935460d987792baf80356c68099dd"
+    },
+    {
+      "id": "food-editorial",
+      "file": "food-editorial.html",
+      "sha256": "bcd098ddfcf9c1294a3685c42c237b969d28995cfebbb3735a5812244119e6f9"
+    },
+    {
+      "id": "food-immersive",
+      "file": "food-immersive.html",
+      "sha256": "b8d00e60fa2bfdcf4f11fee3595c77f702793c144dedc6321346675e75dc5892"
+    },
+    {
+      "id": "food-studio",
+      "file": "food-studio.html",
+      "sha256": "83a5bd0f4f3a9775b700c37cc4d2fa5c65ffd10805b8b05111f73aca97c17683"
+    },
+    {
+      "id": "clinic-editorial",
+      "file": "clinic-editorial.html",
+      "sha256": "8dec0235ebd1bbbe2db99e3d5ef0ef32c6e383bbb8bd8a68635952a5d652c8c2"
+    },
+    {
+      "id": "clinic-immersive",
+      "file": "clinic-immersive.html",
+      "sha256": "109b24cf039c269a18e3d31453c6a19f99f0df456619384889e7fe371e0cb854"
+    },
+    {
+      "id": "clinic-studio",
+      "file": "clinic-studio.html",
+      "sha256": "67e9ddf378263f41432e8971a9fa1cfc1b49e7a7e81ce0fad9e5533609ceccaf"
+    },
+    {
+      "id": "law-editorial",
+      "file": "law-editorial.html",
+      "sha256": "d9a7ccbf183608c6d7fa4553f744ed8671511bc6a39358f7a7a99c79a45190a7"
+    },
+    {
+      "id": "law-immersive",
+      "file": "law-immersive.html",
+      "sha256": "b46ecc35c1c9cbe61155f1613b48f88cbeba5ca5515373c29061c3e1c92c1c74"
+    },
+    {
+      "id": "law-studio",
+      "file": "law-studio.html",
+      "sha256": "4b6246f8eb9670553eb0770b7a7a23aefc6d2d99de8528ac74e2cc7c79ee3930"
+    },
+    {
+      "id": "craft-editorial",
+      "file": "craft-editorial.html",
+      "sha256": "ca7d2abb7eb5b0fabe631e861ced8118ef8266456b0be11ab42aa3df8ab9178c"
+    },
+    {
+      "id": "craft-immersive",
+      "file": "craft-immersive.html",
+      "sha256": "43a77e7e31f28ba3be2ded2587e388da95aef1df3f4830b38cbeac2fd92b1a38"
+    },
+    {
+      "id": "craft-studio",
+      "file": "craft-studio.html",
+      "sha256": "62eefd7855a71fcf9058dc9749672316b75f70ad796781e860b8adc8ca51111d"
+    },
+    {
+      "id": "other-editorial",
+      "file": "other-editorial.html",
+      "sha256": "9a118a67b1193f4a2566882044b625e03b827069e99d832afa1d6da2093d566b"
+    },
+    {
+      "id": "other-immersive",
+      "file": "other-immersive.html",
+      "sha256": "76bd5badf4f09b8238da96ff19559d2379dcbd9fa1a7f67d88749394a7308dc1"
+    },
+    {
+      "id": "other-studio",
+      "file": "other-studio.html",
+      "sha256": "64120008da62ccf2683c4fcbdb8c203bd59d6b80ed909f367aa5eacabbc94a9a"
+    }
+  ]
+}

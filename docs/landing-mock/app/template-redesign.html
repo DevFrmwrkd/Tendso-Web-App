@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f5ef" />
+    <title>Website designs · 24-template review · Tendso</title>
+    <meta name="description" content="Compare three actual website template directions for every Tendso business type before they are added to the mobile app." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="template-redesign.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#comparison">Skip to designs</a>
+    <header class="board-header wrap">
+      <a class="board-brand" href="../hub.html" aria-label="Tendso design hub"><img class="brand-symbol" src="../assets/brand/mark-ink-256.png" width="28" height="28" alt="" /><span>tendso <span class="brand-divider">/</span> website studio</span></a>
+      <a class="back-link" href="field-agent-review.html#design"><span aria-hidden="true">↗</span> Current app designs</a>
+    </header>
+
+    <main class="wrap">
+      <section class="board-intro" aria-labelledby="board-title">
+        <div>
+          <p class="eyebrow"><span aria-hidden="true"></span> Template redesign · review draft</p>
+          <h1 id="board-title">The website should<br />sell itself.</h1>
+        </div>
+        <div class="intro-copy">
+          <p>Three finished design directions for each business type. Compare the whole website, on a phone and on desktop.</p>
+          <div class="scope-line"><span><b>8</b> business types</span><span><b>24</b> actual templates</span><span class="review-state">For review first</span></div>
+        </div>
+      </section>
+
+      <section class="comparison" id="comparison" aria-labelledby="comparison-title">
+        <div class="comparison-toolbar">
+          <div class="type-control">
+            <label for="business-type">Business type</label>
+            <div class="select-wrap"><select id="business-type" name="business-type">
+              <option>Barber/Salon</option><option>Auto Shop</option><option>Spa/Massage</option><option>Restaurant</option>
+              <option>Clinic</option><option>Law Office</option><option>Craft/Producer</option><option>Other</option>
+            </select><span aria-hidden="true">⌄</span></div>
+          </div>
+          <div class="example-caption"><span class="eyebrow">One business. Three directions.</span><h2 id="comparison-title">Loading the examples…</h2></div>
+          <p class="toolbar-note">Scroll inside a preview.<br />Open it to explore the full website.</p>
+        </div>
+        <div id="design-grid" class="design-grid" aria-live="polite" aria-busy="true">
+          <p class="catalog-status" role="status">The actual template previews are loading.</p>
+        </div>
+        <p class="sample-note"><span aria-hidden="true">○</span> Fictional sample businesses and generated photographs. These are working Astro templates; the redesigns stay on this review board until you choose what to keep.</p>
+      </section>
+
+      <details class="source-notes">
+        <summary>What you’re comparing <span aria-hidden="true">+</span></summary>
+        <div class="source-notes-body">
+          <div><h2>Three actual layouts</h2><p>Editorial, Immersive and Studio are implemented Astro templates. The board renders their built pages, including the service content, story, gallery, FAQs and visit details.</p></div>
+          <div><h2>Same business, useful comparison</h2><p>Each set uses the same sample business and content. The differences come from composition, typography, photography and the way each layout guides a visitor.</p></div>
+          <div><h2>Review before rollout</h2><p>This board does not change the app’s saved designs or publish a customer website. Sample contact links are disabled inside the previews.</p></div>
+          <div class="source-files"><h2>Template source</h2><code>astro-site-template/src/components/capture-redesign/Editorial.astro</code><code>astro-site-template/src/components/capture-redesign/Immersive.astro</code><code>astro-site-template/src/components/capture-redesign/Studio.astro</code><span id="source-build"></span></div>
+        </div>
+      </details>
+    </main>
+
+    <footer class="board-footer wrap"><p><b>Tendso / website studio</b><span>Local design review · mobile and desktop</span></p><a href="field-agent-review.html#design">Back to field-agent board <span aria-hidden="true">↗</span></a></footer>
+
+    <dialog id="full-preview" class="preview-dialog" aria-labelledby="preview-title" aria-describedby="preview-subtitle">
+      <div class="dialog-shell">
+        <header class="dialog-header">
+          <div><span class="eyebrow" id="preview-business"></span><h2 id="preview-title">Website preview</h2></div>
+          <div class="device-switch" role="group" aria-label="Preview device">
+            <button type="button" data-preview-mode="phone" aria-pressed="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M11 17.5h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Phone</button>
+            <button type="button" data-preview-mode="desktop" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8m-4-4v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Desktop</button>
+          </div>
+          <button type="button" class="close-preview" aria-label="Close website preview"><span aria-hidden="true">×</span></button>
+        </header>
+        <div class="dialog-subbar"><p id="preview-subtitle">Scroll inside to explore the full website. Sample contact actions are disabled.</p><span id="viewport-label">390 px</span></div>
+        <div class="full-window"><div class="full-canvas"><iframe id="full-frame" title="Full sample website" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe></div></div>
+      </div>
+    </dialog>
+    <div class="toast" id="sample-toast" role="status" hidden>Sample website: contact details are illustrative.</div>
+    <script src="/capture-redesign/catalog.js"></script>
+    <script src="template-redesign.js"></script>
+  </body>
+</html>
