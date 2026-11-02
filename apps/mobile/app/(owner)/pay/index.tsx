@@ -30,6 +30,7 @@ export default function Pay() {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => { changingCode.current = false; setCodeBusy(false); }, [actor]);
 
+  if (!id && me !== undefined) return <ScreenShell title="Payment unavailable" footer={<Button title="Back to home" onPress={() => router.replace(STEP_ROUTE.home as never)} />} />;
   if (pay === undefined) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
@@ -45,7 +46,7 @@ export default function Pay() {
     if (changingCode.current || !quoteReady) return;
     router.push({ pathname: '/(owner)/pay/method', params: { kind, amount: String(amount) } } as never);
   };
-  const isLive = site?.phase === 'live' || !!site?.publishedUrl;
+  const isLive = site?.phase === 'live';
 
   if (pay.canPayBalance) {
     return (
@@ -53,7 +54,7 @@ export default function Pay() {
         title="Pay the rest"
         subtitle={`You paid ${peso(pay.amountPaid)}.`}
         onBack={() => router.back()}
-        footer={<Button title={`Pay ${peso(pay.balanceDue)}`} onPress={() => method('balance', pay.balanceDue)} />}
+        footer={<Button title={`Pay ${peso(pay.balanceDue)}`} disabled={codeBusy || !quoteReady} onPress={() => method('balance', pay.balanceDue)} />}
       >
         <OwnerSiteSummary name={site?.businessName ?? 'Your shop'} preview={preview} publishedUrl={site?.publishedUrl} />
         <View style={{ height: space.lg }} />

@@ -4,6 +4,7 @@
  * paying everything is a full payment.
  */
 import { DOWN_PAYMENT_STEP, MIN_DOWN_PAYMENT } from './ownerContent';
+import type { PaymentState } from './ownerTypes';
 
 /** The largest down payment we offer: one step under the total. */
 export function maxDownPayment(total: number, step = DOWN_PAYMENT_STEP): number {
@@ -34,13 +35,20 @@ export function suggestedDownPayment(total: number, min = MIN_DOWN_PAYMENT, step
 export type PayChoice = { kind: 'full' | 'balance'; amount: number } | { kind: 'deposit'; amount: number };
 
 /** Parse the route params of the method screen safely. */
-export function parsePayChoice(kind: unknown, amount: unknown, total: number, balance: number): PayChoice | null {
-  const n = Number(amount);
+export function parsePayChoice(kind: unknown, amount: unknown, total: number, balance: number, min = MIN_DOWN_PAYMENT): PayChoice | null {
+  if (!Number.isFinite(total) || total <= 0) return null;
   if (kind === 'full') return { kind: 'full', amount: total };
-  if (kind === 'balance') return balance > 0 ? { kind: 'balance', amount: balance } : null;
-  if (kind === 'deposit' && Number.isFinite(n)) {
-    const a = clampDownPayment(n, total);
-    return a > 0 ? { kind: 'deposit', amount: a } : null;
-  }
+  if (kind === 'balance') return Number.isFinite(balance) && balance > 0 ? { kind: 'balance', amount: balance } : null;
+  if (typeof amount !== 'string' || !/^\d+$/.test(amount)) return null;
+  const n = Number(amount);
+  if (kind === 'deposit' && Number.isSafeInteger(n) && n > 0 && n >= min && n < total) return { kind: 'deposit', amount: n };
   return null;
+}
+
+/** A route parameter cannot authorize a payment the current bill does not offer. */
+export function payChoiceForState(kind: unknown, amount: unknown, pay: PaymentState | undefined): PayChoice | null {
+  if (!pay?.billable || pay.paidInFull || pay.needsApproval) return null;
+  const choice = parsePayChoice(kind, amount, pay.total, pay.balanceDue, pay.minDownPayment);
+  if (!choice) return null;
+  return (choice.kind === 'full' ? pay.canPayFull : choice.kind === 'deposit' ? pay.canPayDeposit : pay.canPayBalance) ? choice : null;
 }

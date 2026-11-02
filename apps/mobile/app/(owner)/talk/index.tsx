@@ -7,7 +7,7 @@ import { INTERVIEW_QUESTIONS } from '../../../lib/v2/captureContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { ownerAnswersFor } from '../../../lib/v2/ownerMedia';
-import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
+import { firstMissingAnswer, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
 import { colors, radius, space } from '../../../theme/v2';
 
@@ -18,6 +18,7 @@ export default function TalkIntro() {
   const sub = useOwnerSubmission(scope.id);
   const answers = ownerAnswersFor(scope.id, sub, intake);
   const completed = new Set(answers.map(answer => answer.index));
+  const complete = firstMissingAnswer([...completed]) >= INTERVIEW_QUESTIONS.length;
   const readOnly = !!scope.site && scope.site.phase !== 'draft';
   const start = (audioOnly: boolean) => {
     if (!scope.isCurrent() || !scope.id || readOnly) return;
@@ -25,8 +26,8 @@ export default function TalkIntro() {
   };
   return <ScreenShell title="10 short questions" subtitle="Answer in English or Tagalog, one at a time." progress={0.25}
     onBack={() => router.back()} contentStyle={styles.content} footer={<>
-      <Button title={completed.size >= 10 || readOnly ? 'Review your answers' : 'Start'} disabled={!scope.id}
-        onPress={() => completed.size >= 10 || readOnly ? router.push(STEP_ROUTE['talk-done'] as never) : start(false)} />
+      <Button title={complete || readOnly ? 'Review your answers' : 'Start'} disabled={!scope.id}
+        onPress={() => { if (scope.isCurrent()) complete || readOnly ? router.push(STEP_ROUTE['talk-done'] as never) : start(false); }} />
       {!readOnly ? <Pressable onPress={() => start(true)} accessibilityRole="button" style={styles.voice}><Text weight="bold">Voice only, no video</Text></Pressable> : null}
     </>}>
     <Text variant="label" tone="muted">{Math.min(10, INTERVIEW_QUESTIONS.filter((_, index) => completed.has(index)).length)} of 10 answered</Text>

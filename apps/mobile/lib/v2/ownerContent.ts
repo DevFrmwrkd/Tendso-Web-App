@@ -10,6 +10,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { ShotListKey } from './captureContent';
 import { formatPeso } from '../../components/v2/format';
+import { CAPTURE_PREVIEW_CATALOG } from '../../services/generated/capturePreviewCatalog';
 
 export type SellKindId = 'barber' | 'salon' | 'repair' | 'craft' | 'food' | 'other';
 
@@ -53,8 +54,8 @@ export interface Design {
 
 const d = (code: string, name: string, file: string): Design => ({ code, name, preview: `/template-previews/${file}.html` });
 
-/** A handful of real designs per kind, the strongest first. */
-export const DESIGNS: Record<SellKindId, readonly Design[]> = {
+/** Exact choices kept for owners who already selected an older design. */
+export const LEGACY_DESIGNS: Record<SellKindId, readonly Design[]> = {
   barber: [
     d('barbershop:F', 'Forge', 'f'),
     d('barbershop:G', 'Cinematic', 'g'),
@@ -99,8 +100,27 @@ export const DESIGNS: Record<SellKindId, readonly Design[]> = {
   ],
 };
 
+/** The same three approved designs per business type used in field-agent capture. */
+const approvedDesigns = (businessType: SellKind['businessType']): readonly Design[] =>
+  CAPTURE_PREVIEW_CATALOG.filter(design => design.businessType === businessType)
+    .map(design => ({ code: design.code, name: design.name, preview: design.adminPreview }));
+export const DESIGNS: Record<SellKindId, readonly Design[]> = {
+  barber: approvedDesigns('Barber/Salon'), salon: approvedDesigns('Barber/Salon'),
+  repair: approvedDesigns('Auto Shop'), craft: approvedDesigns('Craft/Producer'),
+  food: approvedDesigns('Restaurant'), other: approvedDesigns('Other'),
+};
+
 export function designsFor(kind: SellKindId | null | undefined): readonly Design[] {
   return DESIGNS[kind ?? 'other'] ?? DESIGNS.other;
+}
+
+/** Preserve an explicit old choice only while it still fits the shop's category. */
+export function ownerDesignChoices(kind: SellKindId, savedCode?: string | null): readonly Design[] {
+  const catalog = designsFor(kind);
+  const legacyKind = SELL_KINDS.find(item => LEGACY_DESIGNS[item.id].some(design => design.code === savedCode));
+  const legacy = legacyKind && legacyKind.businessType === sellKind(kind)?.businessType
+    ? LEGACY_DESIGNS[legacyKind.id].find(design => design.code === savedCode) : undefined;
+  return legacy ? [legacy, ...catalog] : catalog;
 }
 
 /** Price facts (packages/shared/pricing.ts). Display only; the server bills. */

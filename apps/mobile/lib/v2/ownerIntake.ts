@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SellKindId } from './ownerContent';
 import type { Lang } from './captureContent';
 import type { SubmissionId } from './ownerTypes';
+import { uploadQueue } from './uploadQueue';
 
 /** Serializable upload journal. Keep successful entries until submit so a stale
  * server snapshot cannot enqueue the same local file again. */
@@ -45,8 +46,12 @@ export interface OwnerIntake {
 }
 
 const KEY = 'tendso_owner_intake_v1';
+const actorKey = (id: string | null) => `tendso_owner_intake_v2:${id ? encodeURIComponent(id) : 'guest'}`;
+let actor: string | null = null;
+let generation = 0;
 let state: OwnerIntake = {};
 let loaded = false;
+let loading: Promise<OwnerIntake> | undefined;
 let writes: Promise<void> = Promise.resolve();
 const listeners = new Set<() => void>();
 
@@ -55,6 +60,27 @@ function emit() {
 }
 
 export const ownerIntake = {
+  /** Bind before rendering capture or resuming jobs. Never carry a draft to a
+   * different login; anonymous signup contributes only the typed name. */
+  async bindActor(id: string | null): Promise<OwnerIntake> {
+    if (actor !== id) {
+      const name = actor === null && id ? state.ownerName : undefined;
+      actor = id;
+      generation += 1;
+      state = name ? { ownerName: name } : {};
+      loaded = false;
+      loading = undefined;
+      uploadQueue.reset();
+      emit();
+      if (name) {
+        writes = writes.catch(() => {}).then(() => AsyncStorage.removeItem(actorKey(null)));
+        void writes.catch(() => {});
+      }
+    }
+    return this.load();
+  },
+  scope(): number { return generation; },
+  isCurrent(scope: number): boolean { return scope === generation; },
   get(): OwnerIntake {
     return state;
   },
@@ -64,28 +90,68 @@ export const ownerIntake = {
   },
   async load(): Promise<OwnerIntake> {
     if (loaded) return state;
+    if (loading) return loading;
+    const scope = generation;
+    const key = actorKey(actor);
+    loading = (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(key);
+        if (scope !== generation) return state;
+        const cached = raw ? JSON.parse(raw) : null;
+        if (cached && typeof cached === 'object' && !Array.isArray(cached)) state = { ...cached, ...state };
+      } catch { /* a broken cache is just empty */ }
+      if (scope === generation) {
+        loaded = true;
+        loading = undefined;
+        emit();
+      }
+      return state;
+    })();
+    return loading;
+  },
+  /** The old unscoped cache is adopted only after the server confirms ownership. */
+  async migrateLegacy(ownedIds: readonly SubmissionId[]): Promise<void> {
+    if (!actor || state.submissionId) return;
+    const scope = generation;
     try {
       const raw = await AsyncStorage.getItem(KEY);
-      if (raw) state = { ...JSON.parse(raw), ...state };
-    } catch { /* a broken cache is just empty */ }
-    loaded = true;
-    emit();
-    return state;
+      if (!raw || scope !== generation || state.submissionId) return;
+      const cached = JSON.parse(raw) as OwnerIntake;
+      if (!cached || !cached.submissionId || !ownedIds.includes(cached.submissionId)) return;
+      this.set({ ...cached, ...state });
+      await this.flush();
+      // Removing legacy data cannot erase a different actor's v2 cache.
+      await AsyncStorage.removeItem(KEY);
+    } catch { /* Leave the legacy cache intact if migration could not persist. */ }
   },
   set(patch: Partial<OwnerIntake>) {
+    if (patch.submissionId && state.submissionId && patch.submissionId !== state.submissionId) {
+      // Site-specific values have no embedded id. Do not reinterpret them as
+      // another shop's photos or business details when the owner switches sites.
+      const { ownerName, how, audioOnly, lang, uploads } = state;
+      state = { ownerName, how, audioOnly, lang, uploads };
+      generation += 1;
+      uploadQueue.reset();
+    }
     state = { ...state, ...patch };
     emit();
     const json = JSON.stringify(state);
-    writes = writes.catch(() => {}).then(() => AsyncStorage.setItem(KEY, json));
+    const key = actorKey(actor);
+    writes = writes.catch(() => {}).then(() => AsyncStorage.setItem(key, json));
     void writes.catch(() => {});
   },
   /** Finish the journal write before starting network work or leaving capture. */
   flush(): Promise<void> { return writes; },
   /** After the site is sent (or on sign-out): start fresh next time. */
   clear() {
+    generation += 1;
     state = {};
+    loaded = true;
+    loading = undefined;
+    uploadQueue.reset();
     emit();
-    writes = writes.catch(() => {}).then(() => AsyncStorage.removeItem(KEY));
+    const key = actorKey(actor);
+    writes = writes.catch(() => {}).then(() => AsyncStorage.removeItem(key));
     void writes.catch(() => {});
   },
 };

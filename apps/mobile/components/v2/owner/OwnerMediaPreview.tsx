@@ -10,7 +10,7 @@ export function OwnerMediaPreview({ uri, kind, label, onClose }: {
   uri: string; kind: 'image' | 'video' | 'audio'; label: string; onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const [failed, setFailed] = useState(false);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
   return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
     <View style={[styles.screen, { paddingTop: insets.top + space.sm, paddingBottom: insets.bottom + space.lg }]}
       accessibilityViewIsModal onAccessibilityEscape={onClose}>
@@ -19,12 +19,12 @@ export function OwnerMediaPreview({ uri, kind, label, onClose }: {
           <Ionicons name="close" size={24} color={colors.ink} /></Pressable>
         <Text variant="heading" style={styles.flex}>{label}</Text>
       </View>
-      {failed ? <View style={styles.empty}><Ionicons name="image-outline" size={40} color={colors.ink3Text} />
+      {failedUri === uri ? <View style={styles.empty}><Ionicons name="image-outline" size={40} color={colors.ink3Text} />
         <Text align="center" tone="muted">This file could not load. Close the preview and try again.</Text></View>
-        : kind === 'image' ? <Image testID="owner-full-photo" source={{ uri }} resizeMode="contain" style={styles.media} onError={() => setFailed(true)} accessibilityLabel={label} />
+        : kind === 'image' ? <Image testID="owner-full-photo" source={{ uri }} resizeMode="contain" style={styles.media} onError={() => setFailedUri(uri)} accessibilityLabel={label} />
           : kind === 'video' ? <Video testID="owner-answer-video" source={{ uri }} resizeMode={ResizeMode.CONTAIN} useNativeControls
-            shouldPlay={false} style={styles.media} onError={() => setFailed(true)} />
-            : <OwnerAudioPlayback uri={uri} />}
+            shouldPlay={false} style={styles.media} onError={() => setFailedUri(uri)} />
+            : <OwnerAudioPlayback key={uri} uri={uri} />}
     </View>
   </Modal>;
 }
@@ -55,7 +55,8 @@ function OwnerAudioPlayback({ uri }: { uri: string }) {
       } else if (playing) await sound.current.pauseAsync();
       else {
         const status = await sound.current.getStatusAsync();
-        if (status.isLoaded && status.didJustFinish) await sound.current.replayAsync();
+        if (status.isLoaded && (status.didJustFinish || (typeof status.durationMillis === 'number'
+          && status.positionMillis >= status.durationMillis))) await sound.current.replayAsync();
         else await sound.current.playAsync();
       }
     } catch { if (mounted.current) setError(true); }

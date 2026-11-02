@@ -13,7 +13,7 @@ import { colors, radius, space } from '../../../theme/v2';
 const WHEN = ['Today', 'Tomorrow', 'This week'] as const;
 export default function BookVisit() {
   const scope = useOwnerScope();
-  return <VisitForm key={scope.accountKey} scope={scope} />;
+  return <VisitForm key={scope.scopeKey} scope={scope} />;
 }
 function VisitForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const router = useRouter();
@@ -28,14 +28,14 @@ function VisitForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const inFlight = useRef(false);
   const shopName = scope.site?.businessName ?? intake.businessName;
   const send = async () => {
-    if (inFlight.current || !scope.isAccountCurrent() || scope.isOffline || phone.replace(/\D/g, '').length < 7) return;
+    if (inFlight.current || !scope.isCurrent() || scope.isOffline || phone.replace(/\D/g, '').length < 7) return;
     inFlight.current = true; setBusy(true); setError(null);
     try {
       await request({ name: scope.me?.owner.name || intake.ownerName || 'Shop owner', phone: phone.trim(), email: scope.me?.owner.email,
         shopName, when, agentName: typeof agent === 'string' ? agent : undefined });
-      if (scope.isAccountCurrent()) setSent(true);
-    } catch (cause) { if (scope.isAccountCurrent()) setError(cause instanceof Error ? cause.message : 'Could not send your request. Please try again.'); }
-    finally { inFlight.current = false; if (scope.isAccountCurrent()) setBusy(false); }
+      if (scope.isCurrent()) setSent(true);
+    } catch (cause) { if (scope.isCurrent()) setError(cause instanceof Error ? cause.message : 'Could not send your request. Please try again.'); }
+    finally { inFlight.current = false; if (scope.isCurrent()) setBusy(false); }
   };
   if (sent) return <ScreenShell title="Your visit request is sent" subtitle="The team will call you to confirm an agent and time."
     contentStyle={styles.content} footer={<Button title="Back to home" onPress={() => router.replace(STEP_ROUTE.home as never)} />}>

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { firstMissingAnswer, hasSiteHome, nextStep, phaseLine, resumeStep, startProgress, STEP_ROUTE, todayAction, type OwnerStep } from '../lib/v2/ownerFlow';
-import { DESIGNS, SELL_KINDS, designsFor, freeAddress, hostOf, peso, sellKindFromServer, slugGuess } from '../lib/v2/ownerContent';
+import { DESIGNS, SELL_KINDS, designsFor, freeAddress, hostOf, ownerDesignChoices, peso, sellKindFromServer, slugGuess } from '../lib/v2/ownerContent';
 import { canPayPart, clampDownPayment, maxDownPayment, parsePayChoice, stepDownPayment, suggestedDownPayment } from '../lib/v2/payMath';
 import { BUSINESS_TYPES } from '../services/prospectPrefill';
 import type { OwnerPhase } from '../lib/v2/ownerTypes';
@@ -120,6 +120,23 @@ describe('owner content', () => {
       });
     });
     expect(designsFor(undefined)).toBe(DESIGNS.other);
+  });
+
+  it.each([
+    ['barber', ['CA', 'CB', 'CC']], ['salon', ['CA', 'CB', 'CC']],
+    ['repair', ['CD', 'CE', 'CF']], ['food', ['CJ', 'CK', 'CL']],
+    ['craft', ['CS', 'CT', 'CU']], ['other', ['CV', 'CW', 'CX']],
+  ] as const)('offers the three approved %s designs with canonical public previews', (kind, letters) => {
+    expect(designsFor(kind).map(design => design.code)).toEqual(letters.map(letter => `business:${letter}`));
+    expect(designsFor(kind).map(design => design.name)).toEqual(['Editorial', 'Immersive', 'Studio']);
+    expect(designsFor(kind).map(design => design.preview)).toEqual(letters.map(letter => `/template-previews/${letter.toLowerCase()}.html`));
+  });
+
+  it('keeps explicit legacy selections compatible with the current business type', () => {
+    expect(ownerDesignChoices('barber', 'barbershop:F')[0].code).toBe('barbershop:F');
+    expect(ownerDesignChoices('barber', 'salonspa:AN')[0].code).toBe('salonspa:AN');
+    expect(ownerDesignChoices('food', 'barbershop:F').map(design => design.code)).not.toContain('barbershop:F');
+    expect(ownerDesignChoices('repair', 'business:CJ').map(design => design.code)).not.toContain('business:CJ');
   });
 
   it('formats money and the free address', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ownerIntake } from '../lib/v2/ownerIntake';
@@ -30,7 +31,7 @@ jest.mock('../lib/v2/ownerData', () => ({
 }));
 jest.mock('../lib/v2/ownerPhotos', () => ({ MAX_EXTRAS: 10, useSaveOwnerPhoto: () => mockSavePhoto, pickFromLibrary: (...args: unknown[]) => mockPick(...args) }));
 jest.mock('../lib/v2/ownerUploads', () => ({ useOwnerUploads: () => ({ remember: mockRemember }) }));
-jest.mock('../lib/v2/uploadQueue', () => ({ useUploadQueue: () => mockQueue, uploadQueue: { retry: jest.fn() } }));
+jest.mock('../lib/v2/uploadQueue', () => ({ useUploadQueue: () => mockQueue, uploadQueue: { retry: jest.fn(), reset: jest.fn() } }));
 jest.mock('../components/v2/capture', () => ({
   InterviewCam: (props: object) => require('react').createElement(require('react-native').View, { testID: 'owner-interview-camera', ...props }),
   ShotGuide: (props: object) => require('react').createElement(require('react-native').View, { testID: 'owner-shot-camera', ...props }),
@@ -140,6 +141,46 @@ it('retakes the selected photo slot instead of appending another photo', () => {
   expect(mockSavePhoto).toHaveBeenCalledWith(id, 'file://replacement', expect.objectContaining({ index: 0, extra: false }));
 });
 
+it('waits for the current server draft before opening the photo camera', () => {
+  const loaded = mockSub;
+  mockSub = undefined as never;
+  const screen = wrap(<PhotosShoot />);
+  expect(screen.queryByTestId('owner-shot-camera')).toBeNull();
+  mockSub = loaded;
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><PhotosShoot /></SafeAreaProvider>);
+  expect(screen.getByTestId('owner-shot-camera')).toBeTruthy();
+});
+
+it('does not open the camera when shop details have not created a draft yet', () => {
+  mockMe = { ...mockMe, sites: [] };
+  ownerIntake.clear();
+  const screen = wrap(<PhotosShoot />);
+  expect(screen.queryByTestId('owner-shot-camera')).toBeNull();
+  fireEvent.press(screen.getByText('Add shop details'));
+  expect(mockReplace).toHaveBeenCalledWith('/(owner)/start/sell');
+});
+
+it('recovers a failed photo thumbnail after retaking that same slot', () => {
+  mockSub.shots = [{ index: 0, extra: false, url: 'https://failed-photo', updatedAt: 1 }];
+  const screen = wrap(<PhotosDone />);
+  const thumbnail = screen.UNSAFE_getAllByType(Image).find(image => image.props.source.uri === 'https://failed-photo')!;
+  fireEvent(thumbnail, 'error');
+  mockSub = { ...mockSub, shots: [{ index: 0, extra: false, url: 'https://replacement-photo', updatedAt: 2 }] };
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><PhotosDone /></SafeAreaProvider>);
+  expect(screen.UNSAFE_getAllByType(Image).filter(image => image.props.source.uri === 'https://replacement-photo')).toHaveLength(2);
+});
+
+it('does not count the optional answer as a missing regular interview answer', () => {
+  mockSub.interview = Array.from({ length: 11 }, (_, index) => index).filter(index => index !== 4).map(index => ({
+    index, questionEn: 'Question', questionTl: 'Tanong', lang: 'en', mediaUrl: `https://answer-${index}`, updatedAt: 1,
+  }));
+  const screen = wrap(<TalkIntro />);
+  expect(screen.getByText('9 of 10 answered')).toBeTruthy();
+  expect(screen.queryByText('Review your answers')).toBeNull();
+  fireEvent.press(screen.getByText('Start'));
+  expect(mockPush).toHaveBeenCalledWith('/(owner)/talk/record');
+});
+
 it('does not attach photos returned by a picker after the account changed', async () => {
   let finish!: (uris: string[]) => void;
   mockPick.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
@@ -172,8 +213,9 @@ it('ignores a late native photo after the same site leaves draft status', () => 
   mockSub = { ...mockSub, phase: 'building', status: 'submitted' };
   mockMe = { ...mockMe, sites: [mockSub] };
   screen.rerender(<SafeAreaProvider initialMetrics={metrics}><PhotosShoot /></SafeAreaProvider>);
-  act(() => old.onShot(0, 'file://late-photo'));
+  act(() => { old.onShot(0, 'file://late-photo'); old.onDone(['file://late-photo']); });
   expect(mockSavePhoto).not.toHaveBeenCalled();
+  expect(mockReplace).not.toHaveBeenCalled();
 });
 
 it('does not retry or show another draft’s upload queue on a sent interview summary', () => {
@@ -194,6 +236,41 @@ it('pins the shop through the existing map picker and saves the confirmed coordi
   await act(async () => { fireEvent.press(screen.getByText('Next')); });
   expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ submissionId: id, address: '20 Rizal St', coordinates: { lat: 14.65, lng: 121.1 } }));
   expect(mockPush).toHaveBeenCalledWith('/(owner)/start/how');
+});
+
+it('restores shop details from the owned server draft without a local intake cache', () => {
+  ownerIntake.clear();
+  mockSub = { ...mockSub, businessName: 'Restored shop', address: '55 Main Road', city: 'Pasig' };
+  const screen = wrap(<Place />);
+  expect(screen.getByDisplayValue('Restored shop')).toBeTruthy();
+  expect(screen.getByDisplayValue('55 Main Road')).toBeTruthy();
+  expect(screen.getByDisplayValue('Pasig')).toBeTruthy();
+});
+
+it('preserves details typed while the server draft is still loading', () => {
+  const loaded = mockSub;
+  mockSub = undefined as never;
+  const screen = wrap(<Place />);
+  fireEvent.changeText(screen.getByDisplayValue('Forge'), 'My edited name');
+  mockSub = { ...loaded, businessName: 'Server name', address: 'Server address', city: 'Pasig' };
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><Place /></SafeAreaProvider>);
+  expect(screen.getByDisplayValue('My edited name')).toBeTruthy();
+  expect(screen.getByDisplayValue('Server address')).toBeTruthy();
+});
+
+it('keeps a delayed details update from selecting the previous shop after switching sites', async () => {
+  let finish!: () => void;
+  mockUpdate.mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+  const screen = wrap(<Place />);
+  fireEvent.press(screen.getByText('Next'));
+  const next = { ...mockSub, submissionId: 'next-draft' as SubmissionId, businessName: 'Next shop' };
+  mockSub = next; mockMe = { ...mockMe, sites: [next] };
+  act(() => ownerIntake.set({ submissionId: next.submissionId, businessName: next.businessName }));
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><Place /></SafeAreaProvider>);
+  await act(async () => finish());
+  expect(ownerIntake.get().submissionId).toBe(next.submissionId);
+  expect(mockPush).not.toHaveBeenCalled();
+  expect(screen.getByDisplayValue('Next shop')).toBeTruthy();
 });
 
 it('opens the site selected in Inbox rather than the newest site', () => {
@@ -231,7 +308,7 @@ it('restores a saved gallery choice after hydration and previews without saving'
 it('keeps offline samples readable while disabling the use action', () => {
   const onUse = jest.fn(); const designs = designsFor('barber');
   const screen = wrap(<OwnerDesignGallery designs={designs} selectedCode={designs[0].code} onSelect={jest.fn()} onUse={onUse} onBack={jest.fn()} isOffline canUse={false} />);
-  expect(screen.getAllByText('Reconnect to preview this sample.').length).toBeGreaterThan(0);
+  expect(screen.UNSAFE_getAllByProps({ samplePreview: true }).every(preview => !!preview.props.html)).toBe(true);
   fireEvent.press(screen.getByText('Use this design'));
   expect(onUse).not.toHaveBeenCalled();
 });

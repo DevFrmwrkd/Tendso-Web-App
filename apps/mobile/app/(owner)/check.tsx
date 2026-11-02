@@ -2,32 +2,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
 import { Button, ScreenShell, Text } from '../../components/v2';
 import { SiteFrame } from '../../components/v2/owner/OwnerUI';
 import { useApprovePreview, usePreview } from '../../lib/v2/ownerData';
 import { STEP_ROUTE } from '../../lib/v2/ownerFlow';
-import { useOwnerSite } from '../../lib/v2/useOwnerSite';
+import { useOwnerScope } from '../../lib/v2/useOwnerScope';
 import { space } from '../../theme/v2';
 
 export default function CheckSite() {
+  const scope = useOwnerScope();
+  return <CheckPreview key={scope.scopeKey} scope={scope} />;
+}
+function CheckPreview({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const router = useRouter();
-  const { id, site } = useOwnerSite();
-  const { userId } = useAuth();
+  const { id, site } = scope;
   const preview = usePreview(id);
   const approve = useApprovePreview();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const saving = useRef(false);
   const mounted = useRef(true);
-  const actor = `${userId ?? ''}:${id ?? ''}`;
-  const latestActor = useRef(actor); latestActor.current = actor;
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const canApprove = !!id && preview?.ready === true && !scope.isOffline;
 
   const good = async () => {
-    if (!id || saving.current || !preview?.ready) return;
-    const sendingActor = actor;
-    const current = () => mounted.current && latestActor.current === sendingActor;
+    if (!id || saving.current || !canApprove || !scope.isCurrent()) return;
+    const current = () => mounted.current && scope.isCurrent();
     saving.current = true;
     setBusy(true);
     setError(null);
@@ -36,10 +36,11 @@ export default function CheckSite() {
       if (!current()) return;
       router.replace((res.next === 'publish' ? STEP_ROUTE.live : STEP_ROUTE.pay) as never);
     } catch (e: any) {
-      if (current()) setError(e?.data ?? e?.message ?? 'Please try again.');
+      if (current()) setError(typeof e?.data === 'string' ? e.data
+        : typeof e?.message === 'string' ? e.message : 'Please try again.');
     } finally {
       saving.current = false;
-      if (mounted.current) setBusy(false);
+      if (current()) setBusy(false);
     }
   };
 
@@ -51,9 +52,11 @@ export default function CheckSite() {
       footer={
         <>
           {error ? <Text tone="danger" align="center">{error}</Text> : null}
+          {scope.isOffline ? <Text tone="muted" align="center">Reconnect to approve your site or request a change.</Text> : null}
           <View style={styles.row}>
-            <Button title="Ask for a change" variant="ghost" fullWidth={false} disabled={busy || !preview?.ready} style={styles.change} onPress={() => router.push(STEP_ROUTE.change as never)} />
-            <Button title="Looks good" fullWidth={false} style={styles.good} loading={busy} disabled={!preview?.ready} onPress={good} />
+            <Button title="Ask for a change" variant="ghost" fullWidth={false} disabled={busy || !canApprove} style={styles.change}
+              onPress={() => { if (scope.isCurrent() && canApprove && !saving.current) router.push(STEP_ROUTE.change as never); }} />
+            <Button title="Looks good" fullWidth={false} style={styles.good} loading={busy} disabled={!canApprove} onPress={good} />
           </View>
         </>
       }

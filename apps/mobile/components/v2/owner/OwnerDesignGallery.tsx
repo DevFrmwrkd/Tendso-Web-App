@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +6,7 @@ import { Button, ScreenShell, Text } from '..';
 import { SiteFrame } from './OwnerUI';
 import type { Design } from '../../../lib/v2/ownerContent';
 import { SITE_URL } from '../../../services/links';
+import { capturePreviewHtml } from '../../../services/capturePreviews';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 
 const GAP = 12;
@@ -32,9 +33,10 @@ function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
   const [attempt, setAttempt] = useState(0);
   const [failedRequest, setFailedRequest] = useState<string | null>(null);
   const uri = previewUri(design);
+  const html = useMemo(() => capturePreviewHtml(design.code), [design.code]);
   const request = `${uri}:${attempt}`;
   const failed = failedRequest === request;
-  if (offline || failed) return <View style={[styles.previewFallback, width ? { width } : styles.flex, height ? { height } : null]} testID={testID}>
+  if ((offline && !html) || failed) return <View style={[styles.previewFallback, width ? { width } : styles.flex, height ? { height } : null]} testID={testID}>
     <Ionicons name={offline ? 'cloud-offline-outline' : 'image-outline'} size={32} color={colors.ink3Text} />
     <Text variant="label" align="center" tone="muted">{offline ? 'Reconnect to preview this sample.' : 'This sample could not load.'}</Text>
     {!offline && width === undefined ? <Pressable accessibilityRole="button" accessibilityLabel={`Retry ${design.name} sample`}
@@ -42,7 +44,7 @@ function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
       <Text variant="label" weight="bold">Try again</Text>
     </Pressable> : null}
   </View>;
-  return <SiteFrame key={request} uri={uri} width={width} height={height}
+  return <SiteFrame key={request} uri={uri} html={html} width={width} height={height}
     scale={scale} interactive={width === undefined} samplePreview onPreviewError={() => setFailedRequest(request)}
     style={width === undefined ? styles.flex : undefined} testID={testID} />;
 }

@@ -15,43 +15,46 @@ export function uploadSlot(u: OwnerUpload): string {
   return `${u.submissionId}:${u.kind === 'photo' ? (u.extra ? 'extra' : 'shot') : 'answer'}:${u.index}`;
 }
 
-function current(u: OwnerUpload) {
+function current(u: OwnerUpload, scope = ownerIntake.scope()) {
+  if (!ownerIntake.isCurrent(scope) || ownerIntake.get().submissionId !== u.submissionId) return undefined;
   return ownerIntake.get().uploads?.find((v) => uploadSlot(v) === uploadSlot(u) && v.uri === u.uri);
 }
 
-function patchCurrent(u: OwnerUpload, patch: Partial<Pick<OwnerUpload, 'uploadedUrl' | 'saved'>>) {
+function patchCurrent(u: OwnerUpload, patch: Partial<Pick<OwnerUpload, 'uploadedUrl' | 'saved'>>, scope = ownerIntake.scope()) {
   const uploads = ownerIntake.get().uploads ?? [];
-  if (!current(u)) return;
+  if (!current(u, scope)) return;
   ownerIntake.set({ uploads: uploads.map((v) => uploadSlot(v) === uploadSlot(u) && v.uri === u.uri ? { ...v, ...patch } : v) });
 }
 
 function schedule(u: OwnerUpload, io: Uploads) {
   if (u.saved) return;
+  const scope = ownerIntake.scope();
   uploadQueue.ensure(`${uploadSlot(u)}:${u.uri}`, u.kind === 'answer' ? `Answer ${u.index + 1}` : u.label ?? 'Photo', async () => {
     await ownerIntake.flush();
-    let entry = current(u);
+    let entry = current(u, scope);
     if (!entry || entry.saved) return; // retaken or signed out while queued
     const video = entry.kind === 'answer' && entry.mediaType === 'video';
     const url = entry.uploadedUrl ?? await io.upload(entry.uri, entry.kind === 'photo'
       ? { folder: 'images', contentType: 'image/jpeg', filename: `owner-${entry.extra ? 'extra' : 'shot'}-${entry.index}.jpg` }
       : { folder: video ? 'videos' : 'audio', contentType: video ? 'video/mp4' : 'audio/m4a', filename: `owner-answer-${entry.index + 1}.${video ? 'mp4' : 'm4a'}` });
-    if (!current(u)) return;
+    if (!current(u, scope)) return;
     // If saving the answer/shot fails, retries reuse the successful R2 upload.
-    patchCurrent(u, { uploadedUrl: url });
+    patchCurrent(u, { uploadedUrl: url }, scope);
     await ownerIntake.flush();
-    entry = current(u);
+    entry = current(u, scope);
     if (!entry) return;
     if (entry.kind === 'photo') {
       await io.saveShot({ submissionId: entry.submissionId, index: entry.index, extra: entry.extra, label: entry.label, url });
     } else {
       await io.saveAnswer({ submissionId: entry.submissionId, index: entry.index, lang: entry.lang, mediaUrl: url, mediaType: entry.mediaType, durationSec: entry.durationSec });
     }
-    patchCurrent(u, { saved: true });
+    patchCurrent(u, { saved: true }, scope);
     await ownerIntake.flush();
   });
 }
 
 export function rememberOwnerUpload(u: OwnerUpload, io: Uploads) {
+  if (ownerIntake.get().submissionId !== u.submissionId) return;
   const uploads = ownerIntake.get().uploads ?? [];
   const previous = uploads.find((v) => uploadSlot(v) === uploadSlot(u));
   if (previous) uploadQueue.cancel(`${uploadSlot(previous)}:${previous.uri}`);
@@ -67,7 +70,9 @@ export function rememberOwnerUpload(u: OwnerUpload, io: Uploads) {
 /** Called on resume and again before submit. The server upserts by slot, so an
  * interrupted acknowledgement never creates duplicate answers or photos. */
 export async function resumeOwnerUploads(id: SubmissionId, sub: OwnerSubmission | undefined, io: Uploads) {
+  const scope = ownerIntake.scope();
   await ownerIntake.load();
+  if (!ownerIntake.isCurrent(scope) || (sub && (sub.submissionId !== id || sub.phase !== 'draft'))) return;
   const intake = ownerIntake.get();
   if (intake.submissionId !== id) return;
   // Migrate drafts captured before the upload journal was introduced.
@@ -93,7 +98,12 @@ export function useOwnerUploads() {
   const upload = useUploadFile();
   const saveShot = useSaveShot();
   const saveAnswer = useSaveAnswer();
-  const remember = useCallback((u: OwnerUpload) => rememberOwnerUpload(u, { upload, saveShot, saveAnswer }), [upload, saveShot, saveAnswer]);
-  const resume = useCallback((id: SubmissionId, sub?: OwnerSubmission) => resumeOwnerUploads(id, sub, { upload, saveShot, saveAnswer }), [upload, saveShot, saveAnswer]);
+  const scope = ownerIntake.scope();
+  const remember = useCallback((u: OwnerUpload) => {
+    if (ownerIntake.isCurrent(scope)) rememberOwnerUpload(u, { upload, saveShot, saveAnswer });
+  }, [upload, saveShot, saveAnswer, scope]);
+  const resume = useCallback(async (id: SubmissionId, sub?: OwnerSubmission) => {
+    if (ownerIntake.isCurrent(scope)) await resumeOwnerUploads(id, sub, { upload, saveShot, saveAnswer });
+  }, [upload, saveShot, saveAnswer, scope]);
   return { remember, resume };
 }

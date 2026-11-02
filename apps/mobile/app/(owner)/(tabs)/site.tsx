@@ -4,6 +4,7 @@ import { Share, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Chip, ScreenShell, Text } from '../../../components/v2';
 import { Buddy, SiteFrame } from '../../../components/v2/owner/OwnerUI';
+import { publicSiteUrl } from '../../../components/v2/owner/OwnerSiteSummary';
 import { usePreview } from '../../../lib/v2/ownerData';
 import { outstandingPayment, phaseLine, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
@@ -15,6 +16,7 @@ export default function MySite() {
   const preview = usePreview(site && site.phase !== 'draft' ? id : null);
   const phase = site?.phase ?? null;
   const uri = preview?.publishedUrl ?? (preview?.ready ? preview.htmlUrl : null);
+  const shareUrl = publicSiteUrl(preview?.publishedUrl ?? site?.publishedUrl);
   const payment = outstandingPayment(site);
 
   let footer: React.ReactNode = null;
@@ -24,7 +26,7 @@ export default function MySite() {
         {payment ? <Button title={payment.label} onPress={() => router.push(STEP_ROUTE.pay as never)} /> : null}
         <View style={styles.row}>
           <Button title="Ask for a change" variant="ghost" fullWidth={false} style={{ flexGrow: 1, minWidth: 160, paddingHorizontal: 18 }} onPress={() => router.push(STEP_ROUTE.change as never)} />
-          {preview?.publishedUrl ? <Button title="Share" variant={payment ? 'ghost' : 'primary'} fullWidth={false} style={{ flex: 1 }} onPress={() => Share.share({ message: `${site?.businessName}: ${preview.publishedUrl}` }).catch(() => {})} /> : null}
+          {shareUrl ? <Button title="Share" variant={payment ? 'ghost' : 'primary'} fullWidth={false} style={{ flex: 1 }} onPress={() => Share.share({ message: `${site?.businessName}: ${shareUrl}` }).catch(() => {})} /> : null}
         </View>
       </View>
     );

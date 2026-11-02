@@ -15,7 +15,8 @@ export function useOwnerSite(): {
   const intake = useOwnerIntake();
   const fromIntake = intake.submissionId ? me?.sites.find((s) => s.submissionId === intake.submissionId) ?? null : null;
   const site = fromIntake ?? newestSite(me);
-  return { me, site, id: site?.submissionId ?? intake.submissionId ?? null };
+  // A local id is a selection, never evidence that this login owns the draft.
+  return { me, site, id: site?.submissionId ?? null };
 }
 
 export function firstName(me: OwnerMe | null | undefined): string {

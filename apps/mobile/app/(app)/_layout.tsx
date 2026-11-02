@@ -118,7 +118,7 @@ export default function AppLayout() {
   );
   // Shop owners have their own app section (replaces the old "Continue on the web" dead end).
   // Agents, creators and admins are routed exactly as before.
-  if (!mobileAccount.isOffline && mobileAccount.isOwner) return <Redirect href={'/(owner)' as never} />;
+  if (!mobileAccount.isOffline && mobileAccount.isOwner && mobileAccount.account === null) return <Redirect href={'/(owner)' as never} />;
   if (!mobileAccount.isOffline && mobileAccount.account === null) {
     if (ownerIntent === null) return null;
     if (ownerIntent) return <Redirect href={'/(owner)' as never} />;

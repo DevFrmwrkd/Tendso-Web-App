@@ -137,9 +137,9 @@
     </div><div class="ow-foot"><p class="ow-small">Not available in the app yet.</p></div>`, { proposed: true });
 
   // ================= ROW 4 · DESIGN =================
-  const mixing = () => app(`${SB()}${titleBar('Forge')}
+  const mixing = () => app(`${SB()}${titleBar('Editorial')}
     <div class="ow-main" style="top:118px;gap:12px"><p class="ow-sub">Sample website · Scroll to explore</p>
-      <div style="height:450px;overflow:auto;border-radius:22px"><img src="${A('assets/sites/designs/barber-f-m-long.jpg')}" alt="Sample Forge design" style="width:100%"></div>
+      <div style="height:450px;overflow:hidden;border-radius:22px"><iframe src="/template-previews/ca.html" title="Full Editorial sample website" sandbox="" loading="lazy" style="width:100%;height:100%;border:0"></iframe></div>
     </div><div class="ow-foot">${pill('Use this design')}</div>`);
   const stage = (state, label, meta, extra = '') => `<div class="ow-st is-${state}">${
     state === 'done' ? okDot : state === 'run' ? '<span class="ow-dot ow-dot--run"></span>' : '<span class="ow-dot ow-dot--wait"></span>'
@@ -277,12 +277,19 @@
     <div class="ow-ph"><span class="a-label">TendsoScreens · ${name}</span><b>Loads from<br>js/screens.js</b><p>Not available yet.</p></div>`);
 
   // ---------- board config ----------
+  const designPicker = () => app(`${SB()}${stepBar(3)}
+    <div class="ow-main ow-design-main">
+      <h2 class="ow-h1">Choose your design</h2>
+      <p class="ow-sub">Three designs for your kind of shop. Your words and photos make it yours.</p>
+      <div class="ow-design-sample"><iframe src="/template-previews/ca.html" title="Editorial barbershop sample" sandbox="" loading="lazy" tabindex="-1"></iframe></div>
+      <b>Editorial</b><p class="ow-small">1 of 3 · Editorial / Immersive / Studio</p>
+    </div><div class="ow-foot">${pill('Use this design')}</div>`);
   const ROWS = [
     { title: 'Start', note: 'Account, then three quick questions. One question per screen.', steps: [
       { ts: 'welcome', kind: 'real', source: 'app/index.tsx', name: 'Welcome', note: 'One app. "I have a business" starts the owner flow.' },
-      { render: signup, kind: 'real', source: '(auth)/owner.tsx', name: 'Sign up', note: 'Name and email, then an email code. No password or SMS.' },
+      { render: signup, kind: 'real', source: '(auth)/owner.tsx', name: 'Sign up', note: 'Name and email, then an email code. Activation can be retried without reusing a consumed code. Existing roles stay in their own section.' },
       { render: q1, kind: 'real', source: '(owner)/start/sell.tsx', name: 'What do you sell?', note: 'Business type, asked as one question with photo rows.' },
-      { render: q2, kind: 'real', source: '(owner)/start/place.tsx', name: 'Name and place', note: 'Name and address with a map pin to confirm.' },
+      { render: q2, kind: 'real', source: '(owner)/start/place.tsx', name: 'Name and place', note: 'Restores the current shop details from the server, while preserving edits made during loading. Confirm the address with a map pin.' },
       { render: q3, kind: 'real', source: '(owner)/start/how.tsx', name: 'How to do it', note: 'Film yourself or have a friend hold the phone. A separate action requests a field-agent visit.' },
     ] },
     { title: 'Talk', note: 'Ten simple questions on camera, one at a time, then anything else. The app writes it down.', steps: [
@@ -292,12 +299,12 @@
     ] },
     { title: 'Photos', note: 'Ten photo tasks picked for the kind of shop, then any extras. Phone photos in, site photos out.', steps: [
       { ts: 'shot-list', kind: 'real', source: '(owner)/photos/index.tsx', name: 'Photo tasks', note: 'Ten suggestions for the shop category, captured thumbnails and library extras.', opts: { type: 'barber', step: 2 } },
-      { ts: 'shot-guide', kind: 'real', source: '(owner)/photos/shoot.tsx', name: 'Guided camera', note: 'One task at a time, with level feedback and targeted retakes.', opts: { type: 'barber' } },
+      { ts: 'shot-guide', kind: 'real', source: '(owner)/photos/shoot.tsx', name: 'Guided camera', note: 'Loads the owned draft before opening the camera. One task at a time, with level feedback and targeted retakes.', opts: { type: 'barber' } },
       { render: photoUpgrade, kind: 'real', source: '(owner)/photos/done.tsx', name: 'Your photos', note: 'Review originals, view full photos and retake a slot. Before/after enhancement selection is a future owner API capability.' },
       { render: photoEnhancementConcept, kind: 'proposed', source: 'Future: enhancement choices', name: 'Photo upgrade concept', note: 'Original future design retained separately. Requires owner-scoped before/after results and a saved choice; current mobile shows original photos.' },
     ] },
     { title: 'Design', note: 'Choose one sample design, preview the whole site, then build with your words and photos.', steps: [
-      { ts: 'design-picker', kind: 'real', source: '(owner)/design.tsx', name: 'Choose a design', note: 'One design for the shop category. Samples are labelled; offline and loading failures stay readable.' },
+      { render: designPicker, kind: 'real', source: '(owner)/design.tsx', name: 'Choose a design', note: 'Three approved samples per supported shop category: Editorial, Immersive and Studio. Sending waits for uploads, ten regular answers and at least three photos; the extra answer is optional.' },
       { render: mixing, kind: 'real', source: 'OwnerDesignGallery.tsx', name: 'Full sample preview', note: 'Scroll a sample website and close to keep the selection. Mixing was dropped by the accepted defaults.' },
       { render: building, kind: 'real', source: '(owner)/building.tsx', name: 'Building', note: 'Real backend build stages, about 20 minutes. Owner push delivery is a separate backend capability.' },
     ] },
@@ -307,7 +314,7 @@
       { ts: 'site-building', kind: 'real', source: '(owner)/check.tsx', name: 'Ready to check', note: 'Ask for a change, or say it looks good.', opts: { review: true } },
       { ts: 'site-ready', kind: 'real', source: '(owner)/pay/index.tsx', name: 'Site ready', note: 'The finished private site, before paying. Deposits are not a fixed monthly subscription.', via: 'about 20 minutes later' },
       { render: siteEdit, kind: 'real', source: '(owner)/change.tsx', name: 'Ask for a change', note: 'A real free-text request goes to the team. Direct block editing is a later phase.' },
-      { render: pay, kind: 'real', source: '(owner)/pay/index.tsx', name: 'Pay once', note: 'Server price, optional creator code, full or down payment; Xendit methods only when enabled, or Wise.' },
+      { render: pay, kind: 'real', source: '(owner)/pay/index.tsx', name: 'Pay once', note: 'Server price and minimum down payment, optional creator code, and only currently allowed payment choices. Loading or changed quotes cannot open stale checkout.' },
       { render: live, kind: 'real', source: '(owner)/live.tsx', name: 'Live', note: 'Actual public address, copy/share and a real counter QR with save/share actions.' },
     ] },
     { title: 'After', note: 'Owner home and a field-agent visit request assigned by the team.', steps: [

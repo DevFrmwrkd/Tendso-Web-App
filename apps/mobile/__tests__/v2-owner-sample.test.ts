@@ -31,7 +31,7 @@ describe('sample owner backend (same shapes as the contract)', () => {
     expect(sample.build(id)!.doneCount).toBe(2);
     jest.advanceTimersByTime(SAMPLE_STEP_MS * 2);
     expect(sample.build(id)!.phase).toBe('ready_to_check');
-    expect(sample.preview(id)!.htmlUrl).toContain('/template-previews/f.html');
+    expect(sample.preview(id)!.htmlUrl).toContain('/template-previews/ca.html');
 
     const pay0 = sample.payment(id)!;
     expect(pay0.billable && pay0.needsApproval).toBe(true);

@@ -32,7 +32,10 @@ jest.mock('react-native-view-shot', () => ({ captureRef: (...args: unknown[]) =>
 jest.mock('expo-media-library', () => ({ requestPermissionsAsync: (...args: unknown[]) => mockPermission(...args), saveToLibraryAsync: (...args: unknown[]) => mockSaveImage(...args) }));
 jest.mock('expo-sharing', () => ({ isAvailableAsync: () => mockSharingAvailable(), shareAsync: (...args: unknown[]) => mockShareImage(...args) }));
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: (...args: unknown[]) => mockBrowser(...args) }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: jest.fn() }), useLocalSearchParams: () => ({ kind: 'full', amount: '4999' }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), replace: mockReplace, back: jest.fn() }),
+  useLocalSearchParams: () => ({ kind: 'full', amount: '4999' }),
+  useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(effect, [effect]),
+}));
 jest.mock('../lib/v2/ownerFlags', () => ({ OWNER_SAMPLE_DATA: false }));
 jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ id: mockId, site: mockSite, me: { owner: { _id: 'owner', name: 'Ben', email: 'ben@example.com' } } }) }));
 jest.mock('../lib/v2/ownerData', () => ({
@@ -44,7 +47,8 @@ beforeEach(() => {
   jest.clearAllMocks(); mockCurrent = true; mockId = 'owner-site'; mockSubject = 'owner-clerk';
   mockSite = { businessName: 'Ben Barber', phase: 'live', publishedUrl: 'https://ben.sites.tendso.com' };
   mockPreview = { ready: true, htmlUrl: null, inlineHtml: null, publishedUrl: mockSite.publishedUrl, isLive: true };
-  mockPay = { billable: true, total: 4999, balanceDue: 4999, paidInFull: false, needsApproval: false, xenditEnabled: true };
+  mockPay = { billable: true, total: 4999, amountPaid: 0, balanceDue: 4999, paidInFull: false, needsApproval: false,
+    canPayFull: true, canPayDeposit: true, canPayBalance: false, minDownPayment: 500, xenditEnabled: true };
   mockPermission.mockResolvedValue({ granted: true }); mockSaveImage.mockResolvedValue(undefined);
   mockCapture.mockResolvedValue('file://qr.png'); mockSharingAvailable.mockResolvedValue(true); mockShareImage.mockResolvedValue(undefined);
   mockCreateToken.mockResolvedValue({ token: 'payment-token' }); mockCheckout.mockResolvedValue({ enabled: true, checkoutUrl: 'https://checkout.example.com' });
@@ -125,7 +129,7 @@ it('deduplicates checkout creation and waits for billing/preview approval', asyn
   expect(mockCreateToken).toHaveBeenCalledTimes(1);
   expect(mockCreateToken).toHaveBeenCalledWith({ submissionId: 'owner-site', kind: 'full', amount: undefined, expectedTotal: 4999 });
   mockPay = { ...mockPay, needsApproval: true }; view.rerender(<PayMethod />);
-  expect(view.getByLabelText('Pay ₱4,999').props.accessibilityState.disabled).toBe(true);
+  expect(view.getByLabelText('Pay').props.accessibilityState.disabled).toBe(true);
 });
 
 it('does not open checkout or navigate after the selected site changes during token creation', async () => {

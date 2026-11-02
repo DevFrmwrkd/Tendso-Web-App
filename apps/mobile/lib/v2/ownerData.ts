@@ -11,6 +11,7 @@
  * backend is deployed. Never on in production builds.
  */
 import { useCallback, useSyncExternalStore } from 'react';
+import { useAuth } from '@clerk/clerk-expo';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { SITE_URL } from '../../services/links';
@@ -80,13 +81,19 @@ const skip = 'skip' as const;
 /** The signed-in owner and their sites. undefined = loading, null = not an owner yet (call ensure). */
 export function useOwnerMe(enabled = true): OwnerMe | null | undefined {
   if (OWNER_SAMPLE_DATA) return useSample(() => sample.me()); // eslint-disable-line react-hooks/rules-of-hooks
-  return useQuery(ref.me, enabled ? {} : skip); // eslint-disable-line react-hooks/rules-of-hooks
+  const { userId } = useAuth(); // eslint-disable-line react-hooks/rules-of-hooks
+  return useQuery(ref.me, enabled && userId ? { clerkId: userId } : skip); // eslint-disable-line react-hooks/rules-of-hooks
 }
 
 /** Create / re-link the owner row after every sign-in. Idempotent. */
 export function useEnsureOwner(): (args?: { name?: string; phone?: string }) => Promise<EnsureResult> {
   const m = useMutation(ref.ensure);
-  return useCallback((args = {}) => (OWNER_SAMPLE_DATA ? sample.ensure(args) : m(args)), [m]);
+  const { userId } = useAuth();
+  return useCallback((args = {}) => {
+    if (OWNER_SAMPLE_DATA) return sample.ensure(args);
+    if (!userId) return Promise.reject(new Error('Please sign in again.'));
+    return m({ ...args, clerkId: userId });
+  }, [m, userId]);
 }
 
 // ------------------------------------------------------------------ draft

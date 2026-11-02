@@ -87,6 +87,9 @@ async function ownerSubmission(t: T, owner: ReturnType<T['withIdentity']>) {
     await owner.mutation(api.ownerApp.saveAnswer, {
         submissionId: id, index: 3, lang: 'tl', mediaUrl: `${R2}/videos/q3.mp4`, mediaType: 'video', durationSec: 42,
     });
+    for (const index of [1, 2, 4, 5, 6, 7, 8, 9]) {
+        await owner.mutation(api.ownerApp.saveAnswer, { submissionId: id, index, lang: 'en', answerText: `Shop detail ${index}` });
+    }
     for (let i = 0; i < 3; i++) {
         await owner.mutation(api.ownerApp.saveShot, { submissionId: id, index: i, url: `${R2}/images/shot-${i}.jpg`, label: `Shot ${i}` });
     }
@@ -105,6 +108,16 @@ async function buildSite(t: T, submissionId: Id<'submissions'>) {
 }
 
 describe('owner accounts', () => {
+    it('rejects stale actor account setup and does not return a previous login through a scoped query', async () => {
+        const { t, owner } = await setup();
+        await owner.mutation(api.owners.ensure, { clerkId: 'owner-1' });
+        expect(await owner.query(api.owners.me, { clerkId: 'other-owner' })).toBeNull();
+        expect((await owner.query(api.owners.me, { clerkId: 'owner-1' }))?.owner.email).toBe('ben@example.com');
+        const stranger = t.withIdentity({ subject: 'owner-2', email: 'other@example.com', emailVerified: true });
+        await expect(stranger.mutation(api.owners.ensure, { clerkId: 'owner-1' })).rejects.toThrow('account changed');
+        expect(await t.run(ctx => ctx.db.query('businessOwners').collect())).toHaveLength(1);
+    });
+
     it('ensure creates the owner once and links invited sites by verified email', async () => {
         const { t, agentId, owner } = await setup();
         const saleId = await agentSale(t, agentId);
@@ -183,9 +196,9 @@ describe('owner self-serve submission', () => {
             ownerName: 'Ben Reyes', amount: 4999, creatorPayout: 0, templateId: 'barbershop:BP',
             templateIds: ['barbershop:BP', 'barbershop:BQ'], shotListKey: 'barber',
             photos: [`${R2}/images/shot-0.jpg`, `${R2}/images/shot-1.jpg`, `${R2}/images/shot-2.jpg`, `${R2}/images/extra.jpg`],
-            interviewQa: [{ q: "What's your shop called?", a: 'Forge Barbers' }],
+            interviewQa: expect.arrayContaining([{ q: "What's your shop called?", a: 'Forge Barbers' }]),
         });
-        expect(s?.ownerInterview?.[1]).toMatchObject({ index: 3, questionTl: 'Ano ang pinakagusto ng mga tao?', mediaType: 'video', durationSec: 42 });
+        expect(s?.ownerInterview?.find(a => a.index === 3)).toMatchObject({ index: 3, questionTl: 'Ano ang pinakagusto ng mga tao?', mediaType: 'video', durationSec: 42 });
         expect(s?.buildSteps?.reading_interview?.status).toBe('pending');
         expect(await t.run((ctx) => ctx.db.query('leads').collect())).toHaveLength(1);
         const names = await scheduledNames(t);
@@ -205,7 +218,7 @@ describe('owner self-serve submission', () => {
         const id = await owner.mutation(api.ownerApp.createDraft, { businessType: 'Barber/Salon', businessName: 'Forge', address: 'Main St' });
         await expect(owner.mutation(api.ownerApp.saveShot, { submissionId: id, index: 0, url: 'https://evil.example.com/x.jpg' }))
             .rejects.toThrow('upload through the app');
-        await expect(owner.mutation(api.ownerApp.submit, { submissionId: id })).rejects.toThrow('answer the questions');
+        await expect(owner.mutation(api.ownerApp.submit, { submissionId: id })).rejects.toThrow('answer all 10 questions');
         await expect(owner.mutation(api.ownerApp.createDraft, { businessType: 'Rocket Science', businessName: 'X' }))
             .rejects.toThrow('from the list');
 
@@ -214,6 +227,21 @@ describe('owner self-serve submission', () => {
         await expect(stranger.query(api.ownerApp.getSubmission, { submissionId: id })).rejects.toThrow('could not find');
         await expect(stranger.mutation(api.ownerApp.saveAnswer, { submissionId: id, index: 0, lang: 'en', answerText: 'x' }))
             .rejects.toThrow('could not find');
+    });
+
+    it('requires ten regular answers, keeps the extra optional, and schedules no build for incomplete content', async () => {
+        const { t, owner } = await setup();
+        await owner.mutation(api.owners.ensure, {});
+        const id = await owner.mutation(api.ownerApp.createDraft, { businessType: 'Auto Shop', businessName: 'Garage', address: 'Main St' });
+        for (let index = 0; index < 9; index++) await owner.mutation(api.ownerApp.saveAnswer, { submissionId: id, index, lang: 'en', answerText: `Detail ${index}` });
+        await owner.mutation(api.ownerApp.saveAnswer, { submissionId: id, index: 10, lang: 'en', answerText: 'An optional extra' });
+        await expect(owner.mutation(api.ownerApp.submit, { submissionId: id })).rejects.toThrow('all 10');
+        await owner.mutation(api.ownerApp.saveAnswer, { submissionId: id, index: 9, lang: 'en', mediaType: 'audio', mediaUrl: `${R2}/audio/last.m4a` });
+        await expect(owner.mutation(api.ownerApp.submit, { submissionId: id })).rejects.toThrow('at least 3 photos');
+        expect((await scheduledNames(t)).filter(name => name === 'buildProgress:startPipeline')).toHaveLength(0);
+        for (let index = 0; index < 3; index++) await owner.mutation(api.ownerApp.saveShot, { submissionId: id, index, url: `${R2}/images/${index}.jpg` });
+        await owner.mutation(api.ownerApp.submit, { submissionId: id });
+        expect((await scheduledNames(t)).filter(name => name === 'buildProgress:startPipeline')).toHaveLength(1);
     });
 });
 

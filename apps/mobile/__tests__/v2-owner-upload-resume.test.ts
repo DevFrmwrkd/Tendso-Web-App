@@ -12,7 +12,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../lib/v2/ownerData', () => ({}));
 
 const id = 'draft' as SubmissionId;
-const draft = () => ({ submissionId: id, shots: [], interview: [] }) as unknown as OwnerSubmission;
+const draft = () => ({ submissionId: id, phase: 'draft', shots: [], interview: [] }) as unknown as OwnerSubmission;
 const runtime = () => ({
   intake: require('../lib/v2/ownerIntake').ownerIntake as typeof import('../lib/v2/ownerIntake').ownerIntake,
   queue: require('../lib/v2/uploadQueue').uploadQueue as typeof import('../lib/v2/uploadQueue').uploadQueue,
@@ -152,4 +152,24 @@ it('a successful retake removes a failed predecessor instead of blocking submit 
   await app.queue.drain();
   expect(app.queue.snapshot()).toMatchObject({ failed: 0, done: 1 });
   expect(app.intake.get().uploads).toEqual([expect.objectContaining({ uri: 'file://retake.jpg', saved: true })]);
+});
+
+it('a late upload from an old session cannot save after signing out and back into the same draft', async () => {
+  const app = runtime();
+  await app.intake.bindActor('owner-a');
+  app.intake.set({ submissionId: id });
+  let finish!: (url: string) => void;
+  const io = {
+    upload: jest.fn(() => new Promise<string>(resolve => { finish = resolve; })),
+    saveShot: jest.fn(async () => {}), saveAnswer: jest.fn(),
+  };
+  app.rememberOwnerUpload({ kind: 'photo', submissionId: id, index: 0, extra: false, uri: 'file://same.jpg' }, io);
+  await app.intake.flush();
+  await Promise.resolve();
+  await app.intake.bindActor(null);
+  await app.intake.bindActor('owner-a');
+  finish('https://cdn.test/old-session.jpg');
+  await Promise.resolve(); await Promise.resolve();
+  expect(io.saveShot).not.toHaveBeenCalled();
+  expect(app.intake.get().uploads?.[0].saved).not.toBe(true);
 });

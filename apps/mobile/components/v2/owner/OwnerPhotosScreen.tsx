@@ -26,7 +26,8 @@ function Photos({ scope, summary }: { scope: ReturnType<typeof useOwnerScope>; s
   const save = useSaveOwnerPhoto();
   const queue = useUploadQueue();
   const photos = ownerPhotosFor(scope.id, sub, intake);
-  const kind = sellKind(intake.kind) ?? sellKindFromServer(sub?.businessType, sub?.shotListKey);
+  const kind = sub?.submissionId === scope.id ? sellKindFromServer(sub.businessType, sub.shotListKey)
+    : sellKind(intake.kind) ?? sellKindFromServer(undefined, undefined);
   const tasks = shotList(kind.shots);
   const extras = photos.filter(photo => photo.extra);
   const enough = photos.length >= MIN_PHOTOS_TO_SEND;
@@ -93,10 +94,10 @@ function Photos({ scope, summary }: { scope: ReturnType<typeof useOwnerScope>; s
   </ScreenShell>;
 }
 function PhotoTile({ photo, onPress }: { photo: OwnerPhotoItem; onPress: () => void }) {
-  const [failed, setFailed] = useState(false);
+  const [failedUri, setFailedUri] = useState<string | null>(null);
   return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`View ${photo.label}`} style={styles.tile}>
-    {failed ? <View style={styles.fallback}><Ionicons name="image-outline" size={28} color={colors.ink3Text} /></View>
-      : <Image source={{ uri: photo.uri }} onError={() => setFailed(true)} style={StyleSheet.absoluteFill} resizeMode="cover" />}
+    {failedUri === photo.uri ? <View style={styles.fallback}><Ionicons name="image-outline" size={28} color={colors.ink3Text} /></View>
+      : <Image source={{ uri: photo.uri }} onError={() => setFailedUri(photo.uri)} style={StyleSheet.absoluteFill} resizeMode="cover" />}
   </Pressable>;
 }
 const styles = StyleSheet.create({ content: { gap: space.md }, flex: { flex: 1, minWidth: 0 }, taskList: { paddingVertical: 0 },

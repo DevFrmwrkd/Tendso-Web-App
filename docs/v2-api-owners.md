@@ -67,7 +67,9 @@ template must include `email` (and ideally `email_verified`).
 
 ### `api.owners.ensure` (mutation)
 Call it after every sign-in. It is idempotent.
-- args: `{ name?: string, phone?: string }`
+- args: `{ name?: string, phone?: string, clerkId?: string }`
+- Mobile includes `clerkId` as a session consistency guard. It must match the
+  authenticated subject; it never selects an owner or grants access.
 - returns: `{ ownerId, email, name: string|null, created: boolean, linkedSubmissionIds: Id<'submissions'>[] }`
 - Creates the `businessOwners` row, or reuses it by Clerk id. If the Clerk user
   is new but the email is known, it re-links that row to the new user.
@@ -76,6 +78,8 @@ Call it after every sign-in. It is idempotent.
 - Refuses `emailVerified === false` and affiliate (creator) logins.
 
 ### `api.owners.me` (query)
+- args: `{ clerkId?: string }`. Mobile keys its query by the signed-in Clerk
+  subject; a mismatch returns `null` instead of another session's account data.
 - returns `null` (call `ensure`) or
   `{ owner: { _id, email, name, phone }, sites: SiteSummary[] }`
 - `SiteSummary` = `{ submissionId, businessName, businessType, contentSource,
@@ -111,9 +115,9 @@ agent app uses). Pass the returned `publicUrl`. Any other URL is refused.
 | `api.ownerApp.saveAnswer` | `{ submissionId, index 0-10, lang 'en'\|'tl', answerText?, mediaUrl?, mediaType? 'video'\|'audio', durationSec? }` | `{ answered }`. Upserts by index. Send neither text nor media to clear. Stored in `submissions.ownerInterview[]` with the canonical EN and TL question text. |
 | `api.ownerApp.saveShot` | `{ submissionId, index, url, label?, extra? }` | `{ photos }`. Guided shots use index 0-9 in shot-list order. Extras use `extra: true`, index 0-9. Stored in `ownerShots[]`. |
 | `api.ownerApp.removeShot` | `{ submissionId, index, extra? }` | `{ photos }` |
-| `api.ownerApp.chooseDesign` | `{ submissionId, templateId, templateIds? (1-3) }` | `{ ok }`. A template code such as `barbershop:BP`. Allowed until the owner says "Looks good". |
+| `api.ownerApp.chooseDesign` | `{ submissionId, templateId, templateIds? (1-3) }` | `{ ok }`. A template code such as `business:CA`. Mobile offers three approved designs per supported business category, retaining a compatible explicitly saved legacy choice. Allowed until the owner says "Looks good". |
 | `api.ownerApp.setStyle` | `{ submissionId, fontChoice?, colorChoice? }` | `{ ok }`. Font and colour come later, any time. Sets `styleUpdatedAt` so the pipeline can rebuild. |
-| `api.ownerApp.submit` | `{ submissionId }` | `{ submissionId, status: 'submitted' }`. Needs a name, an address or map pin, at least 1 answer and at least 3 photos. Sets `photos` (guided, then extras), `interviewQa` and `transcript` (text answers) so existing readers work, and sets all four build steps to `pending`. Adds a lead row and the analytics. Schedules `internal.buildProgress.startPipeline` and the "about 20 minutes" email. Throttled: 3 a day per owner and 50 a day overall (`OWNER_APP_DAILY_LIMIT`). A double tap is a no-op. |
+| `api.ownerApp.submit` | `{ submissionId }` | `{ submissionId, status: 'submitted' }`. Needs a name, an address or map pin, all ten regular answers (text or recording, indices 0–9) and at least 3 photos. Index 10 is optional. Sets `photos` (guided, then extras), `interviewQa` and `transcript` (text answers) so existing readers work, and sets all four build steps to `pending`. Adds a lead row and the analytics. Schedules `internal.buildProgress.startPipeline` and the "about 20 minutes" email. Throttled: 3 a day per owner and 50 a day overall (`OWNER_APP_DAILY_LIMIT`). A double tap is a no-op. |
 | `api.ownerApp.getSubmission` (query) | `{ submissionId }` | SiteSummary plus address, coordinates, `interview[]`, `shots[]`, design and style choices, `ownerApprovedAt`, `previewReadyAt`. Use it to resume a draft. |
 | `api.ownerApp.getBuild` (query) | `{ submissionId }` | `{ phase, steps: [{ key, label, status, startedAt, finishedAt, error }], doneCount, estimateMinutes: 20, buildStartedAt, previewReadyAt, openChangeRequests }`. Subscribe with `useQuery`, so there is no polling. |
 | `api.ownerApp.getPreview` (query) | `{ submissionId }` | `{ ready, htmlUrl, inlineHtml, isLive, publishedUrl }`. `htmlUrl` is a Convex storage URL to the built HTML, for a WebView. Only the linked owner gets it. It is not indexed or public. |

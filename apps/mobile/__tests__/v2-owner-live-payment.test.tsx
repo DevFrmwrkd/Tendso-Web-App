@@ -11,6 +11,7 @@ import type { SiteSummary, SubmissionId } from '../lib/v2/ownerTypes';
 const mockPush = jest.fn();
 let mockSite: SiteSummary;
 let mockPayment: any;
+let mockPreview: any;
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: 'owner-clerk' }) }));
@@ -21,7 +22,7 @@ jest.mock('../lib/v2/useOwnerSite', () => ({
   firstName: () => 'Ben', greeting: () => 'Morning',
 }));
 jest.mock('../lib/v2/ownerData', () => ({
-  usePreview: () => ({ ready: true, publishedUrl: 'https://shop.sites.tendso.com', isLive: true }),
+  usePreview: () => mockPreview,
   useOwnerSubmission: () => undefined,
   usePaymentState: () => mockPayment,
   useOwnerCreatorCode: () => undefined,
@@ -39,6 +40,7 @@ beforeEach(() => {
     paidInFull: false, openChangeRequests: 0, createdAt: 1,
   };
   mockPayment = { billable: true, total: 4999, amountPaid: 0, balanceDue: 4999, paidInFull: false, canPayFull: true, canPayDeposit: true, canPayBalance: false, minDownPayment: 500, needsApproval: false };
+  mockPreview = { ready: true, publishedUrl: 'https://shop.sites.tendso.com', isLive: true };
 });
 
 it.each([[0, 4999, 'Pay ₱4,999'], [1000, 3999, 'Pay ₱3,999']])('Today offers payment for a live site with %i paid', (paid, balance, label) => {
@@ -69,9 +71,22 @@ it('fully paid and free sites keep the sharing action and have no payment prompt
   const screen = wrap(<MySite />);
   expect(screen.queryByText(/^Pay /)).toBeNull();
   fireEvent.press(screen.getByText('Share'));
-  expect(share).toHaveBeenCalledWith({ message: 'Ben Barber: https://shop.sites.tendso.com' });
+  expect(share).toHaveBeenCalledWith({ message: 'Ben Barber: https://shop.sites.tendso.com/' });
   screen.unmount();
   share.mockRestore();
+});
+
+it.each(['javascript:alert(1)', 'https://name:secret@example.com', 'not a URL'])('never offers sharing for the unsafe public address %s', url => {
+  mockSite = { ...mockSite, publishedUrl: url };
+  mockPreview = { ...mockPreview, publishedUrl: url };
+  const screen = wrap(<MySite />);
+  expect(screen.queryByText('Share')).toBeNull();
+});
+
+it('keeps a verified live address shareable while preview metadata is loading', () => {
+  mockPreview = undefined;
+  const screen = wrap(<MySite />);
+  expect(screen.getByText('Share')).toBeTruthy();
 });
 
 it('an unpaid published site reaches full/deposit checkout without claiming it needs publishing', () => {

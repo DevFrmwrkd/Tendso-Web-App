@@ -454,7 +454,9 @@ export const submit = mutation({
         if (!submission.businessName.trim()) reject('What is your shop called?');
         if (!submission.address.trim() && !submission.coordinates) reject('Where is your shop?');
         const interview = submission.ownerInterview ?? [];
-        if (!interview.some((a) => a.answerText || a.mediaUrl)) reject('Please answer the questions first.');
+        if (OWNER_APP_QUESTIONS.slice(0, EXTRA_QUESTION_INDEX).some((_, index) => !interview.some((a) => a.index === index && (a.answerText?.trim() || a.mediaUrl?.trim())))) {
+            reject('Please answer all 10 questions first.');
+        }
         const shots = submission.ownerShots ?? [];
         const guided = shots.filter((s) => !s.extra).sort((a, b) => a.index - b.index);
         const extras = shots.filter((s) => s.extra).sort((a, b) => a.index - b.index);

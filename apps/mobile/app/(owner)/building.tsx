@@ -39,6 +39,10 @@ export default function Building() {
 
   const phase = build?.phase;
   const ready = phase === 'ready_to_check' || phase === 'awaiting_payment' || phase === 'publishing' || phase === 'live';
+  const complete = phase === 'live' ? { title: 'Your site is live', body: 'Your website is online.', action: 'View my site', route: '/(owner)/(tabs)/site' }
+    : phase === 'publishing' ? { title: 'Going live', body: 'We are publishing your site.', action: 'See progress', route: STEP_ROUTE.live }
+      : phase === 'awaiting_payment' ? { title: 'Ready to publish', body: 'Your site is built.', action: 'Pay to publish', route: STEP_ROUTE.pay }
+        : { title: 'Ready to check', body: 'Your site is built.', action: 'Check my site', route: STEP_ROUTE.check };
   const changing = phase === 'changes_requested';
   const done = build?.doneCount ?? 0;
   const failed = build?.steps.some((s) => s.status === 'failed');
@@ -49,12 +53,12 @@ export default function Building() {
     return (
       <ScreenShell
         scroll={false}
-        footer={<Button title="Check my site" onPress={() => router.replace(STEP_ROUTE.check as never)} />}
+        footer={<Button title={complete.action} onPress={() => router.replace(complete.route as never)} />}
       >
         <View style={styles.center}>
           <View style={styles.okBig}><Ionicons name="checkmark" size={52} color={colors.onAccent} /></View>
-          <Text variant="display" align="center" accessibilityRole="header">Ready to check</Text>
-          <Text variant="bodyLg" tone="ink2" align="center">Your site is built.</Text>
+          <Text variant="display" align="center" accessibilityRole="header">{complete.title}</Text>
+          <Text variant="bodyLg" tone="ink2" align="center">{complete.body}</Text>
         </View>
       </ScreenShell>
     );

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRouter } from 'expo-router';
@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { Field } from '../../../components/v2/owner/OwnerUI';
 import { CaptureLocationPicker, validCaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
-import { sellKind } from '../../../lib/v2/ownerContent';
-import { useCreateDraft, useUpdateDraft } from '../../../lib/v2/ownerData';
+import { sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
+import { useCreateDraft, useOwnerSubmission, useUpdateDraft } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE, startProgress } from '../../../lib/v2/ownerFlow';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
@@ -15,40 +15,54 @@ import { colors, radius, space } from '../../../theme/v2';
 
 export default function PlaceScreen() {
   const scope = useOwnerScope();
-  return <PlaceForm key={scope.accountKey} scope={scope} />;
+  return <PlaceForm key={scope.scopeKey} scope={scope} />;
 }
 function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const router = useRouter();
   const intake = useOwnerIntake();
+  const sub = useOwnerSubmission(scope.id);
+  const ownSub = sub?.submissionId === scope.id ? sub : undefined;
+  const local = !intake.submissionId || intake.submissionId === scope.id ? intake : {};
   const createDraft = useCreateDraft();
   const updateDraft = useUpdateDraft();
-  const [name, setName] = useState(intake.businessName ?? '');
-  const [address, setAddress] = useState(intake.address ?? '');
-  const [city, setCity] = useState(intake.city ?? '');
-  const [coords, setCoords] = useState(intake.coordinates);
+  const [name, setName] = useState(local.businessName ?? ownSub?.businessName ?? '');
+  const [address, setAddress] = useState(local.address ?? ownSub?.address ?? '');
+  const [city, setCity] = useState(local.city ?? ownSub?.city ?? '');
+  const [coords, setCoords] = useState(local.coordinates ?? ownSub?.coordinates ?? undefined);
   const [mapOpen, setMapOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
-  const kind = sellKind(intake.kind);
+  const edited = useRef({ name: false, address: false, city: false, coordinates: false });
+  const kind = sellKind(local.kind) ?? (ownSub ? sellKindFromServer(ownSub.businessType, ownSub.shotListKey) : undefined);
+  useEffect(() => {
+    if (!ownSub) return;
+    if (!edited.current.name) setName(ownSub.businessName);
+    if (!edited.current.address) setAddress(ownSub.address);
+    if (!edited.current.city) setCity(ownSub.city);
+    if (!edited.current.coordinates) setCoords(ownSub.coordinates ?? undefined);
+  }, [ownSub]);
   const next = async () => {
     if (inFlight.current || !scope.isAccountCurrent() || scope.isOffline || (scope.site && scope.site.phase !== 'draft')) return;
+    if (scope.id && !ownSub) return;
     if (!kind) { router.replace(STEP_ROUTE.sell as never); return; }
     if (!name.trim() || !address.trim()) return;
     inFlight.current = true; setBusy(true); setError(null);
     const fields = { businessType: kind.businessType, businessName: name.trim(), address: address.trim(), city: city.trim(),
       coordinates: validCaptureCoordinates(coords) ? coords : undefined, shotListKey: kind.shots };
+    const editingExisting = !!scope.id;
+    const current = () => editingExisting ? scope.isDraftCurrent() : scope.isAccountCurrent();
     try {
       let id = scope.site?.phase === 'draft' ? scope.site.submissionId : undefined;
       if (id) await updateDraft({ submissionId: id, ...fields });
       else id = await createDraft(fields);
-      if (!scope.isAccountCurrent()) return;
+      if (!current()) return;
       ownerIntake.set({ businessName: fields.businessName, address: fields.address, city: fields.city, coordinates: fields.coordinates, submissionId: id,
         ...(intake.submissionId !== id ? { shots: undefined, design: undefined } : {}) });
       router.push(STEP_ROUTE.how as never);
     } catch (cause) {
-      if (scope.isAccountCurrent()) setError(cause instanceof Error ? cause.message : 'Could not save your shop. Please try again.');
-    } finally { inFlight.current = false; if (scope.isAccountCurrent()) setBusy(false); }
+      if (current()) setError(cause instanceof Error ? cause.message : 'Could not save your shop. Please try again.');
+    } finally { inFlight.current = false; if (current()) setBusy(false); }
   };
   const hasPin = validCaptureCoordinates(coords);
   const region = hasPin ? { latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }
@@ -59,10 +73,10 @@ function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScreenShell title="What's your shop called?" subtitle="And where is it?" progress={startProgress('place')}
       onBack={() => { if (!inFlight.current) router.back(); }} contentStyle={styles.content}
-      footer={<Button title="Next" onPress={() => { void next(); }} loading={busy} disabled={scope.isOffline || !name.trim() || !address.trim()} />}>
-      <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={setName} autoCapitalize="words" editable={!busy} />
-      <Field label="Address" icon="location-outline" value={address} onChangeText={setAddress} autoCapitalize="words" editable={!busy} />
-      <Field label="City" value={city} onChangeText={setCity} autoCapitalize="words" editable={!busy} />
+      footer={<Button title="Next" onPress={() => { void next(); }} loading={busy} disabled={scope.isOffline || (!!scope.id && !ownSub) || !name.trim() || !address.trim()} />}>
+      <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={value => { edited.current.name = true; setName(value); }} autoCapitalize="words" editable={!busy} />
+      <Field label="Address" icon="location-outline" value={address} onChangeText={value => { edited.current.address = true; setAddress(value); }} autoCapitalize="words" editable={!busy} />
+      <Field label="City" value={city} onChangeText={value => { edited.current.city = true; setCity(value); }} autoCapitalize="words" editable={!busy} />
       <Pressable accessibilityRole="button" accessibilityLabel={hasPin ? 'Adjust shop location on map' : 'Choose shop location on map'}
         disabled={busy} onPress={() => setMapOpen(true)} style={styles.mapCard}>
         <View style={styles.map} pointerEvents="none">
@@ -81,7 +95,8 @@ function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     </ScreenShell>
     {mapOpen ? <CaptureLocationPicker coordinates={coords} address={address} city={city} isOffline={scope.isOffline}
       isCurrent={scope.isAccountCurrent} onClose={() => setMapOpen(false)} onConfirm={location => {
-        if (!scope.isAccountCurrent()) return;
+        if (!scope.isCurrent()) return;
+        edited.current.coordinates = true; edited.current.address = true; edited.current.city = true;
         setCoords(location.coordinates); setAddress(location.address); setCity(location.city); setMapOpen(false);
       }} /> : null}
   </KeyboardAvoidingView>;

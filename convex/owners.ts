@@ -40,12 +40,14 @@ async function linkInvites(ctx: MutationCtx, owner: Doc<'businessOwners'>): Prom
 
 export const ensure = mutation({
     args: {
+        clerkId: v.optional(v.string()),
         name: v.optional(v.string()),
         phone: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new ConvexError('Please sign in again.');
+        if (args.clerkId && args.clerkId !== identity.subject) throw new ConvexError('Your account changed. Please try again.');
         const email = normalizeOwnerEmail(identity.email as string | undefined);
         if (!email || !EMAIL_PATTERN.test(email)) throw new ConvexError('Your account needs an email address.');
         // Require positive verification: email links every site sold to it.
@@ -98,8 +100,9 @@ export const ensure = mutation({
 
 /** The signed-in owner and their sites (null when not an owner yet: call ensure). */
 export const me = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { clerkId: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        if (args.clerkId && (await ctx.auth.getUserIdentity())?.subject !== args.clerkId) return null;
         const owner = await getOwner(ctx);
         if (!owner) return null;
         const links = await ctx.db.query('websiteOwnerships')
