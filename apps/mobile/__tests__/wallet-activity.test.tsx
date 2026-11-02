@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { EarningRow, EarningsTrend, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
+import { EarningRow, EarningsTrend, PayoutRow, WalletHistory, type WalletEarning } from '../components/wallet/WalletActivity';
 import { colors } from '../theme/v2';
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -37,6 +37,49 @@ it('uses Site price rather than a false paid label when the source capture is no
   const view = render(<EarningRow earning={earning()} compact submissionPrice={2999} paid={false} />);
   expect(view.getByText('Site price ₱2,999 · Oct 18')).toBeTruthy();
   expect(view.queryByText(/Paid ₱/)).toBeNull();
+});
+
+it('gives both home previews the same status space while long names and emails use end ellipsis', () => {
+  const businessName = 'A very long business name that should not increase the preview height';
+  const wiseEmail = 'a.very.long.recipient.email.address@example.com';
+  const previewLayout = { stacked: false, amountLines: 1 };
+  const view = render(<>
+    <EarningRow earning={earning({ businessName })} compact previewLayout={previewLayout} />
+    <PayoutRow withdrawal={{ _id: 'transfer', amount: 750, status: 'processing', wiseEmail, createdAt: october }} compact previewLayout={previewLayout} />
+  </>);
+  for (const value of [businessName, 'Site earnings · Oct 18', wiseEmail, 'To Wise · Oct 18']) {
+    const text = view.getByText(value);
+    expect(text).toHaveProp('numberOfLines', 1);
+    expect(text).toHaveProp('ellipsizeMode', 'tail');
+    expect(text).toHaveProp('accessibilityLabel', value);
+  }
+  const earningSlot = StyleSheet.flatten(view.getByTestId('wallet-status-slot-earning-income-a').props.style);
+  const payoutSlot = StyleSheet.flatten(view.getByTestId('wallet-status-slot-payout-transfer').props.style);
+  expect(earningSlot.minHeight).toBe(32);
+  expect(payoutSlot.minHeight).toBe(earningSlot.minHeight);
+  expect(view.getByText('Processing')).toBeTruthy();
+  expect(view.queryByTestId('wallet-preview-footer-earning-income-a')).toBeNull();
+  expect(view.queryByTestId('wallet-preview-footer-payout-transfer')).toBeNull();
+});
+
+it('reserves equal financial lines in stacked home previews without truncating exact amounts', () => {
+  jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 320, height: 812, scale: 3, fontScale: 2 });
+  const previewLayout = { stacked: true, amountLines: 2 };
+  const view = render(<>
+    <EarningRow earning={earning({ amount: 1500.5 })} compact previewLayout={previewLayout} />
+    <PayoutRow withdrawal={{ _id: 'large', amount: 999999999.99, status: 'completed', wiseEmail: 'mika@example.com' }} compact previewLayout={previewLayout} />
+  </>);
+  for (const value of ['+₱1,500.50', '−₱999,999,999.99']) {
+    const amount = view.getByText(value);
+    expect(amount.props.numberOfLines).toBeUndefined();
+    expect(amount.props.adjustsFontSizeToFit).not.toBe(true);
+    expect(StyleSheet.flatten(amount.props.style).minHeight).toBe(80);
+  }
+  expect(view.getByTestId('wallet-preview-footer-earning-income-a')).toBeTruthy();
+  expect(view.getByTestId('wallet-preview-footer-payout-large')).toBeTruthy();
+  expect(StyleSheet.flatten(view.getByTestId('wallet-status-slot-earning-income-a').props.style).minHeight).toBe(52);
+  expect(StyleSheet.flatten(view.getByTestId('wallet-status-slot-payout-large').props.style).minHeight).toBe(52);
+  expect(view.getByText('Completed')).toBeTruthy();
 });
 
 it('keeps the compact Payouts history mixed, fully filterable and complete with references and failure details', () => {

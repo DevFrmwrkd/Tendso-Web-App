@@ -197,6 +197,15 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
   const sortedWithdrawals = withdrawals ? [...withdrawals].sort((a, b) => activityTime(b) - activityTime(a)) : undefined;
   const recentWithdrawals = sortedWithdrawals?.slice(0, 1) ?? [];
+  // Both home cards use one layout budget so a long amount cannot make just one taller.
+  const previewWidth = Math.max(100, width - 60);
+  const previewAmountWidth = Math.max(0,
+    ...recentEarnings.map(row => moneyTextUnits(`+${peso(row.amount)}`)),
+    ...recentWithdrawals.map(row => moneyTextUnits(`−${peso(row.amount)}`)),
+  ) * 16 * Math.max(1, fontScale);
+  const previewStatusWidth = 'Processing'.length * 9 * Math.max(1, fontScale) + 24;
+  const previewStacked = Math.max(previewAmountWidth, previewStatusWidth) > previewWidth * 0.4;
+  const previewLayout = { stacked: previewStacked, amountLines: previewStacked ? Math.max(1, Math.ceil(previewAmountWidth / previewWidth)) : 1 };
   const savedWiseEmail = creator?.wiseEmail;
   const totalEarnings = creator ? (isAffiliate ? portal?.summary.totalEarned : creator.totalEarnings)
     ?? (earnings ? earnings.filter(isCredited).reduce((sum, row) => sum + row.amount, 0) : null) : null;
@@ -396,7 +405,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             <Card style={styles.listCard}>
               {recentEarnings.map((earning, idx) => {
                 const details = earning.submissionId ? submissionDetails.bySubmission.get(earning.submissionId) : undefined;
-                return <EarningRow key={earning._id} earning={earning} compact divider={idx < recentEarnings.length - 1}
+                return <EarningRow key={earning._id} earning={earning} compact previewLayout={previewLayout} divider={idx < recentEarnings.length - 1}
                   thumbnailUrl={details?.thumbnailUrl} submissionPrice={details?.submissionPrice} paid={details?.paid} />;
               })}
             </Card>
@@ -413,7 +422,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
             <EmptyRow title="Nothing here yet" body="Your withdrawal history will show up here once you cash out." />
           ) : (
             <Card style={styles.listCard}>
-              {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} compact divider={idx < recentWithdrawals.length - 1} />)}
+              {recentWithdrawals.map((withdrawal, idx) => <PayoutRow key={withdrawal._id} withdrawal={withdrawal} compact previewLayout={previewLayout} divider={idx < recentWithdrawals.length - 1} />)}
             </Card>
           )}
         </View>

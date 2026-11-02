@@ -1068,6 +1068,95 @@ code {
   font-size: 24px;
   letter-spacing: -0.04em;
 }
+.fa-card.fa-earn-activity {
+  --earn-font-scale: 1;
+  --earn-label-height: calc(20px * var(--earn-font-scale));
+  --earn-status-height: calc(var(--earn-label-height) + 12px);
+  height: calc(var(--earn-label-height) + 4px + var(--earn-status-height) + 16px);
+  padding: 8px 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.fa-earn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 18px;
+  background: #efefea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fa-earn-icon.dark {
+  background: var(--ink);
+  color: white;
+}
+.fa-earn-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.fa-earn-copy > * {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: calc(16px * var(--earn-font-scale));
+  line-height: var(--earn-label-height);
+}
+.fa-earn-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  max-width: 40%;
+}
+.fa-earn-end strong {
+  font-size: calc(16px * var(--earn-font-scale));
+  line-height: var(--earn-label-height);
+  min-height: calc(var(--earn-label-height) * var(--earn-amount-lines));
+  white-space: nowrap;
+}
+.fa-earn-end .fa-flag {
+  min-height: var(--earn-status-height);
+  padding: 6px 8px;
+  align-self: end;
+  font-size: calc(16px * var(--earn-font-scale));
+  line-height: var(--earn-label-height);
+  white-space: nowrap;
+}
+.fa-earn-end .fa-flag.info {
+  background: #e7ecf3;
+  color: #1f3654;
+}
+.fa-earn-status-slot {
+  height: var(--earn-status-height);
+}
+.fa-card.fa-earn-activity.stacked {
+  height: auto;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.fa-earn-activity.stacked .fa-earn-end {
+  flex-basis: 100%;
+  max-width: 100%;
+  align-items: start;
+  gap: 8px;
+}
+.fa-earn-activity.stacked .fa-earn-end strong {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.fa-earn-activity.stacked .fa-flag {
+  align-self: start;
+}
+.fa-history-detail {
+  overflow-wrap: anywhere;
+}
 .fa-chart {
   display: flex;
   height: 64px;
@@ -1205,6 +1294,9 @@ code {
 }
 .fa-app.large .fa-small {
   font-size: 17px;
+}
+.fa-app.large .fa-earn-activity {
+  --earn-font-scale: 1.1875;
 }
 .fa-interview-dark {
   background: #121210;

@@ -239,6 +239,7 @@
     design: 0,
     price: 999,
     earnMonth: 5,
+    earnLong: false,
     cashAmount: '3750',
     message: false,
     read: false,
@@ -308,6 +309,16 @@
     `<div class="fa-avatar ${big ? 'big' : ''}" aria-label="Mika Santos">M</div>`;
   const row = (title, sub = '', ico = 'chevron', go = '', right = '') =>
     `<button type="button" class="fa-menu" ${go ? `data-go="${go}"` : 'data-demo="This opens the corresponding tool in the mobile app."'}><div class="fa-menu-icon">${icon(ico)}</div><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${right || icon('chevron')}</button>`;
+  const earnPreviewLayout = (amounts) => {
+    // Match the native budget for the board's 390px authored phone.
+    const scale = large ? 19 / 16 : 1,
+      width = 390 - 60,
+      amountWidth = Math.max(...amounts.map((amount) => [...amount].reduce((sum, c) => sum + (/[.,]/.test(c) ? 0.34 : 0.7), 0))) * 16 * scale,
+      stacked = Math.max(amountWidth, 'Processing'.length * 9 * scale + 24) > width * 0.4;
+    return { stacked, amountLines: stacked ? Math.max(1, Math.ceil(amountWidth / width)) : 1 };
+  };
+  const earnActivity = (title, subtitle, amount, ico, layout, status = '') =>
+    `<div class="fa-card fa-earn-activity ${layout.stacked ? 'stacked' : ''}" style="--earn-amount-lines:${layout.amountLines}" role="group" aria-label="${escape([title, subtitle, amount, status].filter(Boolean).join(', '))}"><div class="fa-earn-icon ${status ? 'dark' : ''}">${icon(ico)}</div><div class="fa-earn-copy"><b title="${escape(title)}">${escape(title)}</b><span class="fa-muted" title="${escape(subtitle)}">${escape(subtitle)}</span></div><div class="fa-earn-end"><strong>${amount}</strong>${status ? `<span class="fa-flag info">${escape(status)}</span>` : '<span class="fa-earn-status-slot" aria-hidden="true"></span>'}</div></div>`;
   const badge = (status) => `<span class="fa-badge ${status}">${STATUS[status]}</span>`;
   const section = (name, content) =>
     `<div class="fa-col"><span class="fa-label">${name}</span><div class="fa-card fa-inset-list">${content}</div></div>`;
@@ -515,17 +526,24 @@
       }
       case 'earn': {
         const selected = interactive ? demo.earnMonth : 5,
-          month = earnMonths[selected];
+          month = earnMonths[selected],
+          long = interactive && demo.earnLong,
+          business = long ? 'Kalan Family Restaurant and Catering Services' : 'Kalan',
+          email = long ? 'mika.santos.creator.payouts@example.com' : 'mika@example.com',
+          previewLayout = earnPreviewLayout(['+₱2,000', '−₱1,000']);
         return app(
-          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between" aria-live="polite"><span class="fa-label" data-earned-month>Earned in ${month.name}</span><b data-earned-total>${peso(month.total)}</b></div><div class="fa-chart" role="group" aria-label="Monthly credited earnings">${earnMonths.map((m, i) => `<button type="button" class="fa-bar" data-earn-month="${i}" aria-pressed="${i === selected}" aria-label="${m.name} 2026, ${peso(m.total)} earned"><i aria-hidden="true" style="height:${(m.total / 6000) * 36}px"></i><span>${m.short}</span></button>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div><div class="fa-card">${row('Kalan', 'Earnings · Nov 1 · +₱2,000', 'shop', 'history')}</div><div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div><div class="fa-card">${row('To Wise', 'Processing · Oct 30 · −₱1,000', 'send', 'history')}</div><div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
+          `<div class="fa-card"><div class="fa-between"><span class="fa-label">Available to cash out</span><button type="button" class="fa-link" data-go="history" aria-label="Open payout history">${icon('clock')}</button></div><div class="fa-amount">₱3,750</div></div><div class="fa-metrics"><div class="fa-card"><b>₱19,400</b><span class="fa-label">Total earned</span></div><div class="fa-card"><b>₱15,650</b><span class="fa-label">Withdrawn</span></div></div><div class="fa-card"><div class="fa-between" aria-live="polite"><span class="fa-label" data-earned-month>Earned in ${month.name}</span><b data-earned-total>${peso(month.total)}</b></div><div class="fa-chart" role="group" aria-label="Monthly credited earnings">${earnMonths.map((m, i) => `<button type="button" class="fa-bar" data-earn-month="${i}" aria-pressed="${i === selected}" aria-label="${m.name} 2026, ${peso(m.total)} earned"><i aria-hidden="true" style="height:${(m.total / 6000) * 36}px"></i><span>${m.short}</span></button>`).join('')}</div></div><div class="fa-between"><b>Recent earnings</b>${link('See all', 'history')}</div>${earnActivity(business, 'Earnings · Nov 1', '+₱2,000', 'shop', previewLayout)}<div class="fa-between"><b>Cash outs</b>${link('See all', 'history')}</div>${earnActivity('To Wise · Oct 30', email, '−₱1,000', 'send', previewLayout, 'Processing')}<div class="fa-card">${row('Invite field agents', 'Share your code with a friend', 'gift', 'me')}</div>`,
           { nav: 'earn', noHead: true, footer: btn('Cash out to Wise', 'cashout') },
         );
       }
-      case 'history':
+      case 'history': {
+        const business = interactive && demo.earnLong ? 'Kalan Family Restaurant and Catering Services' : 'Kalan',
+          email = interactive && demo.earnLong ? 'mika.santos.creator.payouts@example.com' : 'mika@example.com';
         return app(
-          `<div class="fa-card"><div class="fa-between"><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div><div><b>₱15,650</b><p class="fa-small fa-muted">Cashed out</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Ready</p></div></div></div><div class="fa-chip-row">${['All', 'Earned', 'Cashed out'].map((f) => chip(f, demo.history === f, `data-history="${f}"`)).join('')}</div><span class="fa-label">November</span>${demo.history !== 'Cashed out' ? '<div class="fa-card"><b>Kalan <span style="float:right">+₱2,000</span></b><p class="fa-small fa-muted">Paid Nov 1</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">October</span><div class="fa-card"><div class="fa-between"><b>To Wise</b><b>−₱1,000</b></div><p class="fa-small fa-muted">Oct 30 · mika@example.com</p><span class="fa-flag">Processing</span><p class="fa-small fa-muted">Reference: SAMPLE-1030</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">Earlier</span><div class="fa-card"><b>To Wise</b><span class="fa-flag warn">Failed</span><p class="fa-small fa-muted">Read the reason and verify your Wise details before retrying.</p></div>' : ''}`,
+          `<div class="fa-card"><div class="fa-between"><div><b>₱19,400</b><p class="fa-small fa-muted">Earned</p></div><div><b>₱15,650</b><p class="fa-small fa-muted">Cashed out</p></div><div><b>₱3,750</b><p class="fa-small fa-muted">Ready</p></div></div></div><div class="fa-chip-row">${['All', 'Earned', 'Cashed out'].map((f) => chip(f, demo.history === f, `data-history="${f}"`)).join('')}</div><span class="fa-label">November</span>${demo.history !== 'Cashed out' ? '<div class="fa-card fa-history-detail"><b>' + escape(business) + ' <span style="float:right">+₱2,000</span></b><p class="fa-small fa-muted">Paid Nov 1</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">October</span><div class="fa-card fa-history-detail"><div class="fa-between"><b>To Wise</b><b>−₱1,000</b></div><p class="fa-small fa-muted">Oct 30 · ' + escape(email) + '</p><span class="fa-flag">Processing</span><p class="fa-small fa-muted">Reference: SAMPLE-1030</p></div>' : ''}${demo.history !== 'Earned' ? '<span class="fa-label">Earlier</span><div class="fa-card"><b>To Wise</b><span class="fa-flag warn">Failed</span><p class="fa-small fa-muted">Read the reason and verify your Wise details before retrying.</p></div>' : ''}`,
           { title: 'Payouts', back: 'earn' },
         );
+      }
       case 'cashout':
         return app(
           `<h2>Cash out to Wise</h2><p class="fa-muted">₱3,750 ready to cash out</p><div class="fa-card fa-center"><span class="fa-label">Amount</span><label class="fa-field"><span class="sr-only">Sample cashout amount</span><input type="number" value="${escape(demo.cashAmount)}" style="font-size:40px;text-align:center" aria-label="Sample cashout amount" data-cash-amount></label><div class="fa-chip-row" style="justify-content:center">${['₱1,000', '₱2,000', 'All · ₱3,750'].map((t, i) => chip(t, i === 2, 'data-action="cash-pick"')).join('')}</div></div><div class="fa-between"><span class="fa-label">Your Wise email</span><button type="button" class="fa-link" data-demo="In the app this opens Set up Wise or the Wise email editor.">Change</button></div>${field('Wise email', 'mika@example.com', 'type="email"')}<div class="fa-banner">${icon('bell')}We send it to your Wise account and tell you when Wise completes it.</div>`,
@@ -644,6 +662,7 @@
     renderReview();
     document.getElementById('fa-design-state').hidden = id !== 'review';
     document.getElementById('fa-shop-state').hidden = id !== 'shop';
+    document.getElementById('fa-earn-details').hidden = id !== 'earn';
     if (scroll)
       document.getElementById('inspect').scrollIntoView({
         behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
@@ -968,6 +987,12 @@
   document.getElementById('fa-large').addEventListener('click', (e) => {
     large = !large;
     e.currentTarget.setAttribute('aria-pressed', String(large));
+    renderLive();
+  });
+  document.getElementById('fa-earn-details').addEventListener('click', (e) => {
+    demo.earnLong = !demo.earnLong;
+    e.currentTarget.setAttribute('aria-pressed', String(demo.earnLong));
+    e.currentTarget.textContent = demo.earnLong ? 'Show short details' : 'Preview long details';
     renderLive();
   });
   document.getElementById('fa-design-state').addEventListener('click', (e) => {

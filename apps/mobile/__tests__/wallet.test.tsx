@@ -513,15 +513,37 @@ describe('Earn design and complete history', () => {
     setupQueries({ ...mockCreator, balance: 1234567.89 }, [{ _id: 'long-money', amount: 1234567.89, status: 'available',
       businessName, createdAt: Date.now() }], [{ ...mockWithdrawals[0], amount: 1234567.89, wiseEmail }]);
     const view = render(<WalletScreen />);
-    expect(view.getByText(businessName).props.numberOfLines).toBe(2);
+    expect(view.getByText(businessName).props.numberOfLines).toBe(1);
+    expect(view.getByText(businessName).props.ellipsizeMode).toBe('tail');
+    expect(view.getByText(wiseEmail).props.numberOfLines).toBe(1);
+    expect(view.getByText(wiseEmail).props.ellipsizeMode).toBe('tail');
     expect(view.getByText('+₱1,234,567.89').props.numberOfLines).toBeUndefined();
     expect(view.getByTestId('wallet-balance-value').props.children).toBe('₱1,234,567.89');
     expect(view.queryByText('₱1,234,567.89 to Wise')).toBeNull();
     expect(view.getByText('Cash out')).toBeTruthy();
     expect(view.getByTestId('withdraw-button').props.accessibilityLabel).toBe('Cash out to Wise');
     fireEvent.press(view.getByLabelText('View all earnings and payouts'));
+    expect(view.getByText(businessName).props.numberOfLines).toBe(2);
     expect(view.getByText(wiseEmail).props.numberOfLines).toBe(2);
     expect(view.getByText('−₱1,234,567.89').props.numberOfLines).toBeUndefined();
+  });
+
+  it('uses the same stacked preview layout for both home cards when only one amount needs more room', () => {
+    jest.spyOn(require('react-native'), 'useWindowDimensions').mockReturnValue({ width: 375, height: 812, scale: 3, fontScale: 1 });
+    setupQueries(mockCreator, [{ _id: 'small-preview', amount: 50, status: 'available', businessName: 'Kalan', createdAt: Date.now() }],
+      [{ ...mockWithdrawals[0], _id: 'large-preview', amount: 1234567.89, status: 'processing', wiseEmail: 'mika@example.com' }]);
+    const view = render(<WalletScreen />);
+    expect(view.getByTestId('wallet-preview-footer-earning-small-preview')).toBeTruthy();
+    expect(view.getByTestId('wallet-preview-footer-payout-large-preview')).toBeTruthy();
+    const earningAmount = view.getByText('+₱50');
+    const payoutAmount = view.getByText('−₱1,234,567.89');
+    expect(StyleSheet.flatten(earningAmount.props.style).minHeight).toBe(StyleSheet.flatten(payoutAmount.props.style).minHeight);
+    expect(StyleSheet.flatten(view.getByTestId('wallet-status-slot-earning-small-preview').props.style).minHeight)
+      .toBe(StyleSheet.flatten(view.getByTestId('wallet-status-slot-payout-large-preview').props.style).minHeight);
+    expect(view.getByText('Processing')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('All cash-outs'));
+    expect(view.queryByTestId('wallet-status-slot-payout-large-preview')).toBeNull();
+    expect(view.getByText('mika@example.com').props.numberOfLines).toBe(2);
   });
 
   it('uses real credited calendar-month earnings and keeps pending money out of the trend', () => {

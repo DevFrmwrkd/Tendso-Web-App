@@ -16,6 +16,7 @@ export type WalletWithdrawal = {
   createdAt?: number; _creationTime?: number;
 };
 export type HistoryFilter = 'all' | 'earned' | 'cashed-out';
+export type WalletPreviewLayout = { stacked: boolean; amountLines: number };
 
 const EARNING_TITLE: Record<string, string> = {
   submission_approved: 'Site earnings', referral_bonus: 'From your invites',
@@ -52,10 +53,10 @@ function shortActivityDate(time: number): string {
   return time ? new Date(time).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : 'Date unavailable';
 }
 
-function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status, leading, divider = false }: {
+function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = false, status, leading, divider = false, previewLayout }: {
   testID: string; title: string; subtitle: string; amount: string;
   icon: React.ComponentProps<typeof Ionicons>['name']; darkIcon?: boolean; status?: { label: string; tone: ChipTone };
-  leading?: React.ReactNode; divider?: boolean;
+  leading?: React.ReactNode; divider?: boolean; previewLayout?: WalletPreviewLayout;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const [measuredWidth, setMeasuredWidth] = useState(0);
@@ -63,30 +64,36 @@ function CompactActivityRow({ testID, title, subtitle, amount, icon, darkIcon = 
   const units = [...amount].reduce((sum, character) => sum + (/[.,]/.test(character) ? 0.34 : 0.7), 0);
   const moneyWidth = units * 16 * Math.max(1, fontScale);
   const badgeWidth = status ? status.label.length * 9 * Math.max(1, fontScale) + 24 : 0;
-  const stacked = Math.max(moneyWidth, badgeWidth) > rowWidth * 0.4;
+  const stacked = previewLayout?.stacked ?? Math.max(moneyWidth, badgeWidth) > rowWidth * 0.4;
+  const scaledLabelHeight = 20 * Math.max(1, fontScale);
   const amountAndStatus = <>
     <Text variant="label" weight="extrabold" tone={darkIcon ? 'ink2' : 'ink'} tabular
-      style={stacked ? styles.stackedAmount : undefined}>{amount}</Text>
-    {status ? <Chip label={status.label} tone={status.tone} style={styles.previewStatus} /> : null}
+      style={[stacked && styles.stackedAmount, previewLayout && { minHeight: scaledLabelHeight * previewLayout.amountLines }]}>{amount}</Text>
+    {previewLayout ? <View testID={`wallet-status-slot-${testID}`} style={[styles.previewStatusSlot, { minHeight: scaledLabelHeight + 12 }]}>
+      {status ? <Chip label={status.label} tone={status.tone} style={styles.previewStatus} /> : null}
+    </View> : status ? <Chip label={status.label} tone={status.tone} style={styles.previewStatus} /> : null}
   </>;
-  return <View testID={testID} style={[styles.compactActivity, divider && styles.divider]} onLayout={event => {
+  return <View testID={testID} style={[styles.compactActivity, divider && styles.divider]} onLayout={previewLayout ? undefined : event => {
     const measured = event.nativeEvent.layout.width;
     if (Number.isFinite(measured) && measured > 0) setMeasuredWidth(measured);
   }}>
     <View style={styles.compactMain}>
       {leading ?? <View style={[styles.icon, darkIcon && styles.payoutIcon]}><Ionicons name={icon} size={22} color={darkIcon ? colors.onDark : colors.ink} /></View>}
       <View style={styles.rowBody}>
-        <Text variant="label" weight="bold" numberOfLines={2}>{title}</Text>
-        <Text variant="label" tone="muted" numberOfLines={2}>{subtitle}</Text>
+        <Text variant="label" weight="bold" numberOfLines={previewLayout ? 1 : 2}
+          ellipsizeMode={previewLayout ? 'tail' : undefined} accessibilityLabel={title}>{title}</Text>
+        <Text variant="label" tone="muted" numberOfLines={previewLayout ? 1 : 2}
+          ellipsizeMode={previewLayout ? 'tail' : undefined} accessibilityLabel={subtitle}>{subtitle}</Text>
       </View>
       {!stacked ? <View style={styles.rowEnd}>{amountAndStatus}</View> : null}
     </View>
-    {stacked ? <View style={styles.compactFooter}>{amountAndStatus}</View> : null}
+    {stacked ? <View testID={`wallet-preview-footer-${testID}`} style={[styles.compactFooter, previewLayout && styles.previewFooter]}>{amountAndStatus}</View> : null}
   </View>;
 }
 
-export function EarningRow({ earning, divider = false, compact = false, thumbnailUrl, submissionPrice, paid = false }: {
+export function EarningRow({ earning, divider = false, compact = false, thumbnailUrl, submissionPrice, paid = false, previewLayout }: {
   earning: WalletEarning; divider?: boolean; compact?: boolean; thumbnailUrl?: string | null; submissionPrice?: number | null; paid?: boolean;
+  previewLayout?: WalletPreviewLayout;
 }) {
   const title = EARNING_TITLE[earning.type ?? ''] ?? 'Earnings';
   const business = earning.businessName?.trim();
@@ -97,7 +104,7 @@ export function EarningRow({ earning, divider = false, compact = false, thumbnai
   const saleLabel = realPrice ? `${paid ? 'Paid' : 'Site price'} ${walletPeso(submissionPrice)}` : title;
   if (compact) return <CompactActivityRow testID={`earning-${earning._id}`} title={hasBusiness ? business : title}
     subtitle={`${hasBusiness || realPrice ? `${saleLabel} · ` : ''}${shortActivityDate(activityTime(earning))}`} amount={`+${walletPeso(earning.amount)}`}
-    icon={icon} leading={thumbnail} divider={divider}
+    icon={icon} leading={thumbnail} divider={divider} previewLayout={previewLayout}
     status={earning.status === 'pending' ? { label: 'Pending', tone: 'warn' } : undefined} />;
   return <View style={[styles.row, divider && styles.divider]} testID={`earning-${earning._id}`}>
     {thumbnail}
@@ -110,15 +117,15 @@ export function EarningRow({ earning, divider = false, compact = false, thumbnai
   </View>;
 }
 
-export function PayoutRow({ withdrawal, divider = false, compact = false, showDetails = false }: {
-  withdrawal: WalletWithdrawal; divider?: boolean; compact?: boolean; showDetails?: boolean;
+export function PayoutRow({ withdrawal, divider = false, compact = false, showDetails = false, previewLayout }: {
+  withdrawal: WalletWithdrawal; divider?: boolean; compact?: boolean; showDetails?: boolean; previewLayout?: WalletPreviewLayout;
 }) {
   const status = WITHDRAWAL_STATUS[withdrawal.status] ?? { label: withdrawal.status, tone: 'muted' as ChipTone };
   const failure = withdrawal.failureReason || withdrawal.errorMessage;
   if (compact) return <View style={divider ? styles.divider : undefined}>
     <CompactActivityRow testID={`payout-${withdrawal._id}`} darkIcon icon="arrow-up-outline" status={status}
       title={withdrawal.wiseEmail ? `To Wise · ${shortActivityDate(activityTime(withdrawal))}` : withdrawal.bankName || 'Wise transfer'}
-      subtitle={withdrawal.wiseEmail || shortActivityDate(activityTime(withdrawal))} amount={`−${walletPeso(withdrawal.amount)}`} />
+      subtitle={withdrawal.wiseEmail || shortActivityDate(activityTime(withdrawal))} amount={`−${walletPeso(withdrawal.amount)}`} previewLayout={previewLayout} />
     {showDetails && (withdrawal.wiseTransferId || withdrawal.reference || (withdrawal.status === 'failed' && failure)) ? <View style={styles.compactPayoutDetails}>
       {withdrawal.wiseTransferId ? <Text variant="label" tone="muted" selectable>Wise #{withdrawal.wiseTransferId}</Text> : null}
       {withdrawal.reference ? <Text variant="label" tone="muted" selectable>{withdrawal.reference}</Text> : null}
@@ -248,6 +255,8 @@ const styles = StyleSheet.create({
   compactFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm },
   stackedAmount: { maxWidth: '100%', flexShrink: 1 },
   previewStatus: { maxWidth: '100%' },
+  previewStatusSlot: { justifyContent: 'center', maxWidth: '100%' },
+  previewFooter: { flexDirection: 'column', alignItems: 'flex-start', flexWrap: 'nowrap' },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
   icon: { width: 44, height: 44, flexShrink: 0, borderRadius: radius.field, backgroundColor: colors.bg2, alignItems: 'center', justifyContent: 'center' },
   payoutIcon: { backgroundColor: colors.ink },
