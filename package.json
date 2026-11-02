@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "design:board": "node scripts/serve-design-board.cjs",
     "dev": "cross-env NODE_OPTIONS=--no-node-snapshot next dev",
     "build": "cd astro-site-template && npm install --omit=dev && cd .. && next build",
     "start": "next start",
