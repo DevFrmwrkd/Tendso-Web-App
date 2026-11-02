@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Share, StyleSheet, View } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
@@ -52,50 +52,110 @@ function Count({ label, value }: { label: string; value: string }) {
 }
 
 export default function ReferralsScreen() {
-  const router = useGuardedRouter();
   const { user } = useUser();
+  const { account, isAuthenticated, isPreview } = useMobileAccount();
+  return <ReferralDetails key={`${user?.id ?? 'signed-out'}:${account?.role ?? 'creator'}:${isPreview}`}
+    actorId={user?.id} authenticated={isAuthenticated && !isPreview} />;
+}
+
+function ReferralDetails({ actorId, authenticated }: { actorId?: string; authenticated: boolean }) {
+  const router = useGuardedRouter();
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
-  const { account, isAuthenticated } = useMobileAccount();
-  const isAffiliate = account?.role === 'affiliate';
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [error, setError] = useState('');
+  const mounted = useRef(true);
+  const copyBusy = useRef(false);
+  const shareBusy = useRef(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : 'skip');
+  const result = useQuery(api.creators.getByClerkId, authenticated && actorId ? { clerkId: actorId } : 'skip');
+  const creator = result?.clerkId === actorId && actorId && authenticated ? result : undefined;
+  const isAffiliate = creator?.role === 'affiliate';
+  const eligible = !!creator && !creator.isDeleted && creator.status !== 'deleted'
+    && creator.status !== 'suspended' && (!creator.role || creator.role === 'creator' || isAffiliate)
+    && (!isAffiliate || creator.status === 'active');
+  const code = eligible ? creator.referralCode?.trim() ?? '' : '';
+  const live = useRef({ actorId, creatorId: creator?._id, code, eligible });
+  live.current = { actorId, creatorId: creator?._id, code, eligible };
+  const current = () => mounted.current && live.current.actorId === actorId
+    && live.current.creatorId === creator?._id && live.current.code === code && live.current.eligible && !!code;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+    };
+  }, []);
+  useEffect(() => {
+    setCopied(false);
+    setError('');
+    if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+  }, [code]);
 
   const creatorReferrals = useQuery(
     api.referrals.getByReferrer,
-    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
+    eligible && !isAffiliate ? { referrerId: creator!._id } : 'skip'
   );
   const creatorStats = useQuery(
     api.referrals.getStats,
-    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
+    eligible && !isAffiliate ? { referrerId: creator!._id } : 'skip'
   );
-  const portal = useQuery(api.affiliates.portal, isAffiliate && isAuthenticated && !isOffline ? {} : 'skip');
+  const portal = useQuery(api.affiliates.portal, eligible && isAffiliate && !isOffline ? {} : 'skip');
   const referralList = isAffiliate ? portal?.referrals : creatorReferrals;
   const stats = isAffiliate ? portal?.referralStats : creatorStats;
 
   const handleCopy = async () => {
-    if (!creator?.referralCode) return;
-    await Clipboard.setStringAsync(creator.referralCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleShare = async () => {
-    if (!creator?.referralCode) return;
+    if (!current() || copyBusy.current || shareBusy.current) return;
+    copyBusy.current = true;
+    setCopying(true);
+    setError('');
     try {
-      await Share.share({
-        message: `Become a Tendso field agent!\n\nUse my code: ${creator.referralCode}\n\nDownload the app and enter this code when you sign up as a field agent.`,
-        title: 'Join Tendso',
-      });
-    } catch (err) {
-      console.error(err);
+      await Clipboard.setStringAsync(code);
+      if (!current()) return;
+      setCopied(true);
+      if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => { if (current()) setCopied(false); }, 2500);
+    } catch {
+      if (current()) setError('Could not copy your code. Please try again.');
+    } finally {
+      copyBusy.current = false;
+      if (mounted.current) setCopying(false);
     }
   };
 
-  const isLoading = !isOffline && (creator === undefined || referralList === undefined || stats === undefined);
+  const handleShare = async () => {
+    if (!current() || copyBusy.current || shareBusy.current) return;
+    shareBusy.current = true;
+    setSharing(true);
+    setError('');
+    try {
+      await Share.share({
+        message: `Become a Tendso field agent!\n\nUse my code: ${code}\n\nDownload the app and enter this code when you sign up as a field agent.`,
+        title: 'Join Tendso',
+      });
+    } catch {
+      if (current()) setError('Could not open sharing. Please try again.');
+    } finally {
+      shareBusy.current = false;
+      if (mounted.current) setSharing(false);
+    }
+  };
+
+  const isLoading = authenticated && !!actorId && !isOffline
+    && (result === undefined || (eligible && (referralList === undefined || stats === undefined)));
 
   if (isLoading) return <Loading />;
+  if (!eligible) return (
+    <ScreenShell title="Invite field agents" onBack={() => router.back()}>
+      <Banner tone="warn" body={isOffline
+        ? 'Reconnect to load your account and invitation code.'
+        : 'Invitations are not available for this account.'} />
+    </ScreenShell>
+  );
 
   const qualifiedCount = (stats?.qualified ?? 0) + (stats?.paid ?? 0);
   const people: any[] = referralList ?? [];
@@ -127,6 +187,7 @@ export default function ReferralsScreen() {
       contentStyle={styles.content}
     >
       {isOffline ? <Banner tone="warn" icon="cloud-offline-outline" body="You're offline. Reconnect to see your list." /> : null}
+      {error ? <Banner tone="danger" body={error} /> : null}
 
       {!isAffiliate ? <Card variant="tint" style={styles.bonusCard}>
         <Text variant="title" accessibilityRole="header">{referralBonus} per friend</Text>
@@ -139,8 +200,8 @@ export default function ReferralsScreen() {
           <Text variant="label" tone="muted">
             Your code
           </Text>
-          <Text variant="number" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} accessibilityLabel={`Your code is ${creator?.referralCode ?? 'not ready'}`}>
-            {creator?.referralCode ?? '———'}
+          <Text variant="number" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} accessibilityLabel={`Your code is ${code || 'not ready'}`}>
+            {code || '———'}
           </Text>
         </View>
         <View style={styles.buttons}>
@@ -148,6 +209,8 @@ export default function ReferralsScreen() {
             title="Share"
             icon="share-social-outline"
             onPress={handleShare}
+            disabled={!code || copying || sharing}
+            loading={sharing}
             accessibilityLabel="Share referral code"
           />
           <Button
@@ -155,9 +218,12 @@ export default function ReferralsScreen() {
             variant="ghost"
             icon={copied ? 'checkmark' : 'copy-outline'}
             onPress={handleCopy}
+            disabled={!code || copying || sharing}
+            loading={copying}
             accessibilityLabel="Copy referral code"
           />
         </View>
+        {!code ? <Text variant="label" tone="muted">Your invitation code is not ready yet. Please try again later.</Text> : null}
       </Card>
 
       {isAffiliate && portal ? <AffiliateRecruits portal={portal} /> : null}
@@ -166,15 +232,17 @@ export default function ReferralsScreen() {
       {/* Earlier bonuses are not counted as new 5% recruits. */}
       {!isAffiliate || people.length > 0 ? <>
       <View style={styles.counts}>
-        <Count label="Invited" value={String(stats?.total ?? 0)} />
-        <Count label="Qualified" value={String(qualifiedCount)} />
-        {isAffiliate || (stats?.totalEarned ?? 0) > 0 ? <Count label="Earned" value={formatPeso(stats?.totalEarned ?? 0)} /> : null}
+        <Count label="Invited" value={stats ? String(stats.total) : '—'} />
+        <Count label="Qualified" value={stats ? String(qualifiedCount) : '—'} />
+        {isAffiliate || (stats?.totalEarned ?? 0) > 0 ? <Count label="Earned" value={stats ? formatPeso(stats.totalEarned) : '—'} /> : null}
       </View>
 
       {/* People */}
       <View style={styles.section}>
         <SectionLabel>{isAffiliate ? 'Earlier invitations' : 'People you invited'}</SectionLabel>
-        {people.length === 0 ? (
+        {referralList === undefined ? (
+          <Card style={styles.empty}><Text tone="ink2">Reconnect to load your invitations.</Text></Card>
+        ) : people.length === 0 ? (
           <Card style={styles.empty}>
             <Text variant="heading">No one yet</Text>
             <Text variant="body" tone="ink2">
@@ -202,6 +270,11 @@ export default function ReferralsScreen() {
                         {formatPeso(bonus)} bonus pending
                       </Text>
                     ) : null}
+                    {!isAffiliate ? <Text variant="label" weight="medium" tone="muted">
+                      {ref.status === 'qualified' || ref.status === 'paid'
+                        ? 'Bonus added to your Earn balance'
+                        : 'Waiting for their first fully paid site'}
+                    </Text> : null}
                   </View>
                   <Chip label={meta.label} tone={meta.tone} />
                 </View>

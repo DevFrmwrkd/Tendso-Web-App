@@ -15,8 +15,10 @@ import { useUser } from '@clerk/clerk-expo';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { usePreventRemove } from '@react-navigation/native';
 import { useDeleteAccount } from '../../hooks/useDeleteAccount';
+import { useNetwork } from '../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -37,6 +39,9 @@ function EditProfileForm({ user, isLoaded }: {
   isLoaded: boolean;
 }) {
   const router = useGuardedRouter();
+  const navigation = useNavigation();
+  const { isConnected } = useNetwork();
+  const isOffline = isConnected === false;
   const { review, field } = useLocalSearchParams<{ review?: string; field?: string }>();
   const { width, fontScale } = useWindowDimensions();
   const { busy: deleting, canDelete, requestDelete } = useDeleteAccount();
@@ -58,7 +63,11 @@ function EditProfileForm({ user, isLoaded }: {
   const [picking, setPicking] = useState(false);
   const [error,     setError]               = useState('');
   const [success,   setSuccess]             = useState(false);
+  const [allowLeave, setAllowLeave] = useState(false);
   const initializedId = useRef<string | null>(null);
+  const initialValues = useRef({ firstName: '', lastName: '', phone: '' });
+  const leavePrompt = useRef(false);
+  const pendingLeave = useRef<(() => void) | null>(null);
   const saving = useRef(false);
   const pickingPhoto = useRef(false);
   const saved = useRef(false);
@@ -74,14 +83,49 @@ function EditProfileForm({ user, isLoaded }: {
   const reviewing = review === '1' && isCreatorAccount(creator);
   const canEdit = isLoaded && !!user && !!creator && !creator.isDeleted
     && creator.status !== 'deleted' && creator.status !== 'suspended'
+    && (!creator.role || creator.role === 'creator' || creator.role === 'affiliate')
     && (!reviewing || (!!creator.rejectedAt && !!creator.quizPassedAt && !creator.certifiedAt));
-  const current = useRef({ userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete });
-  current.current = { userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete };
+  const current = useRef({ userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete, isOffline });
+  current.current = { userId: user?.id, creatorId: creator?._id, canEdit, reviewing, deleting, canDelete, isOffline };
   const isCurrent = () => mounted.current && current.current.userId === user?.id
     && current.current.creatorId === creator?._id;
   const canWrite = () => isCurrent() && current.current.canEdit
-    && current.current.reviewing === reviewing && !current.current.deleting;
+    && current.current.reviewing === reviewing && !current.current.deleting && !current.current.isOffline;
   const busy = loading || picking || deleting;
+  const dirty = !!initializedId.current && (firstName.trim() !== initialValues.current.firstName.trim()
+    || lastName.trim() !== initialValues.current.lastName.trim() || phone.trim() !== initialValues.current.phone.trim()
+    || profileImageUri !== null);
+  const blockedWhileBusy = () => saving.current || pickingPhoto.current || current.current.deleting;
+  const askDiscard = (leave: () => void) => {
+    if (!isCurrent() || blockedWhileBusy() || leavePrompt.current) return;
+    leavePrompt.current = true;
+    Alert.alert('Discard changes?', 'Your unsaved profile changes will be lost.', [
+      { text: 'Keep editing', style: 'cancel', onPress: () => { leavePrompt.current = false; } },
+      { text: 'Discard changes', style: 'destructive', onPress: () => {
+        leavePrompt.current = false;
+        if (!isCurrent() || blockedWhileBusy()) return;
+        pendingLeave.current = leave;
+        setAllowLeave(true);
+      } },
+    ], { cancelable: true, onDismiss: () => { leavePrompt.current = false; } });
+  };
+  // Also protect Android Back and the iOS back gesture. Replay a confirmed
+  // navigation only after React Navigation has removed its prevention guard.
+  usePreventRemove(canEdit && !success && !allowLeave && (dirty || busy), ({ data }) => {
+    if (blockedWhileBusy()) return;
+    askDiscard(() => navigation.dispatch(data.action));
+  });
+  useEffect(() => {
+    if (!allowLeave || !pendingLeave.current) return;
+    const leave = pendingLeave.current;
+    pendingLeave.current = null;
+    if (isCurrent() && !blockedWhileBusy()) leave();
+  }, [allowLeave]);
+  const handleBack = () => {
+    if (!isCurrent() || blockedWhileBusy()) return;
+    if (dirty && !success && canEdit) askDiscard(() => router.back());
+    else router.back();
+  };
   const splitNames = !reviewing && width >= 360 && fontScale <= 1.3;
 
   useEffect(() => {
@@ -106,6 +150,7 @@ function EditProfileForm({ user, isLoaded }: {
     // Live last-active/status updates must not overwrite an unsaved correction.
     if (creator && initializedId.current !== creator._id) {
       initializedId.current = creator._id;
+      initialValues.current = { firstName: creator.firstName ?? '', lastName: creator.lastName ?? '', phone: creator.phone ?? '' };
       setFirstName(creator.firstName  ?? '');
       setLastName(creator.lastName   ?? '');
       setPhone(creator.phone        ?? '');
@@ -193,11 +238,8 @@ function EditProfileForm({ user, isLoaded }: {
           if (!canWrite()) return;
           setProfileImageUri(output.uri);
         } catch (e) {
-          // Keep the existing cropped-photo fallback if normalization fails.
-          if (canWrite()) {
-            console.warn('Avatar normalization failed, using raw crop:', e);
-            setProfileImageUri(asset.uri);
-          }
+          // An unconverted HEIC/PNG cannot be uploaded as image/jpeg.
+          if (canWrite()) setError('Could not prepare this photo. Please choose another image.');
         }
       }
     } catch (err) {
@@ -219,7 +261,7 @@ function EditProfileForm({ user, isLoaded }: {
       setError('First name is required.');
       return;
     }
-    if (reviewing && trimPhone && !PHONE_REGEX.test(trimPhone)) {
+    if (trimPhone && !PHONE_REGEX.test(trimPhone)) {
       setError('Please enter a valid PH mobile number, or leave it blank.');
       return;
     }
@@ -325,7 +367,7 @@ function EditProfileForm({ user, isLoaded }: {
       <ScreenShell
         title={reviewing ? 'Fix your profile' : undefined}
         subtitle={reviewing ? 'Correct your details below. Your quiz pass stays saved.' : undefined}
-        onBack={() => router.back()}
+        onBack={handleBack}
         headerRight={!reviewing ? (
           <View pointerEvents="none" style={styles.headerTitle}>
             <Text variant="bodyLg" weight="bold" accessibilityRole="header">Edit profile</Text>
@@ -338,12 +380,13 @@ function EditProfileForm({ user, isLoaded }: {
             title={reviewing ? 'Resubmit for review' : success ? 'Saved' : 'Save changes'}
             onPress={handleSave}
             loading={loading}
-            disabled={busy || success || !canEdit}
+            disabled={busy || success || !canEdit || isOffline}
             accessibilityLabel={reviewing ? 'Resubmit for review' : 'Save changes'}
           />
         }
       >
         {success ? <Banner tone="ok" title="Profile updated" /> : null}
+        {isOffline ? <Banner tone="warn" body="You're offline. Reconnect to save your profile changes." /> : null}
         {error ? <Banner tone="danger" body={error} /> : null}
         {reviewing ? (
           <ProfileReviewNotice
@@ -357,10 +400,10 @@ function EditProfileForm({ user, isLoaded }: {
         <View style={styles.photoSection}>
           <Pressable
             onPress={handlePickImage}
-            disabled={busy || success || !canEdit}
+            disabled={busy || success || !canEdit || isOffline}
             accessibilityLabel="Change profile photo"
             accessibilityRole="button"
-            accessibilityState={{ disabled: busy || success || !canEdit, busy: picking }}
+            accessibilityState={{ disabled: busy || success || !canEdit || isOffline, busy: picking }}
             style={styles.photo}
           >
             <Avatar uri={avatarUri} name={fullName || undefined} size={96} />

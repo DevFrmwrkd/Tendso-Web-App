@@ -19,6 +19,9 @@ const mockRenderImage = jest.fn();
 const mockEncode = jest.fn();
 const mockUploadTarget = jest.fn();
 const mockFetch = jest.fn();
+const mockDispatch = jest.fn();
+let mockPreventRemove: { enabled: boolean; callback: (event: any) => void };
+let mockConnected = true;
 let mockUser: any;
 let mockAccounts: Record<string, any>;
 let mockParams: { review?: string; field?: string };
@@ -29,7 +32,11 @@ jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRout
 jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({
   ...mockDeleteState, requestDelete: mockRequestDelete,
 }) }));
-jest.mock('expo-router', () => ({ useLocalSearchParams: () => mockParams }));
+jest.mock('expo-router', () => ({ useLocalSearchParams: () => mockParams, useNavigation: () => ({ dispatch: mockDispatch }) }));
+jest.mock('@react-navigation/native', () => ({ usePreventRemove: (enabled: boolean, callback: (event: any) => void) => {
+  mockPreventRemove = { enabled, callback };
+} }));
+jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   creators: { getByClerkId: 'account', update: 'update', resubmitProfileForReview: 'resubmit' },
   r2: { generateUploadUrl: 'upload-target' },
@@ -72,6 +79,7 @@ async function save(view: ReturnType<typeof render>) {
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = {};
+  mockConnected = true;
   mockDeleteState = { busy: false, canDelete: true };
   mockUser = { id: 'clerk-mika', update: mockClerkUpdate, imageUrl: 'https://avatars.example.com/clerk-mika.jpg',
     primaryEmailAddress: { emailAddress: 'clerk-mika@example.com' } };
@@ -339,4 +347,96 @@ it('does not expose stale saved fields from a creator record for another Clerk s
   expect(view.queryByLabelText('First name')).toBeNull();
   expect(view.queryByLabelText("Email: mika@example.com. Can't change.")).toBeNull();
   expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it.each(['creator', 'affiliate'])('validates a nonempty PH mobile number for a normal %s profile', async (role) => {
+  mockAccounts['clerk-mika'].role = role;
+  const view = render(<EditProfileScreen />);
+  fireEvent.changeText(view.getByLabelText('Phone number'), '12345');
+  await save(view);
+  expect(view.getByText('Please enter a valid PH mobile number, or leave it blank.')).toBeTruthy();
+  expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockResubmit).not.toHaveBeenCalled();
+});
+
+it('keeps the saved avatar when JPEG conversion fails rather than uploading the raw HEIC as JPEG', async () => {
+  mockEncode.mockRejectedValueOnce(new Error('Could not convert HEIC'));
+  const view = render(<EditProfileScreen />);
+  await pickPhoto(view);
+  expect(view.getByText('Could not prepare this photo. Please choose another image.')).toBeTruthy();
+  await save(view);
+  expect(mockUploadTarget).not.toHaveBeenCalled();
+  expect(mockFetch).not.toHaveBeenCalled();
+  expect(mockUpdate).toHaveBeenCalledWith({ id: 'agent-mika', firstName: 'Mika', lastName: 'Santos', phone: '09171234567' });
+});
+
+it('retains offline edits while disabling photo picking and saving until reconnection', async () => {
+  mockConnected = false;
+  const view = render(<EditProfileScreen />);
+  fireEvent.changeText(view.getByLabelText('First name'), 'Offline edit');
+  expect(view.getByText("You're offline. Reconnect to save your profile changes.")).toBeTruthy();
+  expect(view.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+  expect(view.getByRole('button', { name: 'Change profile photo' })).toBeDisabled();
+  await save(view);
+  await pickPhoto(view);
+  expect(mockPermission).not.toHaveBeenCalled();
+  expect(mockUpdate).not.toHaveBeenCalled();
+  mockConnected = true;
+  view.rerender(<EditProfileScreen />);
+  expect(view.getByLabelText('First name').props.value).toBe('Offline edit');
+  await save(view);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ firstName: 'Offline edit' }));
+});
+
+it('does not leave during a pending save, through either header or native Back', async () => {
+  let finishSave!: () => void;
+  mockUpdate.mockReturnValueOnce(new Promise<void>(resolve => { finishSave = resolve; }));
+  const view = render(<EditProfileScreen />);
+  fireEvent.changeText(view.getByLabelText('First name'), 'Changed name');
+  await save(view);
+  expect(mockPreventRemove.enabled).toBe(true);
+  fireEvent.press(view.getByRole('button', { name: 'Back' }));
+  act(() => mockPreventRemove.callback({ data: { action: { type: 'GO_BACK' } } }));
+  expect(mockRouter.back).not.toHaveBeenCalled();
+  expect(mockDispatch).not.toHaveBeenCalled();
+  expect(Alert.alert).not.toHaveBeenCalled();
+  view.unmount();
+  await act(async () => { finishSave(); await flush(); });
+});
+
+it('confirms unsaved header Back, keeps the form on cancel and leaves once discarded', () => {
+  const view = render(<EditProfileScreen />);
+  expect(mockPreventRemove.enabled).toBe(false);
+  fireEvent.changeText(view.getByLabelText('First name'), 'Unsaved name');
+  expect(mockPreventRemove.enabled).toBe(true);
+  fireEvent.press(view.getByRole('button', { name: 'Back' }));
+  fireEvent.press(view.getByRole('button', { name: 'Back' }));
+  expect(Alert.alert).toHaveBeenCalledTimes(1);
+  expect(mockRouter.back).not.toHaveBeenCalled();
+  const firstButtons = jest.mocked(Alert.alert).mock.calls[0][2]!;
+  act(() => firstButtons.find(button => button.text === 'Keep editing')!.onPress!());
+  expect(view.getByLabelText('First name').props.value).toBe('Unsaved name');
+  fireEvent.press(view.getByRole('button', { name: 'Back' }));
+  const buttons = jest.mocked(Alert.alert).mock.calls.at(-1)![2]!;
+  act(() => buttons.find(button => button.text === 'Discard changes')!.onPress!());
+  expect(mockPreventRemove.enabled).toBe(false);
+  expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('replays a confirmed native Back action and drops a stale discard confirmation after account switch', () => {
+  const view = render(<EditProfileScreen />);
+  fireEvent.changeText(view.getByLabelText('First name'), 'Unsaved name');
+  const action = { type: 'POP', payload: { count: 1 } };
+  act(() => mockPreventRemove.callback({ data: { action } }));
+  const discard = jest.mocked(Alert.alert).mock.calls.at(-1)![2]!.find(button => button.text === 'Discard changes')!.onPress!;
+  switchAccount();
+  view.rerender(<EditProfileScreen />);
+  act(() => discard());
+  expect(mockDispatch).not.toHaveBeenCalled();
+  fireEvent.changeText(view.getByLabelText('First name'), 'Second unsaved');
+  act(() => mockPreventRemove.callback({ data: { action } }));
+  act(() => jest.mocked(Alert.alert).mock.calls.at(-1)![2]!.find(button => button.text === 'Discard changes')!.onPress!());
+  expect(mockDispatch).toHaveBeenCalledWith(action);
+  expect(mockRouter.back).not.toHaveBeenCalled();
 });

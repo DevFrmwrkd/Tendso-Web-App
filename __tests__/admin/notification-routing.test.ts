@@ -82,8 +82,9 @@ describe('owned notification opening and push anchors', () => {
     expect(await t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ creatorId: ids.second, active: true });
     // A late logout cleanup from the old account cannot disable the new account's token.
     await expect(first.mutation(api.notifications.removePushToken, { token: input.token })).rejects.toThrow('Forbidden');
+    await expect(second.mutation(api.notifications.removePushToken, { token: input.token, expectedCreatorId: ids.first })).rejects.toThrow('Forbidden');
     expect(await t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ creatorId: ids.second, active: true });
-    await second.mutation(api.notifications.removePushToken, { token: input.token });
+    await second.mutation(api.notifications.removePushToken, { token: input.token, expectedCreatorId: ids.second });
     expect(await t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ active: false });
   });
 });

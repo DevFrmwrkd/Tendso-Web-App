@@ -22,7 +22,7 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   creators: { getByClerkId: 'account' },
-  notifications: { getByCreator: 'inbox', getDetails: 'details', markAsRead: 'read', markAllAsRead: 'read-all' },
+  notifications: { getByCreator: 'inbox', getDetails: 'details', getUnreadCount: 'unread-count', markAsRead: 'read', markAllAsRead: 'read-all' },
 } }));
 jest.mock('convex/react', () => ({
   useQuery: (reference: string, args: any) => {
@@ -36,9 +36,21 @@ jest.mock('convex/react', () => ({
     throw new Error('Unexpected query ' + reference);
   },
   useMutation: (reference: string) => {
-    if (reference === 'read') return mockMarkRead;
-    if (reference === 'read-all') return mockMarkAllRead;
-    throw new Error('Unexpected mutation ' + reference);
+    const mutation = reference === 'read' ? mockMarkRead : reference === 'read-all' ? mockMarkAllRead : null;
+    if (!mutation) throw new Error('Unexpected mutation ' + reference);
+    return Object.assign(mutation, { withOptimisticUpdate: (update: (store: any, args: any) => void) => (args: any) => {
+      const beforeInbox = { ...mockNotifications }, beforeDetails = { ...mockDetails };
+      update({
+        getQuery: (query: string, queryArgs: any) => query === 'inbox' ? mockNotifications[queryArgs.creatorId]
+          : query === 'details' ? mockDetails[queryArgs.id]
+            : query === 'unread-count' ? beforeInbox[queryArgs.creatorId]?.filter(row => !row.read).length : undefined,
+        setQuery: (query: string, queryArgs: any, value: any) => {
+          if (query === 'inbox') mockNotifications[queryArgs.creatorId] = value;
+          else if (query === 'details') mockDetails[queryArgs.id] = value;
+        },
+      }, args);
+      return mutation(args).catch((error: unknown) => { mockNotifications = beforeInbox; mockDetails = beforeDetails; throw error; });
+    } });
   },
 }));
 jest.mock('react-native-view-shot', () => ({ captureRef: jest.fn() }));
@@ -144,6 +156,31 @@ it('updates only the opened notification from the live inbox response and keeps 
   expect(mockMarkAllRead).not.toHaveBeenCalled();
 });
 
+it('clears only the tapped unread marker while its read write is still pending', () => {
+  mockMarkRead.mockImplementation(() => new Promise(() => {}));
+  const first = notification(), second = notification({ _id: 'notice-2', title: 'Another notice', body: 'Later' });
+  mockNotifications['agent-1'] = [first, second];
+  const view = render(<NotificationsScreen />);
+  open(view, first);
+  fireEvent.press(view.getByRole('button', { name: 'Close notification' }));
+  expect(within(view.getByRole('button', { name: `${first.title}: ${first.body}` })).queryByLabelText('Unread')).toBeNull();
+  expect(within(view.getByRole('button', { name: `${second.title}: ${second.body}` })).getByLabelText('Unread')).toBeTruthy();
+  expect(mockMarkAllRead).not.toHaveBeenCalled();
+});
+
+it('restores unread state after a failed write and keeps the message available for retry', async () => {
+  mockMarkRead.mockRejectedValueOnce(new Error('Offline'));
+  const row = notification(), view = inbox(row);
+  open(view, row); await act(flush);
+  expect(view.getByTestId('notification-full-body').props.children).toBe(row.body);
+  fireEvent.press(view.getByRole('button', { name: 'Close notification' }));
+  expect(view.getByLabelText('Unread')).toBeTruthy();
+  expect(view.getByText('Could not save read status. Reopen this message when connected to retry.')).toBeTruthy();
+  open(view, row); await act(flush);
+  expect(mockMarkRead).toHaveBeenCalledTimes(2);
+  expect(view.queryByLabelText('Unread')).toBeNull();
+});
+
 it('marks all notifications read only through the explicit action and reflects its live response', async () => {
   const rows = [notification(), notification({ _id: 'notice-2', title: 'Another update' })];
   mockNotifications['agent-1'] = rows;
@@ -193,12 +230,17 @@ it.each(['pending', 'rejected'])('shows details immediately while marking read i
   expect(view.getByTestId('notification-full-body')).toBeTruthy();
   fireEvent.press(view.getByRole('button', { name: 'Close' }));
   expect(view.queryByTestId('notification-full-body')).toBeNull();
-  expect(view.getByLabelText('Unread')).toBeTruthy();
-  expect(view.getByRole('link', { name: 'Mark all read' })).toBeTruthy();
+  if (state === 'rejected') {
+    expect(view.getByLabelText('Unread')).toBeTruthy();
+    expect(view.getByRole('link', { name: 'Mark all read' })).toBeTruthy();
+  } else {
+    expect(view.queryByLabelText('Unread')).toBeNull();
+    expect(view.queryByRole('link', { name: 'Mark all read' })).toBeNull();
+  }
   expect(mockMarkAllRead).not.toHaveBeenCalled();
 
   open(view);
-  expect(mockMarkRead).toHaveBeenCalledTimes(2);
+  expect(mockMarkRead).toHaveBeenCalledTimes(state === 'rejected' ? 2 : 1);
   expect(mockMarkRead).toHaveBeenLastCalledWith({ id: 'notice-1' });
   await act(flush);
   expect(view.getByTestId('notification-full-body').props.children).toBe(longBody);

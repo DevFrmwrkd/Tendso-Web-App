@@ -143,6 +143,51 @@ it('visits a community find through its exclusive API and keeps its lead id for 
   } });
 });
 
+it.each(['pool', 'community'])('shows a completed %s visit before its live queries refresh', async (source) => {
+  mockData['prospects:searchViewport'] = { prospects: source === 'pool' ? [imported] : [], truncated: false };
+  mockData['leads:listForMobileCRM'] = { leads: source === 'community' ? [community] : [] };
+  // Mutation acknowledgements do not synchronously refresh Convex queries.
+  mockReserve.mockResolvedValue({ prospectId: imported._id });
+  mockVisit.mockResolvedValue({ leadId: community._id, claimExpiresAt: Date.now() + 86_400_000 });
+  const screen = renderMap();
+  fireEvent.press(screen.getByRole('button', { name: source === 'pool' ? /Ramon’s Barber,/ : /Aling Nena’s,/ }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'I’m visiting' })); });
+  expect(screen.queryByRole('button', { name: 'I’m visiting' })).toBeNull();
+  fireEvent.press(screen.getByRole('button', { name: 'Start interview' }));
+  expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/(app)/submit/info' }));
+  expect(source === 'pool' ? mockReserve : mockVisit).toHaveBeenCalledTimes(1);
+});
+
+it('lets a newer competitor claim override an optimistic visit', async () => {
+  mockData['leads:listForMobileCRM'] = { leads: [community] };
+  mockVisit.mockResolvedValue({ leadId: community._id, claimExpiresAt: Date.now() + 86_400_000 });
+  const screen = renderMap();
+  fireEvent.press(screen.getByRole('button', { name: /Aling Nena’s,/ }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'I’m visiting' })); });
+  expect(screen.getByRole('button', { name: 'Start interview' })).toBeTruthy();
+  mockData['leads:listForMobileCRM'] = { leads: [{ ...community, claimExpiresAt: Date.now() + 86_400_000,
+    claimedBy: { creatorId: 'agent-joy', displayName: 'Joy D.', isMine: false } }] };
+  screen.rerender(<FieldAgentMap creator={mockCreator} monthlyEarnings={7500} unreadCount={0} />);
+  expect(screen.queryByRole('button', { name: 'Start interview' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'I’m visiting' })).toBeNull();
+  expect(screen.getByText('Joy D. is visiting this shop.')).toBeTruthy();
+});
+
+it('does not resurrect a reserved pool pin when a newer community row represents the same place', async () => {
+  const googlePlaceId = 'same-place';
+  mockData['prospects:searchViewport'] = { prospects: [{ ...imported, googlePlaceId }], truncated: false };
+  mockReserve.mockResolvedValue({ prospectId: imported._id });
+  const screen = renderMap();
+  fireEvent.press(screen.getByRole('button', { name: /Ramon’s Barber,/ }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'I’m visiting' })); });
+  mockData['leads:listForMobileCRM'] = { leads: [{ ...community, businessGooglePlaceId: googlePlaceId,
+    hasSubmittedCapture: true }] };
+  screen.rerender(<FieldAgentMap creator={mockCreator} monthlyEarnings={7500} unreadCount={0} />);
+  expect(screen.queryByRole('button', { name: /Ramon’s Barber,/ })).toBeNull();
+  expect(screen.getByRole('button', { name: /Aling Nena’s,/ })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Start interview' })).toBeNull();
+});
+
 it('does not offer visiting or capturing a shop already claimed by a different agent', () => {
   mockData['leads:listForMobileCRM'] = { leads: [{ ...community, claimExpiresAt: Date.now() + 86_400_000,
     claimedBy: { creatorId: 'agent-joy', displayName: 'Joy D.', profileImage: null, isMine: false } }] };

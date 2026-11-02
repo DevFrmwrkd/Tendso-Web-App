@@ -170,8 +170,15 @@ export function FieldAgentMap({ creator, userImage, monthlyEarnings, unreadCount
       (crm?.leads ?? []) as CommunityFind[], area, null);
     // Keep a successful reservation visible during the two live-query updates.
     for (const pending of pendingShops) {
-      if (pending.actorKey === actorKey && !merged.some((shop) => shop.id === pending.id && shop.source === pending.source)
-        && pending.claimExpiresAt != null && pending.claimExpiresAt > Date.now()) {
+      if (pending.actorKey !== actorKey || pending.claimExpiresAt == null || pending.claimExpiresAt <= Date.now()) continue;
+      const index = merged.findIndex((shop) => shop.id === pending.id && shop.source === pending.source);
+      if (index >= 0) {
+        // The old available row can arrive before the reservation query. Keep
+        // its latest details, but reflect the completed visit immediately.
+        // A newer competitor claim or submission remains authoritative.
+        if (merged[index].canVisit) merged[index] = { ...merged[index], isMine: true,
+          canVisit: false, canInterview: true, claimExpiresAt: pending.claimExpiresAt };
+      } else if (!pending.googlePlaceId || !merged.some((shop) => shop.googlePlaceId === pending.googlePlaceId)) {
         const distance = area ? distanceKm(area, pending) : null;
         merged.push({ ...pending, distanceKm: distance, distanceLabel: mapDistanceLabel(distance, area) });
       }

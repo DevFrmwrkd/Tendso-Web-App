@@ -962,6 +962,106 @@ describe('Wise payout lifecycle safety', () => {
     expect(view.queryByTestId('amount-input')).toBeNull();
   });
 
+  it('dismisses the keyboard and rejects an old confirm callback after closing the cash-out sheet', () => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    const submit = view.UNSAFE_getAllByType(Button).find(button => button.props.accessibilityLabel === 'Confirm withdrawal')!.props.onPress;
+    dismiss.mockClear();
+    fireEvent.press(view.getByText('Not now'));
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    act(() => { void submit(); });
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+    expect(view.queryByTestId('amount-input')).toBeNull();
+  });
+
+  it('dismisses the keyboard and rejects an old setup callback after dismissing Wise setup', () => {
+    setupQueries(mockCreatorNoWise);
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.changeText(view.getByTestId('wise-setup-email-input'), 'new@wise.com');
+    const save = view.UNSAFE_getAllByType(Button).find(button => button.props.accessibilityLabel === 'Continue to withdrawal')!.props.onPress;
+    dismiss.mockClear();
+    fireEvent(view.getByTestId('wise-setup-modal'), 'requestClose');
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    act(() => { void save(); });
+    expect(mockUpdateCreator).not.toHaveBeenCalled();
+    expect(view.queryByTestId('wise-setup-email-input')).toBeNull();
+  });
+
+  it('does not reopen a completed Wise setup after leaving and returning to Earn', async () => {
+    let resolve!: () => void;
+    setupQueries(mockCreatorNoWise);
+    mockUpdateCreator.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.changeText(view.getByTestId('wise-setup-email-input'), 'new@wise.com');
+    fireEvent.press(view.getByLabelText('Continue to withdrawal'));
+    mockFocused = false; view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('wise-setup-email-input')).toBeNull();
+    mockFocused = true; view.rerender(<WalletScreen />);
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(true);
+    await act(async () => { resolve(); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(false);
+    expect(mockUpdateCreator).toHaveBeenCalledTimes(1);
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it.each(['success', 'failure'])('ignores the old withdrawal %s after blur and refocus without allowing a duplicate', async outcome => {
+    let resolve!: (value: string) => void;
+    let reject!: (error: Error) => void;
+    mockCreateWithdrawal.mockImplementation(() => new Promise<string>((done, fail) => { resolve = done; reject = fail; }));
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    const submit = view.UNSAFE_getAllByType(Button).find(button => button.props.accessibilityLabel === 'Confirm withdrawal')!.props.onPress;
+    act(() => { void submit(); });
+    expect(mockCreateWithdrawal).toHaveBeenCalledTimes(1);
+    mockFocused = false; view.rerender(<WalletScreen />);
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    mockFocused = true; view.rerender(<WalletScreen />);
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(true);
+    act(() => { void submit(); });
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    expect(mockCreateWithdrawal).toHaveBeenCalledTimes(1);
+    await act(async () => { if (outcome === 'success') resolve('old-withdrawal'); else reject(new Error('Old request failed')); });
+    expect(alert).not.toHaveBeenCalled();
+    expect(view.queryByText('Old request failed')).toBeNull();
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.getByTestId('withdraw-button').props.accessibilityState.disabled).toBe(false);
+  });
+
+  it('does not open cash-out with a zero balance after the Wise email save finishes', async () => {
+    let resolve!: () => void;
+    setupQueries(mockCreatorNoWise);
+    mockUpdateCreator.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+    const view = render(<WalletScreen />);
+    fireEvent.press(view.getByTestId('withdraw-button'));
+    fireEvent.changeText(view.getByTestId('wise-setup-email-input'), 'new@wise.com');
+    fireEvent.press(view.getByLabelText('Continue to withdrawal'));
+    setupQueries({ ...mockCreatorNoWise, balance: 0 });
+    view.rerender(<WalletScreen />);
+    await act(async () => { resolve(); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(view.queryByTestId('wise-setup-email-input')).toBeNull();
+    expect(view.getByText('No balance available')).toBeTruthy();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('does not open an editor from an old cash-out callback after balance or focus changes', () => {
+    const view = render(<WalletScreen />);
+    const open = view.UNSAFE_getAllByType(Button).find(button => button.props.testID === 'withdraw-button')!.props.onPress;
+    setupQueries({ ...mockCreator, balance: 0 }); view.rerender(<WalletScreen />);
+    act(() => { open(); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    setupQueries(); mockFocused = false; view.rerender(<WalletScreen />);
+    act(() => { open(); });
+    expect(view.queryByTestId('amount-input')).toBeNull();
+    expect(mockCreateWithdrawal).not.toHaveBeenCalled();
+  });
+
   it('blocks a stale confirm callback after the network disconnects', () => {
     const view = render(<WalletScreen />);
     fireEvent.press(view.getByTestId('withdraw-button'));

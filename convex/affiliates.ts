@@ -329,7 +329,7 @@ export const portal = query({
                 pending: referrals.filter((row) => row.status === 'pending').length,
                 qualified: referrals.filter((row) => row.status === 'qualified').length,
                 paid: referrals.filter((row) => row.status === 'paid').length,
-                totalEarned: referrals.reduce((sum, row) => sum + row.bonusAmount, 0),
+                totalEarned: referrals.reduce((sum, row) => sum + (row.status === 'qualified' || row.status === 'paid' ? row.bonusAmount : 0), 0),
             },
         };
     },

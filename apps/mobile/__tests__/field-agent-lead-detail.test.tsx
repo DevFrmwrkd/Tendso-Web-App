@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, Linking } from 'react-native';
+import { Alert, BackHandler, Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import LeadDetailScreen from '../app/(app)/leads/[leadId]';
 import { Button } from '../components/v2';
@@ -83,8 +83,9 @@ function communityDetail() {
 
 function deferred() {
   let resolve!: () => void;
-  const promise = new Promise<void>((done) => { resolve = done; });
-  return { promise, resolve };
+  let reject!: (error: Error) => void;
+  const promise = new Promise<void>((done, fail) => { resolve = done; reject = fail; });
+  return { promise, resolve, reject };
 }
 
 beforeEach(() => {
@@ -457,6 +458,56 @@ it('saves trimmed notes and preserves manual CRM status only for a private inqui
   screen.rerender(<LeadDetailScreen />);
   expect(screen.queryByRole('button', { name: 'Set status to Contacted' })).toBeNull();
   expect(mockUpdateStatus).toHaveBeenCalledTimes(1);
+});
+
+it.each(['route', 'account', 'authentication'])('keeps a new note and its in-flight save intact after an old %s request completes', async (change) => {
+  const oldSave = deferred();
+  const nextSave = deferred();
+  mockAddNote.mockReturnValueOnce(oldSave.promise).mockReturnValueOnce(nextSave.promise);
+  const screen = render(<LeadDetailScreen />);
+  fireEvent.changeText(screen.getByLabelText('Add a note about this lead'), 'Old shop note');
+  fireEvent.press(screen.getByRole('button', { name: 'Save note' }));
+  if (change === 'route') {
+    mockParams = { leadId: 'lead-2' };
+    mockDetail = { ...communityDetail(), lead: { ...communityDetail().lead, _id: 'lead-2' } };
+  } else if (change === 'account') mockUserId = 'clerk-agent-2';
+  else {
+    mockAuthenticated = false;
+    screen.rerender(<LeadDetailScreen />);
+    mockAuthenticated = true;
+  }
+  screen.rerender(<LeadDetailScreen />);
+  expect(screen.getByLabelText('Add a note about this lead').props.value).toBe('');
+  fireEvent.changeText(screen.getByLabelText('Add a note about this lead'), 'New shop note');
+  fireEvent.press(screen.getByRole('button', { name: 'Save note' }));
+  expect(mockAddNote).toHaveBeenCalledTimes(2);
+  await act(async () => oldSave.resolve());
+  expect(screen.getByLabelText('Add a note about this lead').props.value).toBe('New shop note');
+  expect(screen.getByRole('button', { name: 'Save note' }).props.accessibilityState.busy).toBe(true);
+  await act(async () => nextSave.resolve());
+  expect(screen.getByLabelText('Add a note about this lead').props.value).toBe('');
+  expect(screen.getByRole('button', { name: 'Save note' }).props.accessibilityState.busy).toBe(false);
+});
+
+it('suppresses a delayed status error from a previous shop and keeps the next status request locked', async () => {
+  mockDetail.lead.source = 'direct';
+  const oldUpdate = deferred();
+  const nextUpdate = deferred();
+  mockUpdateStatus.mockReturnValueOnce(oldUpdate.promise).mockReturnValueOnce(nextUpdate.promise);
+  const alert = jest.spyOn(Alert, 'alert');
+  const screen = render(<LeadDetailScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'Set status to Qualified' }));
+  mockParams = { leadId: 'lead-2' };
+  mockDetail = { ...communityDetail(), lead: { ...communityDetail().lead, _id: 'lead-2', source: 'direct' } };
+  screen.rerender(<LeadDetailScreen />);
+  fireEvent.press(screen.getByRole('button', { name: 'Set status to Contacted' }));
+  await act(async () => oldUpdate.reject(new Error('Old shop failed')));
+  expect(alert).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Updating status')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Set status to Qualified' })).toBeNull();
+  expect(mockUpdateStatus).toHaveBeenCalledTimes(2);
+  await act(async () => nextUpdate.resolve());
+  expect(screen.getByRole('button', { name: 'Set status to Qualified' })).toBeTruthy();
 });
 
 it('does not offer manual shared-shop status controls even to its visitor or original spotter', async () => {

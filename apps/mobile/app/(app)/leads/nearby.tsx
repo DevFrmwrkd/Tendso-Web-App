@@ -23,6 +23,7 @@ import { Avatar, Banner, Button, Chip, Loading, Text, TextLink, leadStatus } fro
 import { openDirections } from '../../../services/links';
 import { mapDistanceLabel, validMapCoordinate } from '../../../services/workArea';
 import { ShopImage } from '../../../components/ShopImage';
+import { publicImage } from '../../../services/fieldAgentMap';
 
 type GeocodedLead = {
   leadId: string;
@@ -259,7 +260,8 @@ export default function NearbyLeadsScreen() {
         status: l.status,
         isHot: !!l.isHot,
         isMine: !!l.isMine,
-        photoUrl: (l.previewImageUrl as string | null | undefined) ?? null,
+        // Legacy preview URLs can point at another agent's private capture.
+        photoUrl: publicImage(l.photoUrl),
         category: l.businessCategory?.trim() || l.businessType?.trim() || null,
         kind: l.communityKind ?? null,
         submitterName: l.submittedBy?.displayName ?? null,

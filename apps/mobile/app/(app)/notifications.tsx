@@ -22,6 +22,7 @@ import * as MediaLibrary from 'expo-media-library';
 import CertificateCard from '../../components/CertificateCard';
 import {
   Button,
+  Banner,
   Card,
   EmptyState,
   Loading,
@@ -33,6 +34,7 @@ import {
 import { NotificationIcon, timeAgo } from '../../components/v2/NotificationIcon';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 import { notificationRouteId } from '../../services/notificationOpening';
+import { optimisticNotificationRead } from '../../services/notificationReadUpdates';
 
 const DAY = 86_400_000;
 
@@ -58,6 +60,11 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const [showCertModal, setShowCertModal] = useState(false);
   const certModalRef = useRef<View>(null);
   const openedTarget = useRef<string | null>(null);
+  const mounted = useRef(true);
+  const pendingReads = useRef(new Set<string>());
+  const markingAll = useRef(false);
+  const [readError, setReadError] = useState('');
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   const creator = useQuery(
     api.creators.getByClerkId,
@@ -69,8 +76,12 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
     creator?._id ? { creatorId: creator._id } : 'skip'
   );
 
-  const markAsRead = useMutation(api.notifications.markAsRead);
-  const markAllAsRead = useMutation(api.notifications.markAllAsRead);
+  const markAsRead = useMutation(api.notifications.markAsRead).withOptimisticUpdate((store, args) => {
+    optimisticNotificationRead(store, creator?._id, args.id);
+  });
+  const markAllAsRead = useMutation(api.notifications.markAllAsRead).withOptimisticUpdate((store, args) => {
+    if (args.creatorId === creator?._id) optimisticNotificationRead(store, args.creatorId);
+  });
   const selected = selectedNotification?.creatorId === creator?._id ? selectedNotification : null;
   const details = useQuery(api.notifications.getDetails, selected ? { id: selected._id } : 'skip');
   const message = details?._id === selected?._id && details?.creatorId === creator?._id ? details : selected;
@@ -126,8 +137,12 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
     // Reading never waits for a network write or requires a deep-link payload.
     setShowCertModal(false);
     setSelectedNotification(notification);
-    if (!notification.read) {
-      void markAsRead({ id: notification._id }).catch(() => {});
+    setReadError('');
+    if (!notification.read && !pendingReads.current.has(notification._id)) {
+      pendingReads.current.add(notification._id);
+      void markAsRead({ id: notification._id }).catch(() => {
+        if (mounted.current) setReadError('Could not save read status. Reopen this message when connected to retry.');
+      }).finally(() => pendingReads.current.delete(notification._id));
     }
   }, [creator?._id, markAsRead]);
 
@@ -148,9 +163,11 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const closeDetails = () => { setSelectedNotification(null); setShowCertModal(false); };
 
   const handleMarkAllRead = async () => {
-    if (creator?._id && unreadCount > 0) {
+    if (creator?._id && unreadCount > 0 && !markingAll.current) {
+      markingAll.current = true; setReadError('');
       try { await markAllAsRead({ creatorId: creator._id }); }
-      catch { Alert.alert('Could not mark notifications read', 'You can still open and read each message. Try again when you are connected.'); }
+      catch { if (mounted.current) Alert.alert('Could not mark notifications read', 'You can still open and read each message. Try again when you are connected.'); }
+      finally { markingAll.current = false; }
     }
   };
 
@@ -185,6 +202,7 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
         unreadCount > 0 ? <TextLink label="Mark all read" onPress={handleMarkAllRead} /> : undefined
       }
     >
+      {readError ? <Banner tone="warn" body={readError} /> : null}
       {notifications.length > 0 ? (
         <View style={styles.list}>
           {groups.map((group) => (

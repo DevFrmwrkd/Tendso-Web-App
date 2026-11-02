@@ -10,11 +10,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useWorkAreaLocation } from '../../../hooks/useWorkAreaLocation';
+import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { useNetwork } from '../../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 import { colors, radius, shadow, space } from '../../../theme/v2';
@@ -121,6 +123,19 @@ export default function DiscoverLeadsScreen() {
   const router = useGuardedRouter();
   const params = useLocalSearchParams<{ category?: string; radiusKm?: string; data?: string }>();
   const mapRef = useRef<MapView | null>(null);
+  const { isAuthenticated } = useConvexAuth();
+  const { account, isBlocked } = useMobileAccount();
+  const { isConnected } = useNetwork();
+  const canAct = isAuthenticated && isConnected !== false && !!account?.certifiedAt && !isBlocked;
+  const scopeKey = JSON.stringify([account?._id, isAuthenticated, canAct,
+    params.category, params.radiusKm, params.data]);
+  const current = useRef({ key: scopeKey, version: 0 });
+  if (current.current.key !== scopeKey) current.current = { key: scopeKey, version: current.current.version + 1 };
+  const scopeVersion = current.current.version;
+  const mounted = useRef(true);
+  const reserveInFlight = useRef(false);
+  const isCurrent = (version: number) => mounted.current && current.current.version === version;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   // 2026-05-29 — primary data path is the businesses array passed via URL
   // params from the scrape modal. This is what scrapeNearby returns directly.
@@ -144,7 +159,7 @@ export default function DiscoverLeadsScreen() {
   // user just came from the scrape modal.
   const scrapedLeads = useQuery(
     api.outscraper.listScrapedLeads,
-    directBusinesses.length > 0 ? "skip" : ({} as any),
+    isAuthenticated && directBusinesses.length === 0 ? {} : 'skip',
   );
 
   const { area, currentLocation, permissionStatus, requestCurrentLocation, isLocating, isLoading: locationLoading } = useWorkAreaLocation();
@@ -152,10 +167,11 @@ export default function DiscoverLeadsScreen() {
   const [view, setView] = useState<'map' | 'list'>('map');
   // Pool rows you reserved this visit. The search hides reserved rows, so we remember them
   // here to keep the pin and the sheet on "Yours".
-  const [reservedIds, setReservedIds] = useState<string[]>([]);
+  const [localReservations, setLocalReservations] = useState<Array<{ version: number; biz: PinnedBiz; expiresAt: number }>>([]);
 
   const categoryQuery = (Array.isArray(params.category) ? params.category[0] : params.category) ?? '';
-  const radiusKm = Number(Array.isArray(params.radiusKm) ? params.radiusKm[0] : params.radiusKm) || 5;
+  const radiusValue = Number(Array.isArray(params.radiusKm) ? params.radiusKm[0] : params.radiusKm);
+  const radiusKm = Number.isFinite(radiusValue) && radiusValue > 0 ? Math.min(radiusValue, 50) : 5;
 
   // 2026-06-01 — P1 dual-read. In addition to URL-passed data (primary) and
   // the legacy outscraper.listScrapedLeads fallback, we ALSO read from the
@@ -170,7 +186,7 @@ export default function DiscoverLeadsScreen() {
   // Function references and result types come from the canonical backend.
   const poolProspects = useQuery(
     api.prospects.searchNearby,
-    area
+    isAuthenticated && area
       ? {
           lat: area.latitude,
           lng: area.longitude,
@@ -185,6 +201,21 @@ export default function DiscoverLeadsScreen() {
   // businesses which don't yet exist as DB rows.
   const reserveProspect = useMutation(api.prospects.reserve);
   const [reservingId, setReservingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    reserveInFlight.current = false;
+    setReservingId(null);
+    setActiveLeadId(null);
+    setLocalReservations([]);
+  }, [scopeVersion]);
+  useEffect(() => {
+    const expiries = localReservations.filter((item) => item.version === scopeVersion && item.expiresAt > Date.now());
+    if (!expiries.length) return;
+    const timer = setTimeout(() => {
+      setLocalReservations((items) => items.filter((item) => item.expiresAt > Date.now()));
+    }, Math.min(...expiries.map((item) => item.expiresAt)) - Date.now() + 1);
+    return () => clearTimeout(timer);
+  }, [localReservations, scopeVersion]);
 
   useFocusEffect(
     useCallback(() => {
@@ -239,14 +270,13 @@ export default function DiscoverLeadsScreen() {
     };
   }, [directBusinesses, scrapedLeads, poolProspects]);
 
-  const pinned: PinnedBiz[] = useMemo(() => {
+  const availablePins: PinnedBiz[] = useMemo(() => {
     // Primary path: businesses passed directly from the scrape modal.
     // Render pins from these immediately, no DB query needed.
     if (directBusinesses.length > 0) {
       const directPins = directBusinesses
         .filter((b: any) =>
-          typeof b.businessLatitude === 'number' &&
-          typeof b.businessLongitude === 'number',
+          validMapCoordinate({ latitude: b.businessLatitude, longitude: b.businessLongitude }),
         )
         .map((b: any, idx: number) => ({
           leadId: b.placeId ?? `direct-${idx}`,
@@ -293,7 +323,7 @@ export default function DiscoverLeadsScreen() {
     // Pool prospects (preferred — has qualityScore from server-side ranking)
     if (poolProspects) {
       for (const p of poolProspects as any[]) {
-        if (typeof p.latitude !== 'number' || typeof p.longitude !== 'number') continue;
+        if (!validMapCoordinate({ latitude: p.latitude, longitude: p.longitude })) continue;
         const placeKey = p.googlePlaceId ?? `prospect-${String(p._id)}`;
         merged.set(placeKey, {
           leadId: String(p._id),
@@ -326,8 +356,7 @@ export default function DiscoverLeadsScreen() {
       if (
         l.source !== 'outscraper' ||
         l.submissionId != null ||
-        typeof l.businessLatitude !== 'number' ||
-        typeof l.businessLongitude !== 'number'
+        !validMapCoordinate({ latitude: l.businessLatitude, longitude: l.businessLongitude })
       ) continue;
       const placeKey = l.businessGooglePlaceId ?? `lead-${String(l._id)}`;
       if (merged.has(placeKey)) continue; // pool already supplied this — skip
@@ -362,6 +391,18 @@ export default function DiscoverLeadsScreen() {
       })
       .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
   }, [directBusinesses, scrapedLeads, poolProspects, area, currentLocation, radiusKm]);
+
+  const pinned = useMemo(() => {
+    const rows = [...availablePins];
+    for (const item of localReservations) {
+      if (item.version !== scopeVersion || item.expiresAt <= Date.now()
+        || rows.some((biz) => biz.source === item.biz.source && biz.leadId === item.biz.leadId)) continue;
+      const distanceKm = area ? haversineKm(area, item.biz) : null;
+      if (distanceKm != null && distanceKm > radiusKm) continue;
+      rows.push({ ...item.biz, distanceKm, distanceLabel: mapDistanceLabel(distanceKm, area) });
+    }
+    return rows.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+  }, [availablePins, localReservations, scopeVersion, area, radiusKm]);
 
   useEffect(() => {
     if (!mapRef.current || !area) return;
@@ -401,6 +442,7 @@ export default function DiscoverLeadsScreen() {
    */
   const startInterview = useCallback(
     (biz: PinnedBiz) => {
+      if (!canAct || reserveInFlight.current || !isCurrent(scopeVersion)) return;
       router.push({
         pathname: '/(app)/submit/info',
         params: {
@@ -414,7 +456,7 @@ export default function DiscoverLeadsScreen() {
         },
       } as any);
     },
-    [router],
+    [router, canAct, scopeVersion],
   );
 
   // P2 — Reserve handler. Looks up the underlying prospect from the dual-read
@@ -422,7 +464,7 @@ export default function DiscoverLeadsScreen() {
   // URL-data businesses (no DB row to reserve).
   const handleReserve = useCallback(
     async (biz: PinnedBiz) => {
-      if (!reserveProspect) return;
+      if (!canAct || reserveInFlight.current || !isCurrent(scopeVersion)) return;
       // Only pool-backed prospects can be reserved. This used to regex-sniff
       // the id shape, which silently misfired on legacy leads: those are also
       // plain Convex ids, so they passed the check and were then rejected by
@@ -434,15 +476,20 @@ export default function DiscoverLeadsScreen() {
         );
         return;
       }
+      reserveInFlight.current = true;
       setReservingId(biz.leadId);
+      const version = current.current.version;
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
       try {
         await reserveProspect({ prospectId: biz.leadId as any });
-        setReservedIds((ids) => (ids.includes(biz.leadId) ? ids : [...ids, biz.leadId]));
+        if (!isCurrent(version)) return;
+        setLocalReservations((items) => [...items.filter((item) => item.biz.leadId !== biz.leadId), { version, biz, expiresAt }]);
         Alert.alert(
           "Reserved",
           `${biz.businessName} is yours for the next 24 hours. Tap Route to go interview them.`,
         );
       } catch (err: any) {
+        if (!isCurrent(version)) return;
         const msg = err?.message ?? "Could not reserve this shop.";
         if (/Cannot reserve.*reserved/.test(msg)) {
           Alert.alert("Already taken", "Another field agent reserved this shop just now. Try a different one.");
@@ -452,10 +499,10 @@ export default function DiscoverLeadsScreen() {
           Alert.alert("Couldn't reserve", msg);
         }
       } finally {
-        setReservingId(null);
+        if (isCurrent(version)) { reserveInFlight.current = false; setReservingId(null); }
       }
     },
-    [reserveProspect],
+    [reserveProspect, canAct, scopeVersion],
   );
 
   const initialRegion: Region = area
@@ -505,7 +552,8 @@ export default function DiscoverLeadsScreen() {
     );
   };
 
-  const isYours = (biz: PinnedBiz) => reservedIds.includes(biz.leadId);
+  const isYours = (biz: PinnedBiz) => localReservations.some((item) => item.version === scopeVersion
+    && item.biz.source === biz.source && item.biz.leadId === biz.leadId && item.expiresAt > Date.now());
   const yoursCount = pinned.filter(isYours).length;
   const needsCount = pinned.length - yoursCount;
   const locationBanner =
@@ -596,12 +644,13 @@ export default function DiscoverLeadsScreen() {
                 {isActive ? (
                   <View style={styles.listActions}>
                     {yours ? (
-                      <Button title="Start interview" size="md" onPress={() => startInterview(biz)} accessibilityLabel="Start with these details" />
+                      <Button title="Start interview" size="md" disabled={!canAct || reservingId != null} onPress={() => startInterview(biz)} accessibilityLabel="Start with these details" />
                     ) : (
                       <Button
                         title="I'll interview this"
                         size="md"
                         loading={reservingId === biz.leadId}
+                        disabled={!canAct || reservingId != null}
                         onPress={() => handleReserve(biz)}
                       />
                     )}
@@ -628,7 +677,7 @@ export default function DiscoverLeadsScreen() {
                       ) : null}
                     </View>
                     {!yours ? (
-                      <TextLink label="Start with these details" onPress={() => startInterview(biz)} />
+                      <TextLink label="Start with these details" disabled={!canAct || reservingId != null} onPress={() => startInterview(biz)} />
                     ) : null}
                   </View>
                 ) : null}
@@ -776,6 +825,7 @@ export default function DiscoverLeadsScreen() {
                   title="Start interview"
                   size="md"
                   style={styles.flex1}
+                  disabled={!canAct || reservingId != null}
                   onPress={() => startInterview(activeLead)}
                   accessibilityLabel="Start with these details"
                 />
@@ -785,6 +835,7 @@ export default function DiscoverLeadsScreen() {
                   size="md"
                   style={[styles.flex1, styles.tightBtn]}
                   loading={reservingId === activeLead.leadId}
+                  disabled={!canAct || reservingId != null}
                   onPress={() => handleReserve(activeLead)}
                 />
               )}
@@ -801,7 +852,7 @@ export default function DiscoverLeadsScreen() {
 
             <View style={styles.linkRow}>
               {!isYours(activeLead) ? (
-                <TextLink label="Start with these details" onPress={() => startInterview(activeLead)} />
+                <TextLink label="Start with these details" disabled={!canAct || reservingId != null} onPress={() => startInterview(activeLead)} />
               ) : null}
               {activeLead.businessPhone ? (
                 <TextLink label="Call" onPress={() => callBusiness(activeLead)} accessibilityHint="Phone the shop" />

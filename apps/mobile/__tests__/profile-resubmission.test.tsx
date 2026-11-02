@@ -48,7 +48,10 @@ jest.mock('convex/react', () => ({
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
   useFocusEffect: jest.fn(),
+  useNavigation: () => ({ dispatch: jest.fn() }),
 }));
+jest.mock('@react-navigation/native', () => ({ usePreventRemove: jest.fn() }));
+jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: true }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('expo-image-picker', () => ({ MediaTypeOptions: { Images: 'Images' } }));
 jest.mock('expo-image-manipulator', () => ({ ImageManipulator: {}, SaveFormat: { JPEG: 'jpeg' } }));

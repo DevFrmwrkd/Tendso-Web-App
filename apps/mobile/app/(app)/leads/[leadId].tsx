@@ -100,13 +100,30 @@ export default function LeadDetailScreen() {
   const statusInFlight = useRef(false);
   const captureInFlight = useRef(false);
   const mounted = useRef(true);
-  const currentRoute = useRef({ userId: user?.id, leadId, isAuthenticated });
-  currentRoute.current = { userId: user?.id, leadId, isAuthenticated };
+  const currentRoute = useRef({ userId: user?.id, leadId, isAuthenticated, version: 0 });
+  const previousRoute = currentRoute.current;
+  const version = previousRoute.version + (previousRoute.userId !== user?.id
+    || previousRoute.leadId !== leadId || previousRoute.isAuthenticated !== isAuthenticated ? 1 : 0);
+  currentRoute.current = { userId: user?.id, leadId, isAuthenticated, version };
+  const isCurrentRoute = (operationVersion: number) => mounted.current
+    && currentRoute.current.isAuthenticated && currentRoute.current.version === operationVersion;
 
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
   }, []);
+
+  useEffect(() => {
+    // Expo can retain this screen while its params or signed-in actor change.
+    // Old requests must neither clear the next shop's note nor unlock its work.
+    noteInFlight.current = false;
+    statusInFlight.current = false;
+    captureInFlight.current = false;
+    setNoteContent('');
+    setPostingNote(false);
+    setUpdatingStatus(false);
+    setStartingCapture(false);
+  }, [version]);
 
   const claimExpiresAt = data?.claimExpiresAt;
   useEffect(() => {
@@ -216,12 +233,10 @@ export default function LeadDetailScreen() {
     if (!isAuthenticated || isConnected === false || crm === undefined || claimedByAnotherAgent || captureInFlight.current) return;
     captureInFlight.current = true;
     setStartingCapture(true);
-    const captureActor = { userId: user?.id, leadId };
+    const operationVersion = currentRoute.current.version;
     try {
       if (isCommunityFind) await visitCommunityFind({ leadId: lead._id });
-      if (!mounted.current || !currentRoute.current.isAuthenticated
-        || currentRoute.current.userId !== captureActor.userId
-        || currentRoute.current.leadId !== captureActor.leadId) return;
+      if (!isCurrentRoute(operationVersion)) return;
       router.push({
         pathname: '/(app)/submit/info',
         params: {
@@ -235,13 +250,14 @@ export default function LeadDetailScreen() {
         },
       } as any);
     } catch (err: any) {
-      if (mounted.current && currentRoute.current.userId === captureActor.userId
-        && currentRoute.current.leadId === captureActor.leadId) {
+      if (isCurrentRoute(operationVersion)) {
         Alert.alert('Could not start the capture', err?.message || 'Please try again.');
       }
     } finally {
-      captureInFlight.current = false;
-      if (mounted.current) setStartingCapture(false);
+      if (isCurrentRoute(operationVersion)) {
+        captureInFlight.current = false;
+        setStartingCapture(false);
+      }
     }
   };
   // Maps target: prefer the submission address, else the scraped lead's own
@@ -274,13 +290,16 @@ export default function LeadDetailScreen() {
       || (newStatus === 'converted' && !canMarkConverted)) return;
     statusInFlight.current = true;
     setUpdatingStatus(true);
+    const operationVersion = currentRoute.current.version;
     try {
       await updateStatus({ id: lead._id, status: newStatus });
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Could not update status');
+      if (isCurrentRoute(operationVersion)) Alert.alert('Error', err?.message || 'Could not update status');
     } finally {
-      statusInFlight.current = false;
-      setUpdatingStatus(false);
+      if (isCurrentRoute(operationVersion)) {
+        statusInFlight.current = false;
+        setUpdatingStatus(false);
+      }
     }
   };
 
@@ -289,14 +308,17 @@ export default function LeadDetailScreen() {
     if (!content || !creator?._id || !canUpdate || noteInFlight.current) return;
     noteInFlight.current = true;
     setPostingNote(true);
+    const operationVersion = currentRoute.current.version;
     try {
       await addNote({ leadId: lead._id, creatorId: creator._id, content });
-      setNoteContent('');
+      if (isCurrentRoute(operationVersion)) setNoteContent('');
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Could not save note');
+      if (isCurrentRoute(operationVersion)) Alert.alert('Error', err?.message || 'Could not save note');
     } finally {
-      noteInFlight.current = false;
-      setPostingNote(false);
+      if (isCurrentRoute(operationVersion)) {
+        noteInFlight.current = false;
+        setPostingNote(false);
+      }
     }
   };
 

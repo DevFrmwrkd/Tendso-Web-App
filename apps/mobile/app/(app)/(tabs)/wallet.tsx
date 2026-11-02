@@ -155,6 +155,9 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
   const [activitySelection, setActivitySelection] = useState<WalletActivitySelection | null>(null);
   const mounted = useRef(true);
+  const focused = useRef(false);
+  const editor = useRef<'withdraw' | 'setup' | null>(null);
+  const editorVersion = useRef(0);
   const submitBusy = useRef(false);
   const setupBusy = useRef(false);
   const suspended = creator?.status === 'suspended';
@@ -190,7 +193,16 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => { setShowHistory(false); return true; });
     return () => subscription.remove();
   }, [showHistory]));
-  useFocusEffect(useCallback(() => () => setActivitySelection(null), []));
+  useFocusEffect(useCallback(() => {
+    focused.current = true;
+    return () => {
+      focused.current = false;
+      editor.current = null;
+      editorVersion.current++;
+      Keyboard.dismiss();
+      setShowModal(false); setShowWiseSetup(false); setActivitySelection(null);
+    };
+  }, []));
   useEffect(() => {
     if (!activitySelection) return;
     const rows = activitySelection.kind === 'earning' ? earnings : withdrawals;
@@ -226,9 +238,12 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
   function openHistory(filter: HistoryFilter) { setActivitySelection(null); setHistoryFilter(filter); setShowHistory(true); }
   function sameActor(creatorId: string) { return mounted.current && live.current.creatorId === creatorId; }
+  function sameEditor(creatorId: string, version: number, kind: 'withdraw' | 'setup') {
+    return sameActor(creatorId) && focused.current && editorVersion.current === version && editor.current === kind;
+  }
 
   function openActivity(kind: WalletActivitySelection['kind'], id: string) {
-    if (!creator?._id || !isAuthenticated || showModal || showWiseSetup || submitBusy.current || setupBusy.current) return;
+    if (!focused.current || !creator?._id || !isAuthenticated || showModal || showWiseSetup || submitBusy.current || setupBusy.current) return;
     Keyboard.dismiss();
     setActivitySelection({ kind, id, creatorId: creator._id });
   }
@@ -237,13 +252,19 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     : selectedWithdrawal ? { kind: 'payout', withdrawal: selectedWithdrawal } : null;
 
   function openWithdrawFlow() {
-    if (!canWrite || !balance || submitBusy.current || setupBusy.current || activitySelection) return;
+    const available = live.current.balance;
+    if (!focused.current || !live.current.canWrite || available === null || !Number.isFinite(available) || available <= 0
+      || submitBusy.current || setupBusy.current || activitySelection) return;
+    Keyboard.dismiss();
+    editorVersion.current++;
     if (savedWiseEmail) {
+      editor.current = 'withdraw';
       // The whole balance is pre-picked; quick-pick pills change it.
-      setForm({ amount: String(balance), wiseEmail: savedWiseEmail });
+      setForm({ amount: String(available), wiseEmail: savedWiseEmail });
       setFormError('');
       setShowModal(true);
     } else {
+      editor.current = 'setup';
       setWiseSetupEmail('');
       setSetupError('');
       setShowWiseSetup(true);
@@ -252,11 +273,15 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
 
   function closeModal() {
     if (submitBusy.current) return;
+    editor.current = null; editorVersion.current++;
+    Keyboard.dismiss();
     setShowModal(false);
   }
 
   function closeWiseSetup() {
     if (setupBusy.current) return;
+    editor.current = null; editorVersion.current++;
+    Keyboard.dismiss();
     setShowWiseSetup(false);
   }
 
@@ -265,24 +290,29 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   }
 
   async function handleSaveWiseEmail() {
-    if (setupBusy.current || !live.current.canWrite || !creator?._id) return;
+    if (!focused.current || editor.current !== 'setup' || setupBusy.current || !live.current.canWrite || !creator?._id) return;
     setSetupError('');
     const email = wiseSetupEmail.trim();
     if (!email) { setSetupError('Please enter your Wise email address.'); return; }
     if (!isValidEmail(email)) { setSetupError('Please enter a valid email address.'); return; }
     const creatorId = creator._id;
+    const version = editorVersion.current;
     setupBusy.current = true;
     setSavingEmail(true);
+    Keyboard.dismiss();
     try {
       await updateCreator({ id: creatorId, wiseEmail: email });
-      if (!sameActor(creatorId)) return;
+      if (!sameEditor(creatorId, version, 'setup')) return;
       if (!live.current.canWrite) { setSetupError('Reconnect with an active account to continue.'); return; }
       setShowWiseSetup(false);
-      setForm({ amount: String(live.current.balance), wiseEmail: email });
+      const available = live.current.balance;
+      if (available === null || !Number.isFinite(available) || available <= 0) { editor.current = null; return; }
+      editor.current = 'withdraw';
+      setForm({ amount: String(available), wiseEmail: email });
       setFormError('');
       setShowModal(true);
     } catch (err: any) {
-      if (sameActor(creatorId)) setSetupError(err?.message ?? 'Something went wrong. Please try again.');
+      if (sameEditor(creatorId, version, 'setup')) setSetupError(err?.message ?? 'Something went wrong. Please try again.');
     } finally {
       setupBusy.current = false;
       if (sameActor(creatorId)) setSavingEmail(false);
@@ -290,7 +320,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   }
 
   async function handleSubmit() {
-    if (submitBusy.current || !live.current.canWrite || !creator?._id) return;
+    if (!focused.current || editor.current !== 'withdraw' || submitBusy.current || !live.current.canWrite || !creator?._id) return;
     setFormError('');
 
     const amount = withdrawalAmount(form.amount);
@@ -299,15 +329,18 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
     if (!form.wiseEmail.trim()) { setFormError('Wise email is required.'); return; }
     if (!isValidEmail(form.wiseEmail.trim())) { setFormError('Please enter a valid email address.'); return; }
     const creatorId = creator._id;
+    const version = editorVersion.current;
     submitBusy.current = true;
     setSubmitting(true);
+    Keyboard.dismiss();
     try {
       await createWithdrawal({
         creatorId,
         amount,
         wiseEmail: form.wiseEmail.trim(),
       });
-      if (!sameActor(creatorId)) return;
+      if (!sameEditor(creatorId, version, 'withdraw')) return;
+      editor.current = null;
       setShowModal(false);
       if (!live.current.canWrite) return;
       Alert.alert(
@@ -316,7 +349,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
         [{ text: 'OK' }]
       );
     } catch (err: any) {
-      if (sameActor(creatorId)) setFormError(err?.message ?? 'Something went wrong. Please try again.');
+      if (sameEditor(creatorId, version, 'withdraw')) setFormError(err?.message ?? 'Something went wrong. Please try again.');
     } finally {
       submitBusy.current = false;
       if (sameActor(creatorId)) setSubmitting(false);
@@ -343,7 +376,7 @@ function PersonalWallet({ isAffiliate, isAuthenticated, clerkId }: { isAffiliate
   const cashOutTitle = balance === null ? 'Balance unavailable' : balance > 0 ? 'Cash out to Wise' : 'No balance available';
   const cashOutUnits = [...cashOutTitle].reduce((sum, character) => sum + (/\s/.test(character) ? 0.3 : /[.,]/.test(character) ? 0.34 : /[0-9₱]/.test(character) ? 0.7 : 0.58), 0);
   const compactCashOut = balance !== null && balance > 0 && cashOutUnits * 18 * Math.max(1, fontScale) > Math.max(100, width - space.gutter * 2 - space.xl * 2);
-  const cashOutDisabled = !canWrite || balance === null || balance <= 0;
+  const cashOutDisabled = !canWrite || balance === null || balance <= 0 || submitting || savingEmail;
 
   if (showHistory && creator) return <WalletHistory earnings={earnings} withdrawals={withdrawals} balance={balance}
     earned={totalEarnings} withdrawn={totalWithdrawn} submissionDetails={submissionDetails.bySubmission}

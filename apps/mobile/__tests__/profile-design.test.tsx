@@ -7,6 +7,8 @@ import AffiliateProfileScreen from '../app/(app)/(affiliate-tabs)/profile';
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 const mockSignOut = jest.fn();
 const mockApplyReferral = jest.fn();
+const mockRemovePushToken = jest.fn();
+const mockUnregisterPush = jest.fn();
 const mockCaptureRef = jest.fn();
 const mockShare = jest.fn();
 const mockSave = jest.fn();
@@ -27,6 +29,7 @@ jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => ({
   view: mockUser ? mockAccounts[mockUser.id]?.role : 'creator',
 }) }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
+jest.mock('../services/pushSignOut', () => ({ unregisterPushBeforeSignOut: (...args: unknown[]) => mockUnregisterPush(...args) }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('../components/OfflineBanner', () => ({ OfflineBanner: () => null }));
 jest.mock('../components/AccountPreview', () => ({ PreviewProfile: () =>
@@ -34,6 +37,7 @@ jest.mock('../components/AccountPreview', () => ({ PreviewProfile: () =>
 jest.mock('../components/ui/SwipeSheet', () => ({ SwipeSheet: ({ visible, children }: any) => visible ? children : null }));
 jest.mock('@tendso/convex-client', () => ({ api: {
   creators: { getByClerkId: 'account', applyReferralCode: 'apply-code' },
+  notifications: { removePushToken: 'remove-push-token' },
   submissions: { getByCreatorId: 'submissions' },
 } }));
 jest.mock('convex/react', () => ({
@@ -43,7 +47,7 @@ jest.mock('convex/react', () => ({
     if (reference === 'submissions') { mockSubmissionsLookup(args); return mockSubmissions[args.creatorId]; }
     throw new Error('Unexpected query ' + reference);
   },
-  useMutation: () => mockApplyReferral,
+  useMutation: (reference: string) => reference === 'remove-push-token' ? mockRemovePushToken : mockApplyReferral,
 }));
 jest.mock('expo-constants', () => ({ __esModule: true, default: { expoConfig: { version: '1.0.0' } } }));
 jest.mock('react-native-view-shot', () => ({ captureRef: (...args: unknown[]) => mockCaptureRef(...args) }));
@@ -99,6 +103,8 @@ beforeEach(() => {
   };
   mockSignOut.mockReset().mockResolvedValue(undefined);
   mockApplyReferral.mockReset().mockResolvedValue(undefined);
+  mockRemovePushToken.mockReset().mockResolvedValue(undefined);
+  mockUnregisterPush.mockReset().mockResolvedValue(undefined);
   mockCaptureRef.mockReset().mockResolvedValue('file:///certificate.png');
   mockShare.mockReset().mockResolvedValue(undefined);
   mockSave.mockReset().mockResolvedValue(undefined);
@@ -321,6 +327,60 @@ it('does not sign out a different account through a stale confirmation', async (
   await act(async () => { await confirm(); await flush(); });
   expect(mockSignOut).not.toHaveBeenCalled();
   expect(mockRouter.replace).not.toHaveBeenCalled();
+  expect(mockUnregisterPush).not.toHaveBeenCalled();
+});
+
+it('waits for bounded push cleanup before signing out and binds removal to the original account', async () => {
+  let finishCleanup!: () => void;
+  mockUnregisterPush.mockReturnValueOnce(new Promise<void>(resolve => { finishCleanup = resolve; }));
+  const view = render(<ProfileScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Sign out' }));
+  let logout!: Promise<void>;
+  act(() => { logout = confirmation('Sign out')() as unknown as Promise<void>; });
+  expect(mockUnregisterPush).toHaveBeenCalledWith(expect.objectContaining({ creatorId: 'agent-mika', isCurrent: expect.any(Function) }));
+  expect(mockSignOut).not.toHaveBeenCalled();
+  const cleanup = mockUnregisterPush.mock.calls[0][0];
+  await act(async () => { await cleanup.removeToken({ token: 'test-device-token', expectedCreatorId: 'agent-mika' }); });
+  expect(mockRemovePushToken).toHaveBeenCalledWith({ token: 'test-device-token', expectedCreatorId: 'agent-mika' });
+  await act(async () => { finishCleanup(); await logout; });
+  expect(mockSignOut).toHaveBeenCalledTimes(1);
+  expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/login');
+});
+
+it('does not sign out the next account after old push cleanup finishes', async () => {
+  let finishCleanup!: () => void;
+  mockUnregisterPush.mockReturnValueOnce(new Promise<void>(resolve => { finishCleanup = resolve; }));
+  const view = render(<ProfileScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Sign out' }));
+  let logout!: Promise<void>;
+  act(() => { logout = confirmation('Sign out')() as unknown as Promise<void>; });
+  const cleanup = mockUnregisterPush.mock.calls[0][0];
+  switchAccount();
+  view.rerender(<ProfileScreen />);
+  expect(cleanup.isCurrent()).toBe(false);
+  await act(async () => { finishCleanup(); await logout; });
+  expect(mockSignOut).not.toHaveBeenCalled();
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+});
+
+it('does not clean up a cancelled sign-out, skips cleanup offline, and ignores cleanup errors', async () => {
+  const view = render(<ProfileScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Sign out' }));
+  act(() => confirmation('Cancel')());
+  expect(mockUnregisterPush).not.toHaveBeenCalled();
+  expect(mockSignOut).not.toHaveBeenCalled();
+  mockConnected = false;
+  view.rerender(<ProfileScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Sign out' }));
+  await act(async () => { await confirmation('Sign out')(); });
+  expect(mockUnregisterPush).not.toHaveBeenCalled();
+  expect(mockSignOut).toHaveBeenCalledTimes(1);
+  mockConnected = true;
+  view.rerender(<ProfileScreen />);
+  mockUnregisterPush.mockRejectedValueOnce(new Error('Native token unavailable'));
+  fireEvent.press(view.getByRole('button', { name: 'Sign out' }));
+  await act(async () => { await confirmation('Sign out')(); });
+  expect(mockSignOut).toHaveBeenCalledTimes(2);
 });
 
 it('opens the redesigned affiliate Me tools without field-agent training or duplicated wallet totals', () => {
@@ -351,4 +411,37 @@ it('preserves the admin profile preview without fetching personal captures', () 
   const view = render(<ProfileScreen />);
   expect(view.getByTestId('preview-profile')).toBeTruthy();
   expect(mockSubmissionsLookup).not.toHaveBeenCalled();
+});
+
+it.each(['suspended', 'deleted'])('removes certification and referral actions when the same field-agent account becomes %s', async (status) => {
+  const view = render(<ProfileScreen />);
+  openCertificate(view);
+  expect(view.getByTestId('certificate-content')).toBeTruthy();
+  fireEvent.press(view.getByRole('button', { name: 'Close certificate' }));
+  fireEvent.press(view.getByRole('button', { name: 'Enter referral code' }));
+  fireEvent.changeText(view.getByLabelText('Referral code'), 'JOY123');
+  mockAccounts['clerk-mika'].status = status;
+  view.rerender(<ProfileScreen />);
+  expect(view.queryByRole('button', { name: 'Show my certificate' })).toBeNull();
+  expect(view.queryByRole('button', { name: 'Enter referral code' })).toBeNull();
+  expect(view.queryByText('Got a code?')).toBeNull();
+  expect(mockApplyReferral).not.toHaveBeenCalled();
+});
+
+it('drops a stale referral handler after going offline or a referral arrives from another device', async () => {
+  const view = render(<ProfileScreen />);
+  fireEvent.press(view.getByRole('button', { name: 'Enter referral code' }));
+  fireEvent.changeText(view.getByLabelText('Referral code'), 'JOY123');
+  const { Button } = require('../components/v2');
+  const apply = view.UNSAFE_getAllByType(Button).find(node => node.props.accessibilityLabel === 'Apply referral code')!.props.onPress;
+  mockConnected = false;
+  view.rerender(<ProfileScreen />);
+  await act(async () => { await apply(); });
+  expect(mockApplyReferral).not.toHaveBeenCalled();
+  mockConnected = true;
+  mockAccounts['clerk-mika'].referredByCode = 'ALREADY';
+  view.rerender(<ProfileScreen />);
+  await act(async () => { await apply(); });
+  expect(mockApplyReferral).not.toHaveBeenCalled();
+  expect(view.queryByText('Got a code?')).toBeNull();
 });

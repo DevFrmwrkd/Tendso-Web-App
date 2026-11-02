@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Pressable,
@@ -20,6 +20,7 @@ import { api } from '@tendso/convex-client';
 import { useFocusEffect } from 'expo-router';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
+import { useNetwork } from '../../../providers/NetworkProvider';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { colors, fonts, radius, shadow, space } from '../../../theme/v2';
@@ -41,6 +42,7 @@ import {
 } from '../../../components/v2';
 import { openDirections, canOpenDirections, openExternalUrl } from '../../../services/links';
 import { mapSearchArea, withLocationTimeout } from '../../../services/workArea';
+import { publicImage } from '../../../services/fieldAgentMap';
 
 type StatusFilter = 'all' | 'reserved' | 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
 
@@ -78,6 +80,17 @@ function timeAgo(ts: number): string {
 export default function LeadsScreen() {
   const router = useGuardedRouter();
   const { account } = useMobileAccount();
+  const { isAuthenticated } = useConvexAuth();
+  const { isConnected } = useNetwork();
+  const canSearch = isAuthenticated && isConnected !== false && !!account?._id;
+  const actorKey = JSON.stringify([account?._id, isAuthenticated, canSearch]);
+  const current = useRef({ key: actorKey, version: 0 });
+  if (current.current.key !== actorKey) current.current = { key: actorKey, version: current.current.version + 1 };
+  const actorVersion = current.current.version;
+  const mounted = useRef(true);
+  const searchInFlight = useRef(false);
+  const isCurrent = (version: number) => mounted.current && current.current.version === version;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -96,7 +109,17 @@ export default function LeadsScreen() {
   const [scrapePhase, setScrapePhase] = useState<ScrapePhase>('idle');
   const scrapeNearbyAction = useAction(api.outscraper.scrapeNearby);
 
+  useEffect(() => {
+    searchInFlight.current = false;
+    setScraping(false);
+    setScrapePhase('idle');
+    setShowScrape(false);
+  }, [actorVersion]);
+
   const handleScrape = useCallback(async () => {
+    if (!canSearch || searchInFlight.current || !isCurrent(actorVersion)) return;
+    searchInFlight.current = true;
+    const version = current.current.version;
     setScraping(true);
     setScrapePhase('locating');
     try {
@@ -112,6 +135,7 @@ export default function LeadsScreen() {
         })());
         searchArea = mapSearchArea(null, position);
       }
+      if (!isCurrent(version)) return;
       if (!searchArea) {
         Alert.alert(
           'Location needed',
@@ -131,10 +155,12 @@ export default function LeadsScreen() {
         radiusKm: scrapeRadiusKm,
         limit: 20,
       });
+      if (!isCurrent(version)) return;
       setScrapePhase('saving');
       // Tiny pause so the "saving" stage is perceptible — the action is already done,
       // but the user has been watching the screen and deserves to see the final stage.
       await new Promise((r) => setTimeout(r, 350));
+      if (!isCurrent(version)) return;
       // No more "X businesses added to your interview list" Alert — route straight
       // to the discover map. The map shows every Outscraper-scraped business as
       // a pin so the creator can pick where to go next.
@@ -157,6 +183,7 @@ export default function LeadsScreen() {
       );
       return;
     } catch (err: any) {
+      if (!isCurrent(version)) return;
       const msg = err?.message ?? 'Could not find businesses near you right now.';
       if (/not authenticated/i.test(msg)) {
         Alert.alert(
@@ -177,10 +204,13 @@ export default function LeadsScreen() {
         Alert.alert('Search failed', msg);
       }
     } finally {
-      setScraping(false);
-      setScrapePhase('idle');
+      if (isCurrent(version)) {
+        searchInFlight.current = false;
+        setScraping(false);
+        setScrapePhase('idle');
+      }
     }
-  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction, router, account]);
+  }, [scrapeCategory, scrapeRadiusKm, scrapeNearbyAction, router, account, canSearch, actorVersion]);
 
   // When the user picks the Reserved chip we switch to a different data source —
   // reservations live in prospects (state="reserved"), not leads.
@@ -188,7 +218,6 @@ export default function LeadsScreen() {
   // authenticated" (surfacing as a generic "Server Error" that trips the app
   // error boundary) if they run before Clerk's token reaches the Convex client
   // — or after it expires. Skip until Convex reports an authenticated session.
-  const { isAuthenticated } = useConvexAuth();
 
   const reservedProspects = useQuery(
     api.prospects.listMyReservations,
@@ -261,6 +290,7 @@ export default function LeadsScreen() {
           title="Find shops near me"
           icon="search"
           onPress={() => setShowScrape(true)}
+          disabled={!canSearch}
           accessibilityLabel="Find local businesses near you to interview"
         />
       }
@@ -491,7 +521,7 @@ export default function LeadsScreen() {
               <Button
                 title="Find shops"
                 loading={scraping}
-                disabled={scraping}
+                disabled={scraping || !canSearch}
                 onPress={handleScrape}
                 accessibilityLabel="Find businesses to interview"
               />
@@ -593,7 +623,7 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
         cssInterop={false}
         style={({ pressed }) => [styles.leadMain, pressed ? { opacity: 0.85 } : null]}
       >
-        <PhotoTile uri={lead.previewImageUrl} name={title} />
+        <PhotoTile uri={publicImage(lead.photoUrl)} name={title} />
         <View style={styles.leadText}>
           <Text variant="bodyLg" weight="bold" numberOfLines={2}>
             {title}

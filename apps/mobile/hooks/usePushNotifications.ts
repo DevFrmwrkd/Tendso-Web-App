@@ -20,43 +20,22 @@ Notifications.setNotificationHandler({
 
 export function usePushNotifications(creatorId: Id<'creators'> | undefined) {
   const registerToken = useMutation(api.notifications.registerPushToken);
-  const registered = useRef(false);
+  const registered = useRef<Id<'creators'> | null>(null);
+  const currentActor = useRef(creatorId);
+  currentActor.current = creatorId;
 
   useEffect(() => {
-    if (!creatorId || registered.current) return;
+    if (!creatorId) { registered.current = null; return; }
+    if (registered.current === creatorId) return;
+    registered.current = null;
+    let active = true;
+    const actor = creatorId;
+    const current = () => active && currentActor.current === actor;
 
     async function register() {
-      // Push notifications only work on physical devices
-      if (!Device.isDevice) {
-        console.log('[Push] Must use physical device for push notifications');
-        return;
-      }
-
-      // Check/request permissions
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        console.log('[Push] Notification permission not granted');
-        return;
-      }
-
-      // Android needs a notification channel
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'Default',
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#E4B05E',
-        });
-      }
-
       try {
+        // Push notifications only work on physical devices.
+        if (!Device.isDevice) return;
         // Read the EAS projectId from the app config so it always matches the
         // currently-linked project. Was previously hardcoded to a stale project,
         // which mints push tokens against the wrong project and breaks delivery.
@@ -68,25 +47,46 @@ export function usePushNotifications(creatorId: Id<'creators'> | undefined) {
           return;
         }
 
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        if (!current()) return;
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (!current()) return;
+          finalStatus = status;
+        }
+        if (finalStatus !== 'granted') return;
+
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'Default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#E4B05E',
+          });
+          if (!current()) return;
+        }
+
         const token = (
           await Notifications.getExpoPushTokenAsync({ projectId })
         ).data;
-
-        console.log('[Push] Token:', token);
+        if (!current()) return;
+        if (typeof token !== 'string' || !token.trim()) throw new Error('Push token unavailable');
 
         await registerToken({
-          creatorId: creatorId!,
+          creatorId: actor,
           token,
           platform: Platform.OS as 'ios' | 'android' | 'web',
         });
 
-        registered.current = true;
-        console.log('[Push] Token registered successfully');
-      } catch (error) {
-        console.error('[Push] Error registering token:', error);
+        if (current()) registered.current = actor;
+      } catch {
+        // Native/API errors can include the device token. Keep logs generic.
+        if (current()) console.error('[Push] Could not register notifications.');
       }
     }
 
-    register();
+    void register();
+    return () => { active = false; };
   }, [creatorId, registerToken]);
 }

@@ -27,6 +27,7 @@ import CertificateCard from '../../../components/CertificateCard';
 import { SwipeSheet } from '../../../components/ui/SwipeSheet';
 import { useMobileAccount } from '../../../hooks/useMobileAccount';
 import { PreviewProfile } from '../../../components/AccountPreview';
+import { unregisterPushBeforeSignOut } from '../../../services/pushSignOut';
 import { colors, radius, shadow, space } from '../../../theme/v2';
 import {
   Avatar,
@@ -125,9 +126,12 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const isCurrent = () => mounted.current && !!actorId && liveActor.current === actorId;
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const applyReferralCode = useMutation(api.creators.applyReferralCode);
+  const removePushToken = useMutation(api.notifications.removePushToken);
 
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
+  const liveOffline = useRef(isOffline);
+  liveOffline.current = isOffline;
 
   const queriedCreator = useQuery(
     api.creators.getByClerkId,
@@ -137,7 +141,12 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   const affiliateAccount = creator?.role === 'affiliate' || isAffiliate;
   const liveCreator = useRef(creator);
   liveCreator.current = creator;
-  const isCertified = !affiliateAccount && !!creator?.certifiedAt && !creator?.rejectedAt;
+  const activeAgent = !!creator && !affiliateAccount && (!creator.role || creator.role === 'creator')
+    && !creator.isDeleted && creator.status !== 'deleted' && creator.status !== 'suspended';
+  const canApplyReferral = activeAgent && !creator.referredByCode;
+  const liveReferralAccess = useRef({ canApplyReferral, activeAgent, isOffline });
+  liveReferralAccess.current = { canApplyReferral, activeAgent, isOffline };
+  const isCertified = activeAgent && !!creator?.certifiedAt && !creator?.rejectedAt;
   const certificateVisible = useRef(false);
   certificateVisible.current = showCertModal && isCertified;
 
@@ -145,7 +154,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
   // while the Submitted stat counts only captures that have left draft status.
   const submissions = useQuery(
     api.submissions.getByCreatorId,
-    creator?._id && !affiliateAccount ? { creatorId: creator._id } : 'skip',
+    activeAgent ? { creatorId: creator!._id } : 'skip',
   );
 
   const handleShareCert = useCallback(async () => {
@@ -220,6 +229,19 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
             signingOutBusy.current = true;
             setSigningOut(true);
             try {
+              const account = liveCreator.current;
+              if (!liveOffline.current && account?._id && account.clerkId === actorId) {
+                try {
+                  await unregisterPushBeforeSignOut({
+                    creatorId: account._id,
+                    removeToken: ({ token }) => removePushToken({ token, expectedCreatorId: account._id }),
+                    isCurrent,
+                  });
+                } catch {
+                  // Token cleanup is best-effort; it must never prevent logout.
+                }
+              }
+              if (!isCurrent()) return;
               await signOut();
               if (isCurrent()) router.replace('/(auth)/login');
             } catch {
@@ -237,8 +259,10 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
 
   const handleApplyReferral = async () => {
     const creatorId = creator?._id;
-    const current = () => isCurrent() && liveCreator.current?._id === creatorId;
-    if (!creatorId || !referralCode.trim() || isOffline || !current() || referralBusy.current) return;
+    const current = () => isCurrent() && liveCreator.current?._id === creatorId
+      && liveReferralAccess.current.activeAgent;
+    if (!creatorId || !referralCode.trim() || !current() || !liveReferralAccess.current.canApplyReferral
+      || liveReferralAccess.current.isOffline || referralBusy.current) return;
     referralBusy.current = true;
     setReferralLoading(true);
     setReferralError('');
@@ -252,7 +276,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
       if (current()) setReferralError(err?.message || 'Could not apply that code.');
     } finally {
       referralBusy.current = false;
-      if (current()) setReferralLoading(false);
+      if (isCurrent()) setReferralLoading(false);
     }
   };
 
@@ -345,7 +369,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
     },
   ];
 
-  if (!affiliateAccount && creator && !creator.referredByCode) {
+  if (canApplyReferral) {
     settingsItems.push({
       icon: 'gift-outline',
       label: 'Enter referral code',
@@ -462,7 +486,7 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
 
       {/* Referral code sheet */}
       <SwipeSheet
-        visible={showReferralInput}
+        visible={showReferralInput && canApplyReferral}
         onClose={() => setShowReferralInput(false)}
         dismissable={!referralLoading}
       >

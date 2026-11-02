@@ -184,15 +184,18 @@ export const registerPushToken = mutation({
  * Remove a push token (called on logout)
  */
 export const removePushToken = mutation({
-    args: { token: v.string() },
+    args: { token: v.string(), expectedCreatorId: v.optional(v.id('creators')) },
     handler: async (ctx, args) => {
         await requireAuth(ctx);
+        // A queued logout must not run under a later login on this device.
+        if (args.expectedCreatorId) await requireRecipient(ctx, args.expectedCreatorId);
         const existing = await ctx.db
             .query('pushTokens')
             .withIndex('by_token', (q) => q.eq('token', args.token))
             .first();
 
         if (existing) {
+            if (args.expectedCreatorId && existing.creatorId !== args.expectedCreatorId) throw new Error('Forbidden: push token account changed');
             await requireRecipient(ctx, existing.creatorId);
             await ctx.db.patch(existing._id, { active: false });
         }
