@@ -10,7 +10,7 @@ import { isCreatorAccount } from '../lib/accounts';
 import { cancelRejectedSubmissionBuilds, resolveGiveawayReviewSource } from './lib/submissionReview';
 import { assertCommunityFindAvailable, requireCertifiedFieldAgent } from './lib/communityFinds';
 import { captureEmailError, normalizeCaptureEmail } from '../lib/captureEmail';
-import { validCaptureDesignCode } from '../lib/captureDesign';
+import { captureDesignBusinessType, normalizeCaptureBusinessType, validCaptureDesignCode } from '../lib/captureDesign';
 import { canReadPrivateSubmission } from './lib/submissionAccess';
 import { isCaptureShopLead } from './lib/shopCaptureProgress';
 import { interviewRecordingFingerprint } from './lib/interviewRecording';
@@ -526,6 +526,10 @@ export const chooseDesign = mutation({
         }
         const templateId = validCaptureDesignCode(args.templateId);
         if (!templateId) throw new Error('Choose a valid website design');
+        const designBusinessType = captureDesignBusinessType(templateId);
+        if (designBusinessType && designBusinessType !== normalizeCaptureBusinessType(submission.businessType)) {
+            throw new Error('Choose a design for this business type');
+        }
         await ctx.db.patch(args.id, {
             templateId,
             templateIds: [templateId],

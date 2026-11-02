@@ -220,6 +220,12 @@ async function main() {
       catalogJsSha256: crypto.createHash('sha256').update(catalogJs).digest('hex'),
       nativeCatalogSha256: crypto.createHash('sha256').update(nativeCatalog).digest('hex'), documents: entries }, null, 2) + '\n');
     console.log(`Built ${entries.length} capture examples from actual Astro templates (${Object.keys(assets).length} shared photos).`);
+    // Rebuilding a saved legacy sample must not replace the approved mobile
+    // shortlist/bundle with the old catalog. The approved builder composes both.
+    const approvedCatalogPath = path.join(ROOT, 'public/capture-redesign/catalog.json');
+    let approved = false;
+    try { approved = JSON.parse(await fs.readFile(approvedCatalogPath, 'utf8')).approved === true; } catch {}
+    if (approved) await child(process.execPath, [path.join(ROOT, 'scripts/build-capture-redesign.mjs'), '--bundle-only'], ROOT);
   } finally {
     // Delete only the scratch directory created above, never a caller-supplied path.
     if (path.dirname(buildRoot) !== SCRATCH || !path.basename(buildRoot).startsWith('capture-preview-build-')) throw new Error('Unsafe capture build cleanup path.');

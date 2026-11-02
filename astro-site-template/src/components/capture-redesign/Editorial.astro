@@ -1,5 +1,5 @@
 ---
-import { resolveBusiness } from './business';
+import { resolveBusiness, businessCtaHref } from './business';
 
 interface Props { siteData: any }
 const { siteData } = Astro.props;
@@ -14,115 +14,124 @@ const chapter = {
   craft: { story: 'Thoughtfully made. Carefully finished.', work: 'An eye for the details.', visit: 'Let’s make something together.' },
   other: { story: 'A familiar place, close to home.', work: 'A little look around.', visit: 'We’re around the corner.' },
 }[b.kind];
-const services = b.services.slice(0, 6);
-const gallery = b.gallery.slice(0, 3);
+const services = b.services;
+const gallery = b.gallery;
 const phoneHref = b.phoneHref || undefined;
 const emailHref = b.emailHref || undefined;
 const mapHref = b.mapHref;
-const primaryHref = phoneHref || emailHref || '#visit';
+const primaryHref = phoneHref || emailHref || b.mapHref;
+const heroHref = businessCtaHref(b, { services: '#services', story: '#story', gallery: '#gallery', visit: '#visit' });
 const cssVars = `--ed-paper:${b.theme.paper};--ed-ink:${b.theme.ink};--ed-accent:${b.theme.accent};--ed-muted:${b.theme.muted};`;
 ---
 
 <!doctype html>
-<html lang="en" data-capture-layout="editorial" data-capture-kind={b.kind} style={cssVars}>
+<html data-template-code={b.code} lang="en" data-capture-layout="editorial" data-capture-kind={b.kind} style={cssVars}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content={b.description} />
+    {b.favicon && <link rel="icon" href={b.favicon} />}
+    <meta property="og:title" content={b.name} />
+    {b.description && <meta property="og:description" content={b.description} />}
+    {b.ogImage && <meta property="og:image" content={b.ogImage} />}
     <title>{b.name} — {b.headline}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    {b.overrideFontHref && <link href={b.overrideFontHref} rel="stylesheet" />}
+    {b.overrideCss && <style is:inline set:html={b.overrideCss} />}
+    {b.hasColorOverride && <style is:inline set:html={"html[data-capture-layout=\"editorial\"]{--ed-paper:var(--paper)!important;--ed-ink:var(--ink)!important;--ed-accent:var(--accent)!important;--ed-muted:var(--ink-soft)!important}"} />}
+    {b.hasFontOverride && <style is:inline set:html={"html[data-capture-layout=\"editorial\"]{--ed-sans:var(--sans)!important;--ed-serif:var(--disp)!important}"} />}
   </head>
-  <body>
+  <body id="top">
     <a class="ed-skip" href="#main">Skip to content</a>
     <header class="ed-header ed-wrap">
-      <a class="ed-wordmark" href="#top" aria-label={`${b.name} home`}>{b.name}<span aria-hidden="true">.</span></a>
+      <a class="ed-wordmark" href="#top" aria-label={`${b.name} home`} data-field="business_name">{b.name}<span aria-hidden="true">.</span></a>
       <nav class="ed-desktop-nav" aria-label="Main navigation">
-        <a href="#services">{b.serviceLabel}</a>
-        <a href="#story">Our story</a>
-        <a class="ed-nav-cta" href="#visit">{b.cta}<span aria-hidden="true">↗</span></a>
+        {b.visible.services && <a href="#services">{b.serviceLabel}</a>}
+        {b.visible.story && <a href="#story">Our story</a>}
+        {b.visible.visit && <a class="ed-nav-cta" href="#visit">{b.cta}<span aria-hidden="true">↗</span></a>}
       </nav>
       <details class="ed-mobile-menu">
         <summary aria-label="Open navigation"><span></span><span></span></summary>
         <nav aria-label="Mobile navigation">
-          <a href="#services">{b.serviceLabel}</a>
-          <a href="#story">Our story</a>
-          <a href="#gallery">{b.galleryLabel}</a>
-          <a href="#visit">{b.cta}</a>
+          {b.visible.services && <a href="#services">{b.serviceLabel}</a>}
+          {b.visible.story && <a href="#story">Our story</a>}
+          {b.visible.gallery && <a href="#gallery">{b.galleryLabel}</a>}
+          {b.visible.visit && <a href="#visit">{b.cta}</a>}
         </nav>
       </details>
     </header>
 
     <main id="main">
-      <section class="ed-hero ed-wrap" id="top" aria-labelledby="ed-title">
+      {b.visible.hero && <section data-template-block="HERO" class:list={["ed-hero ed-wrap", (!b.visible.heroImage || !b.heroImage) && "ed-hero-text-only"]} aria-labelledby={b.visible.heroHeadline ? 'ed-title' : undefined}>
         <div class="ed-hero-copy">
-          <p class="ed-eyebrow"><span class="ed-dot" aria-hidden="true"></span>{b.eyebrow}</p>
-          <h1 id="ed-title">{b.headline}</h1>
-          <p class="ed-description">{b.description}</p>
-          <a class="ed-button" href="#visit">{b.cta}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>
-          <a class="ed-text-link" href="#services">Explore {b.serviceLabel.toLowerCase()}<span aria-hidden="true">↓</span></a>
+          <p class="ed-eyebrow"><span class="ed-dot" aria-hidden="true"></span><span data-field="hero.kicker">{b.eyebrow}</span></p>
+          {b.visible.heroHeadline && <h1 id="ed-title" data-field="hero.headline">{b.headline}</h1>}
+          {b.visible.heroDescription && b.description && <p class="ed-description" data-field="hero.sub">{b.description}</p>}
+          {b.visible.heroButton && heroHref && <a class="ed-button" href={heroHref} data-href-field="hero.cta1.href"><span data-field="hero.cta1.text">{b.cta}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>}
+          {b.visible.services && <a class="ed-text-link" href="#services">Explore {b.serviceLabel.toLowerCase()}<span aria-hidden="true">↓</span></a>}
         </div>
-        <figure class="ed-hero-figure">
-          <div class="ed-photo-frame"><img src={b.heroImage} alt={`${b.name}, ${b.city}`} fetchpriority="high" width="1000" height="1200" /></div>
+        {b.visible.heroImage && b.heroImage && <figure class="ed-hero-figure">
+          <div class="ed-photo-frame"><img data-image-field="hero.image" src={b.heroImage} alt={`${b.name}, ${b.city}`} fetchpriority="high" width="1000" height="1200" /></div>
           <figcaption><span>{b.name}</span><span>{b.city}<span aria-hidden="true"> ↗</span></span></figcaption>
-        </figure>
-      </section>
+        </figure>}
+      </section>}
 
-      {b.highlights.length > 0 && <div class="ed-facts ed-wrap" aria-label="Good to know">
-        {b.highlights.slice(0, 3).map((highlight, index) => <p><span class="ed-small-number" aria-hidden="true">0{index + 1}</span>{highlight}</p>)}
+      {b.visible.highlights && <div data-template-block="TRUST" class="ed-facts ed-wrap" aria-label="Good to know">
+        {b.trustItems.map((highlight, index) => <p><span class="ed-small-number" aria-hidden="true">0{index + 1}</span><span>{highlight.num && <strong data-field={`trust.cells.${highlight.fieldIndex}.num`}>{highlight.num} </strong>}<span data-field={`trust.cells.${highlight.fieldIndex}.label`}>{highlight.label}</span></span></p>)}
       </div>}
 
-      <section class="ed-services ed-wrap ed-section" id="services" aria-labelledby="ed-services-title">
+      {b.visible.services && <section data-template-block="SERVICES" class="ed-services ed-wrap ed-section" id="services" aria-labelledby={b.visible.serviceHeading ? 'ed-services-title' : undefined}>
         <div class="ed-section-intro">
           <p class="ed-eyebrow">01 / {b.serviceLabel}</p>
-          <h2 id="ed-services-title">{b.kind === 'food' ? 'Something to look forward to.' : b.kind === 'law' ? 'A place to start.' : b.kind === 'craft' ? 'Made with a point of view.' : 'The little things, done well.'}</h2>
+          {b.visible.serviceHeading && <h2 id="ed-services-title" data-field="services.headline">{b.serviceHeading || (b.kind === 'food' ? 'Something to look forward to.' : b.kind === 'law' ? 'A place to start.' : b.kind === 'craft' ? 'Made with a point of view.' : 'The little things, done well.')}</h2>}
           <p class="ed-section-note">{b.kind === 'food' ? 'Take a look at what we make. Ask us about today’s availability when you visit.' : b.kind === 'clinic' ? 'Get in touch to discuss your visit and the services available.' : b.kind === 'law' ? 'Arrange a conversation about your situation and the work you may need.' : 'Find what you need, then get in touch. We’ll help you plan the details.'}</p>
         </div>
         <div class="ed-service-list">
-          {services.map((service, index) => <article class="ed-service">
+          {b.visible.serviceList && services.map((service, index) => <article class="ed-service">
             <span class="ed-service-index" aria-hidden="true">0{index + 1}</span>
-            <div><h3>{service.title}</h3><p>{service.description}</p>{service.meta && <span class="ed-service-meta">{service.meta}</span>}</div>
-            {service.price && <span class="ed-service-price">{service.price}</span>}
+            <div><h3 data-field={`services.items.${service.fieldIndex}.title`}>{service.title}</h3><p data-field={`services.items.${service.fieldIndex}.desc`}>{service.description}</p>{service.meta && <span class="ed-service-meta" data-field={`services.items.${service.fieldIndex}.note`}>{service.meta}</span>}</div>
+            {service.price && <span class="ed-service-price" data-field={`services.items.${service.fieldIndex}.price`}>{service.price}</span>}
           </article>)}
         </div>
-      </section>
+      </section>}
 
-      <section class="ed-story" id="story" aria-labelledby="ed-story-title">
+      {b.visible.story && <section data-template-block="ABOUT" class="ed-story" id="story" aria-labelledby={b.visible.storyHeading ? 'ed-story-title' : undefined}>
         <div class="ed-wrap ed-story-grid">
-          <div class="ed-story-heading"><p class="ed-eyebrow">02 / The story</p><h2 id="ed-story-title">{chapter.story}</h2><span class="ed-story-mark" aria-hidden="true">✳</span></div>
-          <div class="ed-story-text">{b.story.map(paragraph => <p>{paragraph}</p>)}<p class="ed-signature">{b.name}<span>{b.city}</span></p></div>
+          <div class="ed-story-heading"><p class="ed-eyebrow">02 / The story</p>{b.visible.storyHeading && <h2 id="ed-story-title" data-field="about.headline">{b.storyTitle || chapter.story}</h2>}<span class="ed-story-mark" aria-hidden="true">✳</span></div>
+          <div class="ed-story-text">{b.visible.storyDescription && b.storyLead && <p data-field="about.lead">{b.storyLead}</p>}{b.visible.storyDescription && b.story.map((paragraph, index) => <p data-field={`about.paragraphs.${index}`}>{paragraph}</p>)}<p class="ed-signature">{b.name}<span>{b.city}</span></p></div>
         </div>
-      </section>
+      </section>}
 
-      {gallery.length > 0 && <section class="ed-gallery ed-wrap ed-section" id="gallery" aria-labelledby="ed-gallery-title">
-        <div class="ed-gallery-heading"><div><p class="ed-eyebrow">03 / {b.galleryLabel}</p><h2 id="ed-gallery-title">{chapter.work}</h2></div><p>{b.name}<br />{b.city}</p></div>
+      {b.visible.gallery && <section data-template-block="GALLERY" class="ed-gallery ed-wrap ed-section" id="gallery" aria-labelledby={b.visible.galleryHeading ? 'ed-gallery-title' : undefined}>
+        <div class="ed-gallery-heading"><div><p class="ed-eyebrow">03 / {b.galleryLabel}</p>{b.visible.galleryHeading && <h2 id="ed-gallery-title" data-field="gallery.headline">{b.galleryHeading || chapter.work}</h2>}</div><p>{b.name}<br />{b.city}</p></div>
         <div class:list={['ed-gallery-grid', gallery.length === 1 && 'ed-single-image']}>
-          {gallery.map((image, index) => <figure><div class="ed-gallery-image"><img src={image.src} alt={image.alt || image.caption || `${b.name} detail ${index + 1}`} loading="lazy" width="1000" height="800" /></div><figcaption><span>{image.caption || b.name}</span><span aria-hidden="true">0{index + 1}</span></figcaption></figure>)}
+          {b.visible.galleryItems && gallery.map((image, index) => <figure><div class="ed-gallery-image"><img data-image-field={`gallery.items.${image.fieldIndex}.image`} src={image.src} alt={image.alt || image.caption || `${b.name} detail ${index + 1}`} loading="lazy" width="1000" height="800" /></div><figcaption><span data-field={`gallery.items.${image.fieldIndex}.caption`}>{image.caption || b.name}</span><span aria-hidden="true">0{index + 1}</span></figcaption></figure>)}
         </div>
       </section>}
 
-      {b.process.length > 0 && <section class="ed-process ed-wrap ed-section" aria-labelledby="ed-process-title">
-        <div class="ed-process-heading"><p class="ed-eyebrow">A little planning</p><h2 id="ed-process-title">Easy from the start.</h2></div>
-        <ol>{b.process.slice(0, 3).map((step, index) => <li><span aria-hidden="true">0{index + 1}</span><div><h3>{step.title}</h3><p>{step.description}</p></div></li>)}</ol>
+      {b.visible.process && <section data-template-block="HOW-IT-WORKS" class="ed-process ed-wrap ed-section" aria-labelledby="ed-process-title">
+        <div class="ed-process-heading"><p class="ed-eyebrow">A little planning</p><h2 id="ed-process-title" data-field="how.headline">{b.processHeading || "Easy from the start."}</h2></div>
+        <ol>{b.process.map((step, index) => <li><span aria-hidden="true">0{index + 1}</span><div><h3 data-field={`how.steps.${step.fieldIndex}.title`}>{step.title}</h3><p data-field={`how.steps.${step.fieldIndex}.body`}>{step.description}</p></div></li>)}</ol>
       </section>}
 
-      {b.faq.length > 0 && <section class="ed-faq ed-wrap ed-section" aria-labelledby="ed-faq-title">
-        <div class="ed-section-intro"><p class="ed-eyebrow">Before you come by</p><h2 id="ed-faq-title">Good to know.</h2></div>
-        <div class="ed-faq-list">{b.faq.map(item => <details><summary>{item.question}<span aria-hidden="true">+</span></summary><p>{item.answer}</p></details>)}</div>
+      {b.visible.faq && <section data-template-block="FAQ" class="ed-faq ed-wrap ed-section" aria-labelledby="ed-faq-title">
+        <div class="ed-section-intro"><p class="ed-eyebrow">Before you come by</p><h2 id="ed-faq-title" data-field="faq.headline">{b.faqHeading || "Good to know."}</h2></div>
+        <div class="ed-faq-list">{b.faq.map((item, index) => <details><summary><span class="ed-faq-question" data-field={`faq.items.${item.fieldIndex}.q`}>{item.question}</span><span aria-hidden="true">+</span></summary><p data-field={`faq.items.${item.fieldIndex}.a`}>{item.answer}</p></details>)}</div>
       </section>}
 
-      <section class="ed-visit ed-wrap ed-section" id="visit" aria-labelledby="ed-visit-title">
-        <div class="ed-visit-intro"><p class="ed-eyebrow">04 / Come find us</p><h2 id="ed-visit-title">{chapter.visit}</h2><a class="ed-button" href={primaryHref}>{b.cta}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a></div>
+      {b.visible.visit && <section data-template-block="LOCATION" class="ed-visit ed-wrap ed-section" id="visit" aria-labelledby="ed-visit-title">
+        <div class="ed-visit-intro"><p class="ed-eyebrow">04 / Come find us</p><h2 id="ed-visit-title" data-field="location.headline">{b.visitHeading || chapter.visit}</h2>{primaryHref && <a class="ed-button" href={primaryHref}><span data-field="hero.cta1.text">{b.cta}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>}</div>
         <div class="ed-visit-details">
-          <div><h3>Find us</h3><p class="ed-address">{b.address}</p><a class="ed-text-link" href={mapHref} target="_blank" rel="noopener noreferrer">Get directions<span aria-hidden="true">↗</span></a></div>
-          {b.hours.length > 0 && <div><h3>Opening hours</h3><dl>{b.hours.map(hour => <div><dt>{hour.days}</dt><dd>{hour.time}</dd></div>)}</dl></div>}
-          {(phoneHref || emailHref) && <div class="ed-contact"><h3>Let’s talk</h3>{phoneHref && <a href={phoneHref}>{b.phone}</a>}{emailHref && <a href={emailHref}>{b.email}</a>}</div>}
+          {b.address && <div><h3>Find us</h3><p class="ed-address" data-field="location.address">{b.address}</p><a class="ed-text-link" href={mapHref} target="_blank" rel="noopener noreferrer">Get directions<span aria-hidden="true">↗</span></a></div>}
+          {b.hours.length > 0 && <div><h3>Opening hours</h3><dl data-field="location.hours">{b.hours.map(hour => <div><dt>{hour.days}</dt><dd>{hour.time}</dd></div>)}</dl></div>}
+          {(phoneHref || emailHref) && <div class="ed-contact"><h3>Let’s talk</h3>{phoneHref && <a href={phoneHref} data-field="location.phone">{b.phone}</a>}{emailHref && <a href={emailHref} data-field="contact.email">{b.email}</a>}</div>}
         </div>
-      </section>
+      </section>}
     </main>
 
-    <footer class="ed-footer ed-wrap"><a class="ed-wordmark" href="#top">{b.name}<span aria-hidden="true">.</span></a><p>{b.city}{b.sample && <span>Fictional business · Design example</span>}</p><a href="#top" class="ed-back-top">Back to top<span aria-hidden="true">↑</span></a></footer>
+    {b.visible.footer && <footer data-template-block="FOOTER" class="ed-footer ed-wrap"><a class="ed-wordmark" href="#top" data-field="footer.brand">{b.footerBrand}<span aria-hidden="true">.</span></a><p>{b.visible.footerBlurb && b.footerBlurb && <span data-field="footer.blurb">{b.footerBlurb}</span>}{b.city}{b.sample && <span>Fictional business · Design example</span>}</p><a href="#top" class="ed-back-top">Back to top<span aria-hidden="true">↑</span></a></footer>}
   </body>
 </html>
 
@@ -210,8 +219,8 @@ const cssVars = `--ed-paper:${b.theme.paper};--ed-ink:${b.theme.ink};--ed-accent
   html[data-capture-layout='editorial'] .ed-faq-list details:last-child { border-bottom:1px solid var(--ed-line); }
   html[data-capture-layout='editorial'] .ed-faq-list summary { list-style:none; cursor:pointer; min-height:65px; padding-block:22px; display:flex; justify-content:space-between; gap:24px; font-size:15px; line-height:1.7; font-weight:500; }
   html[data-capture-layout='editorial'] summary::-webkit-details-marker { display:none; }
-  html[data-capture-layout='editorial'] .ed-faq-list summary>span { flex:0 0 20px; font-size:21px; font-weight:400; line-height:1; color:var(--ed-accent); transition:transform .2s; }
-  html[data-capture-layout='editorial'] .ed-faq-list details[open] summary>span { transform:rotate(45deg); }
+  html[data-capture-layout='editorial'] .ed-faq-list summary>span[aria-hidden="true"] { flex:0 0 20px; font-size:21px; font-weight:400; line-height:1; color:var(--ed-accent); transition:transform .2s; }
+  html[data-capture-layout='editorial'] .ed-faq-list details[open] summary>span[aria-hidden="true"] { transform:rotate(45deg); }
   html[data-capture-layout='editorial'] .ed-faq-list details>p { font-size:15px; line-height:1.9; color:var(--ed-muted); max-width:420px; padding:0 35px 24px 0; }
   html[data-capture-layout='editorial'] .ed-visit { display:grid; grid-template-columns:1fr 1fr; gap:12%; border-top:1px solid var(--ed-line); padding-block:85px; }
   html[data-capture-layout='editorial'] .ed-visit h2 { margin-top:25px; max-width:420px; }
@@ -337,4 +346,6 @@ const cssVars = `--ed-paper:${b.theme.paper};--ed-ink:${b.theme.ink};--ed-accent
     html[data-capture-layout='editorial'] { scroll-behavior:auto; }
     html[data-capture-layout='editorial'] *,html[data-capture-layout='editorial'] *::before,html[data-capture-layout='editorial'] *::after { transition:none!important; }
   }
+  html[data-capture-layout="editorial"] .ed-hero-text-only{grid-template-columns:1fr}html[data-capture-layout="editorial"] .ed-hero-text-only .ed-hero-copy{max-width:900px}html[data-capture-layout="editorial"] [data-field="footer.blurb"]{display:block;margin-bottom:.45em}
+  html[data-capture-layout="editorial"] .ed-faq-list summary>.ed-faq-question{flex:1 1 0;min-width:0;overflow-wrap:anywhere}
 </style>

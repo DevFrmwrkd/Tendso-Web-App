@@ -15,7 +15,7 @@ export type TemplateFamily =
     | "generic" | "barbershop" | "salonspa" | "autoshop" | "restaurant"
     | "shirtstore" | "retail" | "medical" | "fitness" | "education"
     | "trades" | "foodcraft" | "services" | "filipino" | "hospitality"
-    | "florist" | "woodworks" | "layouts";
+    | "florist" | "woodworks" | "layouts" | "business";
 
 import { TEMPLATE_SECTION_ORDER } from "./templateSectionOrder.generated";
 import { TEMPLATE_SECTION_LABELS, DEFAULT_SECTION_LABELS } from "./templateSectionLabels";
@@ -155,8 +155,37 @@ const WOODWORKS_TEMPLATES: TemplateDef[] = [
     { letter: "BY", code: "woodworks:BY", label: "Yakal Joinery", tagline: "Night & brass · heirloom joinery by commission", preview: "/template-previews/by.html" },
 ];
 
+/** Approved category-specific designs; shared with field-agent capture choices. */
+const BUSINESS_TEMPLATES: TemplateDef[] = [
+    { letter: "CA", code: "business:CA", label: "Barber Editorial", tagline: "Warm paper and refined serif typography · Barber/Salon", preview: "/template-previews/ca.html" },
+    { letter: "CB", code: "business:CB", label: "Barber Immersive", tagline: "Atmospheric photography and confident type · Barber/Salon", preview: "/template-previews/cb.html" },
+    { letter: "CC", code: "business:CC", label: "Barber Studio", tagline: "Bright, structured and contemporary · Barber/Salon", preview: "/template-previews/cc.html" },
+    { letter: "CD", code: "business:CD", label: "Auto Editorial", tagline: "Warm paper and refined serif typography · Auto Shop", preview: "/template-previews/cd.html" },
+    { letter: "CE", code: "business:CE", label: "Auto Immersive", tagline: "Atmospheric photography and confident type · Auto Shop", preview: "/template-previews/ce.html" },
+    { letter: "CF", code: "business:CF", label: "Auto Studio", tagline: "Bright, structured and contemporary · Auto Shop", preview: "/template-previews/cf.html" },
+    { letter: "CG", code: "business:CG", label: "Spa Editorial", tagline: "Warm paper and refined serif typography · Spa/Massage", preview: "/template-previews/cg.html" },
+    { letter: "CH", code: "business:CH", label: "Spa Immersive", tagline: "Atmospheric photography and confident type · Spa/Massage", preview: "/template-previews/ch.html" },
+    { letter: "CI", code: "business:CI", label: "Spa Studio", tagline: "Bright, structured and contemporary · Spa/Massage", preview: "/template-previews/ci.html" },
+    { letter: "CJ", code: "business:CJ", label: "Food Editorial", tagline: "Warm paper and refined serif typography · Restaurant", preview: "/template-previews/cj.html" },
+    { letter: "CK", code: "business:CK", label: "Food Immersive", tagline: "Atmospheric photography and confident type · Restaurant", preview: "/template-previews/ck.html" },
+    { letter: "CL", code: "business:CL", label: "Food Studio", tagline: "Bright, structured and contemporary · Restaurant", preview: "/template-previews/cl.html" },
+    { letter: "CM", code: "business:CM", label: "Clinic Editorial", tagline: "Warm paper and refined serif typography · Clinic", preview: "/template-previews/cm.html" },
+    { letter: "CN", code: "business:CN", label: "Clinic Immersive", tagline: "Atmospheric photography and confident type · Clinic", preview: "/template-previews/cn.html" },
+    { letter: "CO", code: "business:CO", label: "Clinic Studio", tagline: "Bright, structured and contemporary · Clinic", preview: "/template-previews/co.html" },
+    { letter: "CP", code: "business:CP", label: "Law Editorial", tagline: "Warm paper and refined serif typography · Law Office", preview: "/template-previews/cp.html" },
+    { letter: "CQ", code: "business:CQ", label: "Law Immersive", tagline: "Atmospheric photography and confident type · Law Office", preview: "/template-previews/cq.html" },
+    { letter: "CR", code: "business:CR", label: "Law Studio", tagline: "Bright, structured and contemporary · Law Office", preview: "/template-previews/cr.html" },
+    { letter: "CS", code: "business:CS", label: "Craft Editorial", tagline: "Warm paper and refined serif typography · Craft/Producer", preview: "/template-previews/cs.html" },
+    { letter: "CT", code: "business:CT", label: "Craft Immersive", tagline: "Atmospheric photography and confident type · Craft/Producer", preview: "/template-previews/ct.html" },
+    { letter: "CU", code: "business:CU", label: "Craft Studio", tagline: "Bright, structured and contemporary · Craft/Producer", preview: "/template-previews/cu.html" },
+    { letter: "CV", code: "business:CV", label: "Local Editorial", tagline: "Warm paper and refined serif typography · Other", preview: "/template-previews/cv.html" },
+    { letter: "CW", code: "business:CW", label: "Local Immersive", tagline: "Atmospheric photography and confident type · Other", preview: "/template-previews/cw.html" },
+    { letter: "CX", code: "business:CX", label: "Local Studio", tagline: "Bright, structured and contemporary · Other", preview: "/template-previews/cx.html" },
+];
+
 /** Families in rail-display order, each with a human label. */
 export const TEMPLATE_FAMILIES: Array<{ family: TemplateFamily; label: string; templates: TemplateDef[] }> = [
+    { family: "business",    label: "Business designs", templates: BUSINESS_TEMPLATES },
     { family: "generic",     label: "Generic",        templates: GENERIC_TEMPLATES },
     { family: "restaurant",  label: "Restaurant",     templates: RESTAURANT_TEMPLATES },
     { family: "barbershop",  label: "Barbershop",     templates: BARBERSHOP_TEMPLATES },

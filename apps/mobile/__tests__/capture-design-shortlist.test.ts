@@ -1,98 +1,113 @@
-import { captureDesignByCode } from '../../../lib/captureDesign';
+import { captureDesignByCode, normalizeCaptureBusinessType } from '../../../lib/captureDesign';
 import { DESIGNS, type SellKindId } from '../lib/v2/ownerContent';
 import { captureDesign, captureDesignChoices, captureDesignMatchesBusinessType } from '../services/captureDesign';
 
 const codesFor = (businessType?: string | null, selectedCode?: string | null) =>
   captureDesignChoices(businessType, selectedCode).map(design => design.code);
+const groups: [string, string, string[]][] = [
+  ['Barber/Salon', 'barber', ['business:CA', 'business:CB', 'business:CC']],
+  ['Auto Shop', 'repair', ['business:CD', 'business:CE', 'business:CF']],
+  ['Spa/Massage', 'spa', ['business:CG', 'business:CH', 'business:CI']],
+  ['Restaurant', 'food', ['business:CJ', 'business:CK', 'business:CL']],
+  ['Clinic', 'clinic', ['business:CM', 'business:CN', 'business:CO']],
+  ['Law Office', 'law', ['business:CP', 'business:CQ', 'business:CR']],
+  ['Craft/Producer', 'craft', ['business:CS', 'business:CT', 'business:CU']],
+  ['Other', 'other', ['business:CV', 'business:CW', 'business:CX']],
+];
 
-describe('field-agent design shortlist', () => {
-  it.each<[string, string[]]>([
-    ['Barber/Salon', ['barbershop:F', 'barbershop:I', 'barbershop:J', 'salonspa:L', 'salonspa:N', 'salonspa:K']],
-    ['Spa/Massage', ['salonspa:L', 'salonspa:N', 'salonspa:K']],
-    ['Auto Shop', ['autoshop:AF', 'autoshop:P', 'autoshop:AP']],
-    ['Craft/Producer', ['woodworks:BV', 'woodworks:BW', 'florist:BS']],
-    ['Restaurant', ['foodcraft:AL', 'foodcraft:BL', 'restaurant:U']],
-    ['Other', ['generic:C', 'services:AS', 'generic:A']],
-    ['Law Office', ['generic:B', 'generic:D', 'generic:E']],
-  ])('offers the curated designs for %s with canonical IDs and populated preview data', (businessType, expected) => {
+describe('approved field-agent designs', () => {
+  it.each(groups)('offers exactly three approved designs for %s', (businessType, category, expected) => {
     const choices = captureDesignChoices(businessType);
     expect(choices.map(design => design.code)).toEqual(expected);
+    expect(choices.map(design => design.name)).toEqual(['Editorial', 'Immersive', 'Studio']);
+    expect(choices.map(design => design.preview)).toEqual(['editorial', 'immersive', 'studio']
+      .map(style => `/capture-redesign/${category}-${style}.html`));
     for (const design of choices) {
-      const canonical = captureDesignByCode(design.code);
-      expect(canonical).toBeDefined();
-      expect(design).toEqual({ code: canonical!.code, name: canonical!.code === 'generic:E' ? 'Clearview' : canonical!.label,
-        preview: `/capture-previews/${canonical!.code.split(':')[1].toLowerCase()}.html` });
+      expect(captureDesignByCode(design.code)).toBeDefined();
+      expect(captureDesignMatchesBusinessType(businessType, design.code)).toBe(true);
+      expect(captureDesign(design.code)).toEqual(design);
     }
   });
 
-  it('uses the law example label without renaming the canonical owner design', () => {
-    expect(captureDesign('generic:E')).toMatchObject({ code: 'generic:E', name: 'Clearview' });
-    expect(captureDesignByCode('generic:E')?.label).toBe('Wash House');
+  it('gives Clinic its own three designs instead of general shop examples', () => {
+    expect(codesFor('Clinic')).toEqual(['business:CM', 'business:CN', 'business:CO']);
+    expect(codesFor('Clinic')).not.toEqual(codesFor('Other'));
   });
 
-  it.each([undefined, null, '', 'Clinic', 'Unknown shop type'])(
-    'keeps the existing fallback for %s business types', businessType => {
-      expect(codesFor(businessType)).toEqual(['generic:C', 'services:AS', 'generic:A']);
-    },
-  );
-
-  it('retains a saved canonical design outside the shortlist only for the same category', () => {
-    expect(codesFor('Auto Shop', 'autoshop:T')).toEqual(['autoshop:T', 'autoshop:AF', 'autoshop:P', 'autoshop:AP']);
-    expect(codesFor('Restaurant', 'filipino:BC')).toEqual(['filipino:BC', 'foodcraft:AL', 'foodcraft:BL', 'restaurant:U']);
-    expect(captureDesignChoices('Barber/Salon', ' barbershop:BP ')[0]).toEqual({
-      code: 'barbershop:BP', name: 'Glacier', preview: '/template-previews/bp.html',
-    });
-    expect(captureDesign('florist:BR')).not.toBeNull();
-  });
-
-  it('offers law-office examples without retaining a previous barber, café, or laundry selection', () => {
-    for (const code of ['barbershop:F', 'salonspa:N', 'generic:A', 'generic:C', 'services:AS']) {
-      expect(captureDesignMatchesBusinessType('Law Office', code)).toBe(false);
-      expect(codesFor('Law Office', code)).toEqual(['generic:B', 'generic:D', 'generic:E']);
-    }
-    for (const code of ['generic:B', 'generic:D', 'generic:E']) {
-      expect(captureDesignMatchesBusinessType('Law Office', code)).toBe(true);
-      expect(captureDesignMatchesBusinessType('Other', code)).toBe(false);
-      expect(codesFor('Other', code)).toEqual(['generic:C', 'services:AS', 'generic:A']);
-    }
+  it.each([undefined, null, '', 'Unknown shop type'])('uses the general-business designs for %s', businessType => {
+    expect(codesFor(businessType)).toEqual(['business:CV', 'business:CW', 'business:CX']);
   });
 
   it.each([
-    ['Auto Shop', 'barbershop:F'], ['Restaurant', 'autoshop:AF'],
-    ['Craft/Producer', 'foodcraft:AL'], ['Spa/Massage', 'barbershop:I'],
-    ['Barber/Salon', 'florist:BR'], ['Other', 'barbershop:F'],
-  ])('excludes %s’s incompatible saved design %s without changing its canonical record', (businessType, code) => {
-    expect(captureDesignMatchesBusinessType(businessType, code)).toBe(false);
-    expect(codesFor(businessType, code)).not.toContain(code);
+    ['Food', 'Restaurant'], ['Sari-Sari Store', 'Other'], ['Clinic / Dental', 'Clinic'],
+    ['  Law Office  ', 'Law Office'], ['Personal injury attorney', 'Law Office'],
+    ['Hair salon', 'Barber/Salon'], ['Massage', 'Spa/Massage'], ['Auto repair', 'Auto Shop'],
+    ['Furniture producer', 'Craft/Producer'],
+  ])('uses the same approved designs for legacy category %s and %s', (alias, canonical) => {
+    expect(normalizeCaptureBusinessType(alias)).toBe(canonical);
+    expect(codesFor(alias)).toEqual(codesFor(canonical));
+    for (const code of codesFor(canonical)) expect(captureDesignMatchesBusinessType(alias, code)).toBe(true);
+  });
+
+  it('keeps cross-trade rejection strict after normalizing legacy categories', () => {
+    expect(captureDesignMatchesBusinessType('Personal injury attorney', 'business:CA')).toBe(false);
+    expect(captureDesignMatchesBusinessType('Hair salon', 'business:CP')).toBe(false);
+    expect(captureDesignMatchesBusinessType('Food', 'business:CA')).toBe(false);
+    expect(captureDesignMatchesBusinessType('Clinic / Dental', 'business:CA')).toBe(false);
+    expect(normalizeCaptureBusinessType({ category: 'Law Office' })).toBe('Other');
+  });
+
+  it('never retains an approved design from another business type', () => {
+    for (const [type, , ownCodes] of groups) for (const [otherType, , otherCodes] of groups) {
+      if (type === otherType) continue;
+      for (const code of otherCodes) {
+        expect(captureDesignMatchesBusinessType(type, code)).toBe(false);
+        expect(codesFor(type, code)).toEqual(ownCodes);
+      }
+    }
+  });
+
+  it('keeps a saved approved design in its curated order without duplicating it', () => {
+    for (const [type, , expected] of groups) for (const code of expected) expect(codesFor(type, code)).toEqual(expected);
+  });
+
+  it('preserves same-category legacy choices and their original sample names/paths', () => {
+    expect(codesFor('Auto Shop', 'autoshop:T')).toEqual(['autoshop:T', 'business:CD', 'business:CE', 'business:CF']);
+    expect(codesFor('Restaurant', 'filipino:BC')).toEqual(['filipino:BC', 'business:CJ', 'business:CK', 'business:CL']);
+    expect(captureDesignChoices('Barber/Salon', ' barbershop:BP ')[0]).toEqual({
+      code: 'barbershop:BP', name: 'Glacier', preview: '/template-previews/bp.html',
+    });
+    expect(captureDesign('barbershop:F')).toEqual({ code: 'barbershop:F', name: 'Forge', preview: '/capture-previews/f.html' });
+    expect(captureDesign('generic:E')).toEqual({ code: 'generic:E', name: 'Clearview', preview: '/capture-previews/e.html' });
+    expect(captureDesignByCode('generic:E')?.label).toBe('Wash House');
+    expect(codesFor('Law Office', 'generic:E')[0]).toBe('generic:E');
+    expect(codesFor('Clinic', 'generic:C')[0]).toBe('generic:C');
+    expect(codesFor('Clinic', 'medical:AQ')[0]).toBe('medical:AQ');
+    expect(codesFor('Spa/Massage', 'salonspa:N')[0]).toBe('salonspa:N');
+    expect(codesFor('Barber/Salon', 'salonspa:N')[0]).toBe('salonspa:N');
+  });
+
+  it.each([
+    ['Law Office', 'barbershop:F'], ['Law Office', 'salonspa:N'], ['Law Office', 'generic:A'],
+    ['Other', 'generic:B'], ['Other', 'generic:D'], ['Other', 'generic:E'],
+    ['Restaurant', 'autoshop:AF'], ['Craft/Producer', 'foodcraft:AL'],
+    ['Spa/Massage', 'barbershop:I'], ['Barber/Salon', 'florist:BR'],
+  ])('does not retain %s’s incompatible legacy design %s', (type, code) => {
+    expect(captureDesignMatchesBusinessType(type, code)).toBe(false);
+    expect(codesFor(type, code)).not.toContain(code);
     expect(captureDesign(code)).not.toBeNull();
   });
 
-  it('keeps a saved suggested design in its curated order without duplicating it', () => {
-    expect(codesFor('Barber/Salon', 'salonspa:N')).toEqual([
-      'barbershop:F', 'barbershop:I', 'barbershop:J', 'salonspa:L', 'salonspa:N', 'salonspa:K',
-    ]);
-    expect(codesFor('Auto Shop', ' autoshop:AF ')).toEqual(['autoshop:AF', 'autoshop:P', 'autoshop:AP']);
-  });
-
-  it.each(['AF', 'autoshop:missing', 'AUTOSHOP:AF', '', null, undefined])(
-    'ignores an invalid saved code %s instead of upgrading or guessing it', selectedCode => {
-      expect(codesFor('Auto Shop', selectedCode)).toEqual(['autoshop:AF', 'autoshop:P', 'autoshop:AP']);
+  it.each(['CA', 'business:missing', 'BUSINESS:CA', 'business:ca', '', null, undefined])(
+    'ignores invalid saved code %s without guessing it', selectedCode => {
+      expect(codesFor('Auto Shop', selectedCode)).toEqual(['business:CD', 'business:CE', 'business:CF']);
       expect(captureDesign(selectedCode)).toBeNull();
     },
   );
 
-  it('does not remove choices from the owner catalog or mutate its order', () => {
-    const ownerCodes = Object.fromEntries(Object.entries(DESIGNS).map(([kind, designs]) =>
-      [kind, designs.map(design => design.code)]));
-    for (const businessType of ['Barber/Salon', 'Auto Shop', 'Craft/Producer', 'Restaurant', 'Other']) {
-      captureDesignChoices(businessType, 'generic:A');
-    }
-    for (const kind of Object.keys(DESIGNS) as SellKindId[]) {
-      expect(DESIGNS[kind].map(design => design.code)).toEqual(ownerCodes[kind]);
-      expect(DESIGNS[kind]).toHaveLength(5);
-    }
-    expect(DESIGNS.barber.some(design => design.code === 'barbershop:BP')).toBe(true);
-    expect(DESIGNS.salon.some(design => design.code === 'salonspa:AN')).toBe(true);
-    expect(DESIGNS.repair.some(design => design.code === 'autoshop:AP')).toBe(true);
+  it('does not mutate the owner catalog or its current choice order', () => {
+    const before = Object.fromEntries(Object.entries(DESIGNS).map(([kind, choices]) => [kind, choices.map(choice => choice.code)]));
+    for (const [type] of groups) captureDesignChoices(type, 'generic:A');
+    for (const kind of Object.keys(DESIGNS) as SellKindId[]) expect(DESIGNS[kind].map(choice => choice.code)).toEqual(before[kind]);
   });
 });

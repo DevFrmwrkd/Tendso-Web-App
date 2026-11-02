@@ -93,11 +93,27 @@ it('drops the old barber selection when the same capture becomes a Law Office', 
   mockSubmissions['draft-1'].templateId = 'barbershop:F';
   await gallery();
   expect(mockGallery.selectedCode).toBeNull();
-  expect(mockGallery.designs.map(design => design.code)).toEqual(['generic:B', 'generic:D', 'generic:E']);
+  expect(mockGallery.designs.map(design => design.code)).toEqual(['business:CP', 'business:CQ', 'business:CR']);
   await act(async () => { await mockGallery.onUse('barbershop:F'); });
   expect(mockChoose).not.toHaveBeenCalled();
-  await act(async () => { await mockGallery.onUse('generic:B'); });
-  expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'generic:B' });
+  await act(async () => { await mockGallery.onUse('business:CP'); });
+  expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'business:CP' });
+});
+
+it('saves and reopens an approved design using the same canonical ID and capture', async () => {
+  const screen = await gallery();
+  await act(async () => { await mockGallery.onUse('business:CB'); });
+  expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'business:CB' });
+  expect(mockCache['agent-1'].submission_design).toMatchObject({ submissionId: 'draft-1', templateId: 'business:CB' });
+  expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit/review');
+  screen.unmount();
+  mockSubmissions['draft-1'].templateId = 'business:CB';
+  mockChoose.mockClear(); mockRouter.push.mockClear();
+  await gallery();
+  expect(mockGallery.selectedCode).toBe('business:CB');
+  expect(mockGallery.designs.map(design => design.code)).toEqual(['business:CA', 'business:CB', 'business:CC']);
+  expect(mockChoose).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled();
 });
 function selectForge(screen: ReturnType<typeof render>) {
   fireEvent.press(screen.getByRole('button', { name: 'Select Forge' }));

@@ -1,0 +1,40 @@
+{
+  "purpose": "Offline copies of the approved template fonts",
+  "fonts": [
+    {
+      "family": "Manrope",
+      "asset": "/capture-previews/fonts/manrope-latin.woff2",
+      "css": "https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap",
+      "source": "https://fonts.gstatic.com/s/manrope/v23/xn7gYHE41ni1AdIRggexSg.woff2",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt"
+    },
+    {
+      "family": "DM Sans",
+      "asset": "/capture-previews/fonts/dm-sans-latin.woff2",
+      "css": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400..750&display=swap",
+      "source": "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K4.woff2",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmsans/OFL.txt"
+    },
+    {
+      "family": "Bodoni Moda",
+      "asset": "/capture-previews/fonts/bodoni-moda-latin.woff2",
+      "css": "https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500..600&display=swap",
+      "source": "https://fonts.gstatic.com/s/bodonimoda/v28/aFTQ7PxzY382XsXX63LUYJSKSKg.woff2",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/bodonimoda/OFL.txt"
+    },
+    {
+      "family": "Instrument Serif",
+      "style": "normal",
+      "asset": "/capture-previews/fonts/instrument-serif-latin-400-normal.woff2",
+      "source": "public/fonts/instrument-serif-latin-400-normal.woff2",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentserif/OFL.txt"
+    },
+    {
+      "family": "Instrument Serif",
+      "style": "italic",
+      "asset": "/capture-previews/fonts/instrument-serif-latin-400-italic.woff2",
+      "source": "public/fonts/instrument-serif-latin-400-italic.woff2",
+      "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentserif/OFL.txt"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 ---
-import { resolveBusiness } from './business';
+import { resolveBusiness, businessCtaHref } from './business';
 
 interface Props { siteData: any; }
 const business = resolveBusiness(Astro.props.siteData);
@@ -17,131 +17,141 @@ const palette = palettes[business.kind as keyof typeof palettes] ?? palettes.oth
 const gentle = ['spa', 'clinic', 'law'].includes(business.kind);
 const number = (index: number) => String(index + 1).padStart(2, '0');
 const storyImage = business.gallery[1] ?? business.gallery[0];
-const gallery = business.gallery.slice(0, 4);
+const gallery = business.gallery;
 const storyTitle = ({ barber: 'A good cut starts with a good conversation.', repair: 'Good work. Clear conversations.', spa: 'A little space, just for you.', food: 'Made here. Shared here.', clinic: 'A calmer place to ask your questions.', law: 'Room for a clear conversation.', craft: 'The people behind the work.', other: 'A familiar place in your neighbourhood.' } as Record<string, string>)[business.kind];
 const processTitle = ({ barber: 'Come as you are.', repair: 'Know what happens next.', spa: 'Make a little time.', food: 'Make it part of your day.', clinic: 'Plan your visit with confidence.', law: 'Start with the question in front of you.', craft: 'From a first idea to your space.', other: 'A simple way to get started.' } as Record<string, string>)[business.kind];
 const servicesTitle = ({ barber: 'Your style. Well looked after.', repair: 'Care for the road ahead.', spa: 'Find your moment of calm.', food: 'Something worth coming back for.', clinic: 'Care starts with a conversation.', law: 'A considered next step.', craft: 'Made with purpose.', other: 'Good things, close to home.' } as Record<string, string>)[business.kind];
 const description = business.description;
+const primaryHref = business.phoneHref || business.emailHref || business.mapHref;
+const heroHref = businessCtaHref(business, { services: '#services', story: '#about', gallery: '#gallery', visit: '#visit' });
 ---
 <!DOCTYPE html>
-<html lang="en" data-capture-layout="immersive" data-business-kind={business.kind} class:list={{ gentle }}
+<html data-template-code={business.code} lang="en" data-capture-layout="immersive" data-business-kind={business.kind} class:list={{ gentle }}
   style={`--im-dark:${palette.dark};--im-accent:${palette.accent};--im-paper:${palette.paper};--im-line:${palette.line}`}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="theme-color" content={palette.dark} />
+    {business.favicon && <link rel="icon" href={business.favicon} />}
+    <meta property="og:title" content={business.name} />
+    {business.description && <meta property="og:description" content={business.description} />}
+    {business.ogImage && <meta property="og:image" content={business.ogImage} />}
     <title>{business.name} — {business.headline}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=DM+Sans:wght@400;450;500;550;600;650;700;750&display=swap" rel="stylesheet" />
+    {business.overrideFontHref && <link href={business.overrideFontHref} rel="stylesheet" />}
+    {business.overrideCss && <style is:inline set:html={business.overrideCss} />}
+    {business.hasColorOverride && <style is:inline set:html={"html[data-capture-layout=\"immersive\"]{--im-dark:var(--ink)!important;--im-paper:var(--paper)!important;--im-accent:var(--accent-light)!important;--im-line:var(--line)!important}html[data-capture-layout=\"immersive\"] :is(.im-service-row p,.im-service-price,.im-process-grid p,.im-faq-intro,.im-faq-list details p,.im-gallery-grid figcaption){color:var(--ink-soft)}html[data-capture-layout=\"immersive\"] :is(.im-story-copy>p:not(.im-eyebrow),.im-story-signature span,.im-email,.im-hours dd,.im-footer p){color:var(--im-paper)}"} />}
+    {business.hasFontOverride && <style is:inline set:html={"html[data-capture-layout=\"immersive\"]{font-family:var(--sans)!important}html[data-capture-layout=\"immersive\"] :is(.im-hero h1 em,.im-visit h2 em){font-family:var(--disp)!important}"} />}
   </head>
-  <body>
+  <body id="top">
     <a class="im-skip" href="#main">Skip to content</a>
-    <div class="im-masthead">
+    <div class:list={["im-masthead", !business.visible.hero && "im-masthead-static"]}>
       <header class="im-header im-wrap">
         <a class="im-brand" href="#top" aria-label={`${business.name}, home`}>
           <span class="im-brand-symbol" aria-hidden="true">✳</span>
-          <span>{business.name}</span>
+          <span data-field="business_name">{business.name}</span>
         </a>
         <nav class="im-desktop-nav" aria-label="Main navigation">
-          <a href="#services">{business.serviceLabel}</a><a href="#about">Our story</a><a href="#visit">Find us</a>
+          {business.visible.services && <a href="#services">{business.serviceLabel}</a>}{business.visible.story && <a href="#about">Our story</a>}{business.visible.visit && <a href="#visit">Find us</a>}
         </nav>
-        <a class="im-header-cta" href="#visit">{business.cta}<span aria-hidden="true">↗</span></a>
+        {business.visible.visit && <a class="im-header-cta" href="#visit">{business.cta}<span aria-hidden="true">↗</span></a>}
         <details class="im-mobile-nav" data-immersive-menu>
           <summary aria-label="Open navigation"><span></span><span></span></summary>
           <nav aria-label="Mobile navigation">
-            <a href="#services">{business.serviceLabel}<span aria-hidden="true">↗</span></a>
-            <a href="#about">Our story<span aria-hidden="true">↗</span></a>
-            <a href="#gallery">{business.galleryLabel}<span aria-hidden="true">↗</span></a>
-            <a href="#visit">{business.cta}<span aria-hidden="true">↗</span></a>
+            {business.visible.services && <a href="#services">{business.serviceLabel}<span aria-hidden="true">↗</span></a>}
+            {business.visible.story && <a href="#about">Our story<span aria-hidden="true">↗</span></a>}
+            {business.visible.gallery && <a href="#gallery">{business.galleryLabel}<span aria-hidden="true">↗</span></a>}
+            {business.visible.visit && <a href="#visit">{business.cta}<span aria-hidden="true">↗</span></a>}
           </nav>
         </details>
       </header>
     </div>
 
     <main id="main">
-      <section class="im-hero" id="top" aria-labelledby="im-hero-title">
-        <img class="im-hero-image" src={business.heroImage} alt={business.gallery[0]?.alt ?? `${business.name}, ${business.city}`} fetchpriority="high" decoding="async" />
+      {business.visible.hero && <section data-template-block="HERO" class="im-hero" aria-labelledby={business.visible.heroHeadline ? 'im-hero-title' : undefined}>
+        {business.visible.heroImage && business.heroImage && <img class="im-hero-image" data-image-field="hero.image" src={business.heroImage} alt={business.gallery[0]?.alt ?? `${business.name}, ${business.city}`} fetchpriority="high" decoding="async" />}
         <div class="im-hero-shade" aria-hidden="true"></div>
         <div class="im-hero-content im-wrap">
-          <p class="im-eyebrow im-light-label"><span class="im-dot" aria-hidden="true"></span>{business.eyebrow}</p>
-          <h1 id="im-hero-title">{business.headline}</h1>
+          <p class="im-eyebrow im-light-label"><span class="im-dot" aria-hidden="true"></span><span data-field="hero.kicker">{business.eyebrow}</span></p>
+          {business.visible.heroHeadline && <h1 id="im-hero-title" data-field="hero.headline">{business.headline}</h1>}
           <div class="im-hero-bottom">
-            <p>{description}</p>
-            <a href="#visit" class="im-button im-button-light">{business.cta}<span aria-hidden="true">↗</span></a>
+            {business.visible.heroDescription && description && <p data-field="hero.sub">{description}</p>}
+            {business.visible.heroButton && heroHref && <a href={heroHref} data-href-field="hero.cta1.href" class="im-button im-button-light"><span data-field="hero.cta1.text">{business.cta}</span><span aria-hidden="true">↗</span></a>}
           </div>
         </div>
-        <a class="im-scroll-note" href="#services"><span aria-hidden="true">↓</span>Take a look around</a>
-      </section>
+        {business.visible.services && <a class="im-scroll-note" href="#services"><span aria-hidden="true">↓</span>Take a look around</a>}
+      </section>}
 
-      {business.highlights.length > 0 && <div class="im-highlights" aria-label="At a glance">
-        <div class="im-wrap im-highlights-inner">{business.highlights.slice(0, 3).map((highlight, index) => <p><span class="im-small-star" aria-hidden="true">✳</span>{highlight}</p>)}</div>
+      {business.visible.highlights && <div data-template-block="TRUST" class="im-highlights" aria-label="At a glance">
+        <div class="im-wrap im-highlights-inner">{business.trustItems.map((highlight, index) => <p><span class="im-small-star" aria-hidden="true">✳</span><span>{highlight.num && <strong data-field={`trust.cells.${highlight.fieldIndex}.num`}>{highlight.num} </strong>}<span data-field={`trust.cells.${highlight.fieldIndex}.label`}>{highlight.label}</span></span></p>)}</div>
       </div>}
 
-      <section class="im-services im-section im-wrap" id="services" aria-labelledby="im-services-title">
+      {business.visible.services && <section data-template-block="SERVICES" class="im-services im-section im-wrap" id="services" aria-labelledby={business.visible.serviceHeading ? 'im-services-title' : undefined}>
         <div class="im-section-heading">
           <p class="im-eyebrow"><span class="im-section-number">01 /</span>{business.serviceLabel}</p>
-          <h2 id="im-services-title">{servicesTitle}</h2>
+          {business.visible.serviceHeading && <h2 id="im-services-title" data-field="services.headline">{business.serviceHeading || servicesTitle}</h2>}
         </div>
         <div class="im-service-list">
-          {business.services.map((service, index) => <article class="im-service-row">
+          {business.visible.serviceList && business.services.map((service, index) => <article class="im-service-row">
             <span class="im-service-number" aria-hidden="true">{number(index)}</span>
-            <div><h3>{service.title}</h3><p>{service.description}</p></div>
-            {(service.price || service.meta) && <span class="im-service-price">{service.price || service.meta}</span>}
+            <div><h3 data-field={`services.items.${service.fieldIndex}.title`}>{service.title}</h3><p data-field={`services.items.${service.fieldIndex}.desc`}>{service.description}</p></div>
+            {(service.price || service.meta) && <span class="im-service-price">{service.price && <span data-field={`services.items.${service.fieldIndex}.price`}>{service.price}</span>}{service.meta && <span class="im-service-note" data-field={`services.items.${service.fieldIndex}.note`}>{service.meta}</span>}</span>}
             <span class="im-service-arrow" aria-hidden="true">↗</span>
           </article>)}
         </div>
-        <a class="im-text-link" href="#visit">Talk to us about what you need<span aria-hidden="true">↗</span></a>
-      </section>
+        {business.visible.visit && <a class="im-text-link" href="#visit">Talk to us about what you need<span aria-hidden="true">↗</span></a>}
+      </section>}
 
-      <section class="im-story" id="about" aria-labelledby="im-story-title">
-        <div class="im-story-image">
-          <img src={storyImage?.src ?? business.heroImage} alt={storyImage?.alt ?? `A closer look at ${business.name}`} loading="lazy" decoding="async" />
+      {business.visible.story && <section data-template-block="ABOUT" class:list={["im-story", (!business.visible.storyImage || !(storyImage?.src || business.heroImage)) && "im-story-text-only"]} id="about" aria-labelledby={business.visible.storyHeading ? 'im-story-title' : undefined}>
+        {business.visible.storyImage && (storyImage?.src || business.heroImage) && <div class="im-story-image">
+          <img data-image-field={storyImage ? `gallery.items.${storyImage.fieldIndex}.image` : "hero.image"} src={storyImage?.src ?? business.heroImage} alt={storyImage?.alt ?? `A closer look at ${business.name}`} loading="lazy" decoding="async" />
           <span class="im-image-index" aria-hidden="true">A closer look / {business.city}</span>
-        </div>
+        </div>}
         <div class="im-story-copy">
           <p class="im-eyebrow im-light-label"><span class="im-section-number">02 /</span>Our story</p>
-          <h2 id="im-story-title">{storyTitle}</h2>
-          {business.story.map(paragraph => <p>{paragraph}</p>)}
+          {business.visible.storyHeading && <h2 id="im-story-title" data-field="about.headline">{business.storyTitle || storyTitle}</h2>}
+          {business.visible.storyDescription && business.storyLead && <p data-field="about.lead">{business.storyLead}</p>}{business.visible.storyDescription && business.story.map((paragraph, index) => <p data-field={`about.paragraphs.${index}`}>{paragraph}</p>)}
           <span class="im-story-signature">{business.name}<span>{business.city}</span></span>
         </div>
-      </section>
+      </section>}
 
-      {gallery.length > 0 && <section class="im-gallery im-section im-wrap" id="gallery" aria-labelledby="im-gallery-title">
-        <div class="im-gallery-heading"><p class="im-eyebrow"><span class="im-section-number">03 /</span>{business.galleryLabel}</p><h2 id="im-gallery-title">A feel for the place.</h2></div>
+      {business.visible.gallery && <section data-template-block="GALLERY" class="im-gallery im-section im-wrap" id="gallery" aria-labelledby={business.visible.galleryHeading ? 'im-gallery-title' : undefined}>
+        <div class="im-gallery-heading"><p class="im-eyebrow"><span class="im-section-number">03 /</span>{business.galleryLabel}</p>{business.visible.galleryHeading && <h2 id="im-gallery-title" data-field="gallery.headline">{business.galleryHeading || "A feel for the place."}</h2>}</div>
         <div class:list={['im-gallery-grid', { 'im-gallery-single': gallery.length === 1 }]}>
-          {gallery.map((image, index) => <figure>
-            <div><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /></div>
-            <figcaption><span>{image.caption || image.alt}</span><span aria-hidden="true">{number(index)}</span></figcaption>
+          {business.visible.galleryItems && gallery.map((image, index) => <figure>
+            <div><img data-image-field={`gallery.items.${image.fieldIndex}.image`} src={image.src} alt={image.alt} loading="lazy" decoding="async" /></div>
+            <figcaption><span data-field={`gallery.items.${image.fieldIndex}.caption`}>{image.caption || image.alt}</span><span aria-hidden="true">{number(index)}</span></figcaption>
           </figure>)}
         </div>
       </section>}
 
-      {business.process.length > 0 && <section class="im-process im-section" aria-labelledby="im-process-title">
+      {business.visible.process && <section data-template-block="HOW-IT-WORKS" class="im-process im-section" aria-labelledby="im-process-title">
         <div class="im-wrap">
-          <div class="im-section-heading"><p class="im-eyebrow"><span class="im-section-number">04 /</span>Before you visit</p><h2 id="im-process-title">{processTitle}</h2></div>
-          <div class="im-process-grid">{business.process.map((step, index) => <article><span class="im-process-number">{number(index)}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>
+          <div class="im-section-heading"><p class="im-eyebrow"><span class="im-section-number">04 /</span>Before you visit</p><h2 id="im-process-title" data-field="how.headline">{business.processHeading || processTitle}</h2></div>
+          <div class="im-process-grid">{business.process.map((step, index) => <article><span class="im-process-number">{number(index)}</span><h3 data-field={`how.steps.${step.fieldIndex}.title`}>{step.title}</h3><p data-field={`how.steps.${step.fieldIndex}.body`}>{step.description}</p></article>)}</div>
         </div>
       </section>}
 
-      {business.faq.length > 0 && <section class="im-faq im-section im-wrap" aria-labelledby="im-faq-title">
-        <div><p class="im-eyebrow">A few useful things</p><h2 id="im-faq-title">Good to know.</h2><p class="im-faq-intro">A little planning makes the visit easier. Get in touch if there’s something else you’d like to ask.</p></div>
-        <div class="im-faq-list">{business.faq.map(item => <details><summary>{item.question}<span aria-hidden="true">+</span></summary><div><p>{item.answer}</p></div></details>)}</div>
+      {business.visible.faq && <section data-template-block="FAQ" class="im-faq im-section im-wrap" aria-labelledby="im-faq-title">
+        <div><p class="im-eyebrow">A few useful things</p><h2 id="im-faq-title" data-field="faq.headline">{business.faqHeading || "Good to know."}</h2><p class="im-faq-intro">A little planning makes the visit easier. Get in touch if there’s something else you’d like to ask.</p></div>
+        <div class="im-faq-list">{business.faq.map((item, index) => <details><summary><span class="im-faq-question" data-field={`faq.items.${item.fieldIndex}.q`}>{item.question}</span><span aria-hidden="true">+</span></summary><div><p data-field={`faq.items.${item.fieldIndex}.a`}>{item.answer}</p></div></details>)}</div>
       </section>}
 
-      <section class="im-visit im-section" id="visit" aria-labelledby="im-visit-title">
+      {business.visible.visit && <section data-template-block="LOCATION" class="im-visit im-section" id="visit" aria-labelledby="im-visit-title">
         <div class="im-wrap">
-          <div class="im-visit-top"><div><p class="im-eyebrow im-light-label">We’re right here</p><h2 id="im-visit-title">Let’s make it<br /><em>happen.</em></h2></div><a href={business.phoneHref} class="im-button im-button-light">{business.cta}<span aria-hidden="true">↗</span></a></div>
+          <div class="im-visit-top"><div><p class="im-eyebrow im-light-label">We’re right here</p><h2 id="im-visit-title" data-field="location.headline">{business.visitHeading || <>Let’s make it<br /><em>happen.</em></>}</h2></div>{primaryHref && <a href={primaryHref} class="im-button im-button-light"><span data-field="hero.cta1.text">{business.cta}</span><span aria-hidden="true">↗</span></a>}</div>
           <div class="im-visit-grid">
-            <div><h3>Find us</h3><p class="im-address">{business.address}</p><a class="im-text-link im-link-light" href={business.mapHref} target="_blank" rel="noopener noreferrer">Get directions<span aria-hidden="true">↗</span></a></div>
-            <div><h3>Say hello</h3><a class="im-contact-line" href={business.phoneHref}>{business.phone}</a><a class="im-email" href={business.emailHref}>{business.email}</a></div>
-            <div><h3>Opening hours</h3><dl class="im-hours">{business.hours.map(hour => <div><dt>{hour.days}</dt><dd>{hour.time}</dd></div>)}</dl></div>
+            {business.address && <div><h3>Find us</h3><p class="im-address" data-field="location.address">{business.address}</p><a class="im-text-link im-link-light" href={business.mapHref} target="_blank" rel="noopener noreferrer">Get directions<span aria-hidden="true">↗</span></a></div>}
+            {(business.phoneHref || business.emailHref) && <div><h3>Say hello</h3>{business.phoneHref && <a class="im-contact-line" href={business.phoneHref} data-field="location.phone">{business.phone}</a>}{business.emailHref && <a class="im-email" href={business.emailHref} data-field="contact.email">{business.email}</a>}</div>}
+            {business.hours.length > 0 && <div><h3>Opening hours</h3><dl class="im-hours" data-field="location.hours">{business.hours.map(hour => <div><dt>{hour.days}</dt><dd>{hour.time}</dd></div>)}</dl></div>}
           </div>
         </div>
-      </section>
+      </section>}
     </main>
-    <footer class="im-footer"><div class="im-wrap"><a class="im-footer-brand" href="#top">{business.name}</a><p>{business.sample ? 'Fictional business · Website design example' : `${business.city} · Made with Tendso`}</p><a href="#top">Back to top<span aria-hidden="true">↑</span></a></div></footer>
+    {business.visible.footer && <footer data-template-block="FOOTER" class="im-footer"><div class="im-wrap"><a class="im-footer-brand" href="#top" data-field="footer.brand">{business.footerBrand}</a><p>{business.visible.footerBlurb && business.footerBlurb && <span data-field="footer.blurb">{business.footerBlurb}</span>}{business.sample ? 'Fictional business · Website design example' : `${business.city} · Made with Tendso`}</p><a href="#top">Back to top<span aria-hidden="true">↑</span></a></div></footer>}
     <script>
       document.querySelectorAll<HTMLDetailsElement>('[data-immersive-menu]').forEach(menu => {
         menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { menu.open = false; }));
@@ -187,7 +197,7 @@ const description = business.description;
   html[data-capture-layout="immersive"] .im-button{display:inline-flex;align-items:center;justify-content:space-between;gap:40px;min-height:54px;padding:17px 23px;font-size:13px;font-weight:650;line-height:1.4;border:1px solid transparent;transition:background .18s,transform .18s}
   html[data-capture-layout="immersive"] .im-button-light{background:var(--im-paper);color:var(--im-dark)}
   html[data-capture-layout="immersive"] .im-button:hover{background:var(--im-accent);transform:translateY(-2px)}
-  html[data-capture-layout="immersive"] .im-button span{font-size:20px;font-weight:400;flex-shrink:0}
+  html[data-capture-layout="immersive"] .im-button>span[aria-hidden="true"]{font-size:20px;font-weight:400;flex-shrink:0}
   html[data-capture-layout="immersive"] .im-scroll-note{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#ffffffb5;white-space:nowrap}
   html[data-capture-layout="immersive"] .im-scroll-note span{font-size:17px}
   html[data-capture-layout="immersive"] .im-highlights{background:var(--im-dark);color:var(--im-paper);border-top:1px solid #ffffff29}
@@ -245,8 +255,8 @@ const description = business.description;
   html[data-capture-layout="immersive"] .im-faq-list details{border-bottom:1px solid #1b271f26}
   html[data-capture-layout="immersive"] .im-faq-list summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:25px;padding:23px 0;font-size:14px;font-weight:500;line-height:1.55}
   html[data-capture-layout="immersive"] summary::-webkit-details-marker{display:none}
-  html[data-capture-layout="immersive"] .im-faq-list summary span{font-size:22px;line-height:1;flex-shrink:0;transition:transform .2s}
-  html[data-capture-layout="immersive"] .im-faq-list details[open] summary span{transform:rotate(45deg)}
+  html[data-capture-layout="immersive"] .im-faq-list summary>span[aria-hidden="true"]{font-size:22px;line-height:1;flex-shrink:0;transition:transform .2s}
+  html[data-capture-layout="immersive"] .im-faq-list details[open] summary>span[aria-hidden="true"]{transform:rotate(45deg)}
   html[data-capture-layout="immersive"] .im-faq-list details>div{padding:0 40px 25px 0}
   html[data-capture-layout="immersive"] .im-faq-list details p{font-size:13px;line-height:1.85;color:#5a5e57}
   html[data-capture-layout="immersive"] .im-visit{background:var(--im-dark);color:var(--im-paper)}
@@ -352,7 +362,7 @@ const description = business.description;
     html[data-capture-layout="immersive"] .im-faq-intro{font-size:14px;max-width:320px;margin-top:17px}
     html[data-capture-layout="immersive"] .im-faq-list{margin-top:30px}
     html[data-capture-layout="immersive"] .im-faq-list summary{font-size:14px;line-height:1.6;padding:21px 0;gap:20px}
-    html[data-capture-layout="immersive"] .im-faq-list summary span{font-size:20px;margin-top:2px}
+    html[data-capture-layout="immersive"] .im-faq-list summary>span[aria-hidden="true"]{font-size:20px;margin-top:2px}
     html[data-capture-layout="immersive"] .im-faq-list details>div{padding:0 24px 21px 0}
     html[data-capture-layout="immersive"] .im-faq-list details p{font-size:14px;line-height:1.75}
     html[data-capture-layout="immersive"] .im-visit-top{display:block;margin-bottom:40px}
@@ -373,4 +383,8 @@ const description = business.description;
     html[data-capture-layout="immersive"] .im-footer a:last-child{font-size:9px;gap:12px}
   }
   @media(prefers-reduced-motion:reduce){html[data-capture-layout="immersive"]{scroll-behavior:auto}html[data-capture-layout="immersive"] *{transition:none!important}}
+  html[data-capture-layout="immersive"] .im-masthead-static{position:relative;background:var(--im-dark);color:var(--im-paper)}
+  html[data-capture-layout="immersive"] .im-service-note{display:block;margin-top:4px;font-size:11px}
+  html[data-capture-layout="immersive"] .im-story-text-only{grid-template-columns:1fr}html[data-capture-layout="immersive"] .im-story-text-only .im-story-copy{width:min(900px,100%);margin-inline:auto}html[data-capture-layout="immersive"] [data-field="footer.blurb"]{display:block;margin-bottom:.45em}
+  html[data-capture-layout="immersive"] .im-faq-list summary>.im-faq-question{flex:1 1 0;min-width:0;overflow-wrap:anywhere}html[data-capture-layout="immersive"] .im-button{max-width:100%}html[data-capture-layout="immersive"] .im-button>[data-field]{min-width:0;overflow-wrap:anywhere}
 </style>

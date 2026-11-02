@@ -34,6 +34,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { businessTemplateBlocks } from './business-template-blocks.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -81,6 +82,11 @@ const findFile = (name) => {
 /** Sections a wrapper renders, following shared *Spine components one level in. */
 const collect = (file, acc = new Map(), depth = 0) => {
     if (!file || depth > 2) return acc;
+    const businessBlocks = businessTemplateBlocks(file);
+    if (businessBlocks) {
+        for (const [type, entry] of businessBlocks) if (!acc.has(type)) acc.set(type, entry);
+        return acc;
+    }
     const body = bodyOf(file);
     for (const m of body.matchAll(/<([A-Z][A-Za-z]+)[\s/>]/g)) {
         const name = m[1];
@@ -185,7 +191,7 @@ const codes = Object.keys(scanned).sort();
                     parts.push(cur);
                     // Scoped enough: every part is either page-prefixed or a
                     // class (a class cannot collide across templates).
-                    const scoped = parts.every((one) => /\[data-page|^\./.test(one.trim()));
+                    const scoped = parts.every((one) => /\[data-(?:page|capture-layout)|^\./.test(one.trim()));
                     if (scoped) continue;
                     const short = sel.replace(/\s+/g, " ").slice(0, 70);
                     errors.push(

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Build the review-only 24-site comparison from the actual Astro templates.
- * No shared/customer site-data, native bundle, live catalog or router is changed.
+ * Build the approved 24 business examples, canonical admin previews and the
+ * offline mobile bundle from the same actual Astro wrappers.
  *
  * node scripts/build-capture-redesign.mjs
  * node scripts/build-capture-redesign.mjs --astro-node-modules <existing-directory>
@@ -15,10 +15,12 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { build as bundle } from 'esbuild';
 import { load } from 'cheerio';
+import { publishApprovedCapturePreviews } from './publish-approved-capture-previews.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ASTRO = path.join(ROOT, 'astro-site-template');
 const COMPONENTS = path.join(ASTRO, 'src/components/capture-redesign');
+const ASTRO_SRC = path.join(ASTRO, 'src');
 const FIXTURES = path.join(ROOT, 'scripts/capture-redesign-fixtures.json');
 const PUBLIC = path.join(ROOT, 'public');
 const OUTPUT = path.join(PUBLIC, 'capture-redesign');
@@ -63,7 +65,7 @@ async function referencedAssets(value) {
 async function sourceDependencies(file) {
   const absolute = path.resolve(file);
   if (dependencies.has(absolute)) return;
-  if (!inside(COMPONENTS, absolute)) throw new Error('Review templates may import only their local review sources.');
+  if (!inside(ASTRO_SRC, absolute)) throw new Error('Business templates may import only the Astro source tree.');
   const source = (await read(absolute)).toString('utf8');
   for (const match of source.matchAll(/(?:import|export)\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]/g)) {
     if (!match[1].startsWith('.')) continue;
@@ -81,22 +83,31 @@ async function sourceDependencies(file) {
 
 async function inputs() {
   await read(fileURLToPath(import.meta.url));
+  await read(path.join(ROOT, 'scripts/publish-approved-capture-previews.mjs'));
+  const canonicalCatalog = (await read(path.join(ROOT, 'components/editor/templateCatalog.ts'))).toString('utf8');
+  await read(path.join(PUBLIC, 'capture-previews/fonts/native-fonts.css'));
   await read(path.join(ASTRO, 'build-worker.mjs'));
   await read(path.join(ASTRO, 'package-lock.json'));
   await read(path.join(ROOT, 'package-lock.json'));
   const fixtures = JSON.parse((await read(FIXTURES)).toString('utf8'));
   if (!Array.isArray(fixtures) || fixtures.length !== TYPES.length) throw new Error('Expected exactly eight fictional review business fixtures.');
   const ids = new Set(), types = new Set();
-  for (const fixture of fixtures) {
+  for (const [index, fixture] of fixtures.entries()) {
     if (!/^[a-z][a-z0-9-]*$/.test(fixture.id ?? '') || ids.has(fixture.id)) throw new Error('Review business IDs must be unique safe slugs.');
     if (!TYPES.includes(fixture.businessType) || types.has(fixture.businessType)) throw new Error('Each supported business type must appear exactly once.');
+    if (fixture.businessType !== TYPES[index]) throw new Error('Keep fixture categories in canonical code order; saved design identities must never move.');
     if (!fixture.siteData?.layout?.businessName || fixture.siteData?.sample !== true)
       throw new Error(`Review fixture must name and explicitly mark a fictional business: ${fixture.id}`);
     if (fixture.siteData.content?.business_type !== fixture.businessType) throw new Error(`Review business-type mismatch: ${fixture.id}`);
     ids.add(fixture.id); types.add(fixture.businessType);
     await referencedAssets(fixture.siteData);
   }
-  for (const style of STYLES) await sourceDependencies(path.join(COMPONENTS, `${style.name}.astro`));
+  for (let index = 0; index < fixtures.length; index++) for (let variant = 0; variant < STYLES.length; variant++) {
+    const letter = `C${String.fromCharCode(65 + index * 3 + variant)}`;
+    const code = `business:${letter}`;
+    if (!canonicalCatalog.includes(`code: "${code}"`)) throw new Error(`Approved design is missing from the admin catalog: ${code}`);
+    await sourceDependencies(path.join(ASTRO_SRC, 'components/business', `Page${letter}.astro`));
+  }
   const hash = crypto.createHash('sha256').update(`capture-redesign-v${VERSION}\0`);
   for (const [file, data] of [...dependencies].sort(([left], [right]) => left.localeCompare(right))) {
     hash.update(slash(path.relative(ROOT, file))); hash.update('\0');
@@ -129,7 +140,7 @@ async function standalone(source, dist) {
     html = html.replace(match[0], `<script type="module">${result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')}</script>`);
   }
   if (/(?:href|src)=["']\/_astro\//.test(html)) throw new Error('Review page contains an unresolved build asset.');
-  return html.replace('<head>', '<head><!-- Review-only actual template; fictional sample data. Not the live mobile catalog. -->')
+  return html.replace('<head>', '<head><!-- Approved business template with fictional sample content. -->')
     .replace(/[\t ]+$/gm, '');
 }
 
@@ -139,6 +150,10 @@ async function verifyDocument(html, fixture, style) {
   const fail = message => { throw new Error(`${id}: ${message}`); };
   const text = value => String(value ?? '').replace(/\s+/g, ' ').trim();
   if ($('html').attr('data-capture-layout') !== style.id) fail('wrong actual layout rendered');
+  const categoryIndex = TYPES.indexOf(fixture.businessType), variantIndex = STYLES.findIndex(item => item.id === style.id);
+  const expectedCode = `business:C${String.fromCharCode(65 + categoryIndex * 3 + variantIndex)}`;
+  if ($('html').attr('data-template-code') !== expectedCode) fail('canonical saved design identity does not match the rendered page');
+  if (($('html').attr('data-capture-kind') ?? $('html').attr('data-business-kind')) !== (fixture.kind ?? fixture.id)) fail('the rendered business category does not match the capture');
   if ($('main').length !== 1 || $('h1').length !== 1 || !text($('h1').text())) fail('expected one main landmark and one populated H1');
   if (!text($('title').text()).includes(fixture.siteData.layout.businessName)) fail('page title lost the business identity');
   const visibleCopy = text($('body').clone().find('script,style').remove().end().text());
@@ -200,12 +215,25 @@ async function check({ fixtures, sourceHash }) {
   for (const [file, field] of [['catalog.json', 'catalogSha256'], ['catalog.js', 'catalogJsSha256']]) {
     if (digest(normalize(await fs.readFile(path.join(OUTPUT, file), 'utf8'))) !== manifest[field]) throw new Error(`Review ${file} is stale.`);
   }
-  console.log(`Capture redesign current: ${manifest.documents.length} actual pages, ${fixtures.length} business types, three layouts per type. Rendered identity, landmarks, services, FAQ, hours, anchors and asset contracts passed. Review only.`);
+  const catalog = JSON.parse(await fs.readFile(path.join(OUTPUT, 'catalog.json'), 'utf8'));
+  for (const design of catalog.designs) {
+    const actual = normalize(await fs.readFile(path.join(PUBLIC, design.adminPreview.slice(1)), 'utf8'));
+    if (actual !== normalize(await fs.readFile(path.join(PUBLIC, design.preview.slice(1)), 'utf8'))) throw new Error(`Admin and mobile preview differ: ${design.code}`);
+  }
+  const native = await publishApprovedCapturePreviews(ROOT, catalog, { check:true });
+  console.log(`Approved business previews current: ${manifest.documents.length} pages, ${fixtures.length} business types; ${native.documents} approved/legacy offline documents, ${native.photos} photos and ${native.fonts} fonts. Admin/mobile previews and rendered content contracts passed.`);
 }
 
 async function main() {
-  const { values } = parseArgs({ options: { check: { type: 'boolean' }, 'astro-node-modules': { type: 'string' } } });
+  const { values } = parseArgs({ options: { check: { type: 'boolean' }, 'bundle-only': { type:'boolean' }, 'astro-node-modules': { type: 'string' } } });
   const input = await inputs();
+  if (values['bundle-only']) {
+    const catalog = JSON.parse(await fs.readFile(path.join(OUTPUT, 'catalog.json'), 'utf8'));
+    if (catalog.sourceHash !== input.sourceHash || catalog.approved !== true) throw new Error('Rebuild approved business previews before composing the native bundle.');
+    const native = await publishApprovedCapturePreviews(ROOT, catalog);
+    console.log(`Composed ${native.documents} approved/legacy previews with ${native.photos} shared photos and ${native.fonts} offline fonts.`);
+    return;
+  }
   if (values.check) { await check(input); return; }
   const dependencyRoot = path.resolve(values['astro-node-modules'] ?? path.join(ASTRO, 'node_modules'));
   for (const packageName of ['astro', '@tailwindcss/vite']) {
@@ -216,7 +244,6 @@ async function main() {
   const buildRoot = await fs.mkdtemp(path.join(SCRATCH, 'capture-redesign-build-'));
   try {
     const pages = path.join(buildRoot, 'src/pages'), data = path.join(buildRoot, 'src/data');
-    const reviewSources = path.join(buildRoot, 'src/components/capture-redesign');
     await fs.mkdir(pages, { recursive: true }); await fs.mkdir(data, { recursive: true });
     await fs.writeFile(path.join(buildRoot, 'package.json'), '{"type":"module","private":true}\n');
     await fs.writeFile(path.join(buildRoot, 'tsconfig.json'), '{"extends":"astro/tsconfigs/strict","include":["src/**/*",".astro/types.d.ts"]}\n');
@@ -227,15 +254,16 @@ async function main() {
     await fs.copyFile(path.join(ASTRO, 'build-worker.mjs'), worker);
     // Copy the exact source buffers included in sourceHash. Importing from the
     // worktree would also load that checkout's unrelated tsconfig/dependencies.
-    for (const [file, contents] of dependencies) if (inside(COMPONENTS, file)) {
-      const target = path.join(reviewSources, path.relative(COMPONENTS, file));
+    for (const [file, contents] of dependencies) if (inside(ASTRO_SRC, file)) {
+      const target = path.join(buildRoot, 'src', path.relative(ASTRO_SRC, file));
       await fs.mkdir(path.dirname(target), { recursive: true });
       await fs.writeFile(target, contents);
     }
-    for (const fixture of input.fixtures) {
+    for (const [index, fixture] of input.fixtures.entries()) {
       await fs.writeFile(path.join(data, `${fixture.id}.json`), JSON.stringify(fixture.siteData));
-      for (const style of STYLES) {
-        let component = slash(path.relative(pages, path.join(reviewSources, `${style.name}.astro`)));
+      for (const [variant, style] of STYLES.entries()) {
+        const letter = `C${String.fromCharCode(65 + index * 3 + variant)}`;
+        let component = slash(path.relative(pages, path.join(buildRoot, 'src/components/business', `Page${letter}.astro`)));
         if (!component.startsWith('.')) component = './' + component;
         await fs.writeFile(path.join(pages, `${fixture.id}-${style.id}.astro`),
           `---\nimport Page from ${JSON.stringify(component)};\nimport siteData from '../data/${fixture.id}.json';\n---\n<Page siteData={siteData} />\n`);
@@ -244,23 +272,29 @@ async function main() {
     await runWorker(worker, buildRoot);
     const dist = path.join(buildRoot, 'dist'), documents = [], designs = [];
     await fs.mkdir(OUTPUT, { recursive: true });
-    for (const fixture of input.fixtures) for (const style of STYLES) {
+    await fs.mkdir(path.join(PUBLIC, 'template-previews'), { recursive:true });
+    for (const [index, fixture] of input.fixtures.entries()) for (const [variant, style] of STYLES.entries()) {
       const id = `${fixture.id}-${style.id}`, file = `${id}.html`;
+      const letter = `C${String.fromCharCode(65 + index * 3 + variant)}`, code = `business:${letter}`;
       const html = await standalone(await fs.readFile(path.join(dist, id, 'index.html'), 'utf8'), dist);
       await verifyDocument(html, fixture, style);
       await fs.writeFile(path.join(OUTPUT, file), html);
-      designs.push({ id, businessType: fixture.businessType, kind: fixture.kind ?? fixture.id, style: style.id,
+      const adminPreview = `/template-previews/${letter.toLowerCase()}.html`;
+      await fs.writeFile(path.join(PUBLIC, adminPreview.slice(1)), html);
+      designs.push({ id, code, category:fixture.kind ?? fixture.id, businessType: fixture.businessType, kind: fixture.kind ?? fixture.id, style: style.id,
         name: style.name, businessName: fixture.siteData.layout.businessName, preview: `/capture-redesign/${file}`,
-        recommended: style.id === 'editorial', description: style.description });
-      documents.push({ id, file, sha256: digest(html) });
+        adminPreview, recommended: style.id === 'editorial', description: style.description });
+      documents.push({ id, code, file, sha256: digest(html) });
     }
-    const catalog = JSON.stringify({ version: VERSION, reviewOnly: true, sourceHash: input.sourceHash, designs }, null, 2) + '\n';
-    const catalogJs = `window.CAPTURE_REDESIGN_CATALOG=${JSON.stringify({ version: VERSION, reviewOnly: true, sourceHash: input.sourceHash, designs })};\n`;
+    const approvedCatalog = { version:VERSION, approved:true, sourceHash:input.sourceHash, designs };
+    const catalog = JSON.stringify(approvedCatalog, null, 2) + '\n';
+    const catalogJs = `window.CAPTURE_REDESIGN_CATALOG=${JSON.stringify(approvedCatalog)};\n`;
     await fs.writeFile(path.join(OUTPUT, 'catalog.json'), catalog);
     await fs.writeFile(path.join(OUTPUT, 'catalog.js'), catalogJs);
-    await fs.writeFile(path.join(OUTPUT, 'manifest.json'), JSON.stringify({ version: VERSION, reviewOnly: true,
+    await fs.writeFile(path.join(OUTPUT, 'manifest.json'), JSON.stringify({ version: VERSION, approved:true,
       sourceHash: input.sourceHash, catalogSha256: digest(catalog), catalogJsSha256: digest(catalogJs), documents }, null, 2) + '\n');
-    console.log(`Built ${documents.length} review-only pages from three actual Astro layouts and eight fictional business fixtures.`);
+    const native = await publishApprovedCapturePreviews(ROOT, approvedCatalog);
+    console.log(`Built ${documents.length} approved business pages and canonical admin previews; composed ${native.documents} offline documents with ${native.photos} shared photos and ${native.fonts} fonts.`);
   } finally {
     // Every recursive removal is confined to the unique scratch directory that
     // this invocation created. Node removes contained junctions, not their targets.

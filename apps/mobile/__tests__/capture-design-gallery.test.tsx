@@ -111,6 +111,20 @@ it('opens the bundled example with photos while offline and still requires Use t
   await waitFor(() => expect(callbacks.onUse).toHaveBeenCalledWith('barbershop:F'));
 });
 
+it('opens an approved Law Office design offline and saves its canonical ID only after confirmation', async () => {
+  const approved = { code: 'business:CP', name: 'Editorial', preview: '/capture-redesign/law-editorial.html' };
+  const callbacks = props({ isOffline: true, designs: [approved], selectedCode: approved.code });
+  const screen = render(<CaptureDesignGallery {...callbacks} />);
+  expect(screen.getByTestId('sample-webview').props.source.html).toContain('Narra Legal Office');
+  fireEvent.press(screen.getByLabelText('Editorial design. Preview sample website.'));
+  const full = within(screen.getByTestId('capture-design-full-preview'));
+  expect(full.getByTestId('sample-webview').props.source.html).toContain('data-capture-layout="editorial"');
+  expect(full.getByTestId('sample-webview').props.source.html).toContain('data:image/webp;base64,');
+  expect(callbacks.onUse).not.toHaveBeenCalled();
+  fireEvent.press(full.getByRole('button', { name: 'Use this design' }));
+  await waitFor(() => expect(callbacks.onUse).toHaveBeenCalledWith('business:CP'));
+});
+
 it('shows a retry on failed full samples and ignores a late error from the prior request', () => {
   const screen = render(<CaptureDesignGallery {...props()} />);
   fireEvent.press(screen.getByLabelText('Forge design. Preview sample website.'));

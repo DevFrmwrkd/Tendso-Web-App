@@ -1,0 +1,12 @@
+---
+/**
+ * Food Studio — approved category-specific business template.
+ * @template-blocks HERO:heroSection TRUST:trustBlock SERVICES:servicesSection ABOUT:aboutSection GALLERY:gallerySection HOW-IT-WORKS:howItWorksBlock FAQ:faqBlock LOCATION:locationBlock FOOTER:contactSection
+ */
+import Studio from '../capture-redesign/Studio.astro';
+interface Props { siteData: any }
+const { siteData } = Astro.props;
+// The canonical code fixes the category while retaining all customer content.
+const prepared = { ...siteData, customizations: { ...(siteData?.customizations ?? {}), heroStyle: "business:CL" }, content: { ...(siteData?.content ?? {}), business_type: "Restaurant" } };
+---
+<Studio siteData={prepared} />

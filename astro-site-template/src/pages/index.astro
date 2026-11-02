@@ -156,6 +156,30 @@ import PageBV from '../components/woodworks/PageBV.astro';
 import PageBW from '../components/woodworks/PageBW.astro';
 import PageBX from '../components/woodworks/PageBX.astro';
 import PageBY from '../components/woodworks/PageBY.astro';
+import PageCA from '../components/business/PageCA.astro';
+import PageCB from '../components/business/PageCB.astro';
+import PageCC from '../components/business/PageCC.astro';
+import PageCD from '../components/business/PageCD.astro';
+import PageCE from '../components/business/PageCE.astro';
+import PageCF from '../components/business/PageCF.astro';
+import PageCG from '../components/business/PageCG.astro';
+import PageCH from '../components/business/PageCH.astro';
+import PageCI from '../components/business/PageCI.astro';
+import PageCJ from '../components/business/PageCJ.astro';
+import PageCK from '../components/business/PageCK.astro';
+import PageCL from '../components/business/PageCL.astro';
+import PageCM from '../components/business/PageCM.astro';
+import PageCN from '../components/business/PageCN.astro';
+import PageCO from '../components/business/PageCO.astro';
+import PageCP from '../components/business/PageCP.astro';
+import PageCQ from '../components/business/PageCQ.astro';
+import PageCR from '../components/business/PageCR.astro';
+import PageCS from '../components/business/PageCS.astro';
+import PageCT from '../components/business/PageCT.astro';
+import PageCU from '../components/business/PageCU.astro';
+import PageCV from '../components/business/PageCV.astro';
+import PageCW from '../components/business/PageCW.astro';
+import PageCX from '../components/business/PageCX.astro';
 import siteData from '../data/site-data.json';
 
 // Live-editor support: template / colour / font / hidden-sections can be driven
@@ -214,11 +238,13 @@ const floristMatch = /^florist:(BR|BS|BT|BU)$/.exec(heroStyle);
 const floristLetter = floristMatch ? floristMatch[1] : null;
 const woodworksMatch = /^woodworks:(BV|BW|BX|BY)$/.exec(heroStyle);
 const woodworksLetter = woodworksMatch ? woodworksMatch[1] : null;
+const businessMatch = /^business:(C[A-X])$/.exec(heroStyle);
+const businessLetter = businessMatch ? businessMatch[1] : null;
 const anyLetter = genericLetter || barbershopLetter || salonspaLetter
   || autoshopLetter || restaurantLetter || shirtstoreLetter
   || retailLetter || medicalLetter || fitnessLetter || educationLetter || tradesLetter || foodcraftLetter
   || servicesLetter || layoutsLetter || filipinoLetter || hospitalityLetter
-  || floristLetter || woodworksLetter;
+  || floristLetter || woodworksLetter || businessLetter;
 ---
 
 {genericLetter === 'A' && <PageA siteData={data} />}
@@ -298,6 +324,30 @@ const anyLetter = genericLetter || barbershopLetter || salonspaLetter
 {woodworksLetter === 'BW' && <PageBW siteData={data} />}
 {woodworksLetter === 'BX' && <PageBX siteData={data} />}
 {woodworksLetter === 'BY' && <PageBY siteData={data} />}
+{businessLetter === 'CA' && <PageCA siteData={data} />}
+{businessLetter === 'CB' && <PageCB siteData={data} />}
+{businessLetter === 'CC' && <PageCC siteData={data} />}
+{businessLetter === 'CD' && <PageCD siteData={data} />}
+{businessLetter === 'CE' && <PageCE siteData={data} />}
+{businessLetter === 'CF' && <PageCF siteData={data} />}
+{businessLetter === 'CG' && <PageCG siteData={data} />}
+{businessLetter === 'CH' && <PageCH siteData={data} />}
+{businessLetter === 'CI' && <PageCI siteData={data} />}
+{businessLetter === 'CJ' && <PageCJ siteData={data} />}
+{businessLetter === 'CK' && <PageCK siteData={data} />}
+{businessLetter === 'CL' && <PageCL siteData={data} />}
+{businessLetter === 'CM' && <PageCM siteData={data} />}
+{businessLetter === 'CN' && <PageCN siteData={data} />}
+{businessLetter === 'CO' && <PageCO siteData={data} />}
+{businessLetter === 'CP' && <PageCP siteData={data} />}
+{businessLetter === 'CQ' && <PageCQ siteData={data} />}
+{businessLetter === 'CR' && <PageCR siteData={data} />}
+{businessLetter === 'CS' && <PageCS siteData={data} />}
+{businessLetter === 'CT' && <PageCT siteData={data} />}
+{businessLetter === 'CU' && <PageCU siteData={data} />}
+{businessLetter === 'CV' && <PageCV siteData={data} />}
+{businessLetter === 'CW' && <PageCW siteData={data} />}
+{businessLetter === 'CX' && <PageCX siteData={data} />}
 {!anyLetter && (
   <BaseLayout
     businessName={layout.businessName ?? ''}

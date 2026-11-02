@@ -11,6 +11,7 @@ import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
 import { validCaptureDesignCode } from '@/lib/captureDesign'
+import { generationFontDefaults } from '@/lib/generationTypography'
 import { isArchiveKey, orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
 import { websiteContentFields } from '@/lib/websiteContentFields'
 import { isAiPipelineBuildRequest } from '@/lib/aiPipeline/internalAuth'
@@ -870,8 +871,6 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             footerStyle: '1',
             colorScheme: 'auto',
             colorSchemeId: 'auto',
-            fontPairing: 'modern',
-            fontPairingId: 'modern'
         }
         const mergedCustomizations = customizations && Object.keys(customizations).length > 0
             ? { ...defaultCustomizations, ...customizations }
@@ -880,14 +879,16 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
         // the old bare letter that renders nothing. Resolve it last so a real
         // pick is kept, a bare letter is upgraded to the code it meant, and
         // anything unrenderable falls to the automatic choice.
+        const effectiveHeroStyle = resolveHeroStyle(
+            (mergedCustomizations as any).heroStyle,
+            (submissionData as any)?.businessType,
+            String((submissionData as any)?._id ?? ''),
+            (submissionData as any)?.businessName,
+        )
         const finalCustomizations = {
+            ...generationFontDefaults(effectiveHeroStyle, mergedCustomizations),
             ...mergedCustomizations,
-            heroStyle: resolveHeroStyle(
-                (mergedCustomizations as any).heroStyle,
-                (submissionData as any)?.businessType,
-                String((submissionData as any)?._id ?? ''),
-                (submissionData as any)?.businessName,
-            ),
+            heroStyle: effectiveHeroStyle,
         }
 
         // Ensure all required fields are present with fallbacks from submission data

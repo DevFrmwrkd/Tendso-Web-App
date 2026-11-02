@@ -4,7 +4,7 @@ import { api, internal } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import schema from '../../convex/schema';
 import { ALL_TEMPLATES } from '../../components/editor/templateCatalog';
-import { captureDesignByCode, validCaptureDesignCode } from '../../lib/captureDesign';
+import { captureDesignByCode, captureDesignBusinessType, validCaptureDesignCode } from '../../lib/captureDesign';
 import { buildPipelineInput } from '../../lib/aiPipeline/input';
 
 const modules = {
@@ -61,6 +61,30 @@ describe('canonical capture design metadata', () => {
 });
 
 describe('field-agent draft design choices', () => {
+    it.each(Array.from({ length:24 }, (_, index) => `business:C${String.fromCharCode(65 + index)}`))
+    ('saves and forwards the approved category-specific design %s without replacing the capture', async templateId => {
+        const { agent, draft, row } = await setup();
+        const businessType = captureDesignBusinessType(templateId)!;
+        const id = await draft({ businessType });
+        await agent.mutation(api.submissions.chooseDesign, { id, templateId });
+        expect(await row(id)).toMatchObject({ businessType, templateId, templateIds:[templateId], photos:capture.photos, status:'draft' });
+    });
+
+    it('rejects an approved barber design on a Law Office capture without altering the previous choice', async () => {
+        const { agent, draft, row } = await setup();
+        const id = await draft({ businessType:'Law Office', templateId:'business:CP' });
+        await expect(agent.mutation(api.submissions.chooseDesign, { id, templateId:'business:CA' })).rejects.toThrow('Choose a design for this business type');
+        expect(await row(id)).toMatchObject({ templateId:'business:CP', photos:capture.photos, status:'draft' });
+    });
+    it.each([
+        ['Food', 'business:CJ'], ['Sari-Sari Store', 'business:CV'],
+        ['Clinic / Dental', 'business:CM'], ['Legal Office', 'business:CP'],
+    ])('accepts the matching approved design for an older %s capture', async (businessType, templateId) => {
+        const { agent, draft, row } = await setup();
+        const id = await draft({ businessType });
+        await agent.mutation(api.submissions.chooseDesign, { id, templateId });
+        expect(await row(id)).toMatchObject({ businessType, templateId, photos:capture.photos, status:'draft' });
+    });
     it('saves only the canonical choice and style timestamp without submitting, repricing, or scheduling a build', async () => {
         const { agent, draft, row, effects } = await setup();
         const id = await draft({ templateId: 'generic:A', templateIds: ['generic:A', 'generic:B'], styleUpdatedAt: NOW - 500 });

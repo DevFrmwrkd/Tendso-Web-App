@@ -2,17 +2,19 @@
   'use strict';
   const A = '../assets/field-agent-review/';
   const PHOTO = '../assets/photos/kalan-hero.jpg';
-  const designs = (window.CAPTURE_PREVIEW_CATALOG?.designs ?? []).map(design => ({
+  const designs = (window.CAPTURE_REDESIGN_CATALOG?.designs ?? [])
+    .filter(design => typeof design.code === 'string' && typeof design.category === 'string')
+    .map(design => ({
     ...design, file: design.code.split(':')[1].toLowerCase(),
   }));
   const group = category => designs.filter(design => design.category === category).map(design => design.file);
   const designGroups = {
-    'Barber/Salon': [...group('barber'), ...group('salon')],
-    'Spa/Massage': group('salon'),
+    'Barber/Salon': group('barber'),
+    'Spa/Massage': group('spa'),
     'Auto Shop': group('repair'),
     'Craft/Producer': group('craft'),
     Restaurant: group('food'),
-    Clinic: group('other'),
+    Clinic: group('clinic'),
     'Law Office': group('law'),
     Other: group('other'),
   };
@@ -268,7 +270,8 @@
   };
   const currentDesign = (interactive = true) => {
     const choices = designChoices(interactive);
-    return choices[Math.max(0, Math.min(choices.length - 1, interactive ? demo.design : 0))];
+    return choices[Math.max(0, Math.min(choices.length - 1, interactive ? demo.design : 0))]
+      ?? { name: 'No design selected', file: '', preview: '' };
   };
   const escape = (value) =>
     String(value ?? '').replace(
@@ -499,6 +502,7 @@
         const choices = designChoices(interactive),
           index = interactive ? Math.max(0, Math.min(choices.length - 1, demo.design)) : 0,
           design = choices[index];
+        if (!design) return app(`${step(4)}<h2>Choose your design</h2><p class="fa-muted">The approved examples are being prepared. Refresh the board when the preview build is ready.</p>`);
         return app(
           `${step(4)}<h2>Choose your design</h2><p class="fa-muted">Example photos and text. This shop’s content is added after review.</p><button type="button" class="fa-design" data-action="full-design" aria-label="${design.name} design. Preview sample website." style="padding:0;height:350px;overflow:hidden"><iframe class="fa-sample-frame fa-sample-inert fa-design-sample" title="${design.name} design sample" src="${escape(design.preview)}" sandbox="allow-same-origin" tabindex="-1" referrerpolicy="no-referrer"></iframe></button><div class="fa-between"><h3>${design.name}</h3><span class="fa-muted">${index + 1} of ${choices.length}</span></div><div class="fa-between"><button type="button" class="fa-round" data-design-move="-1" aria-label="Previous design" ${index === 0 ? 'disabled' : ''}>${icon('arrow')}</button><p class="fa-small fa-muted" style="text-align:center">Swipe designs. Tap one to see the whole sample.</p><button type="button" class="fa-round" data-design-move="1" aria-label="Next design" ${index >= choices.length - 1 ? 'disabled' : ''}>${icon('chevron')}</button></div>`,
           { footer: btn('Use this design', 'review') },
