@@ -180,6 +180,7 @@ export default function AppLayout() {
           edge-swipe so it can't be dismissed without entering one. */}
       <Stack.Screen name="complete-profile" options={{ gestureEnabled: false }} />
       <Stack.Screen name="agent-onboarding" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="submit/index" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/info" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/photos" options={{ gestureEnabled: false }} />
       <Stack.Screen name="submit/interview" options={{ gestureEnabled: false }} />

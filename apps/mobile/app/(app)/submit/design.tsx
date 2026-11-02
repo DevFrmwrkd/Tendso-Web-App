@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { useMutation, useQuery } from 'convex/react';
 import { api, type Id } from '@tendso/convex-client';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { EmptyState, Loading, ScreenShell } from '../../../components/v2';
 import { CaptureDesignGallery } from '../../../components/field-agent/CaptureDesignGallery';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useCaptureProgress } from '../../../hooks/useCaptureProgress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
-import { captureDesign, captureDesignChoices, selectedCaptureDesignCode } from '../../../services/captureDesign';
+import { captureDesign, captureDesignChoices, captureDesignMatchesBusinessType, selectedCaptureDesignCode } from '../../../services/captureDesign';
 import type { CaptureDesignDraft } from '../../../services/captureSession';
 import { isEditableCaptureStatus, type CaptureSnapshot } from '../../../services/captureEdit';
 
@@ -16,15 +18,15 @@ type QueuedChoice = { submissionId: string; templateId?: string; savedAt?: numbe
 export default function SubmitDesignScreen() {
   const capture = useCaptureSession();
   const router = useGuardedRouter();
-  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
+  const { returnTo, resumed } = useLocalSearchParams<{ returnTo?: string; resumed?: string }>();
   if (!capture.isReady) return <Loading label="Loading your capture" />;
   if (!capture.actor || !capture.actorKey) return <ScreenShell onBack={() => router.back()}>
     <EmptyState title="Reconnect to choose a design" body="Open this capture with your field-agent account." />
   </ScreenShell>;
-  return <CaptureDesignStep key={capture.actorKey} capture={capture} returnToReview={returnTo === 'review'} />;
+  return <CaptureDesignStep key={capture.actorKey} capture={capture} returnToReview={returnTo === 'review'} resumed={resumed === '1'} />;
 }
 
-function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSession; returnToReview: boolean }) {
+function CaptureDesignStep({ capture, returnToReview, resumed }: { capture: CaptureSession; returnToReview: boolean; resumed: boolean }) {
   const router = useGuardedRouter();
   const choose = useMutation(api.submissions.chooseDesign);
   const [id, setId] = useState<string | null>(null);
@@ -45,7 +47,19 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
   const canQuery = capture.canQuery && !!id && id !== 'offline_pending';
   const raw = useQuery(api.submissions.getById, canQuery ? { id: id as Id<'submissions'> } : 'skip');
   const submission = raw && raw.creatorId === capture.actor?.creatorId ? raw : null;
+  useCaptureProgress(capture, 'design', id, hydrated && (capture.isOffline || id === 'offline_pending'
+    || !!submission && isEditableCaptureStatus(submission.status)
+      && submission.contentSource !== 'owner_app' && submission.contentSource !== 'owner_intake'));
   const current = () => mounted.current && focus.current && capture.isCurrent();
+  const goBack = useCallback(() => {
+    if (busy.current) return;
+    if (resumed && draftId.current) router.replace({ pathname: '/(app)/submit/interview', params: { draftId: draftId.current, resumed: '1' } } as never);
+    else router.back();
+  }, [router, resumed]);
+  useFocusEffect(useCallback(() => {
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
+    return () => listener.remove();
+  }, [goBack]));
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   useFocusEffect(useCallback(() => {
@@ -88,6 +102,9 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
   const useDesign = async (code: string) => {
     const design = captureDesign(code);
     if (!design || !id || busy.current || !current()) return;
+    if (!captureDesignMatchesBusinessType(submission?.businessType ?? businessType, code)) {
+      setError('Choose a design for this business type.'); return;
+    }
     if (canQuery && (!submission || !isEditableCaptureStatus(submission.status)
       || submission.contentSource === 'owner_app' || submission.contentSource === 'owner_intake')) return;
     if (!capture.isOffline && !capture.canMutate()) { setError('Reconnect with your field-agent account to save this design.'); return; }
@@ -121,9 +138,11 @@ function CaptureDesignStep({ capture, returnToReview }: { capture: CaptureSessio
   if (unavailable) return <ScreenShell onBack={() => router.back()}><EmptyState title="Open your capture first"
     body="Choose a design for a draft or rejected capture from your field-agent account." actionLabel="About the shop"
     onAction={() => router.replace('/(app)/submit/info' as never)} /></ScreenShell>;
-  return <CaptureDesignGallery key={id} designs={captureDesignChoices(submission?.businessType ?? businessType, selectedCode)}
-    selectedCode={selectedCode} onSelect={code => { if (!busy.current && current()) { touched.current = true; setSelectedCode(code); } }}
-    onUse={useDesign} onBack={() => { if (!busy.current) router.back(); }} busy={saving} error={error}
+  const currentType = submission?.businessType ?? businessType;
+  const matchingSelection = captureDesignMatchesBusinessType(currentType, selectedCode) ? selectedCode : null;
+  return <CaptureDesignGallery key={`${id}:${currentType}`} designs={captureDesignChoices(currentType, matchingSelection)}
+    selectedCode={matchingSelection} onSelect={code => { if (!busy.current && current()) { touched.current = true; setSelectedCode(code); } }}
+    onUse={useDesign} onBack={goBack} busy={saving} error={error}
     reviewFeedback={submission?.status === 'rejected' ? submission.rejectionReason || 'Review the feedback and keep or change the saved design.' : undefined}
     disabled={!capture.isOffline && !capture.canMutate()} isOffline={capture.isOffline} />;
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+jest.mock('../hooks/useCaptureProgress', () => ({ useCaptureProgress: jest.fn() }));
 import { Alert, StyleSheet } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitReviewScreen from '../app/(app)/submit/review';
@@ -103,8 +104,28 @@ beforeEach(() => {
 });
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
 
+it('returns a resumed review to Design while keeping the same draft', async () => {
+  mockParams = { resumed: '1' };
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Check it, then send')).toBeTruthy());
+  fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { draftId: 'draft-1', resumed: '1' } });
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('requires a Law Office design after a business-type change without clearing the saved media', async () => {
+  Object.assign(mockSubmissions['draft-1'], { businessType: 'Law Office', templateId: 'barbershop:F' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Choose a matching design')).toBeTruthy());
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('link', { name: 'Choose a design' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { returnTo: 'review' } });
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
 it('opens the rejected record with its saved media, design, price and feedback and resends the same ID', async () => {
-  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', rejectionReason: 'Replace the blurry shop photo.',
+  Object.assign(mockSubmissions['draft-1'], { businessType: 'Craft/Producer', status: 'rejected', rejectionReason: 'Replace the blurry shop photo.',
     templateId: 'florist:BR', amount: 2999, domainCostPHP: 0, submissionType: 'standard' });
   const screen = render(<SubmitReviewScreen />);
   await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
@@ -182,6 +203,7 @@ it.each(['videoUrl', 'audioUrl'])('keeps a legacy rejected %s interview ready to
 });
 
 it('shows the canonical design name and changes it through the existing Review route', async () => {
+  mockSubmissions['draft-1'].businessType = 'Craft/Producer';
   mockSubmissions['draft-1'].templateId = 'florist:BR';
   const screen = await review();
   expect(screen.getByText('Website design')).toBeTruthy(); expect(screen.getByText('Bloom')).toBeTruthy();
@@ -190,14 +212,15 @@ it('shows the canonical design name and changes it through the existing Review r
   expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
   // Returning to the retained Review refreshes only its choice, preserving a local price edit.
   fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
-  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'florist:BU', savedAt: 200 });
   mockRevision++; screen.rerender(<SubmitReviewScreen />);
-  await waitFor(() => expect(screen.getByText('Glacier')).toBeTruthy());
+  await waitFor(() => expect(screen.getByText('Sampaguita')).toBeTruthy());
   expect(screen.queryByText('Bloom')).toBeNull();
   expect(screen.getByLabelText('Website price').props.value).toBe('2999');
 });
 
 it('flushes a local design before price and final submission, then clears only its matching metadata', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
   const order: string[] = [];
   let resolve!: () => void;
   stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
@@ -218,6 +241,7 @@ it('flushes a local design before price and final submission, then clears only i
 });
 
 it('preserves the draft and design for retry when design sync fails before sending', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
   stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
   mockChooseDesign.mockRejectedValueOnce(new Error('Design sync failed')).mockResolvedValueOnce({ ok: true });
   const screen = await review();
@@ -233,6 +257,7 @@ it('preserves the draft and design for retry when design sync fails before sendi
 });
 
 it('does not resave an unchanged canonical server design before the ordinary send', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
   mockSubmissions['draft-1'].templateId = 'barbershop:BP';
   const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
@@ -242,26 +267,27 @@ it('does not resave an unchanged canonical server design before the ordinary sen
 
 it.each([true, false])('retains only a matching offline queued design when saving again: %s', async matches => {
   mockOffline = true; stored('current_submission_id', 'offline_pending');
-  stored('submission_pending_sync', { creatorId: mockActor, formData: form });
+  stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, businessType: 'Barber/Salon' } });
   stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
   stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
   const submissionId = matches ? 'offline_pending' : 'different-draft';
   stored('submission_design', { submissionId, templateId: 'barbershop:BP', savedAt: 100 });
-  stored('submission_pending_submit', { submissionId, templateId: 'florist:BR', savedAt: 200, sellPrice: 2999, submissionType: 'standard' });
+  stored('submission_pending_submit', { submissionId, templateId: 'barbershop:G', savedAt: 200, sellPrice: 2999, submissionType: 'standard' });
   const screen = await review();
-  expect(screen.getByText(matches ? 'Bloom' : 'No design selected')).toBeTruthy();
+  expect(screen.getByText(matches ? 'Cinematic' : 'No design selected')).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
   await act(async () => { confirmation('Save and queue')(); await flush(); });
   expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({
-    submissionId: 'offline_pending', templateId: matches ? 'florist:BR' : undefined,
+    submissionId: 'offline_pending', templateId: matches ? 'barbershop:G' : undefined,
   });
   expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
 });
 
 it('keeps a newer explicit local choice ahead of an older confirmed queue selection', async () => {
-  mockSubmissions['draft-1'].templateId = 'generic:A';
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  mockSubmissions['draft-1'].templateId = 'barbershop:G';
   stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 300 });
-  stored('submission_pending_submit', { submissionId: 'draft-1', templateId: 'florist:BR', savedAt: 200, sellPrice: 1999, submissionType: 'standard' });
+  stored('submission_pending_submit', { submissionId: 'draft-1', templateId: 'barbershop:H', savedAt: 200, sellPrice: 1999, submissionType: 'standard' });
   const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
   fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
   await act(async () => { confirmation('Send for review')(); await flush(); });
@@ -270,6 +296,7 @@ it('keeps a newer explicit local choice ahead of an older confirmed queue select
 });
 
 it('stops before pricing and final send if the signed-in actor changes during design sync', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
   let resolve!: () => void;
   stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
   mockChooseDesign.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
@@ -285,6 +312,7 @@ it('stops before pricing and final send if the signed-in actor changes during de
 });
 
 it.each(['design', 'price', 'submit'])('preserves the next draft when its pointer changes during the %s request', async pendingStage => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
   let resolve!: () => void;
   stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
   const deferred = () => new Promise<void>(done => { resolve = done; });

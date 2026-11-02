@@ -1,4 +1,5 @@
 import React from 'react';
+jest.mock('../hooks/useCaptureProgress', () => ({ useCaptureProgress: jest.fn() }));
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import SubmitDesignScreen from '../app/(app)/submit/design';
 import type { CaptureDesignGalleryProps } from '../components/field-agent/CaptureDesignGallery';
@@ -78,6 +79,26 @@ async function gallery() {
   await waitFor(() => expect(screen.getByTestId('design-gallery')).toBeTruthy());
   return screen;
 }
+
+it('returns a resumed design step to its saved interview', async () => {
+  mockParams = { resumed: '1' };
+  await gallery();
+  act(() => mockGallery.onBack());
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/interview', params: { draftId: 'draft-1', resumed: '1' } });
+  expect(mockRouter.back).not.toHaveBeenCalled();
+});
+
+it('drops the old barber selection when the same capture becomes a Law Office', async () => {
+  mockSubmissions['draft-1'].businessType = 'Law Office';
+  mockSubmissions['draft-1'].templateId = 'barbershop:F';
+  await gallery();
+  expect(mockGallery.selectedCode).toBeNull();
+  expect(mockGallery.designs.map(design => design.code)).toEqual(['generic:B', 'generic:D', 'generic:E']);
+  await act(async () => { await mockGallery.onUse('barbershop:F'); });
+  expect(mockChoose).not.toHaveBeenCalled();
+  await act(async () => { await mockGallery.onUse('generic:B'); });
+  expect(mockChoose).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'generic:B' });
+});
 function selectForge(screen: ReturnType<typeof render>) {
   fireEvent.press(screen.getByRole('button', { name: 'Select Forge' }));
 }
@@ -91,7 +112,7 @@ beforeEach(() => {
   mockCache = { 'agent-1': { current_submission_id: 'draft-1' }, 'agent-2': { current_submission_id: 'draft-2' } };
   mockSubmissions = {
     'draft-1': { _id: 'draft-1', creatorId: 'agent-1', status: 'draft', businessType: 'Barber/Salon' },
-    'draft-2': { _id: 'draft-2', creatorId: 'agent-2', status: 'draft', businessType: 'Restaurant', templateId: 'generic:B' },
+    'draft-2': { _id: 'draft-2', creatorId: 'agent-2', status: 'draft', businessType: 'Law Office', templateId: 'generic:B' },
   };
   mockChoose.mockReset().mockResolvedValue({ ok: true }); mockSubmit.mockReset();
   mockRead.mockReset().mockImplementation(async (actor: string, key: string) => mockClone(mockCache[actor]?.[key]));
@@ -132,9 +153,10 @@ it.each(['draft-1', 'offline_pending'])('stores only draft-scoped design metadat
 });
 
 it.each([
-  ['florist:BR', 'Bloom', '/template-previews/br.html'],
-  ['barbershop:BP', 'Glacier', '/template-previews/bp.html'],
-])('restores the saved %s design outside the suggestions without silently replacing it', async (code, name, preview) => {
+  ['florist:BR', 'Bloom', '/template-previews/br.html', 'Craft/Producer'],
+  ['barbershop:BP', 'Glacier', '/template-previews/bp.html', 'Barber/Salon'],
+])('restores the saved %s design outside the suggestions without silently replacing it', async (code, name, preview, businessType) => {
+  mockSubmissions['draft-1'].businessType = businessType;
   mockSubmissions['draft-1'].templateId = code;
   const screen = await gallery();
   await waitFor(() => expect(mockGallery.selectedCode).toBe(code));
@@ -200,7 +222,7 @@ it('does not finish an older draft save after the current capture changes', asyn
   fireEvent.press(screen.getByRole('button', { name: 'Use design' }));
   await waitFor(() => expect(mockChoose).toHaveBeenCalledTimes(1));
   mockCache['agent-1'].current_submission_id = 'draft-new'; mockRevision++;
-  mockSubmissions['draft-new'] = { ...mockSubmissions['draft-1'], _id: 'draft-new', templateId: 'generic:B' };
+  mockSubmissions['draft-new'] = { ...mockSubmissions['draft-1'], _id: 'draft-new', businessType: 'Law Office', templateId: 'generic:B' };
   screen.rerender(<SubmitDesignScreen />);
   await waitFor(() => expect(mockGallery.selectedCode).toBe('generic:B'));
   await act(async () => { resolve(); await flush(); });

@@ -91,6 +91,21 @@ it('uploads rejected corrections and resends the same record instead of discardi
   expect(read('submission_last_sent')).toMatchObject({ submissionId: 'my-submission', queued: false });
 });
 
+it('keeps a queued capture for a new matching choice after Barber changes to Law Office', async () => {
+  row('my-submission', { businessType: 'Law Office', templateId: 'barbershop:F', photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
+  scoped('current_submission_id', 'my-submission');
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'barbershop:F', savedAt: Date.now() });
+  const { result } = renderHook(() => useOfflineSync({ creatorId }));
+  await sync(result);
+  expect(mockMutation.mock.calls.some(([name]) => name === 'submissions:submit' || name === 'submissions:chooseDesign')).toBe(false);
+  expect(read('submission_pending_submit')).toMatchObject({ templateId: 'barbershop:F' });
+  expect(mockRows.get('my-submission')).toMatchObject({ photos: ['one', 'two', 'three'], audioStorageId: 'saved-interview' });
+  expect(Alert.alert).toHaveBeenCalledWith('Choose a matching design', expect.any(String));
+  scoped('submission_pending_submit', { submissionId: 'my-submission', templateId: 'generic:B', savedAt: Date.now() });
+  await sync(result);
+  expect(mockMutation).toHaveBeenCalledWith('submissions:submit', { id: 'my-submission' });
+});
+
 it('syncs rejected detail corrections without a final resend request and keeps the rejection intact', async () => {
   row('my-submission', { status: 'rejected', photos: ['one', 'two', 'three'], videoStorageId: 'saved-video' });
   scoped('current_submission_id', 'my-submission');
@@ -477,12 +492,16 @@ it('carries the source lead through creation and migrates every offline pointer 
   scoped('submission_photo_tasks', { submissionId: 'offline_pending', items: [] });
   scoped('submission_interview_draft', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a' });
   scoped('submission_snapshot', { submissionId: 'offline_pending', creatorId, ...formData });
+  scoped('submission_progress', { submissionId: 'offline_pending', step: 'design', savedAt: Date.now() });
+  scoped('submission_draft_form', { ...formData, businessType: 'Other', submissionId: 'offline_pending', savedAt: Date.now() });
   const { result } = renderHook(() => useOfflineSync({ enabled: true, creatorId })); await sync(result);
   expect(mockMutation).toHaveBeenCalledWith('submissions:create', { creatorId, ...formData, prospectLeadId: 'community-lead' });
   expect(read('current_submission_id')).toBe('new-submission-1');
   expect(read('submission_photo_tasks').submissionId).toBe('new-submission-1');
   expect(read('submission_interview_draft').submissionId).toBe('new-submission-1');
   expect(read('submission_snapshot')).toMatchObject({ submissionId: 'new-submission-1', creatorId, businessName: formData.businessName });
+  expect(read('submission_progress')).toMatchObject({ submissionId: 'new-submission-1', step: 'design' });
+  expect(read('submission_draft_form')).toMatchObject({ submissionId: 'new-submission-1', businessType: 'Other' });
 });
 
 it('recovers the same owned draft if the create response was lost after the server committed it', async () => {

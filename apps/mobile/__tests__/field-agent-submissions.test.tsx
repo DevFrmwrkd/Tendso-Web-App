@@ -86,10 +86,10 @@ it('closing search clears its filter and keeps the cards tappable', () => {
   expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submissions/draft-one');
 });
 
-it('uses the existing read query and scopes resume to the owned draft through explicit hydration', async () => {
+it('uses the existing read query and resumes the owned draft at its saved step', async () => {
   const screen = render(<SubmissionDetail />);
   fireEvent.press(screen.getByRole('button', { name: 'Continue submission' }));
-  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-one' } }));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/(app)/submit'));
   expect(mockQuery).toHaveBeenCalledWith('detail', { id: 'draft-one' });
   expect(mockWrite).toHaveBeenCalledWith('current_submission_id', 'draft-one');
 });
@@ -180,6 +180,7 @@ it('does not navigate after the actor changes during the scoped write', async ()
   mockWrite.mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
   const screen = render(<SubmissionDetail />);
   fireEvent.press(screen.getByRole('button', { name: 'Continue submission' }));
+  await waitFor(() => expect(mockWrite).toHaveBeenCalled());
   mockActor = 'agent-two';
   screen.rerender(<SubmissionDetail />);
   await act(async () => { finish(); });

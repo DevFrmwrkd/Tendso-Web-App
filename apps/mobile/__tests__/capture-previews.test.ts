@@ -8,8 +8,8 @@ const root = path.resolve(__dirname, '../../..');
 it('keeps the native and board catalogs aligned with three real designs per category', () => {
   const publicCatalog = JSON.parse(fs.readFileSync(path.join(root, 'public/capture-previews/catalog.json'), 'utf8'));
   expect(publicCatalog.designs).toEqual(CAPTURE_PREVIEW_CATALOG);
-  expect(CAPTURE_PREVIEW_CATALOG).toHaveLength(18);
-  for (const category of ['barber', 'salon', 'repair', 'craft', 'food', 'other']) {
+  expect(CAPTURE_PREVIEW_CATALOG).toHaveLength(21);
+  for (const category of ['barber', 'salon', 'repair', 'craft', 'food', 'other', 'law']) {
     expect(CAPTURE_PREVIEW_CATALOG.filter(design => design.category === category)).toHaveLength(3);
   }
   const metadata = fs.readFileSync(path.join(root, 'apps/mobile/services/generated/capturePreviewCatalog.ts'), 'utf8');
@@ -34,11 +34,25 @@ it.each(CAPTURE_PREVIEW_CATALOG)('carries the actual $code example and its gener
 
 it('stores each generated photo once in the native module', () => {
   const generated = fs.readFileSync(path.join(root, 'apps/mobile/generated/capturePreviews.ts'), 'utf8');
-  expect(generated.match(/data:image\/webp;base64,/g)).toHaveLength(10);
+  expect(generated.match(/data:image\/webp;base64,/g)).toHaveLength(11);
 });
 
-it.each(['barbershop:BP', 'florist:BR', 'generic:B', 'F', 'barbershop:f', ' barbershop:F ', '__proto__', 'constructor', '', null, undefined, {}])(
+it.each(['barbershop:BP', 'florist:BR', 'F', 'barbershop:f', ' barbershop:F ', '__proto__', 'constructor', '', null, undefined, {}])(
   'leaves unsupported/saved %s designs on their existing hosted fallback', code => {
     expect(capturePreviewHtml(code)).toBeNull();
   },
 );
+
+it('uses the same fictional legal office across all three law examples with legal-office content', () => {
+  const designs = CAPTURE_PREVIEW_CATALOG.filter(design => design.category === 'law');
+  expect(designs.map(design => design.code)).toEqual(['generic:B', 'generic:D', 'generic:E']);
+  for (const design of designs) {
+    const html = capturePreviewHtml(design.code)!;
+    expect(html).toContain('Narra Legal Office');
+    expect(html).toContain('Consultation appointments');
+    expect(html).toContain('Document review');
+    expect(html).toContain('Planning the next step');
+    expect(html).toContain('Fictional office');
+    expect(html).not.toMatch(/Stillwater Studio|Northpoint IT|Wash House|Yoga classes|wash &amp; fold/i);
+  }
+});

@@ -268,7 +268,7 @@ function CreatorHomeScreen() {
               title="No sites yet"
               body="Visit a shop and start earning."
               actionLabel="Submit a shop"
-              onAction={() => router.push('/(app)/submit/info' as any)}
+              onAction={() => router.push('/(app)/submit' as any)}
             />
           </Card>
         ) : (

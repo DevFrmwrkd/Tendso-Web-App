@@ -94,6 +94,15 @@ async function inputs() {
       if (!business.id || !business.category || !business.siteData?.layout?.businessName || !Array.isArray(business.designs)) {
         throw new Error(`Incomplete fictional business fixture: ${name}`);
       }
+      const designNames = business.designNames ?? {};
+      if (typeof designNames !== 'object' || Array.isArray(designNames)) {
+        throw new Error(`Invalid capture design names: ${name}`);
+      }
+      for (const [code, label] of Object.entries(designNames)) {
+        if (!business.designs.includes(code) || typeof label !== 'string' || !label.trim()) {
+          throw new Error(`Invalid capture design name for ${code}: ${name}`);
+        }
+      }
       for (const code of business.designs) {
         if (!canonical.has(code) || !/^[a-z]+:[A-Z]{1,2}$/.test(code)) throw new Error(`Unknown canonical capture design: ${code}`);
         if (fixtures.some(fixture => fixture.code === code)) throw new Error(`Duplicate capture design: ${code}`);
@@ -102,7 +111,8 @@ async function inputs() {
         await sourceDependencies(component);
         const siteData = replacePhotos(business.siteData, photos);
         siteData.customizations = { ...siteData.customizations, heroStyle: code };
-        fixtures.push({ code, name: canonical.get(code), letter: letter.toLowerCase(), category: business.category,
+        const label = Object.prototype.hasOwnProperty.call(designNames, code) ? designNames[code].trim() : canonical.get(code);
+        fixtures.push({ code, name: label, letter: letter.toLowerCase(), category: business.category,
           businessId: business.id, component, siteData });
       }
     }

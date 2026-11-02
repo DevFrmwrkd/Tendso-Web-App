@@ -84,7 +84,7 @@ export default function SubmissionsScreen() {
       onPress={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearch(''); }}>
       <Ionicons name={searchOpen ? 'close' : 'search'} size={22} color={colors.ink} />
     </Pressable>}
-    footer={<GuardedLink href="/(app)/submit/info" asChild><Button title="Submit a new shop" /></GuardedLink>}>
+    footer={<GuardedLink href="/(app)/submit" asChild><Button title="Submit a shop" /></GuardedLink>}>
     {searchOpen ? <Field label="Search submissions" hideLabel icon="search" value={search} onChangeText={setSearch}
       placeholder="Shop, type or city" autoCapitalize="none" autoCorrect={false} returnKeyType="search" accessibilityLabel="Search submissions" /> : null}
     <View style={styles.filters}>{FILTERS.map(f => <Pill key={f.key} label={f.label} tone={filter === f.key ? 'ink' : 'neutral'}

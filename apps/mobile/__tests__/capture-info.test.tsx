@@ -5,6 +5,7 @@ import SubmitInfo from '../app/(app)/submit/info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+jest.mock('../hooks/useCaptureProgress', () => ({ useCaptureProgress: jest.fn() }));
 const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockDiscard = jest.fn();
@@ -162,7 +163,7 @@ it('resumes an existing draft and updates its identity instead of creating anoth
   await next(screen);
   expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: draft._id, businessName: draft.businessName }));
   expect(mockCreate).not.toHaveBeenCalled();
-  expect(mockLoadCache).not.toHaveBeenCalled();
+  expect(mockLoadCache).toHaveBeenCalled();
 });
 
 it('lets the field agent continue the other draft without attaching the declined shop’s lead', async () => {
@@ -387,6 +388,59 @@ it('does not fabricate a pin from incomplete or invalid source coordinates', asy
 const olderDraftId = 'j123456789012345678901234567890';
 const newerDraftId = 'j123456789012345678901234567891';
 
+it('recovers unsaved business-type and detail changes for the exact draft after restart', async () => {
+  mockParams = { draftId: olderDraftId };
+  mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft' };
+  mockLoadCache.mockResolvedValue({ ...draft, submissionId: olderDraftId, savedAt: Date.now(),
+    businessType: 'Restaurant', ownerName: 'Corrected owner' });
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Owner’s full name').props.value).toBe('Corrected owner'));
+  expect(screen.getByRole('button', { name: 'Restaurant' }).props.accessibilityState.selected).toBe(true);
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: olderDraftId, businessType: 'Restaurant', ownerName: 'Corrected owner' }));
+  expect(mockCreate).not.toHaveBeenCalled();
+  expect(mockCaptureRemove.mock.calls.map(([key]) => key)).toEqual(['submission_pending_sync']);
+});
+
+it('recovers a new form before its first Continue without treating it as a server submission', async () => {
+  mockParams = { draftId: 'offline_pending' };
+  mockLoadCache.mockResolvedValue({ ...draft, submissionId: 'offline_pending', savedAt: Date.now() });
+  mockCaptureRead.mockImplementation(async key => key === 'current_submission_id' ? 'offline_pending' : null);
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  await next(screen);
+  expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ businessName: draft.businessName }));
+  expect(mockUpdate).not.toHaveBeenCalled();
+});
+
+it('ignores cached edits tagged to another shop on a normal draft entry', async () => {
+  mockDraft = { ...draft, _id: olderDraftId, status: 'draft' };
+  mockLoadCache.mockResolvedValue({ ...draft, submissionId: newerDraftId, savedAt: Date.now(), businessName: 'Another shop' });
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  await next(screen);
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: olderDraftId, businessName: draft.businessName }));
+});
+
+it('tags new local edits with their capture and does not cache an untouched server snapshot', async () => {
+  mockParams = { draftId: olderDraftId };
+  mockRequestedDrafts[olderDraftId] = { ...draft, _id: olderDraftId, status: 'draft' };
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
+  expect(mockSaveCache).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByRole('button', { name: 'Restaurant' }));
+  expect(mockSaveCache).toHaveBeenLastCalledWith(expect.objectContaining({ submissionId: olderDraftId, businessType: 'Restaurant' }));
+});
+
+it('caches a newly opened community find before its first keystroke or Continue', async () => {
+  mockParams = source;
+  const screen = render(<SubmitInfo />);
+  await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(source.businessName));
+  expect(mockSaveCache).toHaveBeenCalledWith(expect.objectContaining({ businessName: source.businessName,
+    submissionId: 'offline_pending', prospectLeadId: source.prospectLeadId, ownerName: '' }));
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+});
+
 it('ignores a legacy device price preference for a new capture and its failed-create retry', async () => {
   mockParams = source;
   const priceKey = 'field-agent-price:v1:clerk-mika:agent-mika';
@@ -473,7 +527,7 @@ it.each(['draft', 'rejected'])('repairs the exact older owned %s without loading
   const screen = render(<SubmitInfo />);
   await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
   expect(screen.getByLabelText('Owner’s email').props.value).toBe('');
-  expect(Alert.alert).not.toHaveBeenCalled(); expect(mockLoadCache).not.toHaveBeenCalled();
+  expect(Alert.alert).not.toHaveBeenCalled(); expect(mockLoadCache).toHaveBeenCalled();
   expect(mockQuery.mock.calls.filter(([reference, args]) => reference === 'submissions:getDraftByCreatorId' && args !== 'skip')).toEqual([]);
   fireEvent.changeText(screen.getByLabelText('Owner’s email'), ' fixed@example.com ');
   await next(screen);
@@ -534,7 +588,8 @@ it('recovers an exact owned offline snapshot without falling back to an untagged
     ? { ...draft, creatorId: 'agent-mika', submissionId: olderDraftId } : null);
   const screen = render(<SubmitInfo />);
   await waitFor(() => expect(screen.getByLabelText('Business name').props.value).toBe(draft.businessName));
-  expect(mockLoadCache).not.toHaveBeenCalled();
+  expect(mockLoadCache).toHaveBeenCalled();
+  expect(screen.getByLabelText('Business name').props.value).not.toBe('Unrelated local draft');
   await next(screen);
   expect(mockCaptureWrite).toHaveBeenCalledWith('submission_pending_sync', expect.objectContaining({ existingDraftId: olderDraftId }));
   expect(mockCaptureRemove).not.toHaveBeenCalled();

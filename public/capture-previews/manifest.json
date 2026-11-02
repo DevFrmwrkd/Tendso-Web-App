@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "sourceHash": "79afdee4add8fed848efa58cb37eac44d49dcda69b3e3fb423a805e8d0701f45",
-  "nativeSha256": "b41aac151f55e2e059220122d6df12140a5d8ea0598c5da04ce573af5e249bc4",
-  "catalogSha256": "7ee87269253107289d564d60cb06d4b4de30e45f19efa71b4ff9b594e8e0e674",
-  "catalogJsSha256": "805e7da548cfb14f19d98497b65b2957d086cf9ae1dd76c41b572071dfe08146",
-  "nativeCatalogSha256": "ce3510d93b32865be794af6f81b1fa0b7d7709d0a174d38bb1876ad72666b8b7",
+  "sourceHash": "c9c814ef41fcb662161e34d16cf602f61f0410333a6ba439a2812335e9d9c6b1",
+  "nativeSha256": "87d2992fa918c73228ede79e1b95121c2fec1a4f1d7301cc523b628692f74d85",
+  "catalogSha256": "a6573dcfe48aaa976ab85c7110159a55cd2348d18ac29f08f0d3c43d66ab9bc6",
+  "catalogJsSha256": "7e7f1f472716d5cc25664edf629c355227447ad2954baed6c7523f874d1f573c",
+  "nativeCatalogSha256": "4c747b18c000069f35a917f891af8a80176a8142f505b18a35312b9f191fd488",
   "documents": [
     {
       "code": "barbershop:F",
@@ -95,6 +95,36 @@
       "preview": "/capture-previews/u.html",
       "file": "u.html",
       "sha256": "2674e72ddcc215326c40dbd05be994d215cc87437ad0d8ca03177cbc253829aa"
+    },
+    {
+      "code": "generic:B",
+      "name": "Stillwater",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/b.html",
+      "file": "b.html",
+      "sha256": "ac6f901b990fa4e2cb6a8961f0660c291139642914bdae34623a6b2d941ff538"
+    },
+    {
+      "code": "generic:D",
+      "name": "Northpoint",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/d.html",
+      "file": "d.html",
+      "sha256": "517f3e908bfa79bf10607edd7a7bce5a111a4515f5b9cc77c651cdac21602d05"
+    },
+    {
+      "code": "generic:E",
+      "name": "Clearview",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/e.html",
+      "file": "e.html",
+      "sha256": "e74da9544013e45c047ac58960a6abdb0111a4b3a27631616ab773d95fc3eea9"
     },
     {
       "code": "generic:C",

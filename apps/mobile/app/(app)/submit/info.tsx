@@ -15,12 +15,13 @@ import { api } from '@tendso/convex-client';
 import type { Id } from '@tendso/convex-client';
 import { useLocalSearchParams } from 'expo-router';
 import { OfflineBanner } from '../../../components/OfflineBanner';
-import { useFormDraftCache } from '../../../hooks/useFormDraftCache';
+import { useFormDraftCache, type SubmissionFormData } from '../../../hooks/useFormDraftCache';
 import { Banner, Button, ChoiceChip, Field, Loading, ScreenShell, Text } from '../../../components/v2';
 import { space } from '../../../theme/v2';
 import { useGuardedPress } from '../../../hooks/useGuardedPress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useCaptureProgress } from '../../../hooks/useCaptureProgress';
 import { CaptureLocationPicker, validCaptureCoordinates, type CaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 import { captureEmailError, normalizeCaptureEmail } from '../../../../../lib/captureEmail';
 import { BASE_PRICE, commissionFor } from '@tendso/shared/pricing';
@@ -41,6 +42,12 @@ type SavedDetails = {
 };
 type PendingDetails = { creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
   initialSellPrice?: number; formData: SavedDetails };
+
+// Form edits are device-local until Continue. Only restore them over a server
+// record when they explicitly name that same capture.
+function formForCapture(form: SubmissionFormData | null, id: string) {
+  return form?.submissionId === id ? form : null;
+}
 
 export default function SubmitInfoScreen() {
   const capture = useCaptureSession();
@@ -106,7 +113,10 @@ function SubmitInfoForm({ capture, prefillParams }: {
   const initializing = useRef(false);
   const saving = useRef(false);
   const initialSellPrice = useRef<number | null>(null);
+  const lastFormPayload = useRef<string | null>(null);
   const isCurrent = () => mounted.current && capture.isCurrent();
+  useCaptureProgress(capture, 'info', selectedDraftId ?? (requestedDraftId === 'offline_pending' ? requestedDraftId : null),
+    initialized && !unavailableDraft);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   // Carried through to submissions.create/update so the backend attaches this
   // interview to the scraped lead instead of inserting a duplicate.
@@ -156,10 +166,11 @@ function SubmitInfoForm({ capture, prefillParams }: {
           if (isCurrent()) setUnavailableDraft(true);
           return;
         }
-        const [pending, snapshot, storedId] = await Promise.all([
+        const [pending, snapshot, storedId, localForm] = await Promise.all([
           capture.read<PendingDetails>('submission_pending_sync'),
           capture.read<SavedDetails & { submissionId: string; creatorId: string }>('submission_snapshot'),
           capture.read<string>('current_submission_id'),
+          loadDraft(),
         ]);
         if (!isCurrent()) return;
         const matchingPending = pending && pending.creatorId === capture.actor?.creatorId && pending.formData
@@ -168,9 +179,12 @@ function SubmitInfoForm({ capture, prefillParams }: {
             : pending.existingDraftId === requestedDraftId) ? pending : null;
         const matchingSnapshot = snapshot && snapshot.creatorId === capture.actor?.creatorId
           && snapshot.submissionId === requestedDraftId ? snapshot : null;
-        const data = matchingPending?.formData
-          ?? (capture.canQuery && requestedDraftId !== 'offline_pending' ? requestedDraft : matchingSnapshot);
-        if (!data) { setUnavailableDraft(true); return; }
+        const matchingForm = formForCapture(localForm, requestedDraftId);
+        const originalData = matchingPending?.formData
+          ?? (capture.canQuery && requestedDraftId !== 'offline_pending' ? requestedDraft : matchingSnapshot)
+          ?? (requestedDraftId === 'offline_pending' && storedId === 'offline_pending' ? matchingForm : null);
+        if (!originalData) { setUnavailableDraft(true); return; }
+        const data = matchingForm ?? originalData;
         setUnavailableDraft(false);
         setBusinessName(data.businessName || ''); setBusinessType(data.businessType || '');
         setOwnerName(data.ownerName || ''); setOwnerPhone(data.ownerPhone || '');
@@ -191,8 +205,8 @@ function SubmitInfoForm({ capture, prefillParams }: {
     })();
   }, [explicitDraft, requestedDraftId, requestedDraft, initialized, capture.actorKey, capture.isReady, capture.canQuery, capture.isOffline]);
 
-  // Keep server drafts first, then this account's cached form. A new shop must
-  // never silently reuse a draft whose lead link is set once on the server.
+  // Matching local edits take precedence; a form for another capture must never
+  // overwrite this server draft or attach its lead to another shop.
   useEffect(() => {
     if (explicitDraft) return;
     if (initialized || initializing.current || !capture.isReady || !capture.actor || !isCurrent()) return;
@@ -200,7 +214,8 @@ function SubmitInfoForm({ capture, prefillParams }: {
     initializing.current = true;
     void (async () => {
       try {
-        const localForm = existingDraft ? null : await loadDraft();
+        const savedForm = await loadDraft();
+        const localForm = existingDraft ? formForCapture(savedForm, existingDraft._id) : savedForm;
         if (!isCurrent()) return;
         const pending = capture.isOffline && !existingDraft && !localForm
           ? await capture.read<{
@@ -212,8 +227,8 @@ function SubmitInfoForm({ capture, prefillParams }: {
         const cached = localForm ?? (pending && pending.creatorId === capture.actor?.creatorId && pending.formData
           ? { ...pending.formData, ownerEmail: pending.formData.ownerEmail ?? '', prospectLeadId: pending.prospectLeadId } : null);
         if (!isCurrent()) return;
-        const data = existingDraft ?? cached;
-        const cachedId = cached ? pending?.existingDraftId ?? await capture.read<string>('current_submission_id') : null;
+        const data = cached ?? existingDraft;
+        const cachedId = cached ? localForm?.submissionId ?? pending?.existingDraftId ?? await capture.read<string>('current_submission_id') : null;
         if (!isCurrent()) return;
         const draftId = existingDraft?._id ?? (capture.isOffline && cachedId && cachedId !== 'offline_pending' ? cachedId : null);
         const sameBusiness = hasPrefill && data
@@ -255,6 +270,7 @@ function SubmitInfoForm({ capture, prefillParams }: {
                   await capture.remove('submission_pending_interview');
                   await capture.remove('submission_pending_submit');
                   await capture.remove('submission_design');
+                  await capture.remove('submission_progress');
                   await capture.remove('submission_photo_tasks');
                   await capture.remove('submission_interview_draft');
                   await clearDraft();
@@ -290,8 +306,8 @@ function SubmitInfoForm({ capture, prefillParams }: {
 
   // Auto-save form fields to local cache (debounced)
   useEffect(() => {
-    if (!initialized || !isCurrent()) return;
-    saveDraft({
+    if (!initialized || !isCurrent() || saving.current) return;
+    const payload = {
       businessName,
       businessType,
       ownerName,
@@ -301,8 +317,21 @@ function SubmitInfoForm({ capture, prefillParams }: {
       city,
       ...(coordinates ? { coordinates } : {}),
       prospectLeadId,
-    });
-  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, coordinates, prospectLeadId, initialized, saveDraft]);
+      submissionId: selectedDraftId ?? 'offline_pending',
+    };
+    const serialized = JSON.stringify(payload);
+    if (lastFormPayload.current === null) {
+      lastFormPayload.current = serialized;
+      // A newly opened community find is meaningful local work even before the
+      // first keystroke. Untouched server snapshots need no duplicate cache.
+      if (selectedDraftId || !hasPrefill) return;
+      saveDraft(payload);
+      return;
+    }
+    if (lastFormPayload.current === serialized) return;
+    lastFormPayload.current = serialized;
+    saveDraft(payload);
+  }, [businessName, businessType, ownerName, ownerPhone, ownerEmail, address, city, coordinates, prospectLeadId, selectedDraftId, initialized, saveDraft, hasPrefill]);
 
   const handleNext = async () => {
     if (saving.current || !initialized || !capture.actor || !isCurrent()) return;

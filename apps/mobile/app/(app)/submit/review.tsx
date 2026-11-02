@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, BackHandler, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { api, type Id } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, commissionFor } from '@tendso/shared/pricing';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useCaptureProgress } from '../../../hooks/useCaptureProgress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { PriceSlider } from '../../../components/PriceSlider';
 import { OfflineBanner } from '../../../components/OfflineBanner';
@@ -16,7 +17,7 @@ import { validCapturePrice } from '../../../services/capturePrice';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
 import { looksLikeConvexId } from '../../../services/prospectPrefill';
-import { captureDesign, selectedCaptureDesignCode } from '../../../services/captureDesign';
+import { captureDesign, captureDesignMatchesBusinessType, selectedCaptureDesignCode } from '../../../services/captureDesign';
 import type { CaptureDesignDraft } from '../../../services/captureSession';
 
 type Form = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string };
@@ -39,13 +40,13 @@ function CaptureShopThumbnail({ photos, businessName }: { photos: string[]; busi
 
 export default function SubmitReviewScreen() {
   const capture = useCaptureSession();
-  const params = useLocalSearchParams<{ draftId?: string }>();
+  const params = useLocalSearchParams<{ draftId?: string; resumed?: string }>();
   if (!capture.isReady) return <Loading />;
   if (!capture.actor) return <ScreenShell><EmptyState title="Reconnect to open your capture" body="Sign in with your field-agent account to continue." /></ScreenShell>;
-  return <ReviewForm key={`${capture.actorKey}:${params.draftId ?? ''}`} requestedId={params.draftId} />;
+  return <ReviewForm key={`${capture.actorKey}:${params.draftId ?? ''}`} requestedId={params.draftId} resumed={params.resumed === '1'} />;
 }
 
-function ReviewForm({ requestedId }: { requestedId?: string }) {
+function ReviewForm({ requestedId, resumed }: { requestedId?: string; resumed: boolean }) {
   const capture = useCaptureSession();
   const router = useGuardedRouter();
   const [id, setId] = useState<string | null>(null);
@@ -88,6 +89,8 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
   const raw = useQuery(api.submissions.getById, canQuery ? { id: id as Id<'submissions'> } : 'skip');
   const submission = raw?.creatorId === capture.actor?.creatorId ? raw
     : capture.isOffline ? cachedRejectedCapture(snapshot, id, capture.actor?.creatorId) : null;
+  useCaptureProgress(capture, 'review', id, hydrated && (capture.isOffline || id === 'offline_pending'
+    || !!submission && isEditableCaptureStatus(submission.status)));
   const sourceLeadId = submission?.prospectLeadId;
   const sourceFind = useQuery(api.leads.getDetailForMobileCRM, capture.canQuery && submission && sourceLeadId
     ? { id: sourceLeadId as Id<'leads'> } : 'skip');
@@ -204,6 +207,15 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
   const hasInterview = !!(previewInterview || submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl);
   const wantsDomain = !!domain.trim();
   const correcting = submission?.status === 'rejected';
+  const goBack = useCallback(() => {
+    if (busy.current) return;
+    if (resumed && id && !correcting) router.replace({ pathname: '/(app)/submit/design', params: { draftId: id, resumed: '1' } } as never);
+    else router.back();
+  }, [router, resumed, id, correcting]);
+  useFocusEffect(useCallback(() => {
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
+    return () => listener.remove();
+  }, [goBack]));
   const keepsSavedDomain = correcting && !!submission.requestedDomain
     && domain.trim().toLowerCase() === submission.requestedDomain.trim().toLowerCase();
   const validDomain = !wantsDomain || keepsSavedDomain || (quotedFor === domain.trim().toLowerCase()
@@ -212,8 +224,10 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
   const earnings = commissionFor(sellPrice);
   const priceReady = capture.isOffline || !!pricing;
   const draft = !submission || isEditableCaptureStatus(submission.status);
-  const selectedDesign = captureDesign(selectedCaptureDesignCode(id, localDesign, queuedDesign, submission?.templateId));
-  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft;
+  const savedDesignCode = selectedCaptureDesignCode(id, localDesign, queuedDesign, submission?.templateId);
+  const mismatchedDesign = !!savedDesignCode && !captureDesignMatchesBusinessType(form?.businessType, savedDesignCode);
+  const selectedDesign = mismatchedDesign ? null : captureDesign(savedDesignCode);
+  const ready = !!form && !emailError && photoCount >= 3 && photoCount <= 10 && hasInterview && validDomain && (!checkingDomain || keepsSavedDomain) && priceReady && draft && !mismatchedDesign;
   const queued = capture.isOffline || id === 'offline_pending' || !!localForm || !!localPhotos || !!localInterview;
   const editBusiness = () => {
     if (id && isCurrent()) router.push({ pathname: '/(app)/submit/info', params: { draftId: id } } as never);
@@ -256,7 +270,7 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
         const savedDesign = await capture.read<CaptureDesignDraft>('submission_design');
         if (!await sameDraft()) return;
         if (savedDesign?.submissionId === id) await capture.remove('submission_design');
-        for (const key of ['submission_interview_draft', 'submission_photo_tasks'] as const) {
+        for (const key of ['submission_interview_draft', 'submission_photo_tasks', 'submission_progress'] as const) {
           const part = await capture.read<{ submissionId: string }>(key);
           if (!await sameDraft()) return;
           if (part?.submissionId === id) await capture.remove(key);
@@ -300,7 +314,7 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
   if (!id || !form || (canQuery && raw === null) || (raw && !submission)) return <ScreenShell onBack={() => router.back()}><EmptyState title="Open your capture first"
     body="Your saved shop details are available from the capture form." actionLabel="About the shop" onAction={() => router.replace('/(app)/submit/info' as never)} /></ScreenShell>;
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScreenShell onBack={() => router.back()} title={correcting ? 'Fix it, then resend' : 'Check it, then send'} contentStyle={styles.content}
+    <ScreenShell onBack={goBack} title={correcting ? 'Fix it, then resend' : 'Check it, then send'} contentStyle={styles.content}
       footer={<Button title={queued ? 'Save and queue' : correcting ? 'Resend for review' : 'Send for review'} onPress={confirm} loading={saving} disabled={!ready || saving} />}>
       <ProgressBar value={1} label="Step 5 of 5" />
       <OfflineBanner />
@@ -342,6 +356,8 @@ function ReviewForm({ requestedId }: { requestedId?: string }) {
             <Text tone="muted">{selectedDesign?.name ?? 'No design selected'}</Text></View>
           <TextLink label={selectedDesign ? 'Change design' : 'Choose a design'} disabled={saving || !draft}
             onPress={() => router.push({ pathname: '/(app)/submit/design', params: { returnTo: 'review' } } as never)} /></View>
+        {mismatchedDesign ? <Banner tone="warn" title="Choose a matching design"
+          body={`The saved design is for another business type. Choose a design for ${form.businessType} before sending.`} /> : null}
         {selectedDesign ? <Text tone="muted">The chosen layout will use this shop’s photos and interview.</Text> : null}
       </Card>
       <Card style={styles.card}>

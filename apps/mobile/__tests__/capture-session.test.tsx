@@ -129,12 +129,12 @@ it('cancels the debounced form write before clearing so a quick Continue cannot 
   expect(mockStorage.has(captureStorageKey(actor.creatorId, 'submission_draft_form'))).toBe(false);
 });
 
-it('cancels the previous actor timer when the form cache switches accounts', async () => {
+it('flushes the previous actor edits into their own cache when the form cache switches accounts', async () => {
   const { result, rerender } = renderHook(({ current }) => useFormDraftCache(current), { initialProps: { current: actor } });
   act(() => result.current.saveDraft(form));
   rerender({ current: nextActor });
   await act(async () => { jest.advanceTimersByTime(600); });
-  expect(mockStorage.has(captureStorageKey(actor.creatorId, 'submission_draft_form'))).toBe(false);
+  expect(JSON.parse(mockStorage.get(captureStorageKey(actor.creatorId, 'submission_draft_form'))!)).toMatchObject(form);
   expect(mockStorage.has(captureStorageKey(nextActor.creatorId, 'submission_draft_form'))).toBe(false);
   act(() => result.current.saveDraft({ ...form, ownerName: 'Joy' }));
   await act(async () => { jest.advanceTimersByTime(600); });

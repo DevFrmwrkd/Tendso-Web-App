@@ -13,7 +13,7 @@
     'Craft/Producer': group('craft'),
     Restaurant: group('food'),
     Clinic: group('other'),
-    'Law Office': group('other'),
+    'Law Office': group('law'),
     Other: group('other'),
   };
   const savedRepairDesign = { name: 'Tindahan', file: 'bb', preview: '/template-previews/bb.html' };
@@ -263,7 +263,8 @@
   const sampleBusinessType = (interactive = true) => interactive ? demo.designCategory : 'Other';
   const designChoices = (interactive = true) => {
     const choices = designGroups[sampleBusinessType(interactive)].map((file) => designs.find((design) => design.file === file));
-    return interactive && demo.repair ? [savedRepairDesign, ...choices] : choices;
+    return interactive && demo.repair && ['Other', 'Clinic'].includes(sampleBusinessType(interactive))
+      ? [savedRepairDesign, ...choices] : choices;
   };
   const currentDesign = (interactive = true) => {
     const choices = designChoices(interactive);

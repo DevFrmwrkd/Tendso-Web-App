@@ -9,6 +9,7 @@ import { captureEmailError } from '../../../lib/captureEmail';
 import { commissionFor } from '@tendso/shared/pricing';
 import { validCapturePrice } from '../services/capturePrice';
 import { isEditableCaptureStatus } from '../services/captureEdit';
+import { captureDesignMatchesBusinessType } from '../services/captureDesign';
 
 type Info = { businessName: string; businessType: string; ownerName: string; ownerPhone: string; ownerEmail?: string; address: string; city: string; coordinates?: { lat: number; lng: number } };
 type PendingInfo = { formData: Info; creatorId: string; existingDraftId?: string | null; prospectLeadId?: string;
@@ -19,7 +20,7 @@ type PendingInterview = { submissionId: string; recordingUri: string; parallelAu
 type SubmitChoice = { submissionId: string; templateId?: string; sellPrice?: number; submissionType?: 'standard' | 'with_custom_domain'; requestedDomain?: string; domainPricePHP?: number; savedAt?: number };
 type QueuedSubmit = boolean | SubmitChoice;
 const PARTS = ['submission_pending_sync', 'submission_pending_photos', 'submission_pending_interview', 'submission_pending_submit'] as const;
-const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_design'] as const;
+const META = ['submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_design', 'submission_progress', 'submission_draft_form'] as const;
 const clean = (value: unknown) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLowerCase() : '';
 
 /** Recover a response lost after create without reusing another business's draft. */
@@ -42,6 +43,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
   const uploadTarget = useAction(api.r2.generateUploadUrl);
   const busy = useRef(false);
   const emailWarning = useRef<string | null>(null);
+  const designWarning = useRef<string | null>(null);
   const mounted = useRef(true);
   const live = useRef({ enabled, creatorId, isConnected });
   live.current = { enabled, creatorId, isConnected };
@@ -168,7 +170,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       const finishSent = async () => {
         await save('submission_last_sent', { submissionId: id, queued: false, sentAt: Date.now(), businessName: submission?.businessName });
         for (const key of ['submission_pending_sync', 'submission_draft_form', 'submission_pending_photos', 'submission_pending_interview',
-          'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_pending_submit'] as const) await remove(key);
+          'submission_photo_tasks', 'submission_interview_draft', 'submission_snapshot', 'submission_pending_submit', 'submission_progress'] as const) await remove(key);
         const savedDesign = await readCaptureCache<CaptureDesignDraft>(actor, 'submission_design');
         if (await boundCurrent() && savedDesign?.submissionId === id) await remove('submission_design');
         await remove('current_submission_id');
@@ -185,7 +187,17 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
         await update({ id: id as Id<'submissions'>, ...info.formData,
           ...(info.prospectLeadId ? { prospectLeadId: info.prospectLeadId as Id<'leads'> } : {}) });
         if (!await boundCurrent()) return;
-        await remove('submission_pending_sync'); await remove('submission_draft_form'); synced.push('shop details');
+        await remove('submission_pending_sync');
+        // The agent may have edited Info again after queuing these details.
+        // Syncing the older payload must not erase those unsaved local changes.
+        const localForm = await readCaptureCache<Record<string, unknown>>(actor, 'submission_draft_form');
+        const sentForm = { ...info.formData, prospectLeadId: info.prospectLeadId };
+        if (localForm?.submissionId === id && ['businessName', 'businessType', 'ownerName', 'ownerPhone', 'ownerEmail',
+          'address', 'city', 'coordinates', 'prospectLeadId'].every(key =>
+          JSON.stringify(localForm[key] ?? null) === JSON.stringify(sentForm[key as keyof typeof sentForm] ?? null))) {
+          await remove('submission_draft_form');
+        }
+        synced.push('shop details');
       }
       const upload = async (uri: string, folder: string, filename: string, contentType: string) => {
         if (!await boundCurrent()) throw new Error('Capture account changed');
@@ -248,6 +260,16 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
           await finishSent();
           return;
         }
+        const candidate = templateId ?? latest.templateId;
+        if (candidate && !captureDesignMatchesBusinessType(latest.businessType, candidate)) {
+          const warning = `${actor}:${id}:${latest.businessType}:${candidate}`;
+          if (designWarning.current !== warning) {
+            designWarning.current = warning;
+            Alert.alert('Choose a matching design', 'The business type changed. Open this capture and choose a matching design before sending. Your details and media are saved.');
+          }
+          return;
+        }
+        designWarning.current = null;
         const emailError = captureEmailError(latest.ownerEmail);
         if (emailError) {
           const warningKey = `${actor}:${id}:${emailError}`;
@@ -281,6 +303,7 @@ export function useOfflineSync({ enabled = true, creatorId }: { enabled?: boolea
       } else if (templateId !== undefined && await boundCurrent()) {
         const latest = await checkOwner(id);
         if (!latest || !isEditableCaptureStatus(latest.status) || !await boundCurrent()) return;
+        if (!captureDesignMatchesBusinessType(latest.businessType, templateId)) return;
         if (latest.templateId !== templateId) {
           await chooseDesign({ id: id as Id<'submissions'>, templateId });
           if (!await boundCurrent()) return;

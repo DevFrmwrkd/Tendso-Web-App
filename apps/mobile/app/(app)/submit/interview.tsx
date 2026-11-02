@@ -4,12 +4,13 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, BackHandler, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api, type Id } from '@tendso/convex-client';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import { useCaptureSession } from '../../../hooks/useCaptureSession';
+import { useCaptureProgress } from '../../../hooks/useCaptureProgress';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { OfflineBanner } from '../../../components/OfflineBanner';
 import { Banner, Button, Card, Loading, ProgressBar, ScreenShell, Text, TextLink } from '../../../components/v2';
@@ -18,6 +19,7 @@ import { formatClock } from '../../../components/v2/capture/level';
 import { EXTRA_QUESTION, INTERVIEW_QUESTIONS, type Lang } from '../../../lib/v2/captureContent';
 import { colors, hit, radius, shadow, space } from '../../../theme/v2';
 import { isEditableCaptureStatus, cachedRejectedCapture, type CaptureSnapshot } from '../../../services/captureEdit';
+import { retainCaptureRecording } from '../../../services/captureRecordingFiles';
 
 type CaptureSession = ReturnType<typeof useCaptureSession>;
 type RecordingDraft = {
@@ -60,12 +62,14 @@ export default function SubmitInterviewScreen() {
 
 function InterviewStep({ session }: { session: CaptureSession }) {
   const router = useGuardedRouter();
+  const { resumed } = useLocalSearchParams<{ resumed?: string }>();
   const generateUploadUrl = useAction(api.r2.generateUploadUrl);
   const updateSubmission = useMutation(api.submissions.update);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [savedCapture, setSavedCapture] = useState<CaptureSnapshot | null>(null);
   const [ready, setReady] = useState(false);
   const [recording, setRecording] = useState<RecordingDraft | null>(null);
+  const [missingMedia, setMissingMedia] = useState({ primary: false, audio: false });
   const [lang, setLang] = useState<Lang>('en');
   const [retaking, setRetaking] = useState(false);
   const [camera, setCamera] = useState<{ audioOnly: boolean } | null>(null);
@@ -76,6 +80,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   const mounted = useRef(true);
   const busy = useRef(false);
   const persisted = useRef(true);
+  const draftId = useRef<string | null>(null);
   const live = useRef(session);
   live.current = session;
   const current = () => mounted.current && live.current.isCurrent();
@@ -83,9 +88,32 @@ function InterviewStep({ session }: { session: CaptureSession }) {
     session.canQuery && submissionId && submissionId !== 'offline_pending'
       ? { id: submissionId as Id<'submissions'> } : 'skip');
   const submission = serverSubmission ?? (session.isOffline ? cachedRejectedCapture(savedCapture, submissionId, session.actor?.creatorId) ?? serverSubmission : serverSubmission);
+  useCaptureProgress(session, 'interview', submissionId, ready && (session.isOffline || submissionId === 'offline_pending'
+    || !!submission && submission.creatorId === session.actor?.creatorId && isEditableCaptureStatus(submission.status)));
   const hasExisting = !!(submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl);
+  const primaryStorageId = recording?.storageId ?? (!recording ? submission?.videoStorageId || submission?.audioStorageId : undefined);
+  const storedPrimaryUrl = useQuery(api.files.getUrl, session.canQuery && primaryStorageId ? { storageId: primaryStorageId } : 'skip');
+  const missingUnuploaded = !!recording && (missingMedia.primary && !recording.storageId
+    || missingMedia.audio && !recording.audioStorageId);
+  const directUrl = !recording ? submission?.videoUrl || submission?.audioUrl : recording.storageId === submission?.videoStorageId
+    ? submission?.videoUrl : recording.storageId === submission?.audioStorageId ? submission?.audioUrl : undefined;
+  const playbackUri = recording && !missingMedia.primary ? recording.recordingUri : storedPrimaryUrl || directUrl;
+  const playbackKind = recording?.type ?? (submission?.videoStorageId || submission?.videoUrl ? 'video' : 'audio');
   const latest = useRef({ recording, camera, loading });
   latest.current = { recording, camera, loading };
+
+  const keepFiles = async (draft: RecordingDraft, valid: () => boolean) => {
+    const scope = { creatorId: String(live.current.actor!.creatorId), submissionId: draft.submissionId, isCurrent: valid };
+    const primary = await retainCaptureRecording(draft.recordingUri, draft.type === 'video' ? 'mp4' : 'm4a', scope);
+    if (!primary || !valid()) return null;
+    // A camera failure can return its parallel audio as the primary audio take.
+    // Only video takes require a second source file.
+    const parallelAudioUri = draft.type === 'video' ? draft.parallelAudioUri : null;
+    const audio = parallelAudioUri ? await retainCaptureRecording(parallelAudioUri, 'm4a', scope) : null;
+    if (!valid() || parallelAudioUri && !audio) return null;
+    return { draft: { ...draft, recordingUri: primary.uri, parallelAudioUri: audio?.uri ?? null },
+      missing: { primary: primary.missing, audio: !!audio?.missing } };
+  };
 
   useEffect(() => {
     mounted.current = true;
@@ -93,6 +121,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
   }, []);
   useFocusEffect(useCallback(() => {
     let active = true;
+    setReady(false);
     void (async () => {
       try {
         let id = await live.current.read<string>('current_submission_id');
@@ -103,6 +132,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
         }
         if (!current() || !active) return;
         if (!id) { router.replace('/(app)/(tabs)/dashboard'); return; }
+        draftId.current = id;
         const draft = recordingFor(await live.current.read('submission_interview_draft'), id)
           ?? recordingFor(await live.current.read('submission_pending_interview'), id);
         const snapshot = await live.current.read<CaptureSnapshot>('submission_snapshot');
@@ -110,7 +140,18 @@ function InterviewStep({ session }: { session: CaptureSession }) {
         setSubmissionId(id);
         setSavedCapture(snapshot?.submissionId === id && snapshot.creatorId === live.current.actor?.creatorId ? snapshot : null);
         setRecording(draft);
+        setMissingMedia({ primary: false, audio: false });
         if (draft) setLang(draft.lang);
+        if (draft) {
+          const valid = () => active && current() && draftId.current === id;
+          const retained = await keepFiles(draft, valid);
+          if (!retained || !valid()) return;
+          if (await live.current.read('current_submission_id') !== id || !valid()) return;
+          if (retained.draft.recordingUri !== draft.recordingUri || retained.draft.parallelAudioUri !== draft.parallelAudioUri)
+            await live.current.write('submission_interview_draft', retained.draft);
+          if (!valid()) return;
+          setRecording(retained.draft); setMissingMedia(retained.missing);
+        }
       } catch {
         if (current() && active) setError('Could not open your saved interview. Go back and reopen this capture.');
       } finally {
@@ -130,21 +171,31 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       ]);
       return;
     }
-    router.back();
-  }, [router]);
+    if (resumed === '1' && submissionId) router.replace({ pathname: '/(app)/submit/photos', params: { draftId: submissionId, resumed: '1' } } as never);
+    else router.back();
+  }, [router, resumed, submissionId]);
   useFocusEffect(useCallback(() => {
     const listener = BackHandler.addEventListener('hardwareBackPress', () => { goBack(); return true; });
     return () => listener.remove();
   }, [goBack]));
 
   const persist = async (draft: RecordingDraft) => {
-    await live.current.write('submission_interview_draft', draft);
-    if (!current()) return false;
+    const origin = live.current;
+    const valid = () => current() && origin.isCurrent() && draftId.current === draft.submissionId;
+    if (await origin.read('current_submission_id') !== draft.submissionId || !valid()) return null;
+    const retained = await keepFiles(draft, valid);
+    if (!retained || !valid()) return null;
+    if (retained.missing.primary && !draft.storageId || retained.missing.audio && !draft.audioStorageId)
+      throw new Error('This recording is no longer on this device. Record another take to continue.');
+    if (await origin.read('current_submission_id') !== draft.submissionId || !valid()) return null;
+    await origin.write('submission_interview_draft', retained.draft);
+    if (!valid()) return null;
+    setRecording(retained.draft); setMissingMedia(retained.missing);
     persisted.current = true;
-    return true;
+    return retained.draft;
   };
   const onFinish = async (result: InterviewResult) => {
-    if (!current() || !submissionId || busy.current) return;
+    if (!current() || !submissionId || draftId.current !== submissionId || busy.current) return;
     setCamera(null);
     if (!result.uri) { setError('The recording did not save. Please try again.'); return; }
     const draft: RecordingDraft = {
@@ -152,7 +203,7 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       type: result.kind, durationSec: result.durationSec, lang: result.lang,
       interrupted: result.interrupted, savedAt: Date.now(), attached: false,
     };
-    setRecording(draft); setRetaking(false); setLang(result.lang);
+    setRecording(draft); setMissingMedia({ primary: false, audio: false }); setRetaking(false); setLang(result.lang);
     persisted.current = false;
     busy.current = true; setLoading(true); setError(null);
     try { await persist(draft); }
@@ -180,9 +231,12 @@ function InterviewStep({ session }: { session: CaptureSession }) {
       if (!valid()) return;
       if (storedId && storedId !== submissionId && submissionId !== 'offline_pending') throw new Error('Your capture changed. Reopen this interview to continue.');
       const targetId = storedId || submissionId;
+      draftId.current = targetId;
       let draft = recording ? { ...recording, submissionId: targetId } : null;
       if (draft) {
-        if (!await persist(draft)) return;
+        const retained = await persist(draft);
+        if (!retained) return;
+        draft = retained;
         if (targetId !== submissionId) { setSubmissionId(targetId); setRecording(draft); }
       }
       if (!online() || targetId === 'offline_pending') {
@@ -269,15 +323,15 @@ function InterviewStep({ session }: { session: CaptureSession }) {
     footer={<>
       {loading ? <ProgressBar value={progress} tone="accent" label="Saving interview" /> : null}
       {error ? <Banner tone="danger" body={error} /> : null}
-      <Button title={submission?.status === 'rejected' ? 'Save changes' : session.isOffline ? 'Save and continue' : 'Continue'} loading={loading} onPress={() => { void handleNext(); }} />
+      <Button title={submission?.status === 'rejected' ? 'Save changes' : session.isOffline ? 'Save and continue' : 'Continue'} loading={loading} disabled={missingUnuploaded} onPress={() => { void handleNext(); }} />
       <Button title="Record again" variant="ghost" disabled={loading} onPress={recordAgain} />
     </>}>
     <OfflineBanner />
     {submission?.status === 'rejected' ? <Banner tone="danger" title="What needs fixing" body={submission.rejectionReason || 'Keep the saved take or record a replacement if the interview needs correcting.'} /> : null}
     {recording?.interrupted ? <Banner tone="warn" title="Your recording stopped early"
       body="The take so far is saved. Listen back, or record again to finish the questions." /> : null}
-    {recording ? <Playback key={recording.recordingUri} uri={recording.recordingUri} kind={recording.type} /> : submission?.videoUrl || submission?.audioUrl
-      ? <Playback key={submission.videoUrl || submission.audioUrl} uri={(submission.videoUrl || submission.audioUrl)!} kind={submission.videoUrl ? 'video' : 'audio'} /> :
+    {missingUnuploaded ? <Banner tone="warn" body="This recording is no longer on this device. Record another take to continue." /> : null}
+    {playbackUri ? <Playback key={playbackUri} uri={playbackUri} kind={playbackKind} /> :
       <Card style={styles.saved}><Ionicons name="checkmark-circle" size={64} color={colors.ink} />
         <Text variant="body" align="center">You can continue or record a replacement.</Text></Card>}
     {modal}

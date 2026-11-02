@@ -6,7 +6,7 @@ export type CaptureDesignDraft = { submissionId: string; templateId: string; sav
 export type CaptureStorageKey = 'current_submission_id' | 'submission_pending_sync'
   | 'submission_pending_photos' | 'submission_pending_interview' | 'submission_pending_submit'
   | 'submission_draft_form' | 'submission_photo_tasks' | 'submission_interview_draft' | 'submission_last_sent' | 'submission_snapshot'
-  | 'submission_design';
+  | 'submission_design' | 'submission_progress';
 
 const listeners = new Set<(creatorId: string, key: CaptureStorageKey) => void>();
 export function subscribeCaptureCache(listener: (creatorId: string, key: CaptureStorageKey) => void) {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sourceHash": "79afdee4add8fed848efa58cb37eac44d49dcda69b3e3fb423a805e8d0701f45",
+  "sourceHash": "c9c814ef41fcb662161e34d16cf602f61f0410333a6ba439a2812335e9d9c6b1",
   "designs": [
     {
       "code": "barbershop:F",
@@ -73,6 +73,30 @@
       "businessId": "kusina-ni-tala",
       "businessName": "Kusina ni Tala",
       "preview": "/capture-previews/u.html"
+    },
+    {
+      "code": "generic:B",
+      "name": "Stillwater",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/b.html"
+    },
+    {
+      "code": "generic:D",
+      "name": "Northpoint",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/d.html"
+    },
+    {
+      "code": "generic:E",
+      "name": "Clearview",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/e.html"
     },
     {
       "code": "generic:C",

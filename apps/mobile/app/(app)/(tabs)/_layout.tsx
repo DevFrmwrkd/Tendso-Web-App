@@ -20,7 +20,7 @@ function CustomTabBar({ state, navigation }: any) {
   const { isPreview } = useMobileAccount();
   const router = useRouter();
   // Only the SUBMIT push needs a spam guard (it stacks a new screen). Tab switching is idempotent.
-  const goSubmit = useGuardedPress(() => router.push('/(app)/submit/info' as any));
+  const goSubmit = useGuardedPress(() => router.push('/(app)/submit' as any));
   const [keyboardVisible, setKeyboardVisible] = useState(Keyboard.isVisible());
   useEffect(() => {
     const shown = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -40,7 +40,7 @@ function CustomTabBar({ state, navigation }: any) {
         icon: 'add',
         onPress: goSubmit,
         disabled: isPreview,
-        accessibilityLabel: 'Submit new business',
+        accessibilityLabel: 'Submit a shop',
       }}
     />
   );

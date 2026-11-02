@@ -362,14 +362,14 @@ export default function SubmissionDetailScreen() {
                 if (resumeBusy.current || !capture.canMutate() || capture.actor?.creatorId !== submission.creatorId) return;
                 resumeBusy.current = true; setResuming(true); setResumeError('');
                 try {
+                  const values = await Promise.all(CAPTURE_RESUME_KEYS.map(key => capture.read(key)));
+                  if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
+                    || liveStatus.current !== openingStatus) return;
+                  if (hasOtherCaptureWork(draftId, Object.fromEntries(CAPTURE_RESUME_KEYS.map((key, index) => [key, values[index]])))) {
+                    setResumeError('Finish the other capture on this phone before reopening this submission. Your saved work has not been changed.');
+                    return;
+                  }
                   if (isRejected) {
-                    const values = await Promise.all(CAPTURE_RESUME_KEYS.map(key => capture.read(key)));
-                    if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
-                      || liveStatus.current !== openingStatus) return;
-                    if (hasOtherCaptureWork(draftId, Object.fromEntries(CAPTURE_RESUME_KEYS.map((key, index) => [key, values[index]])))) {
-                      setResumeError('Finish the other capture on this phone before reopening this submission. Your saved work has not been changed.');
-                      return;
-                    }
                     await capture.write('submission_snapshot', {
                       ...submission, submissionId: draftId, creatorId: submission.creatorId,
                       initialSellPrice: typeof submission.amount === 'number'
@@ -383,8 +383,8 @@ export default function SubmissionDetailScreen() {
                   const pointer = await capture.read<string>('current_submission_id');
                   if (!resumeMounted.current || !capture.canMutate() || liveId.current !== draftId
                     || liveStatus.current !== openingStatus || pointer !== draftId) return;
-                  // Explicit hydration also preserves only this draft's local edits.
-                  router.push({ pathname: isRejected ? '/(app)/submit/review' : '/(app)/submit/info', params: { draftId } } as never);
+                  if (isRejected) router.push({ pathname: '/(app)/submit/review', params: { draftId } } as never);
+                  else router.push('/(app)/submit' as never);
                 } catch {
                   if (resumeMounted.current && capture.isCurrent()) setResumeError(isRejected
                     ? 'Could not reopen this submission. Please try again.'
