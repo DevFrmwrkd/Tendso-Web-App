@@ -27,13 +27,14 @@ export function useOwnerDraftSync(draft: SharedDraft, scope: OwnerWebScope) {
     const [storageWarning, setStorageWarning] = useState(''), [connected, setConnected] = useState(online);
     const [writable, setWritable] = useState(false), [storageBlocked, setStorageBlocked] = useState(false), [recoveryMessage, setRecoveryMessage] = useState('');
     const mounted = useRef(false), latest = useRef(draft), blocked = useRef(false), inFlight = useRef<string | undefined>(undefined);
-    const leaseOwned = useRef(false), leaseKey = useRef<string | null>(null), storageIsBlocked = useRef(false);
+    const leaseOwned = useRef(false), leaseActive = useRef(false), leaseKey = useRef<string | null>(null), storageIsBlocked = useRef(false);
+    const leaseLifecycle = useRef<Promise<void>>(Promise.resolve());
     const journal = useRef<OwnerDraftJournal>({ version: 1, baseRevision: draft.draftRevision, operations: [] });
     const storageWrites = useRef(Promise.resolve()), working = useRef<Promise<boolean> | null>(null), submitting = useRef(false);
     useLayoutEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
     useLayoutEffect(() => { latest.current = draft; }, [draft]);
     const current = useCallback(() => mounted.current && isCurrentScope(), [isCurrentScope]);
-    const canWrite = useCallback(() => current() && leaseOwned.current && leaseKey.current === key && !storageIsBlocked.current, [current, key]);
+    const canWrite = useCallback(() => current() && leaseActive.current && leaseOwned.current && leaseKey.current === key && !storageIsBlocked.current, [current, key]);
     const persist = useCallback(() => {
         if (!canWrite()) return Promise.resolve();
         const snapshot = { ...journal.current, operations: [...journal.current.operations] };
@@ -53,39 +54,56 @@ export function useOwnerDraftSync(draft: SharedDraft, scope: OwnerWebScope) {
         let active = true;
         let release: (() => void) | undefined;
         const held = new Promise<void>(resolve => { release = resolve; });
+        // StrictMode replays this effect before Web Locks has released the first request.
+        // Serialize only this hook's lifecycles; a genuine other tab still gets ifAvailable.
+        const previousLifecycle = leaseLifecycle.current;
+        let completeLifecycle!: () => void;
+        leaseLifecycle.current = new Promise<void>(resolve => { completeLifecycle = resolve; });
+        leaseActive.current = false;
         const unavailable = (message: string) => {
             if (!active || !current()) return;
             storageIsBlocked.current = true; setStorageBlocked(true); setRecoveryMessage(message); setWritable(false); setLoaded(true);
         };
-        const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
-        if (!locks?.request) {
-            unavailable('This browser cannot safely keep shared draft changes. Open this page in a browser with Web Locks support, then reload. Your saved account draft is available to view.');
-            return () => { active = false; };
-        }
-        void locks.request(`tendso:${key}`, { mode: 'exclusive', ifAvailable: true }, async lock => {
+        void (async () => {
+            await Promise.resolve();
             if (!active || !current()) return;
-            if (!lock) { unavailable('This business draft is being edited in another tab. Close that tab, then reload here to continue. Your saved account draft is available to view.'); return; }
-            leaseOwned.current = true;
-            leaseKey.current = key;
-            try {
+            setWritable(false); setLoaded(false);
+            await previousLifecycle;
+            if (!active || !current()) return;
+            storageIsBlocked.current = false; setStorageBlocked(false); setRecoveryMessage('');
+            const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
+            if (!locks?.request) {
+                unavailable('This browser cannot safely keep shared draft changes. Open this page in a browser with Web Locks support, then reload. Your saved account draft is available to view.');
+                return;
+            }
+            await locks.request(`tendso:${key}`, { mode: 'exclusive', ifAvailable: true }, async lock => {
+                if (!active || !current()) return;
+                if (!lock) { unavailable('This business draft is being edited in another tab. Close that tab, then reload here to continue. Your saved account draft is available to view.'); return; }
+                leaseOwned.current = true; leaseActive.current = true;
+                leaseKey.current = key;
                 try {
-                    const saved = await readOwnerDraftJournal(key);
-                    if (!active || !current()) return;
-                    if (saved?.operations.length) {
-                        journal.current = saved;
-                        if (saved.baseRevision !== latest.current.draftRevision) { blocked.current = true; setConflict(true); }
-                        publish();
-                    } else journal.current.baseRevision = latest.current.draftRevision;
-                    setWritable(true); setLoaded(true);
-                } catch (cause) {
-                    unavailable(cause instanceof OwnerDraftJournalRecoveryError ? cause.message
-                        : 'This browser could not open pending draft storage. Reload to retry. Your saved account draft is available to view; pending files have not been replaced.');
+                    try {
+                        const saved = await readOwnerDraftJournal(key);
+                        if (!active || !current()) return;
+                        if (saved?.operations.length) {
+                            journal.current = saved;
+                            if (saved.baseRevision !== latest.current.draftRevision) { blocked.current = true; setConflict(true); }
+                            publish();
+                        } else journal.current.baseRevision = latest.current.draftRevision;
+                        setWritable(true); setLoaded(true);
+                    } catch (cause) {
+                        unavailable(cause instanceof OwnerDraftJournalRecoveryError ? cause.message
+                            : 'This browser could not open pending draft storage. Reload to retry. Your saved account draft is available to view; pending files have not been replaced.');
+                    }
+                    if (active) await held;
+                } finally {
+                    if (leaseKey.current === key) { leaseActive.current = false; leaseOwned.current = false; leaseKey.current = null; }
                 }
-                if (active) await held;
-            } finally { if (leaseKey.current === key) { leaseOwned.current = false; leaseKey.current = null; } }
-        }).catch(() => unavailable('This browser could not lock the draft for editing. Close other Tendso tabs and reload, or use a browser with Web Locks support.'));
+            });
+        })().catch(() => unavailable('This browser could not lock the draft for editing. Close other Tendso tabs and reload, or use a browser with Web Locks support.'))
+            .finally(completeLifecycle);
         return () => {
-            active = false;
+            active = false; leaseActive.current = false;
             // Finish admitted storage snapshots before another tab can acquire the same draft.
             void storageWrites.current.catch(() => {}).then(() => release?.());
         };

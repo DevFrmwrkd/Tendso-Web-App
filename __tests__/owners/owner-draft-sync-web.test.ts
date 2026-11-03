@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { act, createElement, type ReactNode } from 'react';
+import { act, createElement, StrictMode, type ReactNode } from 'react';
 import { getFunctionName } from 'convex/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OwnerWebScope } from '../../hooks/useOwnerWebScope';
@@ -37,13 +37,13 @@ function scope(): OwnerWebScope {
         scopeKey: 'user-one:session-one:owner-one', ready: true, loading: false, error: null, isSignedIn: true, isOwner: true, isCurrent: scopeCurrent };
 }
 const draft = { submissionId: 'business-one', status: 'draft', phase: 'draft', contentSource: 'owner_app', draftRevision: 0 } as SharedDraft;
-function Harness({ name }: { name: string }) {
-    results.set(name, useOwnerDraftSync({ ...draft, status: state.status }, scope()));
+function Harness({ name, isCurrent = scopeCurrent }: { name: string; isCurrent?: () => boolean }) {
+    results.set(name, useOwnerDraftSync({ ...draft, status: state.status }, { ...scope(), isCurrent }));
     return createElement('div', {}, name);
 }
-async function mount(name: string) {
+async function mount(name: string, strict = false) {
     let view!: View;
-    await act(async () => { view = renderer.create(createElement(Harness, { name })); });
+    await act(async () => { const child = createElement(Harness, { name }); view = renderer.create(strict ? createElement(StrictMode, {}, child) : child); });
     views.push(view); return view;
 }
 async function unmount(view: View) {
@@ -75,6 +75,42 @@ afterEach(async () => {
 });
 
 describe('owner browser draft lease', () => {
+    it('acquires one editable lease during actual StrictMode effect replay instead of reporting its own lease as another tab', async () => {
+        await mount('strict', true);
+        expect(sync('strict')).toMatchObject({ loaded: true, writable: true, storageBlocked: false, recoveryMessage: '' });
+        expect(lockRequest).toHaveBeenCalledTimes(1); expect(state.read).toHaveBeenCalledTimes(1); expect(held.size).toBe(1);
+        await act(async () => sync('strict').enqueue({ kind: 'answer', index: 0, text: 'StrictMode still edits', lang: 'en' }));
+        expect(sync('strict').pending).toHaveLength(1);
+        expect(state.write).toHaveBeenCalled();
+    });
+    it('restores existing pending media once under StrictMode and preserves it until the lease is actually released', async () => {
+        const photo = { id: 'saved-photo', kind: 'photo', index: 7, extra: false, file: new Blob(['pending photo'], { type: 'image/jpeg' }), name: 'shop.jpg' };
+        state.read.mockResolvedValue({ version: 1, baseRevision: 0, operations: [photo] });
+        const first = await mount('strict', true);
+        expect(sync('strict')).toMatchObject({ loaded: true, writable: true, storageBlocked: false });
+        expect(sync('strict').pending).toEqual([photo]); expect(state.read).toHaveBeenCalledTimes(1);
+        await mount('other-tab'); expect(sync('other-tab').writable).toBe(false);
+        expect(state.write).not.toHaveBeenCalled(); expect(state.mutation).not.toHaveBeenCalled();
+        await unmount(first); await mount('reloaded');
+        expect(sync('reloaded').writable).toBe(true); expect(sync('reloaded').pending).toEqual([photo]);
+    });
+    it('waits for the same hook’s admitted persistence and prior lease release before reacquiring after effect cleanup', async () => {
+        let finishWrite!: () => void;
+        state.write.mockImplementationOnce((_key: string, snapshot: unknown) => new Promise<void>(resolve => {
+            finishWrite = () => { state.read.mockResolvedValue(snapshot); resolve(); };
+        }));
+        const view = await mount('first');
+        await act(async () => sync().enqueue({ kind: 'answer', index: 0, text: 'Persist before reacquiring', lang: 'en' }));
+        const refreshedScopeGuard = () => state.current;
+        await act(async () => view.update(createElement(Harness, { name: 'first', isCurrent: refreshedScopeGuard })));
+        expect(lockRequest).toHaveBeenCalledTimes(1); expect(state.read).toHaveBeenCalledTimes(1);
+        expect(sync().writable).toBe(false); expect(sync().recoveryMessage).toBe('');
+        await act(async () => finishWrite());
+        expect(lockRequest).toHaveBeenCalledTimes(2); expect(state.read).toHaveBeenCalledTimes(2);
+        expect(sync()).toMatchObject({ loaded: true, writable: true, storageBlocked: false, recoveryMessage: '' });
+        expect(sync().pending).toHaveLength(1); expect(sync().pending[0]).toMatchObject({ text: 'Persist before reacquiring' });
+        expect(state.write).toHaveBeenCalledTimes(1);
+    });
     it('stays read-only without Web Locks and never reads, writes, replays or submits pending work', async () => {
         vi.stubGlobal('navigator', { onLine: true });
         await mount('first');
