@@ -38,6 +38,9 @@
 .navLink[aria-current="page"] { background: var(--owner-ink); color: white; }
 .account { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; max-width: 220px; padding: 5px 10px 5px 5px; border: 1px solid var(--owner-line); border-radius: 999px; color: var(--owner-ink); background: white; font-size: 14px; font-weight: 500; text-decoration: none; }
 .account:hover, .account[aria-current="page"] { border-color: #bbc1a7; background: #f0f3e8; }
+.navLink:disabled, .account:disabled { cursor: default; opacity: .55; }
+.navLink:disabled:hover { background: transparent; color: #65675b; }
+.account:disabled:hover { border-color: var(--owner-line); background: white; }
 .avatar { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; background: #e9eddc; color: #4d5840; font-weight: 600; }
 .accountName { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .account > svg { flex-shrink: 0; }

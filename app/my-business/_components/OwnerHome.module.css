@@ -34,8 +34,11 @@
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 11px 17px; border-radius: 100px; border: 1px solid var(--owner-line, #E7E8E1); background: #fff; color: var(--owner-ink, #0C0A08); font: inherit; font-size: 12px; font-weight: 600; line-height: 1.4; text-decoration: none; cursor: pointer; transition: background .16s, border-color .16s, box-shadow .16s; text-align: center; }
 .button svg { flex-shrink: 0; }
 .button:hover { background: #F3F4EA; border-color: #CFD3BD; }
+.button:disabled, .supportLink:disabled, .detailHelp button:disabled { cursor: default; opacity: .55; }
+.button:disabled:hover { background: #fff; border-color: var(--owner-line, #E7E8E1); }
 .primaryButton { border-color: var(--owner-accent, #E4F222); background: var(--owner-accent, #E4F222); }
 .primaryButton:hover { background: #D8E71C; border-color: #D8E71C; }
+.primaryButton:disabled:hover { background: var(--owner-accent, #E4F222); border-color: var(--owner-accent, #E4F222); }
 .quietButton { background: transparent; border-color: transparent; }
 .button:focus-visible, .titleLink:focus-visible, .cardAction:focus-visible, .detailsLink:focus-visible, .supportLink:focus-visible, .detailHelp a:focus-visible { outline: 3px solid #A0AD2D; outline-offset: 4px; }
 .paymentNote { display: flex; align-items: flex-start; gap: 9px; padding: 13px; border: 1px solid #E8EDC7; border-radius: 12px; background: #FAFBEF; }
@@ -45,7 +48,7 @@
 .detailHelp { display: flex; align-items: flex-start; gap: 11px; border-top: 1px solid var(--owner-line, #E7E8E1); margin-top: auto; padding-top: 19px; }
 .detailHelp > svg { margin-top: 3px; color: #858875; flex-shrink: 0; }
 .detailHelp p { margin: 0 0 4px; font-size: 11px; color: var(--owner-muted, #74756D); }
-.detailHelp a { display: inline-flex; align-items: center; gap: 5px; color: var(--owner-ink, #0C0A08); text-decoration: none; font-size: 12px; font-weight: 600; }
+.detailHelp a, .detailHelp button { display: inline-flex; align-items: center; gap: 5px; color: var(--owner-ink, #0C0A08); text-decoration: none; font-size: 12px; font-weight: 600; }
 .supportCard { display: flex; align-items: center; gap: 18px; border: 1px solid #E4E7D6; border-radius: 24px; padding: 25px 28px; background: #F0F2E5; color: var(--owner-ink, #0C0A08); }
 .supportIcon { display: grid; place-items: center; width: 53px; height: 53px; flex-shrink: 0; background: #E5E9D4; border-radius: 17px; }
 .supportText { flex: 1; min-width: 0; }
@@ -53,6 +56,7 @@
 .supportText p { margin: 0; max-width: 500px; color: #747966; font-size: 12px; line-height: 1.65; }
 .supportLink { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: var(--owner-ink, #0C0A08); font-size: 12px; font-weight: 600; text-decoration: none; padding: 11px 15px; border: 1px solid #D9DECB; background: #FFFFFF90; border-radius: 100px; }
 .supportLink:hover { background: #fff; }
+.supportLink:disabled:hover { background: #FFFFFF90; }
 .sectionHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
 .sectionHeading h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 20px; font-weight: 600; line-height: 1.3; letter-spacing: -.04em; }
 .sectionHeading p { margin: 8px 0 0; font-size: 12px; line-height: 1.7; color: var(--owner-muted, #74756D); }

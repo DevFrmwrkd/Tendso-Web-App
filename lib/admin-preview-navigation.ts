@@ -1,4 +1,4 @@
-export type AdminPreviewRole = 'affiliate' | 'creator';
+export type AdminPreviewRole = 'affiliate' | 'creator' | 'owner';
 
 const READONLY_PAGES = new Set(['/v2/help', '/v2/privacy', '/v2/creators#rules']);
 

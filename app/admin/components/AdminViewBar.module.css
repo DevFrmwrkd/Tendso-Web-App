@@ -3,5 +3,5 @@
 .select { min-height: 39px; min-width: 136px; max-width: 100%; padding: 8px 12px; border: 1px solid #e1e6d7; border-radius: 999px; color: #3f4934; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
 .select:focus-visible { outline: 2px solid #0c0a08; outline-offset: 3px; }
 .standalone { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 28px; background: #f7f7f2; border-bottom: 1px solid #e6e9de; }
-@media (max-width: 600px) { .label { display: none; } .select { min-width: 137px; width: 137px; min-height: 39px; padding: 8px 7px; font-size: 16px; } .standalone { padding: 10px 16px; } }
+@media (max-width: 600px) { .label { display: none; } .select { min-width: 200px; width: auto; min-height: 39px; padding: 8px 7px; font-size: 16px; } .standalone { padding: 10px 16px; } }
 @media print { .control, .standalone { display: none; } }

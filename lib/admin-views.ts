@@ -2,6 +2,7 @@ export const ADMIN_VIEWS = [
     { value: "admin", label: "Admin view", href: "/admin" },
     { value: "affiliate", label: "Affiliate view", href: "/admin/preview/affiliate" },
     { value: "creator", label: "Creator view", href: "/admin/preview/creator" },
+    { value: "owner", label: "Business owner view", href: "/admin/preview/owner" },
 ] as const;
 
 export function adminViewForPath(pathname: string) {

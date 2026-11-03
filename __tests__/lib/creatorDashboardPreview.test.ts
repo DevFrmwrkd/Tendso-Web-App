@@ -12,6 +12,11 @@ import { AFFILIATE_SECTIONS } from "@/app/affiliates/dashboard/_lib/navigation";
 import { isAdminPreviewHref } from "@/lib/admin-preview-navigation";
 import { PageSettings, type AffiliatePageDraft } from "@/app/affiliates/dashboard/_components/PageSettings";
 import { SAMPLE_PICTURES } from "@/lib/v2/creatorSample";
+import { OwnerDashboardPreview } from "@/app/admin/preview/_components/OwnerDashboardPreview";
+import { OWNER_PREVIEW_SITES } from "@/app/admin/preview/_lib/ownerPreviewData";
+import { SiteList, SiteOverview } from "@/app/my-business/_components/OwnerHome";
+import { OwnerShellView } from "@/components/shells/OwnerShell";
+import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 
 const mockMutation = jest.fn();
 const mockAction = jest.fn();
@@ -29,6 +34,7 @@ jest.mock("@/components/v2/creators/CreatorPagePreview.module.css", () => ({}));
 jest.mock("@/app/affiliates/dashboard/_components/AffiliatePageFrame.module.css", () => ({}));
 jest.mock("@/app/affiliates/dashboard/_components/MyPage.module.css", () => ({}));
 jest.mock("@clerk/nextjs", () => ({ useUser: jest.fn() }));
+jest.mock("@/hooks/useOwnerAuth", () => ({ useOwnerAuth: jest.fn(() => { throw new Error("Preview attempted owner authentication"); }) }));
 jest.mock("next/navigation", () => ({
     usePathname: () => "/admin/preview/creator",
     useRouter: jest.fn(),
@@ -53,12 +59,116 @@ function findPageForm(node: ReactNode): ReactElement<PageFormProps> | undefined 
     }
 }
 
+type ButtonProps = { children?: ReactNode; disabled?: boolean; onClick?: () => void };
+function findButton(node: ReactNode, label: string): ReactElement<ButtonProps> | undefined {
+    for (const child of Children.toArray(node)) {
+        if (!isValidElement<{ children?: ReactNode }>(child)) continue;
+        if (child.type === 'button' && Children.toArray(child.props.children).includes(label)) return child as ReactElement<ButtonProps>;
+        const button = findButton(child.props.children, label);
+        if (button) return button;
+    }
+}
+
 beforeEach(() => {
     jest.clearAllMocks();
     (useQuery as jest.Mock).mockImplementation(() => { throw new Error("Preview attempted a live query"); });
     (usePaginatedQuery as jest.Mock).mockImplementation(() => { throw new Error("Preview attempted a paginated live query"); });
     mockMutation.mockImplementation(() => { throw new Error("Preview attempted a mutation"); });
     mockAction.mockImplementation(() => { throw new Error("Preview attempted an action or upload"); });
+});
+
+describe('business owner dashboard preview', () => {
+    function ownerMarkup(business?: string) {
+        const $ = load(renderToStaticMarkup(createElement(OwnerDashboardPreview, { business })));
+        expect($.text()).toContain('Business owner preview · Sample data');
+        expect($.text()).toContain('Use View as above');
+        expect($('nav[aria-label="Business workspace"]').text()).toContain('My businesses');
+        expect($('iframe, object, embed, input[type="file"], form').length).toBe(0);
+        $('a[href]').each((_, anchor) => expect(isAdminPreviewHref($(anchor).attr('href'), 'owner')).toBe(true));
+        $('button').each((_, button) => expect($(button).is('[disabled]')).toBe(true));
+        expect(useOwnerAuth).not.toHaveBeenCalled();
+        expect(useQuery).not.toHaveBeenCalled();
+        return $;
+    }
+
+    it('shows the actual multi-business workspace with draft, review, building, preview, payment and live samples', () => {
+        const $ = ownerMarkup();
+        expect($('main h1').text()).toBe('Your businesses');
+        expect($('[id="businesses"]').length).toBe(1);
+        expect($('article').length).toBe(6);
+        for (const site of OWNER_PREVIEW_SITES) {
+            const card = $('article').filter((_, article) => $(article).find('h3').text() === site.businessName);
+            expect(card.length).toBe(1);
+            expect(card.find('a').length).toBeGreaterThan(0);
+            card.find('a').each((_, anchor) => expect($(anchor).attr('href')).toBe(`/admin/preview/owner?business=${site.submissionId}`));
+        }
+        for (const status of ['Live', 'Balance due', 'Check preview', 'Building', 'In review', 'Finish setup']) expect($('article').text()).toContain(status);
+        expect($('article').text()).toContain('₱2,999');
+    });
+
+    it.each(OWNER_PREVIEW_SITES.map(site => [site.submissionId, site.businessName] as const))('opens %s as a local sample without loading a customer website or enabling account actions', (business, name) => {
+        const $ = ownerMarkup(business);
+        expect($('main h1').text()).toBe(name);
+        expect($('main h2').first().text()).toBe(name);
+        expect($.text()).toContain('Sample website preview');
+        expect($.text()).toContain('Customer websites are not loaded');
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'All businesses').attr('href')).toBe('/admin/preview/owner#businesses');
+        expect($('a[href^="/pay/"], a[href^="/my-business"], a[target="_blank"]').length).toBe(0);
+    });
+
+    it('keeps live-site opening and clipboard sharing disabled while showing the sample public address', () => {
+        const $ = ownerMarkup('preview-owner-live');
+        expect($.text()).toContain('santos-store.example.com');
+        for (const label of ['Open website', 'Copy address', 'Talk to the team', 'Request a change']) {
+            const button = $('button').filter((_, button) => $(button).text().trim() === label);
+            expect(button.length).toBe(1);
+            expect(button.is('[disabled]')).toBe(true);
+        }
+    });
+
+    it('does not write to the clipboard even if a disabled sample copy handler is invoked directly', () => {
+        const writeText = jest.fn();
+        const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+        Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { writeText } } });
+        try {
+            let tree: ReactNode;
+            function Capture() {
+                tree = SiteOverview({ site: OWNER_PREVIEW_SITES[0]!, preview: true });
+                return tree;
+            }
+            renderToStaticMarkup(createElement(Capture));
+            const copy = findButton(tree, 'Copy address');
+            expect(copy).toBeDefined();
+            expect(copy!.props.disabled).toBe(true);
+            copy!.props.onClick!();
+            expect(writeText).not.toHaveBeenCalled();
+            expect(useOwnerAuth).not.toHaveBeenCalled();
+            expect(useQuery).not.toHaveBeenCalled();
+        } finally {
+            if (previous) Object.defineProperty(globalThis, 'navigator', previous);
+            else Reflect.deleteProperty(globalThis, 'navigator');
+        }
+    });
+
+    it.each(['unknown-business', '/my-business/real-business', 'https://example.test/private-site'])('returns a safe unavailable state for a forged sample business %s', business => {
+        const $ = ownerMarkup(business);
+        expect($('section[aria-label="Website not available"]').length).toBe(1);
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'Back to my businesses').attr('href')).toBe('/admin/preview/owner#businesses');
+        expect($.text()).not.toContain('Sample website preview');
+    });
+
+    it('preserves actual owner workspace destinations when preview is not set', () => {
+        function OwnerWorkspace() {
+            return OwnerShellView({ name: 'Alex Santos', children: createElement(SiteList, { sites: OWNER_PREVIEW_SITES }) });
+        }
+        const $ = load(renderToStaticMarkup(createElement(OwnerWorkspace)));
+        for (const href of ['/my-business', '/profile', '/knowledge', '/contact', '/my-business/preview-owner-draft', 'https://santos-store.example.com/']) {
+            expect($('a[href]').map((_, anchor) => $(anchor).attr('href')).get()).toContain(href);
+        }
+        expect($('a[href^="/admin/preview/owner"]').length).toBe(0);
+        expect(useOwnerAuth).not.toHaveBeenCalled();
+        expect(useQuery).not.toHaveBeenCalled();
+    });
 });
 
 afterEach(() => {

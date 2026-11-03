@@ -17,7 +17,7 @@ const session = (role?: string, extra: Partial<NonNullable<AdminSession["creator
     isOwner: false,
 });
 
-const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator"] as const;
+const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator", "/admin/preview/owner"] as const;
 
 describe("admin route policy", () => {
     const adminPaths = ["/admin", "/admin/", "/admin/bookings", "/admin/call-stats", "/admin/creators", "/admin/affiliates", "/admin/submissions/123", "/admin/payouts", "/admin/knowledge", "/admin/audit", ...previewPaths];

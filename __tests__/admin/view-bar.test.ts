@@ -39,12 +39,13 @@ beforeEach(() => {
 });
 
 describe("admin dashboard view switch", () => {
-    it("shows a labelled native selector with all three views and does not navigate on mount", () => {
+    it("shows a labelled native selector with all four views and does not navigate on mount", () => {
         const { html, select } = renderBar();
         expect(html).toContain("View as");
         expect(html).toContain("Admin view");
         expect(html).toContain("Affiliate view");
         expect(html).toContain("Creator view");
+        expect(html).toContain("Business owner view");
         const id = html.match(/<select\b[^>]*id="([^"]+)"/)?.[1];
         expect(id).toBeTruthy();
         expect(html).toContain(`for="${id}"`);
@@ -68,6 +69,7 @@ describe("admin dashboard view switch", () => {
     it.each([
         ["/admin/preview/affiliate", "affiliate"],
         ["/admin/preview/creator", "creator"],
+        ["/admin/preview/owner", "owner"],
     ])("keeps the standalone selector on %s so admins can return to their workspace", (pathname, selected) => {
         state.pathname = pathname;
         const { html, select } = renderBar(true);
@@ -77,8 +79,8 @@ describe("admin dashboard view switch", () => {
         expect(state.push).toHaveBeenCalledExactlyOnceWith("/admin");
     });
 
-    it("does not expose a standalone selector to a non-admin on preview routes", () => {
-        state.pathname = "/admin/preview/affiliate";
+    it.each(["affiliate", "creator", "owner"])("does not expose a standalone selector to a non-admin on the %s preview route", (view) => {
+        state.pathname = `/admin/preview/${view}`;
         state.isAdmin = false;
         expect(renderBar(true).html).toBe("");
         expect(state.push).not.toHaveBeenCalled();
@@ -88,8 +90,12 @@ describe("admin dashboard view switch", () => {
         ["/admin/preview/affiliate", "affiliate"],
         ["/admin/preview/creator", "creator"],
         ["/admin/preview/creator/", "creator"],
+        ["/admin/preview/owner", "owner"],
+        ["/admin/preview/owner/", "owner"],
         ["/admin/submissions", "admin"],
         ["/admin/preview/creator-forged", "admin"],
+        ["/admin/preview/owner-forged", "admin"],
+        ["/admin/preview/ownership", "admin"],
     ])("reflects %s as %s", (pathname, selected) => {
         state.pathname = pathname;
         expect(renderBar().select?.props.value).toBe(selected);
@@ -99,7 +105,11 @@ describe("admin dashboard view switch", () => {
     it.each([
         ["/admin", "affiliate", "/admin/preview/affiliate"],
         ["/admin", "creator", "/admin/preview/creator"],
+        ["/admin", "owner", "/admin/preview/owner"],
         ["/admin/preview/affiliate", "creator", "/admin/preview/creator"],
+        ["/admin/preview/creator", "owner", "/admin/preview/owner"],
+        ["/admin/preview/owner", "affiliate", "/admin/preview/affiliate"],
+        ["/admin/preview/owner", "admin", "/admin"],
         ["/admin/preview/creator", "admin", "/admin"],
     ])("navigates from %s to the selected %s view", (pathname, value, destination) => {
         state.pathname = pathname;

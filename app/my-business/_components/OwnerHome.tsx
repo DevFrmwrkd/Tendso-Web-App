@@ -21,7 +21,7 @@ function publicAddress(site: OwnerSite): string | null {
 }
 
 /** Owner-owned businesses only. Private-preview and payment actions live in OwnerPrivateWebsite. */
-export function SiteOverview({ site }: { site: OwnerSite }) {
+export function SiteOverview({ site, preview = false }: { site: OwnerSite; preview?: boolean }) {
     const url = publicAddress(site);
     const host = url ? hostOf(url) : null;
     const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function SiteOverview({ site }: { site: OwnerSite }) {
     const titleId = useId();
     const paymentDue = site.balanceDue > 0 && !site.paidInFull && (site.phase === "awaiting_payment" || site.phase === "live");
     const copyAddress = async () => {
-        if (!url) return;
+        if (preview || !url) return;
         try {
             await navigator.clipboard.writeText(url);
             setCopiedUrl(url);
@@ -53,7 +53,7 @@ export function SiteOverview({ site }: { site: OwnerSite }) {
             </div>
             <div className={styles.overviewGrid}>
                 <div className={styles.previewSurface}>
-                    {url && host ? <div className={styles.browser}>
+                    {!preview && url && host ? <div className={styles.browser}>
                         <div className={styles.browserBar}>
                             <span className={styles.browserDots} aria-hidden="true"><i /><i /><i /></span>
                             <span className={styles.browserAddress}><LockKeyhole size={12} aria-hidden="true" />{host}</span>
@@ -62,8 +62,9 @@ export function SiteOverview({ site }: { site: OwnerSite }) {
                         <LiveSitePreview url={url} name={site.businessName} />
                     </div> : <div className={styles.previewEmpty}>
                         <span className={styles.previewEmptyIcon}><Globe size={31} strokeWidth={1.5} aria-hidden="true" /></span>
-                        <h3>Your website will appear here</h3>
-                        <p>{site.phase === "draft" ? "Your business is saved as a draft. Continue setup in the Tendso app." : "There isn’t a public web address for this business yet."}</p>
+                        <h3>{preview ? "Sample website preview" : "Your website will appear here"}</h3>
+                        <p>{preview ? "This is a sample business. Customer websites are not loaded in this admin preview."
+                            : site.phase === "draft" ? "Your business is saved as a draft. Continue setup in the Tendso app." : "There isn’t a public web address for this business yet."}</p>
                     </div>}
                 </div>
                 <div className={styles.overviewDetails}>
@@ -73,26 +74,28 @@ export function SiteOverview({ site }: { site: OwnerSite }) {
                         <p className={styles.body}>{host ? "Open your website or copy its address to share with customers." : "Once your website has a public address, you can open or copy it here."}</p>
                     </div>
                     {url ? <div className={styles.overviewActions}>
-                        <a className={`${styles.button} ${styles.primaryButton}`} href={url} target="_blank" rel="noopener noreferrer">
-                            Open website <ExternalLink size={17} aria-hidden="true" />
-                        </a>
-                        <button className={styles.button} type="button" onClick={() => void copyAddress()}>
+                        {preview ? <button className={`${styles.button} ${styles.primaryButton}`} type="button" disabled>Open website <ExternalLink size={17} aria-hidden="true" /></button>
+                            : <a className={`${styles.button} ${styles.primaryButton}`} href={url} target="_blank" rel="noopener noreferrer">
+                                Open website <ExternalLink size={17} aria-hidden="true" />
+                            </a>}
+                        <button className={styles.button} type="button" disabled={preview} onClick={() => void copyAddress()}>
                             {copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
                             {copied ? "Address copied" : "Copy address"}
                         </button>
                     </div> : null}
                     {paymentDue ? <div className={styles.paymentNote}>
                         <span className={styles.noteDot} aria-hidden="true" />
-                        <div><p className={styles.balanceValue}>{peso(site.balanceDue)} remaining</p><p>Check your payment email from Tendso for the latest payment details.</p></div>
+                        <div><p className={styles.balanceValue}>{peso(site.balanceDue)} remaining</p><p>{preview ? "Payment actions are disabled in this sample preview." : "Check your payment email from Tendso for the latest payment details."}</p></div>
                     </div> : null}
                     <div className={styles.detailHelp}>
                         <MessageCircle size={19} strokeWidth={1.6} aria-hidden="true" />
-                        <div><p>Have a question?</p><Link href="/contact">Talk to the team <ArrowUpRight size={14} aria-hidden="true" /></Link></div>
+                        <div><p>Have a question?</p>{preview ? <button type="button" disabled>Talk to the team <ArrowUpRight size={14} aria-hidden="true" /></button>
+                            : <Link href="/contact">Talk to the team <ArrowUpRight size={14} aria-hidden="true" /></Link>}</div>
                     </div>
                 </div>
             </div>
         </section>
-        <EditsCard />
+        <EditsCard preview={preview} />
     </div>;
 }
 
@@ -104,7 +107,7 @@ function SitePill({ site }: { site: OwnerSite }) {
 }
 
 /** Support requests remain the route for changing a published website. */
-export function EditsCard() {
+export function EditsCard({ preview = false }: { preview?: boolean } = {}) {
     const titleId = useId();
     return <section className={styles.supportCard} aria-labelledby={titleId}>
         <span className={styles.supportIcon}><MessageCircle size={25} strokeWidth={1.6} aria-hidden="true" /></span>
@@ -112,14 +115,15 @@ export function EditsCard() {
             <h2 id={titleId}>Need something changed?</h2>
             <p>New prices, photos or opening hours? Tell us what needs updating and our team will help with the next steps.</p>
         </div>
-        <Link className={styles.supportLink} href="/contact">Request a change <ArrowUpRight size={17} aria-hidden="true" /></Link>
+        {preview ? <button className={styles.supportLink} type="button" disabled>Request a change <ArrowUpRight size={17} aria-hidden="true" /></button>
+            : <Link className={styles.supportLink} href="/contact">Request a change <ArrowUpRight size={17} aria-hidden="true" /></Link>}
     </section>;
 }
 
 /** Every business stays visible; each card opens that business’s own workspace. */
-export function SiteList({ sites }: { sites: OwnerSite[] }) {
+export function SiteList({ sites, preview = false }: { sites: OwnerSite[]; preview?: boolean }) {
     const titleId = useId();
-    return <div className={styles.stack}>
+    return <div className={styles.stack} id={preview ? "businesses" : undefined}>
         <section aria-labelledby={titleId}>
             <div className={styles.sectionHeading}>
                 <div><h2 id={titleId}>Websites & drafts <span className={styles.count}>{sites.length}</span></h2>
@@ -127,19 +131,19 @@ export function SiteList({ sites }: { sites: OwnerSite[] }) {
                 <span className={styles.sectionMeta}>All in one place</span>
             </div>
             <div className={styles.siteGrid}>
-                {sites.map(site => <BusinessCard key={site.submissionId} site={site} />)}
+                {sites.map(site => <BusinessCard key={site.submissionId} site={site} preview={preview} />)}
             </div>
         </section>
-        <EditsCard />
+        <EditsCard preview={preview} />
     </div>;
 }
 
-function BusinessCard({ site }: { site: OwnerSite }) {
+function BusinessCard({ site, preview = false }: { site: OwnerSite; preview?: boolean }) {
     const titleId = useId();
-    const workspace = `/my-business/${site.submissionId}`;
+    const workspace = preview ? `/admin/preview/owner?business=${encodeURIComponent(site.submissionId)}` : `/my-business/${site.submissionId}`;
     const action = ownerSiteAction(site);
     const url = publicAddress(site);
-    const openWebsite = action === "Open website" && !!url;
+    const openWebsite = !preview && action === "Open website" && !!url;
     const paymentDue = site.balanceDue > 0 && !site.paidInFull && (site.phase === "awaiting_payment" || site.phase === "live");
     return <article className={styles.siteCard} aria-labelledby={titleId}>
         <div className={styles.cardTop}>
@@ -160,28 +164,34 @@ function BusinessCard({ site }: { site: OwnerSite }) {
 }
 
 /** Signed in, with no business linked to this owner account. */
-export function NoSite() {
+export function NoSite({ preview = false }: { preview?: boolean } = {}) {
     return <section className={styles.emptyCard} aria-label="No website yet">
         <span className={styles.emptyIcon}><Store size={36} strokeWidth={1.4} aria-hidden="true" /></span>
         <p className={styles.eyebrow}>Your next chapter</p>
         <h2>Let’s bring your business online.</h2>
         <p className={styles.emptyBody}>No business is linked to this account yet. Start with your business details, or contact us if Tendso has already built your website.</p>
         <div className={styles.emptyActions}>
-            <Link className={`${styles.button} ${styles.primaryButton}`} href="/start">Tell us about your business <ArrowRight size={17} aria-hidden="true" /></Link>
-            <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Find an existing website</Link>
+            {preview ? <>
+                <button className={`${styles.button} ${styles.primaryButton}`} type="button" disabled>Tell us about your business <ArrowRight size={17} aria-hidden="true" /></button>
+                <button className={`${styles.button} ${styles.quietButton}`} type="button" disabled>Find an existing website</button>
+            </> : <>
+                <Link className={`${styles.button} ${styles.primaryButton}`} href="/start">Tell us about your business <ArrowRight size={17} aria-hidden="true" /></Link>
+                <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Find an existing website</Link>
+            </>}
         </div>
     </section>;
 }
 
-export function SiteNotAvailable() {
+export function SiteNotAvailable({ preview = false }: { preview?: boolean } = {}) {
     return <section className={styles.emptyCard} aria-label="Website not available">
         <span className={styles.emptyIcon}><Globe size={36} strokeWidth={1.4} aria-hidden="true" /></span>
         <p className={styles.eyebrow}>Let’s get you back</p>
         <h2>This website isn’t available.</h2>
         <p className={styles.emptyBody}>It may not be linked to your account, or it may not be ready yet. Go back to your businesses to choose another one.</p>
         <div className={styles.emptyActions}>
-            <Link className={`${styles.button} ${styles.primaryButton}`} href="/my-business">Back to my businesses <ArrowRight size={17} aria-hidden="true" /></Link>
-            <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Get help</Link>
+            <Link className={`${styles.button} ${styles.primaryButton}`} href={preview ? "/admin/preview/owner#businesses" : "/my-business"}>Back to my businesses <ArrowRight size={17} aria-hidden="true" /></Link>
+            {preview ? <button className={`${styles.button} ${styles.quietButton}`} type="button" disabled>Get help</button>
+                : <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Get help</Link>}
         </div>
     </section>;
 }

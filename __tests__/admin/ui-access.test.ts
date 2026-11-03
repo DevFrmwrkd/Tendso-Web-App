@@ -52,7 +52,7 @@ import AdminLayout, { AdminAccessGate } from "../../app/admin/components/AdminLa
 import AdminRouteLayout from "../../app/admin/layout";
 import proxy from "../../proxy";
 
-const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator"] as const;
+const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator", "/admin/preview/owner"] as const;
 
 let mounted = 0;
 function ProtectedPage() {

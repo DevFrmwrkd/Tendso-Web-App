@@ -206,7 +206,7 @@ integrated in the header and remains available on dashboard preview routes.
 | ID | Feature | Where today | Who | Where in new design | Phase | Target | Done |
 |---|---|---|---|---|---|---|---|
 | W-070, W-120 | Admin gate + frame (Clerk + Convex role; staff limited to 3 pages; `x-tendso-admin-path` header) | `app/admin/layout.tsx`, `AdminLayout.tsx`, `lib/admin-access.ts`, `proxy.ts` | admin, staff | keep as is, restyle | 4 | 🎨 | ☐ |
-| W-071, M-024 | "View as" is web-only; native role switching retired | `AdminViewBar.tsx` (web); `useMobileAccount.ts` (native actual-role routing) | admin | Web keeps sample Affiliate / Creator previews. Native admin opens only admin tools, with safe-area spacing owned by `AdminScreen`. | 4 | ✅ | ☑ |
+| W-071, M-024 | "View as" is web-only; native role switching retired | `AdminViewBar.tsx` (web); `useMobileAccount.ts` (native actual-role routing) | admin | Web keeps sample Affiliate / Creator / Business owner previews. Native admin opens only admin tools, with safe-area spacing owned by `AdminScreen`. | 4 | ✅ | ☑ |
 | W-072, C-016 | Admin Today (waiting counts, money fold, URL backfill) + dashboard stats and daily → monthly rollup | `/admin` `AdminToday.tsx`; `admin.ts`, `analytics.ts`, `analyticsJobs.ts` | admin, system | keep as is, restyle | 4 | 🎨 | ☐ |
 | W-073 | Staff Today (today's calls, attendance to answer) | `StaffDashboard.tsx` | staff | keep as is, restyle | 4 | 🎨 | ☐ |
 | W-074 | Submissions queue: status tabs, filters, giveaway toggle, delete | `/admin/submissions` `_queue/Queue.tsx` | admin | keep, restyle; show build progress (N-09) | 4 | 🎨 | ☐ |
@@ -222,7 +222,7 @@ integrated in the header and remains available on dashboard preview routes.
 | W-095 | Featured sites curation (landing "Real sites") | `/admin/featured-sites` | admin | depends on whether the landing keeps real client sites | 2 | ❓ (Q24) | ☐ |
 | W-096 | App links (Play / App Store URLs; old APK clean-up) | `/admin/featured-sites?tab=app` | admin | keep; feeds the landing Download / QR and field-agents page | 2 | 🎨 | ☑ |
 | W-098, C-017 | Audit log (sentence log, filters, raw drawer) | `/admin/audit`; `auditLogs.ts` | admin, system | keep as is, restyle | 4 | 🎨 | ☐ |
-| W-099, W-100 | Creator + affiliate dashboard previews (sample data) | `/admin/preview/*` | admin | Current shared field-agent Home/shell and v2 affiliate PortalView/PortalFrame; local page editor with actual public-page preview. No live account reads or writes, uploads, sharing or payouts. | 4 | ✅ | ☑ |
+| W-099, W-100 | Creator, affiliate and business-owner dashboard previews (sample data) | `/admin/preview/*` | admin | Shared field-agent Home/shell, v2 affiliate portal/editor and current owner workspace with sample business stages. No live account reads or writes, uploads, sharing, payments or payouts. | 4 | ✅ | ☑ |
 | M-054 | App admin gate + shell ("Open web admin") | `admin/_layout.tsx`, `AdminUI.tsx` | admin | not in mock: keep, restyle | 4 | 🎨 | ☐ |
 | M-055 | App admin overview (today's work, counts) | `admin/index.tsx` | admin | keep, restyle | 4 | 🎨 | ☐ |
 | M-056, M-057 | App admin reviews: submission queue + creator verification approve / reject | `admin/reviews.tsx` | admin | keep, restyle | 4 | 🎨 | ☐ |
