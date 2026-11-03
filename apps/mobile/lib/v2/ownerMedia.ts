@@ -14,9 +14,13 @@ export function ownerPhotosFor(id: SubmissionId | null, sub: OwnerSubmission | u
   };
   if (sub?.submissionId === id) sub.shots.forEach(shot => put(shot.index, shot.extra, shot.url, shot.label));
   if (intake.submissionId === id) {
-    intake.shots?.forEach((uri, index) => { if (uri) put(index, false, uri); });
+    const serverCurrent = sub?.submissionId === id && (sub.draftRevision ?? 0) >= (intake.draftRevision ?? 0);
+    intake.shots?.forEach((uri, index) => {
+      if (!uri || serverCurrent && /^https?:\/\//.test(uri) || intake.uploads?.some(upload => upload.kind === 'photo' && !upload.extra && upload.index === index && upload.submissionId === id && upload.pausedByRemote)) return;
+      put(index, false, uri);
+    });
     intake.uploads?.forEach(upload => {
-      if (upload.kind === 'photo' && upload.submissionId === id) put(upload.index, upload.extra, upload.uri, upload.label);
+      if (upload.kind === 'photo' && upload.submissionId === id && !upload.pausedByRemote && !(upload.saved && serverCurrent)) put(upload.index, upload.extra, upload.uri, upload.label);
     });
   }
   return [...photos.values()].sort((a, b) => Number(a.extra) - Number(b.extra) || a.index - b.index);
@@ -27,7 +31,8 @@ export function ownerAnswersFor(id: SubmissionId | null, sub: OwnerSubmission | 
   const answers = new Map<number, InterviewAnswer>();
   if (sub?.submissionId === id) sub.interview.forEach(answer => answers.set(answer.index, answer));
   if (intake.submissionId === id) intake.uploads?.forEach(upload => {
-    if (upload.kind !== 'answer' || upload.submissionId !== id) return;
+    if (upload.kind !== 'answer' || upload.submissionId !== id || upload.pausedByRemote
+      || upload.saved && sub?.submissionId === id && (sub.draftRevision ?? 0) >= (intake.draftRevision ?? 0)) return;
     const existing = answers.get(upload.index);
     answers.set(upload.index, { ...existing, index: upload.index, questionEn: existing?.questionEn ?? '', questionTl: existing?.questionTl ?? '',
       lang: upload.lang, mediaUrl: upload.uri, mediaType: upload.mediaType, durationSec: upload.durationSec,

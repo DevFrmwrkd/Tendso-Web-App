@@ -1,4 +1,4 @@
-const OWNER_PATH = /^\/my-business(?:\/[A-Za-z0-9_-]+|\/visits\/[A-Za-z0-9_-]+)?$/;
+const OWNER_PATH = /^\/my-business(?:\/[A-Za-z0-9_-]+|\/(?:visits|drafts)\/[A-Za-z0-9_-]+)?$/;
 
 /** Only owned workspace routes and their known deep-link parameters may survive sign-in. */
 export function ownerReturnPath(value: string | null | undefined): string {

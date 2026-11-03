@@ -4,6 +4,7 @@ import { NavigationContext } from '@react-navigation/native';
 import { Text } from '../Text';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { ownerIntake } from '../../../lib/v2/ownerIntake';
+import { checkpointOwnerDraft } from '../../../lib/v2/ownerDraftWrites';
 import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
 import { colors, hit, space } from '../../../theme/v2';
@@ -66,6 +67,7 @@ function ExitAction({ title = 'Save & exit', disabled = false, canExit, beforeSa
       // answers, photos, the upload journal or the new-business workspace.
       ownerIntake.set({});
       await ownerIntake.flush();
+      await checkpointOwnerDraft();
       if (allowed()) router.dismissTo(STEP_ROUTE.home);
     } catch {
       if (current()) Alert.alert('Could not save your progress', 'Your progress is still here. Please try again.');

@@ -12,7 +12,7 @@
  */
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
-import { useAction, useMutation, useQuery } from 'convex/react';
+import { useAction, useConvex, useMutation, useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { SITE_URL } from '../../services/links';
 import { sample } from './ownerSample';
@@ -24,6 +24,7 @@ import type {
   EnsureResult,
   NearbyAgent,
   OwnerMe,
+  OwnerDraftProgress,
   OwnerSubmission,
   OwnerCreatorCodeState,
   OwnerCreatorOffer,
@@ -41,6 +42,8 @@ import type {
 } from './ownerTypes';
 
 import { OWNER_SAMPLE_DATA } from './ownerFlags';
+import { ownerIntake } from './ownerIntake';
+import { writeOwnerDraft } from './ownerDraftWrites';
 
 export { OWNER_SAMPLE_DATA };
 
@@ -61,6 +64,7 @@ const ref = {
   saveShot: api.ownerApp.saveShot,
   removeShot: api.ownerApp.removeShot,
   chooseDesign: api.ownerApp.chooseDesign,
+  saveDraftProgress: api.ownerApp.saveDraftProgress,
   submit: api.ownerApp.submit,
   approvePreview: api.ownerApp.approvePreview,
   requestChange: api.ownerApp.requestChange,
@@ -105,43 +109,80 @@ export function useEnsureOwner(): (args?: { name?: string; phone?: string }) => 
 
 export function useOwnerSubmission(id: SubmissionId | null | undefined): OwnerSubmission | undefined {
   if (OWNER_SAMPLE_DATA) return useSample(() => (id ? sample.submission(id) : undefined)); // eslint-disable-line react-hooks/rules-of-hooks
-  return useQuery(ref.getSubmission, id ? { submissionId: id } : skip); // eslint-disable-line react-hooks/rules-of-hooks
+  const { userId } = useAuth(); // eslint-disable-line react-hooks/rules-of-hooks
+  const result = useQuery(ref.getSubmission, id && userId ? { submissionId: id, actorClerkId: userId } : skip); // eslint-disable-line react-hooks/rules-of-hooks
+  return result?.actorClerkId === userId && result?.submissionId === id ? result : undefined;
+}
+
+function useDraftWriter() {
+  const { userId, sessionId } = useAuth();
+  return useCallback(<A extends Sid, R>(args: A, send: (guarded: A & { actorClerkId: string; expectedRevision: number }) => Promise<R>) =>
+    writeOwnerDraft({ actorClerkId: userId, sessionId }, args, send), [userId, sessionId]);
 }
 
 export function useCreateDraft(): (args: CreateDraftArgs) => Promise<SubmissionId> {
   const m = useMutation(ref.createDraft);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.createDraft(args) : m(args)), [m]);
+  const convex = useConvex();
+  const { userId } = useAuth();
+  return useCallback(async args => {
+    if (OWNER_SAMPLE_DATA) return sample.createDraft(args);
+    const scope = ownerIntake.scope();
+    if (!userId || ownerIntake.actor() !== userId) throw new Error('Please sign in again.');
+    const id = await m({ ...args, actorClerkId: userId });
+    if (!ownerIntake.isCurrent(scope) || ownerIntake.actor() !== userId) throw new Error('Your account changed.');
+    const saved = await convex.query(ref.getSubmission, { submissionId: id, actorClerkId: userId });
+    if (!ownerIntake.isCurrent(scope) || ownerIntake.actor() !== userId || saved.actorClerkId !== userId) throw new Error('Your account changed.');
+    ownerIntake.primeRevision(id, saved.draftRevision);
+    if (saved.draftRevision > 0) {
+      // An idempotent create can recover a draft already edited on the web. Load it instead of replaying an old form.
+      ownerIntake.set({ submissionId: id }); ownerIntake.restoreDraft(saved);
+      throw new Error('Your saved draft was restored. Check its latest details before continuing.');
+    }
+    return id;
+  }, [m, convex, userId]);
 }
 
 export function useUpdateDraft(): (args: UpdateDraftArgs) => Promise<unknown> {
   const m = useMutation(ref.updateDraft);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.updateDraft(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.updateDraft(args) : write(args, m)), [m, write]);
 }
 
 export function useSaveAnswer(): (args: SaveAnswerArgs) => Promise<unknown> {
   const m = useMutation(ref.saveAnswer);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.saveAnswer(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.saveAnswer(args) : write(args, m)), [m, write]);
 }
 
 export function useSaveShot(): (args: SaveShotArgs) => Promise<unknown> {
   const m = useMutation(ref.saveShot);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.saveShot(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.saveShot(args) : write(args, m)), [m, write]);
 }
 
 export function useRemoveShot(): (args: Sid & { index: number; extra?: boolean }) => Promise<unknown> {
   const m = useMutation(ref.removeShot);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.removeShot(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.removeShot(args) : write(args, m)), [m, write]);
 }
 
 export function useChooseDesign(): (args: Sid & { templateId: string }) => Promise<unknown> {
   const m = useMutation(ref.chooseDesign);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.chooseDesign(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.chooseDesign(args) : write(args, m)), [m, write]);
+}
+
+export function useSaveDraftProgress(): (args: Sid & { progress: OwnerDraftProgress }) => Promise<unknown> {
+  const m = useMutation(ref.saveDraftProgress);
+  const write = useDraftWriter();
+  return useCallback(args => OWNER_SAMPLE_DATA ? Promise.resolve() : write(args, m), [m, write]);
 }
 
 /** Send the interview + photos: starts the ~20 minute build. */
 export function useSubmitSite(): (args: Sid) => Promise<unknown> {
   const m = useMutation(ref.submit);
-  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.submit(args) : m(args)), [m]);
+  const write = useDraftWriter();
+  return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.submit(args) : write(args, m)), [m, write]);
 }
 
 // ------------------------------------------------------------------ build + check

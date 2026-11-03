@@ -75,8 +75,8 @@ describe("owner Today presentation", () => {
         rows[4] = site("Ready preview", { phase: "ready_to_check" });
         const html = renderToStaticMarkup(createElement(OwnerTodayView, { sites: rows, visits: [], inbox: inbox(), now: NOW, name: "Poru Test" }));
         expect(html).toContain("<strong>7</strong>"); expect(html).toContain("Good morning, Poru");
-        expect(html).toContain('href="/my-business/Ready preview"'); expect(html).toContain("Your preview is ready to check.");
-        expect(html).toContain('href="/my-business/visits/new"'); expect(html).toContain('href="/v2/start"');
+        expect(html).toContain('href="/my-business/Ready%20preview"'); expect(html).toContain("Your preview is ready to check.");
+        expect(html).toContain('href="/my-business/visits/new"'); expect(html).toContain('href="/my-business/drafts/new"');
         expect(html).not.toContain("Visitors"); expect(html).not.toContain("Sales");
     });
     it("links a recent update by its encoded event key and marks only unread items visually", () => {
@@ -95,8 +95,8 @@ describe("owner Today presentation", () => {
     it("limits starting another owner-app draft while leaving existing drafts and visits accessible", () => {
         const html = renderToStaticMarkup(createElement(OwnerTodayView, { sites: [site("One"), site("Two"), site("Three")], visits: [], inbox: { items: [], unreadCount: 0 }, now: NOW }));
         expect(html).toContain("Finish one of your three drafts before adding another business.");
-        expect(html).toContain('href="/my-business/One"'); expect(html).toContain('href="/my-business/visits/new"');
-        expect(html).not.toContain('href="/v2/start"');
+        expect(html).toContain('href="/my-business/drafts/One"'); expect(html).toContain('href="/my-business/visits/new"');
+        expect(html).not.toContain('href="/my-business/drafts/new"');
     });
 });
 

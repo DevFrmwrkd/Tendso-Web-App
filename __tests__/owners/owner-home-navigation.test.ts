@@ -36,7 +36,7 @@ describe('owner business cards and navigation', () => {
             site('balance', { phase: 'awaiting_payment', amountPaid: 500, balanceDue: 4499 }),
             site('live', { phase: 'live', paidInFull: true, amountPaid: 4999, balanceDue: 0, publishedUrl: 'https://corner.example/' })];
         const found = links(renderToStaticMarkup(createElement(SiteList, { sites })));
-        expect(found.find(link => link.text === 'Finish setup')?.href).toBe('/my-business/draft');
+        expect(found.find(link => link.text === 'Finish setup')?.href).toBe('/my-business/drafts/draft');
         expect(found.find(link => link.text === 'Check preview')?.href).toBe('/my-business/preview');
         expect(found.find(link => link.text === 'Pay balance')?.href).toBe('/my-business/balance');
         const live = found.find(link => link.text === 'Open website');
@@ -59,7 +59,7 @@ describe('owner business cards and navigation', () => {
         expect(html).toContain('₱4,499'); expect(html).toContain('remaining');
         expect(html).not.toContain('Enquiries'); expect(html).not.toContain('Free edits for your first year');
         const empty = links(renderToStaticMarkup(createElement(NoSite)));
-        expect(empty.some(link => link.href === '/start')).toBe(true);
+        expect(empty.some(link => link.href === '/my-business/drafts/new')).toBe(true);
         expect(empty.some(link => link.href === '/contact')).toBe(true);
     });
 });

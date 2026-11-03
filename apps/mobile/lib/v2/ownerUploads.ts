@@ -17,7 +17,7 @@ export function uploadSlot(u: OwnerUpload): string {
 
 function current(u: OwnerUpload, scope = ownerIntake.scope()) {
   if (!ownerIntake.isCurrent(scope) || ownerIntake.get().submissionId !== u.submissionId) return undefined;
-  return ownerIntake.get().uploads?.find((v) => uploadSlot(v) === uploadSlot(u) && v.uri === u.uri);
+  return ownerIntake.get().uploads?.find((v) => uploadSlot(v) === uploadSlot(u) && v.uri === u.uri && !v.pausedByRemote);
 }
 
 function patchCurrent(u: OwnerUpload, patch: Partial<Pick<OwnerUpload, 'uploadedUrl' | 'saved'>>, scope = ownerIntake.scope()) {
@@ -27,7 +27,7 @@ function patchCurrent(u: OwnerUpload, patch: Partial<Pick<OwnerUpload, 'uploaded
 }
 
 function schedule(u: OwnerUpload, io: Uploads) {
-  if (u.saved) return;
+  if (u.saved || u.pausedByRemote) return;
   const scope = ownerIntake.scope();
   uploadQueue.ensure(`${uploadSlot(u)}:${u.uri}`, u.kind === 'answer' ? `Answer ${u.index + 1}` : u.label ?? 'Photo', async () => {
     await ownerIntake.flush();
@@ -84,7 +84,7 @@ export async function resumeOwnerUploads(id: SubmissionId, sub: OwnerSubmission 
     });
   }
   for (const u of ownerIntake.get().uploads ?? []) {
-    if (u.submissionId !== id || u.saved) continue;
+    if (u.submissionId !== id || u.saved || u.pausedByRemote) continue;
     const savedUrl = u.kind === 'photo'
       ? sub?.shots.find((s) => s.index === u.index && s.extra === u.extra)?.url
       : sub?.interview.find((a) => a.index === u.index)?.mediaUrl;

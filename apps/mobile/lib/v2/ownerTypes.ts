@@ -109,6 +109,11 @@ export type SaveShotArgs = {
 };
 
 export interface OwnerSubmission extends SiteSummary {
+  actorClerkId?: string;
+  ownerId?: string;
+  draftRevision?: number;
+  draftUpdatedAt?: number | null;
+  draftProgress?: OwnerDraftProgress | null;
   address: string;
   city: string;
   province: string | null;
@@ -124,6 +129,11 @@ export interface OwnerSubmission extends SiteSummary {
   ownerApprovedAt: number | null;
   previewReadyAt: number | null;
 }
+
+export type OwnerDraftProgress = {
+  step: 'details' | 'setup' | 'interview' | 'photos' | 'design' | 'review';
+  questionIndex?: number; photoIndex?: number; how?: 'self' | 'friend'; audioOnly?: boolean; lang?: 'en' | 'tl';
+};
 
 export type BuildStepKey = 'reading_interview' | 'writing_pages' | 'polishing_photos' | 'building_site';
 export type BuildStepStatus = 'pending' | 'running' | 'done' | 'failed';

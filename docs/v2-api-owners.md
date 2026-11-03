@@ -618,3 +618,53 @@ while a section loads or fails.
 
 This adds the web inbox, not browser push delivery. Admin dispatch and native
 agent acceptance continue through the existing visit workflow in section 10.
+
+## 14. Shared owner drafts
+
+Authenticated owners create and resume the same `owner_app` submission on
+mobile and web. Web entry is **Today → Add a business** at
+`/my-business/drafts/new`; **Finish setup** opens
+`/my-business/drafts/[submissionId]`. Anonymous campaign/giveaway intake keeps
+its existing browser-local flow and is not adopted by a different login.
+
+`getSubmission` includes `actorClerkId`, `ownerId`, `draftRevision` (legacy 0),
+`draftUpdatedAt` and `draftProgress`. The latter stores the canonical step
+(`details`, `setup`, `interview`, `photos`, `design`, `review`), optional question
+and photo cursors, filming choice, audio preference and interview language.
+Answers keep their original 0–10 indices and recordings. Photos keep their
+`(extra,index)` identities and labels; guided gaps and extras are not reindexed.
+The selected template and saved alternate picks remain attached to the draft.
+
+Draft writes accept `actorClerkId` and `expectedRevision`; successful writes
+increment and return `draftRevision`. `saveDraftProgress` requires the expected
+revision. Once a draft has a revision-aware write, unversioned old-client writes
+are refused. A stale revision produces `OWNER_DRAFT_CONFLICT`, leaving all
+stored content intact. Submission uses the reviewed revision too. Text-only
+answer changes preserve a recording; `clearMedia:true` explicitly removes it.
+
+Both clients serialize writes from acknowledged revisions. Mobile retains local
+upload journals and pauses older unfinished files when a newer cloud version
+arrives. Pending phone details, setup and design are retained separately for an
+explicit keep-saved/apply-phone choice; resolving those fields does not hide
+unfinished file recovery. Save and exit checkpoints dirty business details, setup and chosen
+design without submitting. Web uses an owner/business-scoped IndexedDB journal
+for pending text and file Blobs, plus an exclusive browser-tab Web Lock. A second
+tab, unavailable safe storage or a corrupt journal makes that browser view
+read-only rather than replacing pending work. Conflicts require an explicit
+choice between the saved version and applying the listed pending changes.
+
+Only uploaded, acknowledged media can appear on another device. Pending local
+files are retained on their originating device until sync finishes. The web UI
+shows pending sync separately from account-saved content. New-business retries
+use a stable actor-scoped creation key to avoid duplicate drafts after a lost
+response. Built/submitted businesses cannot reopen as editable intake drafts.
+
+## 15. Website changes remain team-managed
+
+Owner self-editing was retired on 2026-11-03 at the user's direction. Owners use
+**Ask for a change** to request website updates, including after publication.
+`/v2/my-site` returns to the owner workspace; `/api/owner-site`, owner-mode
+generation and legacy owner editor write/build/upload mutations refuse edits.
+Owned historical editor snapshots remain read-only. Admin/internal generation
+continues through its existing authorized paths. Draft intake selection is
+separate: choosing a design before sending a business does not edit a website.

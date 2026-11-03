@@ -17,34 +17,19 @@ import { needsCloudflareWorker } from '../lib/publish-target';
 import { ownerAppPublishBlockReason } from './lib/ownerAuth';
 
 /**
- * Owner editing (v2): a signed-in shop owner changes the design, font, colours,
- * texts, photos and sections of THEIR OWN site, and publishes the result.
+ * Historical owner editor storage. Website changes are now handled through
+ * Ask for a change. Read access is retained for the linked owner's saved
+ * snapshots; every editor write, upload and build is blocked server-side.
  *
- * Nothing here is a second editor. The draft is the admin editor's draft
- * (`extractedContent` + `customizations`); the site is rebuilt by the same
- * route the admin's Save uses (app/api/generate-website, owner mode) and the
- * result is committed to the same `generatedWebsites` row. What is different is
- * WHO may do it and WHAT they may change:
- *
- *   · Every function re-checks, server-side, that the caller's Clerk identity is
- *     a `businessOwners` row linked to THIS submission through
- *     `websiteOwnerships`. A guessed id is never enough; a stranger gets the
- *     same "we could not find that website" as a missing site.
- *   · The owner's draft lives in its own table (`ownerSiteDrafts`) and never
- *     touches the live site until Publish. lib/ownerSiteEdits.ts decides what
- *     survives the round trip (plain text, a closed design vocabulary, the
- *     shop's facts and the essential sections untouchable).
- *   · The HTML itself can only come from our build route: `commitBuild` needs a
- *     signature (lib/ownerBuildProof.ts) that only a server holding
- *     INTERNAL_API_SECRET can make.
- *
- * A site that is not live yet (an owner who made it in the app and has not paid)
- * keeps being a private preview: the edit is built and stored, never published.
- * A live site is republished at once, exactly like the admin Save.
+ * The historical draft and upload rows are retained. Every endpoint checks
+ * ownership before reporting policy, so guessed IDs still reveal nothing.
+ * Keeping the write gate inside the ownership boundary also blocks stale
+ * tabs, pre-existing upload tickets and builds signed before retirement.
  */
 
 const NOT_FOUND = 'We could not find that website.';
 const SIGN_IN = 'Please sign in again.';
+const CHANGES_BY_REQUEST = 'To update your website, use Ask for a change in your business workspace. The Tendso team will make the changes for you.';
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 
@@ -64,7 +49,7 @@ async function ownerForClerkId(ctx: DbCtx, clerkId: string): Promise<Doc<'busine
  * (Same link `businessOwners.requireOwnership` checks; kept local so this file
  * does not depend on that one's exports.)
  */
-async function requireOwnedSite(ctx: DbCtx, submissionId: Id<'submissions'>, clerkId?: string) {
+async function requireOwnedSite(ctx: DbCtx, submissionId: Id<'submissions'>, clerkId?: string, access: 'read' | 'write' = 'read') {
     let subject = clerkId;
     if (!subject) {
         const identity = await ctx.auth.getUserIdentity();
@@ -85,6 +70,7 @@ async function requireOwnedSite(ctx: DbCtx, submissionId: Id<'submissions'>, cle
         .withIndex('by_submissionId', (q) => q.eq('submissionId', submissionId))
         .first();
     if (!website) throw new ConvexError('Your website is not built yet.');
+    if (access === 'write') throw new ConvexError(CHANGES_BY_REQUEST);
     return { owner, submission, website };
 }
 
@@ -170,7 +156,7 @@ export const getEditorState = query({
 export const getDraftForBuild = query({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
-        const { submission, website } = await requireOwnedSite(ctx, args.submissionId);
+        const { submission, website } = await requireOwnedSite(ctx, args.submissionId, undefined, 'write');
         const draft = await draftFor(ctx, args.submissionId);
         return {
             content: draft?.content ?? website.extractedContent ?? {},
@@ -200,7 +186,7 @@ export const saveDraft = mutation({
         customizations: v.any(),
     },
     handler: async (ctx, args) => {
-        const { owner, website } = await requireOwnedSite(ctx, args.submissionId);
+        const { owner, website } = await requireOwnedSite(ctx, args.submissionId, undefined, 'write');
         let cleaned;
         try {
             cleaned = cleanOwnerDraft(
@@ -239,7 +225,7 @@ export const saveDraft = mutation({
 export const discardDraft = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
-        await requireOwnedSite(ctx, args.submissionId);
+        await requireOwnedSite(ctx, args.submissionId, undefined, 'write');
         const existing = await draftFor(ctx, args.submissionId);
         if (existing) await ctx.db.delete(existing._id);
         return { ok: true };
@@ -263,7 +249,7 @@ export const generateUploadUrl = action({
 export const createUploadTicket = internalMutation({
     args: { submissionId: v.id('submissions'), clerkId: v.string(), token: v.string() },
     handler: async (ctx, args) => {
-        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId, 'write');
         await ctx.db.insert('ownerSiteUploads', {
             submissionId: args.submissionId, businessOwnerId: owner._id,
             token: args.token, expiresAt: Date.now() + 10 * 60_000,
@@ -280,7 +266,7 @@ export const consumeUpload = internalMutation({
         if (!ticket || !ticket.expiresAt || ticket.expiresAt < Date.now()) throw new ConvexError(NOT_FOUND);
         const owner = await ctx.db.get(ticket.businessOwnerId);
         if (!owner) throw new ConvexError(NOT_FOUND);
-        await requireOwnedSite(ctx, ticket.submissionId, owner.clerkId);
+        await requireOwnedSite(ctx, ticket.submissionId, owner.clerkId, 'write');
         await ctx.db.delete(ticket._id);
         return { submissionId: ticket.submissionId, clerkId: owner.clerkId };
     },
@@ -289,7 +275,7 @@ export const consumeUpload = internalMutation({
 export const recordUpload = internalMutation({
     args: { submissionId: v.id('submissions'), clerkId: v.string(), storageId: v.id('_storage') },
     handler: async (ctx, args) => {
-        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+        const { owner } = await requireOwnedSite(ctx, args.submissionId, args.clerkId, 'write');
         await ctx.db.insert('ownerSiteUploads', {
             submissionId: args.submissionId, businessOwnerId: owner._id, storageId: args.storageId,
         });
@@ -325,7 +311,7 @@ export const receiveUpload = httpAction(async (ctx, request) => {
 export const registerUpload = mutation({
     args: { submissionId: v.id('submissions'), storageId: v.id('_storage') },
     handler: async (ctx, args): Promise<{ ok: true; url: string } | { ok: false; message: string }> => {
-        const { owner } = await requireOwnedSite(ctx, args.submissionId);
+        const { owner } = await requireOwnedSite(ctx, args.submissionId, undefined, 'write');
         const upload = await ctx.db.query('ownerSiteUploads')
             .withIndex('by_storage', (q) => q.eq('storageId', args.storageId)).unique();
         if (!upload || upload.businessOwnerId !== owner._id || upload.submissionId !== args.submissionId) {
@@ -355,9 +341,10 @@ export const ownerCanEditInternal = internalQuery({
     args: { clerkId: v.string(), submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
         try {
-            await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+            await requireOwnedSite(ctx, args.submissionId, args.clerkId, 'write');
             return true;
-        } catch {
+        } catch (error) {
+            if (error instanceof ConvexError && error.data === CHANGES_BY_REQUEST) throw error;
             return false;
         }
     },
@@ -416,7 +403,7 @@ export const applyBuild = internalMutation({
         draftUpdatedAt: v.number(),
     },
     handler: async (ctx, args) => {
-        const { owner, submission, website } = await requireOwnedSite(ctx, args.submissionId, args.clerkId);
+        const { owner, submission, website } = await requireOwnedSite(ctx, args.submissionId, args.clerkId, 'write');
         const draft = await draftFor(ctx, args.submissionId);
         // The page was built from one version of the draft. If the owner kept
         // typing while it built, committing the newer draft over an older page

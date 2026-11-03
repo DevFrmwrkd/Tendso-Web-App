@@ -345,6 +345,19 @@ export default defineSchema({
         // ==================== OWNER APP v2 (2026-10-21, additive) ====================
         // A retry-safe setup reference, scoped through the signed-in owner's links.
         ownerClientDraftKey: v.optional(v.string()),
+        // Shared owner setup: compare-and-set writes protect work resumed on
+        // another device. Legacy drafts start at revision 0 until first write.
+        ownerDraftRevision: v.optional(v.number()),
+        ownerDraftRevisionRequired: v.optional(v.boolean()),
+        ownerDraftUpdatedAt: v.optional(v.number()),
+        ownerDraftProgress: v.optional(v.object({
+            step: v.union(v.literal('details'), v.literal('setup'), v.literal('interview'), v.literal('photos'), v.literal('design'), v.literal('review')),
+            questionIndex: v.optional(v.number()),
+            photoIndex: v.optional(v.number()),
+            how: v.optional(v.union(v.literal('self'), v.literal('friend'))),
+            audioOnly: v.optional(v.boolean()),
+            lang: v.optional(v.union(v.literal('en'), v.literal('tl'))),
+        })),
         // Written only by convex/ownerApp.ts (contentSource 'owner_app'), the
         // build-progress contract (convex/buildProgress.ts) and the payment
         // path (convex/ownerPayments.ts + payments.creditCreatorForPayment).

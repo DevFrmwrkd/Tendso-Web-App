@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, ChevronRight, Globe, Mail, Plus, Sparkles, Store, Wallet } from "lucide-react";
 import { OwnerPageHeader } from "@/components/shells/OwnerShell";
-import { ownerPhaseStatus, type OwnerSite } from "../../_components/ownerSite";
+import { ownerPhaseStatus, ownerWorkspaceHref, type OwnerSite } from "../../_components/ownerSite";
 import { hasLiveBalance, ownerTodayAction, ownerTodayFocus, ownerTodayGreeting, ownerTodayModel, ownerTodayPeso, ownerTodayPhase,
     ownerVisitLabel, ownerVisitSchedule, type OwnerTodayInbox, type OwnerTodayVisit } from "./ownerTodayModel";
 import styles from "./OwnerToday.module.css";
@@ -18,12 +18,12 @@ export type OwnerTodayViewProps = {
 export function OwnerTodayView({ name, sites, visits, inbox, preview = false, now, hrefForBusiness, hrefForVisit,
     inboxHref, requestVisitHref, businessesHref, addBusinessHref, visitsHref }: OwnerTodayViewProps) {
     const model = ownerTodayModel(sites, visits ?? [], now);
-    const businessHref = hrefForBusiness ?? (site => preview ? `/admin/preview/owner#business-${site.submissionId}` : `/my-business/${site.submissionId}`);
+    const businessHref = hrefForBusiness ?? (site => preview ? `/admin/preview/owner#business-${site.submissionId}` : ownerWorkspaceHref(site));
     const visitHref = hrefForVisit ?? (visit => preview ? `/admin/preview/owner#visit-${visit._id}` : `/my-business/visits/${visit._id}`);
     const updatesHref = inboxHref ?? (preview ? "/admin/preview/owner#notifications" : "/my-business/notifications");
     const allBusinessesHref = businessesHref ?? (preview ? "/admin/preview/owner#businesses" : "/my-business");
     const requestHref = requestVisitHref ?? (preview ? "/admin/preview/owner#request-visit" : "/my-business/visits/new");
-    const addHref = addBusinessHref ?? (preview ? "/admin/preview/owner#add-business" : "/v2/start");
+    const addHref = addBusinessHref ?? (preview ? "/admin/preview/owner#add-business" : "/my-business/drafts/new");
     const allVisitsHref = visitsHref ?? (preview ? "/admin/preview/owner#visits" : "/my-business/visits");
     const { primary, todayVisit, nextVisit, attention, remaining, openDrafts } = model;
     const firstName = name?.trim().split(/\s+/)[0];

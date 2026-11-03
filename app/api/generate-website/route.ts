@@ -71,6 +71,16 @@ export async function POST(request: NextRequest) {
             }
             token = sessionToken
 
+            // Old owner-editor clients cannot build or publish around the
+            // workspace's Ask for a change flow. Admin and pipeline builds keep
+            // their existing authorization below.
+            if (body?.asOwner === true) {
+                return NextResponse.json({
+                    code: 'OWNER_WEBSITE_CHANGES_BY_REQUEST',
+                    error: 'To update your website, use Ask for a change in your business workspace. The Tendso team will make the changes for you.',
+                }, { status: 403 })
+            }
+
             if (body?.asOwner === true) {
                 if (!body.submissionId) {
                     return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })

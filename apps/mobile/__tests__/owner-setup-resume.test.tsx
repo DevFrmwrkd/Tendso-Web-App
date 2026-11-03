@@ -12,6 +12,7 @@ import type { OwnerSubmission, SubmissionId } from '../lib/v2/ownerTypes';
 
 const mockPush = jest.fn(); const mockReplace = jest.fn(); const mockBack = jest.fn();
 const mockDismissTo = jest.fn(); const mockCreate = jest.fn(); const mockUpdate = jest.fn();
+const mockProgress = jest.fn();
 let mockSubject = 'owner-a';
 let mockSite: OwnerSubmission | null;
 let mockDraft: OwnerSubmission | undefined;
@@ -22,6 +23,10 @@ jest.mock('react-native-webview', () => ({ WebView: 'WebView' }));
 jest.mock('react-native-maps', () => ({ __esModule: true, default: 'MapView', Marker: 'Marker', PROVIDER_GOOGLE: 'google' }));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: mockSubject }) }));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: true }) }));
+// Navigation deduping has its own tests; its module-wide 700 ms window must not span independent flow cases.
+jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack, dismissTo: mockDismissTo }) }));
+jest.mock('../lib/v2/ownerInbox', () => ({ useOwnerInbox: (ownerId: string) => ({ ownerId, actorClerkId: mockSubject, unreadCount: 0, items: [] }) }));
+jest.mock('../lib/v2/visitRequests', () => ({ useOwnerVisitRequests: () => [], visitSchedule: () => '', visitStatusLabel: (status: string) => status }));
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack, dismissTo: mockDismissTo,
@@ -36,6 +41,7 @@ jest.mock('../lib/v2/useOwnerSite', () => ({
 jest.mock('../lib/v2/ownerData', () => ({
   useOwnerSubmission: (id: string | null) => id && mockDraft?.submissionId === id ? mockDraft : undefined,
   useCreateDraft: () => mockCreate, useUpdateDraft: () => mockUpdate,
+  useSaveDraftProgress: () => mockProgress,
   usePreview: () => undefined,
 }));
 
@@ -56,6 +62,7 @@ function deferred() {
 function destination(screen: ReturnType<typeof wrap>) { return screen.getByTestId('owner-resume-destination').props.href; }
 beforeEach(async () => {
   jest.clearAllMocks(); mockSubject = 'owner-a'; mockHistory = []; mockDraft = draft(); mockSite = mockDraft;
+  mockProgress.mockResolvedValue({ draftRevision: 1 });
   await ownerIntake.bindActor(mockSubject);
   ownerIntake.clear(); ownerIntake.set({ submissionId: id, kind: 'barber', businessName: 'Ben Barber', address: '12 Main Street', city: 'Marikina' });
   await ownerIntake.flush();
@@ -190,15 +197,19 @@ it('counts local answer and photo uploads consistently from restart and Today', 
   const screen = wrap(<OwnerIndex />);
   expect(destination(screen)).toBe(STEP_ROUTE.design);
   screen.rerender(<SafeAreaProvider initialMetrics={metrics}><Today /></SafeAreaProvider>);
-  fireEvent.press(screen.getByRole('button', { name: 'Keep going' }));
-  expect(mockPush).toHaveBeenCalledWith(STEP_ROUTE.design);
+  fireEvent.press(screen.getByRole('button', { name: 'Continue setup' }));
+  expect(mockPush).toHaveBeenCalledWith('/(owner)');
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><OwnerIndex /></SafeAreaProvider>);
+  expect(destination(screen)).toBe(STEP_ROUTE.design);
 });
 
 it.each([true, false])('Today uses the same draft-specific setup confirmation (confirmed: %s)', (confirmed) => {
   ownerIntake.set({ how: 'self', ...(confirmed ? { howConfirmedFor: id } : {}) });
   const screen = wrap(<Today />);
-  fireEvent.press(screen.getByRole('button', { name: 'Keep going' }));
-  expect(mockPush).toHaveBeenCalledWith(confirmed ? STEP_ROUTE['talk-intro'] : STEP_ROUTE.how);
+  fireEvent.press(screen.getByRole('button', { name: 'Continue setup' }));
+  expect(mockPush).toHaveBeenCalledWith('/(owner)');
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><OwnerIndex /></SafeAreaProvider>);
+  expect(destination(screen)).toBe(confirmed ? STEP_ROUTE['talk-intro'] : STEP_ROUTE.how);
 });
 
 it.each(['edited details', 'changed kind'])('restores pending shop details before resuming the interview after %s', (change) => {
@@ -207,8 +218,10 @@ it.each(['edited details', 'changed kind'])('restores pending shop details befor
   const screen = wrap(<OwnerIndex />);
   expect(destination(screen)).toBe(STEP_ROUTE.place);
   screen.rerender(<SafeAreaProvider initialMetrics={metrics}><Today /></SafeAreaProvider>);
-  fireEvent.press(screen.getByRole('button', { name: 'Keep going' }));
-  expect(mockPush).toHaveBeenCalledWith(STEP_ROUTE.place);
+  fireEvent.press(screen.getByRole('button', { name: 'Continue setup' }));
+  expect(mockPush).toHaveBeenCalledWith('/(owner)');
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><OwnerIndex /></SafeAreaProvider>);
+  expect(destination(screen)).toBe(STEP_ROUTE.place);
 });
 
 it('allows a cold-start Back chain from questions through setup to the business type', () => {

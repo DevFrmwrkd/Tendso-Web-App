@@ -1,5 +1,5 @@
 /** The owner workspace shares Clerk and account-role resolution with the app. */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
@@ -14,6 +14,7 @@ import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { colors } from '../../theme/v2';
 import { CreatorAttributionGate } from '../../components/CreatorAttributionGate';
 import { OwnerNotificationBridge, unregisterOwnerPush } from '../../components/v2/owner/OwnerNotificationBridge';
+import { OwnerDraftRecovery } from '../../components/v2/owner/OwnerDraftRecovery';
 import { useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
 
@@ -43,11 +44,12 @@ export default function OwnerLayout() {
   // A deep link cannot turn a field agent, creator or admin into an owner.
   if (!OWNER_SAMPLE_DATA && (account.account || account.role)) return <Redirect href="/(app)/(tabs)/" />;
   return <OwnerAccount key={`${auth.userId ?? 'sample-owner'}:${auth.sessionId ?? ''}`}
-    actorId={OWNER_SAMPLE_DATA ? 'sample-owner' : auth.userId!} signOut={auth.signOut} offline={account.isOffline} />;
+    actorId={OWNER_SAMPLE_DATA ? 'sample-owner' : auth.userId!} sessionId={auth.sessionId} signOut={auth.signOut} offline={account.isOffline} />;
 }
 
-function OwnerAccount({ actorId, signOut, offline }: {
+function OwnerAccount({ actorId, sessionId, signOut, offline }: {
   actorId: string;
+  sessionId?: string | null;
   signOut: ReturnType<typeof useAuth>['signOut'];
   offline: boolean;
 }) {
@@ -69,10 +71,10 @@ function OwnerAccount({ actorId, signOut, offline }: {
   const membership = me ? `${me.owner._id}:${me.sites.map(site => site.submissionId).sort().join(',')}` : null;
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     let active = true;
     setIntakeReady(false);
-    const binding = ownerIntake.bindActor(actorId);
+    const binding = ownerIntake.bindActor(actorId, sessionId);
     const scope = ownerIntake.scope();
     void binding.then(() => {
       if (active && ownerIntake.isCurrent(scope)) setIntakeReady(true);
@@ -80,7 +82,7 @@ function OwnerAccount({ actorId, signOut, offline }: {
       if (active && ownerIntake.isCurrent(scope)) setError('We could not load your saved progress. Please try again.');
     });
     return () => { active = false; };
-  }, [actorId, attempt]);
+  }, [actorId, sessionId, attempt]);
 
   useEffect(() => {
     if (!intakeReady || !me || !membership) return;
@@ -161,7 +163,7 @@ function OwnerAccount({ actorId, signOut, offline }: {
   const cam = { gestureEnabled: false, animation: 'fade' as const, presentation: 'fullScreenModal' as const };
   return <>
     <CreatorAttributionGate enabled={!OWNER_SAMPLE_DATA} claimAs="owner" />
-    <UploadRecovery />
+    <OwnerDraftRecovery><UploadRecovery />
     {!OWNER_SAMPLE_DATA?<OwnerNotificationBridge ownerId={me.owner._id} subject={actorId}/>:null}
     <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
       <Stack.Screen name="talk/record" options={cam} />
@@ -169,5 +171,6 @@ function OwnerAccount({ actorId, signOut, offline }: {
       <Stack.Screen name="building" options={{ gestureEnabled: false }} />
       <Stack.Screen name="live" options={{ gestureEnabled: false }} />
     </Stack>
+    </OwnerDraftRecovery>
   </>;
 }

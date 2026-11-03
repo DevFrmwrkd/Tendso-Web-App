@@ -207,9 +207,10 @@ describe('owner self-serve submission', () => {
         // Double tap: no second lead, no second kick-off.
         await owner.mutation(api.ownerApp.submit, { submissionId: id });
         expect(await t.run((ctx) => ctx.db.query('leads').collect())).toHaveLength(1);
-        // Font and colour can come later.
-        await owner.mutation(api.ownerApp.setStyle, { submissionId: id, fontChoice: 'modern', colorChoice: 'forest' });
-        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ fontChoice: 'modern', colorChoice: 'forest' });
+        // Sent websites use Ask for a change, rather than changing saved design inputs.
+        await expect(owner.mutation(api.ownerApp.setStyle, { submissionId: id, fontChoice: 'modern', colorChoice: 'forest' }))
+            .rejects.toThrow('already sent');
+        expect(await t.run((ctx) => ctx.db.get(id))).not.toMatchObject({ fontChoice: 'modern', colorChoice: 'forest' });
     });
 
     it('rejects foreign uploads, other owners and incomplete drafts', async () => {

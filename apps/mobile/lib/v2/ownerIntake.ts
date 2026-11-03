@@ -1,13 +1,13 @@
 /**
- * What the owner chose on the start screens that the server does not keep
- * (who holds the phone, voice only, language), plus the answers before the draft
- * exists. Saved on the phone so a closed app resumes where it was.
+ * Per-owner local cache of the shared draft and the files still uploading from
+ * this phone. Cloud revisions protect a web edit from an older device journal.
  */
 import { useSyncExternalStore } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SellKindId } from './ownerContent';
 import type { Lang } from './captureContent';
-import type { SubmissionId } from './ownerTypes';
+import type { OwnerDraftProgress, OwnerSubmission, SubmissionId } from './ownerTypes';
+import { sellKindFromServer } from './ownerContent';
 import { uploadQueue } from './uploadQueue';
 
 /** Serializable upload journal. Keep successful entries until submit so a stale
@@ -18,10 +18,14 @@ export type OwnerUpload = {
   uri: string;
   uploadedUrl?: string;
   saved?: boolean;
+  /** Kept on this phone after another device changes the draft; never replay automatically. */
+  pausedByRemote?: boolean;
 } & (
   | { kind: 'photo'; extra: boolean; label?: string }
   | { kind: 'answer'; mediaType: 'video' | 'audio'; lang: Lang; durationSec: number }
 );
+
+export type OwnerPendingMetadata = Partial<Pick<OwnerIntake, 'businessName' | 'address' | 'city' | 'coordinates' | 'kind' | 'design' | 'how' | 'audioOnly' | 'lang' | 'draftProgress'>>;
 
 export interface OwnerIntake {
   /** The name typed on the sign-up screen (sent with owners.ensure). */
@@ -50,18 +54,30 @@ export interface OwnerIntake {
   uploads?: OwnerUpload[];
   /** The design picked (template code). */
   design?: string;
+  /** Last server acknowledgement, scoped to this business. Never infer it from local timestamps. */
+  draftRevision?: number;
+  draftProgress?: OwnerDraftProgress;
+  syncNotice?: string;
+  /** Recoverable phone edits, kept apart from the displayed cloud version until an explicit choice. */
+  remoteConflictMetadata?: OwnerPendingMetadata;
+  applyingPhoneMetadata?: boolean;
+  draftMetadataBase?: OwnerPendingMetadata;
 }
 
 const KEY = 'tendso_owner_intake_v1';
 const actorKey = (id: string | null) => `tendso_owner_intake_v2:${id ? encodeURIComponent(id) : 'guest'}`;
 let actor: string | null = null;
+let session: string | null | undefined;
 let generation = 0;
 let state: OwnerIntake = {};
 let loaded = false;
 let loading: Promise<OwnerIntake> | undefined;
 type BusinessDraft = Pick<OwnerIntake, 'kind' | 'businessName' | 'address' | 'city' | 'coordinates' | 'detailsDirty'
-  | 'how' | 'howConfirmedFor' | 'audioOnly' | 'lang' | 'shots' | 'design'>;
+  | 'how' | 'howConfirmedFor' | 'audioOnly' | 'lang' | 'shots' | 'design' | 'draftRevision' | 'draftProgress' | 'syncNotice'
+  | 'remoteConflictMetadata' | 'applyingPhoneMetadata' | 'draftMetadataBase'>;
 let businesses = new Map<string, BusinessDraft>();
+const hydrated = new Set<string>();
+const writing = new Map<string, number>();
 let pendingBusiness: BusinessDraft & { newBusinessKey?: string } = {};
 let previousBusinessId: SubmissionId | undefined;
 // A successful create is authoritative, but the reactive business list may render
@@ -80,6 +96,8 @@ function businessFields(value: OwnerIntake): BusinessDraft {
     coordinates: value.coordinates, detailsDirty: value.detailsDirty, how: value.how,
     howConfirmedFor: value.howConfirmedFor, audioOnly: value.audioOnly, lang: value.lang,
     shots: value.shots, design: value.design,
+    draftRevision: value.draftRevision, draftProgress: value.draftProgress, syncNotice: value.syncNotice,
+    remoteConflictMetadata: value.remoteConflictMetadata, applyingPhoneMetadata: value.applyingPhoneMetadata, draftMetadataBase: value.draftMetadataBase,
   };
 }
 
@@ -117,13 +135,20 @@ function activateBusiness(id: SubmissionId) {
 export const ownerIntake = {
   /** Bind before rendering capture or resuming jobs. Never carry a draft to a
    * different login; anonymous signup contributes only the typed name. */
-  async bindActor(id: string | null): Promise<OwnerIntake> {
+  async bindActor(id: string | null, sessionId?: string | null): Promise<OwnerIntake> {
+    if (actor === id && sessionId !== undefined && session !== sessionId) {
+      session = sessionId;
+      hydrated.clear(); invalidateWorkspace(); emit();
+    }
     if (actor !== id) {
       const name = actor === null && id ? state.ownerName : undefined;
       actor = id;
+      session = sessionId;
       generation += 1;
       state = name ? { ownerName: name } : {};
       businesses = new Map(); pendingBusiness = {}; previousBusinessId = undefined; awaitingBusinessId = undefined;
+      hydrated.clear();
+      writing.clear();
       loaded = false;
       loading = undefined;
       uploadQueue.reset();
@@ -136,6 +161,7 @@ export const ownerIntake = {
     return this.load();
   },
   scope(): number { return generation; },
+  actor(): string | null { return actor; },
   isCurrent(scope: number): boolean { return scope === generation; },
   get(): OwnerIntake {
     return state;
@@ -200,7 +226,7 @@ export const ownerIntake = {
     if (patch.submissionId && state.newBusiness) {
       // The just-created server draft adopts this fresh workspace's own fields.
       rememberActive();
-      state = { ...state, newBusiness: undefined, newBusinessKey: undefined };
+      state = { ...state, draftRevision: businesses.get(patch.submissionId)?.draftRevision, newBusiness: undefined, newBusinessKey: undefined };
       pendingBusiness = {};
       awaitingBusinessId = patch.submissionId;
       invalidateWorkspace();
@@ -230,6 +256,118 @@ export const ownerIntake = {
   previousBusiness(): SubmissionId | undefined { return previousBusinessId; },
   isAwaitingBusiness(id: SubmissionId | undefined): boolean { return !!id && awaitingBusinessId === id; },
   confirmBusiness(id: SubmissionId) { if (awaitingBusinessId === id) awaitingBusinessId = undefined; },
+  revision(id: SubmissionId): number | undefined { return state.submissionId === id ? state.draftRevision : businesses.get(id)?.draftRevision; },
+  isHydrated(id: SubmissionId): boolean { return hydrated.has(id); },
+  usePausedUploads(id: SubmissionId) {
+    if (state.submissionId !== id || !hydrated.has(id)) return;
+    const shots = [...(state.shots ?? [])];
+    const uploads = state.uploads?.map(upload => {
+      if (upload.submissionId !== id || !upload.pausedByRemote) return upload;
+      if (upload.kind === 'photo' && !upload.extra) shots[upload.index] = upload.uri;
+      return { ...upload, pausedByRemote: undefined };
+    });
+    this.set({ uploads, shots, syncNotice: undefined });
+  },
+  keepCloudMetadata(id: SubmissionId) {
+    if (state.submissionId === id) this.set({ remoteConflictMetadata: undefined, applyingPhoneMetadata: undefined, syncNotice: undefined,
+      uploads: state.uploads?.filter(upload => upload.submissionId !== id || !upload.pausedByRemote) });
+  },
+  usePhoneMetadata(id: SubmissionId) {
+    if (state.submissionId !== id || !hydrated.has(id) || !state.remoteConflictMetadata) return;
+    const metadata = state.remoteConflictMetadata;
+    const fields = (['businessName', 'address', 'city', 'coordinates'] as const).filter(key => key in metadata);
+    this.set({ ...metadata, detailsDirty: fields.length ? fields : state.detailsDirty,
+      ...(metadata.how ? { howConfirmedFor: id } : {}), applyingPhoneMetadata: true, syncNotice: undefined });
+  },
+  finishPhoneMetadata(id: SubmissionId, scope: number) {
+    if (state.submissionId === id && this.isCurrent(scope) && state.applyingPhoneMetadata) this.set({ remoteConflictMetadata: undefined, applyingPhoneMetadata: undefined });
+  },
+  beginWrite(id: SubmissionId) { const key = `${generation}:${id}`; writing.set(key, (writing.get(key) ?? 0) + 1); },
+  finishWrite(id: SubmissionId, scope: number) {
+    const key = `${scope}:${id}`; const left = Math.max(0, (writing.get(key) ?? 1) - 1);
+    if (left) writing.set(key, left); else writing.delete(key);
+    if (this.isCurrent(scope)) { state = { ...state }; emit(); }
+  },
+  /** Fresh create has revision zero; this also seeds the first guarded details save before attachment. */
+  primeRevision(id: SubmissionId, revision: number) {
+    businesses.set(id, { ...businesses.get(id), draftRevision: revision });
+  },
+  acknowledge(id: SubmissionId, revision: number, scope: number, args?: Record<string, unknown>) {
+    if (!this.isCurrent(scope) || !Number.isSafeInteger(revision) || revision < 0) return;
+    const before = this.revision(id);
+    if (before !== undefined && revision < before) return;
+    businesses.set(id, { ...businesses.get(id), draftRevision: revision });
+    if (state.submissionId === id) {
+      const base = { ...state.draftMetadataBase };
+      if (args) {
+        for (const key of ['businessName', 'address', 'city', 'coordinates'] as const) if (key in args) Object.assign(base, { [key]: args[key] });
+        if (typeof args.businessType === 'string') base.kind = sellKindFromServer(args.businessType, typeof args.shotListKey === 'string' ? args.shotListKey : undefined).id;
+        if (typeof args.templateId === 'string') base.design = args.templateId;
+        if (args.progress && typeof args.progress === 'object') {
+          const progress = args.progress as OwnerDraftProgress;
+          base.draftProgress = progress; base.how = progress.how; base.audioOnly = progress.audioOnly; base.lang = progress.lang;
+        }
+      }
+      state = { ...state, draftRevision: revision, draftMetadataBase: base }; emit(); persist();
+    }
+  },
+  /** Canonical snapshots replace stale device caches, while unsent files remain recoverable locally. */
+  restoreDraft(draft: OwnerSubmission): boolean {
+    const id = draft.submissionId;
+    if (state.submissionId !== id || draft.phase !== 'draft' || draft.actorClerkId && draft.actorClerkId !== actor) return false;
+    const revision = draft.draftRevision ?? 0;
+    const previous = state.draftRevision;
+    if (previous !== undefined && revision < previous) return false; // Query may lag a mutation acknowledgement.
+    if (hydrated.has(id) && previous === revision) return true;
+    if (previous !== undefined && revision > previous && (writing.get(`${generation}:${id}`) ?? 0) > 0) return false;
+    const changedElsewhere = previous !== undefined ? revision > previous : revision > 0
+      && (!!state.detailsDirty?.length || !!state.shots?.some(Boolean) || !!state.uploads?.some(upload => upload.submissionId === id));
+    const preserveLocal = !changedElsewhere && (previous === revision || previous === undefined && revision === 0);
+    const metadataBase = state.draftMetadataBase;
+    const pendingMetadata: OwnerPendingMetadata = { ...state.remoteConflictMetadata };
+    if (changedElsewhere) {
+      for (const key of state.detailsDirty ?? []) Object.assign(pendingMetadata, { [key]: state[key] });
+      for (const key of ['kind', 'design', 'how', 'audioOnly', 'lang', 'draftProgress'] as const) {
+        if (state[key] !== undefined && (!metadataBase || JSON.stringify(state[key]) !== JSON.stringify(metadataBase[key])))
+          Object.assign(pendingMetadata, { [key]: state[key] });
+      }
+    }
+    const uploads = (state.uploads ?? []).map(upload => {
+      if (upload.submissionId !== id) return upload;
+      const remoteUrl = upload.kind === 'photo' ? draft.shots.find(shot => shot.index === upload.index && shot.extra === upload.extra)?.url
+        : draft.interview.find(answer => answer.index === upload.index)?.mediaUrl;
+      if (upload.uploadedUrl && remoteUrl === upload.uploadedUrl) return { ...upload, saved: true, pausedByRemote: undefined };
+      return changedElsewhere && !upload.saved ? { ...upload, pausedByRemote: true } : upload;
+    });
+    // Legacy pre-journal files also remain on this device, but cannot replace cloud photos after a remote edit.
+    if (changedElsewhere) state.shots?.forEach((uri, index) => {
+      if (uri && !/^https?:\/\//.test(uri) && !uploads.some(upload => upload.submissionId === id && upload.kind === 'photo' && !upload.extra && upload.index === index))
+        uploads.push({ kind: 'photo', submissionId: id, index, uri, extra: false, pausedByRemote: true });
+    });
+    const shots: (string | null)[] = [];
+    draft.shots.filter(shot => !shot.extra).forEach(shot => { shots[shot.index] = shot.url; });
+    uploads.forEach(upload => { if (upload.submissionId === id && upload.kind === 'photo' && !upload.extra && !upload.saved && !upload.pausedByRemote) shots[upload.index] = upload.uri; });
+    const progress = draft.draftProgress ?? undefined;
+    const localDetails = preserveLocal && state.detailsDirty?.length ? Object.fromEntries(state.detailsDirty.map(key => [key, state[key]])) : {};
+    state = { ...state, ...localDetails, kind: preserveLocal && state.kind ? state.kind : sellKindFromServer(draft.businessType, draft.shotListKey).id,
+      businessName: draft.businessName, address: draft.address, city: draft.city, coordinates: draft.coordinates ?? undefined, ...localDetails,
+      detailsDirty: preserveLocal ? state.detailsDirty : undefined,
+      how: preserveLocal && state.howConfirmedFor === id ? state.how : progress?.how ?? state.how,
+      howConfirmedFor: progress?.how || preserveLocal && state.howConfirmedFor === id ? id : undefined,
+      audioOnly: preserveLocal ? state.audioOnly ?? progress?.audioOnly : progress?.audioOnly,
+      lang: preserveLocal ? state.lang ?? progress?.lang : progress?.lang,
+      design: preserveLocal ? state.design ?? draft.templateId ?? undefined : draft.templateId ?? undefined,
+      shots, uploads, draftRevision: revision, draftProgress: progress,
+      draftMetadataBase: { businessName: draft.businessName, address: draft.address, city: draft.city, coordinates: draft.coordinates ?? undefined,
+        kind: sellKindFromServer(draft.businessType, draft.shotListKey).id, design: draft.templateId ?? undefined,
+        how: progress?.how, audioOnly: progress?.audioOnly, lang: progress?.lang, draftProgress: progress },
+      remoteConflictMetadata: Object.keys(pendingMetadata).length ? pendingMetadata : undefined,
+      applyingPhoneMetadata: changedElsewhere ? undefined : state.applyingPhoneMetadata,
+      syncNotice: changedElsewhere ? 'A newer version of this draft is saved. We loaded it and kept this phone’s unfinished uploads separate so they cannot replace your saved changes.' : state.syncNotice };
+    if (changedElsewhere) invalidateWorkspace();
+    hydrated.add(id); emit(); persist();
+    return true;
+  },
   /** The caller validates the destination against the latest owned sites. */
   cancelNewBusiness(fallbackId?: SubmissionId) {
     if (!state.newBusiness) return;
@@ -249,6 +387,7 @@ export const ownerIntake = {
     generation += 1;
     state = {};
     businesses = new Map(); pendingBusiness = {}; previousBusinessId = undefined; awaitingBusinessId = undefined;
+    hydrated.clear();
     loaded = true;
     loading = undefined;
     uploadQueue.reset();

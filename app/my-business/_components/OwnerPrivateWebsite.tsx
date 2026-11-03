@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 import { AlertCircle, ArrowDown, ArrowUpRight, Check, Clock, Globe, Lock, MessageSquare, ShieldCheck } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -26,6 +27,10 @@ export function OwnerWebsiteOverview({ site }: { site: OwnerSite }) {
     const { userId } = useAuth();
     const summary = useQuery(api.ownerApp.getSubmission, { submissionId: site.submissionId });
     if (summary === undefined) return <SiteOverviewLoading />;
+    if (summary.status === 'draft' && summary.contentSource === 'owner_app') return <section className={styles.paymentCard}>
+        <h2>Your business setup is saved.</h2><p>Continue with the same photos, interview answers and selected design on mobile or web.</p>
+        <Link className="t-btn t-btn-primary" href={`/my-business/drafts/${site.submissionId}`}>Continue setup <ArrowUpRight size={17} aria-hidden="true" /></Link>
+    </section>;
     return <div className={styles.root}>
         {summary.publishPolicy !== 'pay_then_publish' ? <SiteOverview site={site} />
             : <PrivateWebsite key={`${userId ?? ''}:${site.submissionId}`} id={site.submissionId} />}
@@ -216,7 +221,7 @@ function PrivateWebsite({ id }: { id: Id<'submissions'> }) {
                     </div>
                     {!live && !attention ? <p className={styles.paymentFootnote}><Lock size={14} aria-hidden="true" /> Your preview stays private until it is published.</p> : null}
                 </section>
-                {!live && preview.ready ? <section className={styles.changeCard}>
+                {preview.ready ? <section className={styles.changeCard}>
                     <div className={styles.cardHeading}><span className={styles.cardIcon} aria-hidden="true"><MessageSquare size={20} /></span>
                         <div><p className={styles.eyebrow}>Make it yours</p><h3>Need a change?</h3></div></div>
                     <p className={styles.bodyCopy}>Tell us what you’d like to update. The Tendso team makes the change for you.</p>

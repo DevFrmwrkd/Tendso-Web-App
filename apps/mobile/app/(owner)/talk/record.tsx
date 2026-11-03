@@ -17,14 +17,16 @@ export default function TalkRecord() {
   return <OwnerRecorder key={`${scope.scopeKey}:${redo ?? 'all'}`} scope={scope} redo={redo} />;
 }
 function OwnerRecorder({ scope, redo }: { scope: ReturnType<typeof useOwnerScope>; redo: number | null }) {
+  const { id, isDraftCurrent } = scope;
   const router = useRouter();
   const intake = useOwnerIntake();
   const sub = useOwnerSubmission(scope.id);
   const { remember } = useOwnerUploads();
   const onClip = useCallback((clip: InterviewClip) => {
-    if (!scope.id || !scope.isDraftCurrent() || (redo !== null && clip.index !== redo)) return;
-    remember({ kind: 'answer', submissionId: scope.id, index: clip.index, uri: clip.uri, mediaType: clip.kind, lang: clip.lang, durationSec: clip.durationSec });
-  }, [scope.id, scope.isDraftCurrent, remember, redo]);
+    if (!id || !isDraftCurrent() || (redo !== null && clip.index !== redo)) return;
+    remember({ kind: 'answer', submissionId: id, index: clip.index, uri: clip.uri, mediaType: clip.kind, lang: clip.lang, durationSec: clip.durationSec });
+    ownerIntake.set({ lang: clip.lang, draftProgress: { ...ownerIntake.get().draftProgress, step: 'interview', questionIndex: Math.min(10, clip.index + 1) } });
+  }, [id, isDraftCurrent, remember, redo]);
   if (scope.site && scope.site.phase !== 'draft') return <ScreenShell title="Your interview is saved"
     subtitle="Ask the team for a change to your website." footer={<Button title="View my site" onPress={() => router.replace('/(owner)/(tabs)/site' as never)} />} />;
   if (!scope.id || sub === undefined || sub.submissionId !== scope.id) return <Loading />;

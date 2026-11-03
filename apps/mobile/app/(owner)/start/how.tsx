@@ -8,6 +8,7 @@ import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE, startProgress } from '../../../lib/v2/ownerFlow';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
+import { useSaveDraftProgress } from '../../../lib/v2/ownerData';
 import { space } from '../../../theme/v2';
 
 export default function HowScreen() {
@@ -17,6 +18,7 @@ export default function HowScreen() {
 function PhoneChoice({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const router = useRouter();
   const intake = useOwnerIntake();
+  const saveProgress = useSaveDraftProgress();
   const confirmed = !!scope.id && intake.submissionId === scope.id && intake.howConfirmedFor === scope.id;
   const [how, setHow] = useState<'self' | 'friend' | null>(confirmed && (intake.how === 'self' || intake.how === 'friend') ? intake.how : null);
   const [busy, setBusy] = useState(false);
@@ -32,6 +34,9 @@ function PhoneChoice({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     try {
       ownerIntake.set({ submissionId: scope.id, how, howConfirmedFor: scope.id });
       await ownerIntake.flush();
+      if (!scope.isDraftCurrent()) return;
+      await saveProgress({ submissionId: scope.id, progress: { step: 'interview', how, audioOnly: intake.audioOnly, lang: intake.lang } });
+      if (scope.isDraftCurrent()) ownerIntake.set({ draftProgress: { step: 'interview', how, audioOnly: intake.audioOnly, lang: intake.lang } });
       if (scope.isDraftCurrent()) router.push(STEP_ROUTE['talk-intro'] as never);
     } catch {
       if (scope.isCurrent()) {

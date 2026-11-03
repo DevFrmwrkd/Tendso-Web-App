@@ -10,6 +10,10 @@ import type { api } from "@/convex/_generated/api";
  */
 export type OwnerSite = NonNullable<FunctionReturnType<typeof api.owners.me>>['sites'][number];
 
+export const ownerWorkspaceHref = (site: Pick<OwnerSite, 'submissionId' | 'phase' | 'contentSource'>) =>
+    site.phase === 'draft' && site.contentSource === 'owner_app'
+        ? `/my-business/drafts/${encodeURIComponent(site.submissionId)}` : `/my-business/${encodeURIComponent(site.submissionId)}`;
+
 /** Legacy raw-status mapping retained for callers that do not have a canonical phase. */
 const DUE = new Set(["deployed", "pending_payment"]);
 const PAID = new Set(["paid", "completed"]);

@@ -4,6 +4,7 @@ import { ownerReturnPath } from '../../lib/ownerReturnPath';
 describe('owner sign-in deep links', () => {
     it.each([
         '/my-business/today', '/my-business/visits', '/my-business/visits/visit-one',
+        '/my-business/drafts/new', '/my-business/drafts/owned-business',
         '/my-business/visits/new?submissionId=owned-business',
         '/my-business/notifications?eventKey=visit%3Aevent-one',
         '/my-business/notifications?eventKey=site%3Aowned-business%3Apayment%3A1800000000',

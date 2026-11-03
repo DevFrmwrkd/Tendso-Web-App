@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import LiveSitePreview from "@/components/landing/LiveSitePreview";
 import { Loading } from "@/components/r1";
-import { hostOf, ownerPhaseStatus, ownerSiteAction, type OwnerSite } from "./ownerSite";
+import { hostOf, ownerPhaseStatus, ownerSiteAction, ownerWorkspaceHref, type OwnerSite } from "./ownerSite";
 import styles from "./OwnerHome.module.css";
 
 const peso = (value: number) => `₱${value.toLocaleString("en-PH")}`;
@@ -140,7 +140,7 @@ export function SiteList({ sites, preview = false }: { sites: OwnerSite[]; previ
 
 function BusinessCard({ site, preview = false }: { site: OwnerSite; preview?: boolean }) {
     const titleId = useId();
-    const workspace = preview ? `/admin/preview/owner?business=${encodeURIComponent(site.submissionId)}` : `/my-business/${site.submissionId}`;
+    const workspace = preview ? `/admin/preview/owner?business=${encodeURIComponent(site.submissionId)}` : ownerWorkspaceHref(site);
     const action = ownerSiteAction(site);
     const url = publicAddress(site);
     const openWebsite = !preview && action === "Open website" && !!url;
@@ -175,7 +175,7 @@ export function NoSite({ preview = false }: { preview?: boolean } = {}) {
                 <button className={`${styles.button} ${styles.primaryButton}`} type="button" disabled>Tell us about your business <ArrowRight size={17} aria-hidden="true" /></button>
                 <button className={`${styles.button} ${styles.quietButton}`} type="button" disabled>Find an existing website</button>
             </> : <>
-                <Link className={`${styles.button} ${styles.primaryButton}`} href="/start">Tell us about your business <ArrowRight size={17} aria-hidden="true" /></Link>
+                <Link className={`${styles.button} ${styles.primaryButton}`} href="/my-business/drafts/new">Tell us about your business <ArrowRight size={17} aria-hidden="true" /></Link>
                 <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Find an existing website</Link>
             </>}
         </div>

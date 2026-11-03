@@ -7,9 +7,9 @@ import { ownerIntake } from './ownerIntake';
 /** Async UI work belongs to the account and site that opened the screen. */
 export function useOwnerScope() {
   const owner = useOwnerSite();
-  const { userId } = useAuth();
+  const { userId, sessionId } = useAuth();
   const { isConnected } = useNetwork();
-  const accountKey = `${userId ?? 'owner'}:${owner.me?.owner._id ?? ''}`;
+  const accountKey = `${userId ?? 'owner'}:${sessionId ?? ''}:${owner.me?.owner._id ?? ''}`;
   const intakeScope = ownerIntake.scope();
   const scopeKey = `${accountKey}:${owner.isNewBusiness ? `new:${ownerIntake.get().newBusinessKey ?? ''}` : owner.id ?? ''}:${intakeScope}`;
   const live = useRef(scopeKey);

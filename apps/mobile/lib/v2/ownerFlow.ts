@@ -6,7 +6,7 @@
  *   sell → place → how → talk → photos → design → building → check → pay → live → home
  */
 import { INTERVIEW_QUESTIONS } from './captureContent';
-import type { OwnerPhase, OwnerSubmission, SiteSummary, SubmissionId } from './ownerTypes';
+import type { OwnerDraftProgress, OwnerPhase, OwnerSubmission, SiteSummary, SubmissionId } from './ownerTypes';
 import type { OwnerIntake } from './ownerIntake';
 import { ownerAnswersFor, ownerPhotosFor } from './ownerMedia';
 import { peso, sellKind } from './ownerContent';
@@ -84,6 +84,7 @@ export interface DraftSnapshot {
   howConfirmed?: boolean;
   /** Locally edited shop details must be saved before later capture steps. */
   detailsPending?: boolean;
+  progress?: OwnerDraftProgress | null;
 }
 
 /** Shared by cold-start routing and Today, including work still uploading. */
@@ -97,6 +98,7 @@ export function ownerDraftSnapshot(id: SubmissionId | null, draft: OwnerSubmissi
     answered: ownerAnswersFor(id, draft, intake).map(answer => answer.index),
     photos: ownerPhotosFor(id, draft, intake).length,
     templateId: draft.templateId,
+    progress: local ? intake.draftProgress ?? draft.draftProgress : draft.draftProgress,
     detailsPending: local && (!!intake.detailsDirty?.length || !!kind
       && (kind.businessType !== draft.businessType || kind.shots !== draft.shotListKey)),
     howConfirmed: intake.submissionId === id && intake.howConfirmedFor === id
@@ -124,12 +126,16 @@ export function resumeStep(phase: OwnerPhase | null, draft?: DraftSnapshot | nul
     case 'draft': {
       if (!draft || !draft.businessName || !draft.businessType) return 'sell';
       if (draft.detailsPending) return 'place';
+      if (draft.progress?.step === 'details') return 'place';
+      if (draft.progress?.step === 'setup') return 'how';
       // Existing recordings prove setup was passed on an older app or device.
       if (draft.answered.length === 0 && !draft.howConfirmed) return 'how';
       if (firstMissingAnswer(draft.answered) < INTERVIEW_QUESTIONS.length) {
         return draft.answered.length === 0 ? 'talk-intro' : 'talk';
       }
       if (draft.photos < MIN_PHOTOS_TO_SEND) return 'photos-intro';
+      if (draft.progress?.step === 'interview') return 'talk-done';
+      if (draft.progress?.step === 'photos') return 'photos-done';
       return 'design';
     }
     case 'building':

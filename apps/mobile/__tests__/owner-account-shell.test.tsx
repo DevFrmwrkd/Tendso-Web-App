@@ -63,6 +63,7 @@ jest.mock('../lib/v2/ownerIntake', () => ({
   }, useOwnerIntake: () => mockIntake,
 }));
 jest.mock('../components/CreatorAttributionGate', () => ({ CreatorAttributionGate: () => null }));
+jest.mock('../components/v2/owner/OwnerDraftRecovery', () => ({ OwnerDraftRecovery: ({ children }: { children: React.ReactNode }) => children }));
 jest.mock('expo-router', () => {
   const { createElement: makeElement, useEffect } = require('react'); const { View, Text } = require('react-native');
   const Stack = ({ children }: any) => {
@@ -280,7 +281,7 @@ it('does not retain the previous actor’s ensure error or permanent asked flag'
   screen.rerender(<OwnerLayout />);
   await waitFor(() => expect(mockEnsure).toHaveBeenCalledTimes(2));
   await act(async () => { failOld(new Error('Old owner failure')); await flush(); });
-  expect(screen.queryByText('Old owner failure')).toBeNull(); expect(mockBind).toHaveBeenCalledWith('owner-b');
+  expect(screen.queryByText('Old owner failure')).toBeNull(); expect(mockBind).toHaveBeenCalledWith('owner-b', 'session-b');
 });
 
 it('keeps the live stack mounted when a newly created site changes membership', async () => {

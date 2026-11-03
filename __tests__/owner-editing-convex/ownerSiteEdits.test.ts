@@ -131,252 +131,131 @@ describe('ownership: only the owner of THIS site gets in', () => {
     });
 });
 
-describe('saveDraft: a private working copy, cleaned', () => {
-    it('stores a cleaned draft and leaves the live site exactly as it was', async () => {
-        const w = await world();
-        const before = await w.t.run((ctx) => ctx.db.get(w.websiteId));
-        await w.owner.mutation(api.ownerSiteEdits.saveDraft, {
-            submissionId: w.submissionId,
-            content: {
-                ...CONTENT,
-                business_name: 'Hacked',
-                contact: { email: 'x@x.com', phone: '1', address: 'x' },
-                testimonials: { items: [{ quote: 'Invented', who: 'Nobody' }] },
-                hero: { sub: 'New <script>alert(1)</script>intro <em>here</em>' },
-                about: { lead: 'javascript:alert(1)' },
-                visibility: { faq_block: false, hero_section: false },
-            },
-            customizations: { heroStyle: 'salonspa:N', colorScheme: 'green', fontPairing: 'nonsense', roleColors: { a: 'b' } },
-        });
+const CHANGES_BY_REQUEST = 'Ask for a change';
+
+async function historicalDraft(w: World) {
+    return w.t.run(async ctx => {
+        const owner = (await ctx.db.query('businessOwners').collect()).find(row => row.clerkId === 'owner-a')!;
+        return ctx.db.insert('ownerSiteDrafts', { submissionId: w.submissionId, businessOwnerId: owner._id, websiteId: w.websiteId,
+            content: { ...CONTENT, hero: { sub: 'Historical working copy' } }, customizations: { heroStyle: 'barbershop:G' }, updatedAt: NOW - 1000 });
+    });
+}
+
+async function snapshot(w: World) {
+    return w.t.run(async ctx => ({
+        website: await ctx.db.get(w.websiteId), submission: await ctx.db.get(w.submissionId),
+        drafts: await ctx.db.query('ownerSiteDrafts').collect(), uploads: await ctx.db.query('ownerSiteUploads').collect(),
+        logs: await ctx.db.query('auditLogs').collect(), storage: await ctx.db.system.query('_storage').collect(),
+        scheduled: await ctx.db.system.query('_scheduled_functions').collect(),
+    }));
+}
+
+describe('retired self-editor: owners request website changes instead', () => {
+    it('keeps the linked owner’s historical snapshot readable without permitting deletion or save', async () => {
+        const w = await world(); await historicalDraft(w);
+        const before = await snapshot(w);
         const state = await w.owner.query(api.ownerSiteEdits.getEditorState, { submissionId: w.submissionId });
-        const d = state.draft!;
-        expect(d.content.hero.sub).toBe('New alert(1)intro <em>here</em>');
-        expect(d.content.about.lead).toBe('');
-        expect(d.content.business_name).toBe('Forge Barbers');
-        expect(d.content.contact).toEqual(CONTENT.contact);
-        expect(d.content.testimonials).toEqual(CONTENT.testimonials);
-        expect(d.content.visibility).toEqual({ faq_block: false });
-        expect(d.customizations.heroStyle).toBe('salonspa:N');
-        expect(d.customizations.roleColors).toBeUndefined();
-        expect(d.customizations.fontPairing).not.toBe('nonsense');
-
-        const after = await w.t.run((ctx) => ctx.db.get(w.websiteId));
-        expect(after).toEqual(before);
+        expect(state.draft?.content.hero.sub).toBe('Historical working copy');
+        expect(state.base.content.hero.sub).toBe('Original intro');
+        expect(state.htmlUrl).toMatch(/^https?:/);
+        await expect(w.owner.mutation(api.ownerSiteEdits.saveDraft, { submissionId: w.submissionId, content: CONTENT, customizations: {} })).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.owner.mutation(api.ownerSiteEdits.discardDraft, { submissionId: w.submissionId })).rejects.toThrow(CHANGES_BY_REQUEST);
+        expect(await snapshot(w)).toEqual(before);
     });
 
-    it('updates the same row on the next save and one owner never sees another\'s draft', async () => {
-        const w = await world();
-        const save = (text: string) => w.owner.mutation(api.ownerSiteEdits.saveDraft, { submissionId: w.submissionId, content: { ...CONTENT, hero: { sub: text } }, customizations: {} });
-        await save('one');
-        await save('two');
-        const rows = await w.t.run((ctx) => ctx.db.query('ownerSiteDrafts').collect());
-        expect(rows).toHaveLength(1);
-        expect(rows[0]!.content.hero.sub).toBe('two');
-        await expect(w.stranger.query(api.ownerSiteEdits.getEditorState, { submissionId: w.submissionId })).rejects.toThrow(NOT_FOUND);
+    it.each([
+        { label: 'live', live: true }, { label: 'private preview', live: false },
+        { label: 'custom domain', customDomain: true }, { label: 'unpaid', status: 'pending_payment' },
+    ])('refuses edit, upload and build requests for a $label website without changing content, payments or storage', async options => {
+        const w = await world(options); await historicalDraft(w);
+        const before = await snapshot(w);
+        const args = { submissionId: w.submissionId };
+        await expect(w.owner.mutation(api.ownerSiteEdits.saveDraft, { ...args, content: { ...CONTENT, hero: { sub: 'New words' } }, customizations: { heroStyle: 'salonspa:N' } })).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.owner.mutation(api.ownerSiteEdits.discardDraft, args)).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.owner.query(api.ownerSiteEdits.getDraftForBuild, args)).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.owner.action(api.ownerSiteEdits.generateUploadUrl, args)).rejects.toThrow(CHANGES_BY_REQUEST);
+        const html = '<html>Signed before retirement</html>';
+        await expect(w.owner.action(api.ownerSiteEdits.commitBuild, { ...args, html, proof: await signOwnerBuild(SECRET, w.submissionId, html), draftUpdatedAt: NOW - 1000 })).rejects.toThrow(CHANGES_BY_REQUEST);
+        expect(await snapshot(w)).toEqual(before);
     });
 
-    it('refuses a draft that is not an object, and discard throws the copy away', async () => {
-        const w = await world();
-        await expect(w.owner.mutation(api.ownerSiteEdits.saveDraft, { submissionId: w.submissionId, content: 'nope', customizations: {} })).rejects.toThrow();
-        await w.owner.mutation(api.ownerSiteEdits.saveDraft, { submissionId: w.submissionId, content: CONTENT, customizations: {} });
-        await w.owner.mutation(api.ownerSiteEdits.discardDraft, { submissionId: w.submissionId });
-        expect(await w.t.run((ctx) => ctx.db.query('ownerSiteDrafts').collect())).toHaveLength(0);
+    it('keeps an offline website offline even when a formerly valid signed build is retried', async () => {
+        const w = await world(); await historicalDraft(w);
+        await w.t.run(ctx => ctx.db.patch(w.websiteId, { offlineAt: NOW - 1000 }));
+        const before = await snapshot(w), html = '<html>Do not republish</html>';
+        await expect(w.owner.action(api.ownerSiteEdits.commitBuild, { submissionId: w.submissionId, html, proof: await signOwnerBuild(SECRET, w.submissionId, html), draftUpdatedAt: NOW - 1000 })).rejects.toThrow(CHANGES_BY_REQUEST);
+        expect(await snapshot(w)).toEqual(before);
+        expect((await w.owner.query(api.ownerSiteEdits.getEditorState, { submissionId: w.submissionId })).offline).toBe(true);
+    });
+
+    it.each(['not-signed', 'wrong-site', 'changed-html', 'missing-secret'])('refuses retired commits before storing a page regardless of build proof: %s', async proofKind => {
+        const w = await world(); const before = await snapshot(w), html = '<html>New page</html>';
+        let proof = proofKind === 'not-signed' ? 'x' : await signOwnerBuild(SECRET, proofKind === 'wrong-site' ? w.otherSubmissionId : w.submissionId, html);
+        if (proofKind === 'changed-html') proof = await signOwnerBuild(SECRET, w.submissionId, `${html}changed`);
+        if (proofKind === 'missing-secret') delete process.env.INTERNAL_API_SECRET;
+        await expect(w.owner.action(api.ownerSiteEdits.commitBuild, { submissionId: w.submissionId, html, proof, draftUpdatedAt: 0 })).rejects.toThrow(CHANGES_BY_REQUEST);
+        expect(await snapshot(w)).toEqual(before);
+    });
+
+    it('still hides build access from other owners and admins even with a valid signature', async () => {
+        const w = await world(), html = '<html>Valid signature, wrong owner</html>';
+        const before = await snapshot(w), proof = await signOwnerBuild(SECRET, w.submissionId, html);
+        for (const who of [w.stranger, w.admin]) {
+            await expect(who.action(api.ownerSiteEdits.commitBuild, { submissionId: w.submissionId, html, proof, draftUpdatedAt: 0 })).rejects.toThrow(NOT_FOUND);
+        }
+        expect(await snapshot(w)).toEqual(before);
     });
 });
 
-describe('edit -> republish', () => {
-    const HTML = '<html><body><h1>Forge, rebuilt</h1></body></html>';
-    const edit = (w: World, sub = 'Brand new intro') =>
-        w.owner.mutation(api.ownerSiteEdits.saveDraft, {
-            submissionId: w.submissionId,
-            content: { ...CONTENT, hero: { sub } },
-            customizations: { heroStyle: 'barbershop:G', colorScheme: 'green' },
+describe('retired uploads: old capabilities cannot receive or register new photos', () => {
+    it('blocks direct ticket creation, upload registration and internal build commits before any side effects', async () => {
+        const w = await world();
+        const image = await w.t.run(ctx => ctx.storage.store(new Blob(['old image'], { type: 'image/jpeg' })));
+        const before = await snapshot(w);
+        await expect(w.t.mutation(internal.ownerSiteEdits.createUploadTicket, { submissionId: w.submissionId, clerkId: 'owner-a', token: 'new-ticket' })).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.submissionId, clerkId: 'owner-a', storageId: image })).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: image })).rejects.toThrow(CHANGES_BY_REQUEST);
+        await expect(w.t.mutation(internal.ownerSiteEdits.applyBuild, { submissionId: w.submissionId, clerkId: 'owner-a', storageId: image, draftUpdatedAt: 0 })).rejects.toThrow(CHANGES_BY_REQUEST);
+        expect(await snapshot(w)).toEqual(before);
+    });
+
+    it.each([['image/jpeg', 'photo'], ['text/html', '<script/>'], ['image/jpeg', 'x'.repeat(10 * 1024 * 1024 + 1)]])('refuses old upload URLs before receiving a %s request body', async (contentType, body) => {
+        const w = await world();
+        await w.t.run(async ctx => {
+            const owner = (await ctx.db.query('businessOwners').collect()).find(row => row.clerkId === 'owner-a')!;
+            await ctx.db.insert('ownerSiteUploads', { submissionId: w.submissionId, businessOwnerId: owner._id, token: 'old-ticket', expiresAt: NOW + 10 * 60_000 });
         });
-    const commit = async (w: World, html = HTML, proof?: string, who = w.owner, draftUpdatedAt?: number) => {
-        const stamp = draftUpdatedAt ?? (await w.owner.query(api.ownerSiteEdits.getDraftForBuild, { submissionId: w.submissionId })).updatedAt;
-        return who.action(api.ownerSiteEdits.commitBuild, { submissionId: w.submissionId, html, proof: proof ?? (await signOwnerBuild(SECRET, w.submissionId, html)), draftUpdatedAt: stamp });
-    };
+        const before = await snapshot(w);
+        await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token: 'old-ticket' })).rejects.toThrow(CHANGES_BY_REQUEST);
+        const response = await w.t.fetch('/owner-site-upload?token=old-ticket', { method: 'POST', headers: { 'Content-Type': contentType }, body });
+        expect(response.status).toBe(403);
+        expect(await snapshot(w)).toEqual(before);
+    });
 
-    it('a live site: the saved draft becomes the site and the new page is the live page', async () => {
+    it('refuses guessed and expired upload capabilities without revealing the website', async () => {
         const w = await world();
-        await edit(w);
-        const res = await commit(w);
-        expect(res).toMatchObject({ live: true, republished: true, pendingWorker: false, slug: 'forge', publishedUrl: 'https://forge.sites.tendso.com' });
-
-        const site = (await w.t.run((ctx) => ctx.db.get(w.websiteId)))!;
-        expect(site.extractedContent.hero.sub).toBe('Brand new intro');
-        expect(site.customizations.heroStyle).toBe('barbershop:G');
-        expect(site.customizations.colorScheme).toBe('green');
-        expect(site.status).toBe('published');
-        expect(site.publishedUrl).toBe('https://forge.sites.tendso.com');
-        expect(site.slug).toBe('forge');
-        const blob = await w.t.run(async (ctx) => await (await ctx.storage.get(site.htmlStorageId!))!.text());
-        expect(blob).toBe(HTML);
-        expect(site.htmlContent).toBeUndefined();
-
-        const state = await w.owner.query(api.ownerSiteEdits.getEditorState, { submissionId: w.submissionId });
-        expect(state.draft!.lastPublishedAt).toBe(NOW);
-        const logs = await w.t.run((ctx) => ctx.db.query('auditLogs').collect());
-        expect(logs.map((l) => l.action)).toContain('owner_site_edit_published');
-    });
-
-    it('collects the superseded page and never touches the submission\'s payment status', async () => {
-        const w = await world({ status: 'pending_payment' });
-        const oldBlob = (await w.t.run((ctx) => ctx.db.get(w.websiteId)))!.htmlStorageId!;
-        await edit(w);
-        await commit(w);
-        await w.t.finishAllScheduledFunctions(vi.runAllTimers);
-        expect(await w.t.run(async (ctx) => (await ctx.storage.get(oldBlob)) === null)).toBe(true);
-        const sub = (await w.t.run((ctx) => ctx.db.get(w.submissionId)))!;
-        expect(sub.status).toBe('pending_payment');
-    });
-
-    it('a site that is not live yet is built and kept, never published', async () => {
-        const w = await world({ live: false });
-        await edit(w);
-        const res = await commit(w);
-        expect(res).toMatchObject({ live: false, republished: false, pendingWorker: false });
-        const site = (await w.t.run((ctx) => ctx.db.get(w.websiteId)))!;
-        expect(site.status).toBe('draft');
-        expect(site.publishedUrl).toBeUndefined();
-        expect(site.extractedContent.hero.sub).toBe('Brand new intro');
-    });
-
-    it('a site served from a custom domain is stored and flagged for the team to republish', async () => {
-        const w = await world({ customDomain: true });
-        await edit(w);
-        const res = await commit(w);
-        expect(res).toMatchObject({ live: true, republished: false, pendingWorker: true });
-        const state = await w.owner.query(api.ownerSiteEdits.getEditorState, { submissionId: w.submissionId });
-        expect(state.draft!.pendingWorkerRepublish).toBe(true);
-    });
-
-    it('a site taken offline stays offline', async () => {
-        const w = await world();
-        await w.t.run((ctx) => ctx.db.patch(w.websiteId, { offlineAt: 5 }));
-        await edit(w);
-        const res = await commit(w);
-        expect(res.live).toBe(false);
-        expect((await w.t.run((ctx) => ctx.db.get(w.websiteId)))!.offlineAt).toBe(5);
-    });
-
-    it('refuses a page built from an older draft than the one now saved, and keeps the site as it was', async () => {
-        const w = await world();
-        await edit(w, 'first');
-        const built = await w.owner.query(api.ownerSiteEdits.getDraftForBuild, { submissionId: w.submissionId });
-        vi.setSystemTime(NOW + 5_000); // the owner kept typing while the page built
-        await edit(w, 'second');
-        const before = await w.t.run((ctx) => ctx.db.get(w.websiteId));
-        await expect(commit(w, HTML, undefined, w.owner, built.updatedAt)).rejects.toThrow('You changed something while we were building');
-        expect(await w.t.run((ctx) => ctx.db.get(w.websiteId))).toEqual(before);
-        // built from the current draft, it goes through
-        await expect(commit(w)).resolves.toMatchObject({ republished: true });
-    });
-
-    it('refuses HTML our server did not sign: wrong proof, edited HTML, no secret configured', async () => {
-        const w = await world();
-        await edit(w);
-        const before = await w.t.run((ctx) => ctx.db.get(w.websiteId));
-        await expect(commit(w, HTML, 'a'.repeat(64))).rejects.toThrow('not built by Tendso');
-        const proof = await signOwnerBuild(SECRET, w.submissionId, HTML);
-        await expect(commit(w, HTML + '<script>steal()</script>', proof)).rejects.toThrow('not built by Tendso');
-        delete process.env.INTERNAL_API_SECRET;
-    delete process.env.CONVEX_SITE_URL;
-        await expect(commit(w, HTML, proof)).rejects.toThrow('not built by Tendso');
-        expect(await w.t.run((ctx) => ctx.db.get(w.websiteId))).toEqual(before);
-    });
-
-    it('a signature made for one site does not publish on another, and a stranger cannot commit even with a valid one', async () => {
-        const w = await world();
-        await edit(w);
-        const proofForOther = await signOwnerBuild(SECRET, w.otherSubmissionId, HTML);
-        await expect(commit(w, HTML, proofForOther)).rejects.toThrow('not built by Tendso');
-        const valid = await signOwnerBuild(SECRET, w.submissionId, HTML);
-        await expect(commit(w, HTML, valid, w.stranger)).rejects.toThrow(NOT_FOUND);
-        await expect(commit(w, HTML, valid, w.admin)).rejects.toThrow(NOT_FOUND);
-    });
-});
-
-describe('registerUpload', () => {
-    // convex-test's storage records no content type (the real _storage table
-    // does, from the upload's Content-Type), so the accept path cannot be driven
-    // here; what it must refuse is what these cover.
-    it('throws away a file that is not declared as a photo', async () => {
-        const w = await world();
-        const text = await w.t.run((ctx) => ctx.storage.store(new Blob(['<script/>'])));
-        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.submissionId, clerkId: 'owner-a', storageId: text });
-        const res = await w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: text });
-        expect(res).toMatchObject({ ok: false, message: expect.stringContaining('Please choose a photo') });
-        expect(await w.t.run(async (ctx) => (await ctx.storage.get(text)) === null)).toBe(true);
-    });
-
-    it('never accepts or deletes an untracked storage object, including published HTML', async () => {
-        const w = await world();
-        const website = await w.t.run((ctx) => ctx.db.get(w.websiteId));
-        const html = website!.htmlStorageId!;
-        const image = await w.t.run((ctx) => ctx.storage.store(new Blob(['photo'], { type: 'image/jpeg' })));
-        for (const storageId of [html, image]) {
-            await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId })).rejects.toThrow('did not upload for this website');
-            expect(await w.t.run(async (ctx) => (await ctx.storage.get(storageId)) !== null)).toBe(true);
-        }
-    });
-
-    it('requires both the recorded owner and site, even when both sites have the same owner', async () => {
-        const w = await world();
-        const image = await w.t.run((ctx) => ctx.storage.store(new Blob(['photo'])));
-        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.otherSubmissionId, clerkId: 'owner-b', storageId: image });
-        await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: image })).rejects.toThrow('did not upload for this website');
-        await w.t.run(async (ctx) => {
-            const owner = (await ctx.db.query('businessOwners').collect()).find((row) => row.clerkId === 'owner-a');
-            await ctx.db.insert('websiteOwnerships', { submissionId: w.otherSubmissionId, businessOwnerId: owner!._id, role: 'owner', claimedAt: NOW });
+        await w.t.run(async ctx => {
+            const owner = (await ctx.db.query('businessOwners').collect()).find(row => row.clerkId === 'owner-a')!;
+            await ctx.db.insert('ownerSiteUploads', { submissionId: w.submissionId, businessOwnerId: owner._id, token: 'expired-ticket', expiresAt: NOW - 1 });
         });
-        const ownImage = await w.t.run((ctx) => ctx.storage.store(new Blob(['second'])));
-        await w.t.mutation(internal.ownerSiteEdits.recordUpload, { submissionId: w.otherSubmissionId, clerkId: 'owner-a', storageId: ownImage });
-        await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: ownImage })).rejects.toThrow('did not upload for this website');
-        expect(await w.t.run(async (ctx) => (await ctx.storage.get(image)) !== null)).toBe(true);
-        expect(await w.t.run(async (ctx) => (await ctx.storage.get(ownImage)) !== null)).toBe(true);
-    });
-
-    it('records only the object received by the one-time upload endpoint', async () => {
-        const w = await world();
-        const url = await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId });
-        const path = new URL(url).pathname + new URL(url).search;
-        const response = await w.t.fetch(path, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: 'photo' });
-        expect(response.status).toBe(200);
-        const { storageId } = await response.json();
-        const rows = await w.t.run((ctx) => ctx.db.query('ownerSiteUploads').collect());
-        expect(rows).toHaveLength(1);
-        expect(rows[0]).toMatchObject({ submissionId: w.submissionId, storageId });
-        const replay = await w.t.fetch(path, { method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: 'photo' });
-        expect(replay.status).toBe(403);
-        expect((await w.t.fetch('/owner-site-upload?token=guessed', { method: 'POST', body: 'photo' })).status).toBe(403);
-    });
-
-    it('rejects invalid upload bodies before storing them', async () => {
-        const w = await world();
-        for (const [type, body] of [['text/html', '<script/>'], ['image/jpeg', 'x'.repeat(10 * 1024 * 1024 + 1)]]) {
-            const url = new URL(await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId }));
-            const response = await w.t.fetch(url.pathname + url.search, { method: 'POST', headers: { 'Content-Type': type }, body });
-            expect(response.status).toBe(400);
+        const before = await snapshot(w);
+        for (const token of ['guessed', 'expired-ticket']) {
+            await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token })).rejects.toThrow(NOT_FOUND);
+            expect((await w.t.fetch(`/owner-site-upload?token=${token}`, { method: 'POST', body: 'photo' })).status).toBe(403);
         }
-        expect(await w.t.run((ctx) => ctx.db.query('ownerSiteUploads').collect())).toHaveLength(0);
+        expect(await snapshot(w)).toEqual(before);
     });
 
-    it('expires upload capabilities and rechecks ownership before receiving a file', async () => {
+    it('does not delete existing storage when registering untracked, published, or another owner’s objects', async () => {
         const w = await world();
-        const url = await w.owner.action(api.ownerSiteEdits.generateUploadUrl, { submissionId: w.submissionId });
-        const token = new URL(url).searchParams.get('token')!;
-        vi.setSystemTime(NOW + 11 * 60_000);
-        await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token })).rejects.toThrow(NOT_FOUND);
-        vi.setSystemTime(NOW);
-        await w.t.run(async (ctx) => { for (const row of await ctx.db.query('websiteOwnerships').collect()) await ctx.db.delete(row._id); });
-        await expect(w.t.mutation(internal.ownerSiteEdits.consumeUpload, { token })).rejects.toThrow(NOT_FOUND);
-    });
-
-    it('refuses another owner\'s upload and leaves the file alone', async () => {
-        const w = await world();
-        const img = await w.t.run((ctx) => ctx.storage.store(new Blob(['x'], { type: 'image/jpeg' })));
-        await expect(w.stranger.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId: img })).rejects.toThrow(NOT_FOUND);
-        expect(await w.t.run(async (ctx) => (await ctx.storage.get(img)) !== null)).toBe(true);
+        const website = (await w.t.run(ctx => ctx.db.get(w.websiteId)))!;
+        const image = await w.t.run(ctx => ctx.storage.store(new Blob(['photo'])));
+        const before = await snapshot(w);
+        for (const storageId of [website.htmlStorageId!, image]) {
+            await expect(w.owner.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId })).rejects.toThrow(CHANGES_BY_REQUEST);
+            await expect(w.stranger.mutation(api.ownerSiteEdits.registerUpload, { submissionId: w.submissionId, storageId })).rejects.toThrow(NOT_FOUND);
+            expect(await w.t.run(async ctx => (await ctx.storage.get(storageId)) !== null)).toBe(true);
+        }
+        expect(await snapshot(w)).toEqual(before);
     });
 });

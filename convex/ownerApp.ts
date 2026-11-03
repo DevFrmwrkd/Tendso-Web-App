@@ -89,10 +89,47 @@ async function houseCreatorId(ctx: MutationCtx): Promise<Id<'creators'>> {
     return id;
 }
 
-async function requireDraft(ctx: MutationCtx, submissionId: Id<'submissions'>) {
+const draftWriteArgs = { expectedRevision: v.optional(v.number()), actorClerkId: v.optional(v.string()) };
+type DraftWriteGuard = { expectedRevision?: number; actorClerkId?: string };
+const draftProgress = v.object({
+    step: v.union(v.literal('details'), v.literal('setup'), v.literal('interview'), v.literal('photos'), v.literal('design'), v.literal('review')),
+    questionIndex: v.optional(v.number()),
+    photoIndex: v.optional(v.number()),
+    how: v.optional(v.union(v.literal('self'), v.literal('friend'))),
+    audioOnly: v.optional(v.boolean()),
+    lang: v.optional(v.union(v.literal('en'), v.literal('tl'))),
+});
+
+function requireActor(owner: Doc<'businessOwners'>, actorClerkId: string | undefined) {
+    if (actorClerkId !== undefined && actorClerkId !== owner.clerkId) reject('Your account changed. Please sign in again.');
+}
+
+function currentDraftRevision(submission: Doc<'submissions'>) { return submission.ownerDraftRevision ?? 0; }
+
+function requireDraftRevision(submission: Doc<'submissions'>, expectedRevision: number | undefined) {
+    const currentRevision = currentDraftRevision(submission);
+    if (expectedRevision === undefined && submission.ownerDraftRevisionRequired) {
+        throw new ConvexError({ code: 'OWNER_DRAFT_REFRESH_REQUIRED', currentRevision,
+            message: 'This draft was opened on another device. Update the app or reload the latest draft before saving. Your unsaved work is still on this device.' });
+    }
+    if (expectedRevision !== undefined && (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0)) reject('The draft revision is not valid. Reload the latest draft.');
+    if (expectedRevision !== undefined && expectedRevision !== currentRevision) {
+        throw new ConvexError({ code: 'OWNER_DRAFT_CONFLICT', currentRevision,
+            message: 'This draft changed on another device. Reload the latest draft before saving. Your unsaved work is still on this device.' });
+    }
+}
+
+function nextDraftWrite(submission: Doc<'submissions'>, expectedRevision: number | undefined) {
+    return { ownerDraftRevision: currentDraftRevision(submission) + 1, ownerDraftUpdatedAt: Date.now(),
+        ...(expectedRevision !== undefined ? { ownerDraftRevisionRequired: true } : {}) };
+}
+
+async function requireDraft(ctx: MutationCtx, submissionId: Id<'submissions'>, guard: DraftWriteGuard = {}) {
     const found = await requireOwnerOfSubmission(ctx, submissionId);
+    requireActor(found.owner, guard.actorClerkId);
     if (!isOwnerApp(found.submission)) reject('This website was made by a field agent.');
     if (found.submission.status !== 'draft') reject('This website is already sent.');
+    requireDraftRevision(found.submission, guard.expectedRevision);
     return found;
 }
 
@@ -142,9 +179,11 @@ export const createDraft = mutation({
         coordinates: v.optional(v.object({ lat: v.number(), lng: v.number() })),
         shotListKey: v.optional(v.string()),
         clientDraftKey: v.optional(v.string()),
+        actorClerkId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const owner = await requireOwner(ctx);
+        requireActor(owner, args.actorClerkId);
         const clientDraftKey = args.clientDraftKey?.trim();
         if (clientDraftKey !== undefined && !/^[A-Za-z0-9_-]{1,100}$/.test(clientDraftKey)) {
             reject('This business setup reference is not valid. Please start again.');
@@ -185,6 +224,8 @@ export const createDraft = mutation({
             coordinates: args.coordinates,
             shotListKey: cleanShotListKey(args.shotListKey),
             ownerClientDraftKey: clientDraftKey,
+            ownerDraftRevision: 0,
+            ownerDraftUpdatedAt: Date.now(),
             status: 'draft',
             contentSource: OWNER_APP_SOURCE,
             publishPolicy: 'pay_then_publish',
@@ -259,6 +300,7 @@ function cleanShotListKey(key: string | undefined): string | undefined {
 
 export const updateDraft = mutation({
     args: {
+        ...draftWriteArgs,
         submissionId: v.id('submissions'),
         businessType: v.optional(v.string()),
         businessName: v.optional(v.string()),
@@ -272,7 +314,7 @@ export const updateDraft = mutation({
         ownerPhone: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        await requireDraft(ctx, args.submissionId);
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         const patch: Partial<Doc<'submissions'>> = {};
         if (args.businessType !== undefined) {
             if (!BUSINESS_TYPE_ALLOWLIST.has(args.businessType)) reject('Please pick what you sell from the list.');
@@ -294,18 +336,35 @@ export const updateDraft = mutation({
         if (args.shotListKey !== undefined) patch.shotListKey = cleanShotListKey(args.shotListKey);
         if (args.ownerName !== undefined) patch.ownerName = cleanText(args.ownerName, 'Your name', 120) ?? '';
         if (args.ownerPhone !== undefined) patch.ownerPhone = cleanText(args.ownerPhone, 'Phone number', 40) ?? '';
-        await ctx.db.patch(args.submissionId, patch);
-        return { ok: true };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ...patch, ...version });
+        return { ok: true, draftRevision: version.ownerDraftRevision };
+    },
+});
+
+/** A shared resume position; saved separately so capture never replaces media. */
+export const saveDraftProgress = mutation({
+    args: { submissionId: v.id('submissions'), actorClerkId: v.optional(v.string()), expectedRevision: v.number(), progress: draftProgress },
+    handler: async (ctx, args) => {
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
+        const { questionIndex, photoIndex } = args.progress;
+        if (questionIndex !== undefined && (!Number.isInteger(questionIndex) || questionIndex < 0 || questionIndex > EXTRA_QUESTION_INDEX)) reject('Unknown interview question.');
+        if (photoIndex !== undefined && (!Number.isInteger(photoIndex) || photoIndex < 0 || photoIndex >= GUIDED_SHOT_COUNT)) reject('Unknown photo.');
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ...version, ownerDraftProgress: { ...submission.ownerDraftProgress, ...args.progress } });
+        return { ok: true, draftRevision: version.ownerDraftRevision };
     },
 });
 
 /**
  * Save (or replace) one interview answer. index 0-9 = the ten questions,
  * 10 = "Anything else?". Text, a recording (R2 URL from api.r2.generateUploadUrl),
- * or both. Pass neither to clear the answer.
+ * or both. Omitted fields preserve the other part of an existing answer.
+ * Send answerText:'' and clearMedia:true to clear the whole answer.
  */
 export const saveAnswer = mutation({
     args: {
+        ...draftWriteArgs,
         submissionId: v.id('submissions'),
         index: v.number(),
         lang: v.union(v.literal('en'), v.literal('tl')),
@@ -313,15 +372,20 @@ export const saveAnswer = mutation({
         mediaUrl: v.optional(v.string()),
         mediaType: v.optional(v.union(v.literal('video'), v.literal('audio'))),
         durationSec: v.optional(v.number()),
+        clearMedia: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const { submission } = await requireDraft(ctx, args.submissionId);
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         if (!Number.isInteger(args.index) || args.index < 0 || args.index > EXTRA_QUESTION_INDEX) reject('Unknown question.');
-        const answerText = cleanText(args.answerText, 'Answer', MAX_ANSWER) || undefined;
-        const mediaUrl = args.mediaUrl ? requireOurUpload(args.mediaUrl) : undefined;
-        if (mediaUrl && !args.mediaType) reject('Is this a video or a voice recording?');
-        const durationSec = args.durationSec !== undefined && Number.isFinite(args.durationSec) && args.durationSec >= 0
-            ? Math.min(args.durationSec, 60 * 60) : undefined;
+        const previous = submission.ownerInterview?.find(answer => answer.index === args.index);
+        if (args.clearMedia && args.mediaUrl !== undefined) reject('Choose whether to replace or remove the recording.');
+        const answerText = args.answerText === undefined ? previous?.answerText : cleanText(args.answerText, 'Answer', MAX_ANSWER) || undefined;
+        const replacingMedia = args.mediaUrl !== undefined;
+        const mediaUrl = args.clearMedia ? undefined : replacingMedia ? requireOurUpload(args.mediaUrl!) : previous?.mediaUrl;
+        const mediaType = replacingMedia ? args.mediaType : previous?.mediaType;
+        if (mediaUrl && !mediaType) reject('Is this a video or a voice recording?');
+        const durationSec = replacingMedia ? args.durationSec !== undefined && Number.isFinite(args.durationSec) && args.durationSec >= 0
+            ? Math.min(args.durationSec, 60 * 60) : undefined : previous?.durationSec;
         const rest = (submission.ownerInterview ?? []).filter((a) => a.index !== args.index);
         const q = OWNER_APP_QUESTIONS[args.index];
         const next = answerText || mediaUrl
@@ -332,20 +396,22 @@ export const saveAnswer = mutation({
                 lang: args.lang,
                 answerText,
                 mediaUrl,
-                mediaType: mediaUrl ? args.mediaType : undefined,
-                durationSec,
+                mediaType: mediaUrl ? mediaType : undefined,
+                durationSec: mediaUrl ? durationSec : undefined,
                 updatedAt: Date.now(),
             }]
             : rest;
         next.sort((a, b) => a.index - b.index);
-        await ctx.db.patch(args.submissionId, { ownerInterview: next });
-        return { answered: next.length };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ownerInterview: next, ...version });
+        return { answered: next.length, draftRevision: version.ownerDraftRevision };
     },
 });
 
 /** Save (or replace) one photo. Guided: index 0-9 in shot-list order. Extras: extra=true, index 0-9. */
 export const saveShot = mutation({
     args: {
+        ...draftWriteArgs,
         submissionId: v.id('submissions'),
         index: v.number(),
         url: v.string(),
@@ -353,7 +419,7 @@ export const saveShot = mutation({
         extra: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const { submission } = await requireDraft(ctx, args.submissionId);
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         const extra = args.extra === true;
         const max = extra ? MAX_EXTRA_SHOTS : GUIDED_SHOT_COUNT;
         if (!Number.isInteger(args.index) || args.index < 0 || args.index >= max) reject('Unknown photo.');
@@ -362,57 +428,63 @@ export const saveShot = mutation({
         const rest = (submission.ownerShots ?? []).filter((s) => !(s.index === args.index && s.extra === extra));
         const next = [...rest, { index: args.index, url, label, extra, updatedAt: Date.now() }]
             .sort((a, b) => Number(a.extra) - Number(b.extra) || a.index - b.index);
-        await ctx.db.patch(args.submissionId, { ownerShots: next });
-        return { photos: next.length };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ownerShots: next, ...version });
+        return { photos: next.length, draftRevision: version.ownerDraftRevision };
     },
 });
 
 export const removeShot = mutation({
-    args: { submissionId: v.id('submissions'), index: v.number(), extra: v.optional(v.boolean()) },
+    args: { ...draftWriteArgs, submissionId: v.id('submissions'), index: v.number(), extra: v.optional(v.boolean()) },
     handler: async (ctx, args) => {
-        const { submission } = await requireDraft(ctx, args.submissionId);
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         const extra = args.extra === true;
+        const max = extra ? MAX_EXTRA_SHOTS : GUIDED_SHOT_COUNT;
+        if (!Number.isInteger(args.index) || args.index < 0 || args.index >= max) reject('Unknown photo.');
         const next = (submission.ownerShots ?? []).filter((s) => !(s.index === args.index && s.extra === extra));
-        await ctx.db.patch(args.submissionId, { ownerShots: next });
-        return { photos: next.length };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ownerShots: next, ...version });
+        return { photos: next.length, draftRevision: version.ownerDraftRevision };
     },
 });
 
 /** The design the owner picked (template code, e.g. 'barbershop:BP'); up to three picks. */
 export const chooseDesign = mutation({
     args: {
+        ...draftWriteArgs,
         submissionId: v.id('submissions'),
         templateId: v.string(),
         templateIds: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
-        const { submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
-        if (!isOwnerApp(submission)) reject('This website was made by a field agent.');
-        if (submission.ownerApprovedAt) reject('You already said this site looks good.');
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         const templateId = cleanChoice(args.templateId, 'Design');
-        const picks = (args.templateIds ?? [templateId]).map((t) => cleanChoice(t, 'Design'));
+        const savedPicks = templateId === submission.templateId && submission.templateIds?.length ? submission.templateIds : [templateId];
+        const picks = (args.templateIds ?? savedPicks).map((t) => cleanChoice(t, 'Design'));
         if (picks.length === 0 || picks.length > 3) reject('Pick one to three designs.');
         if (!picks.includes(templateId)) picks.unshift(templateId);
-        await ctx.db.patch(args.submissionId, { templateId, templateIds: picks.slice(0, 3), styleUpdatedAt: Date.now() });
-        return { ok: true };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { templateId, templateIds: picks.slice(0, 3), styleUpdatedAt: Date.now(), ...version });
+        return { ok: true, draftRevision: version.ownerDraftRevision };
     },
 });
 
-/** Font and colour, chosen later (any time before the site is published). */
+/** Font and colour for an unfinished setup. Sent sites use Ask for a change. */
 export const setStyle = mutation({
     args: {
+        ...draftWriteArgs,
         submissionId: v.id('submissions'),
         fontChoice: v.optional(v.string()),
         colorChoice: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        const { submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
-        if (!isOwnerApp(submission)) reject('This website was made by a field agent.');
+        const { submission } = await requireDraft(ctx, args.submissionId, args);
         const patch: Partial<Doc<'submissions'>> = { styleUpdatedAt: Date.now() };
         if (args.fontChoice !== undefined) patch.fontChoice = cleanChoice(args.fontChoice, 'Font');
         if (args.colorChoice !== undefined) patch.colorChoice = cleanChoice(args.colorChoice, 'Colour');
-        await ctx.db.patch(args.submissionId, patch);
-        return { ok: true };
+        const version = nextDraftWrite(submission, args.expectedRevision);
+        await ctx.db.patch(args.submissionId, { ...patch, ...version });
+        return { ok: true, draftRevision: version.ownerDraftRevision };
     },
 });
 
@@ -454,11 +526,13 @@ async function consumeSubmitThrottle(ctx: MutationCtx, ownerId: Id<'businessOwne
  * (internal.buildProgress.startPipeline). Idempotent for a double tap.
  */
 export const submit = mutation({
-    args: { submissionId: v.id('submissions') },
+    args: { ...draftWriteArgs, submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
         const { owner, submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
+        requireActor(owner, args.actorClerkId);
         if (!isOwnerApp(submission)) reject('This website was made by a field agent.');
-        if (submission.status !== 'draft') return { submissionId: args.submissionId, status: submission.status };
+        if (submission.status !== 'draft') return { submissionId: args.submissionId, status: submission.status, draftRevision: currentDraftRevision(submission) };
+        requireDraftRevision(submission, args.expectedRevision);
 
         if (!submission.businessName.trim()) reject('What is your shop called?');
         if (!submission.address.trim() && !submission.coordinates) reject('Where is your shop?');
@@ -478,7 +552,9 @@ export const submit = mutation({
         const qa = interview
             .filter((a) => a.answerText)
             .map((a) => ({ q: a.questionEn, a: a.answerText! }));
+        const version = nextDraftWrite(submission, args.expectedRevision);
         await ctx.db.patch(args.submissionId, {
+            ...version,
             status: 'submitted',
             ownerName: submission.ownerName || owner.name || '',
             ownerPhone: submission.ownerPhone || owner.phone || '',
@@ -515,7 +591,7 @@ export const submit = mutation({
 
         await ctx.scheduler.runAfter(0, internal.buildProgress.startPipeline, { submissionId: args.submissionId });
         await ctx.scheduler.runAfter(0, internal.ownerEmails.send, { submissionId: args.submissionId, kind: 'building' });
-        return { submissionId: args.submissionId, status: 'submitted' };
+        return { submissionId: args.submissionId, status: 'submitted', draftRevision: version.ownerDraftRevision };
     },
 });
 
@@ -576,12 +652,20 @@ export const interviewQuestions = query({
 
 /** Everything the app needs to resume a draft or show a site. */
 export const getSubmission = query({
-    args: { submissionId: v.id('submissions') },
+    args: { submissionId: v.id('submissions'), actorClerkId: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        const { submission: s } = await requireOwnerOfSubmission(ctx, args.submissionId);
+        const { owner, submission: s } = await requireOwnerOfSubmission(ctx, args.submissionId);
+        requireActor(owner, args.actorClerkId);
         const summary = await siteSummary(ctx, args.submissionId);
         return {
             ...summary!,
+            actorClerkId: owner.clerkId,
+            ownerId: owner._id,
+            ownerName: s.ownerName,
+            ownerPhone: s.ownerPhone,
+            draftRevision: currentDraftRevision(s),
+            draftUpdatedAt: s.ownerDraftUpdatedAt ?? null,
+            draftProgress: s.ownerDraftProgress ?? null,
             address: s.address,
             city: s.city,
             province: s.province ?? null,
