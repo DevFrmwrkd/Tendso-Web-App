@@ -153,7 +153,7 @@ export const run = mutation({
             outcome = 'duplicate'; amount = session.lastReceipt.amount; message = 'Duplicate simulated receipt ignored. No second credit.';
         } else if (args.action === 'expire') {
             if (session.requestStatus !== 'open' || session.pendingReview || session.amountPaid >= session.total) throw new ConvexError('There is no open practice request to expire.');
-            next.requestStatus = 'expired'; outcome = 'expired'; message = 'The simulated request expired. No money was received.';
+            next.requestStatus = 'expired'; outcome = 'expired'; message = 'The simulated checkout expired. Confirmed test payments are kept.';
         } else if (args.action === 'renew') {
             if (session.requestStatus !== 'expired') throw new ConvexError('Expire the practice request before renewing it.');
             next.requestStatus = 'open'; next.attempt += 1; next.referenceCode = reference(session._id, next.attempt);
