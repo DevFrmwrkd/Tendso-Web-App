@@ -119,7 +119,7 @@ export const getByToken = query({
 
 export type PaymentSubmissionSummary = Pick<Doc<'submissions'>,
     '_id' | 'businessName' | 'status' | 'amount' | 'amountPaid' | 'depositPaidAt' | 'paidInFullAt' |
-    'paidAt' | 'pricingMode' | 'contentSource' | 'requestedDomain' | 'domainCostPHP' | 'domainChargedPHP' |
+    'paidAt' | 'pricingMode' | 'contentSource' | 'publishPolicy' | 'requestedDomain' | 'domainCostPHP' | 'domainChargedPHP' |
     'websiteListPrice' | 'domainStatus' | 'websiteUrl' | 'unpublishedAt'>;
 
 /** A payment link grants receipt access, never access to capture originals. */
@@ -136,7 +136,7 @@ export const getSubmissionByToken = query({
             _id: submission._id, businessName: submission.businessName, status: submission.status,
             amount: submission.amount, amountPaid: submission.amountPaid, depositPaidAt: submission.depositPaidAt,
             paidInFullAt: submission.paidInFullAt, paidAt: submission.paidAt, pricingMode: submission.pricingMode,
-            contentSource: submission.contentSource, requestedDomain: submission.requestedDomain,
+            contentSource: submission.contentSource, publishPolicy: submission.publishPolicy, requestedDomain: submission.requestedDomain,
             domainCostPHP: submission.domainCostPHP, domainChargedPHP: submission.domainChargedPHP,
             websiteListPrice: submission.websiteListPrice, domainStatus: submission.domainStatus,
             websiteUrl: websiteUrl && /^https?:\/\//i.test(websiteUrl) ? websiteUrl : undefined,

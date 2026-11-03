@@ -1,5 +1,6 @@
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { creatorDiscount, domainAddOnFor, isComped, type CreatorDiscount } from "@/lib/pricing";
+import { isPaidInFull } from '@/convex/lib/ownerApp';
 
 /*
  * What the payment page shows, worked out from the token and its submission.
@@ -14,27 +15,20 @@ export function checkoutExpiryAt(token: { expiresAt: number; xenditInvoiceId?: s
         ? Math.min(token.expiresAt, token.xenditExpiresAt) : token.expiresAt;
 }
 
-/**
- * Submission statuses that mean the website is paid for: the Wise webhook's
- * match and an admin's Mark as paid both end in payments.creditCreatorForPayment
- * ("completed"); submissions.markPaid writes "paid".
- */
-const SETTLED = new Set(["paid", "completed"]);
-
 export function payView(
     token: { status: string; expiresAt: number; xenditInvoiceId?: string; xenditExpiresAt?: number } | null,
-    submission: { status: string; pricingMode?: string | null; paidInFullAt?: number; depositPaidAt?: number } | null,
+    submission: { status: string; pricingMode?: string | null; paidInFullAt?: number; depositPaidAt?: number;
+        publishPolicy?: 'publish_first' | 'pay_then_publish' } | null,
     now: number,
 ): PayView {
     if (!token) return "notfound";
     if (token.status === "paid") return "paid";
-    // Only the Wise webhook marks the TOKEN paid. A transfer matched by hand
-    // (this page's own fallback when the code is missing) goes through
-    // admin.markPaid, which settles the submission and never touches the
-    // token, so without this the page would keep asking someone who has paid
-    // to pay. A promo (comped) site is settled with no payment, so it is not
-    // "paid" and keeps the token's own state, as it did before.
-    if (submission && (SETTLED.has(submission.status) || !!submission.paidInFullAt) && !isComped(submission)) return "paid";
+    // An old link may remain pending after a different receipt or a legacy
+    // team confirmation settles the order. Use the backend's receipt-aware
+    // settlement rule so status-only updates cannot settle new pay-first orders.
+    // A free grant is not evidence of a payment against this token.
+    if (submission && !isComped(submission)
+        && isPaidInFull({ ...submission, pricingMode: submission.pricingMode ?? undefined })) return "paid";
     // An admin cancelled the link (paymentTokens.markCancelled): it was
     // replaced, which is what the not-found page tells the visitor.
     if (token.status === "cancelled") return "notfound";
@@ -42,7 +36,7 @@ export function payView(
     // Show renewal immediately even if the provider callback has not arrived.
     if (token.xenditInvoiceId && typeof token.xenditExpiresAt === 'number'
         && Number.isFinite(token.xenditExpiresAt) && token.xenditExpiresAt <= now) return 'expired';
-    if (token.status === "expired" || token.expiresAt < now) return "expired";
+    if (token.status === "expired" || token.expiresAt <= now) return "expired";
     return "pending";
 }
 

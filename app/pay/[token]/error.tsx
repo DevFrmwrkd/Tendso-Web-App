@@ -1,6 +1,7 @@
 "use client";
 
-import { ErrorState, FunnelHeader, PublicPage } from "@/components/r1";
+import { ErrorState } from "@/components/r1";
+import { PaymentShell } from "@/components/shells/PaymentShell";
 
 /**
  * The payment page threw (a Convex query failed). The Kit's error state, as in
@@ -10,8 +11,6 @@ import { ErrorState, FunnelHeader, PublicPage } from "@/components/r1";
  */
 export default function PayError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
     return (
-        <PublicPage header={<FunnelHeader exit={{ href: "/knowledge", label: "Questions? Help" }} />} mainClassName="items-center justify-center px-4">
-            <ErrorState what="This payment page" reference={error.digest ?? null} />
-        </PublicPage>
+        <PaymentShell><div className="mx-auto max-w-[640px] py-8"><ErrorState what="This payment page" reference={error.digest ?? null} /></div></PaymentShell>
     );
 }

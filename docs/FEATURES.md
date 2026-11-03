@@ -250,7 +250,7 @@ Not redesigned in the mock: default keep as is, restyle.
 
 | ID | Feature | Where today | Who | Where in new design | Phase | Target | Done |
 |---|---|---|---|---|---|---|---|
-| W-066, C-040, A-008 | Owner pay link + `/pay/[token]`: pending / paid / expired, Wise transfer with ND-XXXX-YYYY reference, 30-day expiry, overseas fold | `/pay/[token]`, `paymentTokens.ts`, `/api/send-website-email` | owner | `pages/pay.html` (ready → pay → waiting → paid → expired); app pay screen is new (N-12); provider Q3; payee details Q35 | 2 | ✅ | ☑ |
+| W-066, C-040, A-008 | Owner pay link: pending, paid, expired and unavailable states; reference-based transfer instructions and guarded renewal | `/pay/[token]`, `paymentTokens.ts`, `/api/send-website-email` | owner | Responsive Tendso payment funnel: request/order/receipt amounts separated for full, deposit and balance payments; current publication checked separately; missing recipients and stale requests suppress transfer instructions. Earliest link/provider expiry and authenticated Pay again preserved. | 2 | ✅ | ☑ |
 | C-041 | Automatic payment match: Wise deposit webhook → reference / amount → paid, creator credited, referral bonus, domain purchase | `/wise-deposit-webhook`, `payments.ts` | system | backend; extend for provider and instalments (Q2, Q3) | 1 | ✅ | ☑ |
 | C-042, A-006, A-007 | Manual mark paid / comped (free site, creator still paid) + emails | `/api/mark-paid`, `/api/mark-comped`, `admin.ts` | admin | backend, unchanged | 4 | ✅ | ☐ |
 | C-043, A-009 | Payment follow-ups (hourly cron, 48–72 h after email) + agent "remind owner" (1 a day, max 3) | `followUp.ts`, `creatorReminders.ts`, `/api/internal/send-creator-reminder` | system, agent | kept; wording and timing follow Q1 | 7 | ✅ | ☐ |
@@ -400,7 +400,7 @@ From `inv-strings.md`. F1 = ~20 min same day (not 48–72 h / 24 h / days) · F2
 | `convex/knowledgeSeed.ts` | 14 | F1, F2, F4 | No | 7 |
 | `lib/email/templates.ts` | 7 | F1, F2, F3 | No | 7 |
 | `components/landing/landingData.ts` | 6 (4 EN + 2 TL) | F1, F2, F4 | No | 2 |
-| `app/pay/[token]/_components/PayViews.tsx` | 4 | F2, F3 ("Your site is already up") | No | 2 |
+| `app/pay/[token]/_components/PayViews.tsx` | Resolved 2026-11-03 | Removed unsupported live-site / full-payment claims; receipts distinguish installments from order settlement | No | 2 |
 | `app/layout.tsx` | 3 | F1, F2 | No | 2 |
 | `app/otr/page.tsx` | 3 | F1, F2, F3 | No | 2 |
 | `app/start/thanks/page.tsx` | 3 | F1, F2, F3 | No | 2 |

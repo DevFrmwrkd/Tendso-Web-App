@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Complete payment — the page every payment email links to (Round 1, board
- * Pay). Most people who open it are business owners with no account, so the
+ * Complete payment — the page payment emails link to. A payer can open it
+ * without an account, so the
  * route is public (proxy.ts): the token in the path is the credential, and
  * paymentTokens.getByToken takes it and nothing else.
  *
@@ -19,7 +19,7 @@ import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
 
-import { FunnelHeader, PublicPage } from "@/components/r1";
+import { PaymentShell } from "@/components/shells/PaymentShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 import { getPaymentConfig } from "@/lib/payment/config";
@@ -43,13 +43,14 @@ export default function PaymentPage() {
 
     // Fetch submission details
     const submission = useQuery(api.paymentTokens.getSubmissionByToken, paymentToken ? { token } : "skip");
+    const publication = useQuery(api.paymentTokens.getPublicationByToken, paymentToken ? { token } : "skip");
 
-    const wiseEmail = paymentConfig.wiseEmail || "support@negosyo.digital";
+    const wiseEmail = paymentConfig.wiseEmail || "";
 
     // Wait for the submission too: its status decides "paid" when an admin
     // matched the transfer by hand, so deciding on the token alone would flash
     // the pay instructions at someone who has already paid.
-    const loading = paymentToken === undefined || (paymentToken !== null && submission === undefined);
+    const loading = paymentToken === undefined || (paymentToken !== null && (submission === undefined || publication === undefined));
 
     let content: ReactNode;
     if (loading) {
@@ -57,11 +58,11 @@ export default function PaymentPage() {
     } else if (!paymentToken) {
         content = <NotFoundView />;
     } else {
-        const props = { token: paymentToken, submission: submission ?? null, now };
+        const props = { token: paymentToken, submission: submission ?? null, now, publishedUrl: publication?.liveUrl ?? null, ownerHome: isOwner };
         const view = payView(paymentToken, submission ?? null, now);
         content =
             view === "paid" ? (
-                <PaidView {...props} ownerHome={isOwner} />
+                <PaidView {...props} />
             ) : view === "expired" ? (
                 <ExpiredView {...props} />
             ) : view === "notfound" ? (
@@ -72,8 +73,6 @@ export default function PaymentPage() {
     }
 
     return (
-        <PublicPage header={<FunnelHeader exit={{ href: "/knowledge", label: "Questions? Help" }} />}>
-            <div className="mx-auto flex w-full max-w-[1088px] flex-col px-4 pb-16 pt-6 sm:px-6 sm:pt-8 lg:pt-10">{content}</div>
-        </PublicPage>
+        <PaymentShell>{content}</PaymentShell>
     );
 }
