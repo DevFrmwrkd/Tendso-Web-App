@@ -19,7 +19,7 @@ jest.mock('@/convex/_generated/api', () => ({ api: {
     creators: { getByClerkId: 'actor' },
     submissions: { getById: 'submission', updateStatus: 'status', setUnpublished: 'unpublished', update: 'updateSubmission' },
     generatedWebsites: {
-        getBySubmissionId: 'website', listSlugs: 'slugs', publish: 'publish', markOffline: 'offline',
+        getBySubmissionId: 'website', publicationCheck: 'publicationCheck', listSlugs: 'slugs', publish: 'publish', markOffline: 'offline',
         upsert: 'upsert', updatePublishingInfo: 'publishingInfo', storeHtml: 'storeHtml',
     },
     websiteContent: { getBySubmissionId: 'content', getDirect: 'directContent', upsert: 'upsertContent' },
@@ -63,6 +63,7 @@ beforeEach(() => {
             htmlContent: '<html>Shop</html>',
         };
         if (query === 'slugs') return [];
+        if (query === 'publicationCheck') return { allowed: true, reason: null };
         return null;
     });
     network = jest.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({

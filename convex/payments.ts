@@ -367,7 +367,22 @@ export const processDeposit = internalAction({
     handler: async (ctx, args) => {
         console.log(`[PAYMENTS] Processing deposit: ₱${args.amount} ${args.currency}, ref="${args.referenceText}", txn=${args.transactionId}`)
 
-        // ── STRATEGY 1: Match by reference code (most precise) ──
+        // The reference identifies the order; the amount/currency verifies the
+        // receipt. An amount alone is never proof that a particular owner paid.
+        if (!Number.isFinite(args.amount) || args.amount <= 0 || args.currency.trim().toUpperCase() !== 'PHP') {
+            await ctx.runMutation(internal.auditLogs.log, {
+                adminId: 'system:auto-payment', action: 'payment_unmatched', targetType: 'payment', targetId: args.transactionId,
+                metadata: {
+                    amount: args.amount, currency: args.currency, referenceText: args.referenceText,
+                    ...(args.senderName ? { senderName: args.senderName } : {}), requiresReview: true,
+                    matchAttempt: 'invalid_currency_or_amount',
+                    reason: 'Team verification required: check the received amount and currency before marking a website paid.',
+                },
+            })
+            return
+        }
+
+        // Only an exact reference match can confirm an order automatically.
         const refCode = extractReferenceFromText(args.referenceText)
         let paymentToken: any = null
         let matchMethod = ''
@@ -380,60 +395,28 @@ export const processDeposit = internalAction({
             }
         }
 
-        // ── STRATEGY 2: Match by amount (fallback when Wise doesn't include reference) ──
-        // Wise's balances#credit event doesn't include the payment note/reference.
-        // So we find ALL pending payment tokens with a matching amount.
-        // If exactly 1 match → auto-credit. If 0 or 2+ → log for admin.
+        // Amount candidates help the team investigate, but never select an
+        // order or credit a seller, even when there is exactly one candidate.
         if (!paymentToken) {
-            console.log(`[PAYMENTS] No reference match, trying amount-based matching for ₱${args.amount}`)
             const candidates = await ctx.runQuery(internal.paymentTokens.findPendingByAmount, {
                 amount: args.amount,
-                tolerance: 1, // ₱1 tolerance for InstaPay rounding/fees
+                tolerance: 1,
             })
-
-            if (candidates.length === 1) {
-                paymentToken = candidates[0]
-                matchMethod = 'amount_single_match'
-                console.log(`[PAYMENTS] ✓ Single pending token matched by amount: ₱${paymentToken.amount}, ref=${paymentToken.referenceCode}, submission=${paymentToken.submissionId}`)
-            } else if (candidates.length === 0) {
-                console.warn(`[PAYMENTS] No pending payment tokens found for ₱${args.amount}`)
-                await ctx.runMutation(internal.auditLogs.log, {
-                    adminId: 'system:auto-payment',
-                    action: 'payment_unmatched' as any,
-                    targetType: 'payment' as any,
-                    targetId: args.transactionId,
-                    metadata: {
-                        amount: args.amount,
-                        currency: args.currency,
-                        referenceText: args.referenceText,
-                        senderName: args.senderName,
-                        reason: 'No pending payment token found matching this amount. Admin: click "Mark as Paid" on the submission manually.',
-                        matchAttempt: refCode ? 'reference_failed_then_amount_zero' : 'amount_zero',
-                    },
-                })
-                return
-            } else {
-                // Multiple pending tokens with the same amount — ambiguous, admin must resolve
-                console.warn(`[PAYMENTS] ${candidates.length} pending tokens match ₱${args.amount} — ambiguous, skipping auto-match`)
-                await ctx.runMutation(internal.auditLogs.log, {
-                    adminId: 'system:auto-payment',
-                    action: 'payment_unmatched' as any,
-                    targetType: 'payment' as any,
-                    targetId: args.transactionId,
-                    metadata: {
-                        amount: args.amount,
-                        currency: args.currency,
-                        senderName: args.senderName,
-                        reason: `${candidates.length} pending submissions have the same amount (₱${args.amount}). Cannot auto-match — admin must click "Mark as Paid" on the correct submission.`,
-                        candidateSubmissionIds: candidates.map((c: any) => c.submissionId),
-                        candidateRefCodes: candidates.map((c: any) => c.referenceCode),
-                    },
-                })
-                return
-            }
+            await ctx.runMutation(internal.auditLogs.log, {
+                adminId: 'system:auto-payment', action: 'payment_unmatched', targetType: 'payment', targetId: args.transactionId,
+                metadata: {
+                    amount: args.amount, currency: args.currency, referenceText: args.referenceText,
+                    ...(args.senderName ? { senderName: args.senderName } : {}), requiresReview: true,
+                    reason: 'Team verification required: no matching payment reference. Check the bank transaction and the correct website order before marking it paid. Amount matches are suggestions only.',
+                    matchAttempt: refCode ? 'reference_not_found' : 'reference_missing',
+                    candidateSubmissionIds: candidates.map((candidate: any) => candidate.submissionId),
+                    candidateRefCodes: candidates.map((candidate: any) => candidate.referenceCode),
+                },
+            })
+            return
         }
 
-        // ── Token found (by reference or amount) — process the payment ──
+        // Exact token reference found — validate and process the receipt.
 
         // Check if already paid (duplicate)
         if (paymentToken.status === 'paid') {

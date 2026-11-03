@@ -4,7 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Share, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -12,6 +12,7 @@ import { Button, Card, ScreenShell, Text } from '../../components/v2';
 import { Buddy } from '../../components/v2/owner/OwnerUI';
 import { OwnerSiteSummary, publicSiteUrl } from '../../components/v2/owner/OwnerSiteSummary';
 import { OwnerSiteQr } from '../../components/v2/owner/OwnerSiteQr';
+import { OwnerPaymentReturn } from '../../components/v2/owner/OwnerPaymentReturn';
 import { hostOf, slugGuess } from '../../lib/v2/ownerContent';
 import { usePreview, useRequestDomain } from '../../lib/v2/ownerData';
 import { STEP_ROUTE } from '../../lib/v2/ownerFlow';
@@ -20,6 +21,7 @@ import { colors, radius, space } from '../../theme/v2';
 
 export default function Live() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ paymentToken?: string; paymentFor?: string }>();
   const { me, site, id } = useOwnerSite();
   const { userId } = useAuth();
   const preview = usePreview(id);
@@ -42,6 +44,12 @@ export default function Live() {
   const url = publicSiteUrl(preview?.publishedUrl ?? site?.publishedUrl);
   const address = hostOf(url);
   const dotCom = `${slugGuess(name)}.com`;
+
+  // Only a checkout opened by this account for this selected business can add
+  // a payment-return screen. The query rechecks token ownership server-side.
+  if (id && typeof params.paymentToken === 'string' && params.paymentToken.trim() && params.paymentFor === actor && !site?.paidInFull) {
+    return <OwnerPaymentReturn key={`${actor}:${params.paymentToken}`} id={id} token={params.paymentToken} actor={actor} />;
+  }
 
   if (phase === 'awaiting_payment' || phase === 'ready_to_check') {
     return (

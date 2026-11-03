@@ -43,6 +43,7 @@ jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ id: mockId, 
 jest.mock('../lib/v2/ownerData', () => ({
   usePreview: () => mockPreview, useRequestDomain: () => mockRequestDomain, usePaymentState: () => mockPay,
   useCreatePayToken: () => mockCreateToken, useCreateCheckout: () => mockCheckout, wisePayUrl: (token: string) => `https://www.tendso.com/pay/${token}`,
+  useRetryOwnerPayment: () => jest.fn(),
 }));
 
 beforeEach(() => {
@@ -53,7 +54,8 @@ beforeEach(() => {
     canPayFull: true, canPayDeposit: true, canPayBalance: false, minDownPayment: 500, xenditEnabled: true };
   mockPermission.mockResolvedValue({ granted: true }); mockSaveImage.mockResolvedValue(undefined);
   mockCapture.mockResolvedValue('file://qr.png'); mockSharingAvailable.mockResolvedValue(true); mockShareImage.mockResolvedValue(undefined);
-  mockCreateToken.mockResolvedValue({ token: 'payment-token' }); mockCheckout.mockResolvedValue({ enabled: true, checkoutUrl: 'https://checkout.example.com' });
+  mockCreateToken.mockResolvedValue({ token: 'payment-token', referenceCode: 'TND-TEST', kind: 'full', amount: 4999, expiresAt: Date.now() + 60000 });
+  mockCheckout.mockResolvedValue({ enabled: true, checkoutUrl: 'https://checkout.example.com' });
   mockBrowser.mockResolvedValue({ type: 'cancel' });
 });
 

@@ -66,13 +66,14 @@ describe('stored invoice and commission bounds', () => {
             creatorId, businessName: 'Forged draft', businessType: 'Salon', ownerName: 'Owner', ownerPhone: '09170000001',
             address: 'Main Street', city: 'Manila', status: 'draft', amount: 1, creatorPayout: 1000000,
         });
+        expect(await t.run(ctx => ctx.db.get(submissionId))).toMatchObject({ publishPolicy: 'pay_then_publish', status: 'draft' });
         await expect(t.action(api.paymentTokens.createPaymentToken, {
             submissionId, referenceCode: 'ND-7K3M-X9P2', amount: 1,
-        })).rejects.toThrow('Website price');
+        })).rejects.toThrow('Looks good');
         await creator.mutation(api.submissions.update, { id: submissionId, amount: 999 });
         await expect(t.action(api.paymentTokens.createPaymentToken, {
             submissionId, referenceCode: 'ND-7K3M-X9P2', amount: 999,
-        })).rejects.toThrow('Creator payout');
+        })).rejects.toThrow('Looks good');
         expect(await t.run((ctx) => ctx.db.query('paymentTokens').collect())).toEqual([]);
     });
 

@@ -9,7 +9,7 @@ import PayPart from '../app/(owner)/pay/part';
 import PayMethod from '../app/(owner)/pay/method';
 
 const mockPush = jest.fn(), mockReplace = jest.fn(), mockBack = jest.fn();
-const mockRequestChange = jest.fn(), mockRequestVisit = jest.fn(), mockCreateToken = jest.fn(), mockCheckout = jest.fn(), mockBrowser = jest.fn();
+const mockRequestChange = jest.fn(), mockRequestVisit = jest.fn(), mockCreateToken = jest.fn(), mockCheckout = jest.fn(), mockBrowser = jest.fn(), mockRetry = jest.fn();
 let mockId: string | null, mockSubject: string, mockFocused: boolean, mockConnected: boolean;
 let mockSite: any, mockPayment: any, mockBuild: any, mockParams: Record<string, string>;
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -33,6 +33,7 @@ jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ id: mockId, 
 jest.mock('../lib/v2/ownerData', () => ({
   useRequestChange: () => mockRequestChange, useRequestVisit: () => mockRequestVisit, useBuild: () => mockBuild,
   usePaymentState: () => mockPayment, useCreatePayToken: () => mockCreateToken, useCreateCheckout: () => mockCheckout,
+  useRetryOwnerPayment: () => mockRetry,
   wisePayUrl: (token: string) => `https://www.tendso.com/pay/${encodeURIComponent(token)}`,
 }));
 jest.mock('../components/v2/owner/OwnerSiteSummary', () => ({ OwnerSiteSummary: () => null }));
@@ -47,7 +48,7 @@ beforeEach(() => {
   mockParams = { kind: 'full', amount: '4999' }; mockPayment = { ...payment };
   mockBuild = { phase: 'ready_to_check', steps: [], doneCount: 4 };
   mockRequestChange.mockReset().mockResolvedValue(undefined); mockRequestVisit.mockReset().mockResolvedValue(undefined);
-  mockCreateToken.mockReset().mockResolvedValue({ token: 'pay-token' });
+  mockCreateToken.mockReset().mockResolvedValue({ token: 'pay-token', referenceCode: 'TND-TEST', kind: 'full', amount: 4999, expiresAt: Date.now() + 60000 });
   mockCheckout.mockReset().mockResolvedValue({ enabled: true, checkoutUrl: 'https://checkout.example.com/invoice' });
   mockBrowser.mockReset().mockResolvedValue({ type: 'cancel' });
   jest.spyOn(Animated, 'loop').mockReturnValue({ start: jest.fn(), stop: jest.fn(), reset: jest.fn() } as any);
@@ -142,7 +143,7 @@ it('retains a valid browser-return navigation when the webhook makes the site pa
   await waitFor(() => expect(mockBrowser).toHaveBeenCalledTimes(1));
   mockPayment = { ...payment, paidInFull: true, balanceDue: 0 }; screen.rerender(<PayMethod />);
   await act(async () => { finish({ type: 'cancel' }); });
-  expect(mockReplace).toHaveBeenCalledWith('/(owner)/live');
+  expect(mockReplace).toHaveBeenCalledWith({ pathname: '/(owner)/live', params: { paymentToken: 'pay-token', paymentFor: 'owner-a:owner-a:site-a' } });
 });
 
 it('deduplicates change requests and does not navigate after the selected site changes', async () => {

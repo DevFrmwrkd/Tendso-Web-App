@@ -233,6 +233,31 @@ does not pay the agent twice.
 - An `owner_app` site needs "Looks good" first (admins may skip this).
 - A double tap reuses the open token. Tokens last 30 days.
 
+### Expired checkout recovery
+
+- `ownerPayments.getPaymentAttempt({ token, expectedSubmissionId? })` is an
+  authenticated query. It verifies access to the token's order and reports its
+  current expiry/payment/approval state for the native return screen.
+- `ownerPayments.retryExpiredPayment({ token, expectedSubmissionId?, expectedTotal? })`
+  verifies the payer and the current order before renewing an expired request.
+  It returns `ready` with the fresh or reusable token, current amount, kind and
+  submission id, or `paid`, `needs_approval` or `processing` without creating a
+  second payment request. An administrative cancellation cannot be renewed.
+- A confirmed deposit changes a retry to the remaining balance. Neither an
+  expired full-price quote nor a recorded deposit may be charged again.
+- Expired references remain available for matching a delayed transfer. Retrying
+  does not erase a receipt, cancel already-received money or publish a website.
+- Both public payment-page designs show **Pay again**. Signed-out visitors
+  verify their email, return to the same payment page and renew as an authorized
+  payer. Authentication return paths allow only the owner's workspace or a
+  syntactically valid `/pay/<token>` / `/v2/pay/<token>` path.
+- Native browser dismissal alone does not mean a checkout expired or that no
+  money was sent. Its expired state comes from the authenticated attempt query.
+- A development mobile export must set `EXPO_PUBLIC_WEB_ORIGIN` to an HTTPS
+  frontend using the same development Convex deployment and Clerk test instance.
+  Production checkout cannot read development payment tokens. A temporary local
+  HTTPS tunnel works for device testing while its server and tunnel stay running.
+
 ### `internal.ownerPayments.applyTokenPayment` (the shared settle function)
 - args `{ token, provider: 'wise'|'xendit'|'manual', triggeredBy, externalId?, amountReceived? }`
 - returns `{ result: 'applied', submissionId, stage, status }`, or
@@ -244,15 +269,17 @@ does not pay the agent twice.
   Nothing is written, the token stays pending, and an admin decides.
 - It checks the token, credits (same transaction), marks the token `paid` with
   `provider`, `paidAmount`, `externalPaymentId` (and `wiseTransactionId` for
-  Wise), and cancels the other pending tokens for that order. Cancelling them
-  keeps Wise amount-matching unambiguous.
-- Wise: `payments.processDeposit` now calls this function. It keeps matching
-  by reference, then by amount. Down payment and balance tokens match by their
-  own amounts.
+  Wise), and cancels the other pending tokens for that order so superseded
+  requests cannot settle it again.
+- Wise: `payments.processDeposit` calls this function only for an exact payment
+  reference and a valid PHP amount. Missing or unmatched references go to team
+  verification in the admin audit log, even when only one bill has that amount.
+  Amount candidates are investigation hints and never auto-credit an order.
+  Down-payment and balance references are validated against their own amounts.
 
 New `paymentTokens` fields: `kind`, `provider`, `paidAmount`,
 `externalPaymentId`, `xenditInvoiceId`, `xenditInvoiceUrl`, `xenditExpiresAt`,
-`createdBy`.
+`xenditCheckoutAttempt`, `xenditCheckoutStartedAt`, `xenditCheckoutState`, `createdBy`.
 
 ---
 
@@ -272,7 +299,11 @@ set on the Convex deployment.
   `currency: 'PHP'`, `description`, `payer_email`, `invoice_duration: 86400`,
   the redirect URLs, `metadata { submissionId, kind }`, and `payment_methods`
   only if `XENDIT_PAYMENT_METHODS` is set.
-- It reuses an open invoice for the same token. An `EXPIRED` callback clears it.
+- It reuses an open invoice for the same token. An atomic order-wide claim
+  prevents two devices from opening different invoices for the same order.
+  Ambiguous provider failures hold the claim for reconciliation. An `EXPIRED`
+  callback expires the request and releases the claim while retaining the invoice
+  identity for delayed receipts.
 
 ### `POST /xendit-webhook` (Convex HTTP route)
 - The header `x-callback-token` must equal `XENDIT_CALLBACK_TOKEN`, compared in

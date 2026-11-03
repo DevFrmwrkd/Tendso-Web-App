@@ -28,11 +28,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import {
+    checkoutExpiryAt,
     hostOf,
     linkDays,
     liveUrlOf,
     longDate,
-    newLinkMailto,
     paidOnOf,
     paymentDetailsText,
     payView,
@@ -42,6 +42,7 @@ import {
 } from "@/app/pay/[token]/_components/payState";
 import { useNow } from "@/app/pay/[token]/_components/useNow";
 import LiveSitePreview from "@/components/landing/LiveSitePreview";
+import { ExpiredPaymentAction } from '@/components/payments/ExpiredPaymentAction';
 import { Button } from "@/components/v2";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
@@ -615,19 +616,18 @@ function Expired({ token, submission, now }: { token: Token; submission: Submiss
                 state="Link expired"
                 dot="off"
                 title="This link expired."
-                sub={`Payment links last ${linkDays(token)} days. This one ended on ${shortDate(token.expiresAt, now)}.`}
+                sub={`This checkout ended on ${shortDate(checkoutExpiryAt(token), now)}. You can open a fresh one below.`}
                 url={null}
-                preview="Private until you pay"
+                preview="Payment link expired"
+                noPreviewText="Open a fresh checkout to check the latest amount and payment status."
             />
             <section className="v2-wrap pb-py-done" aria-labelledby="exp-h">
                 <h2 className="pb-py-done-h" id="exp-h">
-                    Ask us for a new one.
+                    Open a fresh checkout.
                 </h2>
-                <p className="pb-py-done-p">Already sent money with the old code? It still reaches us.</p>
+                <p className="pb-py-done-p">Your latest balance is checked first, including any confirmed down payment. Already transferred money? Check that payment before sending again.</p>
                 <div className="pb-py-done-cta">
-                    <Button href={newLinkMailto(name, token.referenceCode)} variant="dark">
-                        Ask for a new link
-                    </Button>
+                    <ExpiredPaymentAction token={token} total={submission?.amount} version="v2" />
                     <Button href="/v2/help#contact" variant="ghost">
                         Other questions
                     </Button>

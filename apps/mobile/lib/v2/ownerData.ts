@@ -10,12 +10,13 @@
  * typed sample data (./ownerSample) — for demos, screenshots and before the
  * backend is deployed. Never on in production builds.
  */
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { SITE_URL } from '../../services/links';
 import { sample } from './ownerSample';
+import { ownerPaymentOrigin } from './ownerPaymentOrigin';
 import type {
   BuildState,
   CheckoutResult,
@@ -29,6 +30,8 @@ import type {
   PayKind,
   PaymentState,
   PayToken,
+  OwnerPaymentAttempt,
+  OwnerPaymentRetry,
   PreviewState,
   SaveAnswerArgs,
   SaveShotArgs,
@@ -67,6 +70,8 @@ const ref = {
   paymentState: api.ownerPayments.getPaymentState,
   createPayToken: api.ownerPayments.createPayToken,
   createCheckout: api.xendit.createCheckout,
+  paymentAttempt: api.ownerPayments.getPaymentAttempt,
+  retryPayment: api.ownerPayments.retryExpiredPayment,
 };
 
 /** Re-render on sample store changes (sample mode only). */
@@ -183,6 +188,34 @@ export function useCreatePayToken(): (args: Sid & { kind: PayKind; amount?: numb
   return useCallback((args) => (OWNER_SAMPLE_DATA ? sample.createPayToken(args) : m(args)), [m]);
 }
 
+/** A checkout return is only a hint; the server owns expiry and payment status. */
+export function useOwnerPaymentAttempt(id: SubmissionId | null, token: string | null): OwnerPaymentAttempt | null | undefined {
+  if (OWNER_SAMPLE_DATA) {
+    // The sample's memoized payment snapshot keeps this subscription stable.
+    const pay = useSample(() => id ? sample.payment(id) : undefined); // eslint-disable-line react-hooks/rules-of-hooks
+    return useMemo<OwnerPaymentAttempt | null>(() => !id || !token || !pay?.billable ? null : ({ // eslint-disable-line react-hooks/rules-of-hooks
+      submissionId: id, status: pay.paidInFull ? 'paid' : pay.needsApproval ? 'needs_approval' : 'ready',
+      kind: pay.canPayBalance ? 'balance' : 'full', amount: pay.balanceDue, expiresAt: Number.MAX_SAFE_INTEGER,
+    }), [id, token, pay]);
+  }
+  return useQuery(ref.paymentAttempt, id && token ? { token, expectedSubmissionId: id } : skip); // eslint-disable-line react-hooks/rules-of-hooks
+}
+
+export function useRetryOwnerPayment(): (args: { token: string; expectedSubmissionId: SubmissionId; expectedTotal: number }) => Promise<OwnerPaymentRetry> {
+  const retry = useMutation(ref.retryPayment);
+  return useCallback(async (args: { token: string; expectedSubmissionId: SubmissionId; expectedTotal: number }): Promise<OwnerPaymentRetry> => {
+    if (!OWNER_SAMPLE_DATA) return retry(args);
+    const pay = sample.payment(args.expectedSubmissionId);
+    if (!pay?.billable) throw new Error('Return to your site to check the latest payment options.');
+    if (pay.paidInFull) return { status: 'paid', submissionId: args.expectedSubmissionId };
+    if (pay.needsApproval) return { status: 'needs_approval', submissionId: args.expectedSubmissionId };
+    const oldAmount = Number(args.token.split(':')[2]);
+    const kind = pay.canPayBalance ? 'balance' : oldAmount >= pay.minDownPayment && oldAmount < pay.total ? 'deposit' : 'full';
+    const token = await sample.createPayToken({ submissionId: args.expectedSubmissionId, kind, amount: kind === 'deposit' ? oldAmount : undefined });
+    return { status: 'ready', submissionId: args.expectedSubmissionId, ...token };
+  }, [retry]);
+}
+
 /** GCash / Maya / card via Xendit: returns the hosted checkout URL to open in the in-app browser. */
 export function useCreateCheckout(): (token: string) => Promise<CheckoutResult> {
   const a = useAction(ref.createCheckout);
@@ -190,14 +223,20 @@ export function useCreateCheckout(): (token: string) => Promise<CheckoutResult> 
     (token) =>
       OWNER_SAMPLE_DATA
         ? sample.createCheckout(token)
-        : a({ token, successRedirectUrl: `${WEB_ORIGIN}/pay/${token}`, failureRedirectUrl: `${WEB_ORIGIN}/pay/${token}` }),
+        : a({ token, successRedirectUrl: wisePayUrl(token), failureRedirectUrl: wisePayUrl(token) }),
     [a],
   );
 }
 
 /** Wise bank transfer: the existing web pay page shows the three steps and the reference code. */
 export function wisePayUrl(token: string): string {
-  return `${WEB_ORIGIN}/pay/${encodeURIComponent(token)}`;
+  const origin = ownerPaymentOrigin({
+    configuredOrigin: process.env.EXPO_PUBLIC_WEB_ORIGIN,
+    convexUrl: process.env.EXPO_PUBLIC_CONVEX_URL,
+    clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    productionOrigin: SITE_URL,
+  });
+  return `${origin}/pay/${encodeURIComponent(token)}`;
 }
 
 // ------------------------------------------------------------------ agents

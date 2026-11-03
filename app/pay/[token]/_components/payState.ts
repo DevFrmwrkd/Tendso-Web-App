@@ -8,6 +8,12 @@ import { creatorDiscount, domainAddOnFor, isComped, type CreatorDiscount } from 
 
 export type PayView = "pending" | "paid" | "expired" | "notfound";
 
+/** A hosted checkout can have an earlier expiry than its payment link. */
+export function checkoutExpiryAt(token: { expiresAt: number; xenditInvoiceId?: string; xenditExpiresAt?: number }): number {
+    return token.xenditInvoiceId && typeof token.xenditExpiresAt === 'number' && Number.isFinite(token.xenditExpiresAt)
+        ? Math.min(token.expiresAt, token.xenditExpiresAt) : token.expiresAt;
+}
+
 /**
  * Submission statuses that mean the website is paid for: the Wise webhook's
  * match and an admin's Mark as paid both end in payments.creditCreatorForPayment
@@ -16,8 +22,8 @@ export type PayView = "pending" | "paid" | "expired" | "notfound";
 const SETTLED = new Set(["paid", "completed"]);
 
 export function payView(
-    token: { status: string; expiresAt: number } | null,
-    submission: { status: string; pricingMode?: string | null } | null,
+    token: { status: string; expiresAt: number; xenditInvoiceId?: string; xenditExpiresAt?: number } | null,
+    submission: { status: string; pricingMode?: string | null; paidInFullAt?: number; depositPaidAt?: number } | null,
     now: number,
 ): PayView {
     if (!token) return "notfound";
@@ -28,10 +34,14 @@ export function payView(
     // token, so without this the page would keep asking someone who has paid
     // to pay. A promo (comped) site is settled with no payment, so it is not
     // "paid" and keeps the token's own state, as it did before.
-    if (submission && SETTLED.has(submission.status) && !isComped(submission)) return "paid";
+    if (submission && (SETTLED.has(submission.status) || !!submission.paidInFullAt) && !isComped(submission)) return "paid";
     // An admin cancelled the link (paymentTokens.markCancelled): it was
     // replaced, which is what the not-found page tells the visitor.
     if (token.status === "cancelled") return "notfound";
+    // A hosted checkout can expire before the longer-lived payment token.
+    // Show renewal immediately even if the provider callback has not arrived.
+    if (token.xenditInvoiceId && typeof token.xenditExpiresAt === 'number'
+        && Number.isFinite(token.xenditExpiresAt) && token.xenditExpiresAt <= now) return 'expired';
     if (token.status === "expired" || token.expiresAt < now) return "expired";
     return "pending";
 }

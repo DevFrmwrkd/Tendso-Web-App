@@ -40,10 +40,10 @@ export const createCheckout = action({
         if (!secretKey || !process.env.XENDIT_CALLBACK_TOKEN) return { enabled: false };
 
         // Runs as the caller: owner of the site, admin, or the selling agent.
-        const pay = await ctx.runQuery(internal.ownerPayments.checkoutContextInternal, { token: args.token });
+        let pay = await ctx.runQuery(internal.ownerPayments.checkoutContextInternal, { token: args.token });
 
         const now = Date.now();
-        if (pay.xenditInvoiceUrl && pay.xenditInvoiceId && (pay.xenditExpiresAt ?? 0) > now + 60_000) {
+        if (pay.xenditInvoiceUrl && pay.xenditInvoiceId && (pay.xenditExpiresAt === null || pay.xenditExpiresAt > now)) {
             return {
                 enabled: true,
                 checkoutUrl: pay.xenditInvoiceUrl,
@@ -71,29 +71,45 @@ export const createCheckout = action({
             metadata: { submissionId: String(pay.submissionId), kind: pay.kind },
         });
 
+        const attemptId = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+        const claim = await ctx.runMutation(internal.ownerPayments.beginXenditCheckout, { token: pay.token, attemptId });
+        if (claim.status === 'processing') throw new ConvexError('An earlier checkout may still be open. Check its payment status before trying again.');
+        if (claim.status === 'ready') return { enabled: true, checkoutUrl: claim.pay.xenditInvoiceUrl!, invoiceId: claim.pay.xenditInvoiceId!,
+            expiresAt: claim.pay.xenditExpiresAt, amount: claim.pay.amount, referenceCode: claim.pay.referenceCode };
+        pay = claim.pay;
+
         let response: Response;
         try {
             response = await fetch(XENDIT_INVOICES_URL, {
                 method: 'POST',
+                signal: AbortSignal.timeout(25_000),
                 headers: { Authorization: basicAuthHeader(secretKey), 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             });
         } catch (error) {
+            await ctx.runMutation(internal.ownerPayments.markXenditCheckoutUncertain, { token: pay.token, attemptId });
             console.error('[XENDIT] Invoice request failed:', error);
             throw new ConvexError('Card and e-wallet payment is not working right now. Please try again.');
         }
         const json = await response.json().catch(() => null);
         const created = response.ok ? parseInvoiceResponse(json) : null;
         if (!created) {
+            // These authentication rejections cannot create an invoice. Other
+            // failures can be ambiguous, so retain their reconciliation lock.
+            await ctx.runMutation(response.status === 401 || response.status === 403
+                ? internal.ownerPayments.releaseXenditAuthFailure
+                : internal.ownerPayments.markXenditCheckoutUncertain, { token: pay.token, attemptId });
             console.error(`[XENDIT] Invoice rejected: ${response.status} ${JSON.stringify(json).slice(0, 500)}`);
             throw new ConvexError('Card and e-wallet payment is not working right now. Please try again.');
         }
-        await ctx.runMutation(internal.ownerPayments.recordXenditInvoice, {
+        const recorded = await ctx.runMutation(internal.ownerPayments.recordXenditInvoice, {
             token: pay.token,
             invoiceId: created.invoiceId,
             invoiceUrl: created.invoiceUrl,
             expiresAt: created.expiresAt,
+            attemptId,
         });
+        if (!recorded.recorded) throw new ConvexError('Payment details changed. Open your business payment page again.');
         return {
             enabled: true,
             checkoutUrl: created.invoiceUrl,
@@ -122,8 +138,9 @@ export const handleInvoiceCallback = internalMutation({
         paymentChannel: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<ApplyResult | { result: 'ignored' | 'unknown'; reason?: string }> => {
-        const tokenRow = await ctx.db.query('paymentTokens')
-            .withIndex('by_reference', (q) => q.eq('referenceCode', args.externalId)).first();
+        const referenceMatches = await ctx.db.query('paymentTokens')
+            .withIndex('by_reference', (q) => q.eq('referenceCode', args.externalId)).take(2);
+        const tokenRow = referenceMatches[0];
         if (!tokenRow) {
             await ctx.db.insert('auditLogs', {
                 adminId: 'system:xendit',
@@ -137,8 +154,13 @@ export const handleInvoiceCallback = internalMutation({
         }
 
         if (!isPaidStatus(args.status)) {
-            if (args.status === 'EXPIRED' && tokenRow.status === 'pending' && tokenRow.xenditInvoiceId === args.invoiceId) {
-                await ctx.db.patch(tokenRow._id, { xenditInvoiceId: undefined, xenditInvoiceUrl: undefined, xenditExpiresAt: undefined });
+            const unresolvedAttempt = !tokenRow.xenditInvoiceId && referenceMatches.length === 1
+                && (tokenRow.xenditCheckoutState === 'creating' || tokenRow.xenditCheckoutState === 'uncertain');
+            if (args.status === 'EXPIRED' && tokenRow.status !== 'paid'
+                && (tokenRow.xenditInvoiceId === args.invoiceId || unresolvedAttempt)) {
+                await ctx.db.patch(tokenRow._id, { status: tokenRow.status === 'cancelled' ? 'cancelled' : 'expired',
+                    xenditInvoiceId: args.invoiceId,
+                    xenditExpiresAt: Math.min(tokenRow.xenditExpiresAt ?? Date.now(), Date.now()), xenditCheckoutState: undefined });
             }
             return { result: 'ignored', reason: `status ${args.status}` };
         }

@@ -183,6 +183,17 @@ export interface PayToken {
   expiresAt: number;
 }
 
+export interface OwnerPaymentAttempt {
+  status: 'ready' | 'expired' | 'paid' | 'needs_approval' | 'cancelled' | 'processing';
+  submissionId: SubmissionId;
+  kind: PayKind;
+  amount: number;
+  expiresAt: number;
+}
+
+export type OwnerPaymentRetry = ({ status: 'ready'; submissionId: SubmissionId } & PayToken)
+  | { status: 'paid' | 'needs_approval' | 'processing'; submissionId: SubmissionId };
+
 export interface OwnerCreatorOffer {
   name: string;
   code: string | null;

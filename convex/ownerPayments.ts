@@ -5,7 +5,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { MIN_DOWN_PAYMENT, isComped } from '../lib/pricing';
 import { generateReferenceCode } from '../lib/payments/referenceCode';
 import { validatePaymentPricing } from './lib/paymentPricing';
-import { requirePayerAccess } from './lib/ownerAuth';
+import { linkOwnerToSubmission, requirePayerAccess } from './lib/ownerAuth';
 import { hasOutstandingBalance, isOwnerApp, isPaidInFull, publishPolicyFor } from './lib/ownerApp';
 import { creditCreatorForPaymentImpl, type CreditStage } from './payments';
 
@@ -33,6 +33,76 @@ export type PayKind = 'full' | 'deposit' | 'balance';
 const payKind = v.union(v.literal('full'), v.literal('deposit'), v.literal('balance'));
 
 type DbCtx = QueryCtx | MutationCtx;
+
+function requestExpired(token: Doc<'paymentTokens'>, now: number): boolean {
+    return token.status === 'expired' || token.expiresAt <= now
+        || !!token.xenditInvoiceId && token.xenditExpiresAt !== undefined && token.xenditExpiresAt <= now;
+}
+function providerOpen(token: Doc<'paymentTokens'>, now: number): boolean {
+    return !!token.xenditCheckoutState || !!(token.xenditInvoiceId && token.xenditInvoiceUrl
+        && (token.xenditExpiresAt === undefined || token.xenditExpiresAt > now));
+}
+function approvalRequired(submission: Doc<'submissions'>): boolean {
+    return publishPolicyFor(submission) === 'pay_then_publish'
+        && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected');
+}
+function kindFor(token: Doc<'paymentTokens'>): PayKind {
+    const kind = token.kind ?? 'full';
+    if (kind !== 'full' && kind !== 'deposit' && kind !== 'balance') throw new ConvexError('Choose a payment option again.');
+    return kind;
+}
+
+/** A missing legacy invite can only be repaired for this positively verified owner identity. */
+async function retryPayer(ctx: DbCtx, submission: Doc<'submissions'>) {
+    try { return { createdBy: await requirePayerAccess(ctx, submission), repairOwnerId: null }; }
+    catch (error) {
+        const identity = await ctx.auth.getUserIdentity();
+        const email = typeof identity?.email === 'string' ? identity.email.trim().toLowerCase() : '';
+        if (!identity || identity.emailVerified !== true || !email || email !== submission.ownerEmail?.trim().toLowerCase()) throw error;
+        const owner = await ctx.db.query('businessOwners').withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject)).first();
+        if (!owner || owner.email.trim().toLowerCase() !== email) throw error;
+        return { createdBy: `owner:${owner._id}`, repairOwnerId: owner._id };
+    }
+}
+
+type ReadyRequest = { status: 'ready'; submissionId: Id<'submissions'>; token: string; referenceCode: string; kind: PayKind; amount: number; expiresAt: number };
+type RetryResult = ReadyRequest | { status: 'paid' | 'needs_approval' | 'processing'; submissionId: Id<'submissions'> };
+const readyRequest = (token: Doc<'paymentTokens'>): ReadyRequest => ({ status: 'ready', submissionId: token.submissionId,
+    token: token.token, referenceCode: token.referenceCode, kind: kindFor(token), amount: token.amount, expiresAt: token.expiresAt });
+
+async function currentRequest(ctx: MutationCtx, submission: Doc<'submissions'>, charge: { kind: PayKind; amount: number }, createdBy: string,
+    retireOthers = false): Promise<ReadyRequest | { status: 'processing'; submissionId: Id<'submissions'> }> {
+    const now = Date.now();
+    const requests = await ctx.db.query('paymentTokens').withIndex('by_submissionId', q => q.eq('submissionId', submission._id)).collect();
+    const compatible = (row: Doc<'paymentTokens'>) => row.status === 'pending' && !requestExpired(row, now)
+        && (row.kind ?? 'full') === charge.kind && row.amount === charge.amount;
+    // A timed-out provider POST may have succeeded remotely. Never open a
+    // second checkout until that uncertain attempt has been reconciled.
+    if (requests.some(row => row.status !== 'paid' && providerOpen(row, now)
+        && (row.xenditCheckoutState || !compatible(row)))) return { status: 'processing', submissionId: submission._id };
+    const reusable = requests.find(row => compatible(row) && providerOpen(row, now)) ?? requests.find(compatible);
+    for (const row of requests) {
+        if (row.status === 'pending' && row._id !== reusable?._id && (retireOthers || requestExpired(row, now))) {
+            // Expired references remain matchable when money arrives late.
+            await ctx.db.patch(row._id, { status: 'expired', adminNotes: 'Payment request replaced; late receipts still match this reference.' });
+        }
+    }
+    if (reusable) return readyRequest(reusable);
+    let referenceCode = generateReferenceCode();
+    let unique = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+        if (!await ctx.db.query('paymentTokens').withIndex('by_reference', q => q.eq('referenceCode', referenceCode)).first()) { unique = true; break; }
+        referenceCode = generateReferenceCode();
+    }
+    if (!unique) throw new ConvexError('Could not create a payment reference. Please try again.');
+    const bytes = new Uint8Array(32); crypto.getRandomValues(bytes);
+    const token = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    const expiresAt = now + TOKEN_TTL_MS;
+    await ctx.db.insert('paymentTokens', { submissionId: submission._id, token, referenceCode, amount: charge.amount,
+        status: 'pending', createdAt: now, expiresAt, kind: charge.kind, createdBy });
+    if (!submission.paymentReference) await ctx.db.patch(submission._id, { paymentReference: referenceCode });
+    return { status: 'ready', submissionId: submission._id, token, referenceCode, kind: charge.kind, amount: charge.amount, expiresAt };
+}
 
 /** What is owed on an order. Throws (plain Error) when it cannot be billed. */
 export function orderMoney(submission: Doc<'submissions'>) {
@@ -166,39 +236,68 @@ export const createPayToken = mutation({
             throw new ConvexError('This website cannot be paid for online. Please contact us.');
         }
 
-        // Reuse a matching pending token so a double tap gives one reference.
-        const now = Date.now();
-        const reusable = (await pendingTokens(ctx, args.submissionId)).find(
-            (t) => (t.kind ?? 'full') === charge.kind && t.amount === charge.amount && t.expiresAt > now,
-        );
-        if (reusable) {
-            return { token: reusable.token, referenceCode: reusable.referenceCode, kind: charge.kind, amount: reusable.amount, expiresAt: reusable.expiresAt };
-        }
+        const request = await currentRequest(ctx, submission, charge, createdBy);
+        if (request.status === 'processing') throw new ConvexError('An earlier checkout may still be open. Check its payment status before trying again.');
+        const { token, referenceCode, kind, amount, expiresAt } = request;
+        return { token, referenceCode, kind, amount, expiresAt };
+    },
+});
 
-        let referenceCode = generateReferenceCode();
-        for (let i = 0; i < 5; i++) {
-            const clash = await ctx.db.query('paymentTokens')
-                .withIndex('by_reference', (q) => q.eq('referenceCode', referenceCode)).first();
-            if (!clash) break;
-            referenceCode = generateReferenceCode();
+const retryArgs = { token: v.string(), expectedSubmissionId: v.optional(v.id('submissions')) };
+
+/** Authenticated status only; an invalid or foreign route cannot open another account's order. */
+export const getPaymentAttempt = query({
+    args: retryArgs,
+    handler: async (ctx, args) => {
+        const source = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (!source || args.expectedSubmissionId && source.submissionId !== args.expectedSubmissionId) return null;
+        const submission = await ctx.db.get(source.submissionId);
+        if (!submission) return null;
+        try {
+            await retryPayer(ctx, submission);
+            const money = orderMoney(submission);
+            let status: 'ready' | 'expired' | 'paid' | 'needs_approval' | 'cancelled' | 'processing';
+            const now = Date.now();
+            if (money.paidInFull || source.status === 'paid') status = 'paid';
+            else if (source.status === 'cancelled') status = 'cancelled';
+            else if (approvalRequired(submission)) status = 'needs_approval';
+            else if (source.xenditCheckoutState || requestExpired(source, now) && providerOpen(source, now)) status = 'processing';
+            else status = requestExpired(source, now) ? 'expired' : 'ready';
+            const balance = status !== 'paid' && money.depositOutstanding;
+            return { status, submissionId: submission._id, kind: balance ? 'balance' as const : kindFor(source),
+                amount: balance ? money.balanceDue : source.amount, expiresAt: source.expiresAt };
+        } catch { return null; }
+    },
+});
+
+/** Renew a request against the signed-in payer's current order, never a public token-only grant. */
+export const retryExpiredPayment = mutation({
+    args: { ...retryArgs, expectedTotal: v.optional(v.number()) },
+    handler: async (ctx, args): Promise<RetryResult> => {
+        const source = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (!source) throw new ConvexError('That pay link was not found.');
+        if (args.expectedSubmissionId && source.submissionId !== args.expectedSubmissionId) throw new ConvexError('Your selected business changed. Open its payment page again.');
+        const submission = await ctx.db.get(source.submissionId);
+        if (!submission) throw new ConvexError('We could not find that website.');
+        const payer = await retryPayer(ctx, submission);
+        const money = orderMoney(submission);
+        if (source.status === 'cancelled') throw new ConvexError('This pay link was cancelled. Open your business page or contact the team.');
+        if (payer.repairOwnerId) await linkOwnerToSubmission(ctx, payer.repairOwnerId, submission._id);
+        if (money.paidInFull) return { status: 'paid', submissionId: submission._id };
+        if (approvalRequired(submission)) return { status: 'needs_approval', submissionId: submission._id };
+        if (args.expectedTotal !== undefined && (!Number.isFinite(args.expectedTotal) || args.expectedTotal !== money.total)) {
+            throw new ConvexError('The price has changed. Check the latest total before paying.');
         }
-        const bytes = new Uint8Array(32);
-        crypto.getRandomValues(bytes);
-        const token = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-        const expiresAt = now + TOKEN_TTL_MS;
-        await ctx.db.insert('paymentTokens', {
-            submissionId: args.submissionId,
-            token,
-            referenceCode,
-            amount: charge.amount,
-            status: 'pending',
-            createdAt: now,
-            expiresAt,
-            kind: charge.kind,
-            createdBy,
-        });
-        if (!submission.paymentReference) await ctx.db.patch(args.submissionId, { paymentReference: referenceCode });
-        return { token, referenceCode, kind: charge.kind, amount: charge.amount, expiresAt };
+        if (source.status === 'paid') {
+            // A paid deposit is a receipt, not permission to create another
+            // charge. Only reuse a balance request the owner already chose.
+            const balance = (await pendingTokens(ctx, submission._id)).find(row => !requestExpired(row, Date.now())
+                && row.kind === 'balance' && row.amount === money.balanceDue);
+            if (!money.depositOutstanding || !balance) return { status: 'paid', submissionId: submission._id };
+        }
+        const kind = money.depositOutstanding ? 'balance' : kindFor(source);
+        const charge = resolveCharge(submission, kind, kind === 'deposit' ? source.amount : undefined);
+        return currentRequest(ctx, submission, charge, payer.createdBy, true);
     },
 });
 
@@ -309,16 +408,15 @@ export const applyTokenPayment = internalMutation({
 // ==================== XENDIT SUPPORT (called from xendit.ts) ====================
 
 /** Auth-checked token context for creating a checkout. Runs as the caller. */
-export const checkoutContextInternal = internalQuery({
-    args: { token: v.string() },
-    handler: async (ctx, args) => {
+async function checkoutContext(ctx: DbCtx, token: string) {
         const tokenRow = await ctx.db.query('paymentTokens')
-            .withIndex('by_token', (q) => q.eq('token', args.token)).first();
+            .withIndex('by_token', (q) => q.eq('token', token)).first();
         if (!tokenRow) throw new ConvexError('That pay link was not found.');
         const submission = await ctx.db.get(tokenRow.submissionId);
         if (!submission) throw new ConvexError('We could not find that website.');
         await requirePayerAccess(ctx, submission);
         if (tokenRow.status !== 'pending') throw new ConvexError('This pay link is no longer open.');
+        if (requestExpired(tokenRow, Date.now())) throw new ConvexError('This checkout expired. Tap Pay again for a fresh payment link.');
         if (submission.giveawayApplication || isComped(submission)) {
             throw new ConvexError('This website cannot be paid for.');
         }
@@ -326,6 +424,8 @@ export const checkoutContextInternal = internalQuery({
             && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected')) {
             throw new ConvexError('Check your site first, then tap "Looks good".');
         }
+        const charge = resolveCharge(submission, kindFor(tokenRow), tokenRow.amount);
+        if (charge.amount !== tokenRow.amount) throw new ConvexError('Payment details changed. Open your business payment page again.');
         return {
             token: tokenRow.token,
             referenceCode: tokenRow.referenceCode,
@@ -338,7 +438,56 @@ export const checkoutContextInternal = internalQuery({
             submissionId: submission._id,
             businessName: submission.businessName,
             payerEmail: submission.ownerEmail ?? null,
+            checkoutState: tokenRow.xenditCheckoutState ?? null,
         };
+}
+
+export const checkoutContextInternal = internalQuery({
+    args: { token: v.string() },
+    handler: (ctx, args) => checkoutContext(ctx, args.token),
+});
+
+/** One provider request per token, including calls racing across devices. */
+export const beginXenditCheckout = internalMutation({
+    args: { token: v.string(), attemptId: v.string() },
+    handler: async (ctx, args) => {
+        const pay = await checkoutContext(ctx, args.token);
+        const others = await ctx.db.query('paymentTokens')
+            .withIndex('by_submissionId', q => q.eq('submissionId', pay.submissionId)).collect();
+        // Different full/deposit requests can both predate the first provider
+        // call. Claim the order, not just this token, in the same transaction.
+        if (others.some(row => row.token !== pay.token && row.status !== 'paid' && providerOpen(row, Date.now()))) {
+            return { status: 'processing' as const };
+        }
+        if (pay.xenditInvoiceUrl && pay.xenditInvoiceId && (pay.xenditExpiresAt === null || pay.xenditExpiresAt > Date.now())) {
+            return { status: 'ready' as const, pay };
+        }
+        if (pay.checkoutState) return { status: 'processing' as const };
+        const row = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (!row) throw new ConvexError('That pay link was not found.');
+        await ctx.db.patch(row._id, { xenditCheckoutAttempt: args.attemptId, xenditCheckoutStartedAt: Date.now(), xenditCheckoutState: 'creating' });
+        return { status: 'claimed' as const, pay };
+    },
+});
+
+export const markXenditCheckoutUncertain = internalMutation({
+    args: { token: v.string(), attemptId: v.string() },
+    handler: async (ctx, args) => {
+        const row = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (row?.xenditCheckoutAttempt === args.attemptId && row.xenditCheckoutState === 'creating') {
+            await ctx.db.patch(row._id, { xenditCheckoutState: 'uncertain' });
+        }
+    },
+});
+
+/** Authentication rejection proves this attempt did not create an invoice. */
+export const releaseXenditAuthFailure = internalMutation({
+    args: { token: v.string(), attemptId: v.string() },
+    handler: async (ctx, args) => {
+        const row = await ctx.db.query('paymentTokens').withIndex('by_token', q => q.eq('token', args.token)).first();
+        if (row?.xenditCheckoutAttempt === args.attemptId && row.xenditCheckoutState === 'creating') {
+            await ctx.db.patch(row._id, { xenditCheckoutState: undefined });
+        }
     },
 });
 
@@ -348,15 +497,25 @@ export const recordXenditInvoice = internalMutation({
         invoiceId: v.string(),
         invoiceUrl: v.string(),
         expiresAt: v.optional(v.number()),
+        attemptId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const tokenRow = await ctx.db.query('paymentTokens')
             .withIndex('by_token', (q) => q.eq('token', args.token)).first();
-        if (!tokenRow || tokenRow.status !== 'pending') return;
+        if (!tokenRow || tokenRow.xenditCheckoutAttempt && tokenRow.xenditCheckoutAttempt !== args.attemptId) return { recorded: false };
+        let usable = false;
+        try { await checkoutContext(ctx, args.token); usable = true; } catch { /* Keep the remote invoice identity for reconciliation. */ }
+        // An authenticated EXPIRED callback may arrive before the POST returns.
+        // Its known deadline must not be replaced by the stale POST response.
+        const expiresAt = tokenRow.xenditInvoiceId === args.invoiceId && tokenRow.xenditExpiresAt !== undefined && tokenRow.xenditExpiresAt <= Date.now()
+            ? tokenRow.xenditExpiresAt : args.expiresAt;
+        if (expiresAt !== undefined && expiresAt <= Date.now()) usable = false;
         await ctx.db.patch(tokenRow._id, {
             xenditInvoiceId: args.invoiceId,
             xenditInvoiceUrl: args.invoiceUrl,
-            xenditExpiresAt: args.expiresAt,
+            xenditExpiresAt: expiresAt,
+            xenditCheckoutState: undefined,
         });
+        return { recorded: usable };
     },
 });

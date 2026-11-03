@@ -5,7 +5,7 @@ import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
 import { INTAKE_QUESTIONS } from '../../lib/narrativeFromQa';
 import { BASE_PRICE, CREATOR_CODE_PRICE, CUSTOM_DOMAIN_ADDON, WEBSITE_PRICE, campaignSellPrice, commissionFor } from '../../lib/pricing';
-import type { Doc } from '../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../convex/_generated/dataModel';
 
 const modules = {
     './_generated/server.js': () => import('../../convex/_generated/server'),
@@ -17,6 +17,8 @@ const modules = {
     './paymentTokens.ts': () => import('../../convex/paymentTokens'),
     './submissions.ts': () => import('../../convex/submissions'),
     './auditLogs.ts': () => import('../../convex/auditLogs'),
+    './owners.ts': () => import('../../convex/owners'),
+    './ownerApp.ts': () => import('../../convex/ownerApp'),
 };
 const R2_URL = 'https://uploads.example.com';
 const NOW = Date.UTC(2026, 9, 8, 8);
@@ -62,6 +64,18 @@ function intake(number = 1) {
         })),
         photos: ['', `${R2_URL}/interior-one.jpg`, `${R2_URL}/interior-two.jpg`, `${R2_URL}/exterior.jpg`],
     };
+}
+
+/** Billing fixtures pass the same private-preview approval that new orders require. */
+async function approveBuiltOrder(t: ReturnType<typeof convexTest>, submissionId: Id<'submissions'>) {
+    const submission = (await t.run(ctx => ctx.db.get(submissionId)))!;
+    const owner = t.withIdentity({ subject: `owner-${submissionId}`, email: submission.ownerEmail!, emailVerified: true });
+    await owner.mutation(api.owners.ensure, {});
+    await t.run(async ctx => {
+        await ctx.db.patch(submissionId, { status: 'website_generated' });
+        await ctx.db.insert('generatedWebsites', { submissionId, status: 'draft', htmlContent: '<html>Private test preview</html>' });
+    });
+    await owner.mutation(api.ownerApp.approvePreview, { submissionId });
 }
 
 describe('public affiliate offer lookup', () => {
@@ -174,6 +188,7 @@ describe('affiliate-attributed owner intake', () => {
         });
         // An already quoted order from before the fixed-code policy is not repriced.
         await t.run((ctx) => ctx.db.patch(id, { amount: 2700, creatorPayout: 1100 }));
+        await approveBuiltOrder(t, id);
         const referenceCode = 'ND-7K3M-X9P2';
         const token = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: id, referenceCode, amount: 1,
@@ -243,6 +258,7 @@ describe('affiliate-attributed owner intake', () => {
             creatorId: affiliateId, amount: CREATOR_CODE_PRICE + CUSTOM_DOMAIN_ADDON, creatorPayout: commissionFor(CREATOR_CODE_PRICE),
             websiteListPrice: WEBSITE_PRICE, requestedDomain: 'shopcorner.com', domainStatus: 'pending_payment', domainChargedPHP: CUSTOM_DOMAIN_ADDON,
         });
+        await approveBuiltOrder(t, id);
         const token = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: id, referenceCode: 'AFFILIATE-ORDER', amount: 1,
         });
@@ -320,6 +336,7 @@ describe('affiliate-attributed owner intake', () => {
             })).rejects.toThrow('orders cannot use creator pricing');
             expect(await t.run((ctx) => ctx.db.get(id))).toEqual(after);
         }
+        await approveBuiltOrder(t, affiliateOrder);
         const safeToken = await t.action(api.paymentTokens.createPaymentToken, {
             submissionId: affiliateOrder, referenceCode: 'SAFE-AFFILIATE', amount: 1,
         });

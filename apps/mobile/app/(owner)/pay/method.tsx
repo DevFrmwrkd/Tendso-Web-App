@@ -12,13 +12,14 @@ import { OptionRow } from '../../../components/v2/owner/OwnerUI';
 import { OwnerSiteSummary } from '../../../components/v2/owner/OwnerSiteSummary';
 import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { peso } from '../../../lib/v2/ownerContent';
-import { useCreateCheckout, useCreatePayToken, usePaymentState, wisePayUrl } from '../../../lib/v2/ownerData';
+import { useCreateCheckout, useCreatePayToken, usePaymentState, useRetryOwnerPayment, wisePayUrl } from '../../../lib/v2/ownerData';
 import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { OWNER_SAMPLE_DATA } from '../../../lib/v2/ownerFlags';
 import { payChoiceForState } from '../../../lib/v2/payMath';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { colors, space } from '../../../theme/v2';
 import { useNetwork } from '../../../providers/NetworkProvider';
+import type { OwnerPaymentRetry } from '../../../lib/v2/ownerTypes';
 
 function paymentUrl(value: string): string {
   try {
@@ -31,16 +32,20 @@ function paymentUrl(value: string): string {
 export default function PayMethod() {
   const owner = useOwnerSite();
   const { userId } = useAuth();
-  return <PaymentMethod key={`${userId ?? ''}:${owner.me?.owner._id ?? ''}:${owner.id ?? ''}`} owner={owner} />;
+  const actor = `${userId ?? ''}:${owner.me?.owner._id ?? ''}:${owner.id ?? ''}`;
+  return <PaymentMethod key={actor} owner={owner} actor={actor} />;
 }
-function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
+function PaymentMethod({ owner, actor }: { owner: ReturnType<typeof useOwnerSite>; actor: string }) {
   const router = useRouter();
-  const params = useLocalSearchParams<{ kind?: string; amount?: string }>();
+  const params = useLocalSearchParams<{ kind?: string; amount?: string; retryToken?: string; retryFor?: string }>();
   const { id, site } = owner;
   const { isConnected } = useNetwork();
   const pay = usePaymentState(id);
   const createToken = useCreatePayToken();
   const checkout = useCreateCheckout();
+  const retryPayment = useRetryOwnerPayment();
+  const retryToken = typeof params.retryToken === 'string' && params.retryFor === actor ? params.retryToken : null;
+  const staleRetry = !!params.retryToken && !retryToken;
   const xendit = pay && pay.billable ? pay.xenditEnabled : false;
   const [method, setMethod] = useState<'xendit' | 'wise' | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,9 +62,9 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
 
   const choice = payChoiceForState(params.kind, params.amount, pay);
   const chosen = method === 'xendit' && !xendit ? 'wise' : method ?? (xendit ? 'xendit' : 'wise');
-  const payable = !!id && !!choice && isConnected !== false;
+  const payable = !!id && !!choice && !staleRetry && isConnected !== false;
   const quoteKey = pay?.billable ? JSON.stringify([pay.total, pay.amountPaid, pay.balanceDue, pay.paidInFull,
-    pay.needsApproval, pay.canPayFull, pay.canPayDeposit, pay.canPayBalance, pay.minDownPayment, pay.xenditEnabled, chosen, choice]) : '';
+    pay.needsApproval, pay.canPayFull, pay.canPayDeposit, pay.canPayBalance, pay.minDownPayment, pay.xenditEnabled, chosen, choice, retryToken, params.retryFor]) : '';
   const latest = useRef({ payable, quoteKey });
   latest.current = { payable, quoteKey };
 
@@ -72,10 +77,22 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
     setBusy(true);
     setError(null);
     try {
-      const token = await createToken({ submissionId: id, kind: choice.kind, amount: choice.kind === 'deposit' ? choice.amount : undefined,
-        expectedTotal: pay?.billable ? pay.total : undefined });
+      const token: OwnerPaymentRetry = retryToken && pay?.billable
+        ? await retryPayment({ token: retryToken, expectedSubmissionId: id, expectedTotal: pay.total })
+        : { status: 'ready', submissionId: id, ...await createToken({ submissionId: id, kind: choice.kind,
+          amount: choice.kind === 'deposit' ? choice.amount : undefined, expectedTotal: pay?.billable ? pay.total : undefined }) };
       if (!current()) return;
+      if (token.status !== 'ready') {
+        if (token.status === 'needs_approval') router.replace(STEP_ROUTE.check as never);
+        else if (token.status === 'paid') router.replace({ pathname: STEP_ROUTE.live, params: { paymentToken: retryToken!, paymentFor: actor } } as never);
+        else setError('An earlier checkout may still be open. Check its payment status before trying again.');
+        return;
+      }
       if (!currentQuote()) throw new Error('Payment details changed. Check the latest amount before paying.');
+      if (token.submissionId !== id) throw new Error('Your selected business changed. Open its payment page again.');
+      if (token.kind !== choice.kind || token.amount !== choice.amount) {
+        throw new Error('Payment details changed. Return to your site to check the latest amount before paying.');
+      }
       if (!token.token?.trim()) throw new Error('The payment link is unavailable. Please try again.');
       if (chosen === 'xendit') {
         const res = await checkout(token.token);
@@ -89,7 +106,9 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
         await WebBrowser.openBrowserAsync(paymentUrl(wisePayUrl(token.token)), { controlsColor: colors.ink, dismissButtonStyle: 'close' });
       }
       // The payment lands by webhook; the live screen waits for it and publishes.
-      if (current()) router.replace(STEP_ROUTE.live as never);
+      if (current()) router.replace((OWNER_SAMPLE_DATA ? STEP_ROUTE.live : {
+        pathname: STEP_ROUTE.live, params: { paymentToken: token.token, paymentFor: actor },
+      }) as never);
     } catch (e: any) {
       if (current()) setError(typeof e?.data === 'string' ? e.data : e?.message ?? 'Please try again.');
     } finally {
@@ -103,7 +122,7 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
 
   return (
     <ScreenShell
-      title="How do you pay?"
+      title={retryToken ? 'Pay again' : 'How do you pay?'}
       headerRight={<OwnerSaveExit title="Back to Today" disabled={busy} canExit={() => !saving.current} />}
       onBack={() => router.back()}
       footer={
@@ -111,7 +130,10 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
           {error ? <Text tone="danger" align="center">{error}</Text> : null}
           {isConnected === false ? <Text tone="muted" align="center">Reconnect to pay for your site.</Text> : null}
           {!choice ? <Text tone="muted" align="center">Return to your site to check the latest payment options.</Text> : null}
-          <Button title={choice ? `Pay ${peso(choice.amount)}` : 'Pay'} disabled={!payable} loading={busy} onPress={go} />
+          {staleRetry ? <Text tone="muted" align="center">Return to your site to check this business’s payment options.</Text> : null}
+          <Button title={retryToken ? 'Pay again' : choice ? `Pay ${peso(choice.amount)}` : 'Pay'} disabled={!payable} loading={busy} onPress={go} />
+          {params.retryToken ? <Button title="Review payment options" variant="ghost" disabled={busy}
+            onPress={() => router.replace(STEP_ROUTE.pay as never)} /> : null}
         </>
       }
     >

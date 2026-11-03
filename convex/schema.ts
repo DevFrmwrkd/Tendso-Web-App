@@ -1352,6 +1352,9 @@ export default defineSchema({
         xenditInvoiceId: v.optional(v.string()),
         xenditInvoiceUrl: v.optional(v.string()),
         xenditExpiresAt: v.optional(v.number()),
+        xenditCheckoutAttempt: v.optional(v.string()),
+        xenditCheckoutStartedAt: v.optional(v.number()),
+        xenditCheckoutState: v.optional(v.union(v.literal('creating'), v.literal('uncertain'))),
         createdBy: v.optional(v.string()),              // 'owner:<id>' | 'admin:<clerk>' | 'creator:<id>'
     })
         .index('by_token', ['token'])

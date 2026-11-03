@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import LiveSitePreview from "@/components/landing/LiveSitePreview";
+import { ExpiredPaymentAction } from '@/components/payments/ExpiredPaymentAction';
 import {
     Button,
     ButtonLink,
@@ -33,11 +34,11 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
 
 import {
+    checkoutExpiryAt,
     hostOf,
     linkDays,
     liveUrlOf,
     longDate,
-    newLinkMailto,
     paidOnOf,
     paymentDetailsText,
     priceSplit,
@@ -55,11 +56,8 @@ import {
  *  - No "receipt by email" promises. An admin's Mark as paid emails a
  *    confirmation, but a transfer the Wise webhook matches on its own sends the
  *    owner nothing (payments.processDeposit), so the page itself is the receipt.
- *  - Expired: "Ask for a new link" opens an email to Tendso (no function records
- *    the request), and the board's "a person has to match it by hand" and "your
- *    site stays live" are gone: the webhook still matches an expired code on its
- *    own, and an unpaid site is taken offline three days after the payment email
- *    (convex/crons.ts, auto-unpublish).
+ *  - Expired: Pay again checks the authenticated payer and current balance
+ *    before reopening checkout. An old receipt or pending transfer is preserved.
  *  - "Email it again" is left out: there is no public way to resend the receipt.
  */
 
@@ -509,39 +507,33 @@ export function PaidView({ token, submission, now, ownerHome }: ViewProps & { ow
 /* ── Expired ───────────────────────────────────────────────────────── */
 
 export function ExpiredView({ token, submission, now }: ViewProps) {
-    const name = submission?.businessName ?? null;
-    const money = formatMoney(token.amount);
-    const ended = shortDate(token.expiresAt, now);
+    const ended = shortDate(checkoutExpiryAt(token), now);
 
     return (
         <Columns
             aside={
-                <StatusCard status={{ tone: "attn", word: "Needs a new link" }} title={`Link expired ${ended}`} meta={`No payment arrived before the link ended. You still owe ${money}.`}>
+                <StatusCard status={{ tone: "attn", word: "Link expired" }} title={`Link expired ${ended}`} meta="We’ll check your latest balance and any confirmed payments before reopening checkout.">
                     <Timeline
                         items={[
-                            { tone: "done", label: "Website went live" },
                             { tone: "done", label: "Payment link sent to you", date: shortDate(token.emailSentAt ?? token.createdAt, now) },
                             { tone: "off", label: <span className="text-r1-ink-3">Link expired</span>, date: ended },
-                            // The board tracks "asked / not asked"; nothing records the request, so no date here.
-                            { tone: "attn", label: <span className="font-medium text-r1-ink">New link from Tendso</span> },
+                            { tone: "attn", label: <span className="font-medium text-r1-ink">Open a fresh checkout</span> },
                         ]}
                     />
                 </StatusCard>
             }
         >
-            <PageHeader title="This link expired — ask for a new one" sub={`Payment links last ${linkDays(token)} days. This one ended on ${ended}.`} />
+            <PageHeader title="This payment link expired" sub={`This link ended on ${ended}. You can open a fresh checkout below.`} />
 
             <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby="py-exp-title">
                 <div className="flex flex-col gap-1">
                     <h2 className="t-h2" id="py-exp-title">
-                        Please wait for a new link before you send money
+                        Ready to pay?
                     </h2>
-                    <p className="t-body">If you already sent money with the old code, it still reaches us.</p>
+                    <p className="t-body">Pay again checks the latest amount and keeps any confirmed down payment. If you already transferred money, check that payment before sending again.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <ButtonLink variant="primary" href={newLinkMailto(name, token.referenceCode)}>
-                        Ask for a new link
-                    </ButtonLink>
+                    <ExpiredPaymentAction token={token} total={submission?.amount} />
                     <ButtonLink href="/knowledge">Other questions</ButtonLink>
                 </div>
             </section>
