@@ -7,7 +7,7 @@ import type { Metadata } from "next";
  * behind sign-in.
  */
 export const metadata: Metadata = {
-    title: "My website — Tendso",
+    title: "Your businesses — Tendso",
     robots: { index: false, follow: false },
 };
 
