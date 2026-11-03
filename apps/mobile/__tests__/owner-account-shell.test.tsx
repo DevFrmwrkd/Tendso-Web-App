@@ -12,6 +12,9 @@ const mockSignOut = jest.fn();
 const mockBind = jest.fn();
 const mockMigrate = jest.fn();
 const mockSet = jest.fn();
+const mockSelectBusiness = jest.fn();
+const mockBeginBusiness = jest.fn();
+const mockConfirmBusiness = jest.fn();
 const mockClear = jest.fn();
 const mockResume = jest.fn();
 const mockOwnerQuery = jest.fn();
@@ -23,6 +26,7 @@ let mockMe: any;
 let mockScope: number;
 let mockActor: string | null;
 let mockIntake: any;
+let mockAwaitingBusiness: string | undefined;
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => mockAuth, useClerk: () => ({ signOut: mockSignOut }) }));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockMobile }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
@@ -32,8 +36,10 @@ jest.mock('../lib/v2/ownerData', () => ({
   useEnsureOwner: () => mockEnsure, useOwnerSubmission: (id: string | null) => id ? { submissionId: id } : undefined,
 }));
 jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => {
-  const site = mockMe?.sites.find((item: any) => item.submissionId === mockIntake.submissionId) ?? mockMe?.sites[0] ?? null;
-  return { me: mockMe, site, id: site?.submissionId ?? null };
+  const selected = mockMe?.sites.find((item: any) => item.submissionId === mockIntake.submissionId);
+  const pending = !!mockIntake.submissionId && mockAwaitingBusiness === mockIntake.submissionId;
+  const site = mockIntake.newBusiness || (pending && !selected) ? null : selected ?? mockMe?.sites[0] ?? null;
+  return { me: mockMe, site, id: site?.submissionId ?? null, isNewBusiness: mockIntake.newBusiness === true };
 } }));
 jest.mock('../lib/v2/ownerUploads', () => ({ useOwnerUploads: () => ({ resume: mockResume }) }));
 jest.mock('../lib/v2/ownerIntake', () => ({
@@ -41,6 +47,9 @@ jest.mock('../lib/v2/ownerIntake', () => ({
     bindActor: (...args: unknown[]) => mockBind(...args), migrateLegacy: (...args: unknown[]) => mockMigrate(...args),
     scope: () => mockScope, isCurrent: (scope: number) => scope === mockScope,
     get: () => mockIntake, set: (...args: unknown[]) => mockSet(...args), clear: () => mockClear(),
+    selectBusiness: (...args: unknown[]) => mockSelectBusiness(...args), beginBusiness: () => mockBeginBusiness(),
+    isAwaitingBusiness: (id: string | undefined) => !!id && mockAwaitingBusiness === id,
+    confirmBusiness: (...args: unknown[]) => mockConfirmBusiness(...args),
   }, useOwnerIntake: () => mockIntake,
 }));
 jest.mock('../components/CreatorAttributionGate', () => ({ CreatorAttributionGate: () => null }));
@@ -75,17 +84,32 @@ beforeEach(() => {
   mockAuth = { isLoaded: true, isSignedIn: true, userId: 'owner-a', sessionId: 'session-a', signOut: mockSignOut };
   mockMobile = { isLoading: false, isOffline: false, account: null, role: null };
   mockScope = 1; mockActor = 'owner-a'; mockIntake = { ownerName: 'Juan', submissionId: 'site-a' };
+  mockAwaitingBusiness = undefined;
   mockMe = meFixture();
   mockSet.mockReset().mockImplementation((patch: any) => {
     if (patch.submissionId && mockIntake.submissionId && patch.submissionId !== mockIntake.submissionId) mockScope += 1;
     mockIntake = { ...mockIntake, ...patch };
+  });
+  mockSelectBusiness.mockReset().mockImplementation((id: string) => {
+    mockAwaitingBusiness = undefined;
+    mockSet({ submissionId: id });
+    mockIntake.newBusiness = undefined;
+  });
+  mockBeginBusiness.mockReset().mockImplementation(() => {
+    if (mockIntake.newBusiness) return;
+    mockIntake = { ownerName: mockIntake.ownerName, newBusiness: true, newBusinessKey: 'stable-new-workspace' };
+    mockAwaitingBusiness = undefined;
+    mockScope += 1;
+  });
+  mockConfirmBusiness.mockReset().mockImplementation((id: string) => {
+    if (mockAwaitingBusiness === id) mockAwaitingBusiness = undefined;
   });
   mockEnsure.mockReset().mockResolvedValue({ ownerId: 'owner-record-a' });
   mockSignOut.mockReset().mockResolvedValue(undefined);
   mockMigrate.mockReset().mockResolvedValue(undefined);
   mockResume.mockReset().mockResolvedValue(undefined);
   mockBind.mockReset().mockImplementation(async (actor: string | null) => {
-    if (actor !== mockActor) { mockActor = actor; mockScope += 1; mockIntake = actor ? { ownerName: 'Juan' } : {}; }
+    if (actor !== mockActor) { mockActor = actor; mockScope += 1; mockIntake = actor ? { ownerName: 'Juan' } : {}; mockAwaitingBusiness = undefined; }
     return mockIntake;
   });
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
@@ -188,6 +212,48 @@ it('does not adopt a foreign pointer when the actor owns no sites', async () => 
   await screen.findByTestId('owner-stack');
   expect(mockSet).not.toHaveBeenCalled();
   expect(mockResume).not.toHaveBeenCalled();
+});
+
+it('keeps a persisted new-business workspace even when the account already owns websites', async () => {
+  mockIntake = { ownerName: 'Juan', newBusiness: true, newBusinessKey: 'saved-new-workspace', kind: 'food', businessName: 'Second shop' };
+  const saved = mockIntake;
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockIntake).toBe(saved);
+  expect(mockSelectBusiness).not.toHaveBeenCalled();
+  expect(mockBeginBusiness).not.toHaveBeenCalled();
+  expect(mockMigrate).not.toHaveBeenCalled();
+  expect(mockResume).not.toHaveBeenCalled();
+});
+
+it('initializes a first-time owner’s new workspace before mounting the stack', async () => {
+  mockIntake = { ownerName: 'Juan' };
+  mockMe = { ...mockMe, sites: [] };
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockIntake).toEqual({ ownerName: 'Juan', newBusiness: true, newBusinessKey: 'stable-new-workspace' });
+  expect(mockBeginBusiness).toHaveBeenCalledTimes(1);
+  expect(mockBeginBusiness.mock.invocationCallOrder[0]).toBeLessThan(mockStackMount.mock.invocationCallOrder[0]);
+  expect(mockSelectBusiness).not.toHaveBeenCalled();
+  expect(mockResume).not.toHaveBeenCalled();
+});
+
+it('keeps a newly created pending business selected until the owned-site query acknowledges it', async () => {
+  mockIntake = { ownerName: 'Juan', submissionId: 'newly-created-site' };
+  mockAwaitingBusiness = 'newly-created-site';
+  const screen = render(<OwnerLayout />);
+  await screen.findByTestId('owner-stack');
+  expect(mockIntake.submissionId).toBe('newly-created-site');
+  expect(mockSelectBusiness).not.toHaveBeenCalled();
+  expect(mockConfirmBusiness).not.toHaveBeenCalled();
+  expect(mockResume).not.toHaveBeenCalled();
+  mockMe = { ...mockMe, sites: [{ ...mockMe.sites[0], submissionId: 'newly-created-site' }, ...mockMe.sites] };
+  screen.rerender(<OwnerLayout />);
+  await waitFor(() => expect(mockConfirmBusiness).toHaveBeenCalledWith('newly-created-site'));
+  expect(mockAwaitingBusiness).toBeUndefined();
+  expect(mockIntake.submissionId).toBe('newly-created-site');
+  expect(mockSelectBusiness).not.toHaveBeenCalled();
+  expect(mockResume).toHaveBeenCalledWith('newly-created-site', { submissionId: 'newly-created-site' });
 });
 
 it('does not retain the previous actor’s ensure error or permanent asked flag', async () => {

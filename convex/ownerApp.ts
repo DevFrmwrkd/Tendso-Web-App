@@ -140,9 +140,14 @@ export const createDraft = mutation({
         barangay: v.optional(v.string()),
         coordinates: v.optional(v.object({ lat: v.number(), lng: v.number() })),
         shotListKey: v.optional(v.string()),
+        clientDraftKey: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const owner = await requireOwner(ctx);
+        const clientDraftKey = args.clientDraftKey?.trim();
+        if (clientDraftKey !== undefined && !/^[A-Za-z0-9_-]{1,100}$/.test(clientDraftKey)) {
+            reject('This business setup reference is not valid. Please start again.');
+        }
         const businessName = cleanText(args.businessName, 'Shop name', MAX_BUSINESS_NAME);
         if (!businessName) reject('What is your shop called?');
         if (!BUSINESS_TYPE_ALLOWLIST.has(args.businessType)) reject('Please pick what you sell from the list.');
@@ -152,9 +157,10 @@ export const createDraft = mutation({
         let drafts = 0;
         for (const link of links) {
             const s = await ctx.db.get(link.submissionId);
+            if (s && isOwnerApp(s) && clientDraftKey && s.ownerClientDraftKey === clientDraftKey) return s._id;
             if (s && s.status === 'draft' && isOwnerApp(s)) drafts++;
         }
-        if (drafts >= MAX_OPEN_DRAFTS) reject('You already have a website in progress. Finish that one first.');
+        if (drafts >= MAX_OPEN_DRAFTS) reject('You have 3 website drafts. Finish one before adding another.');
 
         const houseId = await houseCreatorId(ctx);
         const attribution = await ctx.db.query('creatorAttributions')
@@ -177,6 +183,7 @@ export const createDraft = mutation({
             barangay: cleanText(args.barangay, 'Barangay', MAX_CITY) || undefined,
             coordinates: args.coordinates,
             shotListKey: cleanShotListKey(args.shotListKey),
+            ownerClientDraftKey: clientDraftKey,
             status: 'draft',
             contentSource: OWNER_APP_SOURCE,
             // Freeze an explicitly confirmed, active creator offer; otherwise use the house.

@@ -183,6 +183,16 @@ it.each([true, false])('Today uses the same draft-specific setup confirmation (c
   expect(mockPush).toHaveBeenCalledWith(confirmed ? STEP_ROUTE['talk-intro'] : STEP_ROUTE.how);
 });
 
+it.each(['edited details', 'changed kind'])('restores pending shop details before resuming the interview after %s', (change) => {
+  mockDraft!.interview = [{ index: 0, questionEn: 'Shop name', questionTl: 'Pangalan', lang: 'en', answerText: 'Ben Barber', updatedAt: 1 }];
+  ownerIntake.set(change === 'edited details' ? { businessName: '', detailsDirty: ['businessName'] } : { kind: 'food' });
+  const screen = wrap(<OwnerIndex />);
+  expect(destination(screen)).toBe(STEP_ROUTE.place);
+  screen.rerender(<SafeAreaProvider initialMetrics={metrics}><Today /></SafeAreaProvider>);
+  fireEvent.press(screen.getByRole('button', { name: 'Keep going' }));
+  expect(mockPush).toHaveBeenCalledWith(STEP_ROUTE.place);
+});
+
 it('allows a cold-start Back chain from questions through setup to the business type', () => {
   mockHistory = [STEP_ROUTE['talk-intro']];
   const screen = wrap(<TalkIntro />);

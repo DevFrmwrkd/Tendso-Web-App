@@ -345,3 +345,61 @@
 .app .ow-ph p { margin: 0; font: 500 13px/18px var(--a-sans); color: var(--a-ink3); }
 .app .ow-face { position: relative; overflow: hidden; background: var(--a-bg2); }
 .app .ow-face img { position: absolute; max-width: none; height: auto; }
+
+/* ---------- business selection and separate setup ---------- */
+.app .ow-workspace { position: absolute; inset: 0; }
+.app .ow-workspace-main { top: 68px; bottom: 100px; overflow-y: auto; padding-bottom: 12px; gap: 14px; scrollbar-width: none; }
+.app .ow-workspace button { font-family: var(--a-sans); cursor: pointer; }
+.app .ow-workspace button:focus-visible { outline: 3px solid var(--a-ink); outline-offset: 3px; }
+.app .ow-business-dropdown { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 74px; padding: 12px; border: 0; border-radius: 22px; background: #fff; color: var(--a-ink); text-align: left; box-shadow: var(--a-shadow); }
+.app .ow-business-dropdown > span:nth-child(2) { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.app .ow-business-dropdown small { font: 500 12px/16px var(--a-sans); color: var(--a-ink3); }
+.app .ow-business-dropdown b { font: 700 17px/22px var(--a-sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app .ow-business-dropdown > svg { flex: none; width: 20px; height: 20px; }
+.app .ow-business-thumb { display: grid; place-items: center; flex: none; width: 46px; height: 46px; overflow: hidden; border-radius: 14px; background: var(--a-bg2); color: var(--a-ink3); }
+.app .ow-business-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.app .ow-business-thumb > svg { width: 23px; height: 23px; }
+.app .ow-business-status { padding: 20px; }
+.app .ow-business-status-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.app .ow-business-badge { padding: 6px 10px; border-radius: 999px; background: var(--a-bg2); font: 700 12px/16px var(--a-sans); }
+.app .ow-business-badge.is-live { background: var(--a-accent-soft); }
+.app .ow-business-example { color: var(--a-ink3); font: 500 11px/16px var(--a-sans); }
+.app .ow-business-status h3 { margin: 15px 0 8px; font: 700 24px/28px var(--a-sans); letter-spacing: -.6px; }
+.app .ow-business-status p { font: 500 14px/20px var(--a-sans); color: var(--a-ink3); }
+.app .ow-business-status .door { width: 100%; margin-top: 16px; border: 0; }
+.app .ow-business-status .ow-business-payment { margin-top: 10px; text-align: center; font-size: 12px; }
+.app .ow-business-address { display: flex; align-items: center; gap: 7px; margin-top: 14px; font: 600 13px/18px var(--a-sans); overflow-wrap: anywhere; }
+.app .ow-business-address svg { flex: none; width: 16px; height: 16px; }
+.app .ow-business-feedback { min-height: 32px; margin: 0; font-weight: 500; }
+.app .ow-business-overlay { position: absolute; inset: 0; z-index: 12; }
+.app .ow-business-scrim { position: absolute; inset: 0; width: 100%; border: 0; background: rgba(12,10,8,.34); }
+.app .ow-business-popup { position: absolute; left: 12px; right: 12px; bottom: 30px; max-height: 690px; overflow-y: auto; padding: 22px 18px; border-radius: 28px; background: var(--a-bg); box-shadow: 0 12px 40px rgba(12,10,8,.15); }
+.app .ow-business-popup header { display: flex; align-items: flex-start; gap: 10px; padding: 0 2px 16px; }
+.app .ow-business-popup header > div { flex: 1; }
+.app .ow-business-popup h3 { margin: 0; font: 700 24px/29px var(--a-sans); letter-spacing: -.6px; }
+.app .ow-business-popup header p { margin: 5px 0 0; font: 500 13px/18px var(--a-sans); color: var(--a-ink3); }
+.app .ow-business-close { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--a-bg2); color: var(--a-ink); }
+.app .ow-business-close svg { width: 19px; height: 19px; }
+.app .ow-business-list { display: flex; flex-direction: column; gap: 8px; }
+.app .ow-business-row { display: flex; align-items: center; gap: 10px; min-height: 85px; padding: 12px 10px; border: 2px solid transparent; border-radius: 20px; background: #fff; text-align: left; color: var(--a-ink); }
+.app .ow-business-row.is-selected { border-color: var(--a-ink); background: #fff; }
+.app .ow-business-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.app .ow-business-name b { font: 700 16px/21px var(--a-sans); }
+.app .ow-business-name > span { font: 500 12px/17px var(--a-sans); color: var(--a-ink3); }
+.app .ow-business-check { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; }
+.app .ow-business-check svg { width: 16px; height: 16px; }
+.app .is-selected .ow-business-check { background: var(--a-accent); }
+.app .ow-business-add { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 16px 0 12px; width: 100%; border: 0; }
+.app .ow-business-add > svg { width: 20px; height: 20px; }
+.app .ow-business-add:disabled { opacity: .4; cursor: default; }
+.app .ow-business-limit { margin: 14px 4px 0; padding: 12px; border-radius: 16px; background: var(--a-accent-soft); font: 600 13px/19px var(--a-sans); }
+.app .ow-new-business { top: 126px; gap: 16px; bottom: 150px; overflow-y: auto; }
+.app .ow-business-new-label { color: var(--a-ink3); font: 600 12px/16px var(--a-sans); }
+.app .ow-business-types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.app .ow-business-types .a-opt { display: flex; justify-content: center; min-height: 62px; padding: 10px; border: 2px solid transparent; font: 600 14px/18px var(--a-sans); color: var(--a-ink); }
+.app .ow-business-types .a-opt.is-on { border-color: var(--a-ink); background: var(--a-accent-soft); }
+.app .ow-new-business .a-field { width: 100%; padding: 0 16px; border: 0; font: 500 16px/22px var(--a-sans); }
+.app .ow-business-new-note { font: 500 14px/20px var(--a-sans); color: var(--a-ink3); }
+.app .ow-workspace .door:disabled { opacity: .4; cursor: default; }
+.app .ow-workspace .a-tab { border: 0; background: transparent; color: var(--a-ink3); }
+.app .ow-workspace .a-tab.is-on { color: var(--a-ink); }

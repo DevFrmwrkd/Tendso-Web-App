@@ -4,6 +4,7 @@ import { Share, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, Chip, ScreenShell, Text } from '../../../components/v2';
 import { Buddy, SiteFrame } from '../../../components/v2/owner/OwnerUI';
+import { OwnerBusinessSwitcher } from '../../../components/v2/owner/OwnerBusinessSwitcher';
 import { publicSiteUrl } from '../../../components/v2/owner/OwnerSiteSummary';
 import { usePreview } from '../../../lib/v2/ownerData';
 import { outstandingPayment, phaseLine, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
@@ -12,7 +13,7 @@ import { space } from '../../../theme/v2';
 
 export default function MySite() {
   const router = useRouter();
-  const { site, id } = useOwnerSite();
+  const { me, site, id, isNewBusiness } = useOwnerSite();
   const preview = usePreview(site && site.phase !== 'draft' ? id : null);
   const phase = site?.phase ?? null;
   const uri = preview?.publishedUrl ?? (preview?.ready ? preview.htmlUrl : null);
@@ -39,8 +40,9 @@ export default function MySite() {
   }
 
   return (
-    <ScreenShell title={site?.businessName ?? 'My site'} scroll={false} insetBottom={false} footer={footer}>
-      {site ? <Chip label={phaseLine(phase)} tone={phase === 'live' ? 'ok' : 'muted'} style={{ marginTop: -space.md, marginBottom: space.md }} /> : null}
+    <ScreenShell title="My site" scroll={false} insetBottom={false} footer={footer}>
+      <View style={{ marginBottom: space.md }}><OwnerBusinessSwitcher me={me} site={site} isNewBusiness={isNewBusiness} /></View>
+      {site ? <Chip label={phaseLine(phase)} tone={phase === 'live' ? 'ok' : 'muted'} style={{ marginBottom: space.md }} /> : null}
       {uri || preview?.inlineHtml ? (
         <SiteFrame uri={uri} html={preview?.inlineHtml} style={styles.site} />
       ) : (

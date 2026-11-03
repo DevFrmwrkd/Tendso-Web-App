@@ -234,29 +234,52 @@
 
   // ================= ROW 6 · AFTER =================
   const tab = (icon, label, on) => `<span class="a-tab${on ? ' is-on' : ''}">${I(icon)}<span>${label}</span></span>`;
-  const home = () => app(`${SB()}
-    <div class="ow-main" style="top:66px;gap:12px">
-      <div class="ow-hello"><h2 class="ow-h1">Morning, Ben</h2><span class="ow-bell">${I('bell')}</span></div>
-      <div class="a-card ow-site" style="position:relative;margin-top:2px">
-        <img src="${A('assets/sites/showcase/forge-m.jpg')}" alt="Forge website">
-        <div class="ow-site-in">
-          <span class="ow-live"><i></i>Live</span>
-          <b>${kalan.name}</b><span>${kalan.url}</span>
-          <div class="ow-stats"><div><b>Live</b><span>your website</span></div><div><b>Paid</b><span>in full</span></div></div>
-        </div>
-        <span class="a-chip a-chip--muted ow-sample">Sample</span>
+  const businesses = [
+    { id: 'forge', name: 'Forge Barbers', type: 'Barber/Salon', status: 'Live', payment: 'Paid in full', image: 'assets/sites/showcase/forge-m.jpg', url: 'forgebarbers.tendso.com', action: 'View my site', detail: 'Your website is live and ready to share.' },
+    { id: 'kalan', name: 'Kalan Kitchen', type: 'Restaurant', status: 'Ready to check', payment: 'Not paid yet', image: 'assets/photos/kalan-cook.jpg', action: 'Check my site', detail: 'Look over this website before paying to publish.' },
+    { id: 'clinic', name: 'Reyes Dental', type: 'Clinic', status: 'Draft', payment: 'Setup in progress', image: null, action: 'Continue setup', detail: '3 of 10 answers · 4 photos saved · Editorial selected' },
+  ];
+  const businessTypes = ['Barbershop', 'Salon & spa', 'Repair shop', 'Crafts & flowers', 'Food', 'Something else'];
+  const businessImage = (b) => b.image ? `<img src="${A(b.image)}" alt="">` : I('store');
+  const businessNav = (view) => `<nav class="a-tabbar ow-tabs">
+    <button class="a-tab${view === 'today' ? ' is-on' : ''}" type="button" data-business-view="today">${I('house')}<span>Today</span></button>
+    <button class="a-tab${view === 'site' ? ' is-on' : ''}" type="button" data-business-view="site">${I('smartphone')}<span>My site</span></button>
+    ${tab('users', 'Agents')}${tab('circle-user', 'Me')}</nav>`;
+  const businessChooser = (selected, limit = false) => `<div class="ow-business-overlay">
+    <button class="ow-business-scrim" type="button" data-business-close aria-label="Close businesses"></button>
+    <section class="ow-business-popup" role="dialog" aria-modal="true" aria-label="Your businesses">
+      <header><div><h3>Your businesses</h3><p>Choose the business to manage.</p></div><button class="ow-business-close" type="button" data-business-close aria-label="Close businesses">${I('x')}</button></header>
+      <div class="ow-business-list">${businesses.map(b => `<button type="button" class="ow-business-row${selected === b.id ? ' is-selected' : ''}" data-business-select="${b.id}" aria-pressed="${selected === b.id}">
+        <span class="ow-business-thumb">${businessImage(b)}</span><span class="ow-business-name"><b>${b.name}</b><span>${limit ? 'Draft · Setup in progress' : `${b.status} · ${b.payment}`}</span></span><span class="ow-business-check">${selected === b.id ? I('check') : I('chevron-right')}</span>
+      </button>`).join('')}</div>
+      ${limit ? '<p class="ow-business-limit" role="status">You have 3 website drafts. Finish one before adding another.</p>' : ''}
+      <button type="button" class="door door--accent ow-business-add" data-business-add${limit ? ' disabled' : ''}>${I('plus')}Add business</button>
+      <p class="ow-small">Each business has its own website and payment.</p>
+    </section></div>`;
+  const workspaceBody = (view = 'today', selected = 'forge', popup = false, limit = false) => {
+    const b = businesses.find(business => business.id === selected) || businesses[0];
+    return `${SB()}<div class="ow-main ow-workspace-main">
+      <div class="ow-hello"><h2 class="ow-h1">${view === 'today' ? 'Morning, Ben' : 'My site'}</h2><span class="ow-bell">${I('bell')}</span></div>
+      <button class="ow-business-dropdown" type="button" data-business-open aria-haspopup="dialog" aria-expanded="${popup}"><span class="ow-business-thumb">${businessImage(b)}</span><span><small>Your business</small><b>${b.name}</b></span>${I('chevron-down')}</button>
+      <div class="a-card ow-business-status"><div class="ow-business-status-head"><span class="ow-business-badge${b.status === 'Live' ? ' is-live' : ''}">${b.status}</span><span class="ow-business-example">Sample</span></div>
+        <h3>${b.status === 'Draft' ? 'Pick up where you left off' : b.status === 'Live' ? 'Your website is online' : 'Your website is ready'}</h3><p>${b.detail}</p>
+        ${b.status === 'Live' ? `<div class="ow-business-address">${I('globe')}${b.url}</div>` : ''}
+        <button class="door door--accent" type="button" data-business-resume>${b.action}</button><p class="ow-business-payment">${b.payment}</p>
       </div>
-      <div class="a-sec" style="margin-top:6px">Make it better</div>
-      <div class="a-check is-done"><i class="c"></i><span>Publish your site</span></div>
-      <div class="a-check"><i class="c"></i><span>Ask for a change</span></div>
-      <div class="a-check"><i class="c"></i><span>Share your site and QR</span></div>
-      <div class="a-check"><i class="c"></i><span>Get forgebarbers.com</span><em>Optional</em></div>
-      <div class="a-sec" style="margin-top:6px">Your plan</div>
-      <div class="a-card ow-next" style="padding:14px 16px">
-        <div><span class="a-ic">${I('pencil')}</span><span style="flex:1">View your site</span>${I('chevron-right', 'ow-s16')}</div>
-      </div>
-    </div>
-    <nav class="a-tabbar ow-tabs">${tab('house', 'Today', true)}${tab('smartphone', 'My site')}${tab('users', 'Agents')}${tab('circle-user', 'Me')}</nav>`, { proposed: true });
+      <div class="a-sec">${view === 'site' ? 'For this website' : 'For this business'}</div>
+      <div class="a-card ow-next"><div>${I(b.status === 'Draft' ? 'camera' : 'pencil')}<span>${b.status === 'Draft' ? 'Your saved photos and answers' : 'Ask for a change'}</span>${I('chevron-right')}</div>
+        <div>${I('wallet')}<span>${b.payment}</span></div>${b.status === 'Live' ? `<div>${I('qr-code')}<span>Share your site and QR</span>${I('chevron-right')}</div>` : ''}</div>
+      <p class="ow-small ow-business-feedback" role="status">Switch businesses above. Each keeps its own progress.</p>
+    </div>${businessNav(view)}${popup ? businessChooser(selected, limit) : ''}`;
+  };
+  const workspace = (view = 'today', selected = 'forge', popup = false, limit = false) => app(`<div class="ow-workspace" data-business-current="${selected}" data-business-current-view="${view}"${limit ? ' data-business-limit="true"' : ''}>${workspaceBody(view, selected, popup, limit)}</div>`);
+  const home = () => workspace();
+  const newBusinessBody = (view = 'today', selected = 'forge', place = false) => `${SB()}<div class="ow-top ow-bar"><button class="a-back" type="button" data-business-cancel aria-label="Back to businesses">${I('arrow-left')}</button><b>Add business</b><span style="width:40px"></span></div>
+    <div class="ow-main ow-new-business"><p class="ow-business-new-label">New business · ${place ? '2' : '1'} / 3</p><h2 class="ow-h1">${place ? "What's your shop called?" : 'What do you sell?'}</h2>
+      <p class="ow-sub">${place ? 'Add the details for this business.' : 'Create a separate website. Your other businesses stay saved.'}</p>
+      ${place ? '<label class="ow-fld"><span class="a-label">Shop name</span><input class="a-field" placeholder="Enter business name"></label><label class="ow-fld"><span class="a-label">Address</span><input class="a-field" placeholder="Enter business address"></label><div class="a-card ow-business-new-note">Photos, answers and design start fresh for this business.</div>' : `<div class="ow-business-types">${businessTypes.map(type => `<button type="button" class="a-opt" data-business-type="${type}" aria-pressed="false">${type}</button>`).join('')}</div>`}
+    </div><div class="ow-foot"><p class="ow-small ow-business-feedback" role="status">Interactive design sample · no account is changed.</p><button class="door door--accent" type="button" data-business-next${place ? '' : ' disabled'}>Next</button></div>`;
+  const addBusiness = () => app(`<div class="ow-workspace" data-business-current="forge" data-business-current-view="today">${newBusinessBody()}</div>`);
 
   const days = [['Today', '21'], ['Thu', '22', true], ['Fri', '23'], ['Sat', '24'], ['Mon', '26']];
   const slots = [['9:00 AM'], ['10:30 AM', 'on'], ['1:00 PM'], ['2:30 PM', 'off'], ['4:00 PM'], ['5:30 PM']];
@@ -323,6 +346,13 @@
       { render: book, kind: 'real', source: '(owner)/agents/book.tsx', name: 'Request a visit', note: 'Send a preferred day and contact number. The team confirms the agent and time.' },
       { render: booked, kind: 'real', source: '(owner)/agents/book.tsx', name: 'Request sent', note: 'Confirms the request only; no fixed appointment, WhatsApp promise or calendar booking.' },
     ] },
+    { id: 'businesses', title: 'Your businesses', note: 'One owner login. Switch businesses or start a separate setup.', steps: [
+      { render: home, kind: 'real', source: '(owner)/(tabs)/today.tsx', name: 'Today · business dropdown', note: 'Tap the business name to switch. Status, payment, photos and answers belong to this business. The active business is restored when the app reopens.' },
+      { render: () => workspace('today', 'forge', true), kind: 'real', source: 'Owner business switcher', name: 'Your businesses popup', note: 'A checked row shows the active business. Choose a row to manage it, or Add business to start a separate setup. The names and statuses shown here are sample data.' },
+      { render: () => workspace('site', 'clinic'), kind: 'real', source: '(owner)/(tabs)/site.tsx', name: 'My site · another business', note: 'Uses the same dropdown and active selection as Today. A draft resumes its own saved setup; a finished website opens its own preview, review or payment step.' },
+      { render: addBusiness, kind: 'real', source: '(owner)/start/sell.tsx', name: 'Add business · separate setup', note: 'Type, name and place are separate from the selected business. Returning to an existing business restores its own setup. A stable setup reference prevents duplicates after a lost response or retry.' },
+      { render: () => workspace('today', 'clinic', true, true), kind: 'real', source: 'ownerApp.createDraft', name: 'Three open drafts', note: 'Up to three owner-made website drafts can be open. Finish and send one before adding another; existing submitted or live websites do not use a draft slot.' },
+    ] },
   ];
 
   const arrow = (label) => `<div class="ow-arrow" aria-hidden="true">${label ? `<span>${label}</span>` : ''}
@@ -354,6 +384,7 @@
     ROWS.forEach((row, ri) => {
       const sec = document.createElement('section');
       sec.className = 'ow-row';
+      if (row.id) sec.id = row.id;
       sec.innerHTML = `<div class="ow-row-head"><span class="ow-row-n">${ri + 1}</span>
         <h2 class="ow-row-title">${row.title}</h2><p class="ow-row-note">${row.note}</p></div><div class="ow-track"></div>`;
       const track = sec.querySelector('.ow-track');
@@ -417,6 +448,59 @@
     });
   }
 
+  function businessInteractions() {
+    const board = document.getElementById('ow-board');
+    const refresh = (host, popup = false) => {
+      host.innerHTML = workspaceBody(host.dataset.businessCurrentView || 'today', host.dataset.businessCurrent || 'forge', popup, host.dataset.businessLimit === 'true');
+      if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+    };
+    board.addEventListener('click', event => {
+      const target = event.target.closest('button');
+      const host = target?.closest('.ow-workspace');
+      if (!target || !host || target.disabled) return;
+      if (target.hasAttribute('data-business-open')) {
+        refresh(host, true); host.querySelector('.ow-business-close')?.focus();
+      } else if (target.hasAttribute('data-business-close')) {
+        refresh(host); host.querySelector('[data-business-open]')?.focus();
+      } else if (target.hasAttribute('data-business-select')) {
+        host.dataset.businessCurrent = target.dataset.businessSelect; refresh(host);
+      } else if (target.hasAttribute('data-business-view')) {
+        host.dataset.businessCurrentView = target.dataset.businessView; refresh(host);
+      } else if (target.hasAttribute('data-business-add')) {
+        delete host.dataset.businessType; delete host.dataset.businessPlace;
+        host.innerHTML = newBusinessBody();
+        if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+      } else if (target.hasAttribute('data-business-cancel')) {
+        refresh(host, true);
+      } else if (target.hasAttribute('data-business-type')) {
+        host.dataset.businessType = target.dataset.businessType;
+        host.querySelectorAll('[data-business-type]').forEach(option => {
+          const on = option === target; option.classList.toggle('is-on', on); option.setAttribute('aria-pressed', String(on));
+        });
+        host.querySelector('[data-business-next]').disabled = false;
+      } else if (target.hasAttribute('data-business-next')) {
+        if (!host.dataset.businessPlace) {
+          if (!host.dataset.businessType) return;
+          host.dataset.businessPlace = 'true'; host.innerHTML = newBusinessBody('today', 'forge', true);
+          if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+        } else {
+          host.querySelector('.ow-business-feedback').textContent = 'Sample only. The app saves a separate business before its interview and photos.';
+        }
+      } else if (target.hasAttribute('data-business-resume')) {
+        const selected = host.dataset.businessCurrent;
+        host.querySelector('.ow-business-feedback').textContent = selected === 'clinic'
+          ? 'Resume Reyes Dental: 3 saved answers and 4 photos. Your other businesses stay saved.'
+          : selected === 'kalan' ? 'Open Kalan Kitchen’s private preview to check it before payment.' : 'Open Forge Barbers’ live website. Its payment is complete.';
+      }
+    });
+    board.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const host = event.target.closest('.ow-workspace');
+      if (!host?.querySelector('.ow-business-popup')) return;
+      refresh(host); host.querySelector('[data-business-open]')?.focus();
+    });
+  }
+
   // ---------- boot ----------
   render();
   T.init();
@@ -425,5 +509,6 @@
   compare();
   buildLoop();
   toggle();
+  businessInteractions();
   mounted.forEach((m) => { try { m && m.play && m.play(); } catch (e) { console.warn('[owner] play failed', e); } });
 })();

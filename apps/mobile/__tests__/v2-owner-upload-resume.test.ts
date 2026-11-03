@@ -173,3 +173,25 @@ it('a late upload from an old session cannot save after signing out and back int
   expect(io.saveShot).not.toHaveBeenCalled();
   expect(app.intake.get().uploads?.[0].saved).not.toBe(true);
 });
+
+it('retains each business upload journal while rejecting late work from the previous selection', async () => {
+  const app = runtime(); await app.intake.bindActor('owner-a'); app.intake.set({ submissionId: id });
+  let finishOld!: (url: string) => void;
+  const old = { upload: jest.fn(() => new Promise<string>(resolve => { finishOld = resolve; })), saveShot: jest.fn(), saveAnswer: jest.fn() };
+  app.rememberOwnerUpload({ kind: 'photo', submissionId: id, index: 0, extra: false, uri: 'file://a.jpg' }, old);
+  await app.intake.flush(); await Promise.resolve();
+  const b = 'business-b' as SubmissionId;
+  app.intake.selectBusiness(b);
+  const io = { upload: jest.fn(async (uri: string) => `https://cdn.test/${uri.split('/').pop()}`), saveShot: jest.fn(async () => {}), saveAnswer: jest.fn() };
+  app.rememberOwnerUpload({ kind: 'photo', submissionId: b, index: 0, extra: false, uri: 'file://b.jpg' }, io);
+  await app.queue.drain(); finishOld('https://cdn.test/stale-a.jpg');
+  await Promise.resolve(); await Promise.resolve();
+  expect(old.saveShot).not.toHaveBeenCalled();
+  expect(io.saveShot).toHaveBeenCalledWith(expect.objectContaining({ submissionId: b, url: 'https://cdn.test/b.jpg' }));
+  app.intake.selectBusiness(id);
+  expect(app.intake.get().shots).toEqual(['file://a.jpg']);
+  await app.resumeOwnerUploads(id, draft(), io); await app.queue.drain();
+  expect(io.saveShot).toHaveBeenCalledWith(expect.objectContaining({ submissionId: id, url: 'https://cdn.test/a.jpg' }));
+  app.intake.selectBusiness(b); expect(app.intake.get().shots).toEqual(['file://b.jpg']);
+  expect(app.intake.get().uploads!.every(upload => upload.saved)).toBe(true);
+});

@@ -262,7 +262,7 @@ it('keeps a delayed details update from selecting the previous shop after switch
   let finish!: () => void;
   mockUpdate.mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
   const screen = wrap(<Place />);
-  fireEvent.press(screen.getByText('Next'));
+  await act(async () => { fireEvent.press(screen.getByText('Next')); });
   const next = { ...mockSub, submissionId: 'next-draft' as SubmissionId, businessName: 'Next shop' };
   mockSub = next; mockMe = { ...mockMe, sites: [next] };
   act(() => ownerIntake.set({ submissionId: next.submissionId, businessName: next.businessName }));

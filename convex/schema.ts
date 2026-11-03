@@ -341,6 +341,8 @@ export default defineSchema({
         prospectLeadId: v.optional(v.id('leads')),
 
         // ==================== OWNER APP v2 (2026-10-21, additive) ====================
+        // A retry-safe setup reference, scoped through the signed-in owner's links.
+        ownerClientDraftKey: v.optional(v.string()),
         // Written only by convex/ownerApp.ts (contentSource 'owner_app'), the
         // build-progress contract (convex/buildProgress.ts) and the payment
         // path (convex/ownerPayments.ts + payments.creditCreatorForPayment).

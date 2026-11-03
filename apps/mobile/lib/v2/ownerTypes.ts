@@ -53,6 +53,7 @@ export interface EnsureResult {
 }
 
 export type CreateDraftArgs = {
+  clientDraftKey?: string;
   businessType: string;
   businessName: string;
   address?: string;
@@ -63,7 +64,7 @@ export type CreateDraftArgs = {
   shotListKey?: string;
 };
 
-export type UpdateDraftArgs = Partial<CreateDraftArgs> & {
+export type UpdateDraftArgs = Partial<Omit<CreateDraftArgs, 'clientDraftKey'>> & {
   submissionId: SubmissionId;
   ownerName?: string;
   ownerPhone?: string;

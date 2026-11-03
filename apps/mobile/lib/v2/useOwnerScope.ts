@@ -10,8 +10,8 @@ export function useOwnerScope() {
   const { userId } = useAuth();
   const { isConnected } = useNetwork();
   const accountKey = `${userId ?? 'owner'}:${owner.me?.owner._id ?? ''}`;
-  const scopeKey = `${accountKey}:${owner.id ?? ''}`;
   const intakeScope = ownerIntake.scope();
+  const scopeKey = `${accountKey}:${owner.isNewBusiness ? `new:${ownerIntake.get().newBusinessKey ?? ''}` : owner.id ?? ''}:${intakeScope}`;
   const live = useRef(scopeKey);
   live.current = scopeKey;
   const liveAccount = useRef(accountKey);
@@ -22,6 +22,8 @@ export function useOwnerScope() {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const isCurrent = useCallback(() => mounted.current && live.current === scopeKey && ownerIntake.isCurrent(intakeScope), [scopeKey, intakeScope]);
   const isAccountCurrent = useCallback(() => mounted.current && liveAccount.current === accountKey && ownerIntake.isCurrent(intakeScope), [accountKey, intakeScope]);
+  /** For an intentional workspace attachment, also check its newly captured epoch/id. */
+  const isActorCurrent = useCallback(() => mounted.current && liveAccount.current === accountKey, [accountKey]);
   const isDraftCurrent = useCallback(() => mounted.current && live.current === scopeKey && livePhase.current === 'draft' && ownerIntake.isCurrent(intakeScope), [scopeKey, intakeScope]);
-  return { ...owner, accountKey, scopeKey, isCurrent, isAccountCurrent, isDraftCurrent, isOffline: isConnected === false };
+  return { ...owner, accountKey, scopeKey, isCurrent, isAccountCurrent, isActorCurrent, isDraftCurrent, isOffline: isConnected === false };
 }

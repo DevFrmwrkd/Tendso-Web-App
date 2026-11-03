@@ -9,7 +9,7 @@ import { INTERVIEW_QUESTIONS } from './captureContent';
 import type { OwnerPhase, OwnerSubmission, SiteSummary, SubmissionId } from './ownerTypes';
 import type { OwnerIntake } from './ownerIntake';
 import { ownerAnswersFor, ownerPhotosFor } from './ownerMedia';
-import { peso } from './ownerContent';
+import { peso, sellKind } from './ownerContent';
 
 export type OwnerStep =
   | 'sell'
@@ -82,17 +82,23 @@ export interface DraftSnapshot {
   templateId?: string | null;
   /** The phone choice was confirmed for this draft, rather than another shop. */
   howConfirmed?: boolean;
+  /** Locally edited shop details must be saved before later capture steps. */
+  detailsPending?: boolean;
 }
 
 /** Shared by cold-start routing and Today, including work still uploading. */
 export function ownerDraftSnapshot(id: SubmissionId | null, draft: OwnerSubmission | undefined, intake: OwnerIntake): DraftSnapshot | null {
   if (!id || draft?.submissionId !== id) return null;
+  const local = intake.submissionId === id;
+  const kind = local ? sellKind(intake.kind) : undefined;
   return {
     businessName: draft.businessName,
     businessType: draft.businessType,
     answered: ownerAnswersFor(id, draft, intake).map(answer => answer.index),
     photos: ownerPhotosFor(id, draft, intake).length,
     templateId: draft.templateId,
+    detailsPending: local && (!!intake.detailsDirty?.length || !!kind
+      && (kind.businessType !== draft.businessType || kind.shots !== draft.shotListKey)),
     howConfirmed: intake.submissionId === id && intake.howConfirmedFor === id
       && (intake.how === 'self' || intake.how === 'friend'),
   };
@@ -117,6 +123,7 @@ export function resumeStep(phase: OwnerPhase | null, draft?: DraftSnapshot | nul
       return 'sell';
     case 'draft': {
       if (!draft || !draft.businessName || !draft.businessType) return 'sell';
+      if (draft.detailsPending) return 'place';
       // Existing recordings prove setup was passed on an older app or device.
       if (draft.answered.length === 0 && !draft.howConfirmed) return 'how';
       if (firstMissingAnswer(draft.answered) < INTERVIEW_QUESTIONS.length) {
