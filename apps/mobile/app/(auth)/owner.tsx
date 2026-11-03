@@ -21,6 +21,16 @@ function clerkMessage(error: any, fallback: string): string {
   return error?.errors?.[0]?.longMessage || error?.errors?.[0]?.message || error?.message || fallback;
 }
 
+function signInSecurityMessage(status: string | null | undefined): string | null {
+  if (status === 'needs_second_factor' || status === 'needs_client_trust') {
+    return 'Your account needs another security check. Continue with more sign-in options.';
+  }
+  if (status === 'needs_new_password') {
+    return 'Your account needs a password update. Continue with more sign-in options.';
+  }
+  return null;
+}
+
 export default function OwnerAuthScreen() {
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const { userId, sessionId } = useAuth();
@@ -48,12 +58,15 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [needsAlternativeSignIn, setNeedsAlternativeSignIn] = useState(false);
+  const signInAddress = useRef<string | null>(null);
+  const verificationEmail = useRef<string | null>(null);
   const emailInput = useRef<TextInput>(null);
   const mounted = useRef(true);
   const requestVersion = useRef(0);
   const inFlight = useRef(false);
   const activating = useRef(false);
   const completedSession = useRef<string | null>(null);
+  const completedEmail = useRef<string | null>(null);
   const signingUp = mode === 'signup';
   const authReady = intakeReady && (signingUp ? signUpLoaded : signInLoaded);
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -97,6 +110,9 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
         setError('We could not find an account with that email. Check it or make an account below.');
       } else if (signingUp && hasClerkCode(err, 'form_identifier_exists')) {
         setError('That email already has an account. Log in below.');
+      } else if (!signingUp && hasClerkCode(err, 'strategy_for_user_invalid')) {
+        setError('Email codes are not available for this account. Try another sign-in option.');
+        setNeedsAlternativeSignIn(true);
       } else {
         setError(clerkMessage(err, fallback));
       }
@@ -114,6 +130,10 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
     await runRequest(async (current) => {
       setNeedsAlternativeSignIn(false);
       const address = email.trim().toLowerCase();
+      if (completedEmail.current !== address) {
+        completedSession.current = null;
+        completedEmail.current = null;
+      }
       if (signingUp) {
         if (!signUp) return;
         const [firstName, ...rest] = name.trim().split(/\s+/);
@@ -123,19 +143,46 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       } else {
         if (!signIn) return;
-        const attempt = await signIn.create({ identifier: address });
-        if (!current()) return;
-        const factor = attempt.supportedFirstFactors?.find((item) => item.strategy === 'email_code');
-        if (!factor || factor.strategy !== 'email_code') {
-          setError('This account uses a different sign-in method. Use your password, Apple or Google to continue.');
-          setNeedsAlternativeSignIn(true);
+        if (completedSession.current && setSignInActive) {
+          activating.current = true;
+          try { await setSignInActive({ session: completedSession.current }); }
+          finally { activating.current = false; }
           return;
         }
-        setEmailAddressId(factor.emailAddressId);
-        await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: factor.emailAddressId });
+        setEmailAddressId(null);
+        signInAddress.current = null;
+        // Clerk prepares and sends the email code in this request. Factor lists
+        // can be empty after a strategy is selected; do not infer a password or
+        // social account from that list or send a second code with prepare().
+        const attempt = await signIn.create({ identifier: address, strategy: 'email_code' });
+        if (!current()) return;
+        if (attempt.status === 'complete' && attempt.createdSessionId && setSignInActive) {
+          completedSession.current = attempt.createdSessionId;
+          completedEmail.current = address;
+          activating.current = true;
+          try { await setSignInActive({ session: attempt.createdSessionId }); }
+          finally { activating.current = false; }
+          return;
+        }
+        const security = signInSecurityMessage(attempt.status);
+        if (security) { setError(security); setNeedsAlternativeSignIn(true); return; }
+        const factor = attempt.supportedFirstFactors?.find((item) => item.strategy === 'email_code');
+        const verification = attempt.firstFactorVerification;
+        if (attempt.status !== 'needs_first_factor' || verification?.strategy !== 'email_code'
+          || verification.status !== 'unverified') {
+          const otherFactors = attempt.supportedFirstFactors?.some(item => item.strategy === 'password' || item.strategy.startsWith('oauth_'));
+          setError(otherFactors ? 'Email codes are not available for this account. Try another sign-in option.'
+            : 'We could not start email sign-in. Check your email address and try again.');
+          setNeedsAlternativeSignIn(!!otherFactors);
+          return;
+        }
+        if (factor?.strategy === 'email_code') setEmailAddressId(factor.emailAddressId);
+        signInAddress.current = address;
       }
       if (current()) {
         completedSession.current = null;
+        completedEmail.current = null;
+        verificationEmail.current = address;
         setCode('');
         setStep('code');
       }
@@ -143,7 +190,15 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
   };
 
   const verify = async () => {
-    if (!authReady || code.length !== 6) return;
+    if (!authReady || code.length !== 6 || needsAlternativeSignIn) return;
+    const address = email.trim().toLowerCase();
+    if (verificationEmail.current !== address || (completedSession.current && completedEmail.current !== address)) {
+      completedSession.current = null;
+      completedEmail.current = null;
+      setStep('form');
+      setError('Your email address changed. Send a new sign-in code.');
+      return;
+    }
     await runRequest(async (current, owned) => {
       if (signingUp ? !signUp : !signIn) return;
       const activate = signingUp ? setSignUpActive : setSignInActive;
@@ -152,7 +207,14 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
           ? await signUp!.attemptEmailAddressVerification({ code })
           : await signIn!.attemptFirstFactor({ strategy: 'email_code', code });
         if (!owned()) return;
-        if (result.status === 'complete' && result.createdSessionId) completedSession.current = result.createdSessionId;
+        if (result.status === 'complete' && result.createdSessionId) {
+          completedSession.current = result.createdSessionId;
+          completedEmail.current = address;
+        }
+        else if (!signingUp && current()) {
+          const security = signInSecurityMessage(result.status);
+          if (security) { setError(security); setNeedsAlternativeSignIn(true); return; }
+        }
       }
       if (!current()) return;
       if (!completedSession.current || !activate) {
@@ -171,14 +233,26 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
   };
 
   const resendCode = async () => {
-    if (!authReady || completedSession.current) return;
+    if (!authReady || completedSession.current || needsAlternativeSignIn) return;
     await runRequest(async (current) => {
       if (signingUp) {
         if (!signUp) return;
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       } else {
-        if (!signIn || !emailAddressId) return;
-        await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId });
+        if (!signIn || !signInAddress.current) return;
+        const attempt = emailAddressId
+          ? await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId })
+          : await signIn.create({ identifier: signInAddress.current, strategy: 'email_code' });
+        if (!current()) return;
+        const security = signInSecurityMessage(attempt.status);
+        if (security) { setError(security); setNeedsAlternativeSignIn(true); return; }
+        if (attempt.status !== 'needs_first_factor' || attempt.firstFactorVerification?.strategy !== 'email_code'
+          || attempt.firstFactorVerification.status !== 'unverified') {
+          setError('We could not send another code. Go back and try signing in again.');
+          return;
+        }
+        const factor = attempt.supportedFirstFactors?.find(item => item.strategy === 'email_code');
+        setEmailAddressId(factor?.strategy === 'email_code' ? factor.emailAddressId : null);
       }
       if (current()) {
         setCode('');
@@ -196,6 +270,11 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
       setStep('form');
       setCode('');
       completedSession.current = null;
+      completedEmail.current = null;
+      verificationEmail.current = null;
+      signInAddress.current = null;
+      setEmailAddressId(null);
+      setNeedsAlternativeSignIn(false);
       setError(null);
       setNotice(null);
       return;
@@ -238,7 +317,17 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
                 icon="mail-outline"
                 placeholder="you@example.com"
                 value={email}
-                onChangeText={onChangeEmail}
+                onChangeText={value => {
+                  if (value.trim().toLowerCase() !== email.trim().toLowerCase()) {
+                    completedSession.current = null;
+                    completedEmail.current = null;
+                    verificationEmail.current = null;
+                    signInAddress.current = null;
+                    setEmailAddressId(null);
+                    setNeedsAlternativeSignIn(false);
+                  }
+                  onChangeEmail(value);
+                }}
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="email"
@@ -251,13 +340,13 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
               />
             </>
           ) : (
-            <CodeBoxes value={code} onChangeText={(value) => setCode(value.slice(0, 6))} editable={!busy && !completedSession.current} accessibilityLabel="Verification code" />
+            <CodeBoxes value={code} onChangeText={(value) => setCode(value.slice(0, 6))} editable={!busy && !completedSession.current && !needsAlternativeSignIn} accessibilityLabel="Verification code" />
           )}
           {error ? <Banner tone="danger" body={error} /> : null}
           {isOffline ? <Banner tone="warn" body="You're offline. Reconnect to sign in or request an email code." /> : null}
           {notice ? <Banner tone="info" body={notice} /> : null}
           {needsAlternativeSignIn ? (
-            <AuthLink label="Use password, Apple or Google" disabled={busy} onPress={() => router.replace('/(auth)/login')} />
+            <AuthLink label="More sign-in options" disabled={busy} onPress={() => router.replace('/(auth)/login')} />
           ) : null}
           {step === 'form' ? (
             <>
@@ -267,7 +356,7 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
                 {' and '}
                 <Text variant="label" weight="bold" style={styles.underline} accessibilityRole="link" onPress={() => void openExternalUrl(PRIVACY_URL)}>Privacy Policy</Text>.
               </Text>
-              <Button title={signingUp ? 'Create account' : 'Send sign-in code'} onPress={sendCode} disabled={isOffline || !authReady || !emailOk || (signingUp && !nameOk)} loading={busy} />
+              <Button title={signingUp ? 'Create account' : completedSession.current ? 'Finish sign-in' : 'Send sign-in code'} onPress={sendCode} disabled={isOffline || !authReady || !emailOk || (signingUp && !nameOk)} loading={busy} />
               <View style={styles.modeSwitch}>
                 <Text variant="label" weight="medium" tone="muted">{signingUp ? 'Already have an account?' : 'New to Tendso?'}</Text>
                 <AuthLink label={signingUp ? 'Log in' : 'Make an account'} disabled={busy} onPress={() => router.replace({ pathname: '/(auth)/owner', params: { mode: signingUp ? 'signin' : 'signup' } })} />
@@ -275,8 +364,8 @@ function OwnerAuthForm({ mode, guest, email, onChangeEmail }: { mode: Mode; gues
             </>
           ) : (
             <>
-              <Button title="Continue" onPress={verify} disabled={isOffline || !authReady || code.length !== 6} loading={busy} />
-              <AuthLink label="Send a new code" disabled={isOffline || busy || !!completedSession.current} onPress={resendCode} />
+              <Button title="Continue" onPress={verify} disabled={isOffline || !authReady || code.length !== 6 || needsAlternativeSignIn} loading={busy} />
+              <AuthLink label="Send a new code" disabled={isOffline || busy || !!completedSession.current || needsAlternativeSignIn} onPress={resendCode} />
             </>
           )}
         </View>

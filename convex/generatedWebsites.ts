@@ -6,12 +6,27 @@ import type { Doc, Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
 import { ownerAppPublishBlockReason } from './lib/ownerAuth';
 import { canReadPrivateSubmission } from './lib/submissionAccess';
+import { isOwnerApp, publishPolicyFor } from './lib/ownerApp';
+import { ensureSubmissionOwnerLink } from './owners';
 
 async function requirePublishReady(ctx: MutationCtx, submissionId: Id<'submissions'>) {
     const submission = await ctx.db.get(submissionId);
-    const blocked = submission && await ownerAppPublishBlockReason(ctx, submission);
-    if (blocked) throw new Error(`This owner made the site in the app: publish after they pay in full and approve with no open changes (${blocked}).`);
+    if (!submission) throw new Error('Submission not found');
+    const blocked = await ownerAppPublishBlockReason(ctx, submission);
+    if (blocked) throw new Error(`Publish after they pay in full and approve with no open changes (${blocked}).`);
 }
+
+/** Preflight before an admin deploys a Worker; publication mutations recheck atomically. */
+export const publicationCheck = query({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission) throw new Error('Submission not found');
+        const reason = await ownerAppPublishBlockReason(ctx, submission);
+        return { allowed: reason === null, reason };
+    },
+});
 
 // Private generated website by submission ID (capturer, admin or linked owner).
 // `htmlUrl` resolves the file-storage HTML (when the row uses htmlStorageId
@@ -122,11 +137,27 @@ export async function upsertGeneratedWebsiteRow(
         status?: 'draft' | 'published';
     },
 ): Promise<Id<'generatedWebsites'>> {
+    // Internal pipeline writers share the same guard as public/admin callers.
+    if (args.status === 'published') await requirePublishReady(ctx, args.submissionId);
     // Check if website already exists for this submission
     const existing = await ctx.db
         .query('generatedWebsites')
         .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
         .first();
+
+    const submission = await ctx.db.get(args.submissionId);
+    if (existing?.status === 'published' && args.status !== 'draft') await requirePublishReady(ctx, args.submissionId);
+    if (submission && !isOwnerApp(submission) && publishPolicyFor(submission) === 'pay_then_publish'
+        && submission.status !== 'draft' && submission.status !== 'rejected'
+        && (args.htmlStorageId || args.htmlContent?.trim()) && !submission.previewReadyAt) {
+        const now = Date.now();
+        const done = { status: 'done', updatedAt: now, finishedAt: now };
+        await ensureSubmissionOwnerLink(ctx, submission);
+        await ctx.db.patch(submission._id, { previewReadyAt: now, buildSteps: {
+            reading_interview: done, writing_pages: done, polishing_photos: done, building_site: done,
+        } });
+        await ctx.scheduler.runAfter(0, internal.ownerEmails.send, { submissionId: submission._id, kind: 'preview_ready' });
+    }
 
     if (existing) {
         const oldBlob = existing.htmlStorageId;
@@ -181,6 +212,10 @@ export const updatePublishingInfo = mutation({
         if (!website) {
             throw new Error('Generated website not found');
         }
+
+        // Updating an already-live row or adding its public URL is also a
+        // publishing write, even when an older caller omits status.
+        if (args.status !== 'draft' && (website.status === 'published' || args.publishedUrl)) await requirePublishReady(ctx, args.submissionId);
 
         const updates: any = {};
         if (args.publishedUrl !== undefined) updates.publishedUrl = args.publishedUrl;

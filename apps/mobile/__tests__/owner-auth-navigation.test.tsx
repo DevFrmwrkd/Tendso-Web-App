@@ -43,13 +43,15 @@ jest.mock('react-native-svg', () => ({
 jest.mock('../components/TikTokLogo', () => ({ TikTokLogo: () => null }));
 
 const emailFactor = { strategy: 'email_code', emailAddressId: 'email_juan' };
+const codeSent = () => ({ status: 'needs_first_factor', supportedFirstFactors: [emailFactor],
+  firstFactorVerification: { strategy: 'email_code', status: 'unverified' } });
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = {};
   mockUserId = null; mockConnected = true;
   mockSetActive.mockReset().mockResolvedValue(undefined);
-  mockSignIn.create.mockReset().mockResolvedValue({ supportedFirstFactors: [emailFactor] });
-  mockSignIn.prepareFirstFactor.mockReset().mockResolvedValue(undefined);
+  mockSignIn.create.mockReset().mockResolvedValue(codeSent());
+  mockSignIn.prepareFirstFactor.mockReset().mockResolvedValue(codeSent());
   mockSignIn.attemptFirstFactor.mockReset().mockResolvedValue({ status: 'complete', createdSessionId: 'owner_session' });
   mockSignUp.create.mockReset().mockResolvedValue(undefined);
   mockSignUp.prepareEmailAddressVerification.mockReset().mockResolvedValue(undefined);
@@ -59,19 +61,19 @@ beforeEach(() => {
 async function sendCode(screen: ReturnType<typeof render>, mode: 'signin' | 'signup' = 'signin') {
   await act(async () => { await Promise.resolve(); });
   fireEvent.changeText(screen.getByLabelText('Email'), 'juan@example.com');
-  fireEvent.press(screen.getByRole('button', { name: mode === 'signup' ? 'Create account' : 'Send sign-in code' }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: mode === 'signup' ? 'Create account' : 'Send sign-in code' })); });
 }
 
 it('offers a direct general sign-in fallback when this account has no email-code factor', async () => {
   mockSignIn.create.mockResolvedValue({ supportedFirstFactors: [{ strategy: 'password' }] });
   const screen = render(<OwnerAuthScreen />);
   await sendCode(screen);
-  await waitFor(() => expect(screen.getByRole('link', { name: 'Use password, Apple or Google' })).toBeTruthy());
+  await waitFor(() => expect(screen.getByRole('link', { name: 'More sign-in options' })).toBeTruthy());
   expect(screen.getByRole('button', { name: 'Send sign-in code' }).props.accessibilityState.busy).toBe(false);
   expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
   expect(mockSignUp.create).not.toHaveBeenCalled();
 
-  fireEvent.press(screen.getByRole('link', { name: 'Use password, Apple or Google' }));
+  fireEvent.press(screen.getByRole('link', { name: 'More sign-in options' }));
   expect(mockReplace).toHaveBeenCalledWith('/(auth)/login');
 });
 
@@ -81,14 +83,127 @@ it('defaults to email-only sign-in and activates the completed owner session', a
   expect(screen.queryByLabelText('Your name')).toBeNull();
   await sendCode(screen);
   await waitFor(() => expect(screen.getByLabelText('Verification code')).toBeTruthy());
-  expect(mockSignIn.create).toHaveBeenCalledWith({ identifier: 'juan@example.com' });
-  expect(mockSignIn.prepareFirstFactor).toHaveBeenCalledWith({ strategy: 'email_code', emailAddressId: 'email_juan' });
+  expect(mockSignIn.create).toHaveBeenCalledWith({ identifier: 'juan@example.com', strategy: 'email_code' });
+  expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
   fireEvent.changeText(screen.getByLabelText('Verification code'), '123456');
   fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
   await waitFor(() => expect(mockSetActive).toHaveBeenCalledWith({ session: 'owner_session' }));
   expect(mockSignIn.attemptFirstFactor).toHaveBeenCalledWith({ strategy: 'email_code', code: '123456' });
   expect(mockSignUp.create).not.toHaveBeenCalled();
   expect(mockReplace).not.toHaveBeenCalled();
+});
+
+it.each([['empty', []], ['null', null], ['missing', undefined]] as const)('accepts an explicitly prepared email code when factor metadata is %s', async (_label, factors) => {
+  mockSignIn.create.mockResolvedValue({ ...codeSent(), supportedFirstFactors: factors });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByLabelText('Verification code');
+  expect(mockSignIn.create).toHaveBeenCalledTimes(1);
+  expect(mockSignIn.create).toHaveBeenCalledWith({ identifier: 'juan@example.com', strategy: 'email_code' });
+  expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
+  expect(screen.queryByRole('link', { name: 'More sign-in options' })).toBeNull();
+  fireEvent.changeText(screen.getByLabelText('Verification code'), '123456');
+  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+  await waitFor(() => expect(mockSetActive).toHaveBeenCalledWith({ session: 'owner_session' }));
+});
+
+it('resends an explicitly selected email strategy even when Clerk omits email-factor IDs', async () => {
+  mockSignIn.create.mockResolvedValue({ ...codeSent(), supportedFirstFactors: [] });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen); await screen.findByLabelText('Verification code');
+  fireEvent.press(screen.getByRole('link', { name: 'Send a new code' }));
+  await screen.findByText('We sent a new code. Check your email.');
+  expect(mockSignIn.create).toHaveBeenCalledTimes(2);
+  expect(mockSignIn.create.mock.calls.every(([args]) => args.identifier === 'juan@example.com' && args.strategy === 'email_code')).toBe(true);
+  expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
+});
+
+it.each(['needs_identifier', 'needs_first_factor', 'complete'] as const)('does not infer password or providers from empty factors and an unprepared %s response', async status => {
+  mockSignIn.create.mockResolvedValue({ status, supportedFirstFactors: [], firstFactorVerification: {} });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByText('We could not start email sign-in. Check your email address and try again.');
+  expect(screen.queryByLabelText('Verification code')).toBeNull();
+  expect(screen.queryByRole('link', { name: 'More sign-in options' })).toBeNull();
+  expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled(); expect(mockSetActive).not.toHaveBeenCalled();
+  expect(mockSignUp.create).not.toHaveBeenCalled();
+});
+
+it('offers a neutral fallback when Clerk explicitly rejects email-code sign-in', async () => {
+  mockSignIn.create.mockRejectedValue({ errors: [{ code: 'strategy_for_user_invalid' }] });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByRole('link', { name: 'More sign-in options' });
+  expect(screen.getByText('Email codes are not available for this account. Try another sign-in option.')).toBeTruthy();
+  expect(mockSignUp.create).not.toHaveBeenCalled(); expect(mockSetActive).not.toHaveBeenCalled();
+});
+
+it.each(['needs_second_factor', 'needs_client_trust', 'needs_new_password'] as const)('preserves the security requirement when send returns %s', async status => {
+  mockSignIn.create.mockResolvedValue({ status, supportedFirstFactors: [] });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByRole('link', { name: 'More sign-in options' });
+  expect(screen.getByText(status === 'needs_new_password'
+    ? 'Your account needs a password update. Continue with more sign-in options.'
+    : 'Your account needs another security check. Continue with more sign-in options.')).toBeTruthy();
+  expect(screen.queryByLabelText('Verification code')).toBeNull();
+  expect(mockSetActive).not.toHaveBeenCalled(); expect(mockSignUp.create).not.toHaveBeenCalled();
+});
+
+it.each(['needs_second_factor', 'needs_client_trust'] as const)('does not treat a verified first factor requiring %s as a wrong code', async status => {
+  mockSignIn.attemptFirstFactor.mockResolvedValue({ status, supportedSecondFactors: [{ strategy: 'totp' }] });
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen); await screen.findByLabelText('Verification code');
+  fireEvent.changeText(screen.getByLabelText('Verification code'), '123456');
+  fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+  await screen.findByText('Your account needs another security check. Continue with more sign-in options.');
+  expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled();
+  expect(screen.getByRole('link', { name: 'Send a new code' })).toBeDisabled();
+  expect(mockSetActive).not.toHaveBeenCalled(); expect(mockReplace).not.toHaveBeenCalled();
+});
+
+it('activates a completed sign-in response and retries activation without creating a second email attempt', async () => {
+  mockSignIn.create.mockResolvedValue({ status: 'complete', createdSessionId: 'already_verified_session' });
+  mockSetActive.mockRejectedValueOnce(new Error('Activation temporarily unavailable'));
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByText('Activation temporarily unavailable');
+  expect(mockSetActive).toHaveBeenCalledWith({ session: 'already_verified_session' });
+  expect(screen.getByLabelText('Email')).toHaveProp('editable', true);
+  fireEvent.press(screen.getByRole('button', { name: 'Finish sign-in' }));
+  await waitFor(() => expect(mockSetActive).toHaveBeenCalledTimes(2));
+  expect(mockSignIn.create).toHaveBeenCalledTimes(1); expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
+  expect(mockReplace).not.toHaveBeenCalled();
+});
+
+it('starts a fresh email attempt after the address changes following a completed-session activation failure', async () => {
+  mockSignIn.create.mockResolvedValueOnce({ status: 'complete', createdSessionId: 'prior_address_session' });
+  mockSetActive.mockRejectedValueOnce(new Error('Activation temporarily unavailable'));
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen);
+  await screen.findByText('Activation temporarily unavailable');
+  fireEvent.changeText(screen.getByLabelText('Email'), ' another@example.com ');
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Send sign-in code' })); });
+  await screen.findByLabelText('Verification code');
+  expect(mockSignIn.create).toHaveBeenCalledTimes(2);
+  expect(mockSignIn.create).toHaveBeenLastCalledWith({ identifier: 'another@example.com', strategy: 'email_code' });
+  expect(mockSetActive).toHaveBeenCalledTimes(1);
+  expect(mockSetActive).toHaveBeenCalledWith({ session: 'prior_address_session' });
+});
+
+it('ignores a resend completion after returning to the email form', async () => {
+  let finish!: (value: unknown) => void;
+  mockSignIn.prepareFirstFactor.mockReturnValueOnce(new Promise(resolve => { finish = resolve; }));
+  const screen = render(<OwnerAuthScreen />);
+  await sendCode(screen); await screen.findByLabelText('Verification code');
+  fireEvent.press(screen.getByRole('link', { name: 'Send a new code' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+  await act(async () => finish(codeSent()));
+  expect(screen.queryByLabelText('Verification code')).toBeNull();
+  expect(screen.queryByText('We sent a new code. Check your email.')).toBeNull();
+  expect(mockSetActive).not.toHaveBeenCalled();
+  await sendCode(screen); await screen.findByLabelText('Verification code');
+  expect(mockSignIn.create).toHaveBeenCalledTimes(2);
 });
 
 it('never silently creates an account when a sign-in address is unknown', async () => {
@@ -144,7 +259,8 @@ it.each(['signin', 'signup'] as const)('resends %s verification without recreati
     expect(mockSignUp.create).toHaveBeenCalledTimes(1);
     expect(mockSignIn.create).not.toHaveBeenCalled();
   } else {
-    await waitFor(() => expect(mockSignIn.prepareFirstFactor).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockSignIn.prepareFirstFactor).toHaveBeenCalledTimes(1));
+    expect(mockSignIn.prepareFirstFactor).toHaveBeenCalledWith({ strategy: 'email_code', emailAddressId: 'email_juan' });
     expect(mockSignIn.create).toHaveBeenCalledTimes(1);
     expect(mockSignUp.create).not.toHaveBeenCalled();
   }
@@ -156,10 +272,10 @@ it('removes a previous alternative-sign-in suggestion when a fresh attempt fails
     .mockRejectedValueOnce({ errors: [{ longMessage: 'Could not connect. Try again.' }] });
   const screen = render(<OwnerAuthScreen />);
   await sendCode(screen);
-  await waitFor(() => expect(screen.getByRole('link', { name: 'Use password, Apple or Google' })).toBeTruthy());
+  await waitFor(() => expect(screen.getByRole('link', { name: 'More sign-in options' })).toBeTruthy());
   fireEvent.press(screen.getByRole('button', { name: 'Send sign-in code' }));
   await waitFor(() => expect(screen.getByText('Could not connect. Try again.')).toBeTruthy());
-  expect(screen.queryByRole('link', { name: 'Use password, Apple or Google' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'More sign-in options' })).toBeNull();
 });
 
 it('resets verification and errors on a mode switch while keeping the entered email', async () => {
@@ -233,8 +349,8 @@ it('never activates a delayed verification after Back or an authenticated actor 
   await sendCode(screen);
   mockUserId = 'another-account';
   screen.rerender(<OwnerAuthScreen />);
-  await act(async () => { finish({ supportedFirstFactors: [emailFactor] }); });
-  expect(mockSignIn.prepareFirstFactor).toHaveBeenCalledTimes(1);
+  await act(async () => { finish(codeSent()); });
+  expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
   expect(screen.queryByLabelText('Verification code')).toBeNull();
 });
 
@@ -247,7 +363,7 @@ it('ignores duplicate sends and keeps Back from leaving while activation is alre
   const send = screen.UNSAFE_getAllByType(Button).find(node => node.props.title === 'Send sign-in code')!.props.onPress;
   act(() => { send(); send(); });
   expect(mockSignIn.create).toHaveBeenCalledTimes(1);
-  await act(async () => { finishSend({ supportedFirstFactors: [emailFactor] }); });
+  await act(async () => { finishSend(codeSent()); });
   let finishActivation!: () => void;
   mockSetActive.mockReturnValueOnce(new Promise<void>(resolve => { finishActivation = resolve; }));
   fireEvent.changeText(screen.getByLabelText('Verification code'), '123456');
@@ -272,7 +388,7 @@ it('does not start passwordless network work offline and unlocks after connectiv
   await sendCode(screen);
   mockConnected = false;
   screen.rerender(<OwnerAuthScreen />);
-  await act(async () => { finish({ supportedFirstFactors: [emailFactor] }); });
+  await act(async () => { finish(codeSent()); });
   expect(mockSignIn.prepareFirstFactor).not.toHaveBeenCalled();
   mockConnected = true;
   screen.rerender(<OwnerAuthScreen />);

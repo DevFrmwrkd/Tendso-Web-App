@@ -7,6 +7,7 @@ import { requireAccountOwner, requireAdmin } from './lib/auth'
 import { validatePaymentPricing } from './lib/paymentPricing'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
+import { isOwnerApp, publishPolicyFor } from './lib/ownerApp'
 
 async function orderPricing(ctx: Pick<QueryCtx, 'db'>, submissionId: Id<'submissions'>) {
     const submission = await ctx.db.get(submissionId)
@@ -15,6 +16,10 @@ async function orderPricing(ctx: Pick<QueryCtx, 'db'>, submissionId: Id<'submiss
         throw new Error('Giveaway applications cannot be billed. Give the website through the comped flow instead.')
     }
     if (isComped(submission)) throw new Error('Comped websites cannot be billed.')
+    if (!isOwnerApp(submission) && publishPolicyFor(submission) === 'pay_then_publish'
+        && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected')) {
+        throw new Error('Check your site first, then tap "Looks good".')
+    }
     return validatePaymentPricing(submission)
 }
 

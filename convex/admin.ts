@@ -6,6 +6,7 @@ import { assertGiveawayCanActivate, readGiveaway } from './lib/giveaway';
 import { requireAdmin, requireAdminActor } from './lib/auth';
 import { isCreatorAccount } from '../lib/accounts';
 import { approveReviewedSubmission, rejectReviewedSubmission } from './lib/submissionReview';
+import { ownerAppPublishBlockReason } from './lib/ownerAuth';
 
 // ==================== QUERIES ====================
 
@@ -929,6 +930,7 @@ export const backfillWebsiteUrls = mutation({
 
                 // generatedWebsite missing publishedUrl but submission has websiteUrl → copy to website
                 if (website && !website.publishedUrl && submission.websiteUrl) {
+                    if (await ownerAppPublishBlockReason(ctx, submission)) continue;
                     await ctx.db.patch(website._id, {
                         publishedUrl: submission.websiteUrl,
                         status: 'published',

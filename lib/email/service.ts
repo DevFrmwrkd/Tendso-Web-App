@@ -26,6 +26,7 @@
  * cleanup PR after Resend is verified in prod.
  */
 import { Resend } from 'resend';
+import { ownerPreviewReadyEmail } from './ownerV2Templates';
 import {
     getApprovalEmailHtml,
     getPaymentConfirmationEmailHtml,
@@ -147,6 +148,21 @@ async function sendEmail(args: SendArgs): Promise<{ success: true; messageId: st
     }
 
     return { success: true, messageId: result.data?.id ?? 'unknown' };
+}
+
+/** Private review comes before billing and public hosting for a new order. */
+export async function sendOwnerPreviewEmail(data: {
+    businessName: string;
+    ownerName?: string;
+    ownerEmail: string;
+    previewUrl: string;
+    amount: number;
+}) {
+    const email = ownerPreviewReadyEmail({
+        businessName: data.businessName, ownerName: data.ownerName, appUrl: data.previewUrl,
+        priceText: `₱${data.amount.toLocaleString('en-PH')}`,
+    });
+    return sendEmail({ to: data.ownerEmail, subject: email.subject, html: email.html });
 }
 
 // ── Named functions (signatures unchanged from nodemailer version) ────

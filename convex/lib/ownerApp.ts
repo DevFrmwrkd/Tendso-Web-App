@@ -62,8 +62,22 @@ export function isOwnerApp(s: Pick<Doc<'submissions'>, 'contentSource'> | null |
  *                       the site is published automatically.
  */
 export type PublishPolicy = 'publish_first' | 'pay_then_publish';
-export function publishPolicyFor(s: Pick<Doc<'submissions'>, 'contentSource'>): PublishPolicy {
-    return isOwnerApp(s) ? 'pay_then_publish' : 'publish_first';
+export function publishPolicyFor(s: Pick<Doc<'submissions'>, 'contentSource' | 'publishPolicy' | 'giveawayApplication' | 'pricingMode'>): PublishPolicy {
+    // A later free grant remains free even if the order began as an ordinary
+    // paid capture. It must never acquire a payment or owner-approval gate.
+    if (s.giveawayApplication || s.pricingMode === 'comped') return 'publish_first';
+    return s.publishPolicy ?? (isOwnerApp(s) ? 'pay_then_publish' : 'publish_first');
+}
+
+/** Agent builds may arrive through Studio without the owner-interview progress callback. */
+export function previewReadyFor(
+    s: Pick<Doc<'submissions'>, 'contentSource' | 'publishPolicy' | 'previewReadyAt' | 'buildSteps'>,
+    website: Pick<Doc<'generatedWebsites'>, 'htmlContent' | 'htmlStorageId'> | null | undefined,
+): boolean {
+    const building = s.buildSteps?.building_site?.status;
+    return !!s.previewReadyAt || (!isOwnerApp(s) && publishPolicyFor(s) === 'pay_then_publish'
+        && (!building || building === 'done')
+        && !!(website?.htmlStorageId || website?.htmlContent?.trim()));
 }
 
 /** A down payment is in, the balance is not. Fields are the truth, not `status`. */
@@ -72,9 +86,12 @@ export function hasOutstandingBalance(s: Pick<Doc<'submissions'>, 'depositPaidAt
 }
 
 /** Paid in full: the whole owner total is in. Legacy rows only carry the status. */
-export function isPaidInFull(s: Pick<Doc<'submissions'>, 'paidInFullAt' | 'status' | 'depositPaidAt'>): boolean {
+export function isPaidInFull(s: Pick<Doc<'submissions'>, 'paidInFullAt' | 'status' | 'depositPaidAt' | 'publishPolicy' | 'pricingMode'>): boolean {
     if (s.paidInFullAt) return true;
     if (hasOutstandingBalance(s)) return false;
+    // New orders carry an explicit policy. An admin/client status label is
+    // not a receipt; legacy rows keep their historical status-only fallback.
+    if (s.publishPolicy === 'pay_then_publish' && s.pricingMode !== 'comped') return false;
     return s.status === 'paid' || s.status === 'completed';
 }
 
@@ -93,8 +110,8 @@ export type OwnerPhase =
     | 'publishing' | 'live' | 'offline' | 'in_review' | 'rejected';
 
 export function computeOwnerPhase(
-    s: Pick<Doc<'submissions'>, 'status' | 'contentSource' | 'previewReadyAt' | 'ownerApprovedAt' | 'depositPaidAt' | 'paidInFullAt'>,
-    website: Pick<Doc<'generatedWebsites'>, 'status' | 'offlineAt'> | null | undefined,
+    s: Pick<Doc<'submissions'>, 'status' | 'contentSource' | 'publishPolicy' | 'previewReadyAt' | 'ownerApprovedAt' | 'depositPaidAt' | 'paidInFullAt' | 'buildSteps'>,
+    website: Pick<Doc<'generatedWebsites'>, 'status' | 'offlineAt' | 'htmlContent' | 'htmlStorageId'> | null | undefined,
     openChangeRequests: number,
 ): OwnerPhase {
     if (s.status === 'draft') return 'draft';
@@ -102,9 +119,9 @@ export function computeOwnerPhase(
     const published = website?.status === 'published';
     if (published && !website?.offlineAt) return 'live';
     if ((published && website?.offlineAt) || s.status === 'unpublished') return 'offline';
-    if (!isOwnerApp(s)) return 'in_review';
+    if (publishPolicyFor(s) !== 'pay_then_publish') return 'in_review';
     if (openChangeRequests > 0) return 'changes_requested';
-    if (!s.previewReadyAt) return 'building';
+    if (!previewReadyFor(s, website)) return 'building';
     if (s.ownerApprovedAt && isPaidInFull(s)) return 'publishing';
     if (!s.ownerApprovedAt) return 'ready_to_check';
     return 'awaiting_payment';

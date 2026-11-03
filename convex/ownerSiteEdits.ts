@@ -14,6 +14,7 @@ import { isArchiveKey, orderedEnhancedEntries } from './lib/enhancedImages';
 import { cleanOwnerDraft, OwnerDraftError } from '../lib/ownerSiteEdits';
 import { verifyOwnerBuild } from '../lib/ownerBuildProof';
 import { needsCloudflareWorker } from '../lib/publish-target';
+import { ownerAppPublishBlockReason } from './lib/ownerAuth';
 
 /**
  * Owner editing (v2): a signed-in shop owner changes the design, font, colours,
@@ -425,6 +426,10 @@ export const applyBuild = internalMutation({
         }
         const now = Date.now();
         const live = isLive(website);
+        if (live) {
+            const blocked = await ownerAppPublishBlockReason(ctx, submission);
+            if (blocked) throw new ConvexError(`Your website needs payment and approval before publishing (${blocked}).`);
+        }
         // A custom-domain site is also served by a Cloudflare Worker that only
         // the admin Republish can refresh (publish-website deploys it). The new
         // HTML is stored; the hosted address is current, the domain waits.

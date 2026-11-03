@@ -1,7 +1,7 @@
 import { ConvexError } from 'convex/values';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import type { Doc, Id } from '../_generated/dataModel';
-import { isOwnerApp, isPaidInFull } from './ownerApp';
+import { isPaidInFull, publishPolicyFor } from './ownerApp';
 
 /**
  * Owner-app identity helpers. An owner is a `businessOwners` row keyed by the
@@ -93,9 +93,9 @@ export async function requirePayerAccess(ctx: DbCtx, submission: Doc<'submission
 
 /** Every publication path must recheck payment and the owner's current review. */
 export async function ownerAppPublishBlockReason(ctx: DbCtx, submission: Doc<'submissions'>): Promise<string | null> {
-    if (!isOwnerApp(submission)) return null;
+    if (publishPolicyFor(submission) !== 'pay_then_publish') return null;
     if (!isPaidInFull(submission)) return 'unpaid';
-    if (!submission.ownerApprovedAt) return 'not approved';
+    if (submission.status === 'draft' || submission.status === 'rejected' || !submission.ownerApprovedAt) return 'not approved';
     const open = await ctx.db.query('changeRequests')
         .withIndex('by_submission', (q) => q.eq('submissionId', submission._id))
         .filter((q) => q.eq(q.field('status'), 'open')).first();

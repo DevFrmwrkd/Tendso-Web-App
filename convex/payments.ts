@@ -6,7 +6,7 @@ import { internal } from './_generated/api'
 import { extractReferenceFromText } from '../lib/payments/referenceCode'
 import { determinePaymentStatus } from '../lib/payments/webhookParser'
 import { REFERRAL_BONUS, PRICING_MODE_COMPED, MIN_DOWN_PAYMENT, isComped, ownerChargeFor } from '../lib/pricing'
-import { hasOutstandingBalance, isOwnerApp } from './lib/ownerApp'
+import { hasOutstandingBalance, isOwnerApp, publishPolicyFor } from './lib/ownerApp'
 import { isCreatorAccount } from '../lib/accounts'
 import { validatePaymentPricing } from './lib/paymentPricing'
 
@@ -336,9 +336,11 @@ async function paidInFullEffects(
 /** v2: invite the owner to the app (agent sales) / publish a paid owner-app site. */
 async function ownerFollowUps(ctx: MutationCtx, submission: Doc<'submissions'>, submissionId: Id<'submissions'>) {
     if (submission.giveawayApplication) return
-    if (isOwnerApp(submission)) {
+    if (publishPolicyFor(submission) === 'pay_then_publish') {
         await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId })
-    } else if (submission.ownerEmail) {
+    }
+    if (!isOwnerApp(submission) && submission.ownerEmail
+        && (submission.contentSource !== 'owner_intake' || publishPolicyFor(submission) !== 'pay_then_publish')) {
         await ctx.scheduler.runAfter(0, internal.owners.inviteForSubmission, { submissionId })
     }
 }

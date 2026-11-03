@@ -10,6 +10,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { isComped, normalizeCampaign } from "@/lib/pricing";
 import { isHouseCreator } from "@/lib/houseCreator";
+import { publishPolicyFor } from '@/convex/lib/ownerApp';
 import { giveawayReview } from "@/lib/giveawayReview";
 import { buildMediaFileList, downloadMediaZip } from "@/lib/mediaZip";
 import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
@@ -135,6 +136,8 @@ function SubmissionReview() {
         api.generatedWebsites.getBySubmissionId,
         submissionData ? { submissionId: submissionData._id } : "skip"
     );
+    const publication = useQuery(api.generatedWebsites.publicationCheck,
+        submissionData ? { submissionId: submissionData._id } : 'skip');
 
     // The Worker is serving the holding page rather than the site. Kept off the
     // local websitePublishedUrl state deliberately: that state is seeded once
@@ -772,7 +775,10 @@ function SubmissionReview() {
     /** Approve & publish: approval first (the creator's email goes with it), then the site. */
     const handleApproveAndPublish = async () => {
         const approved = await approveSubmission();
-        if (approved) await handlePublishWebsite();
+        if (approved) {
+            if (submissionData && publishPolicyFor(submissionData) === 'pay_then_publish') await handleSendWebsiteEmail();
+            else await handlePublishWebsite();
+        }
     };
 
     const handleRepublishWebsite = async () => {
@@ -826,7 +832,7 @@ function SubmissionReview() {
     };
 
     const handleSendWebsiteEmail = async () => {
-        if (sendingEmail || !websitePublishedUrl) return;
+        if (sendingEmail || (!websitePublishedUrl && (!submissionData || publishPolicyFor(submissionData) !== 'pay_then_publish'))) return;
         setSendingEmail(true);
         try {
             const response = await fetch("/api/send-website-email", {
@@ -839,7 +845,9 @@ function SubmissionReview() {
                 throw new Error(errorData.error || "Failed to send email");
             }
             toast.success(`Sent to ${submissionData?.ownerEmail || "the business owner"}`, {
-                description: "The email has the site link and how to pay.",
+                description: submissionData && publishPolicyFor(submissionData) === 'pay_then_publish'
+                    ? 'The owner can check the private preview, request changes and pay before publishing.'
+                    : "The email has the site link and how to pay.",
             });
         } catch (error: unknown) {
             toast.error(error instanceof Error && error.message ? error.message : "Failed to send email");
@@ -988,6 +996,7 @@ function SubmissionReview() {
     const hasTranscript = !!s.transcript;
     const selfServe = isHouseCreator(s.creator);
     const published = !!websitePublishedUrl;
+    const previewFirst = publishPolicyFor(s) === 'pay_then_publish';
 
     // Giveaway website work begins only after the eligibility review.
     const canApprove = status === "website_generated" || (status === "in_review" && websiteGenerated);
@@ -1002,7 +1011,8 @@ function SubmissionReview() {
     // three-day deadline is the ordinary way this ends, and without it there is
     // no way to settle the submission and restore the site. markPaid itself has
     // no status guard (convex/admin.ts), so this only widens the UI.
-    const canMarkPaid = ["pending_payment", "unpublished"].includes(status);
+    const canMarkPaid = ["pending_payment", "unpublished"].includes(status)
+        || (previewFirst && !!s.ownerApprovedAt && !['paid', 'completed'].includes(status));
     // Promo: hand the site to the owner for free, the creator still earns.
     // Offered from the moment a real website exists to give away, and still
     // offered at pending_payment — an owner who was billed and went quiet is
@@ -1066,10 +1076,14 @@ function SubmissionReview() {
                     aria-busy={working}
                 >
                     <Icon icon={Check} />
-                    {updating ? "Approving…" : publishingWebsite ? "Publishing…" : "Approve & publish"}
+                    {updating ? "Approving…" : publishingWebsite ? "Publishing…" : previewFirst ? 'Approve & send preview' : "Approve & publish"}
                 </Button>
             );
         }
+        if (previewFirst && !publication?.allowed) return <Button variant="primary"
+            disabled={sendingEmail || !websiteGenerated} aria-busy={sendingEmail} onClick={() => void handleSendWebsiteEmail()}>
+            {sendingEmail ? 'Sending…' : 'Send private preview'}
+        </Button>;
         return (
             <Button variant="primary" onClick={() => void handlePublishWebsite()} disabled={publishingWebsite} aria-busy={publishingWebsite}>
                 <Icon icon={Check} />
@@ -1105,8 +1119,8 @@ function SubmissionReview() {
             });
         } else if (websiteGenerated) {
             items.push(
-                canUnpublish
-                    ? { label: sendingEmail ? "Sending…" : "Send to client", disabled: sendingEmail, onSelect: () => void handleSendWebsiteEmail() }
+                canUnpublish || previewFirst
+                    ? { label: sendingEmail ? "Sending…" : previewFirst ? 'Send private preview' : "Send to client", disabled: sendingEmail, onSelect: () => void handleSendWebsiteEmail() }
                     : later("Send to client", "after publishing"),
             );
         }

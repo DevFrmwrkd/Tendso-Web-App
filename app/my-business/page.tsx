@@ -25,15 +25,16 @@ import { OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 
-import { NoSite, SiteList, SiteOverview, SiteOverviewLoading } from "./_components/OwnerHome";
+import { NoSite, SiteList, SiteOverviewLoading } from "./_components/OwnerHome";
+import { OwnerWebsiteOverview } from './_components/OwnerPrivateWebsite';
 
 export default function MyBusinessDashboard() {
-    const { isOwner, isSignedIn, loading } = useOwnerAuth();
+    const { isOwner, isSignedIn, loading, error } = useOwnerAuth();
     const router = useRouter();
     const websites = useQuery(api.businessOwners.getMyWebsites, isOwner ? {} : "skip");
 
     useEffect(() => {
-        if (!loading && isSignedIn === false) router.replace("/login");
+        if (!loading && isSignedIn === false) router.replace('/my-business/sign-in');
     }, [loading, isSignedIn, router]);
 
     // Signed out means the redirect above is on its way (the proxy normally
@@ -44,13 +45,14 @@ export default function MyBusinessDashboard() {
     return (
         <OwnerShell>
             <PageHeader title="My website" sub="Is my website live, and what do I owe?" />
+            {error ? <p role="alert">{error}</p> : null}
             {waiting ? (
                 <SiteOverviewLoading />
             ) : !isOwner || !websites || websites.length === 0 ? (
                 // Signed in but no claimed sites yet → point at the one channel that works.
                 <NoSite />
             ) : websites.length === 1 ? (
-                <SiteOverview site={websites[0]} />
+                <OwnerWebsiteOverview site={websites[0]} />
             ) : (
                 <SiteList sites={websites} />
             )}

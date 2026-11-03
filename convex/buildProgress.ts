@@ -4,7 +4,7 @@ import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { requireAdmin } from './lib/auth';
 import { internal } from './_generated/api';
-import { BUILD_STEPS, isOwnerApp, type BuildStepKey } from './lib/ownerApp';
+import { BUILD_STEPS, publishPolicyFor, type BuildStepKey } from './lib/ownerApp';
 import { aiPipelineEnabled } from '../lib/aiPipeline/config';
 
 /**
@@ -77,7 +77,7 @@ async function setStepImpl(
     if (finished) patch.previewReadyAt = now;
     await ctx.db.patch(args.submissionId, patch);
 
-    if (finished && isOwnerApp(s)) {
+    if (finished && publishPolicyFor(s) === 'pay_then_publish') {
         // Paid before the build finished (or a rebuild after a change): publish.
         await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId: args.submissionId });
         // Only the first finish emails the owner; a rebuild shows in the app.

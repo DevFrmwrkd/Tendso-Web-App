@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { internalAction, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import { formatPHP } from '../lib/pricing';
+import { isOwnerApp, publishPolicyFor } from './lib/ownerApp';
 import {
     ownerBuildingEmail,
     ownerInviteEmail,
@@ -38,6 +39,7 @@ export const emailContextInternal = internalQuery({
             businessName: s.businessName,
             websiteUrl: website?.publishedUrl ?? s.websiteUrl ?? null,
             total: s.amount ?? 0,
+            webPreview: !isOwnerApp(s) && publishPolicyFor(s) === 'pay_then_publish',
             balanceDue: s.depositPaidAt && !s.paidInFullAt ? (s.balanceDue ?? 0) : 0,
         };
     },
@@ -69,7 +71,18 @@ export const send = internalAction({
             } else if (args.kind === 'building') {
                 email = ownerBuildingEmail({ ownerName: c.ownerName, businessName: c.businessName, appUrl });
             } else if (args.kind === 'preview_ready') {
-                email = ownerPreviewReadyEmail({ ownerName: c.ownerName, businessName: c.businessName, appUrl, priceText: formatPHP(c.total) });
+                let previewUrl = appUrl;
+                if (c.webPreview) {
+                    let origin = 'https://www.tendso.com';
+                    for (const candidate of [process.env.NEXT_PUBLIC_SITE_URL, process.env.SITE_URL]) {
+                        try {
+                            const parsed = new URL(candidate ?? '');
+                            if (parsed.protocol === 'https:' && !parsed.username && !parsed.password) { origin = parsed.origin; break; }
+                        } catch { /* Fall back to the canonical public web app. */ }
+                    }
+                    previewUrl = `${origin}/my-business/${encodeURIComponent(args.submissionId)}`;
+                }
+                email = ownerPreviewReadyEmail({ ownerName: c.ownerName, businessName: c.businessName, appUrl: previewUrl, priceText: formatPHP(c.total) });
             } else {
                 if (!c.websiteUrl) return { sent: false, reason: 'no website url' };
                 email = ownerSiteLiveEmail({

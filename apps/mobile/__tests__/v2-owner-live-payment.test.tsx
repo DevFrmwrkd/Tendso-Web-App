@@ -108,3 +108,32 @@ it('a partially paid published site can pay its remaining balance', () => {
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/(owner)/pay/method', params: { kind: 'balance', amount: '3999' } });
   screen.unmount();
 });
+
+it('new agent-made private previews lead to checking the site and offer no public sharing', () => {
+  mockSite = { ...mockSite, publishPolicy: 'pay_then_publish', status: 'website_generated',
+    phase: 'ready_to_check', publishedUrl: null };
+  mockPreview = { ready: true, htmlUrl: null, inlineHtml: '<html><body>Private shop preview</body></html>',
+    isLive: false, publishedUrl: null };
+  const today = wrap(<Today />);
+  fireEvent.press(today.getByText('Check my site'));
+  expect(mockPush).toHaveBeenCalledWith('/(owner)/check');
+  today.unmount();
+  const site = wrap(<MySite />);
+  expect(site.getByText('Ready to check')).toBeTruthy();
+  expect(site.queryByText('Share')).toBeNull();
+  fireEvent.press(site.getByText('Check my site'));
+  expect(mockPush).toHaveBeenLastCalledWith('/(owner)/check');
+});
+
+it('an approved agent-made preview reaches payment while the website is still private', () => {
+  mockSite = { ...mockSite, publishPolicy: 'pay_then_publish', status: 'website_generated',
+    phase: 'awaiting_payment', publishedUrl: null };
+  mockPreview = { ready: true, htmlUrl: null, inlineHtml: '<html><body>Private shop preview</body></html>',
+    isLive: false, publishedUrl: null };
+  const screen = wrap(<Pay />);
+  expect(screen.getByText('Publish your site')).toBeTruthy();
+  expect(screen.queryByText('Pay for your site')).toBeNull();
+  fireEvent.press(screen.getByText('Pay ₱4,999'));
+  expect(mockPush).toHaveBeenCalledWith({ pathname: '/(owner)/pay/method', params: { kind: 'full', amount: '4999' } });
+  expect(mockSite.publishedUrl).toBeNull();
+});

@@ -4,7 +4,7 @@
  *
  * Kept apart from lib/email/templates.ts on purpose (another stream owns that
  * file's copy). Facts: the site is built in about 20 minutes; owners in the app
- * see it first and pay once to publish; agent-made sites are already live.
+ * see it first and pay once to publish, including new agent-made sites.
  *
  * Design: plain and short. Ink on white, the Tendso accent (#E4F222) only as a
  * button FILL with ink text, never as text colour. Every runtime string is
@@ -67,16 +67,16 @@ export function ownerInviteEmail(input: {
     const email = escapeHtml(input.email);
     const subject = `Your website for ${input.businessName}`;
     const html = layout(
-        'Your website is here',
+        'Your business is on Tendso',
         [
             `Hi ${name},`,
-            `Your website for <strong>${shop}</strong> is ready to see in the Tendso app.`,
-            `Sign in with this email to see your website: <strong>${email}</strong>. We send you a code. No password.`,
+            `A field agent has added <strong>${shop}</strong> to Tendso.`,
+            `Sign in with this email to follow your website’s progress and see it when it is ready: <strong>${email}</strong>. We send you a code. No password.`,
         ],
         { label: 'Open Tendso', href: input.appUrl },
         'You get this because a Tendso field agent made a website for your shop.',
     );
-    const text = `Hi ${firstName(input.ownerName)},\n\nYour website for ${input.businessName} is ready to see in the Tendso app.\nSign in with this email to see your website: ${input.email}. We send you a code. No password.\n\n${input.appUrl}`;
+    const text = `Hi ${firstName(input.ownerName)},\n\nA field agent has added ${input.businessName} to Tendso.\nSign in with this email to follow your website’s progress and see it when it is ready: ${input.email}. We send you a code. No password.\n\n${input.appUrl}`;
     return { subject, html, text };
 }
 
@@ -111,11 +111,11 @@ export function ownerPreviewReadyEmail(input: { ownerName?: string | null; busin
             `Hi ${name},`,
             `The website for <strong>${shop}</strong> is ready. Only you can see it.`,
             `Look it over. Ask for a change, or tap <strong>Looks good</strong>.`,
-            `${OWNER_V2_TAGLINE} ${price}, once. GCash, Maya or card.`,
+            `${OWNER_V2_TAGLINE} ${price}, once. Choose from the payment options available at checkout.`,
         ],
         { label: 'See my site', href: input.appUrl },
     );
-    const text = `Hi ${firstName(input.ownerName)},\n\nThe website for ${input.businessName} is ready. Only you can see it. Ask for a change, or tap Looks good.\n\n${OWNER_V2_TAGLINE} ${input.priceText}, once. GCash, Maya or card.\n\n${input.appUrl}`;
+    const text = `Hi ${firstName(input.ownerName)},\n\nThe website for ${input.businessName} is ready. Only you can see it. Ask for a change, or tap Looks good.\n\n${OWNER_V2_TAGLINE} ${input.priceText}, once. Choose from the payment options available at checkout.\n\n${input.appUrl}`;
     return { subject, html, text };
 }
 

@@ -31,19 +31,20 @@ import { OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 
-import { SiteNotAvailable, SiteOverview, SiteOverviewLoading } from "../_components/OwnerHome";
+import { SiteNotAvailable, SiteOverviewLoading } from "../_components/OwnerHome";
+import { OwnerWebsiteOverview } from '../_components/OwnerPrivateWebsite';
 
 export default function OwnerWebsitePage() {
     const params = useParams();
     const submissionId = params.submissionId as string;
     const router = useRouter();
-    const { isOwner, isSignedIn, loading } = useOwnerAuth();
+    const { isOwner, isSignedIn, loading, error } = useOwnerAuth();
 
     const websites = useQuery(api.businessOwners.getMyWebsites, isOwner ? {} : "skip");
 
     useEffect(() => {
-        if (!loading && isSignedIn === false) router.replace("/login");
-    }, [loading, isSignedIn, router]);
+        if (!loading && isSignedIn === false) router.replace(`/my-business/sign-in?returnTo=${encodeURIComponent(`/my-business/${submissionId}`)}`);
+    }, [loading, isSignedIn, router, submissionId]);
 
     // Signed out: the redirect above is on its way, so keep the loading shape.
     const waiting = loading || !isSignedIn || (isOwner && websites === undefined);
@@ -52,10 +53,11 @@ export default function OwnerWebsitePage() {
     return (
         <OwnerShell>
             <PageHeader title="My website" sub="Is my website live, and what do I owe?" />
+            {error ? <p role="alert">{error}</p> : null}
             {waiting ? (
                 <SiteOverviewLoading />
             ) : site ? (
-                <SiteOverview site={site} />
+                <OwnerWebsiteOverview site={site} />
             ) : (
                 // Not in the owner's list → not owned, or nothing built yet.
                 <SiteNotAvailable />

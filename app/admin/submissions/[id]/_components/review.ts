@@ -2,6 +2,7 @@ import type { FunctionReturnType } from "convex/server";
 
 import type { api } from "@/convex/_generated/api";
 import { INTAKE_QUESTIONS, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
+import { publishPolicyFor } from '@/convex/lib/ownerApp';
 
 /** The submission row with its creator joined (submissions.getByIdWithCreator). */
 export type SubmissionDoc = NonNullable<FunctionReturnType<typeof api.submissions.getByIdWithCreator>>;
@@ -160,6 +161,13 @@ export function clientEmailsFor(s: SubmissionDoc): ClientEmail[] {
             description: "Shares the published website and confirms the giveaway website is free.",
         });
         return list;
+    }
+
+    if (publishPolicyFor(s) === 'pay_then_publish' && !['paid', 'completed'].includes(status)) {
+        if (!s.previewReadyAt) return [];
+        return [{ type: 'approval', label: 'Private website preview',
+            description: 'The owner signs in to check the private preview, approve it and pay before the website becomes public.',
+            sendEndpoint: '/api/send-website-email' }];
     }
 
     if (["pending_payment", "paid", "completed"].includes(status)) {

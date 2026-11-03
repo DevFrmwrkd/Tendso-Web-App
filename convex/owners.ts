@@ -3,8 +3,8 @@ import { internalMutation, mutation, query } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { getOwner, linkOwnerToSubmission } from './lib/ownerAuth';
-import { isOwnerApp, normalizeOwnerEmail } from './lib/ownerApp';
+import { getOwner, linkOwnerToSubmission, resetOwnerApproval } from './lib/ownerAuth';
+import { isOwnerApp, normalizeOwnerEmail, publishPolicyFor } from './lib/ownerApp';
 import { siteSummary } from './ownerApp';
 
 /**
@@ -125,31 +125,54 @@ export const me = query({
  * agent submits and when the order is paid. Links straight away when an owner
  * with that email already exists. Skips owner-app orders (already linked).
  */
-export const inviteForSubmission = internalMutation({
-    args: { submissionId: v.id('submissions') },
-    handler: async (ctx, args) => {
-        const submission = await ctx.db.get(args.submissionId);
-        if (!submission || isOwnerApp(submission) || submission.giveawayApplication) return { invited: false };
+export async function ensureSubmissionOwnerLink(ctx: MutationCtx, submission: Doc<'submissions'>): Promise<boolean> {
+        if (isOwnerApp(submission) || submission.giveawayApplication) return false;
         const email = normalizeOwnerEmail(submission.ownerEmail);
-        if (!email || !EMAIL_PATTERN.test(email)) return { invited: false };
+        if (!email || !EMAIL_PATTERN.test(email)) return false;
 
         let invite = await ctx.db.query('ownerInvites')
-            .withIndex('by_submission', (q) => q.eq('submissionId', args.submissionId)).first();
+            .withIndex('by_submission', (q) => q.eq('submissionId', submission._id)).first();
         if (!invite) {
-            const id = await ctx.db.insert('ownerInvites', { email, submissionId: args.submissionId, createdAt: Date.now() });
+            const id = await ctx.db.insert('ownerInvites', { email, submissionId: submission._id, createdAt: Date.now() });
             invite = (await ctx.db.get(id))!;
         } else if (invite.email !== email) {
+            // Only the previous invitation's owner link is corrected. Leave
+            // unrelated managers and historical paid/public ownership alone.
+            const correctingPrivateInvite = publishPolicyFor(submission) === 'pay_then_publish'
+                && !submission.paidInFullAt && !submission.paidAt && !submission.depositPaidAt && !(submission.amountPaid ?? 0);
+            if (correctingPrivateInvite && invite.businessOwnerId) {
+                const previousOwnerId = invite.businessOwnerId;
+                const previousOwner = await ctx.db.get(previousOwnerId);
+                if (previousOwner && normalizeOwnerEmail(previousOwner.email) === invite.email) {
+                    const previousLinks = await ctx.db.query('websiteOwnerships')
+                        .withIndex('by_submission', q => q.eq('submissionId', submission._id))
+                        .filter(q => q.eq(q.field('businessOwnerId'), previousOwnerId)).collect();
+                    for (const link of previousLinks) if (link.role === 'owner') await ctx.db.delete(link._id);
+                }
+            }
+            if (correctingPrivateInvite) {
+                await resetOwnerApproval(ctx, submission._id);
+                await ctx.db.patch(submission._id, { ownerInviteSentAt: undefined });
+            }
             await ctx.db.patch(invite._id, { email, linkedAt: undefined, businessOwnerId: undefined });
         }
 
         const owner = await ctx.db.query('businessOwners').withIndex('by_email', (q) => q.eq('email', email)).first();
         if (owner) {
-            await linkOwnerToSubmission(ctx, owner._id, args.submissionId);
+            await linkOwnerToSubmission(ctx, owner._id, submission._id);
             await ctx.db.patch(invite._id, { linkedAt: Date.now(), businessOwnerId: owner._id });
         }
+        return true;
+}
+
+export const inviteForSubmission = internalMutation({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || !await ensureSubmissionOwnerLink(ctx, submission)) return { invited: false };
 
         // One invite email per order: submit and payment can both get here.
-        if (submission.ownerInviteSentAt) return { invited: false };
+        if ((await ctx.db.get(args.submissionId))?.ownerInviteSentAt) return { invited: false };
         await ctx.db.patch(args.submissionId, { ownerInviteSentAt: Date.now() });
         await ctx.scheduler.runAfter(0, internal.ownerEmails.send, { submissionId: args.submissionId, kind: 'invite' });
         return { invited: true };

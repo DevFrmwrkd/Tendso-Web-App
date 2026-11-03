@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
     '/',
     '/login(.*)',
     '/signup(.*)',
+    '/my-business/sign-in',
     '/affiliates',
     '/affiliates/join(.*)',
     // Affiliate links are shared with shop owners who do not have a login.
@@ -164,7 +165,10 @@ export default clerkMiddleware(async (auth, req) => {
     const { userId } = await auth();
     if (!userId) {
         const signInUrl = new URL('/login', req.url);
-        signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+        if (req.nextUrl.pathname.startsWith('/my-business')) {
+            signInUrl.pathname = '/my-business/sign-in';
+            signInUrl.searchParams.set('returnTo', req.nextUrl.pathname);
+        } else signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
         return NextResponse.redirect(signInUrl);
     }
     if (req.nextUrl.pathname === '/admin' || req.nextUrl.pathname.startsWith('/admin/')) {

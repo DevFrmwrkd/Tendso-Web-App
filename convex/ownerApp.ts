@@ -24,6 +24,7 @@ import {
     isOwnerApp,
     isPaidInFull,
     publishPolicyFor,
+    previewReadyFor,
 } from './lib/ownerApp';
 
 /**
@@ -186,6 +187,7 @@ export const createDraft = mutation({
             ownerClientDraftKey: clientDraftKey,
             status: 'draft',
             contentSource: OWNER_APP_SOURCE,
+            publishPolicy: 'pay_then_publish',
             // Freeze an explicitly confirmed, active creator offer; otherwise use the house.
             amount: offer?.price ?? WEBSITE_PRICE,
             creatorPayout: offer ? commissionFor(offer.price) : 0,
@@ -524,8 +526,11 @@ export const approvePreview = mutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
         const { submission } = await requireOwnerOfSubmission(ctx, args.submissionId);
-        if (!isOwnerApp(submission)) reject('This website was made by a field agent.');
-        if (!submission.previewReadyAt) reject('Your site is still being built.');
+        if (publishPolicyFor(submission) !== 'pay_then_publish') reject('This website does not need approval before payment.');
+        if (submission.status === 'draft' || submission.status === 'rejected') reject('Your site is still being built.');
+        const website = await ctx.db.query('generatedWebsites')
+            .withIndex('by_submissionId', q => q.eq('submissionId', args.submissionId)).first();
+        if (!previewReadyFor(submission, website) || !website || !(website.htmlStorageId || website.htmlContent?.trim())) reject('Your site is still being built.');
         if (await openChangeCount(ctx, args.submissionId)) reject('We are still working on your changes.');
         if (!submission.ownerApprovedAt) await ctx.db.patch(args.submissionId, { ownerApprovedAt: Date.now() });
         // Paid already (e.g. approve after a change): publish now.
@@ -555,7 +560,7 @@ export const requestChange = mutation({
             createdAt: Date.now(),
         });
         // A change means the owner checks again before publication.
-        if (isOwnerApp(submission)) await resetOwnerApproval(ctx, args.submissionId);
+        if (publishPolicyFor(submission) === 'pay_then_publish') await resetOwnerApproval(ctx, args.submissionId);
         return id;
     },
 });
@@ -641,12 +646,14 @@ export const getPreview = query({
         const website = await ctx.db.query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId)).first();
         const live = website?.status === 'published' && !website.offlineAt;
-        const htmlUrl = website?.htmlStorageId ? await ctx.storage.getUrl(website.htmlStorageId) : null;
+        const ready = previewReadyFor(s, website) && !!website && !!(website.htmlStorageId || website.htmlContent?.trim());
+        const showHtml = ready || live || isOwnerApp(s) || publishPolicyFor(s) !== 'pay_then_publish';
+        const htmlUrl = showHtml && website?.htmlStorageId ? await ctx.storage.getUrl(website.htmlStorageId) : null;
         return {
-            ready: !!s.previewReadyAt && !!website && (!!htmlUrl || !!website.htmlContent),
+            ready: ready && !!(htmlUrl || website?.htmlContent?.trim()),
             htmlUrl,
             // Legacy rows keep inline HTML; the app can render it directly.
-            inlineHtml: !htmlUrl && website?.htmlContent ? website.htmlContent : null,
+            inlineHtml: showHtml && !htmlUrl && website?.htmlContent ? website.htmlContent : null,
             isLive: live,
             publishedUrl: live ? website?.publishedUrl ?? null : null,
         };

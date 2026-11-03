@@ -48,15 +48,23 @@ Treat the money fields as the source of truth. Some `app/api` routes rewrite
 
 `draft` → `building` → `ready_to_check` → (`changes_requested`) →
 `awaiting_payment` → `publishing` → `live` (or `offline`).
-A field agent's site that is not published yet shows `in_review`. Other
-values: `rejected`.
+A legacy field-agent site that is not published yet shows `in_review`. New
+paid field-agent orders use the private-preview phases above. Other values:
+`rejected`.
 
-### Publish rule per source (`publishPolicyFor`)
+### Saved publication policy (`publishPolicyFor`)
 
 | source | policy | what happens |
 |---|---|---|
-| field-agent sale, `/start`, legacy (anything not `owner_app`) | `publish_first` | Unchanged. The admin publishes, the owner pays, the site stays live. If they don't pay, the existing cron takes it down (3 days after the payment email, `pending_payment` only). A `deposit_paid` site is not taken down. |
+| new ordinary paid field-agent submission or owner intake | `pay_then_publish` | Save the built website as a private preview. The linked owner signs in, checks the preview, taps "Looks good" and pays. Public publication requires full payment, current owner approval and no open change requests. A down payment alone keeps the preview private. Creator attribution and the agreed price stay with the original submission. |
 | `contentSource: 'owner_app'` | `pay_then_publish` | Private preview. The owner taps "Looks good", pays in full, and then `ownerApp.publishIfReady` publishes automatically at `<slug>.sites.tendso.com`. `generatedWebsites.publish` (the admin button) refuses this source until it is paid in full, currently approved, and has no open change requests. |
+| existing non-owner-app order without a saved policy; free/giveaway flow | `publish_first` | Existing publication behavior is preserved. An existing live website is not taken down by this change. Free/giveaway websites use their existing grant flow and cannot be billed. |
+
+`submissions.publishPolicy` is optional for backwards compatibility. New paid
+orders freeze `pay_then_publish` server-side; clients cannot opt out. The saved
+policy takes precedence over the source default. Legacy rows are not bulk
+migrated. Administrative publication must check the policy before deploying a
+Worker, as well as before committing published database state.
 
 ---
 

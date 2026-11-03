@@ -14,6 +14,9 @@ import { captureDesignBusinessType, normalizeCaptureBusinessType, validCaptureDe
 import { canReadPrivateSubmission } from './lib/submissionAccess';
 import { isCaptureShopLead } from './lib/shopCaptureProgress';
 import { interviewRecordingFingerprint } from './lib/interviewRecording';
+import { isOwnerApp, publishPolicyFor } from './lib/ownerApp';
+import { resetOwnerApproval } from './lib/ownerAuth';
+import { ensureSubmissionOwnerLink } from './owners';
 
 function requireCaptureOwnerEmail(value: string | undefined): string {
     const error = captureEmailError(value);
@@ -489,6 +492,7 @@ export const create = mutation({
             audioStorageId: args.audioStorageId,
             transcript: args.transcript,
             status: args.status ?? 'draft',
+            publishPolicy: 'pay_then_publish',
             amount: args.amount ?? STANDARD_PRICE,
             creatorPayout: args.creatorPayout ?? commissionFor(BASE_PRICE),
             prospectLeadId,
@@ -921,8 +925,22 @@ export const submit = mutation({
         const tier = (submission as any).submissionType === 'with_custom_domain'
             ? 'with_custom_domain'
             : 'standard';
+        const website = await ctx.db.query('generatedWebsites')
+            .withIndex('by_submissionId', q => q.eq('submissionId', args.id)).first();
+        // Only a first, unpublished field-agent send opts in. Rejected legacy
+        // orders and any order with a public history retain their old contract.
+        const newAgentPolicy = !isResubmission && !submission.publishPolicy
+            && !isOwnerApp(submission) && submission.contentSource !== 'owner_intake'
+            && !submission.giveawayApplication && !isComped(submission)
+            && !website?.publishedUrl && !website?.publishedAt && website?.status !== 'published';
+        const resetPreview = newAgentPolicy || submission.publishPolicy === 'pay_then_publish';
+        const pendingBuild = { status: 'pending', updatedAt: Date.now() };
         await ctx.db.patch(args.id, {
             status: 'submitted',
+            ...(newAgentPolicy ? { publishPolicy: 'pay_then_publish' as const } : {}),
+            ...(resetPreview ? { ownerApprovedAt: undefined, previewReadyAt: undefined, buildSteps: {
+                reading_interview: pendingBuild, writing_pages: pendingBuild, polishing_photos: pendingBuild, building_site: pendingBuild,
+            } } : {}),
             ownerEmail,
             // Preserve the creator-set amount (from setDomainTier / create);
             // only fall back to the base tier price if it was never set.
@@ -930,6 +948,11 @@ export const submit = mutation({
             airtableSyncStatus: 'pending_push',
             ...(isResubmission ? { rejectionReason: undefined, reviewedBy: undefined, reviewedAt: undefined } : {}),
         });
+        if (resetPreview) await resetOwnerApproval(ctx, args.id);
+        if (resetPreview) {
+            const saved = await ctx.db.get(args.id);
+            if (saved) await ensureSubmissionOwnerLink(ctx, saved);
+        }
 
         // 2. Link the interview to its source prospect, or create a fresh lead.
         //
@@ -1092,10 +1115,14 @@ export const markPaid = mutation({
             // An admin marking the order paid means the whole price is in
             // (convex/lib/ownerApp.ts isPaidInFull reads this field first).
             paidInFullAt: submission.paidInFullAt ?? now,
+            ...(publishPolicyFor(submission) === 'pay_then_publish' ? { amountPaid: submission.amount ?? 0, balanceDue: 0 } : {}),
             ...(submission.depositPaidAt ? { balanceDue: 0 } : {}),
         });
         // Paid in full: the recruiting creator's 5% override (idempotent).
         await ctx.scheduler.runAfter(0, internal.creatorOverrides.creditForSubmission, { submissionId: args.id });
+        if (publishPolicyFor(submission) === 'pay_then_publish') {
+            await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId: args.id });
+        }
     },
 });
 

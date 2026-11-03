@@ -6,7 +6,7 @@ import { MIN_DOWN_PAYMENT, isComped } from '../lib/pricing';
 import { generateReferenceCode } from '../lib/payments/referenceCode';
 import { validatePaymentPricing } from './lib/paymentPricing';
 import { requirePayerAccess } from './lib/ownerAuth';
-import { hasOutstandingBalance, isOwnerApp, isPaidInFull } from './lib/ownerApp';
+import { hasOutstandingBalance, isOwnerApp, isPaidInFull, publishPolicyFor } from './lib/ownerApp';
 import { creditCreatorForPaymentImpl, type CreditStage } from './payments';
 
 /**
@@ -111,7 +111,8 @@ export const getPaymentState = query({
             canPayDeposit: !money.paidInFull && money.amountPaid === 0 && !money.depositOutstanding && money.total > MIN_DOWN_PAYMENT,
             canPayBalance: money.depositOutstanding,
             // Owner-app sites need "Looks good" before paying.
-            needsApproval: isOwnerApp(submission) && !submission.ownerApprovedAt,
+            needsApproval: publishPolicyFor(submission) === 'pay_then_publish'
+                && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected'),
             xenditEnabled: xenditEnabled(),
             pendingTokens: pending.map((t) => ({
                 token: t.token,
@@ -145,7 +146,8 @@ export const createPayToken = mutation({
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new ConvexError('We could not find that website.');
         const createdBy = await requirePayerAccess(ctx, submission);
-        if (isOwnerApp(submission) && !submission.ownerApprovedAt && !createdBy.startsWith('admin:')) {
+        if (publishPolicyFor(submission) === 'pay_then_publish' && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected')
+            && (!isOwnerApp(submission) || !createdBy.startsWith('admin:'))) {
             throw new ConvexError('Check your site first, then tap "Looks good".');
         }
         let charge: { kind: PayKind; amount: number };
@@ -317,6 +319,13 @@ export const checkoutContextInternal = internalQuery({
         if (!submission) throw new ConvexError('We could not find that website.');
         await requirePayerAccess(ctx, submission);
         if (tokenRow.status !== 'pending') throw new ConvexError('This pay link is no longer open.');
+        if (submission.giveawayApplication || isComped(submission)) {
+            throw new ConvexError('This website cannot be paid for.');
+        }
+        if (!isOwnerApp(submission) && publishPolicyFor(submission) === 'pay_then_publish'
+            && (!submission.ownerApprovedAt || submission.status === 'draft' || submission.status === 'rejected')) {
+            throw new ConvexError('Check your site first, then tap "Looks good".');
+        }
         return {
             token: tokenRow.token,
             referenceCode: tokenRow.referenceCode,

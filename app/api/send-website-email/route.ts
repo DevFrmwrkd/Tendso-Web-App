@@ -3,8 +3,10 @@ import { auth } from '@clerk/nextjs/server'
 import { fetchQuery, fetchMutation, fetchAction } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
-import { sendPaymentLinkEmail } from '@/lib/email/service'
+import { sendOwnerPreviewEmail, sendPaymentLinkEmail } from '@/lib/email/service'
 import { getPaymentConfig } from '@/lib/payment/config'
+import { publishPolicyFor } from '@/convex/lib/ownerApp'
+import { resolveWebsiteHtml } from '@/lib/website-html'
 
 /**
  * Send payment link to business owner via email (replaces old approval email)
@@ -51,6 +53,23 @@ export async function POST(request: NextRequest) {
 
         if (!submission.ownerEmail) {
             return NextResponse.json({ error: 'Business owner email not found' }, { status: 400 })
+        }
+
+        if (publishPolicyFor(submission) === 'pay_then_publish') {
+            const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
+                submissionId: submissionId as Id<'submissions'>,
+            }, { token })
+            if (!website || !(await resolveWebsiteHtml(website))) {
+                return NextResponse.json({ error: 'Build the private preview before inviting the owner.' }, { status: 409 })
+            }
+            const previewUrl = `${request.nextUrl.origin}/my-business/${encodeURIComponent(submissionId)}`
+            await sendOwnerPreviewEmail({
+                businessName: submission.businessName, ownerName: submission.ownerName,
+                ownerEmail: submission.ownerEmail, amount: submission.amount ?? 0, previewUrl,
+            })
+            // A private-review invitation is not a payment request: no checkout
+            // token, pending_payment status or unpaid-public-site deadline.
+            return NextResponse.json({ success: true, previewUrl, message: `Private preview sent to ${submission.ownerEmail}` })
         }
 
         // Check if payment token already exists for this submission

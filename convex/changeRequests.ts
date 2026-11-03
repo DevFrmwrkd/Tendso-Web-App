@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { requireAdmin } from './lib/auth';
-import { isOwnerApp } from './lib/ownerApp';
+import { publishPolicyFor } from './lib/ownerApp';
 import { resetOwnerApproval } from './lib/ownerAuth';
 
 /**
@@ -31,7 +31,7 @@ export const setStatus = mutation({
         if (!row) throw new Error('Change request not found');
         if (args.status === 'open' && row.status !== 'open') {
             const submission = await ctx.db.get(row.submissionId);
-            if (isOwnerApp(submission)) await resetOwnerApproval(ctx, row.submissionId);
+            if (submission && publishPolicyFor(submission) === 'pay_then_publish') await resetOwnerApproval(ctx, row.submissionId);
         }
         await ctx.db.patch(args.id, {
             status: args.status,

@@ -317,6 +317,8 @@ export default defineSchema({
         // 'owner_intake' is the only value, and it must never change, because
         // queries and the /admin "Owner-submitted" badge filter on the literal.
         contentSource: v.optional(v.string()),
+        // Snapshotted on new field-agent captures; absence keeps legacy publication behavior.
+        publishPolicy: v.optional(v.union(v.literal('publish_first'), v.literal('pay_then_publish'))),
         // Giveaway evidence is separate from photos: each photos index is a
         // generated-site role. Optional for compatibility with the mobile app.
         giveawayApplication: v.optional(v.boolean()),
