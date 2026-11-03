@@ -230,15 +230,35 @@ http.route({
 // POST /wise-deposit-webhook
 // Wise fires this when money is deposited into the platform's Wise account.
 // Extracts reference code from payment note, matches to submission, auto-credits creator.
+// Incoming receipts always require a valid signature, independently of the
+// outgoing withdrawal webhook's gradual WISE_WEBHOOK_ENFORCE rollout.
 http.route({
     path: '/wise-deposit-webhook',
     method: 'POST',
     handler: httpAction(async (ctx, request) => {
-        try {
-            const body = await request.json();
+        const publicKey = process.env.WISE_WEBHOOK_PUBLIC_KEY;
+        if (!publicKey?.trim()) return jsonResponse({ status: 'disabled' }, 503);
+        const raw = await request.text();
+        const outcome = await verifyWiseWebhook({
+            rawBody: raw,
+            signatureBase64: request.headers.get(WISE_SIGNATURE_HEADER),
+            publicKey,
+        });
+        if (outcome === 'no-key') return jsonResponse({ status: 'disabled' }, 503);
+        if (outcome !== 'valid') return jsonResponse({ error: 'signature verification failed' }, 401);
+        if (request.headers.get('X-Test-Notification')?.trim().toLowerCase() === 'true') {
+            return jsonResponse({ status: 'ignored', reason: 'test notification' });
+        }
 
+        let body: unknown;
+        try {
+            body = JSON.parse(raw);
+        } catch {
+            return jsonResponse({ error: 'bad json' }, 400);
+        }
+        try {
             // Log the RAW payload so we can debug the exact Wise event shape
-            console.log(`[WISE-DEPOSIT] Raw payload: ${JSON.stringify(body).substring(0, 1000)}`);
+            console.log(`[WISE-DEPOSIT] Raw payload: ${raw.substring(0, 1000)}`);
 
             // Parse the Wise deposit event
             const { parseDepositWebhook } = await import('../lib/payments/webhookParser');
@@ -250,6 +270,19 @@ http.route({
                     status: 200,
                     headers: { 'Content-Type': 'application/json' },
                 });
+            }
+
+            const expectedProfile = (process.env.WISE_SANDBOX === 'true'
+                ? process.env.WISE_SANDBOX_PROFILE_ID : process.env.WISE_PROFILE_ID)?.trim();
+            if (!expectedProfile || !/^[1-9]\d*$/.test(expectedProfile) || !Number.isSafeInteger(Number(expectedProfile))) {
+                return jsonResponse({ status: 'disabled' }, 503);
+            }
+            const envelope = body as { data?: { resource?: { profile_id?: unknown }; action?: { profile_id?: unknown } } };
+            const incomingProfile = result.event.eventType === 'swift-in#credit'
+                ? envelope.data?.action?.profile_id : envelope.data?.resource?.profile_id;
+            if ((typeof incomingProfile !== 'number' && typeof incomingProfile !== 'string')
+                || String(incomingProfile) !== expectedProfile) {
+                return jsonResponse({ error: 'receiving profile mismatch' }, 403);
             }
 
             const { transactionId, amount, currency, reference, senderName } = result.event;
@@ -272,7 +305,7 @@ http.route({
         } catch (error) {
             console.error('[WISE-DEPOSIT] Error:', error);
             return new Response(JSON.stringify({ error: 'Internal error' }), {
-                status: 200, // Return 200 to prevent Wise from retrying
+                status: 500, // Acknowledge only after enqueue succeeds so Wise can retry.
                 headers: { 'Content-Type': 'application/json' },
             });
         }

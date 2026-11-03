@@ -277,6 +277,40 @@ does not pay the agent twice.
   Amount candidates are investigation hints and never auto-credit an order.
   Down-payment and balance references are validated against their own amounts.
 
+### Wise receiving setup and testing
+
+- `/wise-deposit-webhook` verifies `X-Signature-SHA256` over the exact raw
+  request body using `WISE_WEBHOOK_PUBLIC_KEY` before parsing or scheduling a
+  receipt. Missing configuration disables the receiver; unsigned or invalid
+  requests cannot change an order. This receiving check is mandatory and is
+  separate from the outgoing-withdrawal webhook's rollout flag.
+- Signed `X-Test-Notification: true` subscription checks are acknowledged
+  without recording a payment. Recognized payment events must identify the
+  configured receiving profile: `WISE_SANDBOX_PROFILE_ID` when `WISE_SANDBOX`
+  is `true`, otherwise `WISE_PROFILE_ID`. Sandbox mode never falls back to the
+  live profile. Unknown or mismatched receiving profiles cannot settle orders.
+- Wise sandbox credentials belong to a separate sandbox account. A regular
+  Wise login or live personal token does not establish a sandbox receiving
+  integration. Configure the sandbox profile, receiving details, webhook public
+  key and subscription before trying provider-generated test events. Keep API
+  tokens server-side and out of chat or source control.
+- Current receiving parsing covers `balances#credit`, credit
+  `balances#update`, completed `account-details-payment#state-change`, and
+  `swift-in#credit`. The newer `incoming-transfer#credited` event is not yet
+  supported. Verify the subscribed schema against the actual provider payload.
+  `balances#credit` contains no order reference and therefore enters team
+  verification under the matching policy above.
+- Isolated signed webhook fixtures and in-memory payment tests can exercise PHP
+  full/deposit/balance receipts, duplicates, expiry and team review without Wise
+  credentials or external side effects. They do not prove provider integration.
+  Sandbox currency availability differs from production; confirm PHP receiving
+  support before claiming an end-to-end PHP sandbox payment passed.
+
+References: [Wise webhook verification](https://docs.wise.com/guides/developer/webhooks/event-handling),
+[balance update payload](https://docs.wise.com/api-reference/balance/eventbalancesupdate),
+[sandbox environments](https://docs.wise.com/guides/developer/environments),
+[sandbox account access](https://docs.wise.com/guides/product/partner/business-account-support).
+
 New `paymentTokens` fields: `kind`, `provider`, `paidAmount`,
 `externalPaymentId`, `xenditInvoiceId`, `xenditInvoiceUrl`, `xenditExpiresAt`,
 `xenditCheckoutAttempt`, `xenditCheckoutStartedAt`, `xenditCheckoutState`, `createdBy`.
