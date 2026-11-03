@@ -1,24 +1,22 @@
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { FunnelHeader, LinkTabs, PublicPage } from "@/components/r1";
+import { LinkTabs } from "@/components/r1";
 import { OPERATOR } from "@/lib/contact";
+import styles from "./AuthFrame.module.css";
 
 /**
- * The frame every sign-in screen shares (board: SignIn): the funnel header
- * (wordmark and "Back to site", no navigation), the page's one heading, the
- * card, and the operator line under it. No footer: a funnel has one way on
- * and one way out.
- *
- * Phone first. The card is the full width of a phone and 420px from there up;
- * the heading centres above it at every size.
+ * Shared presentation for password, email-code and account recovery screens.
+ * Auth state and providers stay with each existing form.
  */
 export function AuthFrame({
     title,
     sub,
     tabs,
     foot,
+    eyebrow = "WELCOME TO TENDSO",
     children,
 }: {
     title: ReactNode;
@@ -27,31 +25,22 @@ export function AuthFrame({
     tabs?: ReactNode;
     /** An extra line under the card, above the operator line. */
     foot?: ReactNode;
+    eyebrow?: string;
     children: ReactNode;
 }) {
     return (
-        <PublicPage
-            header={<FunnelHeader exit={{ href: "/", label: "Back to site", icon: ArrowLeft }} />}
-            mainClassName="items-center gap-6 px-4 pb-10 pt-8 sm:px-6 sm:pt-14"
-        >
-            <div className="flex max-w-[520px] flex-col items-center gap-1.5 text-center">
-                <h1 className="t-h1">{title}</h1>
-                {sub && <p className="t-sub">{sub}</p>}
-            </div>
-            <section className="t-card w-full max-w-[420px]" aria-label="Account access">
-                {tabs}
-                {children}
-            </section>
-            <div className="flex flex-col items-center gap-2 text-center">
-                {foot}
-                <p className="t-meta">
-                    Tendso is operated by {OPERATOR}. Trouble signing in?{" "}
-                    <Link href="/knowledge" className="t-link">
-                        Get help
-                    </Link>
-                </p>
-            </div>
-        </PublicPage>
+        <div className={`r1 ${styles.page}`}>
+            <a className={styles.skip} href="#auth-main">Skip to account access</a>
+            <header className={styles.header}>
+                <Link href="/" className={styles.brand} aria-label="Tendso home"><Image src="/v2/brand/mark-ink-256.png" alt="" width={32} height={32} /><span>tendso</span></Link>
+                <Link href="/" className={styles.back} aria-label="Back to site"><ArrowLeft size={17} aria-hidden="true" /><span>Back to site</span></Link>
+            </header>
+            <main className={styles.main} id="auth-main" tabIndex={-1}>
+                <div className={styles.heading}><p className={styles.eyebrow}>{eyebrow}</p><h1>{title}</h1>{sub ? <p className={styles.subtitle}>{sub}</p> : null}</div>
+                <section className={styles.card} aria-label="Account access">{tabs}{children}</section>
+                <div className={styles.foot}>{foot}<p className={styles.operator}>Tendso is operated by {OPERATOR}.<br />Trouble signing in? <Link href="/knowledge">Get help</Link></p></div>
+            </main>
+        </div>
     );
 }
 
@@ -62,7 +51,7 @@ export function AuthFrame({
  */
 export function AuthTabs({ current }: { current: "signin" | "create" }) {
     return (
-        <div className="px-5 sm:px-6">
+        <div className={styles.tabs}>
             <LinkTabs
                 label="Sign in or create an account"
                 current={current === "signin" ? "/login" : "/signup"}
@@ -75,5 +64,5 @@ export function AuthTabs({ current }: { current: "signin" | "create" }) {
     );
 }
 
-/** The padded column inside the card that holds a form: the board's 16px rhythm, 24px padding (20px on a phone, like every r1 card). */
-export const AUTH_BODY = "flex flex-col gap-4 p-5 sm:p-6";
+/** Shared form spacing, including the custom password and account-recovery forms. */
+export const AUTH_BODY = styles.body;

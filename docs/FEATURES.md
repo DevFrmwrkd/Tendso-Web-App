@@ -6,6 +6,14 @@
 
 **How to update.** When a row ships, tick Done (☐ → ☑) in the same PR. If Theo answers a ❓, change Target to the outcome and add "(Theo, date)". Never delete a row: a removed feature stays as `🗑 retired (Theo, date)`. New features found later get the next free ID in their prefix.
 
+**Owner web parity update (2026-11-03).** Today (`/my-business/today`), the
+private notification inbox (`/my-business/notifications`) and tracked shop
+visits (`/my-business/visits`, request form and owned detail) now share the
+mobile APIs and statuses. The owner navigation, safe sign-in return paths,
+auth presentation and read-only admin owner samples cover these sections.
+See `v2-api-owners.md` §13 for behavior and limits; native device push remains
+a separate capability from the web inbox.
+
 ### Legend
 
 | Target | Meaning |

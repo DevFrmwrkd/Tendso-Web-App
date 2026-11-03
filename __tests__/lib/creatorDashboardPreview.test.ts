@@ -13,7 +13,7 @@ import { isAdminPreviewHref } from "@/lib/admin-preview-navigation";
 import { PageSettings, type AffiliatePageDraft } from "@/app/affiliates/dashboard/_components/PageSettings";
 import { SAMPLE_PICTURES } from "@/lib/v2/creatorSample";
 import { OwnerDashboardPreview } from "@/app/admin/preview/_components/OwnerDashboardPreview";
-import { OWNER_PREVIEW_SITES } from "@/app/admin/preview/_lib/ownerPreviewData";
+import { OWNER_PREVIEW_INBOX, OWNER_PREVIEW_SITES, OWNER_PREVIEW_VISITS } from "@/app/admin/preview/_lib/ownerPreviewData";
 import { SiteList, SiteOverview } from "@/app/my-business/_components/OwnerHome";
 import { OwnerShellView } from "@/components/shells/OwnerShell";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
@@ -78,14 +78,20 @@ beforeEach(() => {
 });
 
 describe('business owner dashboard preview', () => {
-    function ownerMarkup(business?: string) {
-        const $ = load(renderToStaticMarkup(createElement(OwnerDashboardPreview, { business })));
+    function ownerMarkup(business?: string, section = 'businesses', visit?: string, eventKey?: string) {
+        const $ = load(renderToStaticMarkup(createElement(OwnerDashboardPreview, { business, section, visit, eventKey })));
         expect($.text()).toContain('Business owner preview · Sample data');
         expect($.text()).toContain('Use View as above');
-        expect($('nav[aria-label="Business workspace"]').text()).toContain('My businesses');
+        expect($('nav[aria-label="Business workspace"]').text()).toContain('Businesses');
         expect($('iframe, object, embed, input[type="file"], form').length).toBe(0);
         $('a[href]').each((_, anchor) => expect(isAdminPreviewHref($(anchor).attr('href'), 'owner')).toBe(true));
-        $('button').each((_, button) => expect($(button).is('[disabled]')).toBe(true));
+        $('button').each((_, button) => {
+            const control = $(button);
+            const localInboxControl = section === 'notifications' && !business && !visit
+                && (control.attr('aria-haspopup') === 'dialog' || control.attr('aria-pressed') !== undefined
+                    || control.attr('aria-label') === 'Close owner notification' || control.text().trim() === 'Close');
+            if (!localInboxControl) expect(control.is('[disabled]')).toBe(true);
+        });
         expect(useOwnerAuth).not.toHaveBeenCalled();
         expect(useQuery).not.toHaveBeenCalled();
         return $;
@@ -112,7 +118,7 @@ describe('business owner dashboard preview', () => {
         expect($('main h2').first().text()).toBe(name);
         expect($.text()).toContain('Sample website preview');
         expect($.text()).toContain('Customer websites are not loaded');
-        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'All businesses').attr('href')).toBe('/admin/preview/owner#businesses');
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'All businesses').attr('href')).toBe('/admin/preview/owner?section=businesses#businesses');
         expect($('a[href^="/pay/"], a[href^="/my-business"], a[target="_blank"]').length).toBe(0);
     });
 
@@ -153,7 +159,7 @@ describe('business owner dashboard preview', () => {
     it.each(['unknown-business', '/my-business/real-business', 'https://example.test/private-site'])('returns a safe unavailable state for a forged sample business %s', business => {
         const $ = ownerMarkup(business);
         expect($('section[aria-label="Website not available"]').length).toBe(1);
-        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'Back to my businesses').attr('href')).toBe('/admin/preview/owner#businesses');
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'Back to my businesses').attr('href')).toBe('/admin/preview/owner?section=businesses#businesses');
         expect($.text()).not.toContain('Sample website preview');
     });
 
@@ -168,6 +174,76 @@ describe('business owner dashboard preview', () => {
         expect($('a[href^="/admin/preview/owner"]').length).toBe(0);
         expect(useOwnerAuth).not.toHaveBeenCalled();
         expect(useQuery).not.toHaveBeenCalled();
+    });
+
+    it('opens Today by default with the current dashboard and functional sample navigation', () => {
+        const $ = load(renderToStaticMarkup(createElement(OwnerDashboardPreview)));
+        expect($('main h1').text()).toBe('Today');
+        for (const text of ['Good morning, Alex', 'An agent is visiting today.', 'Remaining across your websites', 'Your businesses', 'Your visits', 'Recent updates']) expect($.text()).toContain(text);
+        expect($('section[aria-label="Your business overview"]').text()).toContain('6');
+        expect($('nav[aria-label="Business workspace"] [aria-current="page"]').text().trim()).toBe('Today');
+        const hrefs = $('a[href]').map((_, anchor) => $(anchor).attr('href')!).get();
+        for (const href of ['/admin/preview/owner?section=businesses', '/admin/preview/owner?section=visits', '/admin/preview/owner?section=notifications', '/admin/preview/owner?visit=preview-visit-confirmed']) expect(hrefs).toContain(href);
+        hrefs.forEach(href => expect(isAdminPreviewHref(href, 'owner')).toBe(true));
+        expect($('a[href*="#visit-"], a[href*="#request-visit"], a[href*="#add-business"]').length).toBe(0);
+        expect(useOwnerAuth).not.toHaveBeenCalled(); expect(useQuery).not.toHaveBeenCalled();
+    });
+
+    it.each(['unknown', '/my-business/visits', 'https://example.test/private', '__proto__'])('sanitizes the section %s to Today', section => {
+        const $ = ownerMarkup(undefined, section);
+        expect($('main h1').text()).toBe('Today');
+        expect($('nav[aria-label="Business workspace"] [aria-current="page"]').text().trim()).toBe('Today');
+    });
+
+    it('shows all five visit states with safe links and no ability to create or cancel real requests', () => {
+        const $ = ownerMarkup(undefined, 'visits');
+        expect($('main h1').text()).toBe('Shop visits');
+        expect($('section[aria-label="Your visit requests"] article').length).toBe(5);
+        for (const label of ['Request received', 'Awaiting acceptance', 'Visit confirmed', 'Visit completed', 'Cancelled']) expect($.text()).toContain(label);
+        for (const request of OWNER_PREVIEW_VISITS) expect($(`a[href="/admin/preview/owner?visit=${request._id}"]`).length).toBe(2);
+        expect($('button').filter((_, button) => $(button).text().trim() === 'Request a visit').is('[disabled]')).toBe(true);
+    });
+
+    it.each(OWNER_PREVIEW_VISITS.map(request => [request._id, request.shopName, request.status] as const))('opens fictional visit %s and keeps phone, directions and cancellation disabled', (visit, name, status) => {
+        const $ = ownerMarkup(undefined, 'visits', visit);
+        expect($('main h1').text()).toBe('Your shop visit');
+        expect($('section[aria-label="Visit status"]').text()).toContain(name);
+        expect($('a[href^="tel:"], a[href^="https:"], a[href^="/my-business"]').length).toBe(0);
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'All visit requests').attr('href')).toBe('/admin/preview/owner?section=visits');
+        const action = $('button').filter((_, button) => $(button).text().trim() === (status === 'completed' || status === 'cancelled' ? 'Request another visit' : 'Cancel visit'));
+        expect(action.length).toBe(1); expect(action.is('[disabled]')).toBe(true);
+    });
+
+    it('uses business detail before visit and section queries, and visit detail before section', () => {
+        const business = ownerMarkup('preview-owner-live', 'notifications', 'preview-visit-confirmed');
+        expect(business('main h1').text()).toBe('Santos Sari-Sari Store');
+        expect(business('section[aria-label="Visit status"]').length).toBe(0);
+        const visit = ownerMarkup(undefined, 'notifications', 'preview-visit-confirmed');
+        expect(visit('main h1').text()).toBe('Your shop visit');
+        expect(visit('section[aria-label="Business notifications"]').length).toBe(0);
+    });
+
+    it.each(['foreign-visit', '/my-business/visits/private', 'https://example.test/request'])('does not load a visit outside the local fixtures: %s', visit => {
+        const $ = ownerMarkup(undefined, 'visits', visit);
+        expect($.text()).toContain('Visit request not available');
+        expect($('section[aria-label="Visit status"]').length).toBe(0);
+        expect($('a').filter((_, anchor) => $(anchor).text().trim() === 'Back to shop visits').attr('href')).toBe('/admin/preview/owner?section=visits');
+    });
+
+    it('shows sample read/unread notifications and opens only a known full message', () => {
+        const $ = ownerMarkup(undefined, 'notifications');
+        expect($('main h1').text()).toBe('Notifications');
+        expect($('section[aria-label="Business notifications"]').length).toBe(1);
+        expect($.text()).toContain('3 unread');
+        expect($('button[aria-label^="Unread:"]').length).toBe(3);
+        expect($('button[aria-label^="Read:"]').length).toBe(1);
+        expect($('button').filter((_, button) => $(button).text().trim() === 'Mark all read').is('[disabled]')).toBe(true);
+        const selected = OWNER_PREVIEW_INBOX.items[0]!;
+        const detail = ownerMarkup(undefined, 'notifications', undefined, selected.key);
+        expect(detail('[data-testid="owner-notification-full-body"]').text()).toBe(selected.body);
+        expect(detail('button').filter((_, button) => $(button).text().trim() === 'View visit request').is('[disabled]')).toBe(true);
+        const unknown = ownerMarkup(undefined, 'notifications', undefined, 'foreign-update');
+        expect(unknown('[data-testid="owner-notification-full-body"]').length).toBe(0);
     });
 });
 

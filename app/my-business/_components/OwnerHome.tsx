@@ -189,7 +189,7 @@ export function SiteNotAvailable({ preview = false }: { preview?: boolean } = {}
         <h2>This website isn’t available.</h2>
         <p className={styles.emptyBody}>It may not be linked to your account, or it may not be ready yet. Go back to your businesses to choose another one.</p>
         <div className={styles.emptyActions}>
-            <Link className={`${styles.button} ${styles.primaryButton}`} href={preview ? "/admin/preview/owner#businesses" : "/my-business"}>Back to my businesses <ArrowRight size={17} aria-hidden="true" /></Link>
+            <Link className={`${styles.button} ${styles.primaryButton}`} href={preview ? "/admin/preview/owner?section=businesses#businesses" : "/my-business"}>Back to my businesses <ArrowRight size={17} aria-hidden="true" /></Link>
             {preview ? <button className={`${styles.button} ${styles.quietButton}`} type="button" disabled>Get help</button>
                 : <Link className={`${styles.button} ${styles.quietButton}`} href="/contact">Get help</Link>}
         </div>

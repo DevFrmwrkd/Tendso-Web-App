@@ -588,3 +588,33 @@ businesses. A confirmed visit on the current **Manila** calendar day can take
 priority; an assigned visit remains awaiting the agent's acceptance. Recent
 updates and the bell use the real unread count. Opening Today or the Inbox
 list never marks those updates read automatically.
+
+## 13. Owner web workspace (2026-11-03)
+
+The web workspace shares the native owner records and APIs. Its navigation
+keeps **Today**, **Businesses**, **Visits** and the notification bell available
+while a section loads or fails.
+
+- `/my-business/today` uses `owners.me`, `visitRequests.listMine` and
+  `ownerInbox.list` for portfolio counts, actual remaining balances, the next
+  business action, Manila-day confirmed visits and recent updates.
+- `/my-business/notifications` opens full messages in a drawer. Opening one
+  marks only that item read; **Mark all read** is explicit. Failed read writes
+  have a retry action. `?eventKey=` opens only a key in the current owner's inbox.
+- `/my-business/visits` lists private visit requests. `/visits/new` requires a
+  Philippine map pin, shop address/city and mobile number. A new shop name is
+  blank; only an explicit owned `?submissionId=` preselects a business. Details
+  at `/my-business/visits/[visitId]` show status, proposed/confirmed Philippine
+  time, assigned agent and revision-checked cancellation with confirmation.
+- A visit retry retains the exact submitted payload and request key after an
+  uncertain response. Account/session changes discard old form/modal state
+  and ignore late outcomes; feature reads also verify actor and owner IDs.
+- `/my-business/sign-in` uses the refreshed Tendso auth frame and the existing
+  Clerk strategies. A fresh sign-in opens Today. Known workspace, visit, inbox
+  event and payment return paths survive sign-in; arbitrary redirects do not.
+- Admin **View as → Business owner** uses these same presentation components
+  with fictional local fixtures for Today, businesses, visits and notifications.
+  It performs no owner reads or writes, and disables contact/payment actions.
+
+This adds the web inbox, not browser push delivery. Admin dispatch and native
+agent acceptance continue through the existing visit workflow in section 10.
