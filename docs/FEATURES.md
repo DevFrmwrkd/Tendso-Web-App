@@ -206,7 +206,7 @@ integrated in the header and remains available on dashboard preview routes.
 | ID | Feature | Where today | Who | Where in new design | Phase | Target | Done |
 |---|---|---|---|---|---|---|---|
 | W-070, W-120 | Admin gate + frame (Clerk + Convex role; staff limited to 3 pages; `x-tendso-admin-path` header) | `app/admin/layout.tsx`, `AdminLayout.tsx`, `lib/admin-access.ts`, `proxy.ts` | admin, staff | keep as is, restyle | 4 | 🎨 | ☐ |
-| W-071, M-024 | "View as" (web bar; app Admin / Affiliate / Creator pills with sample data) | `AdminViewBar.tsx`; `AccountViewSwitcher.tsx`, `AccountPreview.tsx` | admin | keep, restyle; add an Owner view once the owner path exists | 4 | 🎨 | ☐ |
+| W-071, M-024 | "View as" is web-only; native role switching retired | `AdminViewBar.tsx` (web); `useMobileAccount.ts` (native actual-role routing) | admin | Web keeps sample Affiliate / Creator previews. Native admin opens only admin tools, with safe-area spacing owned by `AdminScreen`. | 4 | ✅ | ☑ |
 | W-072, C-016 | Admin Today (waiting counts, money fold, URL backfill) + dashboard stats and daily → monthly rollup | `/admin` `AdminToday.tsx`; `admin.ts`, `analytics.ts`, `analyticsJobs.ts` | admin, system | keep as is, restyle | 4 | 🎨 | ☐ |
 | W-073 | Staff Today (today's calls, attendance to answer) | `StaffDashboard.tsx` | staff | keep as is, restyle | 4 | 🎨 | ☐ |
 | W-074 | Submissions queue: status tabs, filters, giveaway toggle, delete | `/admin/submissions` `_queue/Queue.tsx` | admin | keep, restyle; show build progress (N-09) | 4 | 🎨 | ☐ |
@@ -341,7 +341,7 @@ integrated in the header and remains available on dashboard preview routes.
 | W-128 | Role shells: CreatorShell, OwnerShell, AdminLayout | `components/shells/*` | agent, owner, admin | keep, restyle to new tokens | 4 | 🎨 | ☐ |
 | W-129 | Legacy site header (no imports anywhere) | `components/layout/header.tsx` | none | dead code | 2 | ❓ 🗑 retire? (Q32) | ☐ |
 | M-073 | Root layout, providers, splash (Clerk SecureStore, Convex, network, account; fonts) | `app/_layout.tsx`, `AppProviders.tsx` | all | keep; fonts → Onest only | 1 | ✅ | ◐ |
-| M-074 | Role routing: creator / affiliate / admin homes, shared routes, admin preview, offline role cache, heartbeat | `(app)/_layout.tsx`, `accountAccess.ts`, `useMobileAccount.ts` | all | keep; add owner role + home (N-01) | 3 | ✅ | ☑ |
+| M-074 | Role routing: creator / affiliate / admin homes, shared routes, offline role cache, heartbeat | `(app)/_layout.tsx`, `accountAccess.ts`, `useMobileAccount.ts` | all | Native accounts use their actual role; admin view switching is web-only. Owner role + home: N-01. | 3 | ✅ | ☑ |
 | M-013 | Account-state gates: blocked / deleted, offline non-creator (owner branch: section 3) | `(app)/_layout.tsx`, `useMobileAccount.ts` | all signed in | keep, restyle | 4 | 🎨 | ☐ |
 | M-008, M-009 | Dashboard redirect shim (still the target of ~6 `router.replace`) + 404 handler | `dashboard.tsx`, `+not-found.tsx` | internal | keep | 4 | ✅ | ☐ |
 | M-075 | Offline mode + cached sign-in + banner | `NetworkProvider.tsx`, `OfflineBanner.tsx` | agent | not drawn: keep, restyle | 4 | 🎨 | ☐ |

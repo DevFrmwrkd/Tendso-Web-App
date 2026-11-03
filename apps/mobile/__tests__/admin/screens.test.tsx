@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Keyboard, Platform, ScrollView, type KeyboardEvent, type KeyboardEventName } from 'react-native';
+import { Alert, Keyboard, Platform, ScrollView, StyleSheet, View, type KeyboardEvent, type KeyboardEventName } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import NativeAdminLayout from '../../app/(app)/admin/_layout';
 import Overview from '../../app/(app)/admin';
@@ -138,14 +138,23 @@ describe('private query gating', () => {
     render(<Overview />);
     expect(mockQuery).toHaveBeenCalledWith('admin:getDashboardStats', 'skip');
   });
-  it('uses actual admin permissions regardless of preview selection', () => {
-    mockSession = { ...ready(), view: 'affiliate', isPreview: true };
+  it('uses actual admin permissions even if stale view metadata is supplied', () => {
+    mockSession = { ...ready(), view: 'affiliate' };
     render(<Overview />);
     expect(mockQuery).toHaveBeenCalledWith('admin:getDashboardStats', {});
   });
 });
 
 describe('native admin navigation', () => {
+  it.each([Overview, Reviews, Accounts, Payouts, Submission])('keeps %p content below the status bar without a view switcher', Screen => {
+    const screen = render(<Screen />);
+    const frame = screen.UNSAFE_getAllByType(View)[0];
+    expect(StyleSheet.flatten(frame.props.style).paddingTop).toBe(44);
+    const scrollView = screen.UNSAFE_getByType(ScrollView);
+    expect(StyleSheet.flatten(scrollView.props.contentContainerStyle).paddingTop).toBeGreaterThan(0);
+    for (const label of ['Admin view', 'Creator view', 'Field agent view']) expect(screen.queryByLabelText(label)).toBeNull();
+  });
+
   it.each(['ios', 'android'] as const)('changes sections without stack animation and keeps normal submission navigation on %s', platform => {
     jest.replaceProperty(Platform, 'OS', platform);
     const screen = render(<NativeAdminLayout />);

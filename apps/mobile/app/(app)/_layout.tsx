@@ -11,7 +11,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
 import { accountBlocked, accountRouteRedirect, affiliateNeedsApproval, fieldAgentNeedsOnboarding } from '../../services/accountAccess';
 import { clearPendingSignupProfiles } from '../../services/signupProfile';
-import { AccountViewSwitcher } from '../../components/AccountViewSwitcher';
 import { PendingAffiliateApproval } from '../../components/affiliate/PendingApproval';
 import { colors, fonts } from '../../theme/tokens';
 import { hasOwnerIntent } from '../../lib/v2/ownerIntake';
@@ -146,7 +145,7 @@ export default function AppLayout() {
 
   const route = (segments as string[])[1];
   // Persisted progress protects this flow across restarts and deep links. Older
-  // accounts have no required flag; admin previews and offline drafts keep working.
+  // accounts have no required flag; offline drafts keep working.
   if (!mobileAccount.isOffline && !mobileAccount.isPreview && fieldAgentNeedsOnboarding(mobileAccount.account)
     && route !== 'agent-onboarding') {
     return <Redirect href={'/(app)/agent-onboarding' as never} />;
@@ -154,13 +153,12 @@ export default function AppLayout() {
   if (!mobileAccount.isOffline && mobileAccount.account === null) {
     if (route !== 'account-setup') return <Redirect href={'/(app)/account-setup' as never} />;
   } else {
-    const destination = accountRouteRedirect(mobileAccount.view, route, mobileAccount.isPreview);
+    const destination = accountRouteRedirect(mobileAccount.role ?? 'creator', route);
     if (destination) return <Redirect href={destination as never} />;
   }
 
   return (
     <View style={{ flex: 1 }}>
-    <AccountViewSwitcher />
     <Stack
       screenOptions={{
         headerShown: false,

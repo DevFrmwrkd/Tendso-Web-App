@@ -29,9 +29,6 @@ jest.mock('../hooks/useDeleteAccount', () => ({ useDeleteAccount: () => ({ busy:
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockNetworkConnected }) }));
 jest.mock('../hooks/useOfflineSync', () => ({ useOfflineSync: (...args: unknown[]) => mockOfflineSync(...args) }));
 jest.mock('../services/signupProfile', () => ({ clearPendingSignupProfiles: jest.fn(async () => {}) }));
-jest.mock('../components/AccountViewSwitcher', () => ({
-  AccountViewSwitcher: () => require('react').createElement(require('react-native').Text, { testID: 'view-switcher' }, 'Views'),
-}));
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => 'true'), setItem: jest.fn(async () => {}), removeItem: jest.fn(async () => {}),
 }));
@@ -94,7 +91,6 @@ describe('pending affiliate root navigation', () => {
     const screen = await mountApp();
     expect(screen.getByText('Awaiting approval')).toBeTruthy();
     expect(screen.queryByTestId('protected-navigation')).toBeNull();
-    expect(screen.queryByTestId('view-switcher')).toBeNull();
     expect(mockQuery).not.toHaveBeenCalled();
     expect(mockNotificationOpen).not.toHaveBeenCalled();
     expect(mockOfflineSync).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
@@ -141,11 +137,13 @@ describe('pending affiliate root navigation', () => {
     expect(mockQuery).not.toHaveBeenCalled();
   });
 
-  it('preserves active admin affiliate previews despite legacy pending admin status', async () => {
-    mockAccount = { ...ready(), account: { ...affiliate, role: 'admin' }, role: 'admin', isAdmin: true, isPreview: true };
+  it('opens only the native admin workspace despite legacy pending admin status', async () => {
+    mockSegments = ['(app)', 'admin'];
+    mockAccount = { ...ready(), account: { ...affiliate, role: 'admin' }, role: 'admin', view: 'admin', isAdmin: true };
     const screen = await mountApp();
     expect(screen.getByTestId('protected-navigation')).toBeTruthy();
     expect(screen.queryByText('Awaiting approval')).toBeNull();
+    for (const label of ['Admin view', 'Creator view', 'Field agent view']) expect(screen.queryByLabelText(label)).toBeNull();
   });
 
   it('waits for session hydration before deciding approval access', async () => {
@@ -165,10 +163,11 @@ describe('notification response navigation boundary', () => {
     expect(mockNotificationOpen).toHaveBeenLastCalledWith({ creatorId: affiliate._id, subject: affiliate.clerkId });
   });
 
-  it.each(['preview', 'loading', 'offline', 'wrong-subject', 'onboarding', 'signed-out'])('does not install a live opener for %s', async condition => {
+  it.each(['wrong-role-route', 'loading', 'offline', 'wrong-subject', 'onboarding', 'signed-out'])('does not install a live opener for %s', async condition => {
     mockSegments = ['(app)', '(tabs)'];
     mockAccount = { ...ready(), role: 'creator', view: 'creator', account: { ...affiliate, role: 'creator', status: 'active' } };
-    if (condition === 'preview') mockAccount = { ...mockAccount, isPreview: true, isAdmin: true, role: 'admin' };
+    if (condition === 'wrong-role-route') mockAccount = { ...mockAccount, role: 'admin', view: 'admin', isAdmin: true,
+      account: { ...affiliate, role: 'admin', status: 'active' } };
     if (condition === 'loading') mockAccount.isLoading = true;
     if (condition === 'offline') mockAccount.isOffline = true;
     if (condition === 'wrong-subject') mockClerkSubject = 'different-user';
@@ -224,6 +223,26 @@ describe('owner intent cannot override authenticated roles', () => {
   });
 });
 
+describe('native admin role routing', () => {
+  it.each([
+    { view: 'affiliate', route: '(affiliate-tabs)' },
+    { view: 'affiliate', route: 'affiliate' },
+    { view: 'creator', route: '(tabs)' },
+    { view: 'creator', route: 'training' },
+    { view: 'creator', route: 'submit' },
+  ])('ignores a stale $view perspective on the $route deep link', async ({ view, route }) => {
+    mockSegments = ['(app)', route];
+    mockAccount = { ...ready(), role: 'admin', view, isAdmin: true,
+      account: { ...affiliate, role: 'admin', status: 'active' } };
+    const screen = await mountApp();
+    expect(screen.getByTestId('redirect')).toHaveTextContent('/(app)/admin');
+    expect(screen.queryByTestId('protected-navigation')).toBeNull();
+    expect(mockQuery).not.toHaveBeenCalled();
+    expect(mockNotificationOpen).not.toHaveBeenCalled();
+    expect(mockOfflineSync).toHaveBeenLastCalledWith(expect.objectContaining({ enabled: false }));
+  });
+});
+
 describe('field-agent onboarding root navigation', () => {
   const agentState = (required: boolean | undefined = true) => ({ ...ready(), role: 'creator', view: 'creator',
     account: { ...affiliate, role: 'creator', status: 'active', fieldAgentOnboardingRequired: required } });
@@ -268,9 +287,9 @@ describe('field-agent onboarding root navigation', () => {
     expect(screen.getByTestId('protected-navigation')).toBeTruthy();
   });
 
-  it('keeps admin field-agent previews outside the onboarding gate', async () => {
-    mockSegments = ['(app)', '(tabs)'];
-    mockAccount = { ...agentState(), role: 'admin', isAdmin: true, isPreview: true,
+  it('keeps native admins in their workspace without requiring field-agent onboarding', async () => {
+    mockSegments = ['(app)', 'admin'];
+    mockAccount = { ...agentState(), role: 'admin', view: 'admin', isAdmin: true,
       account: { ...(agentState().account), role: 'admin' } };
     const screen = await mountApp();
     expect(screen.queryByTestId('redirect')).toBeNull();

@@ -8,7 +8,7 @@ export type AdminSession = {
   isAdmin: boolean;
 };
 
-/** Preview selection never grants permissions; only the live account does. */
+/** Only the authenticated live account grants admin permissions. */
 export function canUseAdminTools(session: AdminSession): boolean {
   const { account } = session;
   return !session.isLoading && session.isAuthenticated && !session.isOffline && session.isAdmin &&

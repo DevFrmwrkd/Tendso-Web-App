@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Keyboard, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, type KeyboardEvent } from 'react-native';
 import type { Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { backgroundGradient, colors, fonts, hit, radius, shadow, space } from '../../theme/v2';
 import { Chip } from '../v2/Chip';
@@ -130,10 +131,10 @@ export function AdminScreen({ title, subtitle, children, home = false, section =
 }) {
   const router = useGuardedRouter();
   const keyboardVisible = useAdminKeyboardVisible();
+  const insets = useSafeAreaInsets();
   const showBack = !!backHref || (!home && section === 'overview');
-  // The admin-only account switcher above the navigator owns the top safe area.
-  // V2TabBar owns the bottom inset; the scrolling body needs neither twice.
-  return <View style={styles.screen}>
+  // Admin screens own the top safe area; V2TabBar owns the bottom inset.
+  return <View style={[styles.screen, { paddingTop: insets.top }]}>
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none" preserveAspectRatio="none">
       <Defs><LinearGradient id="admin-bg" x1={backgroundGradient.start.x} y1={backgroundGradient.start.y} x2={backgroundGradient.end.x} y2={backgroundGradient.end.y}>
         {backgroundGradient.colors.map((color, i) => <Stop key={color} offset={backgroundGradient.locations[i]} stopColor={color} />)}

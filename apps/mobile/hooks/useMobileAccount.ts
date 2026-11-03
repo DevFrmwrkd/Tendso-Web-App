@@ -19,7 +19,6 @@ type MobileAccountState = {
   isPreview: boolean;
   isBlocked: boolean;
   isOwner: boolean;
-  setView: (view: MobileView) => void;
 };
 const Context = createContext<MobileAccountState | null>(null);
 
@@ -36,7 +35,6 @@ export function MobileAccountProvider({ children }: { children: React.ReactNode 
   const isOwner = !!ownSession?.isOwner;
   const [cache, setCache] = useState<RoleCache | null>(null);
   const [cacheLoaded, setCacheLoaded] = useState(false);
-  const [selection, setSelection] = useState<{ userId: string; view: MobileView } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -56,7 +54,6 @@ export function MobileAccountProvider({ children }: { children: React.ReactNode 
     if (!isLoaded || isOffline || authLoading) return;
     if (!isSignedIn) {
       setCache(null);
-      setSelection(null);
       void AsyncStorage.removeItem(CACHE_KEY).catch(() => {});
     } else if (canQuery && account !== undefined) {
       const role = accountRole(account);
@@ -76,14 +73,14 @@ export function MobileAccountProvider({ children }: { children: React.ReactNode 
   const isBlocked = isOffline ? offlineCache?.blocked ?? false : accountBlocked(account);
   // Cached roles control offline navigation only, never privileged data/actions.
   const isAdmin = canQuery && role === 'admin' && !isBlocked;
-  const view = isAdmin && selection?.userId === userId ? selection.view : role ?? 'creator';
+  // Native accounts always use their own role. Admin role previews live on web.
+  const view = role ?? 'creator';
   const value = useMemo<MobileAccountState>(() => ({
     account, role, view, isAuthenticated, isOffline, isAdmin, isBlocked, isOwner,
-    isPreview: isAdmin && view !== 'admin',
+    isPreview: false,
     isLoading: isOffline ? !cacheLoaded : !isLoaded || authLoading
       || (!!isSignedIn && (!isAuthenticated || account === undefined)),
-    setView: (next) => { if (isAdmin && userId) setSelection({ userId, view: next }); },
-  }), [account, role, view, isAuthenticated, isOffline, isAdmin, isBlocked, isOwner, cacheLoaded, isLoaded, authLoading, isSignedIn, userId]);
+  }), [account, role, view, isAuthenticated, isOffline, isAdmin, isBlocked, isOwner, cacheLoaded, isLoaded, authLoading, isSignedIn]);
   return React.createElement(Context.Provider, { value }, children);
 }
 
