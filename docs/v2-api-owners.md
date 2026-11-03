@@ -1,4 +1,4 @@
-# v2 API: owners, build progress, down payments, Xendit
+# v2 API: owners, build progress, payments, visits and inbox
 
 The Convex contract for the owner app (`apps/mobile`), the web, and the AI
 pipeline. Branch `feat/v2-backend-owners`, 2026-10-21. Everything is additive:
@@ -460,3 +460,131 @@ Reused: `SELF_SERVE_CREATOR_ID`, `R2_PUBLIC_URL`.
   rows show without it.
 - `startPipeline` is a placeholder. Owner-app submissions wait at "building"
   until the pipeline agent wires it, or until an admin uses `adminSetStep`.
+
+---
+
+## 10. Private shop visits: `convex/visitRequests.ts`
+
+Visit requests are structured dispatch records in `ownerVisitRequests`, not
+generic leads or public community finds. They store the owner, optional linked
+owned submission, shop/contact details, address and private map pin, free-text
+`preferredWhen`, assignment, proposed time, status, notes, timestamps and a
+monotonic `revision`. A preferred day/time is a preference, not a confirmed
+appointment.
+
+The owner can read only their own requests. Admins can read the dispatch queue;
+an active, certified field agent can read only requests currently assigned to
+their creator account. Owner contact details and coordinates are not exposed
+through a public nearby-agent directory. Owners do not receive `adminNote` or
+`agentNote`; assigned agents can receive their agent note, while admin notes
+remain admin-only.
+
+All public functions accept optional `clerkId` as an identity consistency
+guard. It must match the authenticated Clerk subject and cannot grant access.
+Read envelopes include `actorClerkId`; clients must reject a cached response
+from another actor. `VisitView` is the request plus `actorClerkId` and
+`assignedAgent: { id, name, phone: string|null, profileImage: string|null } | null`.
+
+| function | args | returns / authority |
+|---|---|---|
+| `api.visitRequests.create` | `{ requestKey, submissionId?, shopName, ownerName, phone, email?, address, city, coordinates: { lat, lng }, preferredWhen, clerkId? }` | `VisitView`. Verified owner only; a supplied submission must be owned. The same owner's `requestKey` retries return the existing request. |
+| `api.visitRequests.listMine` | `{ clerkId? }` | `null` or `{ actorClerkId, ownerId, requests: VisitView[] }`, latest 100 owned requests. |
+| `api.visitRequests.getMine` | `{ id, clerkId? }` | Owned `VisitView` or `null`. |
+| `api.visitRequests.listAdmin` | `{ status?, clerkId? }` | `{ actorClerkId, requests: VisitView[] }`, latest 200 matching requests; admin only. |
+| `api.visitRequests.listAssignableAgents` | `{ clerkId? }` | `{ actorClerkId, agents: [{ id, name, email, phone, workCity, profileImage }] }`. Admin only; returns active, certified field agents. Nullable agent contact/profile fields remain nullable. |
+| `api.visitRequests.assign` | `{ id, agentId, scheduledAt, adminNote?, expectedRevision, clerkId? }` | Updated `VisitView`; admin only, while `requested` or `assigned`. An identical assignment is a no-op. |
+| `api.visitRequests.listAssigned` | `{ clerkId? }` | `null` or `{ actorClerkId, agentId, requests: VisitView[] }`, latest 100 assigned requests; eligible agent only. |
+| `api.visitRequests.getAssigned` | `{ id, clerkId? }` | Assigned `VisitView` or `null`; eligible agent only. |
+| `api.visitRequests.accept` | `{ id, agentNote?, expectedRevision, clerkId? }` | Assigned agent only; changes `assigned` to `confirmed`. The proposed time must still be in the future. |
+| `api.visitRequests.decline` | `{ id, reason, expectedRevision, clerkId? }` | Assigned agent only, before acceptance. Returns the request to `requested`, clearing its agent and proposed time so the team can reassign it. |
+| `api.visitRequests.complete` | `{ id, agentNote?, expectedRevision, clerkId? }` | Assigned agent only, after confirmation and at or after the scheduled start. Changes only the visit to `completed`. |
+| `api.visitRequests.cancel` | `{ id, reason?, expectedRevision, clerkId? }` | Request owner or admin; closes a `requested`, `assigned` or `confirmed` request. Completed/cancelled requests are terminal. |
+
+Creation requires a Philippine map pin and valid Philippine mobile number.
+`requestKey` is 8–100 letters, digits, underscores or hyphens; keep it stable
+for a retry and use a new key for a different request. Limits are three open
+requests and five new requests in a rolling 24 hours per owner. Shop and owner
+names are 2–120 characters, address 3–300, city 2–120, preference 1–120, and
+contact email at most 254. An omitted contact email uses the owner's email.
+Admin/agent notes and cancellation reasons are at most 1,000 characters;
+decline reasons are 2–500.
+
+Every state transition checks `expectedRevision` and increments the revision;
+stale actions fail instead of overwriting a newer assignment or cancellation.
+The workflow is:
+
+`requested` → admin proposes an agent/time → `assigned` → agent accepts →
+`confirmed` → agent records the visit → `completed`.
+
+Declining an assignment returns it to `requested`. Owners/admins can cancel
+an active request. Admins cannot reassign a confirmed visit through `assign`;
+a changed confirmed appointment requires cancellation and a replacement
+request. An assignment is **awaiting acceptance**, not a booked appointment.
+
+Admin scheduling uses explicit Philippine wall time (`Asia/Manila`, UTC+8),
+converted to a Unix timestamp without relying on the workstation timezone.
+The time must be in the future and within 365 days. The server rejects another
+assigned/confirmed visit for the same agent less than 30 minutes before or
+after that start time; exactly 30 minutes is allowed, and the same request is
+excluded when rescheduling. This is start-time separation, not a travel-time
+or route planner.
+
+The web admin queue is `/admin/visits`, including `?open=<visitId>` for a
+notification. Native admin opens this web queue. Field agents use **Me → Shop
+visits**, `/(app)/visits` and `/(app)/visits/[visitId]`, to accept, decline or
+complete their assignments. Owners use the **Agents/visits** tab, request form
+`/(owner)/agents/book` and owned detail `/(owner)/agents/[visitId]`.
+
+Visit transitions create owner inbox events and the relevant agent/admin
+notifications. Completing a visit does **not** create a capture, submit a
+website, generate a payment request, mark an order paid or publish a website.
+Photos/interviews and the existing capture/submission/payment flow remain
+separate. This visit flow adds no appointment-email delivery path.
+
+---
+
+## 11. Owner inbox and device notifications: `convex/ownerInbox.ts`
+
+The owner inbox combines private visit events and website workflow facts
+(preview ready, payment recorded, publication/offline, review and change
+requests). Website messages use recorded workflow timestamps, not invented
+activity or traffic. The supporting tables are `ownerVisitEvents`,
+`ownerSiteEvents`, `ownerNotificationReads` and `ownerPushTokens`.
+
+| function | args | returns / notes |
+|---|---|---|
+| `api.ownerInbox.list` | `{ clerkId? }` | `null` or `{ actorClerkId, ownerId, unreadCount, items }` for the signed-in owner. An item is `{ key, type, title, body, createdAt, submissionId|null, visitRequestId|null, read }`. Reading this query never marks anything read. |
+| `api.ownerInbox.markRead` | `{ key, clerkId? }` | `{ read: true }`. The key must exist in this owner's current verified inbox; the read record is idempotent. |
+| `api.ownerInbox.markAllRead` | `{ clerkId? }` | `{ read: true }`. Explicit user action for this owner's current unread items. It is not called when opening or leaving the list. |
+| `api.ownerInbox.registerPushToken` | `{ token, platform: 'ios' \| 'android', clerkId? }` | `{ registered: true }`. Registers/rebinds a valid Expo token to the current owner and disables a creator push registration for that same device token. |
+| `api.ownerInbox.removePushToken` | `{ token, clerkId? }` | Deactivates that token only when it belongs to the current owner. Sign-out attempts this cleanup without preventing offline sign-out. |
+
+Native **Me → Inbox** (`/(owner)/me/inbox`) opens a full-body modal when an
+item is tapped and marks only that item read. **Mark all read** is separate.
+A push tap carries `ownerId` and `ownerEventKey`; `OwnerNotificationBridge`
+queries the current owner's inbox and opens only a matching item. A guessed,
+foreign or stale payload does not open another owner's update. Account/session
+changes discard old modal state and late read/permission results.
+
+The Inbox's **Enable notifications** action is the permission-prompt entry.
+The bridge can silently re-register a device whose permission was already
+granted; opening the inbox itself does not request permission. Push needs a
+physical device, permission, a configured EAS project/platform credentials and
+network access. Delivery uses Expo; an unavailable push service must not undo
+the stored inbox update. Device delivery is a separate smoke check from unit
+tests, and the inbox remains usable when push is unavailable.
+
+## 12. Native owner Today
+
+`/(owner)/(tabs)/today` uses the canonical owned-site summary, private visit
+requests and owner inbox. It shows real counts for businesses, live websites
+and businesses needing attention, plus recorded remaining balances for unpaid
+`awaiting_payment`/`live` sites. It does not display simulated visitor, sales or
+traffic counters.
+
+The next action selects the corresponding owned business before routing to
+its current setup, preview or payment step. The list expands to show all owned
+businesses. A confirmed visit on the current **Manila** calendar day can take
+priority; an assigned visit remains awaiting the agent's acceptance. Recent
+updates and the bell use the real unread count. Opening Today or the Inbox
+list never marks those updates read automatically.

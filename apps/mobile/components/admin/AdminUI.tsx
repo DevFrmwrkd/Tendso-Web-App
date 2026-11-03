@@ -84,7 +84,8 @@ export function AdminLink({ label, href, subtitle, icon = 'arrow-forward-outline
 }
 export function WebAdminLink({ path = '', label = 'Open web admin' }: { path?: string; label?: string }) {
   // Callers provide fixed admin routes or an encoded Convex id, never an external host.
-  return <AdminButton label={label} icon="open-outline" variant="secondary" onPress={() => openExternalUrl(`${SITE_URL}/admin${path}`)} />;
+  const origin=(process.env.EXPO_PUBLIC_WEB_ORIGIN||SITE_URL).replace(/\/$/,'');
+  return <AdminButton label={label} icon="open-outline" variant="secondary" onPress={() => openExternalUrl(`${origin}/admin${path}`)} />;
 }
 export function AdminEmptyState(props: { title: string; body?: string; icon?: IconName }) {
   return <View style={[styles.card, shadow.soft]}><EmptyState {...props} /></View>;

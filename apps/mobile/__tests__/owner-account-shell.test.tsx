@@ -4,7 +4,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import OwnerLayout from '../app/(owner)/_layout';
 import OwnerMe from '../app/(owner)/(tabs)/me';
 import Inbox from '../app/(owner)/me/inbox';
-import { ListRow } from '../components/v2';
+import { Button } from '../components/v2';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 const mockEnsure = jest.fn();
@@ -20,6 +20,7 @@ const mockResume = jest.fn();
 const mockOwnerQuery = jest.fn();
 const mockStackUnmount = jest.fn();
 const mockStackMount = jest.fn();
+const mockPushMutation = jest.fn(), mockUnregisterPush = jest.fn(), mockMarkRead = jest.fn(), mockMarkAllRead = jest.fn();
 let mockAuth: any;
 let mockMobile: any;
 let mockMe: any;
@@ -27,7 +28,16 @@ let mockScope: number;
 let mockActor: string | null;
 let mockIntake: any;
 let mockAwaitingBusiness: string | undefined;
+let mockInboxItems: any[];
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => mockAuth, useClerk: () => ({ signOut: mockSignOut }) }));
+jest.mock('convex/react', () => ({ useMutation: () => mockPushMutation }));
+jest.mock('../components/v2/owner/OwnerNotificationBridge', () => ({ OwnerNotificationBridge: () => null,
+  ownerDeviceToken: async () => null, unregisterOwnerPush: (...args: unknown[]) => mockUnregisterPush(...args),
+}));
+jest.mock('../lib/v2/ownerInbox', () => ({ useOwnerInbox: (ownerId: string) => ({ ownerId, actorClerkId: mockAuth.userId,
+  items: mockInboxItems, unreadCount: mockInboxItems.filter(item => !item.read).length }),
+  useOwnerInboxActions: () => ({ markRead: mockMarkRead, markAllRead: mockMarkAllRead }),
+}));
 jest.mock('../hooks/useMobileAccount', () => ({ useMobileAccount: () => mockMobile }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
 jest.mock('../lib/v2/ownerFlags', () => ({ OWNER_SAMPLE_DATA: false }));
@@ -60,7 +70,7 @@ jest.mock('expo-router', () => {
     return makeElement(View, { testID: 'owner-stack' }, children);
   };
   Stack.Screen = () => null;
-  return { Stack, Redirect: ({ href }: any) => makeElement(Text, { testID: 'owner-redirect' }, href) };
+  return { Stack, useLocalSearchParams: () => ({}), Redirect: ({ href }: any) => makeElement(Text, { testID: 'owner-redirect' }, href) };
 });
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn(async () => {}) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -76,8 +86,9 @@ function meFixture() {
 function confirm(label: string) {
   return jest.mocked(Alert.alert).mock.calls.at(-1)![2]!.find(button => button.text === label)!.onPress!;
 }
-function rowAction(screen: ReturnType<typeof render>, title: string) {
-  return screen.UNSAFE_getAllByType(ListRow).find(node => node.props.title === title)!.props.onPress;
+async function notificationAction(screen: ReturnType<typeof render>, title: string) {
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: `Unread: ${title}` })); });
+  return screen.UNSAFE_getAllByType(Button).find(node => node.props.title === 'Open business')!.props.onPress;
 }
 beforeEach(() => {
   jest.clearAllMocks();
@@ -86,6 +97,9 @@ beforeEach(() => {
   mockScope = 1; mockActor = 'owner-a'; mockIntake = { ownerName: 'Juan', submissionId: 'site-a' };
   mockAwaitingBusiness = undefined;
   mockMe = meFixture();
+  mockInboxItems = [{ key: 'site:site-a', type: 'website_ready', title: 'Juan Store update', body: 'Your business has an update.', createdAt: 1, read: false, submissionId: 'site-a' }];
+  mockPushMutation.mockReset().mockResolvedValue(undefined); mockUnregisterPush.mockReset().mockResolvedValue(undefined);
+  mockMarkRead.mockReset().mockResolvedValue(undefined); mockMarkAllRead.mockReset().mockResolvedValue(undefined);
   mockSet.mockReset().mockImplementation((patch: any) => {
     if (patch.submissionId && mockIntake.submissionId && patch.submissionId !== mockIntake.submissionId) mockScope += 1;
     mockIntake = { ...mockIntake, ...patch };
@@ -338,27 +352,46 @@ it('does not clear or navigate the next account when an old logout finishes late
   const screen = render(<OwnerMe />);
   fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
   let logout!: Promise<void>;
-  act(() => { logout = confirm('Sign out')() as unknown as Promise<void>; });
+  await act(async () => { logout = confirm('Sign out')() as unknown as Promise<void>; await flush(); });
   mockAuth = { ...mockAuth, userId: 'owner-b' }; await mockBind('owner-b'); screen.rerender(<OwnerMe />);
   await act(async () => { finish(); await logout; });
   expect(mockBind).not.toHaveBeenCalledWith(null); expect(mockRouter.replace).not.toHaveBeenCalled();
 });
 
-it('opens the selected owned site at its latest phase rather than the captured row’s old phase', () => {
+it('opens a notification’s owned site at its latest phase rather than the captured notification’s old phase', async () => {
   const screen = render(<Inbox />);
-  const open = rowAction(screen, 'Juan Store');
+  const open = await notificationAction(screen, 'Juan Store update');
   mockMe = { ...mockMe, sites: [{ ...mockMe.sites[0], phase: 'ready_to_check' }] };
   screen.rerender(<Inbox />); act(() => open());
   expect(mockSet).toHaveBeenCalledWith({ submissionId: 'site-a' });
   expect(mockRouter.push).toHaveBeenCalledWith('/(owner)/check');
 });
 
-it.each(['removed site', 'changed actor', 'changed scope'])('rejects a stale Inbox action after %s', (change) => {
+it.each(['removed site', 'changed actor'])('rejects a stale notification action after %s', async (change) => {
   const screen = render(<Inbox />);
-  const open = rowAction(screen, 'Juan Store');
+  const open = await notificationAction(screen, 'Juan Store update');
   if (change === 'removed site') mockMe = { ...mockMe, sites: [] };
   if (change === 'changed actor') mockAuth = { ...mockAuth, userId: 'owner-b' };
-  if (change === 'changed scope') mockScope += 1;
   screen.rerender(<Inbox />); act(() => open());
   expect(mockSet).not.toHaveBeenCalled(); expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('opens an owned notification business after only the selected intake scope changes', async () => {
+  const screen = render(<Inbox />); const open = await notificationAction(screen, 'Juan Store update');
+  mockScope += 1; mockIntake = { ...mockIntake, submissionId: 'another-selected-site' };
+  mockMe = { ...mockMe, sites: [{ ...mockMe.sites[0], phase: 'ready_to_check' }] };
+  screen.rerender(<Inbox />); act(() => open());
+  expect(mockSelectBusiness).toHaveBeenCalledWith('site-a'); expect(mockRouter.push).toHaveBeenCalledWith('/(owner)/check');
+});
+
+it('does not start Clerk logout for the next account if push cleanup completes after an account switch', async () => {
+  let finish!: () => void;
+  mockUnregisterPush.mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+  const screen = render(<OwnerMe />); fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
+  let logout!: Promise<void>;
+  act(() => { logout = confirm('Sign out')() as unknown as Promise<void>; });
+  mockAuth = { ...mockAuth, userId: 'owner-b', sessionId: 'session-b' };
+  mockMe = { ...mockMe, owner: { ...mockMe.owner, _id: 'owner-record-b' } }; await mockBind('owner-b'); screen.rerender(<OwnerMe />);
+  await act(async () => { finish(); await logout; });
+  expect(mockSignOut).not.toHaveBeenCalled(); expect(mockBind).not.toHaveBeenCalledWith(null); expect(mockRouter.replace).not.toHaveBeenCalled();
 });

@@ -1006,6 +1006,30 @@ export default defineSchema({
     })
         .index('by_createdAt', ['createdAt']),
 
+    // Owner visits are private dispatch requests, separate from community finds.
+    ownerVisitRequests: defineTable({
+        ownerId: v.id('businessOwners'), submissionId: v.optional(v.id('submissions')),
+        requestKey: v.string(), shopName: v.string(), ownerName: v.string(), phone: v.string(), email: v.optional(v.string()),
+        address: v.string(), city: v.string(), coordinates: v.object({ lat: v.number(), lng: v.number() }), preferredWhen: v.string(),
+        status: v.union(v.literal('requested'), v.literal('assigned'), v.literal('confirmed'), v.literal('completed'), v.literal('cancelled')),
+        assignedAgentId: v.optional(v.id('creators')), scheduledAt: v.optional(v.number()), adminNote: v.optional(v.string()),
+        agentNote: v.optional(v.string()), declineReason: v.optional(v.string()), cancellationReason: v.optional(v.string()),
+        assignedAt: v.optional(v.number()), acceptedAt: v.optional(v.number()), completedAt: v.optional(v.number()), cancelledAt: v.optional(v.number()),
+        createdAt: v.number(), updatedAt: v.number(), revision: v.number(),
+    }).index('by_owner', ['ownerId']).index('by_owner_request', ['ownerId', 'requestKey'])
+        .index('by_status', ['status']).index('by_agent', ['assignedAgentId']),
+    ownerVisitEvents: defineTable({
+        ownerId: v.id('businessOwners'), visitRequestId: v.id('ownerVisitRequests'), type: v.string(), title: v.string(), body: v.string(),
+        createdAt: v.number(), dedupeKey: v.string(),
+    }).index('by_owner', ['ownerId']).index('by_visit', ['visitRequestId']).index('by_dedupe', ['dedupeKey']),
+    ownerNotificationReads: defineTable({ ownerId: v.id('businessOwners'), eventKey: v.string(), readAt: v.number() })
+        .index('by_owner', ['ownerId']).index('by_owner_event', ['ownerId', 'eventKey']),
+    ownerSiteEvents: defineTable({ ownerId: v.id('businessOwners'), submissionId: v.id('submissions'), eventKey: v.string(),
+        type: v.string(), title: v.string(), body: v.string(), createdAt: v.number() })
+        .index('by_owner', ['ownerId']).index('by_owner_event', ['ownerId', 'eventKey']),
+    ownerPushTokens: defineTable({ ownerId: v.id('businessOwners'), token: v.string(), platform: v.string(), active: v.boolean() })
+        .index('by_owner', ['ownerId']).index('by_token', ['token']),
+
     // ==================== PUSH TOKENS ====================
     pushTokens: defineTable({
         creatorId: v.id('creators'),

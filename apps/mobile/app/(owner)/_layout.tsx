@@ -13,6 +13,9 @@ import { useMobileAccount } from '../../hooks/useMobileAccount';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { colors } from '../../theme/v2';
 import { CreatorAttributionGate } from '../../components/CreatorAttributionGate';
+import { OwnerNotificationBridge, unregisterOwnerPush } from '../../components/v2/owner/OwnerNotificationBridge';
+import { useMutation } from 'convex/react';
+import { api } from '@tendso/convex-client';
 
 function UploadRecovery() {
   const { id, site } = useOwnerSite();
@@ -52,6 +55,7 @@ function OwnerAccount({ actorId, signOut, offline }: {
   const me = useOwnerMe(true);
   const intake = useOwnerIntake();
   const ensure = useEnsureOwner();
+  const removePush = useMutation(api.ownerInbox.removePushToken);
   const asked = useRef(false);
   const mounted = useRef(true);
   const logoutBusy = useRef(false);
@@ -123,8 +127,11 @@ function OwnerAccount({ actorId, signOut, offline }: {
     setSigningOut(true);
     const scope = ownerIntake.scope();
     try {
+      if(!OWNER_SAMPLE_DATA) await unregisterOwnerPush(removePush,actorId,()=>mounted.current&&ownerIntake.isCurrent(scope));
+      if(!mounted.current||!ownerIntake.isCurrent(scope)) return;
       await signOut();
-      if (ownerIntake.isCurrent(scope)) await ownerIntake.bindActor(null);
+      if (!ownerIntake.isCurrent(scope)) return;
+      await ownerIntake.bindActor(null);
       if (mounted.current) router.replace('/(auth)/owner');
     } catch {
       if (mounted.current && ownerIntake.isCurrent(scope)) setError('Could not sign out. Please try again.');
@@ -155,6 +162,7 @@ function OwnerAccount({ actorId, signOut, offline }: {
   return <>
     <CreatorAttributionGate enabled={!OWNER_SAMPLE_DATA} claimAs="owner" />
     <UploadRecovery />
+    {!OWNER_SAMPLE_DATA?<OwnerNotificationBridge ownerId={me.owner._id} subject={actorId}/>:null}
     <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right' }}>
       <Stack.Screen name="talk/record" options={cam} />
       <Stack.Screen name="photos/shoot" options={cam} />

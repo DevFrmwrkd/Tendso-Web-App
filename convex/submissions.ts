@@ -875,6 +875,7 @@ export const setUnpublished = mutation({
             status: 'unpublished',
             unpublishedAt: Date.now(),
         });
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.id });
     },
 });
 

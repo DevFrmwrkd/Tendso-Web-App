@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
-import { Home, Inbox, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet, LayoutTemplate } from "lucide-react"
+import { Home, Inbox, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet, LayoutTemplate, CalendarDays } from "lucide-react"
 
 import { AppShell, type NavEntry, type SidebarProps } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
@@ -62,6 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             alsoCurrent: ["/admin/pending-approvals", "/admin/rejected-creators"],
         },
         { href: "/admin/leads", label: "Leads", icon: MapPin },
+        { href: "/admin/visits", label: "Visit requests", icon: CalendarDays },
         { href: "/admin/affiliates", label: "Affiliates", icon: Users },
         {
             href: "/admin/payouts",

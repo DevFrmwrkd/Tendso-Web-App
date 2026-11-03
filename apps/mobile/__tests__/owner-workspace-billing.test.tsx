@@ -16,6 +16,10 @@ jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: mockSubject }) }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
+jest.mock('expo-crypto', () => ({ randomUUID: () => 'visit-request-billing' }));
+jest.mock('../components/field-agent/CaptureLocationPicker', () => ({
+  CaptureLocationPicker: (props: object) => require('react').createElement(require('react-native').View, { testID: 'billing-visit-pin-picker', ...props }),
+}));
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: (...args: unknown[]) => mockBrowser(...args) }));
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack }),
@@ -36,6 +40,7 @@ jest.mock('../lib/v2/ownerData', () => ({
   useRetryOwnerPayment: () => mockRetry,
   wisePayUrl: (token: string) => `https://www.tendso.com/pay/${encodeURIComponent(token)}`,
 }));
+jest.mock('../lib/v2/visitRequests', () => ({ ...jest.requireActual('../lib/v2/visitRequests'), useCreateVisitRequest: () => mockRequestVisit }));
 jest.mock('../components/v2/owner/OwnerSiteSummary', () => ({ OwnerSiteSummary: () => null }));
 
 const payment = { billable: true, status: 'approved', total: 4999, amountPaid: 0, balanceDue: 4999,
@@ -173,6 +178,10 @@ it('does not display an old site visit request as sent for a newly selected shop
   mockRequestVisit.mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
   const screen = render(<BookVisit />);
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'Ben Barber');
+  fireEvent.changeText(screen.getByLabelText('Shop address'), '12 Main St');
+  fireEvent.changeText(screen.getByLabelText('City or municipality'), 'Marikina');
+  fireEvent.press(screen.getByRole('button', { name: 'Choose shop pin' }));
+  act(() => screen.getByTestId('billing-visit-pin-picker').props.onConfirm({ address: '12 Main St', city: 'Marikina', coordinates: { lat: 14.6, lng: 121.1 } }));
   fireEvent.press(screen.getByRole('button', { name: 'Send request' }));
   expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ shopName: 'Ben Barber' }));
   mockId = 'site-b'; mockSite = { ...mockSite, submissionId: mockId, businessName: 'Second shop' }; screen.rerender(<BookVisit />);

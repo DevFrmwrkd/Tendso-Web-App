@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server';
 import { requireAdmin } from './lib/auth';
 import { publishPolicyFor } from './lib/ownerApp';
 import { resetOwnerApproval } from './lib/ownerAuth';
+import { internal } from './_generated/api';
 
 /**
  * "Ask for a change" requests from the owner app (ownerApp.requestChange),
@@ -39,5 +40,6 @@ export const setStatus = mutation({
             resolvedBy: args.status === 'open' ? undefined : identity.subject,
             ...(args.adminNote !== undefined ? { adminNote: args.adminNote.trim().slice(0, 1000) || undefined } : {}),
         });
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: row.submissionId });
     },
 });

@@ -561,6 +561,7 @@ export const requestChange = mutation({
         });
         // A change means the owner checks again before publication.
         if (publishPolicyFor(submission) === 'pay_then_publish') await resetOwnerApproval(ctx, args.submissionId);
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
         return id;
     },
 });
@@ -718,6 +719,7 @@ export const publishIfReady = internalMutation({
             offlineAt: undefined,
         });
         await ctx.db.patch(args.submissionId, { websiteUrl: url });
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
         await ctx.db.insert('auditLogs', {
             adminId: 'system:owner-app',
             action: 'website_deployed',

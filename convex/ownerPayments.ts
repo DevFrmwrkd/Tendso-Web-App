@@ -1,5 +1,6 @@
 import { ConvexError, v } from 'convex/values';
 import { internalMutation, internalQuery, mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { MIN_DOWN_PAYMENT, isComped } from '../lib/pricing';
@@ -391,6 +392,7 @@ export async function applyTokenPaymentImpl(
         await ctx.db.patch(other._id, { status: 'cancelled', adminNotes: `Superseded by payment ${tokenRow.referenceCode}` });
     }
     const after = await ctx.db.get(submissionId);
+    await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId });
     return { result: 'applied', submissionId, stage: credit.stage, status: after?.status ?? submission.status };
 }
 

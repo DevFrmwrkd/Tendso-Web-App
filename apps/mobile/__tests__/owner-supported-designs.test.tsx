@@ -9,12 +9,20 @@ import type { OwnerMe, OwnerSubmission, SubmissionId } from '../lib/v2/ownerType
 const mockPush = jest.fn(); const mockReplace = jest.fn(); const mockBack = jest.fn();
 const mockSavePhoto = jest.fn(); const mockRemember = jest.fn(); const mockPick = jest.fn();
 const mockCreate = jest.fn(); const mockUpdate = jest.fn(); const mockRequestVisit = jest.fn();
+const mockRegisterPush = jest.fn(), mockInboxRead = jest.fn();
 let mockSubject = 'owner-a'; let mockConnected = true; let mockParams: Record<string, string> = {};
 let mockQueue = { pending: 0, failed: 0, total: 0, done: 0 };
 let mockMe: OwnerMe; let mockSub: OwnerSubmission;
+let mockInboxItems: any[] = [];
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
+jest.mock('expo-crypto', () => ({ randomUUID: () => 'visit-request-designs' }));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: mockSubject }) }));
+jest.mock('convex/react', () => ({ useMutation: () => mockRegisterPush }));
+jest.mock('../components/v2/owner/OwnerNotificationBridge', () => ({ OwnerNotificationBridge: () => null, ownerDeviceToken: async () => null }));
+jest.mock('../lib/v2/ownerInbox', () => ({ useOwnerInbox: (ownerId: string) => ({ ownerId, actorClerkId: mockSubject,
+  items: mockInboxItems, unreadCount: mockInboxItems.length }), useOwnerInboxActions: () => ({ markRead: mockInboxRead, markAllRead: jest.fn() }),
+}));
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack }), useLocalSearchParams: () => mockParams }));
@@ -28,6 +36,9 @@ jest.mock('../lib/v2/useOwnerSite', () => ({
 jest.mock('../lib/v2/ownerData', () => ({
   useOwnerSubmission: () => mockSub, useCreateDraft: () => mockCreate, useUpdateDraft: () => mockUpdate,
   useRequestVisit: () => mockRequestVisit,
+}));
+jest.mock('../lib/v2/visitRequests', () => ({ ...jest.requireActual('../lib/v2/visitRequests'),
+  useCreateVisitRequest: () => mockRequestVisit, useOwnerVisitRequests: () => [],
 }));
 jest.mock('../lib/v2/ownerPhotos', () => ({ MAX_EXTRAS: 10, useSaveOwnerPhoto: () => mockSavePhoto, pickFromLibrary: (...args: unknown[]) => mockPick(...args) }));
 jest.mock('../lib/v2/ownerUploads', () => ({ useOwnerUploads: () => ({ remember: mockRemember }) }));
@@ -65,6 +76,7 @@ function fixture(): OwnerSubmission {
 beforeEach(() => {
   jest.clearAllMocks(); mockSubject = 'owner-a'; mockConnected = true; mockParams = {};
   mockQueue = { pending: 0, failed: 0, total: 0, done: 0 };
+  mockInboxItems = []; mockRegisterPush.mockReset().mockResolvedValue(undefined); mockInboxRead.mockReset().mockResolvedValue(undefined);
   mockSub = fixture(); mockMe = { owner: { _id: 'owner-a', name: 'Ben Reyes', email: 'ben@example.test', phone: '09171234567' }, sites: [mockSub] };
   ownerIntake.clear(); ownerIntake.set({ submissionId: id, kind: 'barber', businessName: 'Forge', address: '12 Main St', city: 'Marikina' });
   mockPick.mockResolvedValue([]); mockRequestVisit.mockResolvedValue({ ok: true }); mockUpdate.mockResolvedValue({ ok: true });
@@ -273,22 +285,31 @@ it('keeps a delayed details update from selecting the previous shop after switch
   expect(screen.getByDisplayValue('Next shop')).toBeTruthy();
 });
 
-it('opens the site selected in Inbox rather than the newest site', () => {
+it('opens the business referenced by an Inbox notification rather than the newest site', async () => {
   const second = { ...mockSub, submissionId: 'second-owned-site' as SubmissionId, businessName: 'Second shop', phase: 'ready_to_check' as const };
   mockMe = { ...mockMe, sites: [mockSub, second] };
+  mockInboxItems = [{ key: 'site:second-owned-site', type: 'website_ready', title: 'Second shop update', body: 'Check your latest preview.',
+    createdAt: 1, read: false, submissionId: 'second-owned-site' }];
   const screen = wrap(<Inbox />);
-  fireEvent.press(screen.getByText('Second shop'));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Unread: Second shop update' })); });
+  fireEvent.press(screen.getByRole('button', { name: 'Open business' }));
   expect(ownerIntake.get().submissionId).toBe('second-owned-site');
   expect(mockPush).toHaveBeenCalledWith('/(owner)/check');
 });
 
 it('sends a preferred visit time without claiming an appointment is confirmed', async () => {
+  mockRequestVisit.mockResolvedValue({ _id: 'created-visit', ownerId: 'owner-a', actorClerkId: 'owner-a' });
   const screen = wrap(<BookVisit />);
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'Corner bakery');
+  fireEvent.changeText(screen.getByLabelText('Shop address'), '12 Main St');
+  fireEvent.changeText(screen.getByLabelText('City or municipality'), 'Marikina');
+  fireEvent.press(screen.getByRole('button', { name: 'Choose shop pin' }));
+  act(() => screen.getByTestId('owner-location-picker').props.onConfirm({ address: '12 Main St', city: 'Marikina', coordinates: { lat: 14.6, lng: 121.1 } }));
   fireEvent.press(screen.getByText('Tomorrow'));
   await act(async () => { fireEvent.press(screen.getByText('Send request')); });
-  expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ phone: '09171234567', when: 'Tomorrow', shopName: 'Corner bakery' }));
-  expect(screen.getByText('The team will call you to confirm an agent and time.')).toBeTruthy();
+  expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ phone: '09171234567', preferredWhen: 'Tomorrow', shopName: 'Corner bakery', coordinates: { lat: 14.6, lng: 121.1 } }));
+  expect(mockReplace).toHaveBeenCalledWith({ pathname: '/(owner)/agents/[visitId]', params: { visitId: 'created-visit' } });
+  expect(screen.getByText(/Your preferred day is not a booking/)).toBeTruthy();
   expect(screen.queryByText(/is coming/)).toBeNull();
 });
 

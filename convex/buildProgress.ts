@@ -76,6 +76,7 @@ async function setStepImpl(
     const finished = args.step === 'building_site' && args.status === 'done';
     if (finished) patch.previewReadyAt = now;
     await ctx.db.patch(args.submissionId, patch);
+    if (finished) await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
 
     if (finished && publishPolicyFor(s) === 'pay_then_publish') {
         // Paid before the build finished (or a rebuild after a change): publish.

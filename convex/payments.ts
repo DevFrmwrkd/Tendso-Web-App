@@ -336,6 +336,7 @@ async function paidInFullEffects(
 /** v2: invite the owner to the app (agent sales) / publish a paid owner-app site. */
 async function ownerFollowUps(ctx: MutationCtx, submission: Doc<'submissions'>, submissionId: Id<'submissions'>) {
     if (submission.giveawayApplication) return
+    await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId })
     if (publishPolicyFor(submission) === 'pay_then_publish') {
         await ctx.scheduler.runAfter(0, internal.ownerApp.publishIfReady, { submissionId })
     }

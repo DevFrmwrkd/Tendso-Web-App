@@ -35,6 +35,7 @@ import { NotificationIcon, timeAgo } from '../../components/v2/NotificationIcon'
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 import { notificationRouteId } from '../../services/notificationOpening';
 import { optimisticNotificationRead } from '../../services/notificationReadUpdates';
+import { openExternalUrl, SITE_URL } from '../../services/links';
 
 const DAY = 86_400_000;
 
@@ -188,6 +189,8 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
   const canOpenCertificate = isFieldAgent && message?.data?.showCertificate === true;
   const articleSlug = isFieldAgent && typeof message?.data?.articleSlug === 'string' && message.data.articleSlug.trim()
     ? message.data.articleSlug.trim() : null;
+  const visitId = (isFieldAgent || creator.role==='admin') && typeof message?.data?.visitRequestId === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(message.data.visitRequestId)
+    ? message.data.visitRequestId : null;
   const openArticle = () => {
     if (!articleSlug) return;
     setSelectedNotification(null);
@@ -320,10 +323,10 @@ function NotificationInbox({ clerkId }: { clerkId: string }) {
                   ? 'Connect to read the full announcement.' : 'Loading the full message…'}</Text> : null}
               </ScrollView>
               <View style={styles.sheetFoot}>
-                {canOpenCertificate ? <Button title="View certificate" icon="ribbon-outline"
+                {visitId ? <Button title={creator.role==='admin'?'Open visit requests':'View assigned visit'} icon="calendar-outline" onPress={()=>{setSelectedNotification(null);if(creator.role==='admin'){void openExternalUrl(`${(process.env.EXPO_PUBLIC_WEB_ORIGIN||SITE_URL).replace(/\/$/,'')}/admin/visits?open=${encodeURIComponent(visitId)}`);}else{router.push({pathname:'/(app)/visits/[visitId]',params:{visitId}} as never);}}} /> : canOpenCertificate ? <Button title="View certificate" icon="ribbon-outline"
                   onPress={() => { setSelectedNotification(null); setShowCertModal(true); }} />
                   : articleSlug ? <Button title="Read article" icon="book-outline" onPress={openArticle} /> : null}
-                <Button title="Close" variant={canOpenCertificate || articleSlug ? 'ghost' : 'primary'} onPress={closeDetails} />
+                <Button title="Close" variant={visitId || canOpenCertificate || articleSlug ? 'ghost' : 'primary'} onPress={closeDetails} />
               </View>
             </> : null}
           </Card>

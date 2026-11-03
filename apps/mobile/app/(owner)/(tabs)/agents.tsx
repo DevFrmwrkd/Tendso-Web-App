@@ -1,7 +1,7 @@
 /**
- * Agents near you + "Book a visit". A visit is a request the team assigns (a lead), not a
- * calendar booking (FEATURES-QUESTIONS Q19). Agents are listed only in sample mode for now;
- * a real owner books a visit and the team picks the agent.
+ * Private visit requests: the team assigns a field agent and proposes a time.
+ * The appointment becomes confirmed only after that field agent accepts.
+ * Example agent choices are shown only in sample mode.
  */
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -10,6 +10,7 @@ import { Button, Card, Chip, ScreenShell, Text } from '../../../components/v2';
 import { Ionicons } from '@expo/vector-icons';
 import { Face, Tick } from '../../../components/v2/owner/OwnerUI';
 import { useAgentsNear } from '../../../lib/v2/ownerData';
+import { OwnerVisitList } from '../../../components/v2/owner/OwnerVisitList';
 import { colors, shadow, space } from '../../../theme/v2';
 
 export default function Agents() {
@@ -20,8 +21,8 @@ export default function Agents() {
 
   return (
     <ScreenShell
-      title="Agents near you"
-      subtitle="Get help making your shop’s website."
+      title="Shop visits"
+      subtitle="Request help and keep track of your field agent’s visit."
       insetBottom={false}
       footer={
         <Button
@@ -30,13 +31,14 @@ export default function Agents() {
         />
       }
     >
+      <View style={{ marginBottom: space.lg }}><OwnerVisitList /></View>
       {agents.length === 0 ? (
         <Card style={styles.help}>
           <Image source={require('../../../assets/v2/owner/how-friend.jpg')} style={styles.hero} resizeMode="cover" />
           <Text variant="heading">We find a field agent for you</Text>
           <Text tone="ink2">They visit your shop, take photos and record your story with you.</Text>
           <View style={styles.fact}><Ionicons name="time-outline" size={24} color={colors.ink} /><Text style={{ flex: 1 }}>About 30 minutes at your shop</Text></View>
-          <View style={styles.fact}><Ionicons name="call-outline" size={24} color={colors.ink} /><Text style={{ flex: 1 }}>The team calls to confirm a time</Text></View>
+          <View style={styles.fact}><Ionicons name="calendar-outline" size={24} color={colors.ink} /><Text style={{ flex: 1 }}>Your field agent accepts to confirm the proposed time</Text></View>
         </Card>
       ) : (
         <Chip label="Sample" tone="muted" style={{ marginBottom: space.md }} />

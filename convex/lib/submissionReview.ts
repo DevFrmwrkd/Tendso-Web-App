@@ -158,6 +158,7 @@ export async function rejectReviewedSubmission(ctx: MutationCtx, args: { submiss
     if (submission.giveawayApplication) updates.giveawayRejectedEmailSentAt = undefined;
     await ctx.db.patch(args.submissionId, updates);
     await cancelRejectedSubmissionBuilds(ctx, args.submissionId);
+    await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
     // Scheduling and releasing the held slot commit together. Delivery runs
     // later, so a mail outage can never roll the rejection back.
     if (submission.giveawayApplication) {

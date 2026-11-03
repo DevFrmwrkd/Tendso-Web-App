@@ -2,7 +2,39 @@
 
 ## What Is This App?
 
-Tendso is a React Native mobile app that helps Filipino "creators" (field agents) digitize local businesses. Creators visit a small business, collect information (photos, video/audio interview, business details), and submit it through the app. The platform then generates a website for the business, deploys it, and tracks leads — the creator earns a payout for each successful submission.
+Tendso is one React Native mobile app for business owners, field agents and the other supported account roles. Field agents collect business photos, interviews and details; owners can set up and manage their own businesses, review website progress and payments, and request help with a shop visit.
+
+## Owner Today, visits and inbox
+
+The owner **Today** tab uses the account's owned businesses, visit requests and
+private inbox. Its business/live/needs-attention counts and remaining payment
+balances come from recorded state, not sample traffic or sales. Its next action
+selects the relevant business before opening setup, preview or payment. The
+business list can expand to show every owned business.
+
+A confirmed visit on the current Philippine calendar day is shown as today's
+appointment. An assigned agent and proposed time are still **awaiting
+acceptance**. The owner requests a visit through the Agents/visits tab, with
+shop/contact details, a map pin and a preferred day/time. The preference is not
+a booking. The private web admin queue at `/admin/visits` assigns an active,
+certified field agent; native admin opens that web queue. Field agents use
+**Me → Shop visits** to accept, decline or complete an assigned request.
+Scheduling is explicit `Asia/Manila` / UTC+8; the server prevents another
+assigned/confirmed visit for the same agent less than 30 minutes away in start
+time. Completing a visit does not create a capture, website submission or
+payment; those remain separate flows.
+
+The bell and **Me → Inbox** show the real unread count and recent visit/website
+updates. Tapping a message opens its full body and marks only that message
+read. **Mark all read** is explicit; opening or leaving the inbox does not mark
+the whole list. Push taps must match a message in the signed-in owner's inbox.
+The Inbox's **Enable notifications** action requests device permission;
+existing granted permission can be reused silently. Push delivery depends on
+the physical device, platform/EAS configuration and connectivity, while stored
+updates remain available in the inbox.
+
+See [the owner API contract](v2-api-owners.md#10-private-shop-visits-convexvisitrequeststs)
+for permissions, limits, state transitions and notification APIs.
 
 ---
 

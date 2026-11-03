@@ -158,6 +158,10 @@ export const registerPushToken = mutation({
     },
     handler: async (ctx, args) => {
         await requireRecipient(ctx, args.creatorId);
+        // A shared device changes role as well as creator account.
+        for (const ownerToken of await ctx.db.query('ownerPushTokens').withIndex('by_token', q => q.eq('token', args.token)).collect()) {
+            await ctx.db.patch(ownerToken._id, { active: false });
+        }
         // Check if token already exists
         const existing = await ctx.db
             .query('pushTokens')

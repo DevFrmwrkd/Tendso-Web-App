@@ -53,6 +53,7 @@ export default function NativeAdminOverview() {
     <AdminCard title="Web workspace">
       <AdminText>Publishing, website generation, giveaways, leads and settings are in web admin.</AdminText>
       <WebAdminLink />
+      <WebAdminLink path="/visits" label="Visit requests" />
     </AdminCard>
     <AdminCard>
       <View style={styles.identity}>

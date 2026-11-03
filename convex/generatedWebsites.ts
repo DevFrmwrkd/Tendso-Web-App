@@ -157,6 +157,7 @@ export async function upsertGeneratedWebsiteRow(
             reading_interview: done, writing_pages: done, polishing_photos: done, building_site: done,
         } });
         await ctx.scheduler.runAfter(0, internal.ownerEmails.send, { submissionId: submission._id, kind: 'preview_ready' });
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: submission._id });
     }
 
     if (existing) {
@@ -451,7 +452,7 @@ export const publish = mutation({
             // site is live again by definition.
             offlineAt: undefined,
         });
-
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
         return website._id;
     },
 });
@@ -477,6 +478,7 @@ export const markOffline = mutation({
         }
 
         await ctx.db.patch(website._id, { offlineAt: Date.now() });
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
 
         return website._id;
     },

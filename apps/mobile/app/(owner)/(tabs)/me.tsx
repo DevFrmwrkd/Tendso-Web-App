@@ -9,6 +9,10 @@ import { ownerIntake } from '../../../lib/v2/ownerIntake';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { colors, space } from '../../../theme/v2';
+import { useMutation } from 'convex/react';
+import { api } from '@tendso/convex-client';
+import { unregisterOwnerPush } from '../../../components/v2/owner/OwnerNotificationBridge';
+import { OWNER_SAMPLE_DATA } from '../../../lib/v2/ownerFlags';
 
 export default function Me() {
   const { userId, sessionId } = useAuth();
@@ -18,6 +22,8 @@ export default function Me() {
 
 function OwnerMe({ me }: { me: ReturnType<typeof useOwnerSite>['me'] }) {
   const router = useGuardedRouter();
+  const {userId}=useAuth();
+  const removePush=useMutation(api.ownerInbox.removePushToken);
   const { signOut } = useClerk();
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +47,8 @@ function OwnerMe({ me }: { me: ReturnType<typeof useOwnerSite>['me'] }) {
           setSigningOut(true);
           setError('');
           try {
+            if(!OWNER_SAMPLE_DATA) await unregisterOwnerPush(removePush,userId,current);
+            if(!current()) return;
             await signOut();
             // Keep the saved draft for this owner. Failed logout must not erase
             // local work; successful logout clears only the active memory scope.

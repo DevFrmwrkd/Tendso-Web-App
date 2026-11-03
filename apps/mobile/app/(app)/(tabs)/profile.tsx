@@ -343,6 +343,12 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
         label: 'Invite field agents',
         onPress: () => router.push('/(app)/referrals' as any),
       },
+      {
+        icon: 'calendar-outline',
+        label: 'Shop visits',
+        sublabel: 'Accept and manage your assigned visits',
+        onPress: () => router.push('/(app)/visits' as never),
+      },
     );
   }
 
