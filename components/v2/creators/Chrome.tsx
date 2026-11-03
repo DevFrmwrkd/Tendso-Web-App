@@ -39,10 +39,10 @@ export function SoloBar({ brandHref = "/v2/creators", right, children }: { brand
 }
 
 /** The small footer under the standalone pages. */
-export function MiniFoot({ links, note }: { links: { label: string; href: string }[]; note?: string }) {
+export function MiniFoot({ links, note, brandHref = "/v2" }: { links: { label: string; href: string }[]; note?: string; brandHref?: string }) {
     return (
         <footer className="cp-mini-foot">
-            <Link className="brand" href="/v2">
+            <Link className="brand" href={brandHref}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/v2/brand/mark-ink-256.png" alt="" width={26} height={26} />
                 tendso

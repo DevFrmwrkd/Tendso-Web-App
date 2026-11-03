@@ -12,15 +12,19 @@ import styles from "./PortalFrame.module.css";
 export type PortalIdentity = { name: string; photo?: string | null };
 
 /** Presentation only. Each page keeps its existing account gate and data subscriptions. */
-export function PortalFrame({ identity, currentPage = "home", sample = false, right, utilityActions, children }: {
+export function PortalFrame({ identity, currentPage = "home", sample = false, previewBaseHref, right, utilityActions, children }: {
     identity?: PortalIdentity;
     currentPage?: CreatorPortalPage;
     sample?: boolean;
+    /** Admin-only sample destinations; ignored for live portals. */
+    previewBaseHref?: string;
     right?: ReactNode;
     utilityActions?: ReactNode;
     children: ReactNode;
 }) {
-    const editorHref = sample ? "#pt-links" : CREATOR_PAGE_EDITOR_HREF;
+    const previewBase = sample ? previewBaseHref : undefined;
+    const editorHref = previewBase ? `${previewBase}?section=my-page` : sample ? "#pt-links" : CREATOR_PAGE_EDITOR_HREF;
+    const accountHref = previewBase ? `${previewBase}?section=account` : CREATOR_ACCOUNT_HREF;
     const nav = useRef<HTMLElement>(null);
     const hasIdentity = !!identity;
     useEffect(() => {
@@ -42,7 +46,7 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, ri
     }, [currentPage, hasIdentity]);
 
     return <div className={`pt-shell ${styles.shell}`}>
-        <SoloBar right={identity ? (
+        <SoloBar brandHref={previewBase} right={identity ? (
             <Link className="pt-me" href={editorHref} aria-label="Edit your creator page">
                 <Face src={identity.photo} name={identity.name} size={32} />
                 <span>{identity.name}</span>
@@ -53,7 +57,7 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, ri
                 {CREATOR_PORTAL_NAV.map((item) => (
                     <Link
                         key={item.id}
-                        href={creatorPortalNavHref(item.id, sample)}
+                        href={previewBase ? item.id === "my-page" ? editorHref : item.id === "payouts" ? `${previewBase}?section=wallet` : `${previewBase}#${item.anchor}` : creatorPortalNavHref(item.id, sample)}
                         className={item.id === currentPage ? "is-on" : undefined}
                         aria-current={item.id === currentPage ? "page" : undefined}
                     >
@@ -64,18 +68,18 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, ri
         </SoloBar>
         <main className="wrap pt-main" id="top">
             {identity ? <div className={styles.utilities} role="group" aria-label="Portal account tools">
-                {sample ? <span className={styles.utilityButton} aria-disabled="true">Account</span> : <Link className={styles.utilityButton} href={CREATOR_ACCOUNT_HREF} aria-current={currentPage === "account" ? "page" : undefined}>Account</Link>}
+                {sample && !previewBase ? <span className={styles.utilityButton} aria-disabled="true">Account</span> : <Link className={styles.utilityButton} href={accountHref} aria-current={currentPage === "account" ? "page" : undefined}>Account</Link>}
                 {!sample ? utilityActions : null}
             </div> : null}
             {children}
-            <MiniFoot
+            {previewBase ? <footer className="cp-mini-foot"><span>Admin preview · Sample data</span><span>Use View as above to return to your admin dashboard.</span></footer> : <MiniFoot
                 links={[
                     { label: "Creator rules", href: "/v2/creators#rules" },
                     { label: "Help", href: "/v2/help" },
                     { label: "Privacy", href: "/v2/privacy" },
                 ]}
                 note="Paid on real sales only. Your 5% is paid once the shop has paid in full."
-            />
+            />}
         </main>
     </div>;
 }

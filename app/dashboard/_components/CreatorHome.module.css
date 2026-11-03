@@ -1,0 +1,46 @@
+.home { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.home > :global(.t-page-head) { margin: 0; }
+.overview { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 17px; }
+.metric { display: flex; min-width: 0; flex-direction: column; gap: 13px; padding: 23px; border: 1px solid #e5e9dc; border-radius: 24px; background: #fff; color: #0c0a08; text-decoration: none; transition: background 140ms, border-color 140ms; }
+a.metric:hover { border-color: #c4d0ab; background: #fcfdf7; }
+.metricTop { display: flex; justify-content: space-between; align-items: center; color: #7a856a; }
+.metric strong { font-size: clamp(27px,2.9vw,39px); font-weight: 650; letter-spacing: -.055em; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.metric > span:last-child { font-size: 12px; line-height: 1.5; color: #757e68; }
+.starting { grid-column: span 2; background: #f2f6e2; }
+.starting strong { font-size: 23px; }
+.state { display: flex; align-items: center; gap: 8px; margin: 0; color: #69765a; font-size: 13px; line-height: 1.5; }
+.workspace { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(280px,1fr); gap: 23px; align-items: stretch; }
+.workspace:has(> :only-child) { grid-template-columns: minmax(0,1fr); }
+.nextStep { min-height: 100%; border: 1px solid #dce6b8; background: linear-gradient(120deg,#eff5d2,#f5f8e8); border-radius: 27px; }
+.nextStep > div:first-child { gap: 13px; align-self: start; }
+.nextStep h2 { font-size: 27px; font-weight: 650; line-height: 1.2; letter-spacing: -.045em; }
+.nextStep :global(.t-body) { line-height: 1.7; color: #687456; }
+.nextStep :global(.t-hero-fig) { font-size: 48px; }
+.nextStep > div:last-child { align-self: end; }
+.sideCards { grid-template-columns: minmax(0,1fr); gap: 16px; }
+.sideCards :global(.t-card) { padding: 22px; }
+.sideCards :global(.t-h2) { font-size: 19px; }
+.sideCards :global(.t-meta) { line-height: 1.65; }
+.activity { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 30px; }
+.activity > h2 { font-size: 20px; }
+.home [id] { scroll-margin-top: 28px; }
+@media (min-width: 1200px) { .nextStep { grid-template-columns: minmax(0,1fr); gap: 24px; } .nextStep > div:nth-child(2):not(:last-child) { grid-column: 1; grid-row: auto; align-items: flex-start; } }
+@media (max-width: 1199px) { .workspace { grid-template-columns: minmax(0,1fr); } .sideCards { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 640px) {
+  .home { gap: 22px; }
+  .metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+  .metric { padding: 18px; gap: 11px; border-radius: 21px; }
+  .metric:first-child { grid-column: span 2; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 15px; }
+  .metric:first-child .metricTop { width: 100%; }
+  .metric:first-child > span:last-child { margin-left: auto; }
+  .metric strong { font-size: 29px; }
+  .starting { grid-column: span 2; }
+  .starting strong { font-size: 22px; }
+  .workspace { gap: 19px; }
+  .nextStep { padding: 24px; }
+  .nextStep h2 { font-size: 25px; }
+  .nextStep :global(.t-hero-fig) { font-size: 42px; }
+  .sideCards { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .home * { transition: none !important; } }

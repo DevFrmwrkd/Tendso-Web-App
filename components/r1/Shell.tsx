@@ -75,6 +75,8 @@ export type SidebarProps = {
     homeHref: string;
     /** "Admin" or "Staff", shown beside the wordmark. Creators and owners have none. */
     roleLabel?: string;
+    /** Optional current brand presentation; legacy shells keep the default wordmark. */
+    brand?: ReactNode;
     /**
      * The creator's single primary action, under the logo. Owners and admins
      * have none. `currentPrefix` marks it as the current page inside its flow
@@ -88,12 +90,12 @@ export type SidebarProps = {
     me?: { name: string; meta?: string; href: string } | null;
 };
 
-export function Sidebar({ homeHref, roleLabel, primary, items, footItems, me }: SidebarProps) {
+export function Sidebar({ homeHref, roleLabel, brand, primary, items, footItems, me }: SidebarProps) {
     const pathname = usePathname() ?? "";
     return (
         <aside className="t-side" aria-label="Main navigation">
             <Link className="t-brand" href={homeHref}>
-                <Logo />
+                {brand ?? <Logo />}
                 {roleLabel && <span className="t-brand-role">{roleLabel}</span>}
             </Link>
             {primary && (
@@ -160,7 +162,7 @@ export function AppShell({
             <div className="t-main-col">
                 <header className="t-topbar">
                     <Link className="t-brand px-0" href={homeHref ?? sidebar.homeHref}>
-                        <Logo />
+                        {sidebar.brand ?? <Logo />}
                         {sidebar.roleLabel && <span className="t-brand-role">{sidebar.roleLabel}</span>}
                     </Link>
                     <div className="t-topbar-actions">

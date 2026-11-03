@@ -117,6 +117,8 @@ export interface PortalViewProps {
     payoutTo?: string;
     /** Standalone portal: use income disclosures on phones while keeping desktop rows. */
     compactIncome?: boolean;
+    /** A protected editor destination for the admin sample, never a live override. */
+    samplePageEditorHref?: string;
 }
 
 /**
@@ -125,7 +127,7 @@ export interface PortalViewProps {
  * (/v2/creators/portal) and for the sample on /v2/creators, so what people see in the sample is
  * exactly what they get.
  */
-export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo, compactIncome = false }: PortalViewProps) {
+export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo, compactIncome = false, samplePageEditorHref }: PortalViewProps) {
     const { creator, now, monthly, recruits, shops, payouts } = data;
     const id = (s: string) => `${idPrefix}-${s}`;
     const shareLocked = sample || creator.status !== "active";
@@ -270,7 +272,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     </div>
                     <div className="pt-page-entry">
                         <div><b>Your creator page</b><p>Photo, display name, message and social links.</p></div>
-                        {sample ? <a className="pt-btn pt-btn--accent" href={`#${id('links')}`}>Edit your page</a>
+                        {sample ? <a className="pt-btn pt-btn--accent" href={samplePageEditorHref ?? `#${id('links')}`}>Edit your page</a>
                             : <Link className="pt-btn pt-btn--accent" href={CREATOR_PAGE_EDITOR_HREF}>Edit your page</Link>}
                     </div>
                     <div className="pt-links">
@@ -311,7 +313,7 @@ export function PortalView({ data, pictures, sample = false, idPrefix = "pt", pa
                     </div>
                     <p className="pt-codenote" id={id("discount")}>
                         Every creator code gives a fixed {CODE_PERCENT_OFF}% off. Shops pay {peso(CODE_PRICE)} and you keep {peso(KEEP_PER_SHOP)}.{" "}
-                        {sample ? <a href={`#${id("discount")}`}>View your offer</a> : <Link href={CREATOR_PAGE_EDITOR_HREF}>View your offer</Link>}
+                        {sample ? <a href={samplePageEditorHref ?? `#${id("discount")}`}>View your offer</a> : <Link href={CREATOR_PAGE_EDITOR_HREF}>View your offer</Link>}
                     </p>
                 </section>
                 <section className="pt-card" id={id("funnel")} aria-label="From click to sale">

@@ -102,7 +102,8 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
             if (problem) next.socialLinks![platform] = problem;
         }
         const firstSocialError = AFFILIATE_SOCIAL_PLATFORMS.find((platform) => next.socialLinks?.[platform]);
-        const imageProblem = affiliatePhotoError(page.photo);
+        // Preview photos are bundled local fixtures; uploads remain disabled.
+        const imageProblem = preview ? undefined : affiliatePhotoError(page.photo);
         setErrors(next);
         setPhotoError(imageProblem ?? undefined);
         setSaveError(undefined);
@@ -136,7 +137,7 @@ export function PageSettings({ draft, defaultName, handle, dirty, disabled, prev
                 <h2 id="page-settings-title" className="t-h2">Your public page</h2>
                 <p className="t-meta">Introduce yourself to shop owners. Save your changes to update the page people see from your link.</p>
             </div>
-            <form onSubmit={save} noValidate className="flex flex-col gap-5">
+            <form onSubmit={save} noValidate data-preview-local-save={preview || undefined} className="flex flex-col gap-5">
                 {saveError && <AuthAlert>{saveError}</AuthAlert>}
                 <div className="ap-photo-row flex flex-wrap items-center gap-4">
                     {draft.photo ? (

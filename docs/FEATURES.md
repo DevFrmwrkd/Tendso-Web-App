@@ -222,7 +222,7 @@ integrated in the header and remains available on dashboard preview routes.
 | W-095 | Featured sites curation (landing "Real sites") | `/admin/featured-sites` | admin | depends on whether the landing keeps real client sites | 2 | ❓ (Q24) | ☐ |
 | W-096 | App links (Play / App Store URLs; old APK clean-up) | `/admin/featured-sites?tab=app` | admin | keep; feeds the landing Download / QR and field-agents page | 2 | 🎨 | ☑ |
 | W-098, C-017 | Audit log (sentence log, filters, raw drawer) | `/admin/audit`; `auditLogs.ts` | admin, system | keep as is, restyle | 4 | 🎨 | ☐ |
-| W-099, W-100 | Creator + affiliate dashboard previews (sample data) | `/admin/preview/*` | admin | keep, re-point to the new screens | 4 | 🎨 | ☐ |
+| W-099, W-100 | Creator + affiliate dashboard previews (sample data) | `/admin/preview/*` | admin | Current shared field-agent Home/shell and v2 affiliate PortalView/PortalFrame; local page editor with actual public-page preview. No live account reads or writes, uploads, sharing or payouts. | 4 | ✅ | ☑ |
 | M-054 | App admin gate + shell ("Open web admin") | `admin/_layout.tsx`, `AdminUI.tsx` | admin | not in mock: keep, restyle | 4 | 🎨 | ☐ |
 | M-055 | App admin overview (today's work, counts) | `admin/index.tsx` | admin | keep, restyle | 4 | 🎨 | ☐ |
 | M-056, M-057 | App admin reviews: submission queue + creator verification approve / reject | `admin/reviews.tsx` | admin | keep, restyle | 4 | 🎨 | ☐ |
