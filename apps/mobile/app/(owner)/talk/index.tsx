@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ScreenShell, Text } from '../../../components/v2';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { INTERVIEW_QUESTIONS } from '../../../lib/v2/captureContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
@@ -25,6 +26,7 @@ export default function TalkIntro() {
     ownerIntake.set({ audioOnly }); router.push(STEP_ROUTE.talk as never);
   };
   return <ScreenShell title="10 short questions" subtitle="Answer in English or Tagalog, one at a time." progress={0.25}
+    headerRight={<OwnerSaveExit title={readOnly ? 'Back to Today' : undefined} />}
     onBack={() => { if (scope.isCurrent()) router.dismissTo((readOnly ? '/(owner)/(tabs)/site' : STEP_ROUTE.how) as never); }} contentStyle={styles.content} footer={<>
       <Button title={complete || readOnly ? 'Review your answers' : 'Start'} disabled={!scope.id}
         onPress={() => { if (scope.isCurrent()) complete || readOnly ? router.push(STEP_ROUTE['talk-done'] as never) : start(false); }} />

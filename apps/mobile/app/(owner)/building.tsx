@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, ProgressBar, ScreenShell, Text } from '../../components/v2';
 import { Buddy } from '../../components/v2/owner/OwnerUI';
+import { OwnerSaveExit } from '../../components/v2/owner/OwnerSaveExit';
 import { useBuild } from '../../lib/v2/ownerData';
 import { STEP_ROUTE } from '../../lib/v2/ownerFlow';
 import { useOwnerSite } from '../../lib/v2/useOwnerSite';
@@ -47,12 +48,11 @@ export default function Building() {
   const done = build?.doneCount ?? 0;
   const failed = build?.steps.some((s) => s.status === 'failed');
 
-  const home = () => router.replace(STEP_ROUTE.home as never);
-
   if (ready) {
     return (
       <ScreenShell
         scroll={false}
+        headerRight={<OwnerSaveExit title="Back to Today" />}
         footer={<Button title={complete.action} onPress={() => router.replace(complete.route as never)} />}
       >
         <View style={styles.center}>
@@ -65,7 +65,7 @@ export default function Building() {
   }
 
   return (
-    <ScreenShell scroll={false} footer={<Button title="Back to home" variant="ghost" onPress={home} />}>
+    <ScreenShell scroll={false} headerRight={<OwnerSaveExit title="Back to Today" />}>
       <View style={styles.center}>
         <Animated.View style={{ transform: [{ translateY: bob.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }, { rotate: bob.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-3deg'] }) }] }}>
           <Buddy size={104} />

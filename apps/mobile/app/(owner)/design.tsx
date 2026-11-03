@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { OwnerDesignGallery } from '../../components/v2/owner/OwnerDesignGallery';
+import { OwnerSaveExit } from '../../components/v2/owner/OwnerSaveExit';
 import { ownerDesignChoices, sellKindFromServer } from '../../lib/v2/ownerContent';
 import { useChooseDesign, useOwnerSubmission, useSubmitSite } from '../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake } from '../../lib/v2/ownerIntake';
@@ -23,7 +24,7 @@ function OwnerDesignStep({ scope }: { scope: ReturnType<typeof useOwnerScope> })
   const { resume } = useOwnerUploads();
   const ownSub = sub?.submissionId === scope.id ? sub : undefined;
   const kind = sellKindFromServer(ownSub?.businessType, ownSub?.shotListKey);
-  const saved = ownSub?.templateId ?? (intake.submissionId === scope.id ? intake.design : null) ?? null;
+  const saved = (intake.submissionId === scope.id ? intake.design : null) ?? ownSub?.templateId ?? null;
   // Barber/salon share a server category. Keep a saved valid choice visible.
   const designs = ownerDesignChoices(kind.id, saved);
   const [selected, setSelected] = useState<string | null>(null);
@@ -59,7 +60,13 @@ function OwnerDesignStep({ scope }: { scope: ReturnType<typeof useOwnerScope> })
       if (scope.isCurrent()) setError(cause instanceof Error ? cause.message : 'Could not send your site. Please try again.');
     } finally { inFlight.current = false; if (scope.isCurrent()) setBusy(false); }
   };
-  return <OwnerDesignGallery designs={designs} selectedCode={selected ?? saved} onSelect={setSelected} onUse={use}
+  return <OwnerDesignGallery designs={designs} selectedCode={selected ?? saved} onSelect={code => {
+    if (!scope.isDraftCurrent() || inFlight.current) return;
+    setSelected(code);
+    ownerIntake.set({ design: code });
+  }} onUse={use}
+    headerRight={<OwnerSaveExit disabled={busy} canExit={() => !inFlight.current}
+      title={scope.site && scope.site.phase !== 'draft' ? 'Back to Today' : undefined} />}
     onBack={() => scope.site && scope.site.phase !== 'draft' ? router.replace('/(owner)/(tabs)/site' as never) : router.back()}
     busy={busy} disabled={!scope.id || !ownSub} canUse={!scope.isOffline && (!scope.site || scope.site.phase === 'draft')}
     isOffline={scope.isOffline} error={scope.site && scope.site.phase !== 'draft' ? 'Your site is already sent. Ask for design changes from My site.' : scope.isOffline ? 'Reconnect to use this design and send your site.' : error} />;

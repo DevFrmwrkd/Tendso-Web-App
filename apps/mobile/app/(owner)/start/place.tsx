@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { Field } from '../../../components/v2/owner/OwnerUI';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { CaptureLocationPicker, validCaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
 import { sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
 import { useCreateDraft, useOwnerSubmission, useUpdateDraft } from '../../../lib/v2/ownerData';
@@ -111,6 +112,7 @@ function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     footer={<Button title="View my site" onPress={() => router.replace('/(owner)/(tabs)/site' as never)} />} />;
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScreenShell title="What's your shop called?" subtitle="And where is it?" progress={startProgress('place')}
+      headerRight={<OwnerSaveExit disabled={busy || mapOpen} canExit={() => !inFlight.current} />}
       onBack={() => { if (!inFlight.current && scope.isCurrent()) router.dismissTo(STEP_ROUTE.sell as never); }} contentStyle={styles.content}
       footer={<Button title="Next" onPress={() => { void next(); }} loading={busy} disabled={scope.isOffline || (!!scope.id && !ownSub) || !name.trim() || !address.trim()} />}>
       <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={value => { if (persist({ businessName: value }, ['businessName'])) setName(value); }} autoCapitalize="words" editable={!busy} />

@@ -20,6 +20,7 @@ export type OwnerDesignGalleryProps = {
   onSelect: (code: string) => void;
   onUse: (code: string) => void | Promise<unknown>;
   onBack: () => void;
+  headerRight?: React.ReactNode;
   busy?: boolean;
   disabled?: boolean;
   error?: string | null;
@@ -50,7 +51,7 @@ function SamplePreview({ design, offline, width, height, scale = 1, testID }: {
 }
 
 /** Presentation only: the owner route saves the choice, drains uploads and starts the build. */
-export function OwnerDesignGallery({ designs, selectedCode, onSelect, onUse, onBack,
+export function OwnerDesignGallery({ designs, selectedCode, onSelect, onUse, onBack, headerRight,
   busy = false, disabled = false, error, isOffline = false, canUse = true }: OwnerDesignGalleryProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -125,6 +126,7 @@ export function OwnerDesignGallery({ designs, selectedCode, onSelect, onUse, onB
     loading={busy || using} disabled={disabled || !canUse || !code} />;
 
   return <ScreenShell title="Choose your design" progress={0.75} onBack={() => { if (!locked && !useBusy.current) onBack(); }}
+    headerRight={headerRight}
     contentStyle={styles.body} testID="owner-design-gallery" footer={<>
       {notice ? <Text tone="danger" align="center" accessibilityRole="alert">{notice}</Text> : null}
       {useButton(current?.code)}

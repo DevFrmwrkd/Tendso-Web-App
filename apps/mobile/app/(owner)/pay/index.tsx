@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { BigNumber, Button, Card, ScreenShell, Text } from '../../../components/v2';
 import { OwnerSiteSummary } from '../../../components/v2/owner/OwnerSiteSummary';
 import { OwnerCreatorCode } from '../../../components/v2/owner/OwnerCreatorCode';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { peso } from '../../../lib/v2/ownerContent';
 import { useOwnerCreatorCode, usePaymentState, usePreview } from '../../../lib/v2/ownerData';
 import { OWNER_SAMPLE_DATA } from '../../../lib/v2/ownerFlags';
@@ -52,6 +53,7 @@ export default function Pay() {
     return (
       <ScreenShell
         title="Pay the rest"
+        headerRight={<OwnerSaveExit title="Back to Today" disabled={codeBusy} canExit={() => !changingCode.current} />}
         subtitle={`You paid ${peso(pay.amountPaid)}.`}
         onBack={() => router.back()}
         footer={<Button title={`Pay ${peso(pay.balanceDue)}`} disabled={codeBusy || !quoteReady} onPress={() => method('balance', pay.balanceDue)} />}
@@ -67,6 +69,7 @@ export default function Pay() {
   return (
     <ScreenShell
       title={isLive ? 'Pay for your site' : 'Publish your site'}
+      headerRight={<OwnerSaveExit title="Back to Today" disabled={codeBusy} canExit={() => !changingCode.current} />}
       subtitle={isLive ? 'Your site is already live. Pay once.' : 'See it first. Pay once to publish.'}
       onBack={() => router.back()}
       footer={

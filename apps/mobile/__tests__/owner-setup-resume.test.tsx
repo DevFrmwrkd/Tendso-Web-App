@@ -125,6 +125,24 @@ it('waits for confirmation persistence before navigating and deduplicates Next t
   expect(mockPush).toHaveBeenCalledWith(STEP_ROUTE['talk-intro']);
 });
 
+it.each([
+  ['By myself. You film yourself', 'self'], ['With a friend. A friend films you', 'friend'],
+] as const)('saves %s and exits to Today without advancing the interview', async (label, how) => {
+  const screen = wrap(<How />);
+  fireEvent.press(screen.getByRole('radio', { name: label }));
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Save & exit' })); });
+  expect(mockDismissTo).toHaveBeenCalledWith(STEP_ROUTE.home);
+  expect(mockPush).not.toHaveBeenCalled(); expect(mockReplace).not.toHaveBeenCalled();
+  expect(ownerIntake.get()).toMatchObject({ submissionId: id, how, howConfirmedFor: id });
+  screen.unmount();
+  await ownerIntake.bindActor('different-owner');
+  await ownerIntake.bindActor(mockSubject);
+  const reopened = wrap(<How />);
+  expect(reopened.getByRole('radio', { name: label }).props.accessibilityState.selected).toBe(true);
+  reopened.unmount();
+  expect(destination(wrap(<OwnerIndex />))).toBe(STEP_ROUTE['talk-intro']);
+});
+
 it.each(['account', 'site', 'unmount'])('does not navigate when confirmation finishes after %s changes', async (change) => {
   const persisted = deferred(); jest.spyOn(ownerIntake, 'flush').mockReturnValueOnce(persisted.promise);
   const screen = wrap(<How />);

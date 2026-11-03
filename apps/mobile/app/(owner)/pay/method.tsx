@@ -10,6 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Button, Loading, ScreenShell, Text } from '../../../components/v2';
 import { OptionRow } from '../../../components/v2/owner/OwnerUI';
 import { OwnerSiteSummary } from '../../../components/v2/owner/OwnerSiteSummary';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { peso } from '../../../lib/v2/ownerContent';
 import { useCreateCheckout, useCreatePayToken, usePaymentState, wisePayUrl } from '../../../lib/v2/ownerData';
 import { STEP_ROUTE } from '../../../lib/v2/ownerFlow';
@@ -103,6 +104,7 @@ function PaymentMethod({ owner }: { owner: ReturnType<typeof useOwnerSite> }) {
   return (
     <ScreenShell
       title="How do you pay?"
+      headerRight={<OwnerSaveExit title="Back to Today" disabled={busy} canExit={() => !saving.current} />}
       onBack={() => router.back()}
       footer={
         <>

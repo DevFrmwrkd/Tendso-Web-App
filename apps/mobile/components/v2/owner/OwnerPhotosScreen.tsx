@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ScreenShell, Text } from '..';
 import { OwnerMediaPreview } from './OwnerMediaPreview';
+import { OwnerSaveExit } from './OwnerSaveExit';
 import { shotList } from '../../../lib/v2/captureContent';
 import { sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
@@ -62,6 +63,7 @@ function Photos({ scope, summary }: { scope: ReturnType<typeof useOwnerScope>; s
     else shoot();
   };
   return <ScreenShell title={summary ? 'Your photos' : 'Show us your shop'}
+    headerRight={<OwnerSaveExit title={readOnly ? 'Back to Today' : undefined} disabled={picking} canExit={() => !pickingNow.current} />}
     subtitle={summary ? `${photos.length} photos · tap a photo to see it` : '10 photo ideas for your shop. Add at least 3.'}
     progress={0.5} onBack={() => { if (!pickingNow.current) summary ? router.replace(STEP_ROUTE['photos-intro'] as never) : router.back(); }}
     contentStyle={styles.content} footer={<>

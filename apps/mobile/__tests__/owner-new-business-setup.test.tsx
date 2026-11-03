@@ -138,6 +138,29 @@ it('keeps unsaved local fields, including deliberate empty text, across late ser
   expect(reopened.getByLabelText('City').props.value).toBe('');
 });
 
+it.each(['new', 'existing'] as const)('saves edited fields and exits a %s business without sending network updates', async workspace => {
+  if (workspace === 'new') { ownerIntake.beginBusiness(); ownerIntake.set({ kind: 'food' }); }
+  else ownerIntake.selectBusiness(betaId);
+  const screen = wrap(<Place />);
+  fireEvent.changeText(screen.getByLabelText('Shop name'), 'Unfinished corner shop');
+  fireEvent.changeText(screen.getByLabelText('Address'), '');
+  fireEvent.changeText(screen.getByLabelText('City'), 'Pasig');
+  await act(async () => { fireEvent.press(screen.getByRole('button', { name: 'Save & exit' })); });
+  expect(mockDismissTo).toHaveBeenCalledWith(STEP_ROUTE.home);
+  expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
+  expect(mockPush).not.toHaveBeenCalled();
+  expect(ownerIntake.get()).toMatchObject({ businessName: 'Unfinished corner shop', address: '', city: 'Pasig',
+    detailsDirty: expect.arrayContaining(['businessName', 'address', 'city']) });
+  screen.unmount();
+  await ownerIntake.bindActor('different-owner');
+  await ownerIntake.bindActor(mockSubject);
+  const reopened = wrap(<Place />);
+  expect(reopened.getByDisplayValue('Unfinished corner shop')).toBeTruthy();
+  expect(reopened.getByLabelText('Address').props.value).toBe('');
+  expect(reopened.getByDisplayValue('Pasig')).toBeTruthy();
+  expect(ownerIntake.get().newBusiness === true).toBe(workspace === 'new');
+});
+
 it('updates only the selected existing draft and clears its unsaved-field marker after success', async () => {
   ownerIntake.selectBusiness(betaId);
   const screen = wrap(<Place />);

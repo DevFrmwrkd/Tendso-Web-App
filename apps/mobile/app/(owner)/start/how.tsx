@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { WayCard } from '../../../components/v2/owner/OwnerUI';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { ownerIntake, useOwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE, startProgress } from '../../../lib/v2/ownerFlow';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
@@ -47,6 +48,9 @@ function PhoneChoice({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     <ScreenShell
       title="Who holds the phone?"
       progress={startProgress('how')}
+      headerRight={<OwnerSaveExit disabled={busy} canExit={() => !saving.current} beforeSave={() => {
+        if (scope.id && how && scope.isDraftCurrent()) ownerIntake.set({ submissionId: scope.id, how, howConfirmedFor: scope.id });
+      }} />}
       onBack={() => { if (!saving.current && scope.isCurrent()) router.dismissTo(STEP_ROUTE.place as never); }}
       footer={
         <>

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { OptionRow } from '../../../components/v2/owner/OwnerUI';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { SELL_KINDS, sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake, type OwnerIntake } from '../../../lib/v2/ownerIntake';
@@ -52,6 +53,7 @@ function SellChoice({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     <ScreenShell
       title="What do you sell?"
       progress={startProgress('sell')}
+      headerRight={<OwnerSaveExit disabled={busy} canExit={() => !saving.current} />}
       onBack={scope.isNewBusiness || router.canGoBack() ? back : undefined}
       footer={
         <>

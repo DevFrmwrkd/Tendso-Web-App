@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BigNumber, Button, Loading, ScreenShell, Text } from '../../../components/v2';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { peso } from '../../../lib/v2/ownerContent';
 import { usePaymentState } from '../../../lib/v2/ownerData';
 import { canPayPart, clampDownPayment, stepDownPayment, suggestedDownPayment } from '../../../lib/v2/payMath';
@@ -42,6 +43,7 @@ export default function PayPart() {
   return (
     <ScreenShell
       title="How much now?"
+      headerRight={<OwnerSaveExit title="Back to Today" />}
       subtitle={`The rest, ${peso(total - shownAmount)}, later.`}
       onBack={() => router.back()}
       footer={

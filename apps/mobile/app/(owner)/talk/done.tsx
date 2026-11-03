@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Banner, Button, Card, ProgressBar, ScreenShell, Text } from '../../../components/v2';
 import { OwnerMediaPreview } from '../../../components/v2/owner/OwnerMediaPreview';
+import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
 import { formatClock } from '../../../components/v2/capture/level';
 import { EXTRA_QUESTION, INTERVIEW_QUESTIONS } from '../../../lib/v2/captureContent';
 import { useOwnerSubmission } from '../../../lib/v2/ownerData';
@@ -38,6 +39,7 @@ function AnswerSummary({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
     router.push({ pathname: '/(owner)/talk/record', params: { answer: String(index) } } as never);
   };
   return <ScreenShell title={name ? `Got it, ${name}.` : 'Your answers'} subtitle="Your own words help us build your site." progress={0.25}
+    headerRight={<OwnerSaveExit title={readOnly ? 'Back to Today' : undefined} />}
     onBack={() => router.replace(STEP_ROUTE['talk-intro'] as never)} contentStyle={styles.content}
     footer={<>
       {!readOnly && q.failed > 0 ? <Button title="Retry saving answers" variant="ghost" onPress={() => uploadQueue.retry()} /> : null}
