@@ -34,6 +34,7 @@ import { QueueHead, QueueRowButton, QueueSkeleton } from "./Rows"
 import { QueueSearch, SortMenu } from "./Toolbar"
 import { GiveawaySummary } from "./GiveawaySummary"
 import { GiveawayFilters } from "./GiveawayFilters"
+import styles from "./SubmissionWorkspace.module.css"
 
 /** A list page shows one table page of about ten rows (admin tables: 8–10 a page). */
 const PAGE_SIZE = 10
@@ -287,13 +288,18 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
 
     return (
         <>
-            <GiveawaySummary
-                status={giveaway}
-                onEnabledChange={isAdmin ? handleGiveawayChange : undefined}
-                busy={giveawaySaving}
-                error={giveawayError}
-            />
-            <GiveawayFilters value={giveawayFilter} counts={giveawayStageCounts} onChange={changeGiveawayFilter} />
+            <details className={styles.giveaway} open={giveawayFilter !== null}>
+                <summary><span><strong>Giveaway management</strong><span>Intake settings and approval stages</span></span><span className={styles.giveawayState}>{giveaway ? `${giveaway.slotsLeft} slots left` : 'Loading…'}</span></summary>
+                <div className={styles.giveawayBody}>
+                    <GiveawaySummary
+                        status={giveaway}
+                        onEnabledChange={isAdmin ? handleGiveawayChange : undefined}
+                        busy={giveawaySaving}
+                        error={giveawayError}
+                    />
+                    <GiveawayFilters value={giveawayFilter} counts={giveawayStageCounts} onChange={changeGiveawayFilter} />
+                </div>
+            </details>
             <Tabs
                 label="Status"
                 tabs={STATUS_TABS.map((t) => ({ value: t.key, label: t.label, count: counts[t.key] }))}

@@ -194,7 +194,14 @@ Web versions of features that also exist in the app are merged into section 5 (b
 
 ## 7. Admin (web + app)
 
-Not redesigned in the mock: default keep as is, restyle.
+The web admin now uses the Tendso workspace redesign: Onest headings, warm
+canvas, lime actions, rounded cards, shared form/table/detail styling and a
+responsive navigation drawer. `AdminShell.tsx` owns that visual scope; the
+submission editor applies the same theme around its compact review rail.
+Today includes real review, field-agent approval, visit-dispatch and failed
+payout queues. Giveaway settings expand above the submission queue. The
+existing role gates and workflow actions are retained; the view switch is
+integrated in the header and remains available on dashboard preview routes.
 
 | ID | Feature | Where today | Who | Where in new design | Phase | Target | Done |
 |---|---|---|---|---|---|---|---|

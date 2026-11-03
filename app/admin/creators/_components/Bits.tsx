@@ -6,6 +6,7 @@ import { cx } from "@/components/r1";
 import type { Id } from "@/convex/_generated/dataModel";
 
 import { formatPhone } from "../_lib/creators";
+import styles from "./CreatorDetails.module.css";
 
 /*
  * The drawer's building blocks from the Creators board (its cr- classes),
@@ -15,8 +16,8 @@ import { formatPhone } from "../_lib/creators";
 
 export function Section({ title, aside, help, id, children }: { title: ReactNode; aside?: ReactNode; help?: ReactNode; id?: string; children: ReactNode }) {
     return (
-        <section className="flex flex-col gap-3" aria-labelledby={id}>
-            <div className="flex items-end justify-between gap-3">
+        <section className={cx("flex flex-col gap-3", styles.section)} aria-labelledby={id}>
+            <div className={styles.sectionHeading}>
                 <div className="flex min-w-0 flex-col gap-0.5">
                     <h3 className="t-h2" id={id}>
                         {title}
@@ -33,7 +34,7 @@ export function Section({ title, aside, help, id, children }: { title: ReactNode
 /** A bordered line: what it is on the left, one action (or a status) on the right. */
 export function Line({ title, meta, children, className }: { title: ReactNode; meta?: ReactNode; children?: ReactNode; className?: string }) {
     return (
-        <div className={cx("flex items-center justify-between gap-4 rounded-r1-card border border-r1-line px-4 py-3.5", className)}>
+        <div className={cx(styles.line, className)}>
             <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-sm font-medium text-r1-ink">{title}</span>
                 {meta && <span className="t-meta">{meta}</span>}
@@ -46,11 +47,11 @@ export function Line({ title, meta, children, className }: { title: ReactNode; m
 /** Submissions, Earned, Balance: three figures in one hairline strip (board cr-facts). */
 export function Facts({ items }: { items: { label: string; value: ReactNode }[] }) {
     return (
-        <div className="grid grid-cols-3 rounded-r1-card border border-r1-line">
-            {items.map((f, i) => (
-                <div key={f.label} className={cx("flex min-w-0 flex-col gap-1 px-3 py-3.5 sm:px-4", i > 0 && "border-l border-r1-line")}>
+        <div className={styles.facts}>
+            {items.map((f) => (
+                <div key={f.label} className={styles.fact}>
                     <span className="t-label">{f.label}</span>
-                    <span className="t-num truncate text-xl font-semibold leading-7 tracking-[-0.01em] text-r1-ink">{f.value}</span>
+                    <span className={styles.value}>{f.value}</span>
                 </div>
             ))}
         </div>

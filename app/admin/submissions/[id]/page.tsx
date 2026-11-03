@@ -25,6 +25,7 @@ import { PregenOverview } from "./_components/PregenOverview";
 import { ReviewHeader } from "./_components/ReviewHeader";
 import { ReviewRail } from "./_components/ReviewRail";
 import { buildIntakeRows, checklistFor, clientEmailsFor, formatDate } from "./_components/review";
+import adminTheme from "@/app/admin/components/AdminShell.module.css";
 
 /**
  * The review & editor workspace (board Review): one submission, from "is
@@ -59,7 +60,7 @@ function parseFold(value: string | null): FoldKey | null {
 /** The skeleton of the workspace: header, panel, preview. Same shape as the page. */
 function WorkspaceSkeleton() {
     return (
-        <div className="r1 flex h-[calc(100dvh-4rem)] overflow-hidden bg-r1-paper">
+        <div className={`r1 flex h-dvh overflow-hidden ${adminTheme.shell}`}>
             <Loading label="Loading the submission" className="flex min-w-0 flex-1 flex-col">
                 <div className="flex h-16 flex-none items-center gap-3 border-b border-r1-line px-4">
                     <Skeleton width={110} height={28} />
@@ -941,7 +942,7 @@ function SubmissionReview() {
     if (orphanedAssetsNotice) {
         const n = orphanedAssetsNotice.failed.length;
         return (
-            <div className="r1 flex h-[calc(100dvh-4rem)] overflow-hidden bg-r1-paper">
+            <div className={`r1 flex h-dvh overflow-hidden ${adminTheme.shell}`}>
                 <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
                 <main className="flex min-w-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-6">
                     <div className="t-empty max-w-[560px]">
@@ -975,7 +976,7 @@ function SubmissionReview() {
 
     if (!s) {
         return (
-            <div className="r1 flex h-[calc(100dvh-4rem)] overflow-hidden bg-r1-paper">
+            <div className={`r1 flex h-dvh overflow-hidden ${adminTheme.shell}`}>
                 <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
                 <main className="flex min-w-0 flex-1 items-center justify-center p-4 sm:p-6">
                     <EmptyState
@@ -1285,7 +1286,7 @@ function SubmissionReview() {
     const campaignKey = normalizeCampaign(s.campaign);
 
     return (
-        <div className="r1 flex h-[calc(100dvh-4rem)] overflow-hidden bg-r1-paper">
+        <div className={`r1 flex h-dvh overflow-hidden ${adminTheme.shell}`}>
             <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
 
             <div className="flex min-w-0 flex-1 flex-col">

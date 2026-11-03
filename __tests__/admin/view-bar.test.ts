@@ -22,10 +22,10 @@ function findSelect(node: ReactNode): ReactElement<SelectProps> | undefined {
     }
 }
 
-function renderBar() {
+function renderBar(standalone = false) {
     let tree: ReactNode;
     function Capture() {
-        tree = AdminViewBar();
+        tree = AdminViewBar({ standalone });
         return tree;
     }
     const html = renderToStaticMarkup(createElement(Capture));
@@ -55,6 +55,32 @@ describe("admin dashboard view switch", () => {
     it("renders no selector when the authenticated access hook does not grant admin access", () => {
         state.isAdmin = false;
         expect(renderBar().html).toBe("");
+        expect(state.push).not.toHaveBeenCalled();
+    });
+
+    it.each(["/admin", "/admin/submissions", "/profile"])("omits the standalone bar on %s where the admin shell owns the selector", (pathname) => {
+        state.pathname = pathname;
+        expect(renderBar(true).html).toBe("");
+        expect(renderBar().select?.props.value).toBe("admin");
+        expect(state.push).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ["/admin/preview/affiliate", "affiliate"],
+        ["/admin/preview/creator", "creator"],
+    ])("keeps the standalone selector on %s so admins can return to their workspace", (pathname, selected) => {
+        state.pathname = pathname;
+        const { html, select } = renderBar(true);
+        expect(html).toContain("View as");
+        expect(select?.props.value).toBe(selected);
+        select!.props.onChange({ target: { value: "admin" } } as ChangeEvent<HTMLSelectElement>);
+        expect(state.push).toHaveBeenCalledExactlyOnceWith("/admin");
+    });
+
+    it("does not expose a standalone selector to a non-admin on preview routes", () => {
+        state.pathname = "/admin/preview/affiliate";
+        state.isAdmin = false;
+        expect(renderBar(true).html).toBe("");
         expect(state.push).not.toHaveBeenCalled();
     });
 

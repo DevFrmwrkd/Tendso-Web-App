@@ -23,5 +23,5 @@ export default async function AdminRouteLayout({ children }: { children: React.R
 
     // Layouts persist across client navigation. The client boundary checks
     // each pathname again, as well as live role changes and auth hydration.
-    return <AdminAccessGate><AdminViewBar />{children}</AdminAccessGate>;
+    return <AdminAccessGate><AdminViewBar standalone />{children}</AdminAccessGate>;
 }

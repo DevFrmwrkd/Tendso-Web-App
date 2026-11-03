@@ -4,17 +4,15 @@ import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { Home, Inbox, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet, LayoutTemplate, CalendarDays } from "lucide-react"
 
-import { AppShell, type NavEntry, type SidebarProps } from "@/components/r1"
+import { type NavEntry, type SidebarProps } from "@/components/r1"
+import AdminShell from "./AdminShell"
 import { api } from "@/convex/_generated/api"
 import { useAdminAuth } from "@/hooks/useAdmin"
 import { isActiveTeamAccount } from "@/lib/admin-access"
 
 /**
- * The admin and staff frame (board AdminHome, ComponentKit "Sidebars").
- *
- * One 10-item sidebar in two groups: the day's work, then the settings. No
- * fixed header repeating "Overview", no footer. The person sits at the foot
- * and opens Account (which also holds Sign out).
+ * The admin and staff access boundary supplies the shared Tendso workspace.
+ * Navigation retains review counts, merged-route highlighting and Account.
  *
  * Old routes merged into these screens light their item: Call stats is the
  * Stats tab of Calls, App release is the App links tab of Site settings.
@@ -96,5 +94,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!canAccess) return null
     // A suspended team member can still use Account, including Sign out,
     // without seeing the admin frame or starting its protected queries.
-    return isActiveTeamAccount(me) ? <AppShell sidebar={sidebar}>{children}</AppShell> : children
+    return isActiveTeamAccount(me) ? <AdminShell sidebar={sidebar}>{children}</AdminShell> : children
 }

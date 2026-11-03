@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { Avatar, Button, ErrorState, Icon, Toaster } from "@/components/r1";
+import styles from "./CreatorDetails.module.css";
 
 /*
  * The creator drawer's frame: the same 480px right drawer as the shared
@@ -115,7 +116,7 @@ export function DrawerHead({
     children?: ReactNode;
 }) {
     return (
-        <div className="t-drawer-head">
+        <div className={`t-drawer-head ${styles.head}`}>
             <div className="flex min-w-0 items-center gap-3">
                 <Avatar name={avatar} size="lg" />
                 <div className="flex min-w-0 flex-col gap-0.5">

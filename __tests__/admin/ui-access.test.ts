@@ -40,8 +40,8 @@ vi.mock("convex/react", () => ({
         return name === "adminAccess:me" ? state.session : [];
     },
 }));
-vi.mock("@/components/r1", () => ({
-    AppShell: ({ children, sidebar }: { children: ReactNode; sidebar: { roleLabel: string; items: ({ label: string } | string)[] } }) => createElement("main", { "data-admin-shell": sidebar.roleLabel },
+vi.mock("@/app/admin/components/AdminShell", () => ({
+    default: ({ children, sidebar }: { children: ReactNode; sidebar: { roleLabel: string; items: ({ label: string } | string)[] } }) => createElement("main", { "data-admin-shell": sidebar.roleLabel },
         createElement("nav", {}, sidebar.items.filter((item) => typeof item !== "string").map((item, index) => createElement("span", { key: index }, typeof item === "string" ? item : item.label))), children),
 }));
 vi.mock("../../app/admin/components/AdminViewBar", () => ({
