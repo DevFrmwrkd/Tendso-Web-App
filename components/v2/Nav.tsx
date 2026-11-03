@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { cx } from "./cx";
-import { V2_NAV_LINKS, type V2Link } from "./links";
+import { V2_NAV_LINKS, V2_ROUTES, type V2Link } from "./links";
 
 /**
  * Fixed top nav. 84px tall, tightening to 60px with a blurred canvas once the page
@@ -18,7 +18,7 @@ export function Nav({
     links = V2_NAV_LINKS,
     secondaryAction,
     primaryAction,
-    homeHref = "/v2",
+    homeHref = V2_ROUTES.home,
 }: {
     links?: readonly V2Link[];
     /** Outline button, hidden under 900px. */

@@ -134,6 +134,49 @@ describe('owner inbox read semantics and factual history', () => {
 });
 
 describe('owner push recipient isolation', () => {
+    it.each([undefined, true])('retains enabled registration compatibility when enabled=%s', async enabled => {
+        const { t, owner, ownerId } = await setup();
+        expect(await owner.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'owner', ...(enabled === undefined ? {} : { enabled }) })).toEqual({ registered: true });
+        expect(await t.run(ctx => ctx.db.query('ownerPushTokens').collect())).toEqual([expect.objectContaining({ ownerId, token: DEVICE, active: true })]);
+    });
+
+    it('atomically moves an old account device to the opted-out current owner and keeps stale cleanup isolated', async () => {
+        const { t, owner, other, ownerId, otherOwnerId, creatorId, submissionId, list } = await setup({ previewReadyAt: NOW - 1000 });
+        await t.run(ctx => ctx.db.insert('websiteOwnerships', { businessOwnerId: otherOwnerId, submissionId, role: 'owner', claimedAt: NOW }));
+        const key = (await list())!.items[0].key;
+        await owner.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'owner' });
+        expect(await t.query(internal.ownerInbox.pushRecipients, { ownerId, eventKey: key })).toHaveLength(1);
+        const generic = await t.run(ctx => ctx.db.insert('pushTokens', { creatorId, token: DEVICE, platform: 'ios', active: true }));
+
+        expect(await other.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'other-owner', enabled: false })).toEqual({ registered: false });
+        expect(await t.query(internal.ownerInbox.pushRecipients, { ownerId, eventKey: key })).toEqual([]);
+        expect(await t.query(internal.ownerInbox.pushRecipients, { ownerId: otherOwnerId, eventKey: key })).toEqual([]);
+        expect(await t.run(ctx => ctx.db.query('ownerPushTokens').collect())).toEqual([expect.objectContaining({ ownerId: otherOwnerId, token: DEVICE, active: false })]);
+        expect((await t.run(ctx => ctx.db.get(generic)))?.active).toBe(false);
+
+        // The new owner can enable the same device later. An old, delayed logout
+        // remains owner-scoped and cannot disable that new registration.
+        await other.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'other-owner', enabled: true });
+        await owner.mutation(api.ownerInbox.removePushToken, { token: DEVICE, clerkId: 'owner' });
+        expect(await t.query(internal.ownerInbox.pushRecipients, { ownerId, eventKey: key })).toEqual([]);
+        expect(await t.query(internal.ownerInbox.pushRecipients, { ownerId: otherOwnerId, eventKey: key })).toHaveLength(1);
+    });
+
+    it('can claim an unregistered device inactive without scheduling or delivering a push', async () => {
+        const { t, owner, ownerId, jobs } = await setup();
+        expect(await owner.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'android', clerkId: 'owner', enabled: false })).toEqual({ registered: false });
+        expect(await t.run(ctx => ctx.db.query('ownerPushTokens').collect())).toEqual([expect.objectContaining({ ownerId, token: DEVICE, platform: 'android', active: false })]);
+        expect(await jobs()).toEqual([]);
+    });
+
+    it('rejects stale actors and unauthenticated inactive claims without changing the current registration', async () => {
+        const { t, owner, other, ownerId } = await setup();
+        await owner.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'owner' });
+        await expect(other.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', clerkId: 'owner', enabled: false })).rejects.toThrow('account changed');
+        await expect(t.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios', enabled: false })).rejects.toThrow('sign in');
+        expect(await t.run(ctx => ctx.db.query('ownerPushTokens').collect())).toEqual([expect.objectContaining({ ownerId, token: DEVICE, active: true })]);
+    });
+
     it('requires an authenticated owner and a valid native token', async () => {
         const { t, owner, creator } = await setup();
         await expect(t.mutation(api.ownerInbox.registerPushToken, { token: DEVICE, platform: 'ios' })).rejects.toThrow('sign in');

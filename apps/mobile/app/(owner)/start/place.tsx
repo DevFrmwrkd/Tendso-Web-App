@@ -1,19 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Button, ScreenShell, Text } from '../../../components/v2';
 import { Field } from '../../../components/v2/owner/OwnerUI';
 import { OwnerSaveExit } from '../../../components/v2/owner/OwnerSaveExit';
-import { CaptureLocationPicker, validCaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
+import { validCaptureCoordinates } from '../../../components/field-agent/CaptureLocationPicker';
+import { OwnerLocationMap } from '../../../components/v2/owner/OwnerLocationMap';
 import { sellKind, sellKindFromServer } from '../../../lib/v2/ownerContent';
 import { useCreateDraft, useOwnerSubmission, useUpdateDraft } from '../../../lib/v2/ownerData';
 import { ownerIntake, useOwnerIntake, type OwnerIntake } from '../../../lib/v2/ownerIntake';
 import { STEP_ROUTE, startProgress } from '../../../lib/v2/ownerFlow';
 import { ownerSiteRoute } from '../../../lib/v2/ownerNavigation';
 import { useOwnerScope } from '../../../lib/v2/useOwnerScope';
-import { colors, radius, space } from '../../../theme/v2';
+import { space } from '../../../theme/v2';
 
 type DetailKey = 'businessName' | 'address' | 'city' | 'coordinates';
 
@@ -33,7 +32,6 @@ function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
   const [address, setAddress] = useState(local.address ?? ownSub?.address ?? '');
   const [city, setCity] = useState(local.city ?? ownSub?.city ?? '');
   const [coords, setCoords] = useState(local.coordinates ?? ownSub?.coordinates ?? undefined);
-  const [mapOpen, setMapOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
@@ -104,44 +102,22 @@ function PlaceForm({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
       if (current()) setError(cause instanceof Error ? cause.message : 'Could not save your shop. Please try again.');
     } finally { inFlight.current = false; if (current()) setBusy(false); }
   };
-  const hasPin = validCaptureCoordinates(coords);
-  const region = hasPin ? { latitude: coords.lat, longitude: coords.lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }
-    : { latitude: 14.5995, longitude: 120.9842, latitudeDelta: 0.3, longitudeDelta: 0.3 };
   if (scope.site && scope.site.phase !== 'draft') return <ScreenShell title="Your shop details are saved"
     subtitle="To update your website, send a change request to the team."
     footer={<Button title="View my site" onPress={() => router.replace('/(owner)/(tabs)/site' as never)} />} />;
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <ScreenShell title="What's your shop called?" subtitle="And where is it?" progress={startProgress('place')}
-      headerRight={<OwnerSaveExit disabled={busy || mapOpen} canExit={() => !inFlight.current} />}
+      headerRight={<OwnerSaveExit disabled={busy} canExit={() => !inFlight.current} />}
       onBack={() => { if (!inFlight.current && scope.isCurrent()) router.dismissTo(STEP_ROUTE.sell as never); }} contentStyle={styles.content}
       footer={<Button title="Next" onPress={() => { void next(); }} loading={busy} disabled={scope.isOffline || (!!scope.id && !ownSub) || !name.trim() || !address.trim()} />}>
       <Field label="Shop name" icon="storefront-outline" value={name} onChangeText={value => { if (persist({ businessName: value }, ['businessName'])) setName(value); }} autoCapitalize="words" editable={!busy} />
       <Field label="Address" icon="location-outline" value={address} onChangeText={value => { if (persist({ address: value }, ['address'])) setAddress(value); }} autoCapitalize="words" editable={!busy} />
       <Field label="City" value={city} onChangeText={value => { if (persist({ city: value }, ['city'])) setCity(value); }} autoCapitalize="words" editable={!busy} />
-      <Pressable accessibilityRole="button" accessibilityLabel={hasPin ? 'Adjust shop location on map' : 'Choose shop location on map'}
-        disabled={busy} onPress={() => setMapOpen(true)} style={styles.mapCard}>
-        <View style={styles.map} pointerEvents="none">
-          <MapView key={hasPin ? `${coords.lat}:${coords.lng}` : 'unplaced'} style={styles.flex} initialRegion={region}
-            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined} scrollEnabled={false} zoomEnabled={false}
-            rotateEnabled={false} pitchEnabled={false} showsUserLocation={false}>
-            {hasPin ? <Marker coordinate={{ latitude: coords.lat, longitude: coords.lng }} title="Your shop" /> : null}
-          </MapView>
-        </View>
-        <View style={styles.mapLabel}><Ionicons name="location-outline" size={22} color={colors.ink} />
-          <Text weight="bold" style={styles.flex}>{hasPin ? 'Shop pin added · tap to adjust' : 'Tap the map to pin your shop'}</Text>
-          <Ionicons name="chevron-forward" size={20} color={colors.ink3Text} /></View>
-      </Pressable>
+      <OwnerLocationMap coordinates={coords} disabled={busy} isOffline={scope.isOffline} isCurrent={scope.isCurrent}
+        onChange={point => { if (persist({ coordinates: point }, ['coordinates'])) setCoords(point); }} />
       {scope.isOffline ? <Text tone="muted">Reconnect to save your shop details.</Text> : null}
       {error ? <Text tone="danger" accessibilityRole="alert">{error}</Text> : null}
     </ScreenShell>
-    {mapOpen ? <CaptureLocationPicker coordinates={coords} address={address} city={city} isOffline={scope.isOffline}
-      isCurrent={scope.isCurrent} onClose={() => setMapOpen(false)} onConfirm={location => {
-        if (!scope.isCurrent()) return;
-        if (!persist({ coordinates: location.coordinates, address: location.address, city: location.city }, ['coordinates', 'address', 'city'])) return;
-        setCoords(location.coordinates); setAddress(location.address); setCity(location.city); setMapOpen(false);
-      }} /> : null}
   </KeyboardAvoidingView>;
 }
-const styles = StyleSheet.create({ flex: { flex: 1 }, content: { gap: space.lg },
-  mapCard: { borderRadius: radius.card, overflow: 'hidden', backgroundColor: colors.card },
-  map: { height: 180, backgroundColor: colors.bg2 }, mapLabel: { padding: space.md, minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: space.sm } });
+const styles = StyleSheet.create({ flex: { flex: 1 }, content: { gap: space.lg } });

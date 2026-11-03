@@ -14,7 +14,7 @@ import "./screens.css";
 /*
  * The v2 landing (design mock docs/landing-mock/index.html, brief §4A).
  * Hero → grid of living tiles → people → six steps → paths → footer.
- * Lives at /v2 until Theo approves the swap for /.
+ * Served at /, with /v2 retained for existing links.
  */
 
 export function Landing() {

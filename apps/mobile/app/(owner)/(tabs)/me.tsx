@@ -71,6 +71,9 @@ function OwnerMe({ me }: { me: ReturnType<typeof useOwnerSite>['me'] }) {
   return <ScreenShell title={me?.owner.name || 'Me'} subtitle={me?.owner.email}>
     {error ? <Banner tone="danger" body={error} /> : null}
     <Card style={{ paddingVertical: space.xs }}>
+      <ListRow title="Settings" subtitle="Notifications on this device" icon="settings-outline" divider onPress={() => {
+        if (mounted.current && !busy.current) router.push('/(owner)/me/settings' as never);
+      }} />
       <ListRow title="Help" icon="help-circle-outline" divider onPress={() => {
         if (mounted.current && !busy.current) void WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/v2/help`, { controlsColor: colors.ink }).catch(() => {});
       }} />

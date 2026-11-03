@@ -1,5 +1,4 @@
 import React from 'react';
-import { Platform } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Today from '../app/(owner)/(tabs)/today';
@@ -243,12 +242,9 @@ describe('owner Inbox', () => {
     expect(screen.queryByTestId('owner-notification-full-body')).toBeNull();
   });
 
-  it('uses the mocked permission bridge only after Enable notifications is pressed', async () => {
-    mockDeviceToken.mockResolvedValueOnce('ExpoPushToken[fixture_owner_token]');
-    const screen = wrap(<Inbox />); expect(mockDeviceToken).not.toHaveBeenCalled();
-    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Enable notifications' })));
-    expect(mockDeviceToken).toHaveBeenCalledWith(true, expect.any(Function));
-    expect(mockRegister).toHaveBeenCalledWith({ token: 'ExpoPushToken[fixture_owner_token]', platform: Platform.OS, clerkId: 'owner-a' });
-    expect(screen.getByText('Notifications enabled on this device.')).toBeTruthy();
+  it('keeps notification permissions out of the inbox and never prompts when the bell is opened', () => {
+    const screen = wrap(<Inbox />);
+    expect(screen.queryByRole('button', { name: 'Enable notifications' })).toBeNull();
+    expect(mockDeviceToken).not.toHaveBeenCalled(); expect(mockRegister).not.toHaveBeenCalled();
   });
 });

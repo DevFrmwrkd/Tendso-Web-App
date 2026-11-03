@@ -17,8 +17,8 @@ jest.mock('expo-router', () => ({ useLocalSearchParams: () => mockParams,
 jest.mock('../providers/NetworkProvider', () => ({ useNetwork: () => ({ isConnected: mockConnected }) }));
 jest.mock('../lib/v2/ownerData', () => ({ useRequestVisit: () => mockLegacyLead }));
 jest.mock('../lib/v2/visitRequests', () => ({ ...jest.requireActual('../lib/v2/visitRequests'), useCreateVisitRequest: () => mockRequest }));
-jest.mock('../components/field-agent/CaptureLocationPicker', () => ({
-  CaptureLocationPicker: (props: object) => require('react').createElement(require('react-native').View, { testID: 'visit-pin-picker', ...props }),
+jest.mock('../components/v2/owner/OwnerLocationMap', () => ({
+  OwnerLocationMap: (props: object) => jest.requireActual<typeof import('react')>('react').createElement(jest.requireActual<typeof import('react-native')>('react-native').View, { testID: 'visit-pin-picker', ...props }),
 }));
 jest.mock('../lib/v2/useOwnerSite', () => ({ useOwnerSite: () => ({ id: mockId, site: mockSite, me: mockMe, isNewBusiness: mockNewBusiness }) }));
 jest.mock('../lib/v2/ownerIntake', () => ({ ownerIntake: {
@@ -30,8 +30,7 @@ function fill(screen: ReturnType<typeof render>, name = 'New visit shop') {
   fireEvent.changeText(screen.getByLabelText('Shop name'), name);
   fireEvent.changeText(screen.getByLabelText('Shop address'), ' 12 Main St ');
   fireEvent.changeText(screen.getByLabelText('City or municipality'), ' Marikina ');
-  fireEvent.press(screen.getByRole('button', { name: screen.queryByRole('button', { name: 'Adjust shop pin' }) ? 'Adjust shop pin' : 'Choose shop pin' }));
-  act(() => screen.getByTestId('visit-pin-picker').props.onConfirm({ coordinates: { lat: 14.6, lng: 121.1 }, address: ' 12 Main St ', city: ' Marikina ' }));
+  act(() => screen.getByTestId('visit-pin-picker').props.onChange({ lat: 14.6, lng: 121.1 }));
 }
 const created = () => ({ _id: 'visit-created', ownerId: 'owner-row', actorClerkId: 'owner-clerk' });
 function deferred() {
@@ -57,6 +56,8 @@ it('starts a generic visit with a blank editable name despite a selected busines
   expect(screen.queryByText('[TEST] Selected business')).toBeNull();
   expect(screen.getByLabelText('Your mobile number').props.value).toBe('09171234567');
   expect(screen.getByRole('button', { name: 'Send request' }).props.accessibilityState.disabled).toBe(true);
+  expect(screen.getByTestId('visit-pin-picker')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Choose shop pin' })).toBeNull();
 });
 
 it('does not use the new-business draft name or stale intake owner name', async () => {
@@ -149,15 +150,16 @@ it('deduplicates taps and preserves the entered name after a request error', asy
   expect(retry.getByLabelText('Shop name').props.value).toBe('Keep this name');
 });
 
-it('requires an address, city and confirmed Philippine pin before sending', () => {
+it('shows the map immediately and requires an address, city and Philippine pin before sending', () => {
   const screen = render(<BookVisit />);
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'Kanto shop');
   fireEvent.changeText(screen.getByLabelText('Shop address'), '12 Main St');
   fireEvent.changeText(screen.getByLabelText('City or municipality'), 'Marikina');
   expect(screen.getByRole('button', { name: 'Send request' }).props.accessibilityState.disabled).toBe(true);
-  fireEvent.press(screen.getByRole('button', { name: 'Choose shop pin' }));
-  act(() => screen.getByTestId('visit-pin-picker').props.onConfirm({ coordinates: { lat: 40, lng: 121 }, address: '12 Main St', city: 'Marikina' }));
+  act(() => screen.getByTestId('visit-pin-picker').props.onChange({ lat: 40, lng: 121 }));
   expect(screen.getByRole('button', { name: 'Send request' }).props.accessibilityState.disabled).toBe(true);
+  expect(screen.getByLabelText('Shop address').props.value).toBe('12 Main St');
+  expect(screen.getByLabelText('City or municipality').props.value).toBe('Marikina');
   expect(mockRequest).not.toHaveBeenCalled();
 });
 

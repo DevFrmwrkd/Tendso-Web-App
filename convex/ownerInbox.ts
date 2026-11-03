@@ -48,14 +48,16 @@ export const pushVisitEvent = internalMutation({args:{id:v.id('ownerVisitEvents'
     await ctx.scheduler.runAfter(0,internal.ownerInbox.sendPush,{ownerId:event.ownerId,eventKey:`visit:${event._id}`,title:event.title,body:event.body});
 }});
 
-export const registerPushToken=mutation({args:{token:v.string(),platform:v.union(v.literal('ios'),v.literal('android')),clerkId:v.optional(v.string())},handler:async(ctx,args)=>{
+/** Claim this installation for the current owner, including an explicit inactive opt-out. */
+export const registerPushToken=mutation({args:{token:v.string(),platform:v.union(v.literal('ios'),v.literal('android')),clerkId:v.optional(v.string()),enabled:v.optional(v.boolean())},handler:async(ctx,args)=>{
     const actor=await currentOwner(ctx,args.clerkId); if(!actor) throw new ConvexError('Please sign in again.');
     if(!/^(ExponentPushToken|ExpoPushToken)\[[A-Za-z0-9_-]+\]$/.test(args.token)||args.token.length>250) throw new ConvexError('Invalid device token.');
     const old=await ctx.db.query('ownerPushTokens').withIndex('by_token',q=>q.eq('token',args.token)).first();
-    if(old) await ctx.db.patch(old._id,{ownerId:actor.owner._id,platform:args.platform,active:true});
-    else await ctx.db.insert('ownerPushTokens',{ownerId:actor.owner._id,token:args.token,platform:args.platform,active:true});
+    const active=args.enabled!==false;
+    if(old) await ctx.db.patch(old._id,{ownerId:actor.owner._id,platform:args.platform,active});
+    else await ctx.db.insert('ownerPushTokens',{ownerId:actor.owner._id,token:args.token,platform:args.platform,active});
     for(const token of await ctx.db.query('pushTokens').withIndex('by_token',q=>q.eq('token',args.token)).collect()) await ctx.db.patch(token._id,{active:false});
-    return {registered:true};
+    return {registered:active};
 }});
 export const removePushToken=mutation({args:{token:v.string(),clerkId:v.optional(v.string())},handler:async(ctx,args)=>{
     const actor=await currentOwner(ctx,args.clerkId); if(!actor) return;

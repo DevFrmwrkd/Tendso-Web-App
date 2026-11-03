@@ -1,6 +1,6 @@
 # Tendso redesign: feature inventory (Phase 0)
 
-**Purpose.** Every feature, screen, route and backend job that exists today, mapped to where it lives in the v2 design (`docs/landing-mock/`), so nothing disappears without Theo's approval (IMPLEMENTATION-HANDOFF §3). Built 2026-10-21 from five read-only inventories: web `app/**`, mobile `apps/mobile/app/**`, Convex + `app/api/**`, the mock, and production copy. Done boxes were updated on 2026-10-22 when the design v2 rollout was merged into one branch (`feat/v2-all`); new web pages live under `/v2` until Theo approves the swap for `/`.
+**Purpose.** Every feature, screen, route and backend job that exists today, mapped to where it lives in the v2 design (`docs/landing-mock/`). Built 2026-10-21 from five inventories: web `app/**`, mobile `apps/mobile/app/**`, Convex + `app/api/**`, the mock, and production copy. The rollout is on `feat/v2-all`. On 2026-11-03 the user approved making the newest landing design the `/` homepage. `/v2` remains a compatible, non-indexed landing URL; the other redesigned public pages retain their `/v2/*` routes.
 
 **IDs.** `W-` web route/component · `M-` mobile screen/module · `C-` Convex feature · `A-` Next API route · `BE §n` backend-inventory section that has no ID · `N-` new in the redesign. Rows that exist on web and in the app are merged into one row that cites both IDs, and sit in the area the mock redesigns (usually the app). Open decisions are in the ❓ list for Theo (`questions.md`, 35 questions); rows cite them as Q-numbers.
 

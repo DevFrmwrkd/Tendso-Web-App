@@ -668,3 +668,31 @@ generation and legacy owner editor write/build/upload mutations refuse edits.
 Owned historical editor snapshots remain read-only. Admin/internal generation
 continues through its existing authorized paths. Draft intake selection is
 separate: choosing a design before sending a business does not edit a website.
+
+## 16. Native owner locations and notification settings
+
+Owner draft location and visit-request forms show an inline map. Tapping or
+dragging the pin changes coordinates only; typed address and city stay intact.
+Pin updates preserve the current map zoom. GPS permission is requested only
+after **Use my current location**, and visit requests still require a valid
+Philippine pin before sending.
+
+The notification inbox contains messages and explicit read actions. Push
+permission controls live under **Me → Settings**. Settings read OS permission
+without prompting, distinguish quiet/blocked permissions, refresh on foreground,
+and show enabled/disabled only after the corresponding backend acknowledgement.
+The per-owner device preference and cached token survive app restarts. Turning
+push off leaves the inbox available.
+
+`ownerInbox.registerPushToken` accepts optional `enabled` (default `true`). An
+inactive claim (`enabled:false`) atomically moves this installation token to
+the current owner with `active:false`; this prevents failed previous-account
+logout cleanup from leaking that account's updates into an opted-out session.
+Registration is serialized across owner accounts on the device. Logout removal
+remains guarded to the authenticated token owner, so an old logout cannot
+disable a newer account's registration.
+
+**Open business** selects the event's current owned submission and uses its
+explicit business route. In particular, live businesses open **My site** rather
+than the cold-start **Today** route; an outstanding balance still opens payment.
+Unknown or removed business links never fall back to a different business.

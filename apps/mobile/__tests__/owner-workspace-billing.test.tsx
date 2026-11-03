@@ -17,8 +17,8 @@ jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: mockSubject })
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'visit-request-billing' }));
-jest.mock('../components/field-agent/CaptureLocationPicker', () => ({
-  CaptureLocationPicker: (props: object) => require('react').createElement(require('react-native').View, { testID: 'billing-visit-pin-picker', ...props }),
+jest.mock('../components/v2/owner/OwnerLocationMap', () => ({
+  OwnerLocationMap: (props: object) => jest.requireActual<typeof import('react')>('react').createElement(jest.requireActual<typeof import('react-native')>('react-native').View, { testID: 'billing-visit-pin-picker', ...props }),
 }));
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: (...args: unknown[]) => mockBrowser(...args) }));
 jest.mock('expo-router', () => ({
@@ -180,8 +180,7 @@ it('does not display an old site visit request as sent for a newly selected shop
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'Ben Barber');
   fireEvent.changeText(screen.getByLabelText('Shop address'), '12 Main St');
   fireEvent.changeText(screen.getByLabelText('City or municipality'), 'Marikina');
-  fireEvent.press(screen.getByRole('button', { name: 'Choose shop pin' }));
-  act(() => screen.getByTestId('billing-visit-pin-picker').props.onConfirm({ address: '12 Main St', city: 'Marikina', coordinates: { lat: 14.6, lng: 121.1 } }));
+  act(() => screen.getByTestId('billing-visit-pin-picker').props.onChange({ lat: 14.6, lng: 121.1 }));
   fireEvent.press(screen.getByRole('button', { name: 'Send request' }));
   expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ shopName: 'Ben Barber' }));
   mockId = 'site-b'; mockSite = { ...mockSite, submissionId: mockId, businessName: 'Second shop' }; screen.rerender(<BookVisit />);

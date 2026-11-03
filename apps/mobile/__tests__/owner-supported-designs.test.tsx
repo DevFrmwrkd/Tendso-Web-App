@@ -49,7 +49,9 @@ jest.mock('../components/v2/capture', () => ({
 }));
 jest.mock('../components/field-agent/CaptureLocationPicker', () => ({
   validCaptureCoordinates: (value: { lat?: number; lng?: number } | undefined) => typeof value?.lat === 'number' && typeof value?.lng === 'number',
-  CaptureLocationPicker: (props: object) => require('react').createElement(require('react-native').View, { testID: 'owner-location-picker', ...props }),
+}));
+jest.mock('../components/v2/owner/OwnerLocationMap', () => ({
+  OwnerLocationMap: (props: object) => jest.requireActual<typeof import('react')>('react').createElement(jest.requireActual<typeof import('react-native')>('react-native').View, { testID: 'owner-location-picker', ...props }),
 }));
 
 import Place from '../app/(owner)/start/place';
@@ -241,12 +243,11 @@ it('does not retry or show another draft’s upload queue on a sent interview su
   expect(screen.queryByText('Some answers have not uploaded. Your local recordings are kept on this phone.')).toBeNull();
 });
 
-it('pins the shop through the existing map picker and saves the confirmed coordinates', async () => {
+it('pins the shop directly in the form and saves coordinates without replacing its address', async () => {
   const screen = wrap(<Place />);
-  fireEvent.press(screen.getByLabelText('Choose shop location on map'));
-  act(() => screen.getByTestId('owner-location-picker').props.onConfirm({ coordinates: { lat: 14.65, lng: 121.1 }, address: '20 Rizal St', city: 'Marikina' }));
+  act(() => screen.getByTestId('owner-location-picker').props.onChange({ lat: 14.65, lng: 121.1 }));
   await act(async () => { fireEvent.press(screen.getByText('Next')); });
-  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ submissionId: id, address: '20 Rizal St', coordinates: { lat: 14.65, lng: 121.1 } }));
+  expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ submissionId: id, address: '12 Main St', coordinates: { lat: 14.65, lng: 121.1 } }));
   expect(mockPush).toHaveBeenCalledWith('/(owner)/start/how');
 });
 
@@ -303,8 +304,7 @@ it('sends a preferred visit time without claiming an appointment is confirmed', 
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'Corner bakery');
   fireEvent.changeText(screen.getByLabelText('Shop address'), '12 Main St');
   fireEvent.changeText(screen.getByLabelText('City or municipality'), 'Marikina');
-  fireEvent.press(screen.getByRole('button', { name: 'Choose shop pin' }));
-  act(() => screen.getByTestId('owner-location-picker').props.onConfirm({ address: '12 Main St', city: 'Marikina', coordinates: { lat: 14.6, lng: 121.1 } }));
+  act(() => screen.getByTestId('owner-location-picker').props.onChange({ lat: 14.6, lng: 121.1 }));
   fireEvent.press(screen.getByText('Tomorrow'));
   await act(async () => { fireEvent.press(screen.getByText('Send request')); });
   expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ phone: '09171234567', preferredWhen: 'Tomorrow', shopName: 'Corner bakery', coordinates: { lat: 14.6, lng: 121.1 } }));

@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { Landing } from "@/components/landing-v2/Landing";
 
 /**
- * The new landing page (design v2), on a parallel route until Theo approves the
- * swap for `/`. Kept out of search meanwhile so it does not compete with `/`.
+ * Compatibility URL for the landing design now served at `/`.
+ * Kept out of search so existing /v2 links work without competing with `/`.
  */
 const description = "Talk into the app for 10 simple questions, take 10 guided photos, and your website is ready about 20 minutes later. See it first. Pay once to publish: ₱4,999.";
 

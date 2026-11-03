@@ -9,16 +9,16 @@ export interface V2Link {
  * Change a destination here, nowhere else.
  */
 export const V2_ROUTES = {
-    home: "/v2",
-    how: "/v2#how",
+    home: "/",
+    how: "/#how",
     examples: "/v2/examples",
     business: "/v2/business",
     fieldAgents: "/v2/field-agents",
     creators: "/v2/creators",
     help: "/v2/help",
     contact: "/v2/help#contact",
-    hire: "/v2#hire",
-    download: "/v2#download",
+    hire: "/#hire",
+    download: "/#download",
     about: "/v2/about",
     privacy: "/v2/privacy",
     terms: "/v2/terms",

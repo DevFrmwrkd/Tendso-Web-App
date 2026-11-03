@@ -11,6 +11,7 @@ const mockListeners = new Set<(response: any) => void>();
 const mockGetPermissions = jest.fn();
 const mockRequestPermissions = jest.fn();
 const mockSetChannel = jest.fn();
+const mockGetChannel = jest.fn();
 const mockGetToken = jest.fn();
 const mockRegister = jest.fn();
 const mockQuery = jest.fn();
@@ -25,6 +26,7 @@ jest.mock('expo-notifications', () => ({
   getPermissionsAsync: (...args: unknown[]) => mockGetPermissions(...args),
   requestPermissionsAsync: (...args: unknown[]) => mockRequestPermissions(...args),
   setNotificationChannelAsync: (...args: unknown[]) => mockSetChannel(...args),
+  getNotificationChannelAsync: (...args: unknown[]) => mockGetChannel(...args),
   getExpoPushTokenAsync: (...args: unknown[]) => mockGetToken(...args),
   getLastNotificationResponse: () => mockLastResponse,
   clearLastNotificationResponse: () => mockClearLastResponse(),
@@ -33,8 +35,10 @@ jest.mock('expo-notifications', () => ({
     return { remove: () => { mockListeners.delete(listener); mockRemoveListener(); } };
   },
   DEFAULT_ACTION_IDENTIFIER: 'default',
-  AndroidImportance: { DEFAULT: 3 },
+  AndroidImportance: { DEFAULT: 3, NONE: 0 },
+  IosAuthorizationStatus: { AUTHORIZED: 2, PROVISIONAL: 3, EPHEMERAL: 4 },
 }));
+jest.mock('@react-native-async-storage/async-storage', () => ({ __esModule: true, default: { getItem: jest.fn(async () => null), setItem: jest.fn(async () => undefined) } }));
 jest.mock('expo-device', () => ({ get isDevice() { return mockIsDevice; } }));
 jest.mock('expo-constants', () => ({ __esModule: true, default: {
   get expoConfig() { return { extra: { eas: { projectId: mockProjectId } } }; },
@@ -72,6 +76,7 @@ beforeEach(() => {
   mockGetPermissions.mockReset().mockResolvedValue({ status: 'granted', canAskAgain: true });
   mockRequestPermissions.mockReset().mockResolvedValue({ status: 'granted', canAskAgain: true });
   mockSetChannel.mockReset().mockResolvedValue(undefined);
+  mockGetChannel.mockReset().mockResolvedValue({ importance: 3 });
   mockGetToken.mockReset().mockResolvedValue({ data: 'ExpoPushToken[owner-test-device]' });
   mockRegister.mockReset().mockResolvedValue(undefined);
   mockQuery.mockReset().mockResolvedValue(inbox());
@@ -92,7 +97,7 @@ describe('owner notification permissions and registration', () => {
     expect(mockRegister).toHaveBeenCalledTimes(1);
   });
 
-  it('leaves permission prompting to the explicit inbox action', async () => {
+  it('leaves permission prompting to an explicit settings action', async () => {
     mockGetPermissions.mockResolvedValue({ status: 'undetermined', canAskAgain: true });
     render(bridge()); await settle();
     expect(mockRequestPermissions).not.toHaveBeenCalled();
@@ -156,8 +161,10 @@ describe('owner notification permissions and registration', () => {
     const first = deferred<{ data: string }>(); mockGetToken.mockReturnValueOnce(first.promise);
     const screen = render(bridge()); await settle();
     screen.rerender(bridge('owner-b', 'clerk-b')); await settle();
-    expect(mockRegister).toHaveBeenCalledWith(expect.objectContaining({ clerkId: 'clerk-b' }));
+    expect(mockRegister).not.toHaveBeenCalled();
     await act(async () => { first.resolve({ data: 'ExpoPushToken[old-owner]' }); });
+    await settle();
+    expect(mockRegister).toHaveBeenCalledWith(expect.objectContaining({ clerkId: 'clerk-b' }));
     expect(mockRegister.mock.calls.map(call => call[0].clerkId)).toEqual(['clerk-b']);
     const last = deferred<{ data: string }>(); mockGetToken.mockReturnValueOnce(last.promise);
     screen.rerender(bridge('owner-c', 'clerk-c')); await settle(); screen.unmount();
@@ -274,13 +281,14 @@ describe('owner notification sign-out isolation', () => {
     if (state === 'remove error') remove.mockRejectedValue(new Error('Offline'));
     await expect(unregisterOwnerPush(remove, state === 'signed out' ? null : 'clerk-a', () => state !== 'stale actor')).resolves.toBeUndefined();
     expect(mockRequestPermissions).not.toHaveBeenCalled();
-    if (state !== 'remove error') expect(remove).not.toHaveBeenCalled();
+    if (state === 'signed out' || state === 'stale actor') expect(remove).not.toHaveBeenCalled();
+    else expect(remove).toHaveBeenCalledWith({ token: 'ExpoPushToken[owner-test-device]', clerkId: 'clerk-a' });
   });
 
   it('does not remove another owner’s token when the account changes while token lookup is pending', async () => {
     const pending = deferred<{ data: string }>(); mockGetToken.mockReturnValueOnce(pending.promise);
     const remove = jest.fn(); let current = true;
-    const work = unregisterOwnerPush(remove, 'clerk-a', () => current); await settle();
+    const work = unregisterOwnerPush(remove, 'lookup-owner', () => current); await settle();
     current = false; pending.resolve({ data: 'ExpoPushToken[shared-device]' }); await work;
     expect(remove).not.toHaveBeenCalled();
   });
@@ -288,7 +296,7 @@ describe('owner notification sign-out isolation', () => {
   it('bounds cleanup at 1.5 seconds and never starts a removal after a late token resolves', async () => {
     jest.useFakeTimers(); const pending = deferred<{ data: string }>(); mockGetToken.mockReturnValueOnce(pending.promise);
     const remove = jest.fn(); let done = false;
-    const work = unregisterOwnerPush(remove, 'clerk-a', () => true).then(() => { done = true; });
+    const work = unregisterOwnerPush(remove, 'timeout-owner', () => true).then(() => { done = true; });
     await settle(); await act(async () => { jest.advanceTimersByTime(1499); }); expect(done).toBe(false);
     await act(async () => { jest.advanceTimersByTime(1); }); await work; expect(done).toBe(true);
     await act(async () => { pending.resolve({ data: 'ExpoPushToken[late]' }); });

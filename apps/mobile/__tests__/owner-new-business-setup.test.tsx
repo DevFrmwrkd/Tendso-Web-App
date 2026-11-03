@@ -32,7 +32,9 @@ jest.mock('../lib/v2/ownerData', () => ({
 }));
 jest.mock('../components/field-agent/CaptureLocationPicker', () => ({
   validCaptureCoordinates: (value: { lat?: number; lng?: number } | undefined) => Number.isFinite(value?.lat) && Number.isFinite(value?.lng),
-  CaptureLocationPicker: (props: object) => require('react').createElement(require('react-native').View, { ...props, testID: 'new-business-map-picker' }),
+}));
+jest.mock('../components/v2/owner/OwnerLocationMap', () => ({
+  OwnerLocationMap: (props: object) => jest.requireActual<typeof import('react')>('react').createElement(jest.requireActual<typeof import('react-native')>('react-native').View, { ...props, testID: 'new-business-map-picker' }),
 }));
 
 const alphaId = 'alpha-site' as SubmissionId; const betaId = 'beta-draft' as SubmissionId; const freshId = 'fresh-draft' as SubmissionId;
@@ -111,16 +113,13 @@ it('persists new shop text and pin edits before Next and restores them after lea
   fireEvent.changeText(screen.getByLabelText('Shop name'), 'New corner shop');
   fireEvent.changeText(screen.getByLabelText('Address'), 'Typed street');
   fireEvent.changeText(screen.getByLabelText('City'), 'Typed city');
-  fireEvent.press(screen.getByRole('button', { name: 'Choose shop location on map' }));
-  act(() => screen.getByTestId('new-business-map-picker').props.onConfirm({
-    coordinates: { lat: 14.65, lng: 121.1 }, address: 'Pinned street', city: 'Pasig',
-  }));
+  act(() => screen.getByTestId('new-business-map-picker').props.onChange({ lat: 14.65, lng: 121.1 }));
   await ownerIntake.flush(); screen.unmount();
   const reopened = wrap(<Place />);
   expect(reopened.getByDisplayValue('New corner shop')).toBeTruthy();
-  expect(reopened.getByDisplayValue('Pinned street')).toBeTruthy();
-  expect(reopened.getByDisplayValue('Pasig')).toBeTruthy();
-  expect(reopened.getByRole('button', { name: 'Adjust shop location on map' })).toBeTruthy();
+  expect(reopened.getByDisplayValue('Typed street')).toBeTruthy();
+  expect(reopened.getByDisplayValue('Typed city')).toBeTruthy();
+  expect(reopened.getByTestId('new-business-map-picker').props.coordinates).toEqual({ lat: 14.65, lng: 121.1 });
   expect(ownerIntake.get().detailsDirty).toEqual(expect.arrayContaining(['businessName', 'address', 'city', 'coordinates']));
   expect(mockCreate).not.toHaveBeenCalled(); expect(mockUpdate).not.toHaveBeenCalled();
 });
@@ -218,7 +217,7 @@ it('adopts a recovered business completed elsewhere without overwriting its serv
   await act(async () => creation.resolve(freshId));
   expect(mockUpdate).not.toHaveBeenCalled();
   expect(mockPush).not.toHaveBeenCalled();
-  expect(mockReplace).toHaveBeenCalledWith(STEP_ROUTE.home);
+  expect(mockReplace).toHaveBeenCalledWith('/(owner)/(tabs)/site');
   expect(ownerIntake.get()).toMatchObject({ submissionId: freshId, businessName: 'Completed remote business' });
   expect(ownerIntake.get().newBusiness).not.toBe(true);
   expect(ownerIntake.get().address).toBeUndefined();
