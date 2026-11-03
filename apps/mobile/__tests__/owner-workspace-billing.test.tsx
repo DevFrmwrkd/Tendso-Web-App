@@ -172,10 +172,11 @@ it('does not display an old site visit request as sent for a newly selected shop
   let finish!: () => void;
   mockRequestVisit.mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
   const screen = render(<BookVisit />);
+  fireEvent.changeText(screen.getByLabelText('Shop name'), 'Ben Barber');
   fireEvent.press(screen.getByRole('button', { name: 'Send request' }));
   expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ shopName: 'Ben Barber' }));
   mockId = 'site-b'; mockSite = { ...mockSite, submissionId: mockId, businessName: 'Second shop' }; screen.rerender(<BookVisit />);
   await act(async () => { finish(); }); await settle();
   expect(screen.queryByText('Your visit request is sent')).toBeNull();
-  expect(screen.getByText('Second shop')).toBeTruthy();
+  expect(screen.getByLabelText('Shop name').props.value).toBe('');
 });

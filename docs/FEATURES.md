@@ -372,7 +372,7 @@ Not redesigned in the mock: default keep as is, restyle.
 | N-17 | Owner "Me": settings, delete account, owner notifications inbox (not drawn) | none | owner | mock inventory §5 | 3 | ➕ | ◐ |
 | N-18 | Help with AI in the app for owners (agents already have Ask Tendso) | agent-only (M-063) | owner | §4E; creator-more 15 pattern | 3 | ➕ | ☑ |
 | N-19 | App language English / Tagalog (M-079: no i18n today); language screen (SIMPLE-FLOWS O2) | English only | owner, agent | EN/TL chip on recording; scope Q20 | 3 | ➕ | ◐ |
-| N-20 | Agents near you → book a visit → booked (owner side; agent side not drawn) | booking exists only for recruitment calls (C-073) | owner, agent | owner 23–25 | 3 | ❓ (Q19) | ◐ |
+| N-20 | Agents near you → request a shop visit → request sent | Visit requests go to the team for confirmation. Generic requests require a blank, editable shop name; only an explicit current owned business can prefill it. Account contact details are retained. Agent locations/assignment remain separate from the request form. | owner, agent | owner 23–25 | 3 | ❓ (Q19) | ◐ |
 | N-21 | Landing "Hire an agent" short form (mock sends nothing) | none | visitor | `index.html` Paths; destination Q14 | 2 | ➕ | ☑ |
 | N-22 | Examples page: filter chips, preview modal (desktop / mobile), "Use this design" | none | visitor | `pages/examples.html`; which set Q23 | 2 | ➕ | ☑ |
 | N-23 | Showcase example pages `/examples/<id>` (22 static sites; later real templates) | none | visitor | `showcase/*.html`, captures in `assets/sites/showcase/` | 2 | ➕ | ☑ |

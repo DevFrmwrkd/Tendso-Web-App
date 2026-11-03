@@ -284,9 +284,10 @@ it('opens the site selected in Inbox rather than the newest site', () => {
 
 it('sends a preferred visit time without claiming an appointment is confirmed', async () => {
   const screen = wrap(<BookVisit />);
+  fireEvent.changeText(screen.getByLabelText('Shop name'), 'Corner bakery');
   fireEvent.press(screen.getByText('Tomorrow'));
   await act(async () => { fireEvent.press(screen.getByText('Send request')); });
-  expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ phone: '09171234567', when: 'Tomorrow', shopName: 'Forge' }));
+  expect(mockRequestVisit).toHaveBeenCalledWith(expect.objectContaining({ phone: '09171234567', when: 'Tomorrow', shopName: 'Corner bakery' }));
   expect(screen.getByText('The team will call you to confirm an agent and time.')).toBeTruthy();
   expect(screen.queryByText(/is coming/)).toBeNull();
 });
