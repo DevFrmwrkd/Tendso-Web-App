@@ -4,24 +4,23 @@ export interface V2Link {
 }
 
 /**
- * The /v2 site map: ONE nav and ONE footer for every /v2 page (landing, the
- * business/examples/field-agents/about/legal pages, help/start/pay, creators).
+ * Default public routes for the shared new design. Existing /v2 URLs remain aliases.
  * Change a destination here, nowhere else.
  */
 export const V2_ROUTES = {
     home: "/",
     how: "/#how",
-    examples: "/v2/examples",
-    business: "/v2/business",
-    fieldAgents: "/v2/field-agents",
-    creators: "/v2/creators",
-    help: "/v2/help",
-    contact: "/v2/help#contact",
+    examples: "/examples",
+    business: "/for-business",
+    fieldAgents: "/for-field-agents",
+    creators: "/affiliates",
+    help: "/help",
+    contact: "/help#contact",
     hire: "/#hire",
     download: "/#download",
-    about: "/v2/about",
-    privacy: "/v2/privacy",
-    terms: "/v2/terms",
+    about: "/about",
+    privacy: "/privacy-policy",
+    terms: "/terms-of-service",
 } as const;
 
 export const V2_NAV_LINKS: readonly V2Link[] = [

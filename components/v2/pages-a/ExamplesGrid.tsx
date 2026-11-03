@@ -14,7 +14,7 @@ function Card({ s, priority }: { s: ShowcaseSite; priority?: boolean }) {
     return (
         <a
             className="card"
-            href={`/v2/examples/${s.id}`}
+            href={`/examples/${s.id}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${s.name}, ${s.kind}, ${s.city}. Opens in a new tab`}

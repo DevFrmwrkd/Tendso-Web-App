@@ -13,6 +13,7 @@ import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PAYOUTS_HREF } from "@/lib/v2/creatorPortalNavigation";
+import { creatorPortalReturnPath } from "@/lib/v2/creatorPortalReturnPath";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../../_components/AccountState";
 import { affiliateHref, type AffiliateSection } from "../_lib/navigation";
@@ -27,10 +28,9 @@ export function useAffiliateAccount() {
 }
 
 /** One session-derived account gate protects every section, including direct URLs. */
-export function AffiliateDashboardBoundary({ children }: { children?: ReactNode }) {
+export function AffiliateDashboardBoundary({ children, section = "home" }: { children?: ReactNode; section?: AffiliateSection }) {
     const router = useRouter();
     const pathname = usePathname();
-    const canonicalPage = [CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
     const { user, isLoaded, isSignedIn } = useUser();
     const { isAuthenticated, isLoading } = useConvexAuth();
     const ready = isLoaded && isSignedIn && !isLoading && isAuthenticated && !!user;
@@ -40,12 +40,12 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
 
     useEffect(() => {
         if (isLoaded && (!isSignedIn || (current && account === null && !session.isOwner))) {
-            const destination = canonicalPage
-                ? isSignedIn ? "/v2/creators/signup" : "/v2/creators/signup?login=1"
-                : "/affiliates/join";
-            router.replace(destination);
+            const source = typeof window === "undefined" ? pathname : window.location.pathname + window.location.search + window.location.hash;
+            const query = new URLSearchParams({ returnTo: creatorPortalReturnPath(source) });
+            if (!isSignedIn) query.set("login", "1");
+            router.replace(`/affiliates/join?${query}`);
         }
-    }, [isLoaded, isSignedIn, current, account, session, canonicalPage, router]);
+    }, [isLoaded, isSignedIn, current, account, session, pathname, router]);
 
     if (!current || account === undefined) return <AffiliateAccountLoading />;
     if (account === null) return session.isOwner ? <DifferentAccount role="owner" /> : <AffiliateAccountLoading />;
@@ -57,7 +57,7 @@ export function AffiliateDashboardBoundary({ children }: { children?: ReactNode 
 
     return (
         <AffiliateAccount.Provider value={account}>
-            <AffiliateShellView account={account}>
+            <AffiliateShellView account={account} section={section}>
                 {account.status === "suspended" && (
                     <AuthAlert>Page changes, sharing, and payouts are paused. You can still view your sales and earnings. Contact <a className="underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help.</AuthAlert>
                 )}
@@ -100,10 +100,11 @@ export function AffiliateShellView({ account, children, preview = false, section
 }) {
     const pathname = usePathname();
     const canonicalPath = pathname?.replace(/\/$/, "") ?? "";
-    const portalPage = canonicalPath === CREATOR_ACCOUNT_HREF ? "account" : canonicalPath === CREATOR_PAYOUTS_HREF ? "payouts" : "my-page";
+    const portalPage = canonicalPath.endsWith("/account") ? "account" : canonicalPath.endsWith("/payouts") || canonicalPath.endsWith("/wallet") || section === "wallet" ? "payouts"
+        : canonicalPath.endsWith("/my-page") || section === "my-page" ? "my-page" : section === "sales" ? "shops" : section === "referrals" ? "agents" : "home";
     const pageRoute = preview ? section === "my-page"
         : ["/affiliates/dashboard/my-page", CREATOR_PAGE_EDITOR_HREF, CREATOR_ACCOUNT_HREF, CREATOR_PAYOUTS_HREF].includes(canonicalPath);
-    if (pageRoute) return <AffiliatePageFrame account={account} preview={preview} currentPage={preview ? "my-page" : portalPage}>{children}</AffiliatePageFrame>;
+    if (!preview || pageRoute) return <AffiliatePageFrame account={account} preview={preview} currentPage={preview ? "my-page" : portalPage}>{children}</AffiliatePageFrame>;
     const name = [account.firstName, account.lastName].filter(Boolean).join(" ") || "Affiliate";
     const entry = (key: AffiliateSection, label: string, icon: NavLinkEntry["icon"]): NavLinkEntry => ({
         href: affiliateHref(key, preview), label, icon, exact: key === "home",

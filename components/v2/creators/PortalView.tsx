@@ -124,7 +124,7 @@ export interface PortalViewProps {
 /**
  * The portal: both incomes side by side, links and code, the funnel, the field agents the creator
  * recruited, the shops that used the code, and payouts. One component draws it for the real portal
- * (/v2/creators/portal) and for the sample on /v2/creators, so what people see in the sample is
+ * (/affiliates/dashboard) and for the sample on /v2/creators, so what people see in the sample is
  * exactly what they get.
  */
 export function PortalView({ data, pictures, sample = false, idPrefix = "pt", payoutTo, compactIncome = false, samplePageEditorHref }: PortalViewProps) {

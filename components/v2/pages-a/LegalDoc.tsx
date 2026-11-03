@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
@@ -27,6 +28,7 @@ const two = (n: number) => String(n).padStart(2, "0");
  * start on their own document; `/v2/legal` starts on the one in the hash.
  */
 export function LegalDoc({ docs, initial, mode }: { docs: Record<DocKey, LegalDocData>; initial: DocKey; mode: "path" | "hash" }) {
+    const router = useRouter();
     const [doc, setDoc] = useState<DocKey>(initial);
     const [swap, setSwap] = useState(false);
     const [active, setActive] = useState("");
@@ -63,12 +65,16 @@ export function LegalDoc({ docs, initial, mode }: { docs: Record<DocKey, LegalDo
 
     function choose(next: DocKey) {
         if (next === doc) return;
+        if (mode === "path") {
+            router.push(next === "privacy" ? "/privacy-policy" : "/terms-of-service");
+            return;
+        }
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const go = () => {
             setDoc(next);
             window.scrollTo({ top: 0 });
             try {
-                window.history.replaceState(null, "", mode === "path" ? `/v2/${next}` : `#${next}`);
+                window.history.replaceState(null, "", `#${next}`);
             } catch {}
         };
         if (reduced) return go();
@@ -146,7 +152,7 @@ export function LegalDoc({ docs, initial, mode }: { docs: Record<DocKey, LegalDo
                         <div className="lg-ask">
                             <p>{D.ask}</p>
                             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-                            <Link className="lg-help" href="/v2/help">
+                            <Link className="lg-help" href="/help">
                                 Short answers in Help
                             </Link>
                         </div>

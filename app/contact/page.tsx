@@ -1,16 +1,7 @@
 import { permanentRedirect } from "next/navigation";
 
-// /contact is now the "Ask a person" card on the Help Center home
-// (app/knowledge/_components/ContactCard.tsx): Round 1 keeps every way to
-// reach a person in one place. The card carries what this page offered: the
-// support inbox as a mailto link and the note that press and partnerships use
-// the same inbox. (The phone number is no longer published anywhere.)
-//
-// The route stays as a permanent redirect because links to it are out there:
-// customer emails (lib/email/templates.ts), the owner portal, the start flow's
-// thank-you page, the site footers, and the terms of service tell owners to
-// use "the Contact page". The query string comes along so campaign tags
-// (?src=…) survive the hop.
+// Contact links open the redesigned Help page's contact section. Retain
+// campaign parameters from emails, posters and shared links.
 export default async function ContactRedirect({
     searchParams,
 }: {
@@ -23,5 +14,5 @@ export default async function ContactRedirect({
         for (const one of Array.isArray(v) ? v : [v]) qs.append(k, one);
     }
     const query = qs.toString();
-    permanentRedirect(`/knowledge${query ? `?${query}` : ""}#contact`);
+    permanentRedirect(`/help${query ? `?${query}` : ""}#contact`);
 }

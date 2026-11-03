@@ -7,7 +7,8 @@ export const metadata: Metadata = {
     description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half.",
     openGraph: { title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
     twitter: { card: "summary_large_image", title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
-    robots: { index: false, follow: false },
+    alternates: { canonical: "/for-field-agents" },
+    robots: { index: false, follow: true },
 };
 
 export default function Page() {

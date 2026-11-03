@@ -5,6 +5,7 @@ import { AffiliateDashboardBoundary } from "@/app/affiliates/dashboard/_componen
 
 export const metadata: Metadata = {
     title: "My page — Your creator portal",
+    alternates: { canonical: "/affiliates/dashboard/my-page" },
     robots: { index: false, follow: false },
 };
 

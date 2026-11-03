@@ -9,7 +9,7 @@ const DESCRIPTION = `For Off the Record viewers: your Tendso website for ${forma
 export const metadata: Metadata = {
     title: "Off the Record viewers: 30% off your website — Tendso",
     description: DESCRIPTION,
-    alternates: { canonical: "/v2/otr" },
+    alternates: { canonical: "/otr" },
     robots: { index: false, follow: true },
 };
 

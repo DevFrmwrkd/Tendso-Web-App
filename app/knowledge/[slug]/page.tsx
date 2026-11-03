@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { knowledgeArticleGraph, abs } from "@/lib/seo";
 
 import { categoryHref, pickRelated, type RelatedItem } from "../_components/model";
-import { ArticleLayout, type Crumb } from "../_components/views";
+import { KnowledgeArticle, type ArticleCrumb } from "../_components/KnowledgeArticle";
 
 /**
  * SSR per-article Help Center route — the crawlable counterpart to the
@@ -92,7 +92,7 @@ export default async function KnowledgeArticlePage({
     // The breadcrumb's topic and the Related cards come from the article's own
     // workspace. Best effort: if Convex fails here the article still renders,
     // just without them.
-    let trail: Crumb[] = [];
+    let trail: ArticleCrumb[] = [];
     let related: RelatedItem[] = [];
     try {
         const [categories, articles] = await Promise.all([
@@ -109,7 +109,7 @@ export default async function KnowledgeArticlePage({
     return (
         <>
             <JsonLd data={jsonLd} />
-            <ArticleLayout article={a} trail={trail} backHref={trail[0]?.href ?? "/knowledge"} related={related} />
+            <KnowledgeArticle article={a} trail={trail} related={related} />
         </>
     );
 }

@@ -111,7 +111,7 @@ export function AboutPage() {
                             <Label className="cr-level-label">Careers</Label>
                             <h2 className="cr-h2">Work the street with us.</h2>
                             <div className="cr-end-cta">
-                                <Button href="/v2/field-agents">For field agents</Button>
+                                <Button href="/for-field-agents">For field agents</Button>
                                 <Button variant="ghost" className="ab-btn-dark" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
                                     Join the Discord
                                 </Button>

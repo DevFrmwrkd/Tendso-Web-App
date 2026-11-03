@@ -31,7 +31,7 @@ export const LANDING_LINKS = {
  * static example pages by the pages stream (IMPLEMENTATION-HANDOFF §4A,
  * "Examples"); this is the one place to change if that route moves.
  */
-export const exampleHref = (id: string) => `/v2/examples/${id}`;
+export const exampleHref = (id: string) => `/examples/${id}`;
 
 // ---- showcase sites ------------------------------------------------------------
 export interface Showcase {

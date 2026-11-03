@@ -51,7 +51,7 @@ describe("v2 legal pages carry the production legal text, unchanged", () => {
         expect(terms).toContain('const INTRO = "The operational guidelines governing your use of the Tendso Creator Network.";');
         expect(mine).toContain("Your privacy matters to us. How Tendso collects, uses, and protects your personal information.");
         expect(mine).toContain("The operational guidelines governing your use of the Tendso Creator Network.");
-        expect(priv).toContain('updated="February 2026"');
+        expect(priv).toContain('updated: "February 2026"');
         expect(mine).toContain('updated: "February 2026"');
     });
 });

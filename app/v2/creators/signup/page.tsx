@@ -7,6 +7,7 @@ import { SignupFlow } from "@/components/v2/creators/SignupFlow";
 export const metadata: Metadata = {
     title: "Become a creator",
     description: "Free to join. No password: we email you a code.",
+    alternates: { canonical: "/affiliates/join" },
     robots: { index: false, follow: false },
 };
 

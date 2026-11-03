@@ -1,5 +1,2 @@
-import { PayPage } from "@/components/v2/pages-b/PayPage";
-
-export default function V2PayRoute() {
-    return <PayPage />;
-}
+/** Both URLs use the latest payment presentation and its checkout safety checks. */
+export { default } from "@/app/pay/[token]/page";

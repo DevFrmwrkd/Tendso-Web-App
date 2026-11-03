@@ -1,6 +1,6 @@
 export type AdminPreviewRole = 'affiliate' | 'creator' | 'owner';
 
-const READONLY_PAGES = new Set(['/v2/help', '/v2/privacy', '/v2/creators#rules']);
+const READONLY_PAGES = new Set(['/help', '/privacy-policy', '/affiliates#rules', '/v2/help', '/v2/privacy', '/v2/creators#rules']);
 
 /** Samples can navigate locally, never into a signed-in account's live workspace. */
 export function isAdminPreviewHref(href: string | null | undefined, role: AdminPreviewRole): boolean {

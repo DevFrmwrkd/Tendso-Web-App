@@ -5,6 +5,7 @@ import { PortalPage } from "@/components/v2/creators/PortalPage";
 
 export const metadata: Metadata = {
     title: "Your creator portal",
+    alternates: { canonical: "/affiliates/dashboard" },
     robots: { index: false, follow: false },
 };
 

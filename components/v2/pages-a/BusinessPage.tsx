@@ -77,8 +77,8 @@ export function BusinessPage() {
                         <div className="bh-side" data-reveal="hero" style={rev(2)}>
                             <p>Talk about your shop, add photos, pick a design. You see it live, then you decide.</p>
                             <div className="bh-cta">
-                                <Button href="/v2/business#download">Download the app</Button>
-                                <Button variant="ghost" href="/v2#hire">
+                                <Button href="/for-business#download">Download the app</Button>
+                                <Button variant="ghost" href="/#hire">
                                     Hire an agent
                                 </Button>
                             </div>
@@ -348,10 +348,10 @@ export function BusinessPage() {
 
                 {/* 5. Examples strip */}
                 <section className="v2-wrap sec" aria-labelledby="ex-h">
-                    <SectionHead label="Examples" id="ex-h" title="Finished sites, real kinds of business." link={{ href: "/v2/examples", label: "See all designs" }} />
+                    <SectionHead label="Examples" id="ex-h" title="Finished sites, real kinds of business." link={{ href: "/examples", label: "See all designs" }} />
                     <div className="strip">
                         {STRIP.map((s, i) => (
-                            <a key={s.id} className="card" href={`/v2/examples/${s.id}`} target="_blank" rel="noopener noreferrer" data-reveal="" style={rev(i % 3)} aria-label={`${s.name}, ${s.kind}, ${s.city}. Opens in a new tab`}>
+                            <a key={s.id} className="card" href={`/examples/${s.id}`} target="_blank" rel="noopener noreferrer" data-reveal="" style={rev(i % 3)} aria-label={`${s.name}, ${s.kind}, ${s.city}. Opens in a new tab`}>
                                 <div className="card-img card-img--d">
                                     <Image src={`${A}/showcase/${s.id}-d.jpg`} alt={`${s.name} website`} fill sizes="(max-width: 760px) 80vw, (max-width: 900px) 50vw, 33vw" />
                                     <span className="card-view">
@@ -390,7 +390,7 @@ export function BusinessPage() {
                         </h2>
                         <div className="band-cta">
                             <Stores />
-                            <Button variant="ghost" href="/v2#hire">
+                            <Button variant="ghost" href="/#hire">
                                 Or hire an agent
                             </Button>
                         </div>

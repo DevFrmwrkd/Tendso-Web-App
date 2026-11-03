@@ -189,7 +189,7 @@ export function AgentsPage() {
                                 <div className="ag-link" aria-hidden="true">
                                     <span className="ag-link-url">
                                         <Lock size={14} aria-hidden="true" />
-                                        tendso.com/v2/a/mika
+                                        tendso.com/a/mika
                                     </span>
                                     <div className="ag-link-card">
                                         <Image src={`${A}/people/17-mika.jpg`} alt="" width={56} height={56} />

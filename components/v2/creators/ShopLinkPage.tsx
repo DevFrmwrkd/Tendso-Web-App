@@ -29,7 +29,7 @@ function ShopLinkInner({ handle }: { handle: string }) {
 
     return (
         <>
-            <SoloBar brandHref="/v2" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
+            <SoloBar brandHref="/" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
             <main className="wrap">
                 {state.status === "loading" && <Loading />}
                 {state.status === "missing" && <Missing />}

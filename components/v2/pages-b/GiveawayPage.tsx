@@ -43,14 +43,14 @@ export function GiveawayPage() {
 
     const closed = status?.open === false;
     const left = closed ? 0 : (status?.slotsLeft ?? null);
-    const claimHref = `/v2/start?campaign=giveaway&src=${encodeURIComponent(source)}`;
+    const claimHref = `/start?campaign=giveaway&src=${encodeURIComponent(source)}`;
     const copy = giveawayClosedCopy(status);
 
     return (
         <PbPage
             nav={{
                 primary: closed ? (
-                    <Button href="/v2/start" size="sm" onClick={requestFullPriceIntake}>
+                    <Button href="/start" size="sm" onClick={requestFullPriceIntake}>
                         Get a website
                     </Button>
                 ) : (
@@ -74,7 +74,7 @@ export function GiveawayPage() {
                     <p className="pb-gw-sub">{closed ? `${copy.thanks} ${copy.applied}` : "For walk-in shops. A gift from Off the Record, built by Tendso."}</p>
                     <div className="pb-gw-cta">
                         {closed ? (
-                            <Button href="/v2/start" variant="dark" className="pb-gw-btn" onClick={requestFullPriceIntake}>
+                            <Button href="/start" variant="dark" className="pb-gw-btn" onClick={requestFullPriceIntake}>
                                 Get your website for {formatPHP(WEBSITE_PRICE)}
                             </Button>
                         ) : status?.open ? (
@@ -186,7 +186,7 @@ export function GiveawayPage() {
                     </div>
                     <div className="pb-band-cta">
                         {closed ? (
-                            <Button href="/v2/start" variant="dark" className="pb-gw-btn" onClick={requestFullPriceIntake}>
+                            <Button href="/start" variant="dark" className="pb-gw-btn" onClick={requestFullPriceIntake}>
                                 Get it for {formatPHP(WEBSITE_PRICE)}
                             </Button>
                         ) : (
@@ -197,7 +197,7 @@ export function GiveawayPage() {
                     </div>
                 </div>
                 <p className="pb-gw-fine">
-                    For walk-in businesses · One entry per business · Custom domain not included · <Link href="/v2/privacy">Privacy</Link> · <Link href="/v2/terms">Terms</Link>
+                    For walk-in businesses · One entry per business · Custom domain not included · <Link href="/privacy-policy">Privacy</Link> · <Link href="/terms-of-service">Terms</Link>
                 </p>
             </Container>
         </PbPage>

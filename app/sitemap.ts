@@ -27,21 +27,17 @@ import { hostedSiteHome } from "@/lib/siteSlug";
 export const revalidate = 3600;
 
 const STATIC_PATHS: Array<{ path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }> = [
-    // /for-business is gone (308 → "/", see next.config.ts). A redirecting URL
-    // in a sitemap is a crawl error, and "/" below is the page it became.
-    //
-    // /start is deliberately NOT listed either: it is a four-step intake form
-    // with nothing to index, it is linked from the navbar of every page so
-    // crawlers cannot miss it, and ranking it would land cold search traffic in
-    // a form instead of on the page that explains the offer.
-    //
-    // The Round 1 redesign merged /about into "/", /for-field-agents (and the
-    // old /creators) into /for-creators, and /help-faq and /contact into the
-    // Help Center. Those routes now 308 to their new home, so they are not
-    // listed either: their content is reachable at the URLs below.
+    // Only canonical public pages: /v2 aliases, intake forms, account workspaces
+    // and token-bearing payment/share URLs are excluded.
     { path: "/", priority: 1, freq: "weekly" },
-    { path: "/for-creators", priority: 0.8, freq: "monthly" },
-    { path: "/knowledge", priority: 0.9, freq: "daily" },
+    { path: "/for-business", priority: 0.9, freq: "monthly" },
+    { path: "/examples", priority: 0.8, freq: "monthly" },
+    { path: "/for-field-agents", priority: 0.8, freq: "monthly" },
+    { path: "/affiliates", priority: 0.8, freq: "monthly" },
+    { path: "/about", priority: 0.6, freq: "monthly" },
+    { path: "/help", priority: 0.8, freq: "weekly" },
+    { path: "/privacy-policy", priority: 0.3, freq: "yearly" },
+    { path: "/terms-of-service", priority: 0.3, freq: "yearly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -53,7 +53,7 @@ export function OtrPage() {
     const chatUrl = useQuery(api.settings.get, { key: "otr_chat_url" }) as string | null | undefined;
     const offerEnds = useQuery(api.settings.get, { key: "otr_offer_ends" }) as string | null | undefined;
 
-    const buyHref = `/v2/start?campaign=${CAMPAIGN}&src=${encodeURIComponent(source)}`;
+    const buyHref = `/start?campaign=${CAMPAIGN}&src=${encodeURIComponent(source)}`;
 
     return (
         <PbPage nav={{ primary: <Button href={buyHref} size="sm">Get my website</Button> }}>

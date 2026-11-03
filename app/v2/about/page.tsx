@@ -7,7 +7,8 @@ export const metadata: Metadata = {
     description: "A mobile app that turns a conversation into a website, and real people who visit the shop.",
     openGraph: { title: "About Tendso", description: "A mobile app that turns a conversation into a website, and real people who visit the shop." },
     twitter: { card: "summary_large_image", title: "About Tendso", description: "A mobile app that turns a conversation into a website, and real people who visit the shop." },
-    robots: { index: false, follow: false },
+    alternates: { canonical: "/about" },
+    robots: { index: false, follow: true },
 };
 
 export default function Page() {

@@ -34,14 +34,14 @@
 
 /* active link in the v2 nav (the Nav component has no notion of the current page) */
 .pa .v2-nav-links a { position: relative; white-space: nowrap; }
-.pa-business .v2-nav-links a[href="/v2/business"],
-.pa-examples .v2-nav-links a[href="/v2/examples"],
-.pa-agents .v2-nav-links a[href="/v2/field-agents"],
-.pa-about .v2-nav-links a[href="/v2/about"] { color: var(--ink); }
-.pa-business .v2-nav-links a[href="/v2/business"]::after,
-.pa-examples .v2-nav-links a[href="/v2/examples"]::after,
-.pa-agents .v2-nav-links a[href="/v2/field-agents"]::after,
-.pa-about .v2-nav-links a[href="/v2/about"]::after {
+.pa-business .v2-nav-links a[href="/for-business"],
+.pa-examples .v2-nav-links a[href="/examples"],
+.pa-agents .v2-nav-links a[href="/for-field-agents"],
+.pa-about .v2-nav-links a[href="/about"] { color: var(--ink); }
+.pa-business .v2-nav-links a[href="/for-business"]::after,
+.pa-examples .v2-nav-links a[href="/examples"]::after,
+.pa-agents .v2-nav-links a[href="/for-field-agents"]::after,
+.pa-about .v2-nav-links a[href="/about"]::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; border-radius: 2px; background: var(--ink);
 }
 @media (max-width: 900px) {

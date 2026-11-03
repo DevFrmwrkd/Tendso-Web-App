@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
     routeToken: undefined as unknown, routeSubmission: undefined as unknown, routePublication: undefined as unknown,
 }));
 vi.mock('convex/react', () => ({
+    useConvex: () => ({ query: vi.fn() }),
     useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }),
     useMutation: (reference: Parameters<typeof getFunctionName>[0]) => { state.mutations.push(getFunctionName(reference)); return state.mutation; },
     useAction: () => state.action,
@@ -36,6 +37,10 @@ vi.mock('../../components/shells/PaymentShell', () => ({
 vi.mock('../../components/v2', () => ({ Button: ({ children, href, variant: _variant, ...props }: {
     children: ReactNode; href?: string; variant?: string;
 }) => createElement(href ? 'a' : 'button', { href, ...props }, children) }));
+vi.mock('../../components/v2/pages-b/shared', () => ({
+    CheckIcon: () => null, PlusIcon: () => null, PbBrand: () => null, copyWithToast: vi.fn(), usePbToast: () => ({ node: null, show: vi.fn() }),
+}));
+vi.mock('../../components/landing/LiveSitePreview', () => ({ default: () => createElement('div', {}, 'Site preview') }));
 
 import { ExpiredView, NotFoundView, PaidView, PayLoading, PendingView } from '../../app/pay/[token]/_components/PayViews';
 import PaymentPage from '../../app/pay/[token]/page';
@@ -280,14 +285,14 @@ describe('token → submission → publication route loading', () => {
         state.routeSubmission = submission({ status: 'completed', paidInFullAt: now, amountPaid: 4999, websiteUrl: 'https://stale.example/' });
         state.routePublication = { liveUrl: 'https://current.example/' };
         const html = renderToStaticMarkup(createElement(PaymentPage));
-        expect(links(html).find(link => link.text === 'Open website')?.href).toBe('https://current.example/');
+        expect(links(html).find(link => link.text === 'Open my website')?.href).toBe('https://current.example/');
         expect(html).not.toContain('stale.example'); expect(plain(html)).toContain('Payment received.');
     });
 
     it('shows an unavailable link without querying or exposing a business when the token is invalid', () => {
         state.routeToken = null;
         const html = renderToStaticMarkup(createElement(PaymentPage));
-        expect(plain(html)).toContain('We can’t find this payment link.'); expect(html).not.toContain('Corner shop');
+        expect(plain(html)).toContain('find this link.'); expect(html).not.toContain('Corner shop');
         expect(state.queries.slice(1).every(query => query.args === 'skip')).toBe(true);
     });
 });

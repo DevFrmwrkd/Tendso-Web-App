@@ -1,6 +1,26 @@
 # Tendso redesign: feature inventory (Phase 0)
 
-**Purpose.** Every feature, screen, route and backend job that exists today, mapped to where it lives in the v2 design (`docs/landing-mock/`). Built 2026-10-21 from five inventories: web `app/**`, mobile `apps/mobile/app/**`, Convex + `app/api/**`, the mock, and production copy. The rollout is on `feat/v2-all`. On 2026-11-03 the user approved making the newest landing design the `/` homepage. `/v2` remains a compatible, non-indexed landing URL; the other redesigned public pages retain their `/v2/*` routes.
+**Purpose.** Every feature, screen, route and backend job that exists today, mapped to where it lives in the v2 design (`docs/landing-mock/`). Built 2026-10-21 from five inventories: web `app/**`, mobile `apps/mobile/app/**`, Convex + `app/api/**`, the mock, and production copy. The rollout is on `feat/v2-all`. On 2026-11-03 the user approved making the redesigned pages the defaults and replacing their old screens. The table below lists the default URLs; `/v2/*` URLs render the same new designs and are excluded from indexing.
+
+**Default web routes (2026-11-03).** Shared account checks, saved data and payment verification remain connected behind the new designs. The old affiliate sales/referrals screens and old public help screens are retired. Owners continue to request changes to a finished site through **Ask for a change**; the retired `/v2/my-site` editor does not become a default page.
+
+| Page | Default URL |
+|---|---|
+| Home | `/` |
+| Business owners | `/for-business` |
+| Example websites | `/examples`, `/examples/[id]` |
+| Field agents | `/for-field-agents` |
+| Creator / affiliate program | `/affiliates` |
+| Creator signup and sign-in | `/affiliates/join` |
+| Creator portal | `/affiliates/dashboard` |
+| Creator page, account and payouts | `/affiliates/dashboard/my-page`, `/affiliates/dashboard/account`, `/affiliates/dashboard/payouts` |
+| Public creator shop and agent links | `/a/[handle]`, `/a/[handle]/earn` |
+| About | `/about` |
+| Help and articles | `/help`, `/knowledge/[slug]` |
+| Privacy, terms and legal overview | `/privacy-policy`, `/terms-of-service`, `/legal` |
+| Owner intake and receipt | `/start`, `/start/thanks` |
+| Payment link | `/pay/[token]` |
+| Giveaway and Off the Record | `/100-pages-giveaway`, `/otr` |
 
 **IDs.** `W-` web route/component · `M-` mobile screen/module · `C-` Convex feature · `A-` Next API route · `BE §n` backend-inventory section that has no ID · `N-` new in the redesign. Rows that exist on web and in the app are merged into one row that cites both IDs, and sit in the area the mock redesigns (usually the app). Open decisions are in the ❓ list for Theo (`questions.md`, 35 questions); rows cite them as Q-numbers.
 

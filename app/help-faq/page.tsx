@@ -1,9 +1,8 @@
 import { permanentRedirect } from "next/navigation";
 
-// /help-faq is now part of the Help Center: "FAQ lives in the Help Center
+// /help-faq opens the redesigned Help front: "FAQ lives in the Help Center
 // (one place to look)". Its questions were not in the knowledge base, so they
-// moved with it (app/knowledge/_components/creatorFaq.ts) and sit under "For
-// creators" in the home's "Frequently asked" fold, which this anchor opens.
+// remain available through the Help Center data. The answers anchor opens the FAQ fold.
 //
 // The route stays as a permanent redirect because links to it are out there:
 // the creator Profile menu, the old site footer, bookmarks. The query string
@@ -20,5 +19,5 @@ export default async function HelpFaqRedirect({
         for (const one of Array.isArray(v) ? v : [v]) qs.append(k, one);
     }
     const query = qs.toString();
-    permanentRedirect(`/knowledge${query ? `?${query}` : ""}#creator-faq`);
+    permanentRedirect(`/help${query ? `?${query}` : ""}#answers`);
 }

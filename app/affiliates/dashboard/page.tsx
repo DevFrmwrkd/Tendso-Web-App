@@ -1,5 +1,6 @@
-import { AffiliateSectionContent } from "./_components/AffiliateSectionContent";
+import { CreatorsRoot } from "@/components/v2/creators/CreatorsRoot";
+import { PortalPage } from "@/components/v2/creators/PortalPage";
 
 export default function AffiliateDashboardPage() {
-    return <AffiliateSectionContent section="home" />;
+    return <CreatorsRoot solo portal><PortalPage /></CreatorsRoot>;
 }

@@ -36,7 +36,7 @@ function RetryPayment({ token, total, version = 'r1' }: Props) {
     const latest = useRef({ isAuthenticated, isLoading, total });
     latest.current = { isAuthenticated, isLoading, total };
     useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-    const paymentPath = `${version === 'v2' ? '/v2' : ''}/pay/${encodeURIComponent(token.token)}`;
+    const paymentPath = `/pay/${encodeURIComponent(token.token)}`;
     const signInHref = `/my-business/sign-in?returnTo=${encodeURIComponent(ownerReturnPath(paymentPath))}`;
     const again = async () => {
         if (!isAuthenticated || isLoading || working.current || paid) return;
@@ -49,7 +49,7 @@ function RetryPayment({ token, total, version = 'r1' }: Props) {
                 return;
             }
             if (result.status === 'ready') {
-                router.push(`${version === 'v2' ? '/v2' : ''}/pay/${encodeURIComponent(result.token)}`);
+                router.push(`/pay/${encodeURIComponent(result.token)}`);
             } else if (result.status === 'needs_approval') {
                 router.push(`/my-business/${encodeURIComponent(result.submissionId)}`);
             } else if (result.status === 'paid') {

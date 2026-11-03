@@ -1,13 +1,11 @@
 "use client";
 
-import { ErrorState } from "@/components/r1";
+import { Button, Container } from "@/components/v2";
+import { PbPage } from "@/components/v2/pages-b/shared";
 
 /**
- * A Help Center page that throws while rendering (a failing Convex query
- * throws during render) shows the kit's error state inside the Help Center
- * frame, so the header and footer stay. Reload is a full reload, like the
- * app-wide app/error.tsx.
+ * Failed article reads use the same redesigned frame as the help front.
  */
 export default function KnowledgeError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
-    return <ErrorState what="The Help Center" reference={error.digest ?? null} />;
+    return <PbPage><Container className="kh-page kh-state"><p className="pb-label">Help</p><h1>We couldn’t open that answer.</h1><p className="kh-lead">Please refresh the page, or ask our team for help.</p>{error.digest && <p className="kh-meta">Reference: {error.digest}</p>}<div className="kh-actions"><Button onClick={() => window.location.reload()}>Try again</Button><Button href="/help#contact" variant="ghost">Ask a person</Button></div></Container></PbPage>;
 }

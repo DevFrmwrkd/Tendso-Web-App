@@ -1,11 +1,16 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
+import { useConvexAuth, useQuery } from "convex/react";
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 
-import { CREATORS_SAMPLE, usePortal } from "@/lib/v2/creatorData";
+import { api } from "@/convex/_generated/api";
+import { useNow } from "@/app/pay/[token]/_components/useNow";
+import { SUPPORT_EMAIL } from "@/lib/contact";
+import { CREATORS_SAMPLE, usePortal, type PortalState } from "@/lib/v2/creatorData";
 import { firstName, fmtMonthName } from "@/lib/v2/creatorProgram";
+import { CREATOR_ACCOUNT_HREF } from "@/lib/v2/creatorPortalNavigation";
 
 import { CreatorsBoundary } from "./CreatorsBoundary";
 import { PortalFrame, type PortalIdentity } from "./PortalFrame";
@@ -26,13 +31,21 @@ function State({ title, children, action }: { title: string; children: ReactNode
 function SignOut() {
     const { signOut } = useClerk();
     return (
-        <button type="button" className="btn btn--line" onClick={() => signOut({ redirectUrl: "/v2/creators" })}>
+        <button type="button" className="btn btn--line" onClick={() => signOut({ redirectUrl: "/affiliates" })}>
             Log out
         </button>
     );
 }
 
-/** /v2/creators/portal: the real portal for a signed-in creator (role `affiliate`). */
+function PortalStatus({ state }: { state: PortalState }) {
+    if (state.status === "signed_out") return <State title="Log in to your portal." action={<Link className="btn btn--accent" href="/affiliates/join?login=1">Log in with your email</Link>}>We email you a code. No password.</State>;
+    if (state.status === "none") return <State title="You have not applied yet." action={<Link className="btn btn--accent" href="/affiliates/join">Apply as a creator</Link>}>It takes about two minutes, and it is free.</State>;
+    if (state.status === "other_account") return <State title="This email has another Tendso account." action={<SignOut />}>It is a field agent, business or admin account, so it cannot be a creator account. Log out and use a different email.</State>;
+    if (state.status === "pending") return <State title="We are reviewing your page." action={<Link className="btn btn--line" href="/affiliates">Back to Tendso for creators</Link>}>A real person reviews your application. This screen updates when you are approved, and your link and code go live. You can also sign in again later.</State>;
+    return null;
+}
+
+/** /affiliates/dashboard: the real portal for a signed-in creator (role `affiliate`). */
 export function PortalPage() {
     return (
         <CreatorsBoundary>
@@ -42,16 +55,45 @@ export function PortalPage() {
 }
 
 function PortalSession() {
-    const { user } = useUser();
-    return <PortalInner key={user?.id ?? "signed-out"} />;
+    const { user, isLoaded, isSignedIn } = useUser();
+    const { isLoading, isAuthenticated } = useConvexAuth();
+    const authenticated = isLoaded && isSignedIn && !!user && !isLoading && isAuthenticated;
+    const session = useQuery(api.adminAccess.me, authenticated ? {} : "skip");
+    let state: PortalState;
+    if (!isLoaded) state = { status: "loading" };
+    else if (!isSignedIn) state = { status: "signed_out" };
+    else if (!authenticated || !user || !session || session.clerkId !== user.id) state = { status: "loading" };
+    else {
+        const account = session.creator;
+        if (!account) state = { status: session.isOwner ? "other_account" : "none" };
+        else if (account.clerkId !== user.id) state = { status: "loading" };
+        else if (account.isDeleted || account.status === "deleted") state = { status: "none" };
+        else if (account.role !== "affiliate") state = { status: "other_account" };
+        else if (account.status === "pending") state = { status: "pending", handle: account.affiliateHandle ?? null, code: account.referralCode ?? null };
+        else if (account.status === "active" || account.status === "suspended") {
+            if (!account.affiliateHandle?.trim()) return <PortalFrame><State title="Your creator page needs setup." action={<Link className="btn btn--line" href={CREATOR_ACCOUNT_HREF}>Open account</Link>}>
+                Your page address is missing. Contact <a className="u" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> so we can finish setting it up.
+            </State></PortalFrame>;
+            // The same verified account gate as the editor and payout screens. An
+            // old Convex JWT must never mount the previous person's summary.
+            return <PortalInner key={`${user.id}:${account._id}`} expectedHandle={account.affiliateHandle} />;
+        } else state = { status: "none" };
+    }
+    return <PortalFrame right={state.status === "loading" ? null : <Link className="btn btn--line btn--sm" href="/affiliates/join?login=1">Log in</Link>}>
+        {state.status === "loading" ? <div className="pt-hi"><div><h1>Your portal</h1><p>Loading…</p></div></div> : <PortalStatus state={state} />}
+    </PortalFrame>;
 }
 
-function PortalInner() {
+function PortalInner({ expectedHandle }: { expectedHandle?: string } = {}) {
     const [month, setMonth] = useState<string>();
     const [pendingIdentity, setPendingIdentity] = useState<PortalIdentity>();
     const monthId = useId();
-    const currentMonth = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 7);
-    const state = usePortal({ month });
+    const now = useNow();
+    const currentMonth = new Date(now + 8 * 60 * 60 * 1000).toISOString().slice(0, 7);
+    const response = usePortal({ month });
+    // Cached summary data must also belong to the newly verified public handle.
+    const state: PortalState = response.status === "ready" && expectedHandle !== undefined && response.data.creator.handle !== expectedHandle
+        ? { status: "loading" } : response;
     const ready = state.status === "ready" ? state : null;
     const name = ready?.data.creator.name ?? "";
     const identity = ready ? { name, photo: ready.pictures?.creator ?? ready.data.creator.photo }
@@ -66,7 +108,7 @@ function PortalInner() {
             identity={identity}
             sample={CREATORS_SAMPLE}
             utilityActions={!CREATORS_SAMPLE ? <PortalUtilities /> : undefined}
-            right={state.status === "loading" ? null : <Link className="btn btn--line btn--sm" href="/v2/creators/signup">Log in</Link>}
+            right={state.status === "loading" ? null : <Link className="btn btn--line btn--sm" href="/affiliates/join?login=1">Log in</Link>}
         >
             {state.status === "loading" || ready ? (
                 <div className="pt-hi">
@@ -85,47 +127,7 @@ function PortalInner() {
                     </div> : null}
                 </div>
             ) : null}
-            {state.status === "signed_out" && (
-                <State
-                    title="Log in to your portal."
-                    action={
-                        <Link className="btn btn--accent" href="/v2/creators/signup">
-                            Log in with your email
-                        </Link>
-                    }
-                >
-                    We email you a code. No password.
-                </State>
-            )}
-            {state.status === "none" && (
-                <State
-                    title="You have not applied yet."
-                    action={
-                        <Link className="btn btn--accent" href="/v2/creators/signup">
-                            Apply as a creator
-                        </Link>
-                    }
-                >
-                    It takes about two minutes, and it is free.
-                </State>
-            )}
-            {state.status === "other_account" && (
-                <State title="This email has another Tendso account." action={<SignOut />}>
-                    It is a field agent, business or admin account, so it cannot be a creator account. Log out and use a different email.
-                </State>
-            )}
-            {state.status === "pending" && (
-                <State
-                    title="We are reviewing your page."
-                    action={
-                        <Link className="btn btn--line" href="/v2/creators">
-                            Back to Tendso for creators
-                        </Link>
-                    }
-                >
-                    A real person reviews your application. This screen updates when you are approved, and your link and code go live. You can also sign in again later.
-                </State>
-            )}
+            <PortalStatus state={state} />
             {ready && (
                 <>
                     {ready.data.creator.status === "suspended" && (

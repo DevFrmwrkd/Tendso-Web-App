@@ -19,7 +19,7 @@ export default async function EarnLink({ params }: PageProps) {
     const { handle } = await params;
     return (
         <CreatorsRoot solo>
-            <EarnLinkPage handle={decodeURIComponent(handle)} />
+            <EarnLinkPage handle={handle} />
         </CreatorsRoot>
     );
 }

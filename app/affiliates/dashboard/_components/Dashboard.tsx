@@ -58,8 +58,8 @@ export function DashboardContent({ account, preview = false }: { account: Doc<"c
     }
     const suspended = account.status !== "active";
     const card = createCreatorPageCard(account, pageDraft, CREATOR_CODE_PRICE);
-    const publicHref = account.affiliateHandle ? `/v2/a/${encodeURIComponent(account.affiliateHandle)}` : undefined;
-    const inviteUrl = account.affiliateHandle ? `https://tendso.com/v2/a/${encodeURIComponent(account.affiliateHandle)}/earn` : undefined;
+    const publicHref = account.affiliateHandle ? `/a/${encodeURIComponent(account.affiliateHandle)}` : undefined;
+    const inviteUrl = account.affiliateHandle ? `https://tendso.com/a/${encodeURIComponent(account.affiliateHandle)}/earn` : undefined;
 
     function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
         let next: number;

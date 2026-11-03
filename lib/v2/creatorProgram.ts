@@ -148,7 +148,7 @@ export const SOCIAL_PLATFORMS = [
 
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]["key"];
 
-/** Where creators' links live. The shop link is /v2/a/<handle>, the agent link /v2/a/<handle>/earn. */
+/** Canonical public creator links. Older /v2/a links remain valid aliases. */
 export const SITE_HOST = "tendso.com";
-export const shopLinkFor = (handle: string) => `${SITE_HOST}/v2/a/${handle}`;
-export const earnLinkFor = (handle: string) => `${SITE_HOST}/v2/a/${handle}/earn`;
+export const shopLinkFor = (handle: string) => `${SITE_HOST}/a/${handle}`;
+export const earnLinkFor = (handle: string) => `${SITE_HOST}/a/${handle}/earn`;

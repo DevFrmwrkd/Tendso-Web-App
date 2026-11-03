@@ -30,10 +30,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
     checkoutExpiryAt,
     hostOf,
-    linkDays,
-    liveUrlOf,
     longDate,
-    paidOnOf,
     paymentDetailsText,
     payView,
     shortDate,
@@ -41,6 +38,7 @@ import {
     transferAmountShown,
 } from "@/app/pay/[token]/_components/payState";
 import { useNow } from "@/app/pay/[token]/_components/useNow";
+import { pendingPaymentSummary, receiptSummary, safePaymentUrl } from "@/app/pay/[token]/_components/paymentPresentation";
 import LiveSitePreview from "@/components/landing/LiveSitePreview";
 import { ExpiredPaymentAction } from '@/components/payments/ExpiredPaymentAction';
 import { Button } from "@/components/v2";
@@ -50,9 +48,9 @@ import type { PaymentSubmissionSummary } from "@/convex/paymentTokens";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
 import { getPaymentConfig } from "@/lib/payment/config";
-import { formatPHP } from "@/lib/pricing";
+import { formatPHP, isComped } from "@/lib/pricing";
 
-import { isFieldAgentSale, orderPriceSplit, paidReceipt, paymentKind, pendingCopy } from "./payRules";
+import { isFieldAgentSale, pendingCopy } from "./payRules";
 import { CheckIcon, PbBrand, PlusIcon, copyWithToast, usePbToast } from "./shared";
 import { XENDIT_ENABLED, useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
 
@@ -73,7 +71,7 @@ export function PayPage() {
     const paymentToken = useQuery(api.paymentTokens.getByToken, { token });
     const submission = useQuery(api.paymentTokens.getSubmissionByToken, paymentToken ? { token } : "skip");
     const publication = useQuery(api.paymentTokens.getPublicationByToken, paymentToken ? { token } : "skip");
-    const wiseEmail = paymentConfig.wiseEmail || "support@negosyo.digital";
+    const wiseEmail = paymentConfig.wiseEmail || "";
     // Wait for the submission too: its status decides "paid" when an admin matched the transfer by hand.
     const loading = paymentToken === undefined || (paymentToken !== null && (submission === undefined || publication === undefined));
 
@@ -106,7 +104,7 @@ export function PayView({
             <header className="pb-py-bar">
                 <div className="v2-wrap pb-py-bar-in">
                     <PbBrand />
-                    <Button href="/v2/help" variant="ghost" size="sm">
+                    <Button href="/help" variant="ghost" size="sm">
                         Help
                     </Button>
                 </div>
@@ -195,17 +193,46 @@ function Hero({
 function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { token: Token; submission: Submission; now: number; wiseEmail: string; show: (m: string) => void; publishedUrl?: string | null }) {
     const name = submission?.businessName ?? null;
     const money = formatPHP(token.amount);
-    const url = publishedUrl === undefined ? submission?.status === "unpublished" ? null : liveUrlOf(submission?.websiteUrl) : liveUrlOf(publishedUrl);
+    const url = safePaymentUrl(publishedUrl === undefined ? submission?.status === "unpublished" || submission?.unpublishedAt ? null : submission?.websiteUrl : publishedUrl);
     const live = !!url;
     const agentSale = isFieldAgentSale(submission);
     const text = pendingCopy({ agentSale, live });
-    const { domain, addOn, websiteLine, discount } = orderPriceSplit(token, submission);
-    const kind = paymentKind(token);
+    const details = pendingPaymentSummary(token, submission);
+    const { domain, addOn, websiteLine, discount, kind } = details;
     const struckTotal = kind === "full" && discount && !domain ? discount.listPrice : null;
     const copy = (value: string, done: string) => void copyWithToast(value, done, show);
-    const balanceAfter = kind === "deposit" && submission?.amount ? Math.max(0, submission.amount - token.amount) : null;
+    const balanceAfter = kind === "deposit" && details.balance !== null ? Math.max(0, details.balance - token.amount) : null;
     const priceLabel = kind === "deposit" ? "Down payment" : kind === "balance" ? "The rest of your payment" : text.priceLabel;
     const payCta = kind === "full" ? `Pay ${money} once` : `Pay ${money} now`;
+
+    // A current token is not necessarily a current payment request: another
+    // receipt, a price update, or an unfinished hosted checkout can supersede it.
+    const processing = !!token.xenditCheckoutState;
+    const hostedOpen = !!token.xenditInvoiceId && (token.xenditExpiresAt === undefined || token.xenditExpiresAt > now);
+    if (details.stale || processing || hostedOpen || (!wiseEmail.trim() && !XENDIT_ENABLED)) {
+        return <PendingUnavailable token={token} submission={submission} processing={processing} hostedOpen={hostedOpen} stale={details.stale} />;
+    }
+    // Card/e-wallet checkout is configured separately from Wise. A missing Wise
+    // recipient must hide transfer instructions without disabling that provider.
+    if (!wiseEmail.trim()) {
+        return <>
+            <Hero name={name} state="Awaiting payment" title="Your website payment." sub="Check the amount, then choose a card or e-wallet checkout." url={live ? url : null} preview={live ? `Live · ${hostOf(url!)}` : "Your website payment"} noPreviewText="Your private website and payment request stay connected to this business." />
+            <section className="v2-wrap pb-py-pay" aria-labelledby="checkout-method-h">
+                <div className="pb-py-price">
+                    <p className="pb-label">{kind === "deposit" ? "Down payment" : kind === "balance" ? "Balance payment" : "Website payment"}</p>
+                    <h2 className="pb-py-amt" id="checkout-method-h">{money}<small>Philippine pesos · PHP</small></h2>
+                    <dl className="pb-py-split">
+                        {details.total !== null && <div><dt>Order total</dt><dd>{formatPHP(details.total)}</dd></div>}
+                        {details.paid !== null && details.paid > 0 && <div><dt>Paid so far</dt><dd>{formatPHP(details.paid)}</dd></div>}
+                        {balanceAfter !== null && <div><dt>After this payment</dt><dd>{formatPHP(balanceAfter)} remaining</dd></div>}
+                    </dl>
+                    <MethodArea token={token.token} label="Card and e-wallets" />
+                    <p className="pb-py-methods-msg">This page updates after your payment is confirmed. Already paid? Check its status before starting another checkout.</p>
+                    <Button href="/help#contact" variant="ghost">Need help with a payment?</Button>
+                </div>
+            </section>
+        </>;
+    }
 
     return (
         <>
@@ -243,7 +270,7 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                         <span className="sr-only">{struckTotal !== null ? "Now " : ""}</span>
                         {money}.<small>{kind === "full" ? "Once. No monthly fee." : kind === "deposit" ? "Now. No monthly fee." : "Then it's paid. No monthly fee."}</small>
                     </h2>
-                    {kind === "full" && domain && websiteLine > 0 && (
+                    {kind === "full" && domain && websiteLine !== null && websiteLine > 0 && addOn !== null && (
                         <dl className="pb-py-split">
                             <div>
                                 <dt>Website, paid once</dt>
@@ -304,7 +331,7 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                             </div>
                             <p className="pb-py-note">
                                 <i />
-                                Always add the code. It&apos;s how we know the money is from you.
+                                This code connects the transfer to your website. Transfers without it need team verification.
                             </p>
                         </div>
                     </li>
@@ -316,10 +343,10 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                         <div>
                             <p className="pb-py-wait-h">Waiting for your transfer</p>
                             <p className="pb-py-wait-p">
-                                We match it by itself, so this page updates on its own once we receive {money}. {text.after}
+                                This page updates when your payment is confirmed. If your transfer needs review, our team verifies it before it is recorded. Check its status before sending another payment.
                             </p>
                             <p className="pb-py-wait-p">
-                                Link works until <b>{shortDate(token.expiresAt, now)}</b>, {linkDays(token)} days after it was sent.
+                                This checkout ends <b>{shortDate(checkoutExpiryAt(token), now)}</b>.
                             </p>
                         </div>
                     </div>
@@ -342,13 +369,35 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                     <div className="pb-qa-a">
                         <p>
                             Wise works from most countries. Send to the same email, pick PHP as what Tendso gets, and keep the code in the note. No Wise account and no way to open one? Email{" "}
-                            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> with your code and we will sort out another way to pay. Stuck? <Link href="/v2/help#contact">Ask a person.</Link>
+                            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> with your code and we will sort out another way to pay. Stuck? <Link href="/help#contact">Ask a person.</Link>
                         </p>
                     </div>
                 </details>
             </section>
         </>
     );
+}
+
+function PendingUnavailable({ token, submission, processing, hostedOpen, stale }: { token: Token; submission: Submission; processing: boolean; hostedOpen: boolean; stale: boolean }) {
+    const covered = isComped(submission);
+    const checkout = !processing && hostedOpen && !stale ? safePaymentUrl(token.xenditInvoiceUrl) : null;
+    const title = processing ? "We’re checking an earlier checkout." : covered ? "No payment is needed." : hostedOpen ? "Continue your existing checkout." : stale ? "Let’s check your latest balance." : "Payment details aren’t ready.";
+    const description = processing ? "An earlier checkout may still be open. Contact our team before starting another payment."
+        : covered ? "Your order is covered. This old payment request no longer applies."
+        : hostedOpen ? "Use the checkout already opened for this request. If you have already paid, wait for confirmation before paying again."
+        : stale ? "Your order or recorded payments have changed. Check your business workspace for the current amount."
+        : "Contact Tendso for verified payment instructions before sending money.";
+    return <>
+        <Hero name={submission?.businessName ?? null} state={covered ? "Order covered" : "Payment update"} title={title} sub={description} url={null} preview="Your payment request" noPreviewText="Your business and any confirmed payments are saved." />
+        <section className="v2-wrap pb-py-done" aria-labelledby="payment-check-h">
+            <h2 className="pb-py-done-h" id="payment-check-h">Check before you pay.</h2>
+            <p className="pb-py-done-p">This link’s reference: <b className="pb-mono">{token.referenceCode}</b>. Already sent a transfer? Ask our team to check it before sending money again.</p>
+            <div className="pb-py-done-cta">
+                {checkout ? <Button href={checkout} variant="primary">Continue checkout</Button> : <Button href={`/my-business/${encodeURIComponent(token.submissionId)}`} variant="primary">View business payment</Button>}
+                <Button href="/help#contact" variant="ghost">Contact Tendso</Button>
+            </div>
+        </section>
+    </>;
 }
 
 function CopyRow({ label, value, copyValue, done, onCopy }: { label: string; value: string; copyValue?: string; done: string; onCopy: (text: string, done: string) => void }) {
@@ -400,7 +449,7 @@ function DownPaymentOffer({ submissionId }: { submissionId: Token["submissionId"
         setMessage(null);
         try {
             const deposit = await createPayToken({ submissionId, kind: "deposit", amount: minimum });
-            router.push(`/v2/pay/${encodeURIComponent(deposit.token)}`);
+            router.push(`/pay/${encodeURIComponent(deposit.token)}`);
         } catch (e) {
             setMessage(xenditErrorMessage(e));
             setBusy(false);
@@ -413,7 +462,7 @@ function DownPaymentOffer({ submissionId }: { submissionId: Token["submissionId"
                 <i />
                 <span>
                     Start with <b>{formatPHP(minimum ?? DOWN_PAYMENT)}</b>. The rest later.{" "}
-                    {minimum === null && <Link href="/v2/help#contact">Ask us how</Link>}
+                    {minimum === null && <Link href="/help#contact">Ask us how</Link>}
                 </span>
             </p>
             {minimum !== null && (
@@ -431,7 +480,7 @@ function DownPaymentOffer({ submissionId }: { submissionId: Token["submissionId"
 }
 
 /** GCash, Maya and Card through Xendit. Disabled with "Coming soon" until NEXT_PUBLIC_XENDIT_ENABLED is "true". */
-function MethodArea({ token }: { token: string }) {
+function MethodArea({ token, label = "More ways to pay" }: { token: string; label?: string }) {
     const startXenditCheckout = useXenditCheckout();
     const [message, setMessage] = useState<string | null>(null);
     const [busy, setBusy] = useState<XenditMethod | null>(null);
@@ -453,7 +502,7 @@ function MethodArea({ token }: { token: string }) {
     return (
         <div className="pb-py-methods" aria-label="Other ways to pay">
             <p className="pb-py-methods-k">
-                More ways to pay
+                {label}
                 {!XENDIT_ENABLED && <span className="pb-py-soon">Coming soon</span>}
             </p>
             <div className="pb-py-methods-row">
@@ -475,101 +524,45 @@ function MethodArea({ token }: { token: string }) {
 /* ---- paid -------------------------------------------------------------------- */
 
 function Paid({ token, submission, ownerHome, publishedUrl }: { token: Token; submission: Submission; ownerHome: boolean; publishedUrl?: string | null }) {
-    const name = submission?.businessName ?? null;
-    const money = formatPHP(token.amount);
-    const paidAt = paidOnOf(token, submission);
-    const { kind, total, paid, balance, url, domain, discount, websiteLine } = paidReceipt(token, submission, publishedUrl);
-    const installment = kind !== "full";
-    const outstanding = balance === null || balance > 0;
-    const title = kind === "deposit" ? "Down payment received." : kind === "balance" ? "Balance payment received." : "Payment received.";
-    const sub = outstanding
-        ? balance === null ? "Your down payment is in. Contact us for your remaining balance." : `${formatPHP(balance)} remains. Pay the balance when you're ready.`
-        : url ? "Paid in full. Your website is live." : "Paid in full. We'll send your link once your site is published.";
-    const byWise = Boolean(token.wiseTransactionId);
-
-    return (
-        <>
-            <Hero name={name} state={url ? "Live" : "Payment received"} dot={url ? "live" : undefined} title={title} sub={sub} url={url} preview={url ? `Live · ${hostOf(url)}` : "Not public yet"} noPreviewText="We'll send your public link once your site is published." />
-            <section className="v2-wrap pb-py-done" aria-labelledby="paid-h">
-                <div className="pb-py-done-mark">
-                    <CheckIcon size={34} />
-                </div>
-                <h2 className="pb-py-done-h" id="paid-h">
-                    Your receipt.
-                </h2>
-                <p className="pb-py-done-p">Keep this page as your proof of {kind === "deposit" ? "down payment" : "payment"}.</p>
-                <dl className="pb-py-receipt">
-                    <div>
-                        <dt>{kind === "deposit" ? "Down payment received" : kind === "balance" ? "Balance payment received" : domain ? "Full payment received" : "Website, paid once"}</dt>
-                        <dd>{installment || domain ? money : formatPHP(websiteLine)}</dd>
-                    </div>
-                    {!installment && domain && <div><dt>Website</dt><dd>{formatPHP(websiteLine)}</dd></div>}
-                    {installment && total !== null && (
-                        <>
-                            <div><dt>Order total</dt><dd>{formatPHP(total)}</dd></div>
-                            <div><dt>Paid so far</dt><dd>{formatPHP(paid)}</dd></div>
-                            <div><dt>Balance due</dt><dd>{formatPHP(balance!)}</dd></div>
-                        </>
-                    )}
-                    {discount && (
-                        <div>
-                            <dt>Discount</dt>
-                            <dd>
-                                {discount.percentOff}% off {formatPHP(discount.listPrice)}
-                            </dd>
-                        </div>
-                    )}
-                    {domain && (
-                        <div>
-                            <dt>Custom domain</dt>
-                            <dd className="pb-py-wrap">{domain}</dd>
-                        </div>
-                    )}
-                    {paidAt && (
-                        <div>
-                            <dt>Paid on</dt>
-                            <dd>{longDate(paidAt)}</dd>
-                        </div>
-                    )}
-                    {byWise && (
-                        <div>
-                            <dt>Paid with</dt>
-                            <dd>Wise transfer</dd>
-                        </div>
-                    )}
-                    <div>
-                        <dt>Reference</dt>
-                        <dd className="pb-mono">{token.referenceCode}</dd>
-                    </div>
-                    {url && (
-                        <div>
-                            <dt>Live at</dt>
-                            <dd>
-                                <a href={url} target="_blank" rel="noopener noreferrer">
-                                    {hostOf(url)}
-                                </a>
-                            </dd>
-                        </div>
-                    )}
-                </dl>
-                <div className="pb-py-done-cta">
-                    {kind === "deposit" && outstanding && <BalancePayment token={token} balance={balance} />}
-                    {ownerHome ? (
-                        <Button href="/my-business" variant="primary">
-                            Manage my website
-                        </Button>
-                    ) : url ? (
-                        <Button href={url} variant="primary" target="_blank" rel="noopener noreferrer">
-                            Open my website
-                        </Button>
-                    ) : null}
-                    <Button href="/v2/help#contact" variant="ghost">
-                        Need a change?
-                    </Button>
-                </div>
-            </section>
-        </>
-    );
+    const receipt = receiptSummary(token, submission);
+    const order = pendingPaymentSummary(token, submission);
+    const covered = isComped(submission);
+    const url = safePaymentUrl(publishedUrl === undefined ? submission?.status === "unpublished" || submission?.unpublishedAt ? null : submission?.websiteUrl : publishedUrl);
+    const settled = receipt.balance === 0;
+    const title = !receipt.confirmed ? covered ? "No balance due." : "Your payment is recorded."
+        : receipt.kind === "deposit" ? "Down payment received." : receipt.kind === "balance" ? "Balance payment received." : "Payment received.";
+    const sub = covered ? "Your order is covered. No payment is needed."
+        : settled ? url ? "Paid in full. Your website is live." : "Paid in full. Keep this page for your records."
+        : receipt.balance !== null ? formatPHP(receipt.balance) + " remains on your order." : "Contact our team to check your remaining balance.";
+    return <>
+        <Hero name={submission?.businessName ?? null} state={url ? "Live" : "Payment update"} dot={url ? "live" : undefined} title={title} sub={sub} url={url} preview={url ? "Live · " + hostOf(url) : "Not public yet"} noPreviewText="Your website’s publication status is separate from this receipt. We’ll send your public link once it is published." />
+        <section className="v2-wrap pb-py-done" aria-labelledby="paid-h">
+            <div className="pb-py-done-mark"><CheckIcon size={34} /></div>
+            <h2 className="pb-py-done-h" id="paid-h">{receipt.confirmed ? "Your receipt." : "Your order’s payment status."}</h2>
+            <p className="pb-py-done-p">{receipt.confirmed ? "This is the confirmed payment for this reference. Keep it for your records."
+                : covered ? "This order is covered. This link does not identify a confirmed cash payment."
+                : "Your order has been settled. This older link does not identify a separate confirmed transfer."}</p>
+            <dl className="pb-py-receipt">
+                {receipt.receivedAmount !== null && <div><dt>{receipt.kind === "deposit" ? "Down payment received" : receipt.kind === "balance" ? "Balance payment received" : order.domain ? "Full payment received" : "Website, paid once"}</dt><dd>{formatPHP(receipt.receivedAmount)}</dd></div>}
+                {receipt.confirmed && order.domain && order.websiteLine !== null && <div><dt>Website</dt><dd>{formatPHP(order.websiteLine)}</dd></div>}
+                {order.discount && <div><dt>Discount</dt><dd>{order.discount.percentOff}% off {formatPHP(order.discount.listPrice)}</dd></div>}
+                {order.domain && <div><dt>Custom domain</dt><dd className="pb-py-wrap">{order.domain}</dd></div>}
+                {receipt.total !== null && <div><dt>Order total</dt><dd>{formatPHP(receipt.total)}</dd></div>}
+                {receipt.paid !== null && <div><dt>Paid so far</dt><dd>{formatPHP(receipt.paid)}</dd></div>}
+                {receipt.balance !== null && <div><dt>Balance due</dt><dd>{formatPHP(receipt.balance)}</dd></div>}
+                {receipt.receivedAt !== null && <div><dt>Confirmed on</dt><dd>{longDate(receipt.receivedAt)}</dd></div>}
+                {receipt.method && <div><dt>Paid with</dt><dd>{receipt.method}</dd></div>}
+                <div><dt>{receipt.confirmed ? "Reference code" : "This link’s reference"}</dt><dd className="pb-mono">{token.referenceCode}</dd></div>
+                {url && <div><dt>Live at</dt><dd><a href={url} target="_blank" rel="noopener noreferrer">{hostOf(url)}</a></dd></div>}
+            </dl>
+            <div className="pb-py-done-cta">
+                {receipt.confirmed && !settled && <BalancePayment token={token} balance={receipt.balance} />}
+                {ownerHome ? <Button href={"/my-business/" + encodeURIComponent(token.submissionId)} variant="primary">View my business</Button>
+                    : url ? <Button href={url} variant="primary" target="_blank" rel="noopener noreferrer">Open my website</Button> : null}
+                <Button href="/help#contact" variant="ghost">Need a change?</Button>
+            </div>
+        </section>
+    </>;
 }
 
 /** The same payer-authorized balance-token flow used by the owner app. */
@@ -585,7 +578,7 @@ function BalancePayment({ token, balance }: { token: Token; balance: number | nu
         try {
             // The server rechecks the payer, approval and the current balance.
             const next = await createPayToken({ submissionId: token.submissionId, kind: "balance" });
-            router.push(`/v2/pay/${encodeURIComponent(next.token)}`);
+            router.push(`/pay/${encodeURIComponent(next.token)}`);
         } catch (error) {
             setMessage(error instanceof ConvexError && typeof error.data === "string" ? error.data : "We couldn't open your balance payment. Please try again or contact Tendso.");
             setBusy(false);
@@ -593,7 +586,7 @@ function BalancePayment({ token, balance }: { token: Token; balance: number | nu
     };
     if (isLoading) return <Button disabled>Loading payment options…</Button>;
     if (!isAuthenticated) return (
-        <SignInButton mode="modal" forceRedirectUrl={`/v2/pay/${encodeURIComponent(token.token)}`}>
+        <SignInButton mode="modal" forceRedirectUrl={`/pay/${encodeURIComponent(token.token)}`}>
             <Button>Sign in to pay the balance</Button>
         </SignInButton>
     );
@@ -628,7 +621,7 @@ function Expired({ token, submission, now }: { token: Token; submission: Submiss
                 <p className="pb-py-done-p">Your latest balance is checked first, including any confirmed down payment. Already transferred money? Check that payment before sending again.</p>
                 <div className="pb-py-done-cta">
                     <ExpiredPaymentAction token={token} total={submission?.amount} version="v2" />
-                    <Button href="/v2/help#contact" variant="ghost">
+                    <Button href="/help#contact" variant="ghost">
                         Other questions
                     </Button>
                 </div>
@@ -645,10 +638,10 @@ function NotFound() {
             <h1 className="pb-py-done-h">We can&apos;t find this link.</h1>
             <p className="pb-py-done-p">The link may be missing a few letters, or a newer one replaced it. Open the payment email again and tap the link there.</p>
             <div className="pb-py-done-cta">
-                <Button href="/v2/help#contact" variant="dark">
+                <Button href="/help#contact" variant="dark">
                     Contact Tendso
                 </Button>
-                <Button href="/v2" variant="ghost">
+                <Button href="/" variant="ghost">
                     Go to tendso.com
                 </Button>
             </div>

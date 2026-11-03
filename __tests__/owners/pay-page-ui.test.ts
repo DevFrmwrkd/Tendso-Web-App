@@ -52,6 +52,39 @@ beforeEach(() => {
 });
 
 describe('payment receipts and installments', () => {
+    it('withholds the transfer instructions when the verified Wise recipient is missing', () => {
+        const html = renderToStaticMarkup(createElement(PayView, { loading: false, token: token({ status: 'pending', kind: 'full', amount: 4999 }),
+            submission: submission({ status: 'pending_payment', amountPaid: 0, depositPaidAt: undefined }), now, wiseEmail: '', ownerHome: false }));
+        expect(html).toContain('Payment details aren’t ready.');
+        expect(html).not.toContain('Copy all details'); expect(html).not.toContain('support@negosyo.digital'); expect(html).not.toContain('https://wise.com/send');
+    });
+
+    it('does not ask for an obsolete full-order payment after a confirmed deposit', () => {
+        const html = render(token({ status: 'pending', kind: 'full', amount: 4999 }));
+        expect(html).toContain('Let’s check your latest balance.'); expect(html).not.toContain('Copy all details'); expect(html).not.toContain('https://wise.com/send');
+    });
+
+    it.each(['creating', 'uncertain'] as const)('does not offer another transfer while a hosted checkout is %s', xenditCheckoutState => {
+        const html = render(token({ status: 'pending', kind: 'full', amount: 4999, xenditCheckoutState }), submission({ amountPaid: 0, depositPaidAt: undefined, status: 'pending_payment' }));
+        expect(html).toContain('We’re checking an earlier checkout.'); expect(html).not.toContain('Copy all details'); expect(html).not.toContain('https://wise.com/send');
+    });
+
+    it('continues a current safe hosted checkout and withholds duplicate transfer instructions', () => {
+        const html = render(token({ status: 'pending', kind: 'full', amount: 4999, xenditInvoiceId: 'invoice-one', xenditInvoiceUrl: 'https://checkout.xendit.co/current', xenditExpiresAt: now + 10000 }),
+            submission({ amountPaid: 0, depositPaidAt: undefined, status: 'pending_payment' }));
+        expect(html).toContain('href="https://checkout.xendit.co/current"'); expect(html).toContain('Continue checkout'); expect(html).not.toContain('https://wise.com/send');
+    });
+
+    it('does not invent a separate cash receipt for an old pending link on a settled order', () => {
+        const html = render(token({ status: 'pending', amount: 3499 }), submission({ amountPaid: 4999, paidInFullAt: now, status: 'completed' }));
+        expect(html).toContain('This older link does not identify a separate confirmed transfer.'); expect(html).not.toContain('₱3,499');
+    });
+
+    it('uses the recorded received amount instead of the request amount on a receipt', () => {
+        const html = render(token({ amount: 500, paidAmount: 900 }), submission({ amountPaid: 900 }));
+        expect(html).toContain('<dt>Down payment received</dt><dd>₱900</dd>'); expect(html).toContain('₱4,099');
+    });
+
     it('shows a down payment, the real order total and remaining balance without inventing a discount or publication', () => {
         const html = render();
         expect(html).toContain('Down payment received.');
@@ -59,14 +92,14 @@ describe('payment receipts and installments', () => {
         expect(html).toContain('Order total'); expect(html).toContain('Paid so far'); expect(html).toContain('Balance due');
         expect(html).not.toContain('90% off'); expect(html).not.toContain('Paid once.'); expect(html).not.toContain('Your site is live.');
         expect(html).toContain('Not public yet'); expect(html).not.toContain('Private until you pay');
-        expect(html).toContain('Sign in to pay the balance'); expect(html).toContain('data-sign-in-return="/v2/pay/receipt-token"');
+        expect(html).toContain('Sign in to pay the balance'); expect(html).toContain('data-sign-in-return="/pay/receipt-token"');
     });
 
     it('opens a server-authorized balance token without passing a browser amount', async () => {
         state.authenticated = true;
         render();
         state.actions.get('Pay ₱4,499 balance')!();
-        await vi.waitFor(() => expect(state.push).toHaveBeenCalledWith('/v2/pay/balance-token'));
+        await vi.waitFor(() => expect(state.push).toHaveBeenCalledWith('/pay/balance-token'));
         expect(state.createPayToken).toHaveBeenCalledExactlyOnceWith({ submissionId: 'submission1', kind: 'balance' });
         expect(state.mutations).toContain('ownerPayments:createPayToken');
     });

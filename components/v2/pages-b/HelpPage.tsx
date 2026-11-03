@@ -18,18 +18,18 @@ import { Reveal } from "./Reveal";
 import { ArrowRightIcon, CloseIcon, PbPage, PlusIcon, copyWithToast, usePbToast } from "./shared";
 
 /*
- * /v2/help: the Help Center front for the new site (pages/help.html).
+ * /help: the default Help Center front (also available at /v2/help).
  * Search, the Tendso AI answer, topics, short answers, and "Ask a person".
  *
  * Everything on it is read from the same Convex Help Center the /knowledge
  * routes use (categories, articles and FAQs through api.knowledge.*, with the
  * server's first paint as a fallback). Search is the Help Center's own scorer.
- * Full articles open on /knowledge/[slug], which keeps working as before.
+ * Full articles open on /knowledge/[slug] in the same redesigned frame.
  */
 
 const POPULAR_FALLBACK = ["How much does it cost?", "How fast is my site ready?", "When do I pay?"];
 
-export function HelpPage({ initial }: { initial: InitialHelp | null }) {
+export function HelpPage({ initial, initialQuery = "", initialTopic = "all" }: { initial: InitialHelp | null; initialQuery?: string; initialTopic?: string }) {
     const liveCats = useQuery(api.knowledge.listCategories, { workspace: "help" });
     const liveArts = useQuery(api.knowledge.listArticles, { workspace: "help" });
     const liveFaqs = useQuery(api.knowledge.listFaqs, { workspace: "help" });
@@ -44,9 +44,9 @@ export function HelpPage({ initial }: { initial: InitialHelp | null }) {
                 secondary: <Button href="#contact" variant="ghost" size="sm">Ask a person</Button>,
             }}
         >
-            <Hero categories={categories} articles={articles} />
+            <Hero key={initialQuery} initialQuery={initialQuery} categories={categories} articles={articles} />
             <Topics categories={categories} articles={articles} />
-            <Answers categories={categories} articles={articles} faqs={faqs} />
+            <Answers key={initialTopic} initialTopic={initialTopic} categories={categories} articles={articles} faqs={faqs} />
             <ContactSection onCopy={(text, done) => void copyWithToast(text, done, show)} />
             {toast}
         </PbPage>
@@ -55,9 +55,9 @@ export function HelpPage({ initial }: { initial: InitialHelp | null }) {
 
 /* ---- 1. Ask: search + the AI ------------------------------------------------ */
 
-function Hero({ categories, articles }: { categories?: Category[]; articles?: ArticleCard[] }) {
+function Hero({ categories, articles, initialQuery }: { categories?: Category[]; articles?: ArticleCard[]; initialQuery: string }) {
     const router = useRouter();
-    const [q, setQ] = useState("");
+    const [q, setQ] = useState(initialQuery);
     const [active, setActive] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -238,8 +238,8 @@ function selectTopic(slug: string) {
 
 type Row = { id: string; question: string; answer: string; href: string | null };
 
-function Answers({ categories, articles, faqs }: { categories?: Category[]; articles?: ArticleCard[]; faqs?: Faq[] }) {
-    const [topic, setTopic] = useState<string>("all");
+function Answers({ categories, articles, faqs, initialTopic }: { categories?: Category[]; articles?: ArticleCard[]; faqs?: Faq[]; initialTopic: string }) {
+    const [topic, setTopic] = useState<string>(initialTopic);
 
     // A topic tile elsewhere on the page picks the filter.
     useTopicEvent(setTopic);

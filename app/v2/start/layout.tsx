@@ -10,7 +10,7 @@ import { PbRoot } from "@/components/v2/pages-b/PbRoot";
 export const metadata: Metadata = {
     title: "Start your website — Tendso",
     description: "Start your Tendso website. About 20 minutes. See it first. Pay once to publish.",
-    alternates: { canonical: "/v2/start" },
+    alternates: { canonical: "/start" },
     robots: { index: false, follow: true },
 };
 

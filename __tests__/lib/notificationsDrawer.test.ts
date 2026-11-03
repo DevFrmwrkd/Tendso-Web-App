@@ -211,8 +211,8 @@ describe('web notification full-message reader', () => {
     });
 
     it.each([
-        { role: 'affiliate', type: 'system', data: { submissionId: 'shop-one' }, href: '/v2/creators/portal#pt-shops' },
-        { role: 'affiliate', type: 'payout_sent', data: {}, href: '/v2/creators/portal/payouts' },
+        { role: 'affiliate', type: 'system', data: { submissionId: 'shop-one' }, href: '/affiliates/dashboard#pt-shops' },
+        { role: 'affiliate', type: 'payout_sent', data: {}, href: '/affiliates/dashboard/payouts' },
         { role: 'creator', type: 'system', data: { submissionId: 'shop-one' }, href: '/submissions?open=shop-one' },
         { role: 'creator', type: 'certification', data: { showCertificate: true }, href: '/profile?certificate=1' },
         { role: 'creator', type: 'system', data: { articleSlug: 'owner-interview' }, href: '/knowledge/owner-interview' },

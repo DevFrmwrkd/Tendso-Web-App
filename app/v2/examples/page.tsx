@@ -8,7 +8,8 @@ export const metadata: Metadata = {
     description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up.",
     openGraph: { title: "Tendso examples", description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up." },
     twitter: { card: "summary_large_image", title: "Tendso examples", description: "Browse finished Tendso sites by kind of business. Sample designs, no sign-up." },
-    robots: { index: false, follow: false },
+    alternates: { canonical: "/examples" },
+    robots: { index: false, follow: true },
 };
 
 // The real-sites strip reads the admin's Featured sites; loadFeaturedSites caches for five minutes.

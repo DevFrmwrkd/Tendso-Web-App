@@ -7,5 +7,8 @@ export function affiliateSection(value: unknown): AffiliateSection {
 
 export function affiliateHref(section: AffiliateSection, preview = false): string {
     if (preview) return section === "home" ? "/admin/preview/affiliate" : `/admin/preview/affiliate?section=${section}`;
+    if (section === "sales") return "/affiliates/dashboard#pt-shops";
+    if (section === "referrals") return "/affiliates/dashboard#pt-agents";
+    if (section === "wallet") return "/affiliates/dashboard/payouts";
     return section === "home" ? "/affiliates/dashboard" : `/affiliates/dashboard/${section}`;
 }

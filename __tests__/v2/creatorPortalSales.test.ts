@@ -115,7 +115,7 @@ describe('existing creator page editor entry', () => {
     it('makes the authenticated page editor visible in the links and code area', () => {
         const html = render();
         const links = html.match(/<section[^>]*aria-label="Your links and code"[^>]*>([\s\S]*?)<\/section>/)?.[1];
-        expect(links).toMatch(/href="\/v2\/creators\/portal\/my-page">Edit your page<\/a>/);
+        expect(links).toMatch(/href="\/affiliates\/dashboard\/my-page">Edit your page<\/a>/);
         expect(links).toContain('Photo, display name, message and social links.');
     });
 

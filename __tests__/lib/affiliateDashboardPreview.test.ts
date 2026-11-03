@@ -117,7 +117,7 @@ describe("affiliate dashboard preview", () => {
         expect(html.match(/role="tab"/g)).toHaveLength(3);
         expect(html.match(/role="tabpanel"/g)).toHaveLength(3);
         for (const id of ["page-settings", "price-settings", "affiliate-share-heading"]) expect(html).toContain(`id="${id}"`);
-        expect(html).toContain(`href="/v2/a/${account.affiliateHandle}"`);
+        expect(html).toContain(`href="/a/${account.affiliateHandle}"`);
         expect(html).toContain("View saved page");
         expect(html.match(/<form\b/g)).toHaveLength(1);
         expect(jest.mocked(CreatorPagePreview).mock.calls.at(-1)?.[0]).toMatchObject({
@@ -256,7 +256,7 @@ describe("affiliate dashboard preview", () => {
         expect(html).toMatch(/data-poster-node="creator-code-0"[^>]*>PREVIEW1<\/text>/);
         const photo = html.match(/<image\b(?=[^>]*data-poster-node="photo")[^>]*>/)?.[0];
         expect(photo).toContain(`href="${account.affiliatePhoto}"`);
-        expect(html).toContain(`tendso.com/v2/a/${account.affiliateHandle}`);
+        expect(html).toContain(`tendso.com/a/${account.affiliateHandle}`);
     });
 
 });

@@ -25,7 +25,7 @@ function EarnLinkInner({ handle }: { handle: string }) {
     useRecordClick(handle, "earn");
     return (
         <>
-            <SoloBar brandHref="/v2" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
+            <SoloBar brandHref="/" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
             <main className="wrap">
                 {state.status === "loading" && (
                     <section className="as-state" aria-busy="true" aria-label="Loading">
@@ -44,9 +44,9 @@ function EarnLinkInner({ handle }: { handle: string }) {
                 {state.status === "found" && <Found card={state.card} />}
                 <MiniFoot
                     links={[
-                        { label: "About field agents", href: "/v2/field-agents" },
-                        { label: "Help", href: "/v2/help" },
-                        { label: "Privacy", href: "/v2/privacy" },
+                        { label: "About field agents", href: "/for-field-agents" },
+                        { label: "Help", href: "/help" },
+                        { label: "Privacy", href: "/privacy-policy" },
                     ]}
                 />
             </main>

@@ -14,29 +14,6 @@ const ASTRO_BUILD_FILES = [
 
 const nextConfig: NextConfig = {
   staticPageGenerationTimeout: 120,
-  /**
-   * /for-business is retired. It shared 11 of its 13 sections with `/` (same
-   * pricing, process, proof, FAQ and closing bands), so the two URLs competed
-   * for the same query and every copy change had to be made twice — which is
-   * how four contradictory edit-policy promises shipped before being audited
-   * out. `/` carries the whole owner pitch on its own.
-   *
-   * permanent: true → 308, because the move is permanent: search engines should
-   * transfer the ranking to `/` and inbound links should be rewritten.
-   *
-   * Destination is `/`, NOT `/start`: inbound links and search results asked
-   * for a page that explains the offering, and dropping a cold visitor into a
-   * four-step intake form is a worse landing than the one they asked for.
-   * /start stays one click away (navbar, hero, pricing card).
-   *
-   * Only the exact path redirects — /for-business/* never had sub-routes, and
-   * redirecting them would turn honest 404s into soft-404s.
-   */
-  async redirects() {
-    return [
-      { source: "/for-business", destination: "/", permanent: true },
-    ];
-  },
   env: {
     // Surface the R2 public URL to the browser so components can resolve R2
     // relative paths (audio/, videos/, images/) without a Convex round-trip.

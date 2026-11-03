@@ -77,7 +77,7 @@ export function CreatorPagePreview({ card, dirty, publicHref, paused = false }: 
                 <button type="button" aria-pressed={mode === 'desktop'} onClick={() => setMode('desktop')}><Monitor size={17} aria-hidden="true" />Desktop</button>
             </div>
         </div>
-        <div className={styles.address}><span aria-hidden="true">↗</span><span>{card.handle ? `tendso.com/v2/a/${card.handle}` : 'Your public shop page'}</span><small>{viewport.width}px</small></div>
+        <div className={styles.address}><span aria-hidden="true">↗</span><span>{card.handle ? `tendso.com/a/${card.handle}` : 'Your public shop page'}</span><small>{viewport.width}px</small></div>
         <div className={styles.stage} ref={stage}>
             <div className={styles.screen} style={{ width: viewport.width * scale, height: viewport.height * scale }}>
                 <iframe

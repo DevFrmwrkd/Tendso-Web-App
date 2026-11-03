@@ -11,7 +11,7 @@ beforeEach(() => jest.clearAllMocks());
 describe('admin preview navigation boundary', () => {
     it.each(['affiliate', 'creator', 'owner'] as const)('allows only the %s preview, local anchors and fixed read-only destinations', role => {
         const base = `/admin/preview/${role}`;
-        for (const href of ['#', '#top', '#pt-shops', base, `${base}/`, `${base}?section=my-page`, `${base}?section=wallet#history`, `${base}?business=preview-owner-live`, '/v2/help', '/v2/privacy', '/v2/creators#rules']) {
+        for (const href of ['#', '#top', '#pt-shops', base, `${base}/`, `${base}?section=my-page`, `${base}?section=wallet#history`, `${base}?business=preview-owner-live`, '/help', '/privacy-policy', '/affiliates#rules', '/v2/help', '/v2/privacy', '/v2/creators#rules']) {
             expect(isAdminPreviewHref(href, role)).toBe(true);
         }
     });

@@ -54,7 +54,7 @@ export function ProgramPage() {
                                 You post online. Shops save with your code. Field agents join your team. You never visit a shop.
                             </p>
                             <div className="ag-hero-cta" data-reveal style={{ "--i": 3 } as CSSProperties}>
-                                <Link className="btn btn--accent ag-btn-lg" href="/v2/creators/signup">
+                                <Link className="btn btn--accent ag-btn-lg" href="/affiliates/join">
                                     Apply as a creator
                                 </Link>
                                 <a className="btn btn--line ag-btn-lg ag-btn-2" href="#calc">
@@ -460,7 +460,7 @@ export function ProgramPage() {
                                     </li>
                                 </ol>
                                 <div className="ag-end-cta">
-                                    <Link className="btn btn--ink ag-btn-lg" href="/v2/creators/signup">
+                                    <Link className="btn btn--ink ag-btn-lg" href="/affiliates/join">
                                         Apply as a creator
                                     </Link>
                                     <a className="btn ag-btn-lg ag-btn-onaccent" href="#portal">

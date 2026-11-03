@@ -10,7 +10,7 @@ import type { Doc } from '@/convex/_generated/dataModel';
 import { SAMPLE_PORTAL } from '@/lib/v2/creatorSample';
 import type { PortalSummary } from '@/lib/v2/creatorTypes';
 
-const PAYOUTS = '/v2/creators/portal/payouts';
+const PAYOUTS = '/affiliates/dashboard/payouts';
 
 jest.mock('@clerk/nextjs', () => ({ useClerk: jest.fn(), useUser: jest.fn() }));
 jest.mock('convex/react', () => ({ useConvexAuth: jest.fn(), useQuery: jest.fn() }));

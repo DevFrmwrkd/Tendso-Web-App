@@ -7,7 +7,8 @@ export const metadata: Metadata = {
     description: "The operational guidelines governing your use of the Tendso Creator Network.",
     openGraph: { title: "Terms of service — Tendso", description: "The operational guidelines governing your use of the Tendso Creator Network." },
     twitter: { card: "summary_large_image", title: "Terms of service — Tendso", description: "The operational guidelines governing your use of the Tendso Creator Network." },
-    robots: { index: false, follow: false },
+    alternates: { canonical: "/terms-of-service" },
+    robots: { index: false, follow: true },
 };
 
 export default function Page() {

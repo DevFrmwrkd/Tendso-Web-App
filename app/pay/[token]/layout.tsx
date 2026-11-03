@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PbRoot } from "@/components/v2/pages-b/PbRoot";
 
 /**
  * Exists for the page's metadata (the page is a client component, which cannot
@@ -14,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function PayLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return <PbRoot>{children}</PbRoot>;
 }

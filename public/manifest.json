@@ -4,8 +4,8 @@
   "description": "The Thinking Ends Here. So the work doesn't.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#E4B05E",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E4F222",
   "icons": [
     {
       "src": "/tendso-icon.png",

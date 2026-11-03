@@ -1,9 +1,9 @@
-export const CREATOR_PORTAL_HREF = "/v2/creators/portal";
+export const CREATOR_PORTAL_HREF = "/affiliates/dashboard";
 export const CREATOR_PAGE_EDITOR_HREF = `${CREATOR_PORTAL_HREF}/my-page`;
 export const CREATOR_ACCOUNT_HREF = `${CREATOR_PORTAL_HREF}/account`;
 export const CREATOR_PAYOUTS_HREF = `${CREATOR_PORTAL_HREF}/payouts`;
 
-export type CreatorPortalPage = "home" | "my-page" | "account" | "payouts";
+export type CreatorPortalPage = "home" | "my-page" | "account" | "payouts" | "shops" | "agents";
 
 /** One navigation order for every authenticated creator portal page. */
 export const CREATOR_PORTAL_NAV = [

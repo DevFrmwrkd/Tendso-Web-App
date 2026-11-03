@@ -31,6 +31,7 @@ import {
     type SocialPlatform,
 } from "@/lib/v2/creatorProgram";
 import { CREATOR_CODE_MAX_LENGTH, creatorCodeError, normalizeCreatorCode } from "@/lib/creatorCodes";
+import { creatorPortalReturnPath } from "@/lib/v2/creatorPortalReturnPath";
 
 import { SoloBar } from "./Chrome";
 import { CreatorsBoundary } from "./CreatorsBoundary";
@@ -60,6 +61,7 @@ function SignupInner() {
     const router = useRouter();
     const params = useSearchParams();
     const loginOnly = params.get("login") === "1";
+    const returnTo = creatorPortalReturnPath(params.get("returnTo"));
     const previewStep = CREATORS_SAMPLE ? Math.min(STEPS, Math.max(1, Number(params.get("step")) || 1)) : 1;
 
     const { isLoaded: authLoaded, isSignedIn } = useAuth();
@@ -114,14 +116,14 @@ function SignupInner() {
         if (CREATORS_SAMPLE || !authLoaded) return;
         if (!isSignedIn || !application) return;
         if (application.status === "active" || application.status === "suspended") {
-            router.replace("/v2/creators/portal");
+            router.replace(returnTo);
         } else if (application.status === "pending") {
             setStep(5);
         } else if (application.status === "none" && step <= 2) {
             setStep(3);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [authLoaded, isSignedIn, application, router]);
+    }, [authLoaded, isSignedIn, application, router, returnTo]);
 
     const signedInEmail = user?.primaryEmailAddress?.emailAddress ?? email;
 
@@ -268,7 +270,7 @@ function SignupInner() {
                 right={
                     <>
                         Already a creator?{" "}
-                        <Link className="u" href="/v2/creators/signup?login=1">
+                        <Link className="u" href="/affiliates/join?login=1">
                             Log in
                         </Link>
                     </>
@@ -459,7 +461,7 @@ function SignupInner() {
                             <label className="su-f">
                                 <span>Your name on Tendso</span>
                                 <span className="su-in">
-                                    <span className="pre">tendso.com/v2/a/</span>
+                                    <span className="pre">tendso.com/a/</span>
                                     <input
                                         type="text"
                                         value={handle}
@@ -508,7 +510,7 @@ function SignupInner() {
                                     {busy ? "Sending…" : !CREATORS_SAMPLE && !convexReady ? "Signing you in…" : "Send for review"}
                                 </button>
                                 <p className="su-note">
-                                    By sending, you agree to the <Link href="/v2/terms">creator rules</Link>.
+                                    By sending, you agree to the <Link href="/terms-of-service">creator rules</Link>.
                                 </p>
                             </div>
                         </form>
@@ -531,12 +533,12 @@ function SignupInner() {
                                 <TimelineItem title="Your link goes live" note="Then start sharing" />
                             </ol>
                             <div className="su-go">
-                                <Link className="btn btn--line" href="/v2/creators">
+                                <Link className="btn btn--line" href="/affiliates">
                                     Back to Tendso for creators
                                 </Link>
                                 {isSignedIn && !CREATORS_SAMPLE ? (
                                     <p className="su-note">
-                                        <button type="button" className="su-link-btn" onClick={() => signOut({ redirectUrl: "/v2/creators" })}>
+                                        <button type="button" className="su-link-btn" onClick={() => signOut({ redirectUrl: "/affiliates" })}>
                                             Log out
                                         </button>
                                     </p>
@@ -545,7 +547,7 @@ function SignupInner() {
                         </div>
                     )}
 
-                    {application?.status === "other_account" && step <= 3 && <OtherAccount onSignOut={() => signOut({ redirectUrl: "/v2/creators/signup" })} />}
+                    {application?.status === "other_account" && step <= 3 && <OtherAccount onSignOut={() => signOut({ redirectUrl: "/affiliates/join" })} />}
                 </section>
             </main>
             <div className="wrap" style={{ paddingBottom: 40 }} />

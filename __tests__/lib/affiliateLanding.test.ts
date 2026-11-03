@@ -145,8 +145,8 @@ describe("creator app store destinations", () => {
     });
 
     it("uses the existing app explainer when a phone has no usable store setting", () => {
-        expect(creatorStoreButtons("android", null, iosUrl)[0].href).toBe("/for-creators#app");
-        expect(creatorStoreButtons("ios", playUrl, "javascript:alert(1)")[0].href).toBe("/for-creators#app");
-        expect(creatorStoreButtons("other", "https://user:pass@play.google.com/app", null)[0].href).toBe("/for-creators#app");
+        expect(creatorStoreButtons("android", null, iosUrl)[0].href).toBe("/#download");
+        expect(creatorStoreButtons("ios", playUrl, "javascript:alert(1)")[0].href).toBe("/#download");
+        expect(creatorStoreButtons("other", "https://user:pass@play.google.com/app", null)[0].href).toBe("/#download");
     });
 });

@@ -45,7 +45,7 @@ export function PortalUtilities() {
         <button type="button" className={styles.utilityButton} disabled={signingOut} onClick={async () => {
             setSigningOut(true);
             setError(null);
-            try { await signOut({ redirectUrl: "/v2/creators" }); }
+            try { await signOut({ redirectUrl: "/affiliates" }); }
             catch { if (currentActor.current === actor) { setError("Could not sign out. Try again."); setSigningOut(false); } }
         }}><LogOut size={18} aria-hidden="true" />{signingOut ? "Signing out…" : "Sign out"}</button>
         {error ? <span role="alert" className={styles.utilityError}>{error}</span> : null}

@@ -74,7 +74,7 @@ beforeEach(() => {
 describe.each(['r1', 'v2'] as const)('%s expired-payment page', version => {
     it('offers owner sign-in and a safe return to this payment page without unauthenticated renewal', () => {
         const html = render(version);
-        const path = `${version === 'v2' ? '/v2' : ''}/pay/${oldToken}`;
+        const path = `/pay/${oldToken}`;
         expect(html).toContain(`href="/my-business/sign-in?returnTo=${encodeURIComponent(path)}"`);
         expect(html).toContain('Pay again'); expect(html).toContain('confirmed down payment');
         expect(html).not.toContain('Ask for a new link'); expect(html).not.toContain('No payment arrived');
@@ -85,7 +85,7 @@ describe.each(['r1', 'v2'] as const)('%s expired-payment page', version => {
     it('opens the server-issued current-balance checkout instead of reusing the expired full-order amount', async () => {
         state.authenticated = true; render(version);
         state.actions.get('Pay again')!();
-        await vi.waitFor(() => expect(state.push).toHaveBeenCalledWith(`${version === 'v2' ? '/v2' : ''}/pay/${freshToken}`));
+        await vi.waitFor(() => expect(state.push).toHaveBeenCalledWith(`/pay/${freshToken}`));
         expect(state.retry).toHaveBeenCalledExactlyOnceWith({ token: oldToken, expectedSubmissionId: submissionId, expectedTotal: 4999 });
         expect(state.mutations).toContain('ownerPayments:retryExpiredPayment');
     });

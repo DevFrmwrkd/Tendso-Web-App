@@ -16,7 +16,7 @@ const SITES = [
 /** Shared by the live public page and editor preview. No attribution effects or account reads. */
 export function ShopLinkView({ card }: { card: CreatorCard }) {
     return <>
-        <SoloBar brandHref="/v2" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
+        <SoloBar brandHref="/" right={<a className="btn btn--accent btn--sm" href="#get">Get the app</a>} />
         <main className="wrap">
             <ShopLinkContent card={card} />
             <ShopLinkFooter />
@@ -26,9 +26,9 @@ export function ShopLinkView({ card }: { card: CreatorCard }) {
 
 export function ShopLinkFooter() {
     return <MiniFoot links={[
-        { label: "Help", href: "/v2/help" },
-        { label: "Privacy", href: "/v2/privacy" },
-        { label: "Share Tendso and earn", href: "/v2/creators" },
+        { label: "Help", href: "/help" },
+        { label: "Privacy", href: "/privacy-policy" },
+        { label: "Share Tendso and earn", href: "/affiliates" },
     ]} />;
 }
 

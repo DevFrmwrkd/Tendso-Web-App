@@ -36,7 +36,7 @@ export function PbPage({
 /** The wordmark link used by the funnel bars of /v2/start and /v2/pay. */
 export function PbBrand() {
     return (
-        <Link className="v2-brand" href="/v2" aria-label="Tendso home">
+        <Link className="v2-brand" href="/" aria-label="Tendso home">
             <Image src="/v2/brand/mark-ink-256.png" alt="" width={26} height={26} priority />
             tendso
         </Link>

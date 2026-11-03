@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PbRoot } from "@/components/v2/pages-b/PbRoot";
 
 import { campaignListPrice, campaignSellPrice, formatPHP } from "@/lib/pricing";
 
@@ -31,5 +32,5 @@ export const metadata: Metadata = {
 };
 
 export default function OtrLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return <PbRoot>{children}</PbRoot>;
 }

@@ -39,7 +39,7 @@ export function useXenditCheckout(): (token: string, method: XenditMethod) => Pr
     return useCallback(
         async (token: string, method: XenditMethod) => {
             void method;
-            const back = `${window.location.origin}/v2/pay/${encodeURIComponent(token)}`;
+            const back = `${window.location.origin}/pay/${encodeURIComponent(token)}`;
             const result = await createCheckout({ token, successRedirectUrl: back, failureRedirectUrl: back });
             if (!result.enabled) throw new Error(OFF);
             window.location.assign(result.checkoutUrl);

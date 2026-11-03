@@ -76,9 +76,9 @@ describe("names and handles", () => {
 });
 
 describe("creator share links", () => {
-    it("uses the v2 public routes for shops and agents", () => {
-        expect(shopLinkFor("mika")).toBe("tendso.com/v2/a/mika");
-        expect(earnLinkFor("mika")).toBe("tendso.com/v2/a/mika/earn");
+    it("uses the default public routes for shops and agents", () => {
+        expect(shopLinkFor("mika")).toBe("tendso.com/a/mika");
+        expect(earnLinkFor("mika")).toBe("tendso.com/a/mika/earn");
     });
 });
 

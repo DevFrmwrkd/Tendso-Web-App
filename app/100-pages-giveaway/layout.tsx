@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { PbRoot } from "@/components/v2/pages-b/PbRoot";
 
 import { GIVEAWAY_VALUE } from "@/lib/giveaway";
 
@@ -22,5 +23,5 @@ export const metadata: Metadata = {
 };
 
 export default function GiveawayLayout({ children }: { children: ReactNode }) {
-    return children;
+    return <PbRoot>{children}</PbRoot>;
 }

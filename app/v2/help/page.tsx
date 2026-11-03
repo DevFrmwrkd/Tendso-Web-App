@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 
 import { loadHelp } from "@/app/knowledge/_components/loadHelp";
 import { HelpPage } from "@/components/v2/pages-b/HelpPage";
+import { helpViewParams, type HelpSearchParams } from "@/app/knowledge/routing";
 
 export const metadata: Metadata = {
     title: "Help — Tendso",
     description: "Short answers about Tendso websites: what it costs, when you pay, and changing your site. Ask Tendso, or ask a person.",
-    alternates: { canonical: "/v2/help" },
+    alternates: { canonical: "/help" },
     robots: { index: false, follow: true },
 };
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
  * existing /knowledge routes keep working). The Help Center lists are read on the
  * server so the page arrives with its topics and answers already in the HTML.
  */
-export default async function V2HelpPage() {
-    const initial = await loadHelp();
-    return <HelpPage initial={initial} />;
+export default async function V2HelpPage({ searchParams }: { searchParams: Promise<HelpSearchParams> }) {
+    const [initial, params] = await Promise.all([loadHelp(), searchParams]);
+    return <HelpPage initial={initial} {...helpViewParams(params)} />;
 }

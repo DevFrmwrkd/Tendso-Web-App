@@ -59,7 +59,7 @@ describe('web Bold offer artwork', () => {
         expect(html).not.toContain('₱2,661');
         expect(html).toContain('LEGACY27');
         expect(html).toContain('href="https://photos.example.com/saved.jpg"');
-        expect(html).toContain('tendso.com/v2/a/ana-local');
+        expect(html).toContain('tendso.com/a/ana-local');
         expect(html).toContain('website offer.');
         expect(html).not.toContain('MIKA30');
         expect(html).not.toContain('Mika Santos');

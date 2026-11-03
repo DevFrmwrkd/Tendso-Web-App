@@ -21,6 +21,7 @@
 import { useAction, useConvex, useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type FormEvent, type ReactNode } from "react";
 
 import {
@@ -36,7 +37,8 @@ import {
 } from "@/app/start/draft";
 import { buildPhotoArray, validatePhotoFile, visibleSlots, type PhotoSlot } from "@/app/start/photoSlots";
 import { quoteFor } from "@/app/start/quote";
-import { Button } from "@/components/v2";
+import { firstIncompleteStartScreen, resumeStartScreen, startDomainError, startPosition, type StartScreenId } from "@/app/start/resume";
+import { Button, PhoneFrame, PhoneStatusBar } from "@/components/v2";
 import { api } from "@/convex/_generated/api";
 import { useStoreLinks } from "@/lib/v2/useStoreLinks";
 import { creatorPlatform, creatorStoreButtons, type CreatorPlatform } from "@/lib/affiliateLanding";
@@ -45,8 +47,9 @@ import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
 import { campaignListPrice, domainAddOnFor, formatPHP, normalizeCampaign, ownerChargeFor } from "@/lib/pricing";
 import { BUSINESS_TYPES } from "@/lib/prospectPrefill";
+import sampleCatalog from "@/public/capture-redesign/catalog.json";
 
-import { PbBrand, SitePhone, usePbToast, CheckIcon } from "./shared";
+import { PbBrand, usePbToast } from "./shared";
 import { VoiceMic } from "./VoiceMic";
 
 /* ---- constants ------------------------------------------------------------- */
@@ -55,20 +58,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STAGES = ["Your shop", "Questions", "Photos", "Last look"] as const;
 const SITE_HOST = "sites.tendso.com";
 
-/** What each business type is called on a chip, and which sample design stands in for it. */
-const KIND: Record<string, { label: string; site: string; design: string }> = {
-    "Barber/Salon": { label: "Barber or salon", site: "forge", design: "Barbershop" },
-    "Auto Shop": { label: "Auto shop", site: "vulca", design: "Auto repair" },
-    "Spa/Massage": { label: "Spa or massage", site: "hela", design: "Hair and spa studio" },
-    Restaurant: { label: "Restaurant", site: "domingo", design: "Hardware store" },
-    Clinic: { label: "Clinic", site: "hela", design: "Hair and spa studio" },
-    "Law Office": { label: "Law office", site: "hela", design: "Hair and spa studio" },
-    "Craft/Producer": { label: "Craft or producer", site: "domingo", design: "Hardware store" },
-    Other: { label: "Something else", site: "labana", design: "Laundry" },
+const KIND: Record<string, { label: string }> = {
+    "Barber/Salon": { label: "Barber or salon" },
+    "Auto Shop": { label: "Auto shop" },
+    "Spa/Massage": { label: "Spa or massage" },
+    Restaurant: { label: "Restaurant" },
+    Clinic: { label: "Clinic" },
+    "Law Office": { label: "Law office" },
+    "Craft/Producer": { label: "Craft or producer" },
+    Other: { label: "Something else" },
 };
-const DEFAULT_SITE = { site: "forge", design: "Barbershop" };
 
-type ScreenId = "choose" | "name" | "reach" | "where" | `q${number}` | "products" | "photos" | "poster" | "review" | "done";
+type ScreenId = StartScreenId;
 
 function stageOf(id: ScreenId): number {
     if (id === "choose") return -1;
@@ -163,13 +164,14 @@ function loadScreen(): ScreenId | null {
 /* ---- the flow -------------------------------------------------------------------------- */
 
 export function StartFlow() {
+    const router = useRouter();
     const convex = useConvex();
     const submitOwnerIntake = useMutation(api.ownerIntake.submitOwnerIntake);
     const generateUploadUrl = useAction(api.r2.generateUploadUrl);
     const giveawayStatus = useQuery(api.giveaway.giveawayStatus);
     const { googlePlay: playUrl, appStore: iosUrl } = useStoreLinks();
     const platform = useSyncExternalStore(subscribe, browserPlatform, serverPlatform);
-    const { node: toast, show } = usePbToast();
+    const { node: toast } = usePbToast();
 
     // The campaign this owner arrived under. Read on mount: it touches the URL and localStorage.
     const [campaign, setCampaign] = useState<string | null>(null);
@@ -188,7 +190,6 @@ export function StartFlow() {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [giveawayClosed, setGiveawayClosed] = useState(false);
     const [voiceBusy, setVoiceBusy] = useState(false);
-    const [doneEmail, setDoneEmail] = useState("");
     const [codeEntry, setCodeEntry] = useState("");
     const [codeRejected, setCodeRejected] = useState(false);
     const [savedTick, setSavedTick] = useState(0);
@@ -221,8 +222,8 @@ export function StartFlow() {
     }, [arrival, draft, giveawayStatus]);
 
     useEffect(() => {
-        if (draft) saveDraft(draft);
-    }, [draft]);
+        if (draft && firstPlaced.current) saveDraft(startPosition(draft, screen));
+    }, [draft, screen]);
 
     const giveaway = draft?.giveawayApplication === true;
     const hasOffer = !!arrival && (arrival.offer.giveaway || arrival.offer.campaign !== null || arrival.offer.affiliateHandle !== undefined || arrival.offer.fullPrice === true);
@@ -256,9 +257,7 @@ export function StartFlow() {
             setScreen("choose");
             return;
         }
-        const remembered = arrival.screen;
-        const valid = remembered && remembered !== "choose" && remembered !== "done" && (remembered !== "poster" || draft.giveawayApplication);
-        setScreen(valid && progressed ? remembered : "name");
+        setScreen(progressed ? resumeStartScreen(draft, arrival.screen) : "name");
     }, [arrival, draft, offerChoose, progressed]);
 
     useEffect(() => {
@@ -299,8 +298,10 @@ export function StartFlow() {
 
     const quote = quoteFor(campaign, draft?.wantsCustomDomain ?? false, giveaway, affiliatePrice);
     const basics = draft?.basics ?? emptyDraft().basics;
-    const kind = KIND[basics.businessType] ?? DEFAULT_SITE;
-    const address = `${slugify(basics.businessName || "Forge Barbers")}.${SITE_HOST}`;
+    const kind = KIND[basics.businessType] ?? KIND.Other;
+    const sample = sampleCatalog.designs.find(design => design.businessType === (basics.businessType || "Other") && design.recommended)
+        ?? sampleCatalog.designs.find(design => design.businessType === "Other" && design.recommended)!;
+    const address = `${slugify(basics.businessName || "your shop")}.${SITE_HOST}`;
 
     /* ---- uploads ---- */
     const upload = useCallback(
@@ -395,6 +396,9 @@ export function StartFlow() {
             if (uploading !== null) next.photos = "One photo is still uploading.";
         } else if (id === "poster") {
             if (!draft.giveawayPosterPhoto) next.poster = "Add the photo of the poster.";
+        } else if (id === "review" && !giveaway && draft.wantsCustomDomain) {
+            const problem = startDomainError(draft.requestedDomain);
+            if (problem) next.requestedDomain = problem;
         }
         setErrors(next);
         return Object.keys(next).length === 0;
@@ -417,6 +421,11 @@ export function StartFlow() {
         }
         if (draft.giveawayApplication && !draft.giveawayPosterPhoto) {
             goTo("poster", -1);
+            return;
+        }
+        const incomplete = firstIncompleteStartScreen(draft);
+        if (incomplete !== "review") {
+            goTo(incomplete, -1);
             return;
         }
         submittedRef.current = true;
@@ -475,10 +484,8 @@ export function StartFlow() {
             } catch {
                 /* ignore */
             }
-            setDoneEmail(b.ownerEmail.trim());
             setSubmitting(false);
-            goTo("done", 1);
-            show(draft.giveawayApplication ? "Application sent" : "Sent. We're building your site");
+            router.replace("/start/thanks");
         } catch (error) {
             // A Convex mutation that throws wrote nothing, so releasing the guard is safe.
             submittedRef.current = false;
@@ -489,12 +496,11 @@ export function StartFlow() {
                 setSubmitError("The giveaway is closed. Your draft is saved on this device.");
             } else setSubmitError(message);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [affiliateHandle, affiliateOffer, affiliatePrice, campaign, convex, draft, giveawayStatus?.open, source, submitOwnerIntake]);
+    }, [affiliateHandle, affiliateOffer, affiliatePrice, campaign, convex, draft, giveawayStatus?.open, router, source, submitOwnerIntake]);
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
-        if (!draft || submitting) return;
+        if (!draft || submitting || uploading !== null || voiceBusy) return;
         if (screen === "choose" || screen === "done") return;
         if (!validate(screen)) {
             window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[aria-invalid="true"], .is-missing')?.scrollIntoView({ block: "center", behavior: "smooth" }));
@@ -572,7 +578,7 @@ export function StartFlow() {
                             <span key={savedTick} className={`pb-st-saved ${savedTick > 0 ? "is-on" : ""}`} aria-live="polite">
                                 {savedTick > 0 ? "Saved" : ""}
                             </span>
-                            <Button href={giveaway ? "/v2/giveaway" : "/v2"} variant="ghost" size="sm" className="pb-st-exit">
+                            <Button href={giveaway ? "/100-pages-giveaway" : "/"} variant="ghost" size="sm" className="pb-st-exit">
                                 Save and exit
                             </Button>
                         </div>
@@ -609,7 +615,7 @@ export function StartFlow() {
                             <div className="pb-st-closed" role="alert">
                                 <b>{GIVEAWAY_CLOSED.heading}</b>
                                 <p>Your draft is saved on this device. You can still get a website at the regular price.</p>
-                                <Button href="/v2/giveaway" variant="dark" size="sm">
+                                <Button href="/100-pages-giveaway" variant="dark" size="sm">
                                     See your options
                                 </Button>
                             </div>
@@ -628,7 +634,7 @@ export function StartFlow() {
                                         </svg>
                                     </button>
                                 )}
-                                <button type="submit" className="v2-btn v2-btn--primary pb-st-next" disabled={submitting || (screen !== "review" && uploading !== null && screen === "photos")}>
+                                <button type="submit" className="v2-btn v2-btn--primary pb-st-next" disabled={submitting || uploading !== null || voiceBusy}>
                                     {submitting ? "Sending…" : screen === "review" ? (giveaway ? "Send my application" : "Send it in") : "Continue"}
                                 </button>
                             </div>
@@ -636,11 +642,14 @@ export function StartFlow() {
                     </form>
 
                     {(
-                        <aside className="pb-st-side" aria-label="What your site will look like">
+                        <aside className="pb-st-side" aria-label="Sample website for your business type">
                             <div className="pb-st-stage">
-                                <span className="pb-sample-tag pb-st-tag">Sample design · {kind.design}</span>
+                                <span className="pb-sample-tag pb-st-tag">Sample design · {kind.label}</span>
                                 <div className="pb-st-phone">
-                                    <SitePhone key={kind.site} src={kind.site === "forge" ? "/v2/sites/forge-m-fixed.jpg" : `/v2/sites/${kind.site}-m.jpg`} url={address} alt="A sample Tendso site on a phone" />
+                                    <PhoneFrame>
+                                        <PhoneStatusBar />
+                                        <iframe key={sample.preview} className="pb-st-template-frame" src={sample.preview} title={`Sample ${kind.label.toLowerCase()} website`} loading="lazy" sandbox="allow-scripts" referrerPolicy="no-referrer" />
+                                    </PhoneFrame>
                                 </div>
                             </div>
                             <div className="pb-st-price">
@@ -929,7 +938,7 @@ export function StartFlow() {
                 </>
             );
         if (screen === "review") return ReviewScreen();
-        return DoneScreen();
+        return null;
     }
 
     function ReviewScreen() {
@@ -1005,6 +1014,15 @@ export function StartFlow() {
                             </>
                         ) : (
                             <>
+                                <h2>Your website address</h2>
+                                <div className="pb-st-chips" role="radiogroup" aria-label="Website address">
+                                    <button type="button" className="pb-st-chip" role="radio" aria-checked={!draft!.wantsCustomDomain} onClick={() => patch(p => ({ ...p, wantsCustomDomain: false }))}>Included Tendso address</button>
+                                    <button type="button" className="pb-st-chip" role="radio" aria-checked={draft!.wantsCustomDomain} onClick={() => patch(p => ({ ...p, wantsCustomDomain: true }))}>Custom domain · +{formatPHP(quoteFor(campaign, true, false, affiliatePrice).addOn)}</button>
+                                </div>
+                                {draft!.wantsCustomDomain && <Field id="f-domain" label="Requested domain" error={errors.requestedDomain}>
+                                    <input id="f-domain" className="pb-st-in" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="yourshop.com" value={draft!.requestedDomain} aria-invalid={!!errors.requestedDomain} onChange={event => { patch(p => ({ ...p, requestedDomain: event.target.value })); setErrors(previous => ({ ...previous, requestedDomain: "" })); }} />
+                                    <p className="pb-st-help">Our team checks availability and contacts you if this address is unavailable.</p>
+                                </Field>}
                                 <p className="pb-st-pay-k">
                                     <i />
                                     Nothing to pay now
@@ -1072,37 +1090,6 @@ export function StartFlow() {
         );
     }
 
-    function DoneScreen() {
-        return (
-            <>
-                <div className="pb-st-done-mark">
-                    <CheckIcon size={34} />
-                </div>
-                <h1 className="pb-st-q pb-st-q--done">Got it.</h1>
-                <p className="pb-st-done-p">
-                    {giveaway
-                        ? "Off the Record checks your poster photo. If you qualify, we build your free site and email the link to "
-                        : "We build your site in about 20 minutes and email the link to "}
-                    <b>{doneEmail}</b>.{giveaway ? "" : " Ask for changes, or say it looks good."}
-                </p>
-                {!giveaway && (
-                    <div className="pb-price-pills pb-st-done-pills">
-                        <span>See it first</span>
-                        <span>Pay once to publish</span>
-                    </div>
-                )}
-                <div className="pb-st-done-cta">
-                    <Button href="/v2" variant="dark">
-                        Back to Tendso
-                    </Button>
-                    <Button href="/v2/help" variant="ghost">
-                        Questions? Help
-                    </Button>
-                </div>
-            </>
-        );
-    }
-
     function ChooseScreen() {
         const stores = creatorStoreButtons(platform, playUrl, iosUrl).map((s) => ({ ...s, href: withPlayReferrer(s.href, arrival!.code) }));
         return (
@@ -1127,7 +1114,7 @@ export function StartFlow() {
                 </div>
                 <p className="pb-st-help">The web way takes about 10 minutes: your shop, a few questions, a few photos.</p>
                 <p className="pb-st-help">
-                    Questions? <Link href="/v2/help">Help</Link>
+                    Questions? <Link href="/help">Help</Link>
                 </p>
             </>
         );

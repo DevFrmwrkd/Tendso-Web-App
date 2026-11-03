@@ -13,7 +13,7 @@ describe('saved affiliate poster data', () => {
         expect(model.name).toBe('Ana’s saved page');
         expect(model.photo).toBe('https://photos.example.com/saved.jpg');
         expect(model.code).toBe('LEGACY27');
-        expect(model.url).toBe('https://tendso.com/v2/a/ana-local');
+        expect(model.url).toBe('https://tendso.com/a/ana-local');
         const qr = boldOfferPosterScene(model).filter(node => node.kind === 'qr');
         expect(qr).toHaveLength(1);
         expect(qr[0]).toMatchObject({ value: model.url });
@@ -42,7 +42,7 @@ describe('saved affiliate poster data', () => {
         expect(words).not.toContain('CREATOR CODE');
         expect(words).not.toContain('Enter this code before you pay');
         expect(words).not.toContain('MIKA30');
-        expect(model.url).toBe('https://tendso.com/v2/a/ana-local');
+        expect(model.url).toBe('https://tendso.com/a/ana-local');
     });
 
     it.each(['http://photos.example.com/a.jpg', 'javascript:alert(1)', 'data:image/png;base64,AAAA', 'file:///private/photo.jpg', 'https://user:password@photos.example.com/a.jpg'])('omits unsafe photo sources: %s', photo => {

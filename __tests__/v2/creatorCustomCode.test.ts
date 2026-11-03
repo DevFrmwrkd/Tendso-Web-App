@@ -46,6 +46,7 @@ jest.mock('@/app/auth/_components/AuthFrame', () => ({
     },
 }));
 jest.mock('@/components/v2/creators/Photo', () => ({ Photo: () => null }));
+jest.mock('@/components/v2/creators/CreatorsRoot', () => ({ CreatorsRoot: ({ children }: { children: ReactNode }) => children }));
 jest.mock('@/components/r1/Toaster', () => ({ Toaster: () => null }));
 jest.mock('@/components/affiliate/CreatorCodeConfirmDialog.module.css', () => ({}));
 jest.mock('@/app/affiliates/dashboard/_components/MyPage.module.css', () => ({}));
@@ -159,8 +160,8 @@ function deferred<T>() {
     const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
     return { promise, resolve, reject };
 }
-async function signupStepFour() {
-    await mount(createElement(SignupFlow));
+async function signupStepFour(element: ReactNode = createElement(SignupFlow)) {
+    await mount(element);
     await click('Instagram');
     await change('@mika.shops', 'Instagram');
     const audience = renderer!.root.findAllByType('button').find(node => node.props.role === 'radio');
@@ -498,62 +499,60 @@ describe('creator signup custom code', () => {
     });
 });
 
-describe('legacy affiliate signup custom code', () => {
+describe('default affiliate signup custom code', () => {
     async function fillProfile() {
-        await mount(createElement(AffiliateJoinPage));
-        await change('0917 123 4567', 'Mobile number');
-        await change('mika-legacy', 'Page handle');
+        await signupStepFour(createElement(AffiliateJoinPage));
+        await change('mika-shops', 'Your name on Tendso');
     }
 
     it('keeps code independent of the handle and requires its exact public availability check before creating the account', async () => {
         await fillProfile();
         expect(text(renderer!.root)).toContain('Choose carefully. You cannot change this code later.');
         expect(input().props.value).toBe('');
-        expect(button('Create affiliate account').props.disabled).toBe(true);
-        await change('legacy30');
-        expect(input().props.value).toBe('LEGACY30');
-        expect(button('Create affiliate account').props.disabled).toBe(true);
+        expect(button('Send for review').props.disabled).toBe(true);
+        await change('shops30');
+        expect(input().props.value).toBe('SHOPS30');
+        expect(button('Send for review').props.disabled).toBe(true);
         expect(codeQuery).not.toHaveBeenCalled();
         await submit();
+        expect(apply).not.toHaveBeenCalled();
         expect(createAffiliate).not.toHaveBeenCalled();
         await settleDebounce();
-        expect(codeQuery).toHaveBeenCalledWith(expect.anything(), { code: 'LEGACY30' });
-        expect(button('Create affiliate account').props.disabled).toBe(false);
+        expect(codeQuery).toHaveBeenCalledWith(expect.anything(), { code: 'SHOPS30' });
+        expect(button('Send for review').props.disabled).toBe(false);
         await submit();
-        expect(createAffiliate).toHaveBeenCalledWith(expect.objectContaining({
-            email: 'mika@example.com', phone: '09171234567', handle: 'mika-legacy', code: 'LEGACY30',
-        }));
-        expect(createAffiliate.mock.calls[0][0]).not.toHaveProperty('price');
-        expect(navigation.replace).toHaveBeenCalledWith('/affiliates/dashboard');
+        expect(apply).toHaveBeenCalledWith(expect.objectContaining({ handle: 'mikashops', code: 'SHOPS30' }));
+        expect(apply.mock.calls[0][0]).not.toHaveProperty('price');
+        expect(createAffiliate).not.toHaveBeenCalled();
+        expect(text(renderer!.root)).toContain("We'll review it.");
     });
 
     it('preserves the entered profile and code when the final server save reports a collision', async () => {
-        createAffiliate.mockRejectedValueOnce(new ConvexError('That code is already taken. Choose another one.'));
+        apply.mockRejectedValueOnce(new ConvexError('That code is already taken. Choose another one.'));
         await fillProfile();
-        await change('LEGACY30');
+        await change('SHOPS30');
         await settleDebounce();
         await submit();
         expect(text(renderer!.root)).toContain('That code is already taken. Choose another one.');
-        expect(input().props.value).toBe('LEGACY30');
-        expect(input('Page handle').props.value).toBe('mika-legacy');
-        expect(input('Mobile number').props.value).toBe('09171234567');
+        expect(input().props.value).toBe('SHOPS30');
+        expect(input('Your name on Tendso').props.value).toBe('mikashops');
+        expect(createAffiliate).not.toHaveBeenCalled();
         expect(navigation.replace).not.toHaveBeenCalled();
     });
 });
 
-type ChoicePath = 'my-page' | 'signup' | 'legacy-signup';
-const choicePaths: ChoicePath[] = ['my-page', 'signup', 'legacy-signup'];
+type ChoicePath = 'my-page' | 'signup' | 'default-signup';
+const choicePaths: ChoicePath[] = ['my-page', 'signup', 'default-signup'];
 const confirmLabel = (path: ChoicePath) => path === 'my-page' ? 'Confirm code' : 'Confirm and create account';
-const choiceWrite = (path: ChoicePath) => path === 'my-page' ? updateCode : path === 'signup' ? apply : createAffiliate;
+const choiceWrite = (path: ChoicePath) => path === 'my-page' ? updateCode : apply;
 async function prepareChoice(path: ChoicePath) {
     if (path === 'my-page') await mount();
     else if (path === 'signup') {
         await signupStepFour();
         await change('mikashops', 'Your name on Tendso');
     } else {
-        await mount(createElement(AffiliateJoinPage));
-        await change('09171234567', 'Mobile number');
-        await change('mika-shops', 'Page handle');
+        await signupStepFour(createElement(AffiliateJoinPage));
+        await change('mika-shops', 'Your name on Tendso');
     }
     await change('shops30');
     await settleDebounce();

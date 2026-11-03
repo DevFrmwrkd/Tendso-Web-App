@@ -8,12 +8,12 @@ export function ProgramNav() {
     return (
         <Nav
             secondaryAction={
-                <Link className="btn btn--line btn--sm" href="/v2/creators/portal">
+                <Link className="btn btn--line btn--sm" href="/affiliates/dashboard">
                     Creator log in
                 </Link>
             }
             primaryAction={
-                <Link className="btn btn--accent btn--sm" href="/v2/creators/signup">
+                <Link className="btn btn--accent btn--sm" href="/affiliates/join">
                     Apply now
                 </Link>
             }
@@ -22,7 +22,7 @@ export function ProgramNav() {
 }
 
 /** The quiet bar on the standalone pages (sign-up, portal, link pages). */
-export function SoloBar({ brandHref = "/v2/creators", right, children }: { brandHref?: string; right?: ReactNode; children?: ReactNode }) {
+export function SoloBar({ brandHref = "/affiliates", right, children }: { brandHref?: string; right?: ReactNode; children?: ReactNode }) {
     return (
         <header className="cp-bar">
             <div className="wrap cp-bar-in">
@@ -39,7 +39,7 @@ export function SoloBar({ brandHref = "/v2/creators", right, children }: { brand
 }
 
 /** The small footer under the standalone pages. */
-export function MiniFoot({ links, note, brandHref = "/v2" }: { links: { label: string; href: string }[]; note?: string; brandHref?: string }) {
+export function MiniFoot({ links, note, brandHref = "/" }: { links: { label: string; href: string }[]; note?: string; brandHref?: string }) {
     return (
         <footer className="cp-mini-foot">
             <Link className="brand" href={brandHref}>

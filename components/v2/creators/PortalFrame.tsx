@@ -74,9 +74,9 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, pr
             {children}
             {previewBase ? <footer className="cp-mini-foot"><span>Admin preview · Sample data</span><span>Use View as above to return to your admin dashboard.</span></footer> : <MiniFoot
                 links={[
-                    { label: "Creator rules", href: "/v2/creators#rules" },
-                    { label: "Help", href: "/v2/help" },
-                    { label: "Privacy", href: "/v2/privacy" },
+                    { label: "Creator rules", href: "/affiliates#rules" },
+                    { label: "Help", href: "/help" },
+                    { label: "Privacy", href: "/privacy-policy" },
                 ]}
                 note="Paid on real sales only. Your 5% is paid once the shop has paid in full."
             />}

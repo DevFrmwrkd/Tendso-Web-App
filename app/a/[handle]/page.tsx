@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
-
-import { AffiliateLanding } from "./_components/AffiliateLanding";
+import { CreatorsRoot } from "@/components/v2/creators/CreatorsRoot";
+import { ShopLinkPage } from "@/components/v2/creators/ShopLinkPage";
 
 type PageProps = { params: Promise<{ handle: string }> };
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { handle } = await params;
-    return {
-        title: "A website for your shop — Tendso",
-        description: "Get a website built from your photos and your words. See it first, pay once to publish.",
-        alternates: { canonical: `/a/${encodeURIComponent(handle)}` },
-    };
+    return { title: "A website for your shop — Tendso", description: "A website for your shop, built from your photos and your story. Preview it, request changes, and pay once to publish.",
+        alternates: { canonical: `/a/${encodeURIComponent(handle)}` }, robots: { index: true, follow: true } };
 }
-
 export default async function AffiliatePage({ params }: PageProps) {
     const { handle } = await params;
-    return <AffiliateLanding handle={handle} />;
+    return <CreatorsRoot solo><ShopLinkPage handle={handle} /></CreatorsRoot>;
 }

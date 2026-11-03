@@ -7,7 +7,7 @@ import { GIVEAWAY_VALUE } from "@/lib/giveaway";
 export const metadata: Metadata = {
     title: "Off the Record: 100 free Tendso websites",
     description: `Off the Record is giving more than ${GIVEAWAY_VALUE} in free Tendso websites to 100 walk-in shops. Hang the poster, snap it, claim your site.`,
-    alternates: { canonical: "/v2/giveaway" },
+    alternates: { canonical: "/100-pages-giveaway" },
     robots: { index: false, follow: true },
 };
 

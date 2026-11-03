@@ -19,7 +19,7 @@ import { Sales, type AffiliateSale } from "./Sales";
 export function AffiliateSectionContent({ section }: { section: AffiliateSection }) {
     const account = useAffiliateAccount();
     const pathname = usePathname();
-    const canonical = [CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PAYOUTS_HREF].includes(pathname?.replace(/\/$/, "") ?? "");
+    const canonical = !!pathname && (pathname.startsWith("/affiliates/dashboard") || pathname.startsWith("/v2/creators/portal"));
     const portal = useQuery(api.affiliates.portal, ["home", "wallet", "referrals"].includes(section) ? {} : "skip");
     return <AffiliateSectionView section={section} account={account} portal={portal} canonical={canonical} />;
 }
@@ -43,7 +43,7 @@ export function AffiliateSectionView({ section, account, portal, preview = false
         case "sales": return <><PageHeader title="Sales" sub="Orders through your page, with the price and commission agreed at checkout." /><Sales sampleSales={preview ? sampleSales ?? [] : undefined} /></>;
         case "wallet": return <AffiliateWalletView {...props} title={canonical ? "Payouts" : undefined} />;
         case "referrals": return <AffiliateReferralsView {...props} />;
-        case "account": return <AffiliateAccountView {...props} signOutHref={canonical ? "/v2/creators" : undefined} />;
+        case "account": return <AffiliateAccountView {...props} signOutHref={canonical ? "/affiliates" : undefined} />;
         default: return <AffiliateHomeView {...props} />;
     }
 }

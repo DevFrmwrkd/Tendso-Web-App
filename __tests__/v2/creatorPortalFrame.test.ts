@@ -10,11 +10,17 @@ import { AffiliateDashboardBoundary } from '@/app/affiliates/dashboard/_componen
 import { AffiliateSectionContent } from '@/app/affiliates/dashboard/_components/AffiliateSectionContent';
 import { PortalFrame } from '@/components/v2/creators/PortalFrame';
 import { PortalPage } from '@/components/v2/creators/PortalPage';
+
+jest.mock('@/convex/_generated/api', () => ({ api: jest.requireActual('convex/server').anyApi }));
 import { PortalView } from '@/components/v2/creators/PortalView';
 import { usePortal, type PortalState } from '@/lib/v2/creatorData';
 import { SAMPLE_PORTAL } from '@/lib/v2/creatorSample';
 
-jest.mock('@clerk/nextjs', () => ({ useClerk: () => ({ signOut: jest.fn() }), useUser: () => ({ user: { id: 'current-user' } }) }));
+jest.mock('@clerk/nextjs', () => ({ useClerk: () => ({ signOut: jest.fn() }), useUser: () => ({ isLoaded: true, isSignedIn: true, user: { id: 'current-user' } }) }));
+jest.mock('convex/react', () => ({
+    useConvexAuth: () => ({ isLoading: false, isAuthenticated: true }),
+    useQuery: () => ({ clerkId: 'current-user', creator: { _id: 'current-affiliate', clerkId: 'current-user', role: 'affiliate', status: 'active', affiliateHandle: 'mika' } }),
+}));
 jest.mock('next/navigation', () => ({
     redirect: jest.fn(() => { throw new Error('NEXT_REDIRECT'); }),
     notFound: jest.fn(() => { throw new Error('NEXT_NOT_FOUND'); }),
@@ -30,10 +36,10 @@ jest.mock('@/app/affiliates/dashboard/_components/AffiliateSectionContent', () =
     AffiliateSectionContent: jest.fn(() => 'protected-page-editor'),
 }));
 
-const EDITOR = '/v2/creators/portal/my-page';
+const EDITOR = '/affiliates/dashboard/my-page';
 const NAV_HREFS = [
-    '/v2/creators/portal#top', '/v2/creators/portal#pt-links', '/v2/creators/portal#pt-agents',
-    '/v2/creators/portal#pt-shops', '/v2/creators/portal/payouts', EDITOR,
+    '/affiliates/dashboard#top', '/affiliates/dashboard#pt-links', '/affiliates/dashboard#pt-agents',
+    '/affiliates/dashboard#pt-shops', '/affiliates/dashboard/payouts', EDITOR,
 ];
 const identity = { name: 'Ana Cruz', photo: null };
 
@@ -77,7 +83,7 @@ describe('shared creator portal frame', () => {
             expect(html).toMatch(/<main\b[^>]*class="[^"]*\bwrap\b[^"]*\bpt-main\b[^"]*"[^>]*id="top"/);
             expect(html).toContain(index === 0 ? 'home-content' : 'my-page-content');
             expect(html).not.toContain('Back to portal');
-            expect(html).not.toContain('/affiliates/dashboard/my-page');
+            expect(html).not.toContain('/v2/creators/portal/my-page');
         }
         expect(footer(pages[0])).toBe(footer(pages[1]));
         expect(footer(pages[0])).toContain('Creator rules');
@@ -92,8 +98,8 @@ describe('shared creator portal frame', () => {
         expect(hrefs(nav(html))).toEqual(['#top', '#pt-links', '#pt-agents', '#pt-shops', '#pt-pay', '#pt-links']);
         expect(html).not.toContain(`href="${EDITOR}"`);
         expect(html).not.toContain('href="/affiliates/dashboard/my-page"');
-        expect(html).not.toContain('href="/v2/creators/portal/account"');
-        expect(html).not.toContain('href="/v2/creators/portal/payouts"');
+        expect(html).not.toContain('href="/affiliates/dashboard/account"');
+        expect(html).not.toContain('href="/affiliates/dashboard/payouts"');
         expect(html).not.toContain('live-account-action');
     });
 
@@ -105,21 +111,21 @@ describe('shared creator portal frame', () => {
         expect(hrefs(nav(html))).toEqual(NAV_HREFS);
         expect(html).toContain(`${currentPage}-content`);
         expect(html).toContain('Notifications');
-        expect(html).toContain('href="/v2/creators/portal/account"');
+        expect(html).toContain('href="/affiliates/dashboard/account"');
         const current = html.match(/<a\b[^>]*aria-current="page"[^>]*>[\s\S]*?<\/a>/g) ?? [];
         expect(current).toHaveLength(1);
-        expect(current[0]).toContain(`href="/v2/creators/portal/${currentPage}"`);
+        expect(current[0]).toContain(`href="/affiliates/dashboard/${currentPage}"`);
         expect(html).not.toContain('Back to portal');
     });
 
     it('does not show an account identity or navigation before the portal is ready', () => {
         const html = renderToStaticMarkup(createElement(PortalFrame, {
-            right: createElement('a', { href: '/v2/creators/signup' }, 'Log in'), children: 'loading-content',
+            right: createElement('a', { href: '/affiliates/join' }, 'Log in'), children: 'loading-content',
         }));
         expect(html).toContain('Log in');
         expect(html).not.toContain('aria-label="Creator portal"');
         expect(html).not.toContain('Edit your creator page');
-        expect(html).not.toContain('href="/v2/creators/portal/account"');
+        expect(html).not.toContain('href="/affiliates/dashboard/account"');
         expect(html).toContain('loading-content');
         expect(footer(html)).toContain('Privacy');
     });
@@ -192,16 +198,24 @@ describe('canonical My page route and old URL compatibility', () => {
         expect(page.props.children.props).toEqual({ section });
     });
 
-    it('redirects only the old My page route to the canonical portal URL', async () => {
-        await expect(LegacyAffiliateSectionPage({ params: Promise.resolve({ section: 'my-page' }) })).rejects.toThrow('NEXT_REDIRECT');
+    it.each([
+        ['my-page', EDITOR], ['account', '/affiliates/dashboard/account'], ['wallet', '/affiliates/dashboard/payouts'],
+        ['sales', '/affiliates/dashboard#pt-shops'], ['referrals', '/affiliates/dashboard#pt-agents'],
+        ['agents', '/affiliates/dashboard#pt-agents'], ['shops', '/affiliates/dashboard#pt-shops'],
+        ['links', '/affiliates/dashboard#pt-links'], ['home', '/affiliates/dashboard'],
+    ])('opens %s in the redesigned portal', async (section, destination) => {
+        await expect(LegacyAffiliateSectionPage({ params: Promise.resolve({ section }) })).rejects.toThrow('NEXT_REDIRECT');
         expect(redirect).toHaveBeenCalledTimes(1);
-        expect(redirect).toHaveBeenCalledWith(EDITOR);
-        jest.mocked(redirect).mockClear();
-        for (const section of ['sales', 'wallet', 'referrals', 'account']) {
-            const page = await LegacyAffiliateSectionPage({ params: Promise.resolve({ section }) });
-            expect(page.type).toBe(AffiliateSectionContent);
-            expect(page.props.section).toBe(section);
-        }
+        expect(redirect).toHaveBeenCalledWith(destination);
+    });
+
+    it('keeps repeated source values and referral context when opening Shops', async () => {
+        await expect(LegacyAffiliateSectionPage({ params: Promise.resolve({ section: 'sales' }), searchParams: Promise.resolve({ ref: 'ANA30', source: ['email', 'poster'] }) })).rejects.toThrow('NEXT_REDIRECT');
+        expect(redirect).toHaveBeenCalledWith('/affiliates/dashboard?ref=ANA30&source=email&source=poster#pt-shops');
+    });
+
+    it.each(['missing', 'toString', '__proto__'])('does not turn unknown section %s into a portal route', async section => {
+        await expect(LegacyAffiliateSectionPage({ params: Promise.resolve({ section }) })).rejects.toThrow('NEXT_NOT_FOUND');
         expect(redirect).not.toHaveBeenCalled();
     });
 });

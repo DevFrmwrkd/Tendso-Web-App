@@ -39,7 +39,7 @@ export function createAffiliatePoster(input: AffiliatePosterInput): AffiliatePos
     const saving = Math.max(0, WEBSITE_PRICE - price);
     const photo = input.photo?.trim();
     return {
-        url: `https://tendso.com/v2/a/${encodeURIComponent(input.handle.trim())}`,
+        url: `https://tendso.com/a/${encodeURIComponent(input.handle.trim())}`,
         name: input.displayName.trim().replace(/\s+/g, ' ') || 'Tendso creator',
         photo: photo && !affiliatePhotoError(photo) ? photo : null,
         code: input.referralCode?.trim() || null,

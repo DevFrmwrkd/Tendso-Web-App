@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 
-import { LegalDoc, type LegalSection } from "@/app/privacy-policy/_components/LegalDoc";
+import type { LegalSection } from "@/app/privacy-policy/_components/LegalDoc";
+import { LegalDoc } from "@/components/v2/pages-a/LegalDoc";
+import { PageShell } from "@/components/v2/pages-a/PageShell";
+import { PRIVACY, policySections } from "@/components/v2/pages-a/legal-content";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 
 const TITLE = "Terms of service — Tendso";
@@ -15,6 +18,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: INTRO,
     alternates: { canonical: "/terms-of-service" },
+    robots: { index: true, follow: true },
     openGraph: {
         type: "website",
         siteName: "Tendso",
@@ -141,12 +145,13 @@ const sections: LegalSection[] = [
 
 export default function TermsOfServicePage() {
     return (
-        <LegalDoc
-            doc="terms"
-            title="Terms of service"
-            intro={INTRO}
-            sections={sections}
-            ask="Questions about these terms?"
-        />
+        <PageShell page="legal">
+            <LegalDoc
+                docs={{ privacy: { ...PRIVACY, sections: policySections },
+                    terms: { title: "Terms of service", intro: INTRO, sections, ask: "Questions about these terms?" } }}
+                initial="terms"
+                mode="path"
+            />
+        </PageShell>
     );
 }

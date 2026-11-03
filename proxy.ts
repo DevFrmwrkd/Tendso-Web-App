@@ -12,6 +12,9 @@ const isPublicRoute = createRouteMatcher([
     '/my-business/sign-in',
     '/affiliates',
     '/affiliates/join(.*)',
+    // Both portal URLs render the same verified account gate. All account reads
+    // and writes remain authorized by the backend; the shell preserves login returns.
+    '/affiliates/dashboard(.*)',
     // Affiliate links are shared with shop owners who do not have a login.
     '/a/(.*)',
     '/forgot-password(.*)',
@@ -24,6 +27,9 @@ const isPublicRoute = createRouteMatcher([
     '/terms-of-service(.*)',
     '/creators(.*)',
     '/about(.*)',
+    '/examples(.*)',
+    '/help',
+    '/legal',
     // New NEO LAB landing surface — fully public, no Clerk gate.
     '/for-creators(.*)',
     // The field-agent recruitment page, public for the same reason: it exists to
@@ -46,11 +52,7 @@ const isPublicRoute = createRouteMatcher([
     // page: paymentTokens.getByToken takes it and nothing else. Making the route
     // public grants no read that was not already reachable with the token.
     '/pay/(.*)',
-    // /for-business has no page any more: next.config redirects it 308 → `/`.
-    // next.config redirects run BEFORE the proxy, so this entry is belt and
-    // braces — but if that ever stops holding, a signed-out visitor arriving
-    // from an old link or a search result would be sent to /login instead of
-    // the page that replaced it, and the redirect would silently stop working.
+    // The redesigned owner recruitment page is now the canonical public route.
     '/for-business(.*)',
     '/knowledge(.*)',
     '/help-faq(.*)',
@@ -85,7 +87,7 @@ const isPublicRoute = createRouteMatcher([
     '/libre(.*)',
     // Design v2 component kit: a noindex review page for the new design system.
     '/v2-kit(.*)',
-    // The redesigned public site, in review before it replaces the live pages.
+    // Compatibility URLs for the redesigned default pages.
     '/v2(.*)',
     // Serves the /start desktop map picker, which decides where the map opens
     // from the address the owner typed. Public for the same reason /start is:

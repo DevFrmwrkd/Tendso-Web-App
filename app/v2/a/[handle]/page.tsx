@@ -19,7 +19,7 @@ export default async function ShopLink({ params }: PageProps) {
     const { handle } = await params;
     return (
         <CreatorsRoot solo>
-            <ShopLinkPage handle={decodeURIComponent(handle)} />
+            <ShopLinkPage handle={handle} />
         </CreatorsRoot>
     );
 }
