@@ -1321,6 +1321,36 @@ export default defineSchema({
         .index('by_token', ['token'])
         .index('by_submission', ['submissionId']),
 
+    // Development-only payment practice. Never read by real money or payout flows.
+    paymentSimulatorSessions: defineTable({
+        ownerId: v.id('businessOwners'),
+        submissionId: v.id('submissions'),
+        total: v.number(),
+        amountPaid: v.number(),
+        revision: v.number(),
+        attempt: v.number(),
+        referenceCode: v.string(),
+        requestStatus: v.union(v.literal('open'), v.literal('expired'), v.literal('paid')),
+        reviewStatus: v.union(v.literal('none'), v.literal('needs_review'), v.literal('approved')),
+        pendingReview: v.union(v.null(), v.object({
+            receiptId: v.string(), amount: v.number(), kind: v.union(v.literal('full'), v.literal('deposit'), v.literal('balance')),
+        })),
+        lastReceipt: v.union(v.null(), v.object({
+            receiptId: v.string(), amount: v.number(), kind: v.union(v.literal('full'), v.literal('deposit'), v.literal('balance')),
+        })),
+        events: v.array(v.object({
+            id: v.string(),
+            action: v.string(),
+            outcome: v.union(v.literal('applied'), v.literal('needs_review'), v.literal('duplicate'), v.literal('expired'), v.literal('renewed'), v.literal('reset')),
+            amount: v.union(v.number(), v.null()),
+            createdAt: v.number(),
+            message: v.string(),
+        })),
+        requests: v.array(v.object({ requestId: v.string(), fingerprint: v.string() })),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    }).index('by_owner_submission', ['ownerId', 'submissionId']),
+
     paymentTokens: defineTable({
         submissionId: v.id('submissions'),
         token: v.string(),                              // 64-char hex token (32 random bytes)

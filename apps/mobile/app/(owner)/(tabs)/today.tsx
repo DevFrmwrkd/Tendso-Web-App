@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ListRow, ScreenShell, Text } from '../../../components/v2';
 import { Buddy, SiteFrame } from '../../../components/v2/owner/OwnerUI';
 import { OwnerBusinessSwitcher } from '../../../components/v2/owner/OwnerBusinessSwitcher';
+import { OwnerPaymentSimulatorEntry } from '../../../components/v2/owner/OwnerPaymentSimulatorEntry';
 import { useOwnerSubmission, usePreview } from '../../../lib/v2/ownerData';
 import { ownerDraftSnapshot, phaseLine, resumeStep, STEP_ROUTE, todayAction } from '../../../lib/v2/ownerFlow';
 import { useOwnerIntake } from '../../../lib/v2/ownerIntake';
@@ -51,6 +52,7 @@ export default function Today() {
           <Text variant="heading">{site.businessName}</Text>
           {site.publishedUrl ? <Text variant="label" tone="muted">{hostOf(site.publishedUrl)}</Text> : null}</View>
       </Pressable>
+      <OwnerPaymentSimulatorEntry submissionId={id} businessName={site.businessName} ownerId={me?.owner._id} />
       {phase === 'draft' ? <><Text variant="heading">Finish your site</Text><Card style={styles.list}>{draftTasks.map((task, index) =>
         <ListRow key={task.label} title={task.label} divider={index < draftTasks.length - 1} onPress={() => router.push(task.route as never)}
           leading={<View style={[styles.check, task.complete && styles.checked]}>{task.complete ? <Ionicons name="checkmark" size={20} color={colors.ink} /> : null}</View>} />)}</Card></> : null}

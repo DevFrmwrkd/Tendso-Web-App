@@ -107,6 +107,7 @@ import type * as ownerIntake from "../ownerIntake.js";
 import type * as ownerPayments from "../ownerPayments.js";
 import type * as ownerSiteEdits from "../ownerSiteEdits.js";
 import type * as owners from "../owners.js";
+import type * as paymentSimulator from "../paymentSimulator.js";
 import type * as paymentTokens from "../paymentTokens.js";
 import type * as payments from "../payments.js";
 import type * as payoutMethods from "../payoutMethods.js";
@@ -231,6 +232,7 @@ declare const fullApi: ApiFromModules<{
   ownerPayments: typeof ownerPayments;
   ownerSiteEdits: typeof ownerSiteEdits;
   owners: typeof owners;
+  paymentSimulator: typeof paymentSimulator;
   paymentTokens: typeof paymentTokens;
   payments: typeof payments;
   payoutMethods: typeof payoutMethods;

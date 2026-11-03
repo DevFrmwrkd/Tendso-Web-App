@@ -8,6 +8,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { Button, Field, Input } from '@/components/r1';
 import { SiteOverview, SiteOverviewLoading } from './OwnerHome';
 import type { OwnerSite } from './ownerSite';
+import { OwnerPaymentSimulator } from './OwnerPaymentSimulator';
 
 const peso = (amount: number) => `₱${amount.toLocaleString('en-PH')}`;
 
@@ -16,8 +17,11 @@ export function OwnerWebsiteOverview({ site }: { site: OwnerSite }) {
     const { userId } = useAuth();
     const summary = useQuery(api.ownerApp.getSubmission, { submissionId: site.submissionId });
     if (summary === undefined) return <SiteOverviewLoading />;
-    if (summary.publishPolicy !== 'pay_then_publish') return <SiteOverview site={site} />;
-    return <PrivateWebsite key={`${userId ?? ''}:${site.submissionId}`} id={site.submissionId} />;
+    return <div className="flex flex-col gap-6">
+        {summary.publishPolicy !== 'pay_then_publish' ? <SiteOverview site={site} />
+            : <PrivateWebsite key={`${userId ?? ''}:${site.submissionId}`} id={site.submissionId} />}
+        <OwnerPaymentSimulator submissionId={site.submissionId} />
+    </div>;
 }
 
 function PrivateWebsite({ id }: { id: Id<'submissions'> }) {

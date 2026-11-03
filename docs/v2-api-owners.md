@@ -317,6 +317,66 @@ New `paymentTokens` fields: `kind`, `provider`, `paidAmount`,
 
 ---
 
+## PHP payment practice on mobile and web
+
+The PHP simulator is an isolated practice ledger, not a Wise sandbox or a
+payment-confirmation override. It never writes real orders, payment tokens,
+earnings, withdrawals or website records. It has no provider, scheduling,
+publication, email or domain-purchase calls. A simulated balance cannot be
+withdrawn and never becomes the business's real paid status.
+
+### Access and entry points
+
+- Development deployment only: both Convex system URLs must identify
+  `diligent-ibex-454`. `PAYMENT_SIMULATOR_ENABLED=true` and
+  `PAYMENT_SIMULATOR_ALLOWLIST=poru.fetaruvero@gmail.com` must be explicitly set
+  on that deployment. Production remains disabled even if a flag is copied.
+- The signed-in identity must have that positively verified email and match its
+  owner record. The owner must already own the selected `[TEST] ...` business,
+  with valid saved ordinary-sale pricing. The simulator creates no ownership,
+  approval, quote or real checkout to gain access.
+- Mobile: sign into the owner test account, select a priced `[TEST]` business
+  on **Today**, then open its test-payment panel. No real preview approval or
+  payment is needed to enter practice.
+- Web: open the same business under **My business** and choose **Open payment
+  simulator** in the test-only tools. Mobile and web share the same practice
+  state for that business. Other accounts and ordinary businesses see no entry.
+
+### Practice scenarios
+
+1. Simulate a full payment, or a whole-peso down payment from the displayed
+   minimum followed by the exact remaining balance.
+2. Replay the last receipt: its simulated credit stays unchanged.
+3. Reset, record a receipt with no matching reference, and confirm it in the
+   simulated team-review step. No credit is added before that confirmation.
+4. Reset, or start with a deposit, then expire the simulated checkout. **Pay
+   again** issues a new `SIM-...` practice reference and preserves the practice
+   deposit. It never creates a real payment token or hosted checkout.
+5. Reset to clear the simulated amounts and visible history. Real records remain
+   unchanged. The revision remains monotonic so older requests cannot apply
+   after a reset. Reset remains available when the bounded history is full.
+
+### Contract
+
+- `paymentSimulator.get({ submissionId })` returns an eligible practice snapshot
+  or `null`, and writes nothing. Initial state is virtual until an action runs.
+- `paymentSimulator.run({ submissionId, action, requestId, expectedRevision,
+  expectedTotal, amount? })` returns the updated snapshot and writes only
+  `paymentSimulatorSessions`. Actions are `full`, `deposit`, `balance`,
+  `unmatched`, `approve_review`, `duplicate`, `expire`, `renew`, and `reset`.
+- Request IDs use 8–100 letters, digits, underscores or hyphens. An identical
+  request replay is idempotent; reusing its ID for another action is rejected.
+  Revision and displayed-total checks reject stale requests across devices.
+- A changed real quote requires a practice reset. The snapshot always includes
+  `simulationOnly: true`, `withdrawable: false`, PHP amounts, request/payment/
+  review states, and the latest practice events. Only `SIM-...` references are
+  produced, never a valid real-payment reference.
+
+This tests PHP payment-state handling without contacting Wise. Actual PHP bank
+delivery still requires a separately authorized provider test.
+
+---
+
 ## 6. Xendit (GCash, Maya, card): `convex/xendit.ts`, `lib/payments/xendit.ts`
 
 It is off unless **both** `XENDIT_SECRET_KEY` and `XENDIT_CALLBACK_TOKEN` are
