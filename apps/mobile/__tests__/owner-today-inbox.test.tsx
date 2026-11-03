@@ -134,6 +134,16 @@ describe('owner Today', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/(owner)/pay');
   });
 
+  it('opens the remaining payment from an update for a published unpaid business', async () => {
+    mockMe = { ...mockMe, sites: [business('live-unpaid', { phase: 'live', status: 'deposit_paid', total: 4999, amountPaid: 1000, balanceDue: 3999, paidInFull: false })] };
+    mockInbox = { ...mockInbox!, items: [message({ key: 'down-payment', title: 'Down payment recorded', type: 'deposit_received', submissionId: 'live-unpaid' as OwnerMessage['submissionId'] })] };
+    const screen = wrap(<Inbox />);
+    await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Unread: Down payment recorded' })));
+    fireEvent.press(screen.getByRole('button', { name: 'Open business' }));
+    expect(mockSelect).toHaveBeenCalledWith('live-unpaid');
+    expect(mockRouter.push).toHaveBeenCalledWith('/(owner)/pay');
+  });
+
   it('shows a confirmed visit on the correct Manila day even when UTC is still the previous day', () => {
     mockVisits = [visit({ status: 'confirmed', scheduledAt: Date.UTC(2026, 10, 4, 1, 30) })];
     const screen = wrap(<Today />);

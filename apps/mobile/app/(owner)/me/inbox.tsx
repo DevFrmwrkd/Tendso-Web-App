@@ -11,6 +11,7 @@ import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
 import { useOwnerInbox, useOwnerInboxActions, type OwnerMessage } from '../../../lib/v2/ownerInbox';
 import { ownerIntake } from '../../../lib/v2/ownerIntake';
 import { ownerSiteRoute } from '../../../lib/v2/ownerNavigation';
+import { outstandingPayment, STEP_ROUTE } from '../../../lib/v2/ownerFlow';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { colors, radius, space } from '../../../theme/v2';
 
@@ -56,7 +57,7 @@ function OwnerInbox() {
     if(!selected||!current())return;
     if(selected.visitRequestId){setSelected(null);router.push({pathname:'/(owner)/agents/[visitId]',params:{visitId:selected.visitRequestId}} as never);return;}
     const site=live.current.me?.sites.find(row=>row.submissionId===selected.submissionId);if(!site)return;
-    ownerIntake.selectBusiness(site.submissionId);setSelected(null);router.push(ownerSiteRoute(site) as never);
+    ownerIntake.selectBusiness(site.submissionId);setSelected(null);router.push((site.phase==='live'&&outstandingPayment(site)?STEP_ROUTE.pay:ownerSiteRoute(site)) as never);
   };
   return <ScreenShell title="Notifications" subtitle="Your visits and website updates" onBack={()=>router.back()}
     headerRight={inbox?.unreadCount?<Pressable accessibilityRole="button" accessibilityLabel="Mark all owner notifications read" disabled={marking} onPress={()=>void all()} style={styles.markAll}><Text variant="label" weight="bold">{marking?'Saving…':'Mark all read'}</Text></Pressable>:undefined}>
