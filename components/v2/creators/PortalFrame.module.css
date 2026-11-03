@@ -17,10 +17,11 @@
 .monthPicker input { min-width: 0; max-width: 100%; min-height: 46px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 99px; background: var(--canvas); color: var(--ink); font: 500 16px/1.4 var(--font); }
 .monthPicker input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .monthNote { flex-basis: 100%; font-size: 13px; color: var(--ink-2); line-height: 1.4; }
-.shell :global(.pt-settings) { min-width: 0; font-family: var(--font); }
+.shell :global(.pt-settings) { --r1-sans: var(--font); --r1-serif: var(--font); min-width: 0; font-family: var(--font); }
 .shell :global(.pt-settings .t-card) { min-width: 0; border: 1px solid var(--line); border-radius: 24px; background: var(--canvas); box-shadow: none; }
 .shell :global(.pt-settings .t-h1) { font: 500 clamp(32px, 4vw, 48px)/1.1 var(--font); letter-spacing: -.04em; }
 .shell :global(.pt-settings .t-h2) { font-family: var(--font); letter-spacing: -.025em; }
+.shell :global(.pt-settings .t-hero-fig), .shell :global(.pt-settings .t-figure) { font-family: var(--font); font-weight: 600; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
 .shell :global(.pt-settings .t-body), .shell :global(.pt-settings .t-meta), .shell :global(.pt-settings .t-label), .shell :global(.pt-settings button), .shell :global(.pt-settings input) { font-family: var(--font); }
 .shell :global(.pt-settings .t-btn) { min-height: 44px; height: auto; padding: 10px 18px; border-radius: 999px; border-color: var(--line); color: var(--ink); }
 .shell :global(.pt-settings .t-btn-primary) { border-color: transparent; background: var(--accent); color: var(--ink); }
