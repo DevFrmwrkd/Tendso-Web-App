@@ -175,15 +175,9 @@ function Hero({ categories, articles, initialQuery }: { categories?: Category[];
                 </div>
             </div>
 
-            <AskTendsoInline className="pb-hc-answer" suggestions={popularQuestions(articles)} />
+            <AskTendsoInline className="pb-hc-answer" />
         </Container>
     );
-}
-
-/** The AI box's starter chips: the real questions people ask, from the popular articles. */
-function popularQuestions(articles?: ArticleCard[]): string[] | undefined {
-    const titles = (articles ?? []).filter((a) => a.popular && a.title.trim().endsWith("?")).slice(0, 3).map((a) => a.title);
-    return titles.length >= 2 ? titles : undefined;
 }
 
 /* ---- 2. Topics ------------------------------------------------------------------ */
