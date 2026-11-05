@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Lock } from "lucide-react";
 
 import { PhoneFrame, PhoneStatusBar } from "@/components/v2";
+import { ScrollPreview } from "./ScrollPreview";
 
 /**
  * A phone showing a long capture of a finished site, scrolling by itself, with the
@@ -17,6 +18,7 @@ export function SitePhone({
     size = "md",
     pw,
     priority,
+    startWhenVisible = false,
 }: {
     src: string;
     /** Natural size of the capture. */
@@ -27,15 +29,16 @@ export function SitePhone({
     size?: "sm" | "md" | "lg";
     pw?: number;
     priority?: boolean;
+    /** Begin at the top when the hero comes into view, with a short opening pause. */
+    startWhenVisible?: boolean;
 }) {
     const imgH = (390 * height) / width;
     const travel = -Math.max(0, imgH - 790 + 60);
+    const capture = <Image src={src} alt={alt} width={width} height={height} sizes="390px" priority={priority} draggable={false} className="scroll-capture" style={{ ["--travel" as string]: `${travel}px` }} />;
     return (
         <PhoneFrame size={size} width={pw} className="site-phone">
             <PhoneStatusBar />
-            <div className="site-scroll">
-                <Image src={src} alt={alt} width={width} height={height} sizes="390px" priority={priority} draggable={false} style={{ ["--travel" as string]: `${travel}px` }} />
-            </div>
+            {startWhenVisible ? <ScrollPreview className="site-scroll">{capture}</ScrollPreview> : <div className="site-scroll">{capture}</div>}
             {url && (
                 <div className="url-pill">
                     <Lock size={11} aria-hidden="true" />
