@@ -395,6 +395,12 @@ function PersonalProfile({ isAffiliate }: { isAffiliate: boolean }) {
 
   const helpItems: MenuItem[] = affiliateAccount ? [] : [
     {
+      icon: 'chatbubble-ellipses-outline',
+      label: 'Ask Tendso',
+      sublabel: 'Answers for your account',
+      onPress: () => router.push('/(knowledge)/ask' as never),
+    },
+    {
       icon: 'book-outline',
       label: 'Learn & help',
       sublabel: 'Guides and Ask Tendso',

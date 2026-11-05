@@ -68,6 +68,7 @@ export function PortalFrame({ identity, currentPage = "home", sample = false, pr
         </SoloBar>
         <main className="wrap pt-main" id="top">
             {identity ? <div className={styles.utilities} role="group" aria-label="Portal account tools">
+                {!sample && <Link className={styles.utilityButton} href="/help#ask">Ask Tendso</Link>}
                 {sample && !previewBase ? <span className={styles.utilityButton} aria-disabled="true">Account</span> : <Link className={styles.utilityButton} href={accountHref} aria-current={currentPage === "account" ? "page" : undefined}>Account</Link>}
                 {!sample ? utilityActions : null}
             </div> : null}

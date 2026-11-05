@@ -66,6 +66,23 @@ beforeEach(() => {
 });
 
 describe('explicit owner business navigation', () => {
+  it('opens a published authorized help answer in the shared native article route', () => {
+    mockInbox.items = [message('answer', 'kb-answer', { articleSlug: 'published-answer', submissionId: null, type: 'knowledge_answer', title: 'An answer is ready' })];
+    const screen = render(<Inbox />); openMessage(screen, 'An answer is ready');
+    fireEvent.press(screen.getByRole('button', { name: 'Read answer' }));
+    expect(mockMarkRead).toHaveBeenCalledWith('kb-answer');
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(knowledge)/article/[slug]', params: { slug: 'published-answer' } });
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
+  it('keeps an answer-under-review notice generic without a draft article action', () => {
+    mockInbox.items = [message('answer', 'kb-review', { submissionId: null, type: 'knowledge_review', title: 'Your question is being reviewed', body: 'The team is checking your answer.' })];
+    const screen = render(<Inbox />); openMessage(screen, 'Your question is being reviewed');
+    expect(screen.queryByRole('button', { name: 'Read answer' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Open business' })).toBeNull();
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['draft', '/(owner)'], ['building', '/(owner)/building'], ['changes_requested', '/(owner)/building'],
     ['ready_to_check', '/(owner)/check'], ['awaiting_payment', '/(owner)/pay'], ['publishing', '/(owner)/live'],

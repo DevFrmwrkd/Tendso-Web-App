@@ -2,13 +2,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { useAuth, useClerk } from '@clerk/clerk-expo';
-import * as WebBrowser from 'expo-web-browser';
 import { Banner, Card, ListRow, ScreenShell } from '../../../components/v2';
-import { WEB_ORIGIN } from '../../../lib/v2/ownerData';
 import { ownerIntake } from '../../../lib/v2/ownerIntake';
 import { useOwnerSite } from '../../../lib/v2/useOwnerSite';
 import { useGuardedRouter } from '../../../hooks/useGuardedRouter';
-import { colors, space } from '../../../theme/v2';
+import { space } from '../../../theme/v2';
 import { useMutation } from 'convex/react';
 import { api } from '@tendso/convex-client';
 import { unregisterOwnerPush } from '../../../components/v2/owner/OwnerNotificationBridge';
@@ -74,8 +72,8 @@ function OwnerMe({ me }: { me: ReturnType<typeof useOwnerSite>['me'] }) {
       <ListRow title="Settings" subtitle="Notifications on this device" icon="settings-outline" divider onPress={() => {
         if (mounted.current && !busy.current) router.push('/(owner)/me/settings' as never);
       }} />
-      <ListRow title="Help" icon="help-circle-outline" divider onPress={() => {
-        if (mounted.current && !busy.current) void WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/v2/help`, { controlsColor: colors.ink }).catch(() => {});
+      <ListRow title="Ask Tendso" subtitle="Help for your business" icon="chatbubble-ellipses-outline" divider onPress={() => {
+        if (mounted.current && !busy.current) router.push('/(knowledge)/ask' as never);
       }} />
       <ListRow title="Inbox" icon="mail-outline" divider onPress={() => {
         if (mounted.current && !busy.current) router.push('/(owner)/me/inbox');

@@ -73,6 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         "separator",
         { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
         { href: "/admin/knowledge", label: "Train AI", icon: Sparkles },
+        { href: "/help#ask", label: "Ask Tendso", icon: Sparkles },
         { href: "/admin/featured-sites", label: "Site settings", icon: LayoutTemplate, alsoCurrent: ["/admin/app-release"] },
         { href: "/admin/audit", label: "Audit log", icon: ListChecks },
     ]

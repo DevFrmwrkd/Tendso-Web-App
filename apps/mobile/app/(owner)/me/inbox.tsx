@@ -43,6 +43,7 @@ function OwnerInbox() {
   const all=async()=>{if(!current()||marking||!inbox?.unreadCount)return;setMarking(true);setError('');try{await markAllRead();}catch{if(current())setError('Could not mark updates read. Try again when connected.');}finally{if(current())setMarking(false);}};
   const action=()=>{
     if(!selected||!current())return;
+    if(selected.articleSlug){const slug=selected.articleSlug;setSelected(null);router.push({pathname:'/(knowledge)/article/[slug]',params:{slug}} as never);return;}
     if(selected.visitRequestId){setSelected(null);router.push({pathname:'/(owner)/agents/[visitId]',params:{visitId:selected.visitRequestId}} as never);return;}
     const site=live.current.me?.sites.find(row=>row.submissionId===selected.submissionId);if(!site)return;
     ownerIntake.selectBusiness(site.submissionId);setSelected(null);router.push((site.phase==='live'&&outstandingPayment(site)?STEP_ROUTE.pay:ownerSiteRoute(site)) as never);
@@ -61,7 +62,7 @@ function OwnerInbox() {
     <Modal visible={!!selected} transparent animationType="fade" presentationStyle="overFullScreen" onRequestClose={()=>setSelected(null)}>
       <View style={styles.scrim}><Card style={styles.dialog} accessibilityViewIsModal><View style={styles.dialogHead}><Text variant="heading" style={styles.flex}>Update details</Text><Pressable accessibilityRole="button" accessibilityLabel="Close owner notification" onPress={()=>setSelected(null)} style={styles.close}><Ionicons name="close" size={24} color={colors.ink}/></Pressable></View>
         <ScrollView contentContainerStyle={styles.dialogBody}><Text variant="label" tone="muted">{selected?new Date(selected.createdAt).toLocaleString('en-PH',{timeZone:'Asia/Manila'}):''}</Text><Text variant="heading" selectable>{selected?.title}</Text><Text variant="bodyLg" selectable testID="owner-notification-full-body">{selected?.body}</Text>{error?<><Text tone="danger">{error}</Text><Button title="Retry read status" variant="ghost" onPress={()=>selected&&read(selected)}/></>:null}</ScrollView>
-        <View style={styles.dialogFoot}>{selected?.visitRequestId||selected?.submissionId?<Button title={selected.visitRequestId?'View visit request':'Open business'} onPress={action}/>:null}<Button title="Close" variant="ghost" onPress={()=>setSelected(null)}/></View>
+        <View style={styles.dialogFoot}>{selected?.articleSlug||selected?.visitRequestId||selected?.submissionId?<Button title={selected.articleSlug?'Read answer':selected.visitRequestId?'View visit request':'Open business'} onPress={action}/>:null}<Button title="Close" variant="ghost" onPress={()=>setSelected(null)}/></View>
       </Card></View>
     </Modal>
   </ScreenShell>;

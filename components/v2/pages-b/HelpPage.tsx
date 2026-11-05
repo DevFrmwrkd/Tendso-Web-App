@@ -10,6 +10,7 @@ import { articleHref, categoryHref } from "@/app/knowledge/_components/model";
 import { searchArticles, searchCategories } from "@/app/knowledge/_components/search";
 import type { ArticleCard, Category, Faq, InitialHelp } from "@/app/knowledge/_components/types";
 import { AskTendsoInline } from "@/components/v2/chat/AskTendso";
+import { useKnowledgeSession } from "@/components/v2/chat/useKnowledgeSession";
 import { Button, Container } from "@/components/v2";
 import { api } from "@/convex/_generated/api";
 import { DISCORD_INVITE_URL, SUPPORT_EMAIL } from "@/lib/contact";
@@ -30,12 +31,15 @@ import { ArrowRightIcon, CloseIcon, PbPage, PlusIcon, copyWithToast, usePbToast 
 const POPULAR_FALLBACK = ["How much does it cost?", "How fast is my site ready?", "When do I pay?"];
 
 export function HelpPage({ initial, initialQuery = "", initialTopic = "all" }: { initial: InitialHelp | null; initialQuery?: string; initialTopic?: string }) {
-    const liveCats = useQuery(api.knowledge.listCategories, { workspace: "help" });
-    const liveArts = useQuery(api.knowledge.listArticles, { workspace: "help" });
-    const liveFaqs = useQuery(api.knowledge.listFaqs, { workspace: "help" });
-    const categories: Category[] | undefined = liveCats ?? initial?.categories;
-    const articles: ArticleCard[] | undefined = liveArts ?? initial?.articles;
-    const faqs: Faq[] | undefined = liveFaqs ?? initial?.faqs;
+    const session = useKnowledgeSession();
+    const library = useQuery(api.knowledge.libraryForViewer, session.ready ? { workspace: "help" } : "skip");
+    const paired = session.ready && library?.viewer.clerkId === session.userId
+        && library?.viewer.audience === session.viewer?.audience && library?.viewer.blocked === session.viewer?.blocked;
+    // The server fallback contains public material only. Never reuse another
+    // actor's subscribed private results during a token or role transition.
+    const categories: Category[] | undefined = paired ? library.categories : initial?.categories;
+    const articles: ArticleCard[] | undefined = paired ? library.articles : initial?.articles;
+    const faqs: Faq[] | undefined = paired ? library.faqs : initial?.faqs;
     const { node: toast, show } = usePbToast();
 
     return (
@@ -44,7 +48,7 @@ export function HelpPage({ initial, initialQuery = "", initialTopic = "all" }: {
                 secondary: <Button href="#contact" variant="ghost" size="sm">Ask a person</Button>,
             }}
         >
-            <Hero key={initialQuery} initialQuery={initialQuery} categories={categories} articles={articles} />
+            <Hero key={`${initialQuery}:${session.key}`} initialQuery={initialQuery} categories={categories} articles={articles} />
             <Topics categories={categories} articles={articles} />
             <Answers key={initialTopic} initialTopic={initialTopic} categories={categories} articles={articles} faqs={faqs} />
             <ContactSection onCopy={(text, done) => void copyWithToast(text, done, show)} />
@@ -86,7 +90,7 @@ function Hero({ categories, articles, initialQuery }: { categories?: Category[];
     };
 
     return (
-        <Container className="pb-hc-hero" aria-labelledby="hc-h" role="region">
+        <Container id="ask" className="pb-hc-hero" aria-labelledby="hc-h" role="region">
             <div className="pb-hc-ask">
                 <p className="pb-label">Help</p>
                 <h1 className="pb-hc-h" id="hc-h">

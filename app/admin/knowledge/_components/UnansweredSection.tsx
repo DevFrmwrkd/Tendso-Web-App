@@ -7,6 +7,10 @@ import { toast } from "sonner"
 
 import { Button, Dot, Field, Icon, Loading, Select, SkeletonRows, Status, Textarea } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
+import { knowledgeAccessDefaults } from "@/packages/shared/knowledge"
+
+import { AUDIENCE_LABEL, type KnowledgeAccess } from "../_lib/access"
+import AudienceAccessFields from "./AudienceAccessFields"
 
 import {
     answeredHint,
@@ -14,13 +18,13 @@ import {
     groupQuestions,
     pairLine,
     plural,
+    questionKey,
     shortDate,
     sourceLabel,
     trainedIndex,
     WORKSPACE_NAME,
     WORKSPACE_OPTIONS,
     workspaceRead,
-    workspaceWarning,
     type QuestionGroup,
     type Workspace,
 } from "../_lib/train"
@@ -29,7 +33,7 @@ import {
 const CAP = 5
 
 const LEAD =
-    "Asked in the Help Center search, the website chatbot and Discord /ask. The chatbot reads the Help Center; Discord /ask reads the Wiki."
+    "Questions Ask Tendso could not answer from the shared knowledge base. Review the answer and who may read it before publishing."
 
 /**
  * Questions people asked that the AI could not ground in an answer
@@ -49,6 +53,8 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
     const [answering, setAnswering] = useState<string | null>(null)
     const [draft, setDraft] = useState("")
     const [draftWs, setDraftWs] = useState<Workspace>("help")
+    const [access, setAccess] = useState<KnowledgeAccess>(() => knowledgeAccessDefaults("help"))
+    const [reviewed, setReviewed] = useState(false)
     const [draftErr, setDraftErr] = useState("")
     const [saving, setSaving] = useState(false)
     const headingId = useId()
@@ -80,12 +86,15 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
         setAnswering(opening ? g.key : null)
         setDraft("")
         setDraftErr("")
-        // Default to the workspace the asking channel reads, so the answer
-        // reaches the person who asked.
-        setDraftWs(workspaceRead(g.source))
+        setDraftWs(g.workspace ?? workspaceRead(g.source))
+        // An unanswered question may contain personal or team details. The
+        // admin deliberately chooses broader access after reviewing the reply.
+        setAccess({ audiences: ["admin"], visibility: "internal" })
+        setReviewed(false)
     }
 
     async function save(g: QuestionGroup) {
+        if (!reviewed) return
         const text = draft.trim()
         if (text.length < 2) {
             setDraftErr("Write an answer first. A sentence or two is enough.")
@@ -94,19 +103,19 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
         setSaving(true)
         setDraftErr("")
         try {
-            const r = await trainQAPairs({ text: pairLine(g.text, text), workspace: draftWs })
+            const r = await trainQAPairs({ text: pairLine(g.text, text), workspace: draftWs, ...access })
             if (r.saved > 0) {
                 setAnswering(null)
                 setDraft("")
                 toast(
                     hasUsableKey === false
-                        ? "Saved. The AI starts using it once a key works."
-                        : `Saved to the ${WORKSPACE_NAME[draftWs]}. The AI can use it in a few seconds.`,
+                        ? "Published for the selected audiences. The AI starts using it once a key works."
+                        : "Published for the selected audiences. The AI can use it in a few seconds.",
                 )
             } else if (r.skipped > 0) {
                 // trainQAPairs skips a question that already has a trained answer,
                 // in either workspace.
-                const where = index.get(g.key)
+                const where = index.get(questionKey(g.text))
                 const ws: Workspace | null = where ? (where.has("help") ? "help" : "wiki") : null
                 setDraftErr(
                     `This question already has a trained answer${ws ? ` in the ${WORKSPACE_NAME[ws]}` : ""}. Change it under Trained answers, where you can also move it.`,
@@ -149,7 +158,6 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
                     <div className="t-list">
                         {visible.map(({ g, hint }) => {
                             const open = answering === g.key
-                            const warning = open ? workspaceWarning(g.source, draftWs) : null
                             return (
                                 <div key={g.key} className="border-b border-r1-line-3 last:border-b-0">
                                     <div className="flex min-h-16 items-center gap-3 px-4 py-3">
@@ -160,11 +168,13 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
                                                     {sourceLabel(g.source)} · {shortDate(g.createdAt)}
                                                     {g.times > 1 && ` · asked ${g.times} times`}
                                                 </span>
+                                                {g.audiences?.length ? <span>Asked by: {g.audiences.map((audience) => AUDIENCE_LABEL[audience]).join(", ")}</span> : null}
                                                 {hint && <Status {...hint} className="whitespace-normal" />}
                                             </div>
                                         </div>
                                         <Button
                                             size="sm"
+                                            disabled={saving}
                                             className="flex-none"
                                             aria-expanded={open}
                                             aria-label={`${open ? "Close answer" : "Answer"}: ${g.text}`}
@@ -181,16 +191,23 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
                                                     <Textarea
                                                         rows={4}
                                                         value={draft}
+                                                        disabled={saving}
                                                         placeholder="Write it the way you’d reply in Discord. Two or three sentences is plenty."
                                                         onChange={(e) => {
                                                             setDraft(e.target.value)
+                                                            setReviewed(false)
                                                             setDraftErr("")
                                                         }}
                                                     />
                                                 </Field>
+                                                <AudienceAccessFields value={access} onChange={(next) => { setAccess(next); setReviewed(false) }} disabled={saving} />
+                                                <label className="t-check">
+                                                    <input type="checkbox" checked={reviewed} disabled={saving} onChange={(e) => setReviewed(e.target.checked)} />
+                                                    I reviewed this answer and removed personal details before sharing it beyond admins.
+                                                </label>
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                                                    <Field label="Where the AI can use it" help={warning ?? undefined} className="sm:w-[300px]">
-                                                        <Select value={draftWs} onChange={(e) => setDraftWs(e.target.value as Workspace)}>
+                                                    <Field label="Collection" help="Organizes the library. Audience and access control who can read it." className="sm:w-[300px]">
+                                                        <Select value={draftWs} disabled={saving} onChange={(e) => { setDraftWs(e.target.value as Workspace); setReviewed(false) }}>
                                                             {WORKSPACE_OPTIONS.map((o) => (
                                                                 <option key={o.value} value={o.value}>
                                                                     {o.label}
@@ -202,9 +219,9 @@ export default function UnansweredSection({ hasUsableKey }: { hasUsableKey: bool
                                                         <Button variant="ghost" onClick={() => toggle(g)} disabled={saving}>
                                                             Cancel
                                                         </Button>
-                                                        <Button variant="primary" onClick={() => save(g)} disabled={saving} aria-busy={saving}>
+                                                        <Button variant="primary" onClick={() => save(g)} disabled={saving || !reviewed} aria-busy={saving}>
                                                             <Icon icon={Check} />
-                                                            {saving ? "Saving…" : "Save answer"}
+                                                            {saving ? "Publishing…" : "Publish answer"}
                                                         </Button>
                                                     </div>
                                                 </div>

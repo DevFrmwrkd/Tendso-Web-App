@@ -2,13 +2,15 @@
 
 import { useQuery } from "convex/react"
 import Link from "next/link"
+import { useState } from "react"
 
-import { Dot, Folds, Loading, Skeleton, SkeletonRows } from "@/components/r1"
+import { Dot, Folds, Loading, Skeleton, SkeletonRows, Tabs } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
 
 import { keyLine } from "../_lib/train"
 import BulkFold from "./BulkFold"
 import KeyBanner from "./KeyBanner"
+import LibrarySection from "./LibrarySection"
 import TrainedSection from "./TrainedSection"
 import UnansweredSection from "./UnansweredSection"
 
@@ -23,33 +25,42 @@ export default function TrainAiScreen() {
     // AI-key health: the page can't run the AI without a usable Gemini key.
     const poolStats = useQuery(api.aiKeys.poolStats, {})
     const trained = useQuery(api.knowledgeTraining.listTrainingQA, {})
+    const [view, setView] = useState<"training" | "library">("training")
+    const [libraryOpened, setLibraryOpened] = useState(false)
 
     const hasUsableKey = poolStats ? poolStats.usableNow > 0 : undefined // undefined while loading
-    const learning = trained?.filter((t) => !t.embedded).length ?? 0
+    const learning = trained?.filter((t) => t.status !== "draft" && !t.embedded).length ?? 0
 
     return (
-        <>
-            {poolStats && !hasUsableKey && <KeyBanner stats={poolStats} learning={learning} />}
+        <Tabs label="Knowledge admin" value={view} onChange={(next) => { setView(next); if (next === "library") setLibraryOpened(true) }} tabs={[
+            { value: "training", label: "Train AI" }, { value: "library", label: "Knowledge library" },
+        ]}>
+            {/* Keep unfinished training text when moving to and from the library. */}
+            <div hidden={view !== "training"}>
+                <div className="flex flex-col gap-8 lg:gap-10">
+                    {poolStats && !hasUsableKey && <KeyBanner stats={poolStats} learning={learning} />}
 
-            <UnansweredSection hasUsableKey={hasUsableKey} />
+                    <UnansweredSection hasUsableKey={hasUsableKey} />
 
-            <Folds>
-                <BulkFold hasUsableKey={hasUsableKey} />
-            </Folds>
+                    <Folds>
+                        <BulkFold hasUsableKey={hasUsableKey} />
+                    </Folds>
 
-            <TrainedSection />
+                    <TrainedSection />
 
-            {poolStats && (
-                <p className="flex flex-wrap items-center gap-2 text-[13px] leading-[18px] text-r1-ink-3">
-                    <Dot tone={poolStats.usableNow > 0 ? "done" : "bad"} />
-                    <span>{keyLine(poolStats)}</span>
-                    {/* The Account page's AI key section (what /connect-ai redirects to). */}
-                    <Link className="t-link" href="/profile?edit=ai#ai-key">
-                        Add a key
-                    </Link>
-                </p>
-            )}
-        </>
+                    {poolStats && (
+                        <p className="flex flex-wrap items-center gap-2 text-[13px] leading-[18px] text-r1-ink-3">
+                            <Dot tone={poolStats.usableNow > 0 ? "done" : "bad"} />
+                            <span>{keyLine(poolStats)}</span>
+                            <Link className="t-link" href="/profile?edit=ai#ai-key">
+                                Add a key
+                            </Link>
+                        </p>
+                    )}
+                </div>
+            </div>
+            {libraryOpened && <div hidden={view !== "library"}><LibrarySection /></div>}
+        </Tabs>
     )
 }
 

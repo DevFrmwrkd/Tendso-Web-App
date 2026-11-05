@@ -27,6 +27,9 @@ const date = (time: number) => new Date(time).toLocaleString("en-PH", {
 export function ownerNotificationDestination(item: OwnerWebMessage, inbox: OwnerWebInbox, sites: readonly OwnedSite[]) {
     const owned = inbox.items.find(row => row.key === item.key);
     if (!owned) return null;
+    if (owned.articleSlug && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(owned.articleSlug)) {
+        return { href: `/knowledge/${encodeURIComponent(owned.articleSlug)}`, label: 'Read answer' };
+    }
     const segment = (value: string) => /^[A-Za-z0-9_-]+$/.test(value) ? encodeURIComponent(value) : null;
     if (owned.visitRequestId) {
         const id = segment(owned.visitRequestId);

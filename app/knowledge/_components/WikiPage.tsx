@@ -8,20 +8,23 @@ import { Suspense, type ReactNode } from "react";
 import { Button, Container } from "@/components/v2";
 import { PbPage } from "@/components/v2/pages-b/shared";
 import { api } from "@/convex/_generated/api";
+import { useKnowledgeSession } from "@/components/v2/chat/useKnowledgeSession";
 
 import { KnowledgeArticle } from "./KnowledgeArticle";
 import { articleHref, articleMeta, categoryHref, pickRelated } from "./model";
-import { useWikiAccess } from "./viewer";
 
 export function WikiPage() {
     return <Suspense fallback={<WikiState title="Opening the field agent wiki…" />}><WikiContent /></Suspense>;
 }
 
 function WikiContent() {
-    const access = useWikiAccess();
+    const session = useKnowledgeSession();
+    const access = session.ready ? session.viewer?.canAccessWiki : undefined;
     const params = useSearchParams();
-    const categories = useQuery(api.knowledge.listCategories, access === true ? { workspace: "wiki" } : "skip");
-    const articles = useQuery(api.knowledge.listArticles, access === true ? { workspace: "wiki" } : "skip");
+    const library = useQuery(api.knowledge.libraryForViewer, access === true ? { workspace: "wiki" } : "skip");
+    const paired = session.ready && library?.viewer.clerkId === session.userId && library?.viewer.audience === session.viewer?.audience && library?.viewer.canAccessWiki === true;
+    const categories = paired ? library.categories : undefined;
+    const articles = paired ? library.articles : undefined;
     if (access === undefined || (access && (!categories || !articles))) return <WikiState title="Opening the field agent wiki…" />;
     if (!access) return <WikiState title="Your field guide, after certification." message="This wiki is for certified field agents and the Tendso team. Sign in with your approved account to read the guides.">
         <Button href="/login?redirect_url=%2Fknowledge%3Fws%3Dwiki">Sign in</Button><Button href="/help" variant="ghost">Go to public help</Button>

@@ -209,6 +209,7 @@ function InitialLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(app)" />
         <Stack.Screen name="(owner)" />
+        <Stack.Screen name="(knowledge)" />
         <Stack.Screen name="v2-kit" />
       </Stack>
       {showOverlay && (

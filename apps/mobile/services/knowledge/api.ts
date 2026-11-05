@@ -4,7 +4,7 @@
  * The KB backend (tables + queries + the Gemini RAG action) deploys from the
  * repository root. Mobile uses its canonical generated function references.
  *
- * Deployed functions used (all public / help-workspace is anonymous-safe):
+ * Browsing and chat are filtered for the verified server-side account.
  *   knowledge:canAccessWiki      (query)
  *   knowledge:listCategories     (query)  { workspace }
  *   knowledge:listArticles       (query)  { workspace }
@@ -14,8 +14,18 @@
  */
 import { api } from '@tendso/convex-client';
 import { useAction, useMutation, useQuery } from 'convex/react';
+import type { KnowledgeAudience } from '@tendso/shared/knowledge';
+export type { KnowledgeAudience } from '@tendso/shared/knowledge';
 
 export type Workspace = 'help' | 'wiki';
+export type KnowledgeViewer = {
+  clerkId: string | null;
+  authenticated: boolean;
+  audience: KnowledgeAudience;
+  canAccessWiki: boolean;
+  isAdmin: boolean;
+  blocked: boolean;
+};
 
 // Article body — discriminated union on `t` (mirrors web schema kbBlock).
 export type Block =
@@ -115,7 +125,8 @@ export function useAsk() {
   const a = useAction(fn.ask);
   return (args: {
     query: string;
-    workspace: Workspace;
+    // Omit for Ask Tendso: the backend chooses sources for the verified role.
+    workspace?: Workspace;
     source?: 'web' | 'chatbot' | 'discord';
     history?: ChatTurn[];
   }): Promise<AskResult> => a(args) as Promise<AskResult>;

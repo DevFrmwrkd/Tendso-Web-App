@@ -63,6 +63,7 @@ export default function NativeAdminOverview() {
           {session.account?.email ? <Text variant="label" tone="muted" selectable>{session.account.email}</Text> : null}
         </View>
       </View>
+      <AdminLink label="Ask Tendso" subtitle="Guides for your admin account" icon="chatbubble-ellipses-outline" href="/(knowledge)/ask" />
       <ActionFeedback {...action} />
       <AdminButton label="Sign out" variant="ghost" icon="log-out-outline" disabled={action.busy} onPress={() => action.confirm('Sign out?', 'Sign out of Tendso on this device. You can sign in again to return to admin tools.', 'Sign out', () => signOut(), 'Signed out.')} />
     </AdminCard>

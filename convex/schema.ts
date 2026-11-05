@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import { affiliateSocialLinksValidator } from './lib/affiliateSocialLinks';
+import { knowledgeAccessArgs } from './lib/knowledgeAccess';
 
 // ==================== KNOWLEDGE BASE ====================
 // Article body is a sequence of typed blocks (mirrors the Claude Design
@@ -1496,6 +1497,7 @@ export default defineSchema({
     // `icon` is an icon-name string resolved by app/knowledge Icon component;
     // `hue` is one of clay|sage|indigo|slate|amber|plum (chip color).
     knowledgeCategories: defineTable({
+        ...knowledgeAccessArgs,
         slug: v.string(),
         title: v.string(),
         description: v.string(),
@@ -1509,6 +1511,7 @@ export default defineSchema({
 
     // ==================== KNOWLEDGE BASE — ARTICLES ====================
     knowledgeArticles: defineTable({
+        ...knowledgeAccessArgs,
         slug: v.string(),
         title: v.string(),
         summary: v.string(),
@@ -1550,6 +1553,7 @@ export default defineSchema({
 
     // ==================== KNOWLEDGE BASE — FAQS ====================
     knowledgeFaqs: defineTable({
+        ...knowledgeAccessArgs,
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         question: v.string(),
         answer: v.string(),
@@ -1582,6 +1586,7 @@ export default defineSchema({
     // Every grounded AI answer (web search box, landing ChatBot, Discord /ask)
     // is logged here for analytics + content-gap discovery.
     knowledgeQueries: defineTable({
+        ...knowledgeAccessArgs,
         source: v.union(v.literal('web'), v.literal('discord'), v.literal('chatbot')),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         query: v.string(),
@@ -1602,6 +1607,7 @@ export default defineSchema({
     // (fast mutation) and the scheduler processes them one at a time server-side,
     // so a large batch can't time out the client action ("Connection lost").
     knowledgeTrainingJobs: defineTable({
+        ...knowledgeAccessArgs,
         question: v.string(),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         categorySlug: v.optional(v.string()),
@@ -1625,6 +1631,7 @@ export default defineSchema({
     // notifies the original asker if they were signed in. Discord is ONLY the team's
     // answer surface — the asker is a web/mobile user, delivered back via notifications.
     escalations: defineTable({
+        ...knowledgeAccessArgs,
         question: v.string(),
         normalizedQuestion: v.string(), // lowercased/trimmed dedup key
         workspace: v.union(v.literal('help'), v.literal('wiki')),
@@ -1660,6 +1667,7 @@ export default defineSchema({
     })
         .index('by_status', ['status'])
         .index('by_thread', ['discordThreadId'])
+        .index('by_asker', ['askerUserId'])
         .index('by_normalized', ['normalizedQuestion', 'status'])
         .index('by_createdAt', ['createdAt']),
 

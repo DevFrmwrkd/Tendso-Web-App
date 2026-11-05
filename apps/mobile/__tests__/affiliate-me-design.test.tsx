@@ -64,6 +64,7 @@ it('keeps previews read-only without mounting deletion or sign-out actions', () 
   result.unmount();
   const help = render(<AffiliateHelpScreen />);
   expect(mockDeleteHook).not.toHaveBeenCalled();
+  expect(help.getByLabelText('Ask Tendso')).toBeDisabled();
   expect(help.getByLabelText('Delete my account')).toBeDisabled();
 });
 
@@ -87,6 +88,7 @@ it('prevents a stale sign-out confirmation from signing out a different Clerk su
 it('preserves the live account deletion and password/legal destinations in Help', () => {
   const result = render(<AffiliateHelpScreen />);
   expect(mockDeleteHook).toHaveBeenCalled();
+  fireEvent.press(result.getByLabelText('Ask Tendso')); expect(mockPush).toHaveBeenCalledWith('/(knowledge)/ask');
   fireEvent.press(result.getByLabelText('Change password')); expect(mockPush).toHaveBeenCalledWith('/(app)/change-password');
   fireEvent.press(result.getByLabelText('Privacy policy')); expect(mockPush).toHaveBeenCalledWith('/(app)/privacy-policy');
   fireEvent.press(result.getByLabelText('Delete my account')); expect(mockDelete).toHaveBeenCalledTimes(1);

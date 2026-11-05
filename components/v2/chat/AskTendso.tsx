@@ -8,16 +8,17 @@ import { Fragment, useCallback, useEffect, useId, useRef, useState, type FormEve
 import { api } from "@/convex/_generated/api";
 import "./chat.css";
 import { messageUsHref, sourceHref, tidy } from "./tidy";
+import { useKnowledgeSession } from "./useKnowledgeSession";
 
 export { messageUsHref, sourceHref };
 
 /*
  * Ask Tendso, in the v2 look.
  *
- * THE ENGINE IS THE EXISTING ONE, UNCHANGED. Every answer comes from
+ * Every answer comes from
  * `api.knowledgeAI.ask` (Gemini RAG over the published Help Center articles, with
  * the BYOK key pool, the extractive fallback when Gemini is down, the rate limit
- * and the question log), scoped to the public "help" workspace. That is the same
+ * and the question log), scoped on the server to the verified caller. That is the same
  * call the landing ChatBot (components/landing/ChatBot.tsx) and the /knowledge
  * search palette make. The last six turns go along as history so a follow-up
  * keeps its context.
@@ -73,28 +74,39 @@ function useAsk(source: "web" | "chatbot") {
     const [busy, setBusy] = useState(false);
     const counter = useRef(0);
     const history = useRef<Turn[]>([]);
+    const requests = useRef({ active: true, sending: false, version: 0 });
+    useEffect(() => {
+        const scope = { active: true, sending: false, version: 0 };
+        requests.current = scope;
+        return () => { scope.active = false; scope.version++; };
+    }, []);
 
     const ask = useCallback(
         async (raw: string) => {
             const question = raw.trim().slice(0, 500);
-            if (!question || busy) return;
+            const request = requests.current;
+            if (!question || request.sending) return;
+            request.sending = true;
+            const requestVersion = request.version;
             const id = ++counter.current;
             setBusy(true);
             setThread((t) => [...t, { id, question, status: "loading" }]);
             const prior = history.current.slice(-6);
             try {
-                const res: AskResult = await askAction({ query: question, workspace: "help", source, history: prior });
+                const res: AskResult = await askAction({ query: question, source, history: prior });
+                if (!request.active || request.version !== requestVersion) return;
                 const status = res.grounded ? "answer" : "no-answer";
                 setThread((t) => t.map((e) => (e.id === id ? { ...e, status, answer: res.answer, sources: res.sources } : e)));
                 // A reply that was not grounded ("I don't have that…") is not a fact to carry forward.
                 history.current = [...history.current, { role: "user" as const, text: question }, ...(res.grounded ? [{ role: "assistant" as const, text: res.answer }] : [])].slice(-6);
             } catch {
+                if (!request.active || request.version !== requestVersion) return;
                 setThread((t) => t.map((e) => (e.id === id ? { ...e, status: "error" } : e)));
             } finally {
-                setBusy(false);
+                if (request.active && request.version === requestVersion) { request.sending = false; setBusy(false); }
             }
         },
-        [askAction, busy, source],
+        [askAction, source],
     );
 
     const retry = useCallback(
@@ -108,6 +120,9 @@ function useAsk(source: "web" | "chatbot") {
     );
 
     const clear = useCallback(() => {
+        requests.current.version++;
+        requests.current.sending = false;
+        setBusy(false);
         setThread([]);
         history.current = [];
     }, []);
@@ -128,7 +143,7 @@ function Answer({ ex, onRetry }: { ex: Exchange; onRetry: () => void }) {
                         <i />
                         <i />
                     </span>
-                    Looking in the Help Center
+                    Checking Tendso’s knowledge and your account
                 </p>
             </div>
         );
@@ -246,7 +261,15 @@ function AskForm({
  * The inline answer box (Help page). One question and its answer at a time;
  * asking again replaces the answer, and the follow-up keeps its context.
  */
-export function AskTendsoInline({
+type InlineProps = { suggestions?: string[]; title?: string; intro?: string; className?: string };
+
+export function AskTendsoInline(props: InlineProps) {
+    const session = useKnowledgeSession();
+    if (!session.ready) return <section className={`at-inline ${props.className ?? ''}`} aria-label="Ask Tendso" aria-busy="true"><p className="at-intro">Loading Ask Tendso…</p></section>;
+    return <AskTendsoInlineSession key={session.key} suggestions={session.suggestions} intro={session.intro} {...props} />;
+}
+
+function AskTendsoInlineSession({
     suggestions = DEFAULT_STARTERS,
     title = "Ask Tendso",
     intro = "Ask in your own words. Answers come from our Help articles.",
@@ -312,17 +335,27 @@ export function AskTendsoInline({
  * small panel: a short thread, starter questions, sources, "Message us".
  * Escape closes it and focus goes back to the pill.
  */
-export function AskTendsoLauncher({
+type LauncherProps = { suggestions?: string[]; label?: string; className?: string; revealAfter?: number };
+
+export function AskTendsoLauncher(props: LauncherProps) {
+    const session = useKnowledgeSession();
+    if (!session.ready) return null;
+    return <AskTendsoLauncherSession key={session.key} suggestions={session.suggestions} intro={session.intro} {...props} />;
+}
+
+function AskTendsoLauncherSession({
     suggestions = DEFAULT_STARTERS,
     label = "Ask Tendso",
     className,
     revealAfter = 0,
+    intro,
 }: {
     suggestions?: string[];
     label?: string;
     className?: string;
     /** Stay hidden until the page has scrolled this many viewport heights (keeps a hero's own buttons clear). */
     revealAfter?: number;
+    intro: string;
 }) {
     const { thread, busy, ask, retry } = useAsk("chatbot");
     const [open, setOpen] = useState(false);
@@ -396,7 +429,7 @@ export function AskTendsoLauncher({
                     </header>
 
                     <div ref={bodyRef} className="at-panel-body">
-                        <p className="at-hello">Hi. Ask me about prices, how it works, or changing your site.</p>
+                        <p className="at-hello">{intro}</p>
                         {thread.length === 0 && (
                             <div className="at-chips at-chips--col">
                                 {suggestions.map((s) => (

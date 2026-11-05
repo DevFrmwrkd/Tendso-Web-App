@@ -1,8 +1,10 @@
 import { v } from 'convex/values';
-import { action, query, mutation, internalMutation, internalAction } from './_generated/server';
+import { action, query, mutation, internalMutation, internalAction, type MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin } from './lib/auth';
 import type { Id } from './_generated/dataModel';
+import { knowledgeAccessDefaults, normalizeKnowledgeAudiences, resolveKnowledgeAccess, type KnowledgeAccess, type KnowledgeAccessRecord } from '../packages/shared/knowledge';
+import { knowledgeAccessArgs } from './lib/knowledgeAccess';
 
 /**
  * Admin "Train the AI" — paste QUESTIONS, the AI writes the answers, both get
@@ -12,8 +14,8 @@ import type { Id } from './_generated/dataModel';
  * The flow per question:
  *   1. Run the existing RAG (knowledgeAI.answerQuery) to DRAFT a grounded answer
  *      from the current knowledge base.
- *   2. Persist the Q&A as a published `knowledgeArticles` row (source:'qa') and
- *      schedule its embedding — so the RAG retrieves it next time.
+ *   2. Persist the Q&A as a review draft (source:'qa') and schedule its embedding.
+ *      It enters retrieval only after an admin reviews and publishes it.
  *   3. Report which questions the AI could NOT ground, so the admin can give
  *      those a real answer (a future edit pass) rather than shipping a weak one.
  *
@@ -30,9 +32,37 @@ function slugify(text: string): string {
         .slice(0, 80);
 }
 
+function trainingScope(record: KnowledgeAccessRecord): string {
+    const scope = resolveKnowledgeAccess(record);
+    return `${record.workspace}:${scope.visibility}:${[...scope.audiences].sort().join(',')}`;
+}
+
+async function uniqueQaSlug(ctx: MutationCtx, question: string, now: number): Promise<string> {
+    const base = `qa-${slugify(question)}-${now.toString(36)}`;
+    let slug = base;
+    let suffix = 1;
+    while (await ctx.db.query('knowledgeArticles').withIndex('by_slug', q => q.eq('slug', slug)).first()) {
+        slug = `${base}-${++suffix}`;
+    }
+    return slug;
+}
+
 // ---- internal: persist one AI-answered Q&A as an embedded article ----
+export const openDirectTrainingJob = internalMutation({
+    args: { question: v.string(), workspace: v.union(v.literal('help'), v.literal('wiki')), categorySlug: v.optional(v.string()), ...knowledgeAccessArgs },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const now = Date.now();
+        return ctx.db.insert('knowledgeTrainingJobs', {
+            ...args, audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : ['admin'],
+            visibility: args.visibility ?? 'internal', status: 'processing', batchId: `direct-${now}`, createdAt: now, updatedAt: now,
+        });
+    },
+});
+
 export const saveTrainedQA = internalMutation({
     args: {
+        ...knowledgeAccessArgs,
         question: v.string(),
         answer: v.string(),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
@@ -40,6 +70,11 @@ export const saveTrainedQA = internalMutation({
         grounded: v.boolean(),
     },
     handler: async (ctx, args): Promise<Id<'knowledgeArticles'>> => {
+        // Learned replies are review drafts. Grounding alone is not publication approval.
+        const access: KnowledgeAccess = {
+            audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : ['admin'],
+            visibility: args.visibility ?? 'internal',
+        };
         // Resolve category: the requested one, else the first in the workspace.
         let category = args.categorySlug
             ? await ctx.db
@@ -56,13 +91,15 @@ export const saveTrainedQA = internalMutation({
         if (!category) throw new Error('No knowledge category exists yet — seed the KB first.');
 
         const now = Date.now();
-        // Unique slug (append a short time suffix to avoid collisions on similar Qs).
-        const slug = `qa-${slugify(args.question)}-${now.toString(36).slice(-4)}`;
+        // Different role-specific answers may share a question, never a slug.
+        const slug = await uniqueQaSlug(ctx, args.question, now);
 
         // Body is the typed-block array the schema uses: the answer as one paragraph.
         const body = [{ t: 'p' as const, text: args.answer }];
 
+        if (category.workspace !== args.workspace) throw new Error('The category must belong to the selected workspace.');
         const id = await ctx.db.insert('knowledgeArticles', {
+            ...access,
             slug,
             title: args.question,
             summary: args.answer.slice(0, 300),
@@ -73,10 +110,9 @@ export const saveTrainedQA = internalMutation({
             author: 'admin (trained)',
             readMin: 1,
             popular: false,
-            status: 'published',
+            status: 'draft',
             source: 'qa',
-            // Only grounded answers reach this mutation (trainFromQuestions filters
-            // ungrounded ones out), so it's safe to publish + embed directly.
+            // Team replies need admin review before they become published knowledge.
             createdAt: now,
             updatedAt: now,
         });
@@ -95,6 +131,7 @@ export const saveTrainedQA = internalMutation({
  */
 export const trainFromQuestions = action({
     args: {
+        ...knowledgeAccessArgs,
         questions: v.array(v.string()),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         categorySlug: v.optional(v.string()),
@@ -112,9 +149,16 @@ export const trainFromQuestions = action({
 
         const results: Array<{ question: string; answer: string; grounded: boolean }> = [];
         for (const question of cleaned) {
-            // Draft a grounded answer from the CURRENT knowledge base.
+            // The direct legacy action follows the same scoped, claimed-job path
+            // as queued work; the admin's personal access never widens its sources.
+            const jobId = await ctx.runMutation(internal.knowledgeTraining.openDirectTrainingJob, {
+                question, workspace: args.workspace, categorySlug: args.categorySlug,
+                audiences: args.audiences, visibility: args.visibility,
+            });
+            try {
             const rag = await ctx.runAction(internal.knowledgeAI.answerQuery, {
                 query: question,
+                trainingJobId: jobId,
                 workspace: args.workspace,
                 source: 'web',
             });
@@ -130,9 +174,15 @@ export const trainFromQuestions = action({
                     workspace: args.workspace,
                     categorySlug: args.categorySlug,
                     grounded: true,
+                    audiences: args.audiences, visibility: args.visibility,
                 });
             }
             results.push({ question, answer: rag.answer, grounded: rag.grounded });
+            await ctx.runMutation(internal.knowledgeTraining.finishTrainingJob, { jobId, status: 'done', answer: rag.answer, grounded: rag.grounded });
+            } catch (error) {
+                await ctx.runMutation(internal.knowledgeTraining.finishTrainingJob, { jobId, status: 'error', error: error instanceof Error ? error.message : 'Training failed' });
+                throw error;
+            }
         }
         return results;
     },
@@ -159,12 +209,15 @@ const JOB_INTERVAL_MS = 3000;    // throttle: ~1 question every 3s (not a burst)
 
 export const enqueueTraining = mutation({
     args: {
+        ...knowledgeAccessArgs,
         questions: v.array(v.string()),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         categorySlug: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<{ batchId: string; count: number; skipped: number; note?: string }> => {
         await requireAdmin(ctx);
+        const access: KnowledgeAccess = { audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : ['admin'], visibility: args.visibility ?? 'internal' };
+        const scope = trainingScope({ workspace: args.workspace, ...access });
 
         let cleaned = args.questions
             .map((q) => q.trim())
@@ -186,12 +239,13 @@ export const enqueueTraining = mutation({
         // GUARD 2: dedup — skip questions already trained (avoid paying to re-embed
         // the same Q&A). Match on the exact question title of existing qa articles.
         const existingQa = (await ctx.db.query('knowledgeArticles').collect())
-            .filter((a) => a.source === 'qa')
+            .filter((a) => a.source === 'qa' && trainingScope(a) === scope)
             .map((a) => a.title.trim().toLowerCase());
         const existingSet = new Set(existingQa);
         // Also dedup within/against the current queue.
         const queuedTitles = new Set(
             (await ctx.db.query('knowledgeTrainingJobs').withIndex('by_status', (q) => q.eq('status', 'queued')).collect())
+                .filter(j => trainingScope({ ...j, audiences: j.audiences ?? ['admin'], visibility: j.visibility ?? 'internal' }) === scope)
                 .map((j) => j.question.trim().toLowerCase()),
         );
         const before = cleaned.length;
@@ -229,6 +283,8 @@ export const enqueueTraining = mutation({
                 question,
                 workspace: args.workspace,
                 categorySlug: args.categorySlug,
+                audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : ['admin'],
+                visibility: args.visibility ?? 'internal',
                 status: 'queued',
                 batchId,
                 createdAt: now,
@@ -252,12 +308,16 @@ export const enqueueTraining = mutation({
  */
 export const trainQAPairs = mutation({
     args: {
+        ...knowledgeAccessArgs,
         text: v.string(),
         workspace: v.union(v.literal('help'), v.literal('wiki')),
         categorySlug: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<{ saved: number; skipped: number }> => {
         await requireAdmin(ctx);
+        const defaults = knowledgeAccessDefaults(args.workspace);
+        const access = { audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : defaults.audiences, visibility: args.visibility ?? defaults.visibility };
+        const scope = trainingScope({ workspace: args.workspace, ...access });
 
         // Parse "Question? Answer" per line (split on the FIRST '?').
         const pairs: { question: string; answer: string }[] = [];
@@ -275,7 +335,7 @@ export const trainQAPairs = mutation({
         // Dedup against existing trained Q&A titles.
         const existing = new Set(
             (await ctx.db.query('knowledgeArticles').collect())
-                .filter((a) => a.source === 'qa')
+                .filter((a) => a.source === 'qa' && trainingScope(a) === scope)
                 .map((a) => a.title.trim().toLowerCase()),
         );
 
@@ -288,14 +348,16 @@ export const trainQAPairs = mutation({
         }
         if (!category) throw new Error('No knowledge category exists yet — seed the KB first.');
 
+        if (category.workspace !== args.workspace) throw new Error('The category must belong to the selected workspace.');
         let saved = 0;
         let skipped = 0;
         for (const p of pairs.slice(0, MAX_PER_PASTE)) {
             if (existing.has(p.question.toLowerCase())) { skipped++; continue; }
             existing.add(p.question.toLowerCase());
             const now = Date.now();
-            const slug = `qa-${slugify(p.question)}-${now.toString(36).slice(-4)}`;
+            const slug = await uniqueQaSlug(ctx, p.question, now);
             const id = await ctx.db.insert('knowledgeArticles', {
+                ...access,
                 slug,
                 title: p.question,
                 summary: p.answer.slice(0, 300),
@@ -446,7 +508,7 @@ export const purgeUngroundedQAInternal = internalMutation({
 // so this claim is atomic.
 export const claimNextTrainingJob = internalMutation({
     args: {},
-    handler: async (ctx): Promise<{ jobId: Id<'knowledgeTrainingJobs'>; question: string; workspace: 'help' | 'wiki'; categorySlug?: string } | null> => {
+    handler: async (ctx): Promise<{ jobId: Id<'knowledgeTrainingJobs'>; question: string; workspace: 'help' | 'wiki'; categorySlug?: string; audiences?: KnowledgeAccess['audiences']; visibility?: KnowledgeAccess['visibility'] } | null> => {
         const inFlight = await ctx.db
             .query('knowledgeTrainingJobs')
             .withIndex('by_status', (q) => q.eq('status', 'processing'))
@@ -464,6 +526,7 @@ export const claimNextTrainingJob = internalMutation({
             question: job.question,
             workspace: job.workspace,
             categorySlug: job.categorySlug,
+            audiences: job.audiences, visibility: job.visibility,
         };
     },
 });
@@ -498,6 +561,7 @@ export const processNextTrainingJob = internalAction({
         try {
             const rag = await ctx.runAction(internal.knowledgeAI.answerQuery, {
                 query: job.question,
+                trainingJobId: job.jobId,
                 workspace: job.workspace,
                 source: 'web',
             });
@@ -508,6 +572,7 @@ export const processNextTrainingJob = internalAction({
                     answer: rag.answer,
                     workspace: job.workspace,
                     categorySlug: job.categorySlug,
+                    audiences: job.audiences, visibility: job.visibility,
                     grounded: true,
                 });
             }
@@ -550,6 +615,7 @@ export const listTrainingJobs = query({
             answer: j.answer ?? null,
             error: j.error ?? null,
             batchId: j.batchId,
+            workspace: j.workspace, audiences: j.audiences, visibility: j.visibility,
         }));
     },
 });
@@ -581,6 +647,7 @@ export const listTrainingQA = query({
                 question: a.title,
                 answer: a.summary,
                 workspace: a.workspace,
+                status: a.status, audiences: a.audiences, visibility: a.visibility,
                 embedded: !!a.embedding && a.embedding.length > 0,
                 updatedAt: a.updatedAt,
             }));
@@ -630,6 +697,6 @@ export const listUnansweredQueries = query({
         return recent
             .filter((q) => q.grounded === false)
             .slice(0, 30)
-            .map((q) => ({ query: q.query, source: q.source, createdAt: q.createdAt }));
+            .map((q) => ({ query: q.query, source: q.source, workspace: q.workspace, audiences: q.audiences, visibility: q.visibility, createdAt: q.createdAt }));
     },
 });

@@ -83,7 +83,7 @@ export function OwnerShellView({ children, name = "Your account", preview = fals
         </header>
         <main className={styles.main} id="owner-main" tabIndex={-1}>{children}</main>
         <footer className={styles.footer}><p>Your business. Your website. One place to keep it moving.</p>{preview ? <p>Sample business workspace · Use View as above to return to admin.</p>
-            : <div><Link href="/knowledge">Get help</Link><Link href="/privacy-policy">Privacy</Link><Link href="/terms-of-service">Terms</Link></div>}</footer>
+            : <div><Link href="/help#ask">Ask Tendso</Link><Link href="/privacy-policy">Privacy</Link><Link href="/terms-of-service">Terms</Link></div>}</footer>
     </div>;
 }
 

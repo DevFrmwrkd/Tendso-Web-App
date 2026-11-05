@@ -100,6 +100,7 @@ export function HelpContent({ account, isPreview, isOffline, passwordEnabled, on
   return <AffiliateToolFrame title="Help & account" preview={isPreview} offline={isOffline} suspended={account.status !== 'active'}>
     <Text variant="display">How can we help?</Text>
     <Menu items={[
+      { label: 'Ask Tendso', icon: 'chatbubble-ellipses-outline', route: '/(knowledge)/ask', disabled: isPreview || isOffline || account.status !== 'active' },
       { label: 'Help & FAQ', icon: 'help-circle-outline', route: '/(app)/help-faq', disabled: isPreview },
       { label: passwordEnabled ? 'Change password' : 'Set a password', icon: 'lock-closed-outline', route: '/(app)/change-password', disabled: isPreview || isOffline },
       { label: 'Terms of service', icon: 'document-text-outline', route: '/(app)/terms-of-service', disabled: isPreview },
