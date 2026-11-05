@@ -4,22 +4,20 @@ import { AuthenticateWithRedirectCallback } from "@clerk/nextjs"
 
 import { AuthFrame } from "@/app/auth/_components/AuthFrame"
 import { SigningIn } from "@/app/auth/_components/AuthParts"
-import type { LoginReturnPath } from "@/app/auth/_components/loginReturnPath"
+import { loginContinuationHref, loginHrefForReturn, type LoginReturnPath } from "@/app/auth/_components/loginReturnPath"
 
 /**
- * Where Google sends someone back to after "Continue with Google" on /login
- * (board: SignIn, "Signing you in"). Clerk's callback does the work and, as
- * before, sends both a returning account and a brand-new one to /dashboard,
- * which routes each role from there. The callback draws nothing itself; the
- * page around it is the board's.
+ * Legacy Google callback links also enter the shared, verified workspace
+ * routing after Clerk completes authentication.
  */
 export default function SSOCallback({ returnTo }: { returnTo: LoginReturnPath }) {
+    const next = loginContinuationHref(returnTo)
     return (
         <AuthFrame title="Signing you in" sub="This takes a few seconds.">
-            <SigningIn line="Google confirmed it is you. Opening Tendso." escape={{ href: returnTo, label: returnTo === "/dashboard" ? "Not moving? Go to Home" : "Open the wiki" }} cancelHref={returnTo === "/dashboard" ? "/login" : `/login?redirect_url=${encodeURIComponent(returnTo)}`} />
+            <SigningIn line="Google confirmed it is you. Opening Tendso." escape={{ href: next, label: "Continue to my account" }} cancelHref={loginHrefForReturn(returnTo)} />
             <AuthenticateWithRedirectCallback
-                signInForceRedirectUrl={returnTo}
-                signUpForceRedirectUrl={returnTo}
+                signInForceRedirectUrl={next}
+                signUpForceRedirectUrl={next}
             />
         </AuthFrame>
     )

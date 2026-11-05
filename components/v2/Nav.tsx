@@ -10,9 +10,9 @@ import { V2_NAV_LINKS, V2_ROUTES, type V2Link } from "./links";
 
 /**
  * Fixed top nav. 84px tall, tightening to 60px with a blurred canvas once the page
- * has scrolled 30px. Under 900px the links collapse into a full-screen menu and the
- * secondary action is dropped, as in the mock. Pass the real actions in; the nav
- * itself has no opinion about where they go.
+ * has scrolled 30px. Under 1200px the links collapse into a full-screen menu and the
+ * page actions move into the menu on small screens. Sign in stays visible at
+ * every width and opens the shared account sign-in.
  */
 export function Nav({
     links = V2_NAV_LINKS,
@@ -21,7 +21,7 @@ export function Nav({
     homeHref = V2_ROUTES.home,
 }: {
     links?: readonly V2Link[];
-    /** Outline button, hidden under 900px. */
+    /** Outline page action; moves into the menu on smaller screens. */
     secondaryAction?: ReactNode;
     /** The one accent action. */
     primaryAction?: ReactNode;
@@ -57,10 +57,15 @@ export function Nav({
                             {l.label}
                         </Link>
                     ))}
+                    {(secondaryAction || primaryAction) && <div className="v2-nav-mobile-actions">
+                        {secondaryAction}
+                        {primaryAction && <span className="v2-nav-mobile-primary">{primaryAction}</span>}
+                    </div>}
                 </nav>
                 <div className="v2-nav-cta">
                     {secondaryAction && <span className="v2-nav-secondary">{secondaryAction}</span>}
-                    {primaryAction}
+                    <Link className="v2-btn v2-btn--ghost v2-btn--sm v2-nav-signin" href={V2_ROUTES.signIn}>Sign in</Link>
+                    {primaryAction && <span className="v2-nav-primary">{primaryAction}</span>}
                     <button
                         type="button"
                         className="v2-nav-menu"

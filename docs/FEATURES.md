@@ -11,7 +11,8 @@
 | Example websites | `/examples`, `/examples/[id]` |
 | Field agents | `/for-field-agents` |
 | Creator / affiliate program | `/affiliates` |
-| Creator signup and sign-in | `/affiliates/join` |
+| Shared sign-in | `/login` → verified account routing at `/auth/continue` |
+| Creator signup | `/affiliates/join` |
 | Creator portal | `/affiliates/dashboard` |
 | Creator page, account and payouts | `/affiliates/dashboard/my-page`, `/affiliates/dashboard/account`, `/affiliates/dashboard/payouts` |
 | Public creator shop and agent links | `/a/[handle]`, `/a/[handle]/earn` |
@@ -21,6 +22,8 @@
 | Owner intake and receipt | `/start`, `/start/thanks` |
 | Payment link | `/pay/[token]` |
 | Giveaway and Off the Record | `/100-pages-giveaway`, `/otr` |
+
+**Shared sign-in (2026-11-05).** The public header has one **Sign in** entry on desktop and phone layouts. The common screen supports the account's configured Clerk sign-in methods; the verified session sends existing owners, affiliates, field agents and team members to their respective workspaces. Account setup and approval requirements still apply.
 
 **IDs.** `W-` web route/component · `M-` mobile screen/module · `C-` Convex feature · `A-` Next API route · `BE §n` backend-inventory section that has no ID · `N-` new in the redesign. Rows that exist on web and in the app are merged into one row that cites both IDs, and sit in the area the mock redesigns (usually the app). Open decisions are in the ❓ list for Theo (`questions.md`, 35 questions); rows cite them as Q-numbers.
 
@@ -109,7 +112,7 @@ All empty = the feature stays off and today's behaviour is kept. Values never go
 |---|---|---|---|---|---|---|---|
 | W-001 | Landing page: hero, real sites, how it works, price, FAQ, CTA to `/start`; EN/TL toggle; ISR 300 s | `/` `app/page.tsx` | visitor | `index.html` (hero stage, grid tiles, people, six steps, paths, footer). EN/TL toggle not in mock: keep (Q20); Cost tile figures Q7 | 2 | ✅ | ☑ |
 | W-002 | "Real sites" proof grid: admin-curated real client sites as live previews | `RealSitesSection.tsx`, `LiveSitePreview.tsx` | visitor | mock gallery tile shows the 22 showcase sites instead | 2 | ❓ (Q24) | ☐ |
-| W-127 | Public header + footer (How it works, Real sites, Price, For creators, Help, Sign in, "Get a website") | `components/r1/Public.tsx` | visitor | mock nav (tightens on scroll) + footer (Help · Contact · Field agents · Privacy · Terms); keep Sign in | 2 | ✅ | ◐ |
+| W-127 | Public header + footer, including shared Sign in | `components/v2/Nav.tsx`, `Footer.tsx`, `links.ts` | visitor | Redesigned public navigation with one Sign in entry visible at every width; page actions move into the phone menu. | 2 | ✅ | ☑ |
 | W-004, C-081 | Creator recruitment page: keep 50%, 5 steps, real sites, store buttons, Discord, FAQ, book-a-call CTA, own chatbot | `/for-creators` | visitor (prospective agent) | `pages/creators.html` (route `/field-agents` proposed; keep `/for-creators` working). Money figures Q6, naming Q8 | 2 | ✅ | ☑ |
 | W-005 | Affiliate programme pitch (static; not in sitemap) | `/affiliates` | visitor | not in mock: keep, restyle | 2 | 🎨 | ☑ |
 | W-006, W-007, M-071, M-072 | Privacy policy + Terms of service (web pages and in-app copies) | `/privacy-policy`, `/terms-of-service`; app `terms-of-service.tsx`, `privacy-policy.tsx` | all | `pages/legal.html` (`#privacy`, `#terms`); app creator-more 19 Terms. Legal wording: Q34, flag, don't silently change | 2 | ✅ | ☑ |

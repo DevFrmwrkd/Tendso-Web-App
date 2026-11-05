@@ -9,6 +9,7 @@ export interface V2Link {
  */
 export const V2_ROUTES = {
     home: "/",
+    signIn: "/login",
     how: "/#how",
     examples: "/examples",
     business: "/for-business",

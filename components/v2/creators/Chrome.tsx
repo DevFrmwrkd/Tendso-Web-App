@@ -3,15 +3,10 @@ import type { ReactNode } from "react";
 
 import { Nav } from "../Nav";
 
-/** Top nav of /v2/creators: the shared v2 nav with "Creator log in" and "Apply now". */
+/** The creator program shares the same Sign in entry as every public page. */
 export function ProgramNav() {
     return (
         <Nav
-            secondaryAction={
-                <Link className="btn btn--line btn--sm" href="/affiliates/dashboard">
-                    Creator log in
-                </Link>
-            }
             primaryAction={
                 <Link className="btn btn--accent btn--sm" href="/affiliates/join">
                     Apply now

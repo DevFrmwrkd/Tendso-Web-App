@@ -44,7 +44,7 @@
 .pa-about .v2-nav-links a[href="/about"]::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; border-radius: 2px; background: var(--ink);
 }
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .pa .v2-nav.is-open .v2-nav-links a::after { display: none; }
 }
 

@@ -17,11 +17,14 @@ describe("wiki sign-in return allowlist", () => {
         "/knowledge?ws=wiki&redirect_url=https://example.invalid",
         "/knowledge?ws=wiki#unapproved",
         "/knowledge?ws=help",
-        "/admin",
         "/v2/my-site",
         ["https://example.invalid", "/knowledge?ws=wiki"],
     ];
     it.each(rejected.map(value => ({ value })))("leaves ordinary, ambiguous, and external returns on role routing: $value", ({ value }) => {
-        expect(loginReturnPath(value)).toBe("/dashboard");
+        expect(loginReturnPath(value)).toBe("/auth/continue");
+    });
+
+    it("retains an internal admin destination for the verified role boundary to authorize", () => {
+        expect(loginReturnPath("/admin/bookings")).toBe("/admin/bookings");
     });
 });

@@ -272,23 +272,33 @@
   .v2-nav-links a { transition: color var(--v2-d-ui) var(--v2-ease-out); }
   .v2-nav-links a:hover { color: var(--v2-ink); }
   .v2-nav-cta { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .v2-nav-cta, .v2-brand { flex-shrink: 0; }
+  .v2-nav-signin { white-space: nowrap; }
+  .v2-nav-mobile-actions, .v2-nav-mobile-primary { display: none; }
   .v2-nav-menu {
     display: none; width: 38px; height: 38px; border-radius: 50%;
     border: 1px solid var(--v2-line); background: var(--v2-canvas); cursor: pointer;
     align-items: center; justify-content: center;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 1200px) {
     .v2-nav-links, .v2-nav-secondary { display: none; }
-    .v2-nav.is-open { background: var(--v2-canvas); }
+    .v2-nav.is-open { background: var(--v2-canvas); -webkit-backdrop-filter: none; backdrop-filter: none; }
     .v2-nav.is-open .v2-nav-links {
       display: flex; flex-direction: column; gap: 4px;
       position: fixed; left: 0; right: 0; top: calc(var(--v2-nav-h, 84px) + env(safe-area-inset-top, 0px)); bottom: 0;
       padding: 24px max(var(--v2-page-pad), env(safe-area-inset-left, 0px)) 40px;
+      overflow-y: auto; overscroll-behavior: contain;
       background: var(--v2-canvas); font-size: 34px; font-weight: 500; letter-spacing: -0.045em; color: var(--v2-ink);
       animation: v2-menu-in var(--v2-d-reveal) var(--v2-ease-out);
     }
     .v2-nav.is-open .v2-nav-links a { padding: 8px 0; border-bottom: 1px solid var(--v2-line); }
+    .v2-nav-mobile-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+    .v2-nav.is-open .v2-nav-mobile-actions a { padding: 0 18px; height: 46px; font-size: 16px; letter-spacing: normal; border: 1px solid var(--v2-line); }
     .v2-nav-menu { display: inline-flex; }
+  }
+  @media (max-width: 600px) {
+    .v2-nav-primary { display: none; }
+    .v2-nav-mobile-primary { display: inline-flex; }
   }
   @keyframes v2-menu-in { from { opacity: 0; filter: blur(8px); transform: translateY(-8px); } }
 
