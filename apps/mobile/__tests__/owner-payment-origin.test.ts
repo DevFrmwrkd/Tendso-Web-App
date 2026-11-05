@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useCreateCheckout, wisePayUrl } from '../lib/v2/ownerData';
 
 const mockAction = jest.fn();
+jest.mock('@react-native-async-storage/async-storage', () => jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'));
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: jest.fn() }));
 jest.mock('convex/react', () => ({ useAction: () => mockAction, useMutation: jest.fn(), useQuery: jest.fn() }));
 jest.mock('../services/links', () => ({ SITE_URL: 'https://www.tendso.com' }));

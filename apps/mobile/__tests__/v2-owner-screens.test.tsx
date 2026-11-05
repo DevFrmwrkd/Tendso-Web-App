@@ -26,6 +26,8 @@ jest.mock('convex/react', () => ({
   useQuery: () => undefined,
   useMutation: () => jest.fn(),
   useAction: () => jest.fn(),
+  // Sample-mode createDraft still obtains its client before choosing the sample branch.
+  useConvex: () => ({ query: jest.fn() }),
 }));
 jest.mock('@clerk/clerk-expo', () => ({
   useClerk: () => ({ signOut: jest.fn() }),

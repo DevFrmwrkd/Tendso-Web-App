@@ -18,9 +18,20 @@ jest.mock('@react-native-async-storage/async-storage', () => require('@react-nat
 jest.mock('@clerk/clerk-expo', () => ({ useAuth: () => ({ userId: 'owner-clerk' }) }));
 jest.mock('react-native-webview', () => ({ WebView: () => null }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush, back: jest.fn() }), Redirect: () => null }));
+// These cases verify screen destinations; navigation deduplication has its own
+// tests and must not carry a 700 ms module-level lock between independent cases.
+jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => ({ push: mockPush, back: jest.fn() }) }));
 jest.mock('../lib/v2/useOwnerSite', () => ({
-  useOwnerSite: () => ({ site: mockSite, id: mockSite.submissionId, me: { owner: { name: 'Ben' } } }),
+  useOwnerSite: () => ({ site: mockSite, id: mockSite.submissionId, me: {
+    owner: { _id: 'owner-db', name: 'Ben', email: 'ben@example.test', phone: null }, sites: [mockSite],
+  } }),
   firstName: () => 'Ben', greeting: () => 'Morning',
+}));
+jest.mock('../lib/v2/ownerInbox', () => ({
+  useOwnerInbox: () => ({ ownerId: 'owner-db', actorClerkId: 'owner-clerk', items: [], unreadCount: 0 }),
+}));
+jest.mock('../lib/v2/visitRequests', () => ({
+  ...jest.requireActual('../lib/v2/visitRequests'), useOwnerVisitRequests: () => [],
 }));
 jest.mock('../lib/v2/ownerData', () => ({
   usePreview: () => mockPreview,
@@ -48,7 +59,7 @@ it.each([[0, 4999, 'Pay ₱4,999'], [1000, 3999, 'Pay ₱3,999']])('Today offers
   mockSite = { ...mockSite, amountPaid: paid as number, balanceDue: balance as number };
   const screen = wrap(<Today />);
   expect(todayAction('live', mockSite)).toEqual({ label, step: 'pay' });
-  fireEvent.press(screen.getByText(label));
+  fireEvent.press(screen.getByRole('button', { name: label as string }));
   expect(mockPush).toHaveBeenCalledWith('/(owner)/pay');
   screen.unmount();
 });
@@ -58,7 +69,7 @@ it.each([[0, 4999, 'Pay ₱4,999'], [1000, 3999, 'Pay ₱3,999']])('My Site keep
   const screen = wrap(<MySite />);
   expect(screen.getByText('Share')).toBeTruthy();
   expect(screen.getByText('Ask for a change')).toBeTruthy();
-  fireEvent.press(screen.getByText(label));
+  fireEvent.press(screen.getByRole('button', { name: label as string }));
   expect(mockPush).toHaveBeenCalledWith('/(owner)/pay');
   screen.unmount();
 });
@@ -71,7 +82,7 @@ it('fully paid and free sites keep the sharing action and have no payment prompt
   const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: Share.sharedAction });
   const screen = wrap(<MySite />);
   expect(screen.queryByText(/^Pay /)).toBeNull();
-  fireEvent.press(screen.getByText('Share'));
+  fireEvent.press(screen.getByRole('button', { name: 'Share' }));
   expect(share).toHaveBeenCalledWith({ message: 'Ben Barber: https://shop.sites.tendso.com/' });
   screen.unmount();
   share.mockRestore();
@@ -95,7 +106,7 @@ it('an unpaid published site reaches full/deposit checkout without claiming it n
   expect(screen.getByText('Pay for your site')).toBeTruthy();
   expect(screen.queryByText('Publish your site')).toBeNull();
   expect(screen.getByText('Pay part now')).toBeTruthy();
-  fireEvent.press(screen.getByText('Pay ₱4,999'));
+  fireEvent.press(screen.getByRole('button', { name: 'Pay ₱4,999' }));
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/(owner)/pay/method', params: { kind: 'full', amount: '4999' } });
   screen.unmount();
 });
@@ -104,7 +115,7 @@ it('a partially paid published site can pay its remaining balance', () => {
   mockPayment = { ...mockPayment, amountPaid: 1000, balanceDue: 3999, canPayBalance: true, canPayDeposit: false };
   const screen = wrap(<Pay />);
   expect(screen.getByText('Pay the rest')).toBeTruthy();
-  fireEvent.press(screen.getByText('Pay ₱3,999'));
+  fireEvent.press(screen.getByRole('button', { name: 'Pay ₱3,999' }));
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/(owner)/pay/method', params: { kind: 'balance', amount: '3999' } });
   screen.unmount();
 });
@@ -115,13 +126,13 @@ it('new agent-made private previews lead to checking the site and offer no publi
   mockPreview = { ready: true, htmlUrl: null, inlineHtml: '<html><body>Private shop preview</body></html>',
     isLive: false, publishedUrl: null };
   const today = wrap(<Today />);
-  fireEvent.press(today.getByText('Check my site'));
+  fireEvent.press(today.getByRole('button', { name: 'Check preview' }));
   expect(mockPush).toHaveBeenCalledWith('/(owner)/check');
   today.unmount();
   const site = wrap(<MySite />);
   expect(site.getByText('Ready to check')).toBeTruthy();
   expect(site.queryByText('Share')).toBeNull();
-  fireEvent.press(site.getByText('Check my site'));
+  fireEvent.press(site.getByRole('button', { name: 'Check my site' }));
   expect(mockPush).toHaveBeenLastCalledWith('/(owner)/check');
 });
 
@@ -133,7 +144,7 @@ it('an approved agent-made preview reaches payment while the website is still pr
   const screen = wrap(<Pay />);
   expect(screen.getByText('Publish your site')).toBeTruthy();
   expect(screen.queryByText('Pay for your site')).toBeNull();
-  fireEvent.press(screen.getByText('Pay ₱4,999'));
+  fireEvent.press(screen.getByRole('button', { name: 'Pay ₱4,999' }));
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/(owner)/pay/method', params: { kind: 'full', amount: '4999' } });
   expect(mockSite.publishedUrl).toBeNull();
 });

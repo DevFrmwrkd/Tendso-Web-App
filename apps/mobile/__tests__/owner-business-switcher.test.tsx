@@ -36,6 +36,12 @@ jest.mock('../lib/v2/ownerData', () => ({
   usePreview: (id: string | null) => id ? { ready: true, publishedUrl: `https://${id}.sites.tendso.com` } : undefined,
   useOwnerSubmission: () => undefined,
 }));
+jest.mock('../lib/v2/ownerInbox', () => ({
+  useOwnerInbox: () => ({ ownerId: mockMe.owner._id, actorClerkId: mockActor, items: [], unreadCount: 0 }),
+}));
+jest.mock('../lib/v2/visitRequests', () => ({
+  ...jest.requireActual('../lib/v2/visitRequests'), useOwnerVisitRequests: () => [],
+}));
 jest.mock('../components/v2/owner/OwnerUI', () => ({ Buddy: () => null, SiteFrame: () => null }));
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
@@ -177,10 +183,11 @@ it('My site shares the selected business URL and stops showing another site in n
   expect(screen.queryByRole('button', { name: /^Pay / })).toBeNull();
 });
 
-it('Today resumes a new-business workspace through owner routing instead of restarting the sell question', () => {
-  mockNew = true; mockSelected = null;
+it('Today resumes an existing draft through owner routing instead of restarting the sell question', () => {
+  mockMe.sites.push(business('unfinished', { phase: 'draft', status: 'draft' }));
   const screen = render(<Today />);
-  fireEvent.press(screen.getByRole('button', { name: 'Make my website' }));
+  fireEvent.press(screen.getByRole('button', { name: 'Continue setup' }));
+  expect(mockSelect).toHaveBeenCalledWith('unfinished');
   expect(mockRouter.push).toHaveBeenCalledWith('/(owner)');
   expect(mockRouter.push).not.toHaveBeenCalledWith('/(owner)/start/sell');
 });

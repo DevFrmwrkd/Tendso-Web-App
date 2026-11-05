@@ -43,7 +43,7 @@ function VisitForm({ scope, submissionId }: { scope: ReturnType<typeof useOwnerS
     });
   };
   return <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <ScreenShell title="Request a shop visit" subtitle="Tell us where to visit. The team arranges a field agent and a proposed time."
+    <ScreenShell title="Request a shop visit" subtitle="Pin your shop. We’ll arrange an agent and propose a time."
       onBack={() => { if (!operation.busy) { Keyboard.dismiss(); router.back(); } }} contentStyle={styles.content} footer={<>
         {operation.error ? <Text tone="danger" accessibilityRole="alert">{operation.error}</Text> : null}
         <Button title="Send request" onPress={send} loading={operation.busy} disabled={scope.isOffline || !valid} />
@@ -63,9 +63,9 @@ function VisitForm({ scope, submissionId }: { scope: ReturnType<typeof useOwnerS
         style={[styles.day, day === when && styles.selected]}><Ionicons name="calendar-outline" size={22} color={colors.ink} /><Text weight="bold">{day}</Text></Pressable>)}</View>
       <Field label="Your mobile number" icon="call-outline" value={phone} onChangeText={setPhone} keyboardType="phone-pad" autoComplete="tel"
         textContentType="telephoneNumber" editable={!operation.busy} helper="A Philippine mobile number." />
-      <Banner title="A request, then a confirmation" body="Your preferred day is not a booking. The visit is confirmed after an assigned field agent accepts the proposed time." />
+      <Banner title="Awaiting confirmation" body="Your preferred day is not a booking. Your assigned agent must accept the proposed time." />
       {scope.isOffline ? <Text tone="muted">Reconnect to send your visit request.</Text> : null}
-      <Card><Text tone="muted">Your address and contact details are shared with the Tendso team and the assigned field agent.</Text></Card>
+      <Card><Text tone="muted">Your address and contact details go to Tendso’s team and your assigned field agent.</Text></Card>
     </ScreenShell>
   </KeyboardAvoidingView>;
 }

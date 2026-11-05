@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DesignPicker from '../app/(owner)/design';
 import { ownerIntake } from '../lib/v2/ownerIntake';
 import { uploadQueue } from '../lib/v2/uploadQueue';
+import type { SubmissionId } from '../lib/v2/ownerTypes';
 
 const mockChoose = jest.fn(async () => {});
 const mockSubmit = jest.fn(async () => {});
@@ -30,10 +31,17 @@ jest.mock('../lib/v2/ownerData', () => ({
   useSaveShot: () => mockSaveShot, useSaveAnswer: () => mockSaveAnswer,
 }));
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } };
-const completeDraft = () => ({ submissionId: 'draft', phase: 'draft', businessType: 'Barber/Salon', shotListKey: 'barber',
+const completeDraft = () => ({ submissionId: 'draft', draftRevision: 0, phase: 'draft', businessType: 'Barber/Salon', shotListKey: 'barber',
   shots: Array.from({ length: 3 }, (_, index) => ({ index, extra: false, url: `https://images.test/photo-${index}.jpg` })),
   interview: Array.from({ length: 10 }, (_, index) => ({ index, mediaUrl: `https://images.test/answer-${index}.m4a` })),
 });
+
+function acknowledgeUploadSave() {
+  const id = 'draft' as SubmissionId;
+  // Real ownerData writers acknowledge each committed revision before the
+  // subscription catches up. Keep the server fixture stale to exercise that gap.
+  ownerIntake.acknowledge(id, (ownerIntake.revision(id) ?? 0) + 1, ownerIntake.scope());
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -42,6 +50,8 @@ beforeEach(() => {
   mockChoose.mockReset().mockResolvedValue(undefined);
   mockSubmit.mockReset().mockResolvedValue(undefined);
   mockUpload.mockImplementation(async () => 'https://images.test/photo.jpg');
+  mockSaveShot.mockImplementation(async () => { acknowledgeUploadSave(); });
+  mockSaveAnswer.mockImplementation(async () => { acknowledgeUploadSave(); });
   uploadQueue.reset();
   ownerIntake.clear();
 });
@@ -89,6 +99,7 @@ it('rebuilds the empty process queue before submitting a restored draft, and blo
   await act(async () => { fireEvent.press(screen.getByText('Use this design')); });
   expect(mockSaveShot).toHaveBeenCalledTimes(3);
   expect(mockSaveAnswer).toHaveBeenCalledWith(expect.objectContaining({ index: 0, mediaType: 'audio', lang: 'tl' }));
+  expect(ownerIntake.get().draftRevision).toBeGreaterThan(mockSub.draftRevision);
   expect(mockSubmit).toHaveBeenCalledTimes(1);
   expect(mockReplace).toHaveBeenCalledWith('/(owner)/building');
   expect(ownerIntake.get().uploads).toBeUndefined();

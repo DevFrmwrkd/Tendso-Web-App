@@ -10,15 +10,17 @@ const mockAccess = { account: sampleAffiliate, isPreview: false, isOffline: fals
 const mockSave = jest.fn();
 const mockMutation = jest.fn();
 const mockAction = jest.fn();
+const mockQuery = jest.fn();
 const mockRouter = { push: jest.fn(), canGoBack: jest.fn(), back: jest.fn(), replace: jest.fn() };
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
 jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
-jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' } } }));
+jest.mock('@tendso/convex-client', () => ({ api: { affiliates: { updatePage: 'affiliates:updatePage' }, r2: { generateUploadUrl: 'r2:generateUploadUrl' }, creatorProgram: { codeSetup: 'creatorProgram:codeSetup' } } }));
 jest.mock('convex/react', () => ({
   useMutation: (...args: unknown[]) => { mockMutation(...args); return mockSave; },
   useAction: (...args: unknown[]) => { mockAction(...args); return jest.fn(); },
+  useQuery: (...args: unknown[]) => mockQuery(...args),
 }));
 jest.mock('../components/affiliate/Screen', () => ({
   AffiliateAccess: ({ children }: { children: (props: typeof mockAccess) => React.ReactNode }) => children(mockAccess),
@@ -31,6 +33,9 @@ beforeEach(() => {
   jest.clearAllMocks();
   Object.assign(mockAccess, { account: sampleAffiliate, isPreview: false, isOffline: false, isAuthenticated: true });
   mockSave.mockResolvedValue(undefined);
+  mockQuery.mockImplementation((reference: string) => reference === 'creatorProgram:codeSetup' ? {
+    creatorId: mockAccess.account._id, code: mockAccess.account.referralCode ?? null, canChoose: false, chosenAt: null,
+  } : undefined);
   mockRouter.canGoBack.mockReturnValue(true);
 });
 
@@ -53,6 +58,12 @@ it('normalizes multiple profiles without accepting unsafe or mismatched platform
 it('saves multiple optional profiles, restores toggled drafts and explicitly clears every link', async () => {
   mockAccess.account = { ...sampleAffiliate, affiliateSocialLink: 'https://m.me/sam' };
   const view = render(<AffiliatePageEditorScreen />);
+  expect(mockQuery).toHaveBeenCalledWith('creatorProgram:codeSetup', {});
+  fireEvent.press(view.getByRole('tab', { name: 'Your offer' }));
+  expect(view.getByText(sampleAffiliate.referralCode!)).toBeTruthy();
+  expect(view.getByText('Your code is set. It can’t be changed.')).toBeTruthy();
+  expect(view.queryByText('Could not load your code setup. Try again when connected.')).toBeNull();
+  fireEvent.press(view.getByRole('tab', { name: 'Page details' }));
   expect(view.getByLabelText('Messenger link').props.value).toBe('https://m.me/sam');
   fireEvent.changeText(view.getByLabelText('TikTok link'), ' https://www.tiktok.com/@sam ');
   fireEvent.changeText(view.getByLabelText('YouTube link'), 'https://www.youtube.com/@sam');

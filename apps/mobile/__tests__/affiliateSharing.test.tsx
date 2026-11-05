@@ -46,9 +46,9 @@ beforeEach(() => {
 });
 
 it('copies the canonical personal URL and confirms completion', async () => {
-  const view = render(<CopyButton value="https://tendso.com/v2/a/my-page" label="Copy link" />);
+  const view = render(<CopyButton value="https://tendso.com/a/my-page" label="Copy link" />);
   fireEvent.press(view.getByLabelText('Copy link'));
-  await waitFor(() => expect(mockClipboard).toHaveBeenCalledWith('https://tendso.com/v2/a/my-page'));
+  await waitFor(() => expect(mockClipboard).toHaveBeenCalledWith('https://tendso.com/a/my-page'));
   expect(view.getByText('Copied.')).toBeTruthy();
 });
 
@@ -64,16 +64,21 @@ it('reports clipboard failures and keeps preview copying disabled', async () => 
 });
 
 it('shares the vector-exported PNG and removes the temporary file after the share sheet finishes', async () => {
+  let finishShare!: () => void;
+  mockShareImage.mockReturnValueOnce(new Promise<void>(resolve => { finishShare = resolve; }));
   const view = render(<ShareTools handle="my-page" displayName="My saved offer" photo="https://photos.example.com/saved.jpg" referralCode="LEGACY27" price={3999} disabled={false} />);
   fireEvent.press(view.getByLabelText('Share printable poster PNG'));
   await waitFor(() => expect(mockShareImage).toHaveBeenCalled());
   expect(mockCapture).not.toHaveBeenCalled();
   expect(mockPosterExport).toHaveBeenCalledTimes(1);
   expect(mockPoster.mock.calls.at(-1)![0].model).toMatchObject({ name: 'My saved offer', photo: 'https://photos.example.com/saved.jpg',
-    price: 3499, code: 'LEGACY27', url: 'https://tendso.com/v2/a/my-page' });
+    price: 3499, code: 'LEGACY27', url: 'https://tendso.com/a/my-page' });
   const uri = mockWrite.mock.calls[0][0];
+  expect(uri).toMatch(/^file:\/\/\/test-cache\/tendso-creator-poster-\d+-\d+\.png$/);
   expect(mockWrite).toHaveBeenCalledWith(uri, PNG, { encoding: 'base64' });
   expect(mockShareImage).toHaveBeenCalledWith(uri, { mimeType: 'image/png', dialogTitle: 'Share printable creator poster' });
+  expect(mockDelete).not.toHaveBeenCalled();
+  await act(async () => { finishShare(); });
   await waitFor(() => expect(mockDelete).toHaveBeenCalledWith(uri, { idempotent: true }));
 });
 
