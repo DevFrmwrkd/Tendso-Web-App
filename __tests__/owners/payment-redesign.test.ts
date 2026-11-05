@@ -21,6 +21,7 @@ vi.mock('convex/react', () => ({
         if (name === 'paymentTokens:getByToken') return state.routeToken;
         if (name === 'paymentTokens:getSubmissionByToken') return state.routeSubmission;
         if (name === 'paymentTokens:getPublicationByToken') return state.routePublication;
+        if (name === 'ownerPayments:getCheckoutAvailability') return { xenditEnabled: false };
         throw new Error(`Unexpected payment query ${name}`);
     },
 }));
@@ -266,6 +267,7 @@ describe('token → submission → publication route loading', () => {
             { name: 'paymentTokens:getByToken', args: { token: rawToken } },
             { name: 'paymentTokens:getSubmissionByToken', args: 'skip' },
             { name: 'paymentTokens:getPublicationByToken', args: 'skip' },
+            { name: 'ownerPayments:getCheckoutAvailability', args: 'skip' },
         ]);
     });
 
@@ -274,7 +276,7 @@ describe('token → submission → publication route loading', () => {
         const html = renderToStaticMarkup(createElement(PaymentPage));
         expect(html).toContain('Loading your payment details');
         expect(html).not.toContain('Copy all payment details'); expect(html).not.toContain('Payment received.');
-        expect(state.queries.slice(1)).toEqual([
+        expect(state.queries.slice(1).filter(query => query.name.startsWith('paymentTokens:'))).toEqual([
             { name: 'paymentTokens:getSubmissionByToken', args: { token: rawToken } },
             { name: 'paymentTokens:getPublicationByToken', args: { token: rawToken } },
         ]);

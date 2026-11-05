@@ -382,6 +382,19 @@ delivery still requires a separately authorized provider test.
 It is off unless **both** `XENDIT_SECRET_KEY` and `XENDIT_CALLBACK_TOKEN` are
 set on the Convex deployment.
 
+### Runtime activation (mobile and web)
+- `api.ownerPayments.getCheckoutAvailability({})` is a public query returning only
+  `{ xenditEnabled: boolean }`. The public payment page subscribes to it; signed-in
+  owner web and mobile use the same capability in `getPaymentState`.
+- Adding, removing, or rotating the two Convex credentials does not require a
+  mobile build, OTA update, or web rebuild once this runtime check is deployed.
+  Reopen the payment screen or refresh the page after changing configuration.
+  `NEXT_PUBLIC_XENDIT_ENABLED` is no longer used.
+- Both secrets stay on the backend. The capability is configuration presence,
+  not proof that the credentials, account channels, or webhook work. Configure
+  the matching deployment's webhook and verify a Test Mode checkout before
+  relying on payments. `createCheckout` still enforces payer access.
+
 ### `api.xendit.createCheckout` (action)
 - args `{ token, successRedirectUrl?, failureRedirectUrl? }`. Only `https://`
   or `tendso://` redirects are allowed. The defaults are

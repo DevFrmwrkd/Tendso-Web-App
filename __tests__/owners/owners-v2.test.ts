@@ -373,6 +373,33 @@ describe('Xendit', () => {
         expect(res.status).toBe(503);
     });
 
+    it('keeps public and owner checkout availability in sync as credentials are added and removed at runtime', async () => {
+        const { t, owner, id } = await paidOwnerSite();
+        const before = await t.run(async ctx => ({ tokens: await ctx.db.query('paymentTokens').collect(), jobs: await ctx.db.system.query('_scheduled_functions').collect() }));
+        const fetchMock = vi.fn();
+        vi.stubGlobal('fetch', fetchMock);
+        const configurations = [
+            { secret: null, callback: null, enabled: false },
+            { secret: 'mock-xendit-key', callback: null, enabled: false },
+            { secret: null, callback: 'mock-callback-token', enabled: false },
+            { secret: 'mock-xendit-key', callback: 'mock-callback-token', enabled: true },
+            { secret: 'mock-xendit-key', callback: null, enabled: false },
+            { secret: null, callback: null, enabled: false },
+            { secret: 'mock-xendit-key', callback: 'mock-callback-token', enabled: true },
+        ];
+        for (const configuration of configurations) {
+            if (configuration.secret === null) delete process.env.XENDIT_SECRET_KEY;
+            else process.env.XENDIT_SECRET_KEY = configuration.secret;
+            if (configuration.callback === null) delete process.env.XENDIT_CALLBACK_TOKEN;
+            else process.env.XENDIT_CALLBACK_TOKEN = configuration.callback;
+            // The public query returns one capability flag, never credentials.
+            expect(await t.query(api.ownerPayments.getCheckoutAvailability, {})).toEqual({ xenditEnabled: configuration.enabled });
+            expect(await owner.query(api.ownerPayments.getPaymentState, { submissionId: id })).toMatchObject({ billable: true, xenditEnabled: configuration.enabled });
+        }
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(await t.run(async ctx => ({ tokens: await ctx.db.query('paymentTokens').collect(), jobs: await ctx.db.system.query('_scheduled_functions').collect() }))).toEqual(before);
+    });
+
     it('creates a checkout with the reference as external_id', async () => {
         const { owner, pay } = await paidOwnerSite();
         process.env.XENDIT_SECRET_KEY = 'xnd_test_secret';

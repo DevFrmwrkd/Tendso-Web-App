@@ -12,13 +12,11 @@ import { api } from "@/convex/_generated/api";
  * token, and the browser goes there. Xendit shows every method enabled on the account, so
  * the method tapped only says what the payer meant; it is not sent.
  *
- * The buttons stay "Coming soon" until NEXT_PUBLIC_XENDIT_ENABLED is "true". The backend
- * also answers `{ enabled: false }` until XENDIT_SECRET_KEY and XENDIT_CALLBACK_TOKEN are
- * set on Convex; the page then says so in one line.
+ * The page reads ownerPayments.getCheckoutAvailability at runtime. Both credentials
+ * stay on Convex; adding or rotating them never requires rebuilding this client.
+ * createCheckout also answers `{ enabled: false }` if either credential is missing.
  */
 export type XenditMethod = "gcash" | "maya" | "card";
-
-export const XENDIT_ENABLED = process.env.NEXT_PUBLIC_XENDIT_ENABLED === "true";
 
 const OFF = "GCash, Maya and card are not switched on yet. Pay with Wise for now.";
 

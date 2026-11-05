@@ -154,6 +154,12 @@ function xenditEnabled(): boolean {
 
 // ==================== QUERIES ====================
 
+/** Public capability only. Credentials stay on Convex; clients need no build-time flag. */
+export const getCheckoutAvailability = query({
+    args: {},
+    handler: () => ({ xenditEnabled: xenditEnabled() }),
+});
+
 /** What the owner owes and how they may pay. Owner / admin / selling agent. */
 export const getPaymentState = query({
     args: { submissionId: v.id('submissions') },

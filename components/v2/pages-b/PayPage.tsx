@@ -15,7 +15,7 @@
  *    deposit pay link and opens it. Anyone else sees the line with "Ask us how";
  *  - Wise works for every kind (same email, account name and the token's reference code);
  *  - GCash, Maya and Card open Xendit (api.xendit.createCheckout, ./xendit.ts) behind
- *    NEXT_PUBLIC_XENDIT_ENABLED, and read "Coming soon" until it is "true";
+ *    runtime backend availability, and read "Coming soon" until both server credentials exist;
  *  - "Your site is live. Pay to keep it live." is said only for a field-agent sale (payRules.ts).
  *    For every other sale the page does not claim the site is up.
  */
@@ -52,7 +52,7 @@ import { formatPHP, isComped } from "@/lib/pricing";
 
 import { isFieldAgentSale, pendingCopy } from "./payRules";
 import { CheckIcon, PbBrand, PlusIcon, copyWithToast, usePbToast } from "./shared";
-import { XENDIT_ENABLED, useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
+import { useXenditCheckout, xenditErrorMessage, type XenditMethod } from "./xendit";
 
 type Token = Doc<"paymentTokens">;
 type Submission = PaymentSubmissionSummary | null;
@@ -71,11 +71,12 @@ export function PayPage() {
     const paymentToken = useQuery(api.paymentTokens.getByToken, { token });
     const submission = useQuery(api.paymentTokens.getSubmissionByToken, paymentToken ? { token } : "skip");
     const publication = useQuery(api.paymentTokens.getPublicationByToken, paymentToken ? { token } : "skip");
+    const checkoutAvailability = useQuery(api.ownerPayments.getCheckoutAvailability, paymentToken ? {} : "skip");
     const wiseEmail = paymentConfig.wiseEmail || "";
     // Wait for the submission too: its status decides "paid" when an admin matched the transfer by hand.
-    const loading = paymentToken === undefined || (paymentToken !== null && (submission === undefined || publication === undefined));
+    const loading = paymentToken === undefined || (paymentToken !== null && (submission === undefined || publication === undefined || checkoutAvailability === undefined));
 
-    return <PayView loading={loading} token={paymentToken ?? null} submission={submission ?? null} publishedUrl={publication?.liveUrl ?? null} now={now} wiseEmail={wiseEmail} ownerHome={isOwner} />;
+    return <PayView loading={loading} token={paymentToken ?? null} submission={submission ?? null} publishedUrl={publication?.liveUrl ?? null} now={now} wiseEmail={wiseEmail} ownerHome={isOwner} xenditEnabled={checkoutAvailability?.xenditEnabled ?? false} />;
 }
 
 /** The page itself, from data. Split from PayPage so every state can be rendered without a backend. */
@@ -87,6 +88,7 @@ export function PayView({
     wiseEmail,
     ownerHome,
     publishedUrl,
+    xenditEnabled = false,
 }: {
     loading: boolean;
     token: Token | null;
@@ -95,6 +97,7 @@ export function PayView({
     wiseEmail: string;
     ownerHome: boolean;
     publishedUrl?: string | null;
+    xenditEnabled?: boolean;
 }) {
     const { node: toast, show } = usePbToast();
     const view = loading ? "loading" : !token ? "notfound" : payView(token, submission, now);
@@ -112,7 +115,7 @@ export function PayView({
             <main className="pb-py-main">
                 {view === "loading" && <Loading />}
                 {view === "notfound" && <NotFound />}
-                {token && view === "pending" && <Pending token={token} submission={submission} now={now} wiseEmail={wiseEmail} show={show} publishedUrl={publishedUrl} />}
+                {token && view === "pending" && <Pending token={token} submission={submission} now={now} wiseEmail={wiseEmail} show={show} publishedUrl={publishedUrl} xenditEnabled={xenditEnabled} />}
                 {token && view === "paid" && <Paid token={token} submission={submission} ownerHome={ownerHome} publishedUrl={publishedUrl} />}
                 {token && view === "expired" && <Expired token={token} submission={submission} now={now} />}
             </main>
@@ -190,7 +193,7 @@ function Hero({
 
 /* ---- pending ----------------------------------------------------------------- */
 
-function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { token: Token; submission: Submission; now: number; wiseEmail: string; show: (m: string) => void; publishedUrl?: string | null }) {
+function Pending({ token, submission, now, wiseEmail, show, publishedUrl, xenditEnabled }: { token: Token; submission: Submission; now: number; wiseEmail: string; show: (m: string) => void; publishedUrl?: string | null; xenditEnabled: boolean }) {
     const name = submission?.businessName ?? null;
     const money = formatPHP(token.amount);
     const url = safePaymentUrl(publishedUrl === undefined ? submission?.status === "unpublished" || submission?.unpublishedAt ? null : submission?.websiteUrl : publishedUrl);
@@ -209,7 +212,7 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
     // receipt, a price update, or an unfinished hosted checkout can supersede it.
     const processing = !!token.xenditCheckoutState;
     const hostedOpen = !!token.xenditInvoiceId && (token.xenditExpiresAt === undefined || token.xenditExpiresAt > now);
-    if (details.stale || processing || hostedOpen || (!wiseEmail.trim() && !XENDIT_ENABLED)) {
+    if (details.stale || processing || hostedOpen || (!wiseEmail.trim() && !xenditEnabled)) {
         return <PendingUnavailable token={token} submission={submission} processing={processing} hostedOpen={hostedOpen} stale={details.stale} />;
     }
     // Card/e-wallet checkout is configured separately from Wise. A missing Wise
@@ -226,7 +229,7 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                         {details.paid !== null && details.paid > 0 && <div><dt>Paid so far</dt><dd>{formatPHP(details.paid)}</dd></div>}
                         {balanceAfter !== null && <div><dt>After this payment</dt><dd>{formatPHP(balanceAfter)} remaining</dd></div>}
                     </dl>
-                    <MethodArea token={token.token} label="Card and e-wallets" />
+                    <MethodArea token={token.token} enabled={xenditEnabled} label="Card and e-wallets" />
                     <p className="pb-py-methods-msg">This page updates after your payment is confirmed. Already paid? Check its status before starting another checkout.</p>
                     <Button href="/help#contact" variant="ghost">Need help with a payment?</Button>
                 </div>
@@ -292,7 +295,7 @@ function Pending({ token, submission, now, wiseEmail, show, publishedUrl }: { to
                             </span>
                         </p>
                     ) : null}
-                    <MethodArea token={token.token} />
+                    <MethodArea token={token.token} enabled={xenditEnabled} />
                 </div>
 
                 <ol className="pb-py-steps">
@@ -479,8 +482,8 @@ function DownPaymentOffer({ submissionId }: { submissionId: Token["submissionId"
     );
 }
 
-/** GCash, Maya and Card through Xendit. Disabled with "Coming soon" until NEXT_PUBLIC_XENDIT_ENABLED is "true". */
-function MethodArea({ token, label = "More ways to pay" }: { token: string; label?: string }) {
+/** GCash, Maya and Card through Xendit. Availability comes from Convex at runtime. */
+function MethodArea({ token, enabled, label = "More ways to pay" }: { token: string; enabled: boolean; label?: string }) {
     const startXenditCheckout = useXenditCheckout();
     const [message, setMessage] = useState<string | null>(null);
     const [busy, setBusy] = useState<XenditMethod | null>(null);
@@ -503,11 +506,11 @@ function MethodArea({ token, label = "More ways to pay" }: { token: string; labe
         <div className="pb-py-methods" aria-label="Other ways to pay">
             <p className="pb-py-methods-k">
                 {label}
-                {!XENDIT_ENABLED && <span className="pb-py-soon">Coming soon</span>}
+                {!enabled && <span className="pb-py-soon">Coming soon</span>}
             </p>
             <div className="pb-py-methods-row">
                 {methods.map((m) => (
-                    <button key={m.id} type="button" className="v2-btn v2-btn--ghost" disabled={!XENDIT_ENABLED || busy !== null} onClick={() => void start(m.id)}>
+                    <button key={m.id} type="button" className="v2-btn v2-btn--ghost" disabled={!enabled || busy !== null} onClick={() => void start(m.id)}>
                         {m.label}
                     </button>
                 ))}
