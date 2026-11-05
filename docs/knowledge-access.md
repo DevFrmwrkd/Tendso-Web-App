@@ -73,3 +73,6 @@ applied to development only; production deployment/data changes remain separate.
 
 Human team messaging is a separate feature. Team conversations do not
 automatically become shared knowledge.
+
+See [Current app-flow knowledge](knowledge-content-updates.md) for the reviewed
+owner, creator, field-agent and admin content catalogue and its guarded publisher.
