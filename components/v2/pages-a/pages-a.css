@@ -32,21 +32,8 @@
 :where(.pa button:not(.v2-btn):not(.v2-chip)) { font: inherit; }
 .pa [hidden] { display: none !important; }
 
-/* active link in the v2 nav (the Nav component has no notion of the current page) */
-.pa .v2-nav-links a { position: relative; white-space: nowrap; }
-.pa-business .v2-nav-links a[href="/for-business"],
-.pa-examples .v2-nav-links a[href="/examples"],
-.pa-agents .v2-nav-links a[href="/for-field-agents"],
-.pa-about .v2-nav-links a[href="/about"] { color: var(--ink); }
-.pa-business .v2-nav-links a[href="/for-business"]::after,
-.pa-examples .v2-nav-links a[href="/examples"]::after,
-.pa-agents .v2-nav-links a[href="/for-field-agents"]::after,
-.pa-about .v2-nav-links a[href="/about"]::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; border-radius: 2px; background: var(--ink);
-}
-@media (max-width: 1200px) {
-  .pa .v2-nav.is-open .v2-nav-links a::after { display: none; }
-}
+/* The shared Nav owns current-page state and its underline at every width. */
+.pa .v2-nav-links a { white-space: nowrap; }
 
 /* blur-in reveals (mock base.css). Hidden until the script marks them in; a CSS fail-safe shows them after 3s without JS. */
 .pa [data-reveal] { opacity: 0; filter: blur(var(--blur-in)); transform: translateY(18px); animation: pa-failsafe 0.01s linear 3s forwards; }

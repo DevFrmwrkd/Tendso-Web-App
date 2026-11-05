@@ -37,7 +37,7 @@ const FIELDS: { k: Field; label: string; type: string; auto: string; placeholder
     { k: "mobile", label: "Mobile", type: "tel", auto: "tel", placeholder: "0917 123 4567", inputMode: "tel" },
 ];
 
-function HireForm() {
+export function HireForm() {
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
     const challenge = useRef<HTMLDivElement>(null);
     const widget = useRef<string | null>(null);
@@ -47,22 +47,35 @@ function HireForm() {
     const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
     const [formError, setFormError] = useState("");
     const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+    const [publicFormAvailable, setPublicFormAvailable] = useState<boolean | null>(null);
+    const submitting = useRef(false);
     const refs = useRef<Partial<Record<Field, HTMLInputElement | null>>>({});
 
     const sent = state === "sent";
     useEffect(() => {
+        if (!siteKey) return;
+        const controller = new AbortController();
+        let active = true;
+        void fetch('/api/landing-visit', { method: 'GET', cache: 'no-store', signal: controller.signal })
+            .then(async response => response.ok && (await response.json()).publicFormAvailable === true)
+            .then(available => { if (active) setPublicFormAvailable(available); })
+            .catch(() => { if (active) setPublicFormAvailable(false); });
+        return () => { active = false; controller.abort(); };
+    }, [siteKey]);
+    useEffect(() => {
         const api = turnstile();
-        if (!ready || !siteKey || sent || !challenge.current || !api) return;
+        if (!publicFormAvailable || !ready || !siteKey || sent || !challenge.current || !api) return;
         const id = api.render(challenge.current, {
             sitekey: siteKey, size: "compact", action: "landing-visit", callback: setToken,
             "expired-callback": () => setToken(""), "error-callback": () => setToken(""),
         });
         widget.current = id;
         return () => { api.remove(id); widget.current = null; };
-    }, [ready, siteKey, sent]);
+    }, [publicFormAvailable, ready, siteKey, sent]);
 
     const onSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (submitting.current || !publicFormAvailable || !token) return;
         const next: Partial<Record<Field, string>> = {};
         (Object.keys(RULES) as Field[]).forEach((k) => {
             const m = RULES[k](values[k]);
@@ -75,6 +88,7 @@ function HireForm() {
             refs.current[first.k]?.focus();
             return;
         }
+        submitting.current = true;
         setState("sending");
         try {
             const response = await fetch("/api/landing-visit", {
@@ -82,6 +96,11 @@ function HireForm() {
                 body: JSON.stringify({ ...values, token }),
             });
             const data = await response.json();
+            if (response.status === 503) {
+                setPublicFormAvailable(false);
+                setState('idle');
+                return;
+            }
             if (!response.ok) throw data;
             setState("sent");
         } catch (err) {
@@ -94,6 +113,7 @@ function HireForm() {
                 setFormError(data?.message ?? "That did not go through. Check your connection and try again.");
             }
         } finally {
+            submitting.current = false;
             setToken("");
             if (widget.current) turnstile()?.reset(widget.current);
         }
@@ -108,7 +128,7 @@ function HireForm() {
                     </svg>
                 </span>
                 <p className="done-h">Request sent.</p>
-                <p className="done-p">A field agent will message you to pick a time.</p>
+                <p className="done-p">The Tendso team will contact you to arrange a visit.</p>
                 <Button
                     variant="ghost"
                     size="sm"
@@ -124,11 +144,20 @@ function HireForm() {
         );
     }
 
+    if (!siteKey || publicFormAvailable === false) {
+        return <div className="hire">
+            <p>Sign in to add your shop details and map pin, then track your visit request.</p>
+            <Button href="/my-business/visits/new" variant="dark" className="hire-go">Request a shop visit <Arrow /></Button>
+            <p>The visit is confirmed after an assigned agent accepts.</p>
+        </div>;
+    }
+
+    if (publicFormAvailable === null) return <div className="hire" role="status">Checking request options…</div>;
+
     return (
         <form className="hire" noValidate onSubmit={onSubmit}>
-            {siteKey ? <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" onReady={() => setReady(true)} /> : null}
+            {siteKey ? <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" onReady={() => setReady(true)} onError={() => setPublicFormAvailable(false)} /> : null}
             <div ref={challenge} />
-            {!siteKey ? <p role="status">Visit requests are temporarily unavailable.</p> : null}
             {FIELDS.map((f) => {
                 const err = errors[f.k];
                 return (
@@ -169,6 +198,7 @@ function HireForm() {
             <Button type="submit" variant="dark" className="hire-go" disabled={state === "sending" || !token}>
                 {state === "sending" ? "Sending…" : "Request a visit"} <Arrow />
             </Button>
+            <Link href="/my-business/visits/new">Request through your owner account</Link>
         </form>
     );
 }
@@ -212,7 +242,7 @@ export function Paths() {
                                 </Link>
                                 <Link className="join-row" href={LANDING_LINKS.creators}>
                                     <span>
-                                        <b>Become a creator</b>
+                                        <b>Apply as an affiliate</b>
                                         <small>Share Tendso online with your link</small>
                                     </span>
                                     <Arrow />

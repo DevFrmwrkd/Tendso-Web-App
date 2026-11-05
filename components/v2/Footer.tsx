@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Container } from "./Layout";
+import { cx } from "./cx";
 import { V2_FOOTER_LINKS, type V2Link } from "./links";
+import styles from "./Footer.module.css";
 
 /**
  * Footer shell: one line and two actions, a wordmark that bleeds to the page edges,
@@ -20,16 +22,16 @@ export function Footer({
     links?: readonly V2Link[];
 }) {
     return (
-        <footer className="v2-foot">
+        <footer className={cx("v2-foot", styles.footer)}>
             <Container>
                 {actions && (
-                    <div className="v2-foot-top">
+                    <div className={cx("v2-foot-top", styles.top)}>
                         <p className="v2-foot-line">{line}</p>
                         <div className="v2-foot-cta">{actions}</div>
                     </div>
                 )}
             </Container>
-            <p className="v2-foot-mark" aria-hidden="true">
+            <p className={cx("v2-foot-mark", styles.mark)} aria-hidden="true">
                 <span>tendso</span>
             </p>
             <Container>
