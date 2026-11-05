@@ -1,0 +1,56 @@
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; min-width: 0; }
+.previewNotice { grid-column: 1 / -1; margin: 0; padding: 13px 18px; border-radius: 16px; background: #eef2d6; color: #5c6542; font-size: 13px; }
+.inbox { min-width: 0; border: 1px solid var(--owner-line, #e7e8e1); border-radius: 24px; overflow: hidden; background: white; }
+.inboxHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 24px 24px 18px; }
+.titleRow { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.titleRow h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.03em; }
+.titleRow p { margin: 3px 0 0; font-size: 13px; color: #707365; }
+.headingIcon { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 16px; background: #f0f3e6; }
+.markAll { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid #e0e3d6; border-radius: 999px; padding: 10px 15px; color: #2d3222; background: white; font: inherit; font-size: 13px; font-weight: 550; cursor: pointer; }
+.markAll:hover:not(:disabled) { background: #f1f4e8; }
+.markAll:disabled { cursor: default; opacity: .45; }
+.filters { display: flex; gap: 7px; padding: 0 24px 20px; border-bottom: 1px solid #edf0e5; }
+.filters > button { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 9px 15px; border: 0; border-radius: 999px; background: #f0f2e9; color: #5d6350; font: inherit; font-size: 13px; font-weight: 550; cursor: pointer; }
+.filters > button[aria-pressed="true"] { background: #0c0a08; color: white; }
+.filters > button > span { font-size: 11px; line-height: 1; padding: 3px 5px; border-radius: 99px; background: rgba(127,127,127,.18); }
+.list { margin: 0; padding: 0; list-style: none; }
+.list > li + li { border-top: 1px solid #edf0e5; }
+.message { display: flex; align-items: flex-start; gap: 15px; width: 100%; padding: 22px 24px; border: 0; background: white; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background 120ms; }
+.message:hover { background: #f7f9f1; }
+.message:active { background: #eff3df; }
+.unread { background: #fafcf3; }
+.messageIcon { flex: 0 0 43px; display: grid; place-items: center; width: 43px; height: 43px; border-radius: 15px; color: #6c7556; background: #eef1e6; }
+.unread .messageIcon { background: #eaf4ba; color: #34401a; }
+.messageContent { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.messageTitle { font-size: 15px; font-weight: 550; line-height: 1.4; }
+.unread .messageTitle { font-weight: 650; }
+.messageBody { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #6a705e; font-size: 14px; line-height: 1.6; }
+.messageContent time { color: #7a806e; font-size: 11px; line-height: 1.6; }
+.messageEnd { display: flex; flex: 0 0 18px; flex-direction: column; align-items: center; gap: 17px; color: #8e9482; margin-top: 6px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #819d2d; }
+.note { display: flex; align-items: flex-start; gap: 13px; padding: 24px; border: 1px solid #e4e9d4; border-radius: 24px; background: #f0f4e2; }
+.noteIcon { margin-top: 2px; color: #637345; flex-shrink: 0; }
+.note h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; line-height: 1.4; letter-spacing: -.02em; }
+.note p { margin: 0; color: #6b745b; font-size: 13px; line-height: 1.75; }
+.empty { display: flex; align-items: center; flex-direction: column; gap: 12px; padding: 56px 24px; text-align: center; }
+.emptyIcon { display: grid; place-items: center; width: 68px; height: 68px; margin-bottom: 4px; border-radius: 23px; background: #f0f4e3; color: #7c8c5c; }
+.empty h3 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -.035em; }
+.empty p { max-width: 350px; margin: 0; color: #707763; font-size: 14px; line-height: 1.7; }
+.error { margin: 0 24px 18px; padding: 12px 15px; border-radius: 13px; background: #fff2e2; color: #88581f; font-size: 13px; }
+.drawer { --r1-sans: var(--font-onest), "Onest", ui-sans-serif, system-ui, sans-serif; --r1-serif: var(--r1-sans); --r1-gold: #0c0a08; font-family: var(--r1-sans); }
+.detail { display: flex; flex-direction: column; gap: 17px; padding: 26px; }
+.detail time { color: #7a806e; font-size: 12px; }
+.detail h3 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -.045em; line-height: 1.25; overflow-wrap: anywhere; }
+.fullBody { margin: 0; color: #4c5341; font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.detailActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; width: 100%; }
+.primaryButton, .quietButton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; max-width: 100%; padding: 12px 20px; border: 1px solid transparent; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 550; line-height: 1.5; text-decoration: none; text-align: center; cursor: pointer; }
+.primaryButton { background: #e4f222; color: #0c0a08; }
+.primaryButton:hover:not(:disabled) { background: #d6e51c; }
+.quietButton { background: #f0f2e9; color: #3a422b; }
+.quietButton:hover:not(:disabled) { background: #e7ecd9; }
+.primaryButton:disabled, .quietButton:disabled { opacity: .5; cursor: default; }
+.readError { display: flex; align-items: flex-start; flex-direction: column; gap: 12px; padding: 15px; border-radius: 16px; background: #fff3e4; color: #88581f; }
+.readError p { margin: 0; font-size: 14px; line-height: 1.6; }
+@media (max-width: 960px) { .workspace { grid-template-columns: minmax(0, 1fr); } .note { padding: 20px 24px; } }
+@media (max-width: 520px) { .inboxHead { padding: 20px 17px 14px; gap: 10px; } .markAll { font-size: 12px; padding-inline: 12px; } .filters { padding: 0 17px 16px; } .message { padding: 20px 17px; gap: 11px; } .messageIcon { width: 37px; height: 37px; flex-basis: 37px; border-radius: 13px; } .messageTitle { font-size: 14px; } .messageBody { font-size: 13px; } .detail { padding: 22px; } .detailActions > * { flex: 1; } .note { padding: 20px; } }
+@media (prefers-reduced-motion: reduce) { .message { transition: none; } }

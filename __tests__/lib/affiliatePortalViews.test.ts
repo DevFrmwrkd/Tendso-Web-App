@@ -24,9 +24,12 @@ const account: Doc<"creators"> = {
 
 function portalData(): AffiliatePortal {
     return {
+        month: { start: Date.UTC(2026, 8, 30, 16), end: Date.UTC(2026, 9, 31, 16), label: "October 2026" },
+        income: { directThisMonth: 0, teamThisMonth: 0, totalThisMonth: 0 },
         summary: { balance: 0, totalEarned: 0, totalWithdrawn: 0, pendingCommission: 0, inFlight: 0 },
         earnings: [], withdrawals: [], referrals: [],
         referralStats: { total: 0, pending: 0, qualified: 0, paid: 0, totalEarned: 0 },
+        recruits: [], recruitStats: { total: 0, earning: 0, totalEarned: 0 },
     };
 }
 
@@ -115,6 +118,12 @@ describe("private affiliate history mapping", () => {
         portal.earnings = [{ _id: "bonus" as Id<"earnings">, amount: 1000, type: "referral_bonus", status: "available", createdAt: 20, businessName: "Unknown" }];
         expect(affiliateLedger(portal)[0]).toMatchObject({ title: "Referral bonus", sub: "A creator you invited had their first site paid for", amount: "+₱1,000" });
     });
+
+    it("identifies recurring team earnings separately from direct sales", () => {
+        const portal = portalData();
+        portal.earnings = [{ _id: "override" as Id<"earnings">, amount: 150, type: "creator_override", status: "available", createdAt: 20, businessName: "Agent Shop" }];
+        expect(affiliateLedger(portal)[0]).toMatchObject({ title: "Agent Shop", sub: "5% team commission from an invited field agent's sale", amount: "+₱150" });
+    });
 });
 
 describe("affiliate referrals and account", () => {
@@ -126,13 +135,42 @@ describe("affiliate referrals and account", () => {
         expect(html).toContain("MARIA1000");
         expect(html).toContain('aria-label="Copy your creator referral code"');
         expect(html).toContain("₱1,000");
-        expect(html).toContain("first website paid for by its owner");
+        expect(html).toContain("Earn 5% of each eligible paid website");
+        expect(html).toContain("for 12 months after they join");
+        expect(html).toContain("Earlier ₱1,000 referrals");
         expect(html).toContain("John L.");
         expect(html).toContain("In progress");
         expect(html).not.toContain("Private Lastname");
         expect(html).not.toContain("<input");
         expect(html).not.toContain("Enter a code");
         expect(html).not.toContain(account.email);
+    });
+
+    it("shows new recruits and their recurring earnings alongside earlier bonus referrals", () => {
+        const portal = portalData();
+        portal.recruits = [{ _id: "agent" as Id<"creators">, referredName: "Ana Private Reyes", createdAt: Date.UTC(2026, 9, 22), endsAt: Date.UTC(2027, 9, 22), earning: true, totalEarned: 350, photo: null, monthsLeft: 12, monthEarned: 350 }];
+        portal.recruitStats = { total: 1, earning: 1, totalEarned: 350 };
+        const html = renderToStaticMarkup(createElement(AffiliateReferralsView, { account, portal }));
+        expect(html).toContain("Ana R.");
+        expect(html).toContain("₱350");
+        expect(html).toContain("Earning period active");
+        expect(html).toContain("Commission period ends");
+        expect(html).not.toContain("Private Reyes");
+        expect(html).not.toContain("After their first paid website");
+    });
+
+    it.each([['recruits'], ['recruitStats'], ['recruits', 'recruitStats']])("preserves earlier bonuses when additive response fields are missing: %s", (...missing) => {
+        const older = portalData();
+        older.referrals = [{ _id: "earlier-referral" as Id<"referrals">, referredName: "Ana Private Reyes", status: "qualified", bonusAmount: 1000, createdAt: 50 }];
+        older.referralStats = { total: 1, pending: 0, qualified: 1, paid: 0, totalEarned: 1000 };
+        for (const field of missing) Reflect.deleteProperty(older, field);
+        const html = renderToStaticMarkup(createElement(AffiliateReferralsView, { account, portal: older }));
+        expect(html).toContain("Earned from your invitations");
+        expect(html).toContain("₱1,000");
+        expect(html).toContain("Ana R.");
+        expect(html).toContain("No field agents on your team yet");
+        expect(html).not.toContain("NaN");
+        expect(html).not.toContain("Private Reyes");
     });
 
     it("renders an account preview with masked contact details and no Clerk or edit drawers", () => {

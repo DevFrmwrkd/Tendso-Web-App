@@ -31,6 +31,7 @@ import type { Doc } from "@/convex/_generated/dataModel";
 import { ROLES, ROLE_DESC, ROLE_LABEL, avatarName, fullName, payoutLines, roleLabel, roleOf, shortDate, type Role } from "../_lib/creators";
 import { EmailValue, Facts, PhoneValue, ReferrerValue, Section } from "./Bits";
 import { DrawerHead } from "./DrawerFrame";
+import styles from "./CreatorDetails.module.css";
 
 /**
  * The drawer for a creator, staff member or admin (board Creators, "Drawer:
@@ -264,7 +265,7 @@ function RolePicker({ labelledBy, value, disabled, onPick }: { labelledBy: strin
                             if (!disabled && !checked) onPick(r);
                         }}
                         className={cx(
-                            "flex w-full items-start gap-3 rounded-r1 border px-4 py-3.5 text-left",
+                            "flex w-full items-start gap-3 rounded-r1 border px-4 py-3.5 text-left", styles.roleOption,
                             checked ? "border-r1-ink bg-r1-fill-2" : "border-r1-line bg-r1-paper",
                             disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer",
                             !disabled && !checked && "hover:border-[var(--r1-line-hover)]",

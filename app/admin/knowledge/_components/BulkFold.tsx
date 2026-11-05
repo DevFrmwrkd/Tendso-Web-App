@@ -6,8 +6,11 @@ import { toast } from "sonner"
 
 import { Button, Dot, Field, Fold, Select, Segmented, Status, Textarea } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
+import { knowledgeAccessDefaults, resolveKnowledgeAccess } from "@/packages/shared/knowledge"
 
+import { accessSummary, type KnowledgeAccess } from "../_lib/access"
 import { errorText, jobStatus, MAX_PER_PASTE, parseBulk, plural, WORKSPACE_OPTIONS, type BulkMode, type Workspace } from "../_lib/train"
+import AudienceAccessFields from "./AudienceAccessFields"
 
 /** Runs shown before "Show all". */
 const RUNS_CAP = 5
@@ -35,6 +38,8 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
     const [mode, setMode] = useState<BulkMode>("pairs")
     const [text, setText] = useState("")
     const [workspace, setWorkspace] = useState<Workspace>("help")
+    const [access, setAccess] = useState<KnowledgeAccess>(() => knowledgeAccessDefaults("help"))
+    const [reviewed, setReviewed] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [running, setRunning] = useState(false)
     const [showAllRuns, setShowAllRuns] = useState(false)
@@ -49,17 +54,17 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
 
     const buttonLabel = isPairs
         ? usable > 0
-            ? `Save ${plural(usable, "answer")}`
-            : "Save answers"
+            ? `Publish ${plural(usable, "answer")}`
+            : "Publish answers"
         : usable > 0
           ? `Queue ${plural(usable, "question")}`
           : "Queue questions"
 
     const help = isPairs
-        ? "One per line: the question, a “?”, then your answer. Saved exactly as written, straight away. No AI, no daily limit."
+        ? "One per line: the question, a “?”, then your answer. Review the wording, audience and access before publishing. Keep personal account details out of shared answers."
         : hasUsableKey === false
           ? "Paused: the AI has no working key. Questions you queue now would fail. Write the answers yourself instead."
-          : "One question per line. The AI drafts each answer from what that workspace already knows, one at a time, and uses the daily AI budget. If it can’t ground an answer, nothing is saved and the question comes back to the list above."
+          : "One question per line. The AI drafts answers from the allowed knowledge base and uses the daily AI budget. Grounded drafts wait below for admin review; they are not published automatically."
 
     // Live queue state derived from the jobs table.
     const queued = jobs?.filter((j) => j.status === "queued" || j.status === "processing").length ?? 0
@@ -68,6 +73,7 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
     const visibleRuns = showAllRuns ? runs : runs.slice(0, RUNS_CAP)
 
     async function submit() {
+        if (isPairs && !reviewed) return
         if (!isPairs && hasUsableKey === false) {
             setError("The AI has no working key, so it can’t write answers right now. Switch to “I write the answers”, or fix the key at the top.")
             return
@@ -82,7 +88,7 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
             if (isPairs) {
                 // Save admin-provided "Question? Answer" pairs verbatim. No RAG,
                 // no daily limit: instant, and uses your exact answers.
-                const res = await trainQAPairs({ text, workspace })
+                const res = await trainQAPairs({ text, workspace, ...access })
                 if (res.saved === 0) {
                     setError(
                         res.skipped > 0
@@ -91,19 +97,20 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
                     )
                 } else {
                     setText("")
-                    toast(`Saved ${plural(res.saved, "answer")}${res.skipped > 0 ? ` · ${res.skipped} already trained, skipped` : ""}`, {
+                    setReviewed(false)
+                    toast(`Published ${plural(res.saved, "answer")}${res.skipped > 0 ? ` · ${res.skipped} already trained, skipped` : ""}`, {
                         description: hasUsableKey === false ? "The AI starts using them once a key works." : "The AI can use them in a few seconds.",
                     })
                 }
             } else {
                 // Generate mode: enqueue the questions; the server drafts answers from the KB.
-                const res = await enqueueTraining({ questions: parsed.lines, workspace })
+                const res = await enqueueTraining({ questions: parsed.lines, workspace, ...access })
                 if (res.count === 0) {
                     setError(res.note ?? "Nothing queued: every question was already trained or queued, or a limit was hit.")
                 } else {
                     setText("")
                     toast(
-                        `Queued ${plural(res.count, "question")}. Answers appear below as they finish.`,
+                        `Queued ${plural(res.count, "question")}. Review the drafts below when they finish.`,
                         res.skipped > 0
                             ? { description: `Skipped ${res.skipped} (already trained or queued, or over the daily or queue limit).${res.note ? ` ${res.note}` : ""}` }
                             : undefined,
@@ -140,12 +147,14 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
             }
         >
             <div className="flex flex-col gap-4 pb-2 pt-1">
+                <fieldset disabled={running} className="min-w-0 border-0 p-0">
                 <Segmented
                     label="Who writes the answers"
                     className="self-start"
                     value={mode}
                     onChange={(m) => {
                         setMode(m)
+                        setReviewed(false)
                         setError(null)
                     }}
                     options={[
@@ -153,26 +162,40 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
                         { value: "generate", label: "AI writes the answers" },
                     ]}
                 />
+                </fieldset>
 
                 <Field label={isPairs ? "Questions and answers" : "Questions"} help={help} error={error ?? undefined}>
                     <Textarea
                         rows={7}
                         value={text}
+                        disabled={running}
                         placeholder={
                             isPairs
-                                ? "Where does the business pay? Through a Wise payment link sent by email.\nCan the owner pay with GCash? Not yet. Wise is the only way for now."
+                                ? "Question about Tendso? Your reviewed answer goes here.\nAnother question? Another reviewed answer."
                                 : "How do I get paid?\nHow long does a website take to build?\nCan I use my own domain?"
                         }
                         onChange={(e) => {
                             setText(e.target.value)
+                            setReviewed(false)
                             setError(null)
                         }}
                     />
                 </Field>
+                <AudienceAccessFields
+                    value={access}
+                    onChange={(next) => { setAccess(next); setReviewed(false) }}
+                    disabled={running}
+                />
+                {isPairs && (
+                    <label className="t-check">
+                        <input type="checkbox" checked={reviewed} disabled={running} onChange={(e) => setReviewed(e.target.checked)} />
+                        I reviewed these answers and their audience and access settings.
+                    </label>
+                )}
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <Field label="Where the AI can use them" className="sm:w-[300px]">
-                        <Select value={workspace} onChange={(e) => setWorkspace(e.target.value as Workspace)}>
+                    <Field label="Collection" help="Organizes the library; your access selections stay the same." className="sm:w-[300px]">
+                        <Select value={workspace} disabled={running} onChange={(e) => { setWorkspace(e.target.value as Workspace); setReviewed(false) }}>
                             {WORKSPACE_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>
                                     {o.label}
@@ -184,7 +207,7 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
                         <span className="t-num text-[13px] leading-[18px] text-r1-ink-3" aria-live="polite">
                             {linesLabel}
                         </span>
-                        <Button variant="primary" className="flex-none" onClick={submit} disabled={running} aria-busy={running}>
+                        <Button variant="primary" className="flex-none" onClick={submit} disabled={running || (isPairs && !reviewed)} aria-busy={running}>
                             {running ? (isPairs ? "Saving…" : "Queuing…") : buttonLabel}
                         </Button>
                     </div>
@@ -215,6 +238,7 @@ export default function BulkFold({ hasUsableKey }: { hasUsableKey: boolean | und
                                 <div key={j._id} className="flex min-h-12 items-center gap-3 border-b border-r1-line-3 px-4 py-2.5 last:border-b-0">
                                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                                         <p className="truncate text-sm text-r1-ink">{j.question}</p>
+                                        <p className="t-meta">{accessSummary(resolveKnowledgeAccess({ ...j, audiences: j.audiences ?? ["admin"], visibility: j.visibility ?? "internal" }))}</p>
                                         {j.status === "error" && j.error && <p className="t-meta [overflow-wrap:anywhere]">{j.error}</p>}
                                     </div>
                                     <Status {...jobStatus(j)} />

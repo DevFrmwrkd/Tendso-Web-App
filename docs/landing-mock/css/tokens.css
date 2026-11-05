@@ -1,0 +1,55 @@
+/* Tendso landing — design tokens.
+   Layout concept: one light canvas; a floating hero stage that shrinks into the first tile of a calm grid,
+   then a pinned phone step slider, three paths, and a depth cloud of people.
+   ONE accent (--accent). Every accent shade derives from it, so changing this one value re-themes the page. */
+:root {
+  /* colour */
+  --accent: #E4F222;                                   /* sampled from ramp.design (--solar) */
+  --accent-hover: color-mix(in oklab, var(--accent) 78%, white);
+  --accent-soft: color-mix(in oklab, var(--accent) 22%, white);
+  --on-accent: #0C0A08;
+
+  --canvas: #FFFFFF;
+  --stage: #F2F3F1;          /* hero stage edge tone (radial from white) */
+  --tile: #FFFFFF;
+  --tile-quiet: #F7F7F5;     /* filled tiles */
+  --line: #ECECE8;
+  --ink: #0C0A08;
+  --ink-2: #4A4943;
+  --muted: #8C8B84;
+  --dark: #121210;           /* the one dark tile / footer */
+
+  /* type: Onest is the app's own body face; JetBrains Mono is the app's label face */
+  --font: "Onest", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --t-hero: clamp(44px, 6.4vw, 104px);
+  --t-moment: clamp(64px, 12vw, 210px);
+  --t-h2: clamp(36px, 5vw, 72px);
+  --t-h3: clamp(22px, 2vw, 28px);
+  --t-body: 17px;
+  --t-small: 14px;
+  --t-label: 11px;
+
+  /* shape */
+  --r-tile: 40px;
+  --r-card: 20px;
+  --r-pill: 999px;
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --page-pad: clamp(16px, 3.3vw, 48px);
+  --gap: clamp(12px, 1.7vw, 24px);
+  --max: 1440px;
+
+  /* motion (from ramp.design's CSS) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);      /* default: almost everything */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);      /* reveals, long settles */
+  --ease-inout: cubic-bezier(0.77, 0, 0.175, 1);   /* moves that start and stop together */
+  --d-ui: 220ms;        /* hovers, presses: 160–280 */
+  --d-reveal: 620ms;    /* blur-in reveals: 420–620 */
+  --d-settle: 900ms;    /* bigger object moves */
+  --blur-in: 14px;      /* starting blur for reveals */
+
+  --shadow-object: 0 1px 1px rgba(12,10,8,.04), 0 12px 30px -8px rgba(12,10,8,.18), 0 40px 80px -30px rgba(12,10,8,.22);
+}
+@media (max-width: 760px) {
+  :root { --r-tile: 28px; --t-body: 16px; }
+}

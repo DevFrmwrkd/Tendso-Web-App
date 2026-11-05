@@ -74,15 +74,18 @@ const collectFrom = (file, acc) => {
     for (const r of ROOTS) if (new RegExp('["\'`]' + r + '["\'`]').test(src)) acc.add(r);
 };
 
-/** Every .astro a wrapper pulls in, one or two levels deep. */
+/** Every local Astro/TS content adapter a wrapper pulls in, at most three levels deep. */
 const importsOf = (file) => {
     let src;
     try { src = fs.readFileSync(file, "utf8"); } catch { return []; }
     const dir = path.dirname(file);
     const out = [];
-    for (const m of src.matchAll(/from\s+['"](\.[^'"]*\.astro)['"]/g)) {
-        const p = path.resolve(dir, m[1]);
-        if (fs.existsSync(p)) out.push(p);
+    for (const m of src.matchAll(/from\s+['"](\.[^'"]*)['"]/g)) {
+        const supportsAdapters = file.split(path.sep).includes('capture-redesign') || path.basename(path.dirname(file)) === 'business';
+        if (!supportsAdapters && !m[1].endsWith('.astro')) continue;
+        const stem = path.resolve(dir, m[1]);
+        const resolved = [stem, stem + '.astro', stem + '.ts'].find(p => fs.existsSync(p) && fs.statSync(p).isFile());
+        if (resolved && /\.(?:astro|ts)$/.test(resolved)) out.push(resolved);
     }
     return out;
 };

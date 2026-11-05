@@ -336,7 +336,7 @@ async function transformToAstroData(
             ],
             socialLinks: content.footer?.social_links || [],
             colorScheme: customizations.colorSchemeId || customizations.colorScheme || 'auto',
-            fontPairing: customizations.fontPairingId || customizations.fontPairing || 'modern',
+            fontPairing: customizations.fontPairingId || customizations.fontPairing || (heroStyle.startsWith('business:') ? 'auto' : 'modern'),
             contact: formattedContact || {},
             navbarStyle: heroStyle,
             // Favicon — admin uploads via the Images tab "Website tab image"

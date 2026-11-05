@@ -34,5 +34,5 @@ export function creatorStoreButtons(platform: CreatorPlatform, playUrl?: string 
         ];
         if (stores.length) return stores;
     }
-    return [{ href: "/for-creators#app", label: "Get the Tendso app" }];
+    return [{ href: "/#download", label: "Get the Tendso app" }];
 }

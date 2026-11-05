@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tendso Help</title>
+<meta name="description" content="Short answers about Tendso websites: what it costs, when you pay, and changing your site.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="../css/paths.css">
+<link rel="stylesheet" href="help.css">
+</head>
+<body class="sp hc">
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="../index.html" aria-label="Tendso home"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="../index.html#how">How it works</a>
+      <a href="business.html">For businesses</a>
+      <a href="examples.html">Examples</a>
+      <a href="help.html" class="is-active" aria-current="page">Help</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--line btn--sm" href="../index.html#hire">Hire an agent</a>
+      <a class="btn btn--accent btn--sm" href="../index.html#download">Download the app</a>
+      <button class="nav-menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="pg" id="top">
+
+  <!-- 1. Ask: the search, and the answer people ask for most, shown big -->
+  <section class="wrap hc-hero" aria-labelledby="hc-h">
+    <div class="hc-ask">
+      <p class="label" data-reveal>Help</p>
+      <h1 class="hc-h" id="hc-h" data-reveal style="--i:1">How can we help?</h1>
+      <form class="hc-search" id="hc-search" role="search" data-reveal style="--i:2" autocomplete="off">
+        <label class="hc-search-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="sr-only">Search help</span>
+          <input id="hc-q" type="search" placeholder="Ask anything, like “how much”" aria-controls="hc-results" aria-autocomplete="list" aria-expanded="false" enterkeyhint="search">
+          <button type="button" class="hc-clear" id="hc-clear" aria-label="Clear search" hidden><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 3 8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+        </label>
+        <div class="hc-results" id="hc-results" role="listbox" aria-label="Matching answers" hidden></div>
+      </form>
+      <div class="hc-pop" data-reveal style="--i:3">
+        <span class="hc-pop-k">Most asked</span>
+        <div class="hc-pop-chips" id="hc-pop"></div>
+      </div>
+    </div>
+
+    <aside class="hc-answer" id="hc-answer" aria-live="polite" data-reveal style="--i:2">
+      <div class="hc-answer-in" id="hc-answer-in">
+        <p class="hc-answer-k" id="hc-answer-k">Most asked</p>
+        <p class="hc-answer-q" id="hc-answer-q"></p>
+        <p class="hc-answer-big" id="hc-answer-big"></p>
+        <p class="hc-answer-a" id="hc-answer-a"></p>
+        <button class="link-arr hc-answer-more" id="hc-answer-more" type="button">Read the full answer <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="hc-dots" id="hc-dots" aria-hidden="true"></div>
+    </aside>
+  </section>
+
+  <!-- 2. Topics -->
+  <section class="wrap sec" aria-labelledby="topics-h">
+    <div class="sec-head">
+      <div>
+        <span class="label" data-reveal>Topics</span>
+        <h2 class="sec-h" id="topics-h" data-reveal style="--i:1">Pick a topic.</h2>
+      </div>
+    </div>
+    <div class="hc-topics" id="hc-topics"></div>
+  </section>
+
+  <!-- 3. Short answers (the old FAQ) -->
+  <section class="wrap sec" id="answers" aria-labelledby="answers-h">
+    <div class="hc-ans">
+      <div class="hc-ans-side">
+        <span class="label" data-reveal>Answers</span>
+        <h2 class="sec-h" id="answers-h" data-reveal style="--i:1">Short answers.</h2>
+        <div class="hc-filter" id="hc-filter" role="group" aria-label="Filter by topic" data-reveal style="--i:2"></div>
+      </div>
+      <div class="faq hc-faq" id="hc-faq" data-reveal style="--i:2"></div>
+    </div>
+  </section>
+
+  <!-- 4. Ask a person (the old Contact page) -->
+  <section class="wrap sec" id="contact" aria-labelledby="contact-h">
+    <div class="tile tile--quiet hc-contact" data-reveal>
+      <figure class="hc-contact-photo">
+        <img src="../assets/people/12-salon.jpg" alt="A salon owner and a Tendso agent look at her new site" loading="lazy">
+      </figure>
+      <div class="hc-contact-body">
+        <span class="label">Contact</span>
+        <h2 class="hc-contact-h" id="contact-h">Ask a person.</h2>
+        <p class="hc-contact-sub">We answer every email, usually within a day.</p>
+        <div class="hc-rows">
+          <div class="hc-row">
+            <span class="hc-row-k">Email</span>
+            <a class="hc-row-v" href="mailto:frmwrkd.media@gmail.com">frmwrkd.media@gmail.com</a>
+            <button class="btn btn--line btn--sm hc-copy" type="button" data-copy="frmwrkd.media@gmail.com" data-done="Email copied">Copy</button>
+          </div>
+          <div class="hc-row">
+            <span class="hc-row-k">Discord</span>
+            <a class="hc-row-v" href="https://discord.gg/Dxjt9HV5B" target="_blank" rel="noopener">discord.gg/Dxjt9HV5B</a>
+            <button class="btn btn--line btn--sm hc-copy" type="button" data-copy="https://discord.gg/Dxjt9HV5B" data-done="Invite copied">Copy</button>
+          </div>
+        </div>
+        <p class="hc-contact-note"><i></i>Need a change on your live site? Edits are free for the first year. Email us what to change.</p>
+        <p class="hc-contact-fine">Press and partnerships: same inbox.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="hc-end"></div>
+</main>
+
+<!-- Full answer (the old /knowledge/[slug] article page) -->
+<div class="hc-sheet" id="hc-sheet" role="dialog" aria-modal="true" aria-labelledby="art-h" hidden>
+  <div class="hc-scrim" data-close></div>
+  <article class="hc-panel" data-lenis-prevent tabindex="-1">
+    <div class="hc-panel-bar">
+      <nav class="hc-crumbs" aria-label="Breadcrumb"><span>Help</span><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="art-topic"></span></nav>
+      <button class="pv-x" type="button" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 3 8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="hc-art" id="hc-art"></div>
+  </article>
+</div>
+
+<div class="hc-toast" id="hc-toast" role="status" aria-live="polite"></div>
+
+<footer class="foot" id="foot" data-mount></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/foot.js"></script>
+<script src="business.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

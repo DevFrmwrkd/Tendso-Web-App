@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
+import { CREATOR_CODE_PRICE } from '../../lib/pricing';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
 import {
     AFFILIATE_MESSAGE_MAX_LENGTH, affiliatePhotoError, affiliateSocialLinkError,
@@ -61,10 +62,11 @@ describe('affiliate dashboard sales', () => {
         expect(first.page.map((row) => row._id)).toEqual([newest, middle]);
         expect(first.isDone).toBe(false);
         expect(first.continueCursor).toEqual(expect.any(String));
-        expect(Object.keys(first.page[0]).sort()).toEqual(['_id', 'businessName', 'commission', 'createdAt', 'price', 'status']);
+        expect(Object.keys(first.page[0]).sort()).toEqual(['_id', 'businessName', 'commission', 'commissionCredited', 'createdAt', 'paymentStatus', 'price', 'status', 'workflowStatus']);
         expect(first.page[0]).toEqual({
             _id: newest, businessName: 'Latest Shop', commission: 1000, price: 1999,
-            status: 'pending_payment', createdAt: (await t.run((ctx) => ctx.db.get(newest)))!._creationTime,
+            status: 'pending_payment', workflowStatus: 'pending_payment', paymentStatus: 'unpaid', commissionCredited: false,
+            createdAt: (await t.run((ctx) => ctx.db.get(newest)))!._creationTime,
         });
         const next = await affiliate.query(api.affiliates.sales, {
             paginationOpts: { numItems: 2, cursor: first.continueCursor },
@@ -74,13 +76,49 @@ describe('affiliate dashboard sales', () => {
         expect((await other.query(api.affiliates.sales, { paginationOpts })).page.map((row) => row.businessName)).toEqual(['Another Affiliate Shop']);
     });
 
-    it('keeps historical owner charges and frozen commissions when the affiliate changes today’s price', async () => {
+    it('reports payment, workflow and actual own ledger credit independently without changing frozen sale amounts', async () => {
+        const { t, affiliate, id, otherId } = await setup();
+        const full = await sale(t, id, 'Paid before building finished', { status: 'processing', paidInFullAt: Date.now(), creatorPaidAt: Date.now(), amount: 2499, creatorPayout: 1250 });
+        const partial = await sale(t, id, 'Legacy completed, balance due', { status: 'completed', depositPaidAt: Date.now() });
+        const legacy = await sale(t, id, 'Legacy paid in full');
+        const available = await sale(t, id, 'Available credit', { status: 'website_generated' });
+        const withdrawn = await sale(t, id, 'Withdrawn credit', { paidInFullAt: Date.now() });
+        const pending = await sale(t, id, 'Pending ledger', { status: 'pending_payment' });
+        const wrongType = await sale(t, id, 'Different earning type');
+        const wrongOwner = await sale(t, id, 'Other account ledger');
+        await t.run(async ctx => {
+            for (const [submissionId, creatorId, type, status] of [
+                [available, id, 'submission_approved', 'available'],
+                [withdrawn, id, 'submission_approved', 'withdrawn'],
+                [pending, id, 'submission_approved', 'pending'],
+                [wrongType, id, 'creator_override', 'available'],
+                [wrongOwner, otherId, 'submission_approved', 'available'],
+            ] as const) await ctx.db.insert('earnings', { creatorId, submissionId, type, status, amount: 1000, createdAt: Date.now() });
+        });
+        const before = await t.run(async ctx => ({
+            account: await ctx.db.get(id), submissions: await ctx.db.query('submissions').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }));
+        const rows = (await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 20, cursor: null } })).page;
+        const byId = new Map(rows.map(row => [row._id, row]));
+        expect(byId.get(full)).toMatchObject({ price: 2499, commission: 1250, status: 'processing', workflowStatus: 'processing', paymentStatus: 'paid_in_full', commissionCredited: false });
+        expect(byId.get(partial)).toMatchObject({ workflowStatus: 'completed', paymentStatus: 'partially_paid', commissionCredited: false });
+        expect(byId.get(legacy)).toMatchObject({ paymentStatus: 'paid_in_full', commissionCredited: false });
+        expect(byId.get(available)).toMatchObject({ workflowStatus: 'website_generated', paymentStatus: 'unpaid', commissionCredited: true });
+        expect(byId.get(withdrawn)).toMatchObject({ paymentStatus: 'paid_in_full', commissionCredited: true });
+        for (const submissionId of [pending, wrongType, wrongOwner]) expect(byId.get(submissionId)?.commissionCredited).toBe(false);
+        expect(await t.run(async ctx => ({
+            account: await ctx.db.get(id), submissions: await ctx.db.query('submissions').collect(), earnings: await ctx.db.query('earnings').collect(),
+        }))).toEqual(before);
+        expect(JSON.stringify(rows)).not.toMatch(/Private Owner|09171234567|private@example|Private Street|private-photo|Private interview/);
+    });
+
+    it('keeps historical owner charges and frozen commissions while saving fixed-price page settings', async () => {
         const { t, affiliate, id } = await setup();
         await sale(t, id, 'Custom Domain Shop', { amount: 1499, creatorPayout: 500, submissionType: 'with_custom_domain' });
         await sale(t, id, 'Comped Shop', { amount: 4999, creatorPayout: 2500, pricingMode: 'comped' });
         await sale(t, id, 'Legacy Shop', { amount: undefined, creatorPayout: undefined });
         const before = await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 10, cursor: null } });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 4999 });
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, displayName: 'Updated page' });
         const after = await affiliate.query(api.affiliates.sales, { paginationOpts: { numItems: 10, cursor: null } });
         expect(after.page).toEqual(before.page);
         expect(after.page.map(({ businessName, price, commission }) => ({ businessName, price, commission }))).toEqual([
@@ -107,23 +145,24 @@ describe('affiliate dashboard sales', () => {
 });
 
 describe('affiliate dashboard page settings', () => {
-    it('rounds and clamps finite price input on the server and rejects nonfinite input without changing settings', async () => {
+    it('rejects custom prices atomically and accepts a legacy fixed-price payload without writing the account price', async () => {
         const { t, affiliate, id } = await setup();
-        for (const [price, expected] of [[-1000, 999], [998, 999], [999, 999], [999.5, 1000], [2500.4, 2500], [4999, 4999], [9999, 4999]]) {
-            await affiliate.mutation(api.affiliates.updatePage, { price });
-            expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(expected);
+        const before = await t.run((ctx) => ctx.db.get(id));
+        for (const price of [-1000, 998, 999, 999.5, 2500.4, 4999, 9999, NaN, Infinity, -Infinity]) {
+            await expect(affiliate.mutation(api.affiliates.updatePage, { price, message: 'Must not save' })).rejects.toThrow('cannot be changed');
+            expect(await t.run((ctx) => ctx.db.get(id))).toEqual(before);
         }
-        for (const price of [NaN, Infinity, -Infinity]) {
-            await expect(affiliate.mutation(api.affiliates.updatePage, { price })).rejects.toThrow('valid price');
-        }
-        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(4999);
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, message: 'Saved page' });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliatePrice: 1999, affiliateMessage: 'Saved page' });
     });
 
-    it('saves allowed Facebook/Messenger links and rejects credentials, lookalikes and other platforms', async () => {
+    it('saves supported public social links and rejects credentials, lookalikes and unrelated hosts', async () => {
         const { t, affiliate, id } = await setup();
         const allowed = [
             'https://facebook.com/alex', 'https://www.facebook.com/alex', 'https://m.facebook.com/alex',
             'https://messenger.com/t/alex', 'https://www.messenger.com/t/alex', 'https://m.me/alex',
+            'https://www.instagram.com/alex', 'https://www.tiktok.com/@alex', 'https://vm.tiktok.com/alex',
+            'https://youtube.com/@alex', 'https://www.youtube.com/channel/alex', 'https://youtu.be/alex',
         ];
         for (const socialLink of allowed) {
             expect(affiliateSocialLinkError(socialLink)).toBeNull();
@@ -134,7 +173,8 @@ describe('affiliate dashboard page settings', () => {
             'http://facebook.com/alex', 'javascript:alert(1)', 'https://facebook.com.evil.test/alex',
             'https://evilfacebook.com/alex', 'https://messenger.com.evil.test/alex', 'https://m.me.evil.test/alex',
             'https://user:secret@facebook.com/alex', 'https://facebook.com@evil.test/alex',
-            'https://instagram.com/alex', 'https://example.com/alex', 'https://subdomain.m.me/alex',
+            'https://example.com/alex', 'https://subdomain.m.me/alex', 'https://youtube.com.evil.test/alex',
+            'https://instagram.com.evil.test/alex', 'https://tiktok.com@evil.test/alex', 'https://subdomain.youtu.be/alex',
             'https://facebook.com:444/alex',
         ];
         for (const socialLink of invalid) {
@@ -155,7 +195,7 @@ describe('affiliate dashboard page settings', () => {
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({
             affiliateDisplayName: 'Alex', affiliatePhoto: 'https://example.com/photo.jpg', affiliateMessage: 'x'.repeat(200),
         });
-        await expect(affiliate.mutation(api.affiliates.updatePage, { price: 4999, message: 'x'.repeat(201) })).rejects.toThrow('200 characters');
+        await expect(affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, message: 'x'.repeat(201) })).rejects.toThrow('200 characters');
         expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(1999);
         for (const photo of ['http://example.com/photo.jpg', 'javascript:alert(1)', 'https://user:secret@example.com/photo.jpg']) {
             expect(affiliatePhotoError(photo)).not.toBeNull();
@@ -174,8 +214,9 @@ describe('affiliate dashboard page settings', () => {
         await expect(t.withIdentity({ subject: 'missing-profile' }).mutation(api.affiliates.updatePage, { price: 3999 })).rejects.toThrow('affiliate account');
         const foreignUpdate = { price: 3999, id: otherId };
         await expect(affiliate.mutation(api.affiliates.updatePage, foreignUpdate)).rejects.toThrow();
-        await affiliate.mutation(api.affiliates.updatePage, { price: 3999 });
-        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(3999);
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE, displayName: 'Only my page' });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliatePrice: 1999, affiliateDisplayName: 'Only my page' });
+        expect((await t.run((ctx) => ctx.db.get(otherId)))?.affiliateDisplayName).toBeUndefined();
         expect((await t.run((ctx) => ctx.db.get(otherId)))?.affiliatePrice).toBe(1999);
     });
 });

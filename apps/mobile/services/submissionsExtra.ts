@@ -11,12 +11,3 @@ import { api } from '@tendso/convex-client';
  * already linked to business A would file business B's interview against A.
  */
 export const removeSubmission = api.submissions.remove;
-
-/**
- * Price-tier progress for a creator: how many approved submissions they have vs
- * the threshold that unlocks the higher price ceiling. Returns
- * `{ approvedCount, priceCeiling, unlocked, threshold, basePrice }`.
- *
- * Uses the same generated contract as the web dashboard.
- */
-export const getPricingContext = api.submissions.getPricingContext;

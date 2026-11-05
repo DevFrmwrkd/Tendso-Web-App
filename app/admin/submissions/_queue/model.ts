@@ -311,7 +311,7 @@ export function ownerPaysWhen(s: QueueRow): string | null {
         case "pending_payment":
             return "Due now: the site is live"
         default:
-            return "Once, after the site is live"
+            return "Once, after the owner has seen the site"
     }
 }
 

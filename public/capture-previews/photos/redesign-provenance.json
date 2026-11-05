@@ -1,0 +1,22 @@
+{
+  "created": "2026-11-02",
+  "generator": "Built-in image_gen",
+  "purpose": "Fictional business photography for the template redesign review",
+  "images": [
+    {
+      "key": "spa",
+      "prompt": "Photorealistic professional interior photograph for a fictional independent Filipino spa and massage studio website. Landscape 3:2. One beautifully composed modest but carefully designed treatment room: a neatly made massage bed with natural cream linens centered, warm wood cabinetry, folded towels, a small ceramic bowl and a leafy plant, soft filtered daylight through woven blinds, sage and warm neutral finishes. A practical comfortable neighborhood studio in Quezon City, refined and calm rather than extravagant. No people, no logos, no text, no watermarks, no candles beside flammable cloth. Realistic architecture, natural materials and perspective, authentic welcoming daylight photography. Main bed centered for mobile crops.",
+      "asset": "/capture-previews/photos/spa-redesign-v1.webp"
+    },
+    {
+      "key": "clinic",
+      "prompt": "Photorealistic commercial interior photograph for a fictional independent Filipino family clinic website. Landscape 3:2. A clean, welcoming modest consultation room in Metro Manila with a simple white examination bed, neat light oak desk with a closed laptop and blank document folder, two comfortable visitor chairs, white walls with a muted sage accent, soft daylight and a leafy plant. No people, no identifiable real institution, no medical procedures, no syringes, no visible personal records, no certificates, no text or logos. Realistic furniture, physically plausible equipment, approachable neighborhood clinic, polished natural architectural photography. Center the desk and exam bed for a useful mobile crop.",
+      "asset": "/capture-previews/photos/clinic-redesign-v1.webp"
+    },
+    {
+      "key": "store",
+      "prompt": "Photorealistic editorial commercial photograph for a fictional Philippine neighborhood sari-sari store website. Landscape 3:2. A welcoming carefully kept small corner store in Marikina, viewed just outside its open counter in warm late afternoon daylight. Neatly arranged colorful everyday grocery packs, glass jars, baskets with household basics, a small freezer, cream and soft green painted wood trim. Authentic Filipino neighborhood scale, friendly and tidy without looking like a supermarket or luxury showroom. No people, no recognizable brands, no legible lettering, no logos, no watermark. Realistic products, straight architectural lines, balanced natural lighting and rich honest texture. Keep the storefront counter centered so it crops well on a phone.",
+      "asset": "/capture-previews/photos/store-redesign-v1.webp"
+    }
+  ]
+}

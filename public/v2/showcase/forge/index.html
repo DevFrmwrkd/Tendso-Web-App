@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forge Barbers · Marikina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F1E7;--paper:#FFFDF8;--ink:#15171C;--mute:#5E5A52;--line:#E3DACB;--red:#C7302A;--navy:#1F3A60}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:0 48px}
+.disp{font-family:"Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+.btn{display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 26px;border-radius:999px;font-weight:600;font-size:16px;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}
+.btn-line{border:1.5px solid var(--ink)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+/* top strip */
+.strip{background:var(--ink);color:#EDE6D8;font-size:13px}
+.strip .wrap{display:flex;justify-content:space-between;height:38px;align-items:center}
+.strip b{color:#fff;font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3DD17A;margin-right:8px;vertical-align:1px}
+/* nav */
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:84px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo svg{width:42px;height:42px}
+.logo .disp{font-size:30px;line-height:1}
+.logo small{display:block;font:600 10px/1 Inter;letter-spacing:.3em;color:var(--mute);margin-top:3px}
+.links{display:flex;gap:34px;font-weight:500;font-size:15px}
+.navr{display:flex;align-items:center;gap:22px;font-weight:600}
+.navr .btn{height:46px;padding:0 22px;font-size:15px}
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:1.02fr 1fr;gap:56px;align-items:center;padding-top:8px;padding-bottom:56px}
+.hero h1{font-size:132px;margin:22px 0 26px}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero p.lead{font-size:19px;color:var(--mute);max-width:470px}
+.hero .cta{display:flex;gap:14px;margin:34px 0 40px}
+.stats{display:flex;gap:0;border-top:1px solid var(--line);padding-top:24px;max-width:520px}
+.stats div{flex:1;padding-right:18px}
+.stats div+div{border-left:1px solid var(--line);padding-left:22px}
+.stats b{display:block;font:800 34px/1 "Big Shoulders Display";letter-spacing:.01em}
+.stats span{font-size:13px;color:var(--mute)}
+.hero-img{position:relative;height:690px}
+.hero-img .main{width:100%;height:100%;object-fit:cover;object-position:50% 30%;border-radius:28px}
+.pole{position:absolute;left:-14px;top:40px;width:10px;height:160px;border-radius:6px;background:repeating-linear-gradient(-45deg,var(--red) 0 10px,#fff 10px 20px,var(--navy) 20px 30px,#fff 30px 40px);box-shadow:0 0 0 3px var(--bg)}
+/* sections */
+section{padding:110px 0}
+.head{display:flex;justify-content:space-between;align-items:end;margin-bottom:48px;gap:40px}
+.head h2{font-size:84px}
+.head p{max-width:380px;color:var(--mute)}
+/* prices */
+.prices{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:0 64px}
+.row{display:flex;align-items:baseline;gap:14px;padding:26px 0;border-bottom:1px solid var(--line)}
+.row h3{font:800 34px/1 "Big Shoulders Display";text-transform:uppercase;letter-spacing:.01em}
+.row p{font-size:14px;color:var(--mute);margin-top:6px}
+.row .lead{flex:1;border-bottom:2px dotted #CFC4B1;transform:translateY(-8px)}
+.row .amt{font:800 40px/1 "Big Shoulders Display";color:var(--red)}
+.note{margin-top:28px;font-size:14px;color:var(--mute)}
+/* owner */
+.owner .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:80px;align-items:center}
+.owner img{border-radius:24px;height:640px;width:100%;object-fit:cover;object-position:50% 25%}
+.owner h2{font-size:76px;margin:18px 0 24px}
+.owner blockquote{font-size:24px;line-height:1.45;font-weight:500;margin-bottom:22px}
+.owner .who{color:var(--mute)}
+.owner .sig{margin-top:32px;display:flex;gap:40px}
+.owner .sig b{display:block;font:800 44px/1 "Big Shoulders Display"}
+.owner .sig span{font-size:14px;color:var(--mute)}
+/* gallery */
+.gal{display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:300px 300px;gap:16px}
+.gal img{width:100%;height:100%;object-fit:cover;border-radius:18px}
+.gal .a{grid-row:span 2}.gal .w{grid-column:span 2}
+/* reviews */
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.rev{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px}
+.rev .st{color:var(--red);letter-spacing:3px;font-size:15px}
+.rev p{font-size:17px;margin:14px 0 18px;line-height:1.5}
+.rev span{font-size:14px;color:var(--mute)}
+/* visit */
+.visit{background:var(--ink);color:#F1EBDF}
+.visit .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.visit img{border-radius:24px;height:600px;width:100%;object-fit:cover}
+.visit h2{font-size:84px;margin:16px 0 30px}
+.hours{width:100%;border-collapse:collapse;font-size:16px;margin-bottom:30px}
+.hours td{padding:13px 0;border-bottom:1px solid #2F3138}
+.hours td:last-child{text-align:right;font-weight:600}
+.addr{display:flex;gap:14px;align-items:flex-start;font-size:17px;margin-bottom:30px}
+.addr svg{flex:none;margin-top:3px}
+.visit .cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn-cream{background:#F1EBDF;color:var(--ink)}
+.btn-ghost{border:1.5px solid #5A5C63;color:#fff}
+footer{background:var(--ink);color:#8C8A84;font-size:14px;border-top:1px solid #2A2C33}
+footer .wrap{display:flex;justify-content:space-between;height:76px;align-items:center}
+@media (max-width:820px){
+  .wrap{padding:0 20px}
+  .strip{font-size:12px}.strip .hide-m{display:none}
+  nav .wrap{height:68px}.links,.navr .tel{display:none}
+  .logo svg{width:34px;height:34px}.logo .disp{font-size:25px}
+  .navr .btn{height:42px;padding:0 18px;font-size:14px}
+  .hero .wrap{grid-template-columns:1fr;gap:28px;padding-top:14px;padding-bottom:40px}
+  .hero h1{font-size:76px;margin:14px 0 16px}
+  .hero p.lead{font-size:17px}
+  .hero .cta{margin:24px 0 0}
+  .hero .cta .btn{height:52px;padding:0 22px}
+  .hero .stats{display:none}
+  .hero-img{height:auto;aspect-ratio:4/4.6}
+  .pole{display:none}
+  section{padding:72px 0}
+  .head{display:block;margin-bottom:28px}.head h2{font-size:58px;margin-bottom:12px}
+  .board{grid-template-columns:1fr}
+  .row h3{font-size:28px}.row .amt{font-size:34px}
+  .owner .wrap,.visit .wrap{grid-template-columns:1fr;gap:32px}
+  .owner img{height:420px}.owner h2,.visit h2{font-size:56px}
+  .owner blockquote{font-size:20px}
+  .gal{grid-template-columns:1fr 1fr;grid-template-rows:260px 170px 170px}.gal .w{grid-column:span 2}
+  .gal .a{grid-column:span 2;grid-row:auto}
+  .revs{grid-template-columns:1fr}
+  .visit img{height:360px}
+  footer .wrap{flex-direction:column;justify-content:center;gap:6px;height:auto;padding:24px 20px}
+}
+</style>
+</head>
+<body>
+<div class="strip"><div class="wrap"><span><i class="dot"></i><b>Open today</b> · 9:00 AM – 8:00 PM</span><span class="hide-m">Walk-ins welcome · J.P. Rizal Street, Marikina</span></div></div>
+<nav><div class="wrap">
+  <a class="logo" href="#"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="21" fill="#15171C"/><path d="M13 28l16-16M13 14l16 16" stroke="#F6F1E7" stroke-width="3" stroke-linecap="round"/><circle cx="12.5" cy="29.5" r="3" fill="none" stroke="#C7302A" stroke-width="2.4"/><circle cx="12.5" cy="12.5" r="3" fill="none" stroke="#C7302A" stroke-width="2.4"/></svg><span><span class="disp">Forge</span><small>BARBERS · MARIKINA</small></span></a>
+  <div class="links"><a href="#prices">Prices</a><a href="#about">About</a><a href="#gallery">Gallery</a><a href="#visit">Visit</a></div>
+  <div class="navr"><a class="tel" href="tel:09175550142">0917 555 0142</a><a class="btn btn-red" href="#visit">Book a chair</a></div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <div class="eyebrow">Barbershop · Concepcion, Marikina</div>
+    <h1 class="disp">Sharp cuts.<br><em>Fair prices.</em></h1>
+    <p class="lead">Fades, classic cuts and hot-towel shaves by Mang Rudy and the team. Walk in, or text us to save your chair.</p>
+    <div class="cta"><a class="btn btn-red" href="#visit">Book a chair <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn btn-line" href="#prices">See prices</a></div>
+    <div class="stats"><div><b>₱150</b><span>Regular haircut</span></div><div><b>4.9 ★</b><span>312 Google reviews</span></div><div><b>17 yrs</b><span>On J.P. Rizal St.</span></div></div>
+  </div>
+  <div class="hero-img"><span class="pole"></span><img class="main" src="/v2/showcase/forge/img/pro2-headshot.jpg" alt="Mang Rudy, owner of Forge Barbers"></div>
+</div></header>
+
+<section class="prices" id="prices"><div class="wrap">
+  <div class="head"><div><div class="eyebrow">Price list</div><h2 class="disp" style="margin-top:14px">Cuts &amp; shaves</h2></div><p>Every cut comes with a neck shave and a hot towel. No surprise add-ons, no upselling.</p></div>
+  <div class="board">
+    <div class="row"><div><h3>Haircut</h3><p>Scissor or clipper, styled and finished</p></div><span class="lead"></span><span class="amt">₱150</span></div>
+    <div class="row"><div><h3>Fade</h3><p>Low, mid or high skin fade</p></div><span class="lead"></span><span class="amt">₱200</span></div>
+    <div class="row"><div><h3>Shave</h3><p>Hot towel and straight razor</p></div><span class="lead"></span><span class="amt">₱120</span></div>
+    <div class="row"><div><h3>Hair + Shave</h3><p>The full Forge treatment</p></div><span class="lead"></span><span class="amt">₱250</span></div>
+    <div class="row"><div><h3>Kids</h3><p>12 and under, patience included</p></div><span class="lead"></span><span class="amt">₱100</span></div>
+    <div class="row"><div><h3>Beard trim</h3><p>Line-up and shape</p></div><span class="lead"></span><span class="amt">₱80</span></div>
+  </div>
+  <p class="note">Cash, GCash and Maya accepted. Senior citizens get 20% off every Tuesday.</p>
+</div></section>
+
+<section class="owner" id="about"><div class="wrap">
+  <img src="/v2/showcase/forge/img/pro2-inside.jpg" alt="Inside Forge Barbers on J.P. Rizal Street">
+  <div>
+    <div class="eyebrow">The barber</div>
+    <h2 class="disp">Meet Mang Rudy</h2>
+    <blockquote>“I learned on this street from my uncle. Twenty-five years later, I still cut every head like it’s going to a wedding.”</blockquote>
+    <p class="who">Rodolfo “Rudy” Bautista opened Forge in 2009 with two chairs and one fan. Today it’s three barbers, the same chairs, and a lot of regulars who bring their sons.</p>
+    <div class="sig"><div><b>25 yrs</b><span>Cutting hair</span></div><div><b>3</b><span>Barbers on the floor</span></div><div><b>~40</b><span>Cuts a day</span></div></div>
+  </div>
+</div></section>
+
+<section id="gallery" style="padding-top:0"><div class="wrap">
+  <div class="head"><div><div class="eyebrow">Inside the shop</div><h2 class="disp" style="margin-top:14px">Fresh from the chair</h2></div><p>Clean tools, clean floors, and a fresh blade for every shave.</p></div>
+  <div class="gal">
+    <img class="a" src="/v2/showcase/forge/img/pro2-clippers.jpg" alt="Skin fade with clippers">
+    <img src="/v2/showcase/forge/img/pro2-mirror.jpg" alt="Finished cut in the mirror" style="object-position:50% 30%">
+    <img src="/v2/showcase/forge/img/pro2-inside.jpg" alt="Inside Forge Barbers">
+    <img class="w" src="/v2/showcase/forge/img/pro2-tools.jpg" alt="Clippers, scissors and razor" style="object-position:50% 38%">
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="head"><div><div class="eyebrow">Reviews</div><h2 class="disp" style="margin-top:14px">4.9 from 312 cuts</h2></div></div>
+  <div class="revs">
+    <div class="rev"><div class="st">★★★★★</div><p>“Best fade in Marikina, and he remembers how you like it. Been going for six years.”</p><span>Paolo R. · Concepcion Uno</span></div>
+    <div class="rev"><div class="st">★★★★★</div><p>“My son is scared of clippers. Mang Rudy made him laugh the whole time. ₱100, sulit.”</p><span>Jen M. · Parang</span></div>
+    <div class="rev"><div class="st">★★★★★</div><p>“Hot towel shave before my wedding. Clean, careful, zero cuts. Thank you, Forge!”</p><span>Carlo D. · Sto. Niño</span></div>
+  </div>
+</div></section>
+
+<section class="visit" id="visit"><div class="wrap">
+  <div>
+    <div class="eyebrow" style="color:#F07A6F">Visit us</div>
+    <h2 class="disp">Walk right in</h2>
+    <div class="addr"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F07A6F" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>142 J.P. Rizal Street, Concepcion Uno, Marikina City<br><span style="color:#9D998F">Beside Aling Beth’s sari-sari store</span></span></div>
+    <table class="hours"><tr><td>Monday – Friday</td><td>9:00 AM – 8:00 PM</td></tr><tr><td>Saturday</td><td>8:00 AM – 9:00 PM</td></tr><tr><td>Sunday</td><td>9:00 AM – 5:00 PM</td></tr></table>
+    <div class="cta"><a class="btn btn-red" href="tel:09175550142">Call 0917 555 0142</a><a class="btn btn-ghost" href="#">Message on Facebook</a></div>
+  </div>
+  <img src="/v2/showcase/forge/img/pro2-outside.jpg" alt="Forge Barbers on J.P. Rizal Street" style="object-position:50% 45%">
+</div></section>
+<footer><div class="wrap"><span>© 2026 Forge Barbers · Marikina City</span><span>0917 555 0142 · facebook.com/forgebarbersmnl</span></div></footer>
+</body>
+</html>

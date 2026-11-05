@@ -19,7 +19,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius } from '../../theme/tokens';
+import { colors } from '../../theme/v2';
 import { useSheetDim } from './SheetDimHost';
 
 /**
@@ -113,33 +113,13 @@ export function SwipeSheet({
               style={StyleSheet.absoluteFill}
               onPress={close}
               accessibilityLabel="Dismiss"
+              accessibilityRole="button"
             />
 
             <GestureDetector gesture={pan}>
-              <Animated.View
-                style={[
-                  {
-                    backgroundColor: colors.paper,
-                    borderTopLeftRadius: radius.xl,
-                    borderTopRightRadius: radius.xl,
-                    paddingHorizontal: 24,
-                    paddingTop: 10,
-                    paddingBottom: insets.bottom + 24,
-                  },
-                  sheetStyle,
-                ]}
-              >
-                {/* Grabber — now functional */}
-                <View
-                  style={{
-                    width: 40,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: colors.rule,
-                    alignSelf: 'center',
-                    marginBottom: 16,
-                  }}
-                />
+              <Animated.View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) + 18 }, sheetStyle]}>
+                {/* Grab handle: the swipe-down target */}
+                <View style={styles.grab} />
                 {children}
               </Animated.View>
             </GestureDetector>
@@ -149,3 +129,27 @@ export function SwipeSheet({
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  // Design v2 sheet (mock .cm-sheet): page background, 28pt top corners, 40x5 grab handle.
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    shadowColor: '#0C0A08',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 15,
+    elevation: 12,
+  },
+  grab: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.ruleStrong,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+});

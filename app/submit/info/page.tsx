@@ -11,6 +11,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { Button, ButtonLink, Field, Icon, Input, PhoneInput, Select } from "@/components/r1"
 import { WEBSITE_PRICE, commissionFor } from "@/lib/pricing"
+import { normalizeCaptureEmail } from "@/lib/captureEmail"
 import {
     BUSINESS_TYPES,
     mapCategoryToBusinessType,
@@ -29,7 +30,7 @@ import {
     type InfoField,
     type InfoValues,
 } from "../_components/flow"
-import { ActionBar, NeedsCard, StepLoading, SubmitFrame } from "../_components/SubmitFrame"
+import { ActionBar, DraftMissing, NeedsCard, StepLoading, SubmitFrame } from "../_components/SubmitFrame"
 
 const FORM_ID = "submit-info"
 
@@ -80,11 +81,27 @@ function BusinessInfoForm() {
         user ? { clerkId: user.id } : "skip"
     )
 
-    // Get existing draft submission
-    const existingDraft = useQuery(
+    // Review links back to its exact draft, including older drafts that now
+    // need an owner email. Opening a fresh capture still uses the newest draft.
+    const rawDraftId = searchParams.get("draftId")
+    const requestedDraftId = looksLikeConvexId(rawDraftId) ? rawDraftId : null
+    const newestDraft = useQuery(
         api.submissions.getDraftByCreatorId,
-        creator?._id ? { creatorId: creator._id } : "skip"
+        creator?._id && !rawDraftId ? { creatorId: creator._id } : "skip"
     )
+    const requestedDraft = useQuery(
+        api.submissions.getById,
+        creator?._id && requestedDraftId ? { id: requestedDraftId as Id<"submissions"> } : "skip"
+    )
+    const existingDraft = !rawDraftId
+        ? newestDraft
+        : !requestedDraftId
+          ? null
+          : requestedDraft === undefined
+            ? undefined
+            : requestedDraft && requestedDraft.creatorId === creator?._id && requestedDraft.status === "draft"
+              ? requestedDraft
+              : null
 
     // Mutations
     const createSubmission = useMutation(api.submissions.create)
@@ -215,7 +232,7 @@ function BusinessInfoForm() {
             businessType,
             ownerName,
             ownerPhone: phoneToStored(ownerPhone),
-            ownerEmail: ownerEmail || undefined,
+            ownerEmail: normalizeCaptureEmail(ownerEmail),
             address,
             city,
         }
@@ -301,6 +318,10 @@ function BusinessInfoForm() {
     // Loading state; also while a creator without a profile is sent to /onboarding.
     if (!isLoaded || !isSignedIn || !creator) {
         return <InfoLoading />
+    }
+
+    if (rawDraftId && existingDraft === null) {
+        return <SubmitFrame step={0}><DraftMissing /></SubmitFrame>
     }
 
     // Draft collision — the creator has an unfinished interview for a
@@ -459,17 +480,17 @@ function BusinessInfoForm() {
                             />
                         </Field>
                         <Field
-                            label={
-                                <>
-                                    Owner’s email <span className="font-normal text-r1-ink-3">(optional)</span>
-                                </>
-                            }
+                            label="Owner’s email"
+                            required
                             error={fieldError("ownerEmail")}
                             help="We send the owner the site link and payment details here."
                         >
                             <Input
                                 type="email"
                                 autoComplete="off"
+                                autoCapitalize="none"
+                                maxLength={320}
+                                autoFocus={searchParams.get("focus") === "ownerEmail"}
                                 placeholder="owner@example.com"
                                 value={ownerEmail}
                                 onChange={(e) => edit(setOwnerEmail)(e.target.value)}

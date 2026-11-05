@@ -32,6 +32,7 @@
  *
  * Run manually after editing a source template:
  *   node scripts/build-template-previews.mjs
+ *   node scripts/build-template-previews.mjs --only c,i,l,n
  *
  * Or wire into a top-level build step if previews drift often.
  */
@@ -39,6 +40,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -145,9 +147,19 @@ function sanitize(html, label) {
 }
 
 async function main() {
+    const { values } = parseArgs({ options: { only: { type: 'string' } } });
+    let templates = TEMPLATES;
+    if (values.only !== undefined) {
+        const requested = values.only.split(',').map(letter => letter.trim().toLowerCase());
+        const known = new Set(TEMPLATES.map(template => template.letter));
+        const invalid = requested.filter(letter => !known.has(letter));
+        if (invalid.length) throw new Error(`Unknown preview letters: ${invalid.map(letter => letter || '(empty)').join(', ')}`);
+        const selected = new Set(requested);
+        templates = TEMPLATES.filter(template => selected.has(template.letter));
+    }
     await fs.mkdir(OUT_DIR, { recursive: true });
     let total = 0;
-    for (const tpl of TEMPLATES) {
+    for (const tpl of templates) {
         const src = path.join(tpl.dir, tpl.file);
         const dest = path.join(OUT_DIR, `${tpl.letter}.html`);
         try {
@@ -160,7 +172,7 @@ async function main() {
             console.error(`  ✗ ${tpl.letter}.html — ${err.message}`);
         }
     }
-    console.log(`\nWrote ${total}/${TEMPLATES.length} previews to ${path.relative(ROOT, OUT_DIR)}/`);
+    console.log(`\nWrote ${total}/${templates.length} previews to ${path.relative(ROOT, OUT_DIR)}/`);
 }
 
 main().catch((err) => {

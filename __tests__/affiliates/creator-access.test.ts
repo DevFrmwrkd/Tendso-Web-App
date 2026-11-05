@@ -78,10 +78,11 @@ describe('affiliate separation from field creators', () => {
         await expect(admin.query(api.submissions.getCreatorPricingSummary, { creatorId: ids.affiliate })).rejects.toThrow('Affiliate accounts');
     });
 
-    it('tolerates mobile draft and pricing subscriptions before the auth token arrives', async () => {
+    it('keeps drafts private before auth arrives while tolerating the public pricing subscription', async () => {
         const { t, creator, ids } = await setup();
         const draft = await creator.mutation(api.submissions.create, { creatorId: ids.creator, businessName: 'Unfinished interview', businessType: 'Shop', ownerName: 'Owner', ownerPhone: '09171234567', address: 'Main Street', city: 'Manila' });
-        expect((await t.query(api.submissions.getDraftByCreatorId, { creatorId: ids.creator }))?._id).toBe(draft);
+        expect(await t.query(api.submissions.getDraftByCreatorId, { creatorId: ids.creator })).toBeNull();
+        expect((await creator.query(api.submissions.getDraftByCreatorId, { creatorId: ids.creator }))?._id).toBe(draft);
         expect((await t.query(api.submissions.getPricingContext, { creatorId: ids.creator }))?.basePrice).toBe(999);
         expect(await t.query(api.submissions.getDraftByCreatorId, { creatorId: ids.affiliate })).toBeNull();
         expect(await t.query(api.submissions.getPricingContext, { creatorId: ids.affiliate })).toBeNull();

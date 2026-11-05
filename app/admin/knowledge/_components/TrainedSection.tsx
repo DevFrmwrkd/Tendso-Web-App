@@ -25,12 +25,15 @@ import {
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { knowledgeSlugError, parseKnowledgeKeywords } from "@/lib/knowledgeArticle"
+import { resolveKnowledgeAccess } from "@/packages/shared/knowledge"
 
+import { accessSummary, type KnowledgeAccess } from "../_lib/access"
 import { errorText, trainedStatus, WORKSPACE_NAME, WORKSPACE_OPTIONS, type Workspace } from "../_lib/train"
+import AudienceAccessFields from "./AudienceAccessFields"
 import PanelBoundary from "./PanelBoundary"
 
 type TrainedRow = FunctionReturnType<typeof api.knowledgeTraining.listTrainingQA>[number]
-type Article = FunctionReturnType<typeof api.knowledge.listArticles>[number]
+type Article = NonNullable<FunctionReturnType<typeof api.knowledge.getAdminArticle>>
 type Category = FunctionReturnType<typeof api.knowledge.listCategories>[number]
 
 /** Rows before "Show all" (a search shows every match). */
@@ -79,7 +82,7 @@ export default function TrainedSection() {
                     <h2 className="t-h2" id={headingId}>
                         Trained answers {trained !== undefined && <span className="t-count">{rows.length}</span>}
                     </h2>
-                    <p className="t-meta">What the AI already knows from this page. Newest first.</p>
+                    <p className="t-meta">Review generated drafts before publishing. Published answers can be used by their allowed audiences.</p>
                 </div>
                 <SearchInput
                     label="Search trained answers"
@@ -99,8 +102,7 @@ export default function TrainedSection() {
                     <div className="t-empty">
                         <h3 className="t-h2">Nothing trained yet</h3>
                         <p className="t-meta max-w-[420px]">
-                            Answer a question above, or paste a batch under “Add many at once”. Each answer shows up here and the AI starts using
-                            it within seconds.
+                            Answer a question above, or paste a batch under “Add many at once”. AI-generated answers wait here for your review.
                         </p>
                     </div>
                 </div>
@@ -136,14 +138,15 @@ export default function TrainedSection() {
                                             <p className="text-sm font-medium text-r1-ink [overflow-wrap:anywhere]">{t.question}</p>
                                             <p className="line-clamp-2 text-[13px] leading-[18px] text-r1-ink-2 [overflow-wrap:anywhere]">{t.answer}</p>
                                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-                                                <Status {...trainedStatus(t.embedded)} />
+                                                <Status {...trainedStatus(t.embedded, t.status)} />
                                                 <span className="text-xs text-r1-ink-3">{WORKSPACE_NAME[t.workspace]}</span>
+                                                <span className="text-xs text-r1-ink-3">{accessSummary(resolveKnowledgeAccess(t))}</span>
                                             </div>
                                         </div>
                                         <MoreMenu
                                             label={`Options for: ${t.question}`}
                                             items={[
-                                                { label: "Edit", onSelect: () => setEditing(t._id) },
+                                                { label: t.status === "draft" ? "Review draft" : "Edit", onSelect: () => setEditing(t._id) },
                                                 "divider",
                                                 { label: "Remove", danger: true, onSelect: () => setRemoving(t) },
                                             ]}
@@ -190,11 +193,11 @@ export default function TrainedSection() {
  * categories are loaded only while this one answer is open.
  */
 function EditTrained({ row, onDone }: { row: TrainedRow; onDone: () => void }) {
-    const articles = useQuery(api.knowledge.listArticles, { workspace: row.workspace })
+    const article = useQuery(api.knowledge.getAdminArticle, { articleId: row._id })
     const helpCategories = useQuery(api.knowledge.listCategories, { workspace: "help" })
     const wikiCategories = useQuery(api.knowledge.listCategories, { workspace: "wiki" })
 
-    if (articles === undefined || helpCategories === undefined || wikiCategories === undefined) {
+    if (article === undefined || helpCategories === undefined || wikiCategories === undefined) {
         return (
             <Loading label="Loading this answer" className="flex-1">
                 <SkeletonText lines={4} />
@@ -202,7 +205,6 @@ function EditTrained({ row, onDone }: { row: TrainedRow; onDone: () => void }) {
         )
     }
 
-    const article = articles.find((a) => a._id === row._id)
     if (!article) {
         return (
             <div className="flex flex-1 flex-col items-start gap-2">
@@ -237,6 +239,8 @@ function EditTrainedForm({
     const [keywords, setKeywords] = useState(() => article.keywords.join(", "))
     const [answer, setAnswer] = useState(() => article.body.map((b) => ("text" in b ? b.text : "")).join("\n\n"))
     const [workspace, setWorkspace] = useState<Workspace>(article.workspace)
+    const [access, setAccess] = useState<KnowledgeAccess>(() => resolveKnowledgeAccess(article))
+    const [reviewed, setReviewed] = useState(false)
     const [categorySlugs, setCategorySlugs] = useState<Record<Workspace, string>>(() => ({
         help: (categories.help.find((c) => c._id === article.categoryId) ?? categories.help[0])?.slug ?? "",
         wiki: (categories.wiki.find((c) => c._id === article.categoryId) ?? categories.wiki[0])?.slug ?? "",
@@ -247,7 +251,8 @@ function EditTrainedForm({
     const categoryOptions = categories[workspace]
     const selectedCategory = categoryOptions.find((c) => c.slug === categorySlugs[workspace]) ?? categoryOptions[0]
 
-    async function save() {
+    async function save(publish = false) {
+        if (publish && !reviewed) return
         const nextSlug = slug.trim()
         const invalidSlug = nextSlug !== article.slug ? knowledgeSlugError(nextSlug) : undefined
         if (invalidSlug) {
@@ -279,14 +284,15 @@ function EditTrainedForm({
                 summary: summary.trim() || paras.join(" ").slice(0, 300),
                 categorySlug: selectedCategory.slug,
                 workspace,
+                ...access,
                 body: paras.map((text) => ({ t: "p" as const, text })),
                 keywords: parseKnowledgeKeywords(keywords),
                 author: article.author,
                 readMin: article.readMin,
                 popular: article.popular ?? false,
-                status: article.status,
+                status: publish ? "published" : article.status,
             })
-            toast("Updated. The AI re-learns it in a few seconds.")
+            toast(publish ? "Published for the selected audiences." : article.status === "draft" ? "Draft saved. It is not used in answers yet." : "Updated. The AI re-learns it in a few seconds.")
             onDone()
         } catch (e) {
             setError(errorText(e, "Could not save the changes."))
@@ -298,7 +304,7 @@ function EditTrainedForm({
     if (!plain) {
         return (
             <div className="flex flex-1 flex-col items-start gap-2">
-                <p className="t-body">This answer has formatting the quick editor can’t keep, so it can’t be changed here.</p>
+                <p className="t-body">This answer has rich formatting. Use the Knowledge library tab to review its full content, audience and publication settings.</p>
                 <Button size="sm" onClick={onDone}>
                     Close
                 </Button>
@@ -315,6 +321,7 @@ function EditTrainedForm({
                     disabled={saving}
                     onChange={(e) => {
                         setQuestion(e.target.value)
+                        setReviewed(false)
                         setError("")
                     }}
                 />
@@ -328,6 +335,7 @@ function EditTrainedForm({
                     spellCheck={false}
                     onChange={(e) => {
                         setSlug(e.target.value)
+                        setReviewed(false)
                         setSlugError("")
                         setError("")
                     }}
@@ -340,6 +348,7 @@ function EditTrainedForm({
                     disabled={saving}
                     onChange={(e) => {
                         setSummary(e.target.value)
+                        setReviewed(false)
                         setError("")
                     }}
                 />
@@ -351,6 +360,7 @@ function EditTrainedForm({
                     disabled={saving}
                     onChange={(e) => {
                         setKeywords(e.target.value)
+                        setReviewed(false)
                         setError("")
                     }}
                 />
@@ -362,17 +372,19 @@ function EditTrainedForm({
                     disabled={saving}
                     onChange={(e) => {
                         setAnswer(e.target.value)
+                        setReviewed(false)
                         setError("")
                     }}
                 />
             </Field>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label="Where the AI can use it">
+                <Field label="Collection" help="Organizes the library. Audience and access decide who can use this answer.">
                     <Select
                         value={workspace}
                         disabled={saving}
                         onChange={(e) => {
                             setWorkspace(e.target.value as Workspace)
+                            setReviewed(false)
                             setError("")
                         }}
                     >
@@ -389,6 +401,7 @@ function EditTrainedForm({
                         disabled={saving || categoryOptions.length === 0}
                         onChange={(e) => {
                             setCategorySlugs((current) => ({ ...current, [workspace]: e.target.value }))
+                            setReviewed(false)
                             setError("")
                         }}
                     >
@@ -402,14 +415,26 @@ function EditTrainedForm({
                     </Select>
                 </Field>
             </div>
+            <AudienceAccessFields value={access} onChange={(next) => { setAccess(next); setReviewed(false) }} disabled={saving} />
+            {article.status === "draft" && (
+                <label className="t-check">
+                    <input type="checkbox" checked={reviewed} disabled={saving} onChange={(e) => setReviewed(e.target.checked)} />
+                    I reviewed this answer and its audience and access settings.
+                </label>
+            )}
             {error ? <p className="t-error" role="alert">{error}</p> : null}
             <div className="flex justify-end gap-2">
                 <Button variant="ghost" onClick={onDone} disabled={saving}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={save} disabled={saving || categoryOptions.length === 0} aria-busy={saving}>
-                    {saving ? "Saving…" : "Save changes"}
+                <Button variant={article.status === "draft" ? "ghost" : "primary"} onClick={() => save()} disabled={saving || categoryOptions.length === 0} aria-busy={saving}>
+                    {saving ? "Saving…" : article.status === "draft" ? "Save draft" : "Save changes"}
                 </Button>
+                {article.status === "draft" && (
+                    <Button variant="primary" onClick={() => save(true)} disabled={saving || !reviewed || categoryOptions.length === 0} aria-busy={saving}>
+                        Publish answer
+                    </Button>
+                )}
             </div>
         </div>
     )

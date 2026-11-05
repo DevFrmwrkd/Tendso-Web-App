@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guided Capture Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css">
+<link rel="stylesheet" href="../css/screens.css">
+<style>
+  body { margin: 0; padding: 28px 24px 48px; background: #fff; font-family: var(--font); color: var(--ink); }
+  .t-title { font: 500 13px/1 var(--mono); letter-spacing: 1.4px; text-transform: uppercase; margin: 0 0 22px; color: var(--muted); }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px 28px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figcaption { font: 500 11px/1 var(--mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+  figcaption b { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+<p class="t-title">Guided capture · talk start · interview · photos start · photo task · owner + creator · playing</p>
+<div class="grid" id="grid"></div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/screens.js"></script>
+<script>
+  // ?lang=tl  ?size=sm|md|lg  ?static
+  const q = new URLSearchParams(location.search);
+  const lang = q.get('lang') || 'en';
+  const SET = [
+    ['interview-list', 'owner · O6', { owner: true }],
+    ['interview-cam', 'owner · O7', { owner: true, video: 'assets/video/interview-1.mp4', poster: 'assets/video/interview-1.jpg' }],
+    ['shot-guide', 'owner · O8', { owner: true, type: 'food' }],
+    ['shot-list', 'creator · C3', { owner: false }],
+    ['shot-guide', 'creator · C4', { owner: false, type: 'sari' }],
+    ['interview-list', 'creator · C5', { owner: false }],
+    ['interview-cam', 'creator · C6', { owner: false, start: 3, video: 'assets/video/interview-3.mp4', poster: 'assets/video/interview-3.jpg' }],
+    ['photos', 'older callers', { owner: true }],
+  ];
+  window.screens = [];
+  const grid = document.getElementById('grid');
+  SET.forEach(([name, who, opts]) => {
+    const fig = document.createElement('figure');
+    const cap = document.createElement('figcaption');
+    cap.innerHTML = `<b class="name">${name}</b> · ${who}`;
+    const ph = T.phone({ size: q.get('size') || 'sm', theme: 'light' });
+    fig.append(cap, ph.el);
+    grid.appendChild(fig);
+    const s = TendsoScreens.mount(ph.screen, name, { lang, ...opts });
+    window.screens.push(s);
+    if (q.get('static') == null) s.play();
+  });
+  T.fitPhones();
+  T.init();
+</script>
+</body>
+</html>

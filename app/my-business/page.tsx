@@ -1,39 +1,26 @@
 "use client";
 
-/**
- * Business Owner Portal — My website (Round 1, board OwnerHome). Shows the
- * websites the signed-in owner has claimed. Owners are a separate audience from
- * creators; this whole route group is gated by Clerk + a businessOwners row.
- *
- * READ-ONLY BY DESIGN. Owners do not edit their own site here: edits are
- * REQUESTED via /contact and Tendso makes the change. There is no self-serve
- * owner editor, so this route must never imply one — see the note at the top of
- * app/my-business/[submissionId]/page.tsx for why the old editor was removed.
- *
- * One site (the usual case) gets the board's full card here; an owner with
- * several gets a row per site, each opening /my-business/[submissionId].
- *
- * See docs/changes/OWNER-PORTAL-PRICING-PLAN.md Phase 1.
- */
+/** Ownership-gated business workspace, using the same phase/balance summary as mobile. */
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 
-import { PageHeader } from "@/components/r1";
-import { OwnerShell } from "@/components/shells/OwnerShell";
+import { OwnerPageHeader, OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
 
-import { NoSite, SiteList, SiteOverview, SiteOverviewLoading } from "./_components/OwnerHome";
+import { NoSite, SiteList, SiteOverviewLoading } from "./_components/OwnerHome";
+import { OwnerWebsiteOverview } from './_components/OwnerPrivateWebsite';
 
 export default function MyBusinessDashboard() {
-    const { isOwner, isSignedIn, loading } = useOwnerAuth();
+    const { isOwner, isSignedIn, loading, error } = useOwnerAuth();
     const router = useRouter();
-    const websites = useQuery(api.businessOwners.getMyWebsites, isOwner ? {} : "skip");
+    const workspace = useQuery(api.owners.me, isOwner ? {} : "skip");
+    const websites = workspace?.sites;
 
     useEffect(() => {
-        if (!loading && isSignedIn === false) router.replace("/login");
+        if (!loading && isSignedIn === false) router.replace('/my-business/sign-in');
     }, [loading, isSignedIn, router]);
 
     // Signed out means the redirect above is on its way (the proxy normally
@@ -43,14 +30,14 @@ export default function MyBusinessDashboard() {
 
     return (
         <OwnerShell>
-            <PageHeader title="My website" sub="Is my website live, and what do I owe?" />
-            {waiting ? (
+            <OwnerPageHeader title="Your businesses" subtitle="Check your websites, pick up where you left off and see what needs you next." />
+            {error ? <p role="alert">{error}</p> : waiting ? (
                 <SiteOverviewLoading />
             ) : !isOwner || !websites || websites.length === 0 ? (
                 // Signed in but no claimed sites yet → point at the one channel that works.
                 <NoSite />
             ) : websites.length === 1 ? (
-                <SiteOverview site={websites[0]} />
+                <OwnerWebsiteOverview site={websites[0]} />
             ) : (
                 <SiteList sites={websites} />
             )}

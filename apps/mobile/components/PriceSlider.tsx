@@ -1,7 +1,7 @@
 /**
  * PriceSlider — pure React Native draggable slider with live discount + earnings readouts.
  *
- * Phase 2 of the Owner Portal & Pricing Plan (OWNER-PORTAL-PRICING-PLAN.md §2.2a).
+ * Design v2 skin: Onest, accent fill thumb with an ink ring, big peso value, "You keep" readout.
  * The creator drags to set their sale price within [floor, ceiling]; the live readouts
  * teach the trade-off — drop the price to discount harder, hold the price to earn more.
  *
@@ -22,7 +22,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius } from '../theme/tokens';
+import { colors, fonts, radius, shadow } from '../theme/v2';
 import { snapPrice } from '../services/priceSlider';
 import { creatorDiscount } from '../../../packages/shared/pricing';
 
@@ -35,7 +35,12 @@ interface PriceSliderProps {
   initialValue?: number;
   disabled?: boolean;
   onChange: (value: number) => void;
+  /** Show the "You keep" readout under the slider (default). Screens that print their own tiles turn it off. */
+  showEarnings?: boolean;
 }
+
+const THUMB = 36;
+const DRAG_THRESHOLD = 4;
 
 export function PriceSlider({
   floor,
@@ -46,6 +51,7 @@ export function PriceSlider({
   initialValue,
   disabled = false,
   onChange,
+  showEarnings = true,
 }: PriceSliderProps) {
   // Default to ceiling so the creator consciously *chooses* to discount rather than
   // defaulting low (per §2.2a UX rationale).
@@ -54,50 +60,95 @@ export function PriceSlider({
   const [showTypedInput, setShowTypedInput] = useState(false);
   const [typedInputValue, setTypedInputValue] = useState(String(value));
   const valueRef = useRef(value);
-  valueRef.current = value;
-  const dragStart = useRef(value);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const bounds = useRef({ floor, ceiling, step, trackWidth, disabled });
   bounds.current = { floor, ceiling, step, trackWidth, disabled };
+  const drag = useRef<{ value: number; floor: number; ceiling: number; step: number; travel: number } | null>(null);
+
+  // Notify for actual edits, rather than every parent callback identity change.
+  // In particular, an echoed initialValue must never restart a running drag.
+  const changeValue = (next: number) => {
+    if (next === valueRef.current) return;
+    valueRef.current = next;
+    setValue(next);
+    onChangeRef.current(next);
+  };
 
   useEffect(() => {
-    setValue(Math.max(floor, Math.min(ceiling, initialValue ?? ceiling)));
-  }, [initialValue, floor, ceiling]);
+    const active = drag.current;
+    if (active && (disabled || active.floor !== floor || active.ceiling !== ceiling || active.step !== step)) {
+      drag.current = null;
+    }
+    // The finger owns the value until release. Parent echoes (including delayed
+    // ones) must not pull the thumb back between move events.
+    if (drag.current) return;
+    const next = Math.max(floor, Math.min(ceiling, initialValue ?? ceiling));
+    if (next !== valueRef.current) {
+      valueRef.current = next;
+      setValue(next);
+      if (initialValue === undefined || next !== initialValue) onChangeRef.current(next);
+    }
+  }, [initialValue, floor, ceiling, step, disabled]);
 
   useEffect(() => {
-    onChange(value);
-  }, [value, onChange]);
+    onChangeRef.current(valueRef.current);
+  }, []);
 
   const snapToStep = (raw: number) => {
     return snapPrice(raw, floor, ceiling, step);
   };
 
   // ───── PanResponder: drag thumb left/right ─────
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !bounds.current.disabled,
-      onMoveShouldSetPanResponder: () => !bounds.current.disabled,
-      onPanResponderGrant: () => { dragStart.current = valueRef.current; },
+  const panResponder = useRef<ReturnType<typeof PanResponder.create> | null>(null);
+  if (!panResponder.current) {
+    const wantsHorizontalDrag = (_: unknown, gesture: { dx: number; dy: number }) => {
+      const current = bounds.current;
+      return !current.disabled && current.ceiling > current.floor && current.trackWidth > THUMB
+        && Math.abs(gesture.dx) > DRAG_THRESHOLD && Math.abs(gesture.dx) > Math.abs(gesture.dy);
+    };
+    panResponder.current = PanResponder.create({
+      // Leave vertical movement to the enclosing screen's ScrollView.
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: wantsHorizontalDrag,
+      onMoveShouldSetPanResponderCapture: wantsHorizontalDrag,
+      onPanResponderGrant: () => {
+        const current = bounds.current;
+        const travel = current.trackWidth - THUMB;
+        drag.current = !current.disabled && current.ceiling > current.floor && travel > 0
+          ? { value: valueRef.current, floor: current.floor, ceiling: current.ceiling, step: current.step, travel }
+          : null;
+      },
       onPanResponderMove: (_, gesture) => {
         const current = bounds.current;
-        if (!current.trackWidth || current.disabled) return;
-        const raw = dragStart.current + gesture.dx / current.trackWidth * (current.ceiling - current.floor);
-        const newValue = snapPrice(raw, current.floor, current.ceiling, current.step);
-        if (newValue !== valueRef.current) {
-          setValue(newValue);
-          valueRef.current = newValue;
+        const active = drag.current;
+        if (!active || current.disabled || active.floor !== current.floor || active.ceiling !== current.ceiling
+          || active.step !== current.step || active.travel !== current.trackWidth - THUMB) {
+          drag.current = null;
+          return;
         }
+        if (!Number.isFinite(gesture.dx)) return;
+        const raw = active.value + gesture.dx / active.travel * (active.ceiling - active.floor);
+        changeValue(snapPrice(raw, active.floor, active.ceiling, active.step));
       },
-      onPanResponderRelease: () => {},
-    }),
-  ).current;
+      // A horizontal drag keeps ownership even if the finger drifts vertically.
+      onPanResponderTerminationRequest: () => !drag.current,
+      onShouldBlockNativeResponder: () => !!drag.current,
+      onPanResponderRelease: () => { drag.current = null; },
+      onPanResponderTerminate: () => { drag.current = null; },
+    });
+  }
 
-  // Thumb position as fraction of track width
-  const fraction = (value - floor) / Math.max(1, ceiling - floor);
-  const thumbX = fraction * trackWidth;
-  const filledWidth = thumbX;
+  // Both thumb centers sit on the rail ends; the entire thumb stays inside.
+  const fraction = Math.max(0, Math.min(1, (value - floor) / Math.max(1, ceiling - floor)));
+  const travel = Math.max(0, trackWidth - THUMB);
+  const thumbX = fraction * travel;
 
   const onTrackLayout = (e: LayoutChangeEvent) => {
-    setTrackWidth(e.nativeEvent.layout.width);
+    const width = e.nativeEvent.layout.width;
+    if (!Number.isFinite(width) || width <= 0) return;
+    if (width !== bounds.current.trackWidth) drag.current = null;
+    setTrackWidth(width);
   };
 
   // Live derived values
@@ -115,59 +166,46 @@ export function PriceSlider({
 
   const commitTypedInput = () => {
     const parsed = parseInt(typedInputValue, 10);
-    if (!isNaN(parsed)) {
-      const clamped = snapToStep(parsed);
-      setValue(clamped);
-      valueRef.current = clamped;
-    }
+    if (!disabled && !isNaN(parsed)) changeValue(snapToStep(parsed));
     setShowTypedInput(false);
   };
 
   return (
-    <View style={{
-      backgroundColor: colors.paper3,
-      borderRadius: radius.lg,
-      padding: 18,
-      borderWidth: 1,
-      borderColor: colors.rule,
-    }}>
-      <Text style={{
-        fontFamily: fonts.mono, fontSize: 10, color: colors.ink3,
-        letterSpacing: 1.4, marginBottom: 12,
-      }}>
-        SET YOUR PRICE
+    <View>
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 20, color: colors.ink3Text, marginBottom: 6 }}>
+        Set your price
       </Text>
 
-      {/* Current value — large, tappable for direct input */}
-      <TouchableOpacity disabled={disabled} onPress={openTypedInput} accessibilityRole="button" accessibilityLabel={`Current price ₱${value}. Tap to type exact amount.`}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+      {/* Current value — big, tappable for direct input */}
+      <TouchableOpacity disabled={disabled} onPress={openTypedInput} accessibilityRole="button" accessibilityLabel={`Current price ₱${value}. Tap to type exact amount.`} style={{ minHeight: 56, justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Text style={{
-            fontFamily: fonts.serif, fontSize: 40, color: colors.ink,
-            letterSpacing: -1.2, lineHeight: 44,
+            fontFamily: fonts.extrabold, fontSize: 48, color: colors.ink,
+            letterSpacing: -1.8, lineHeight: 54,
           }}>
             ₱{value.toLocaleString()}
           </Text>
-          <Ionicons name="create-outline" size={14} color={colors.ink3} />
+          <Ionicons name="create-outline" size={22} color={colors.ink3} />
         </View>
       </TouchableOpacity>
 
       {/* Anchor + discount badge */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, marginBottom: 18 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2, marginBottom: 12, minHeight: 28 }}>
         {discount && <Text style={{
-          fontFamily: fonts.sans, fontSize: 13, color: colors.ink3,
+          fontFamily: fonts.semibold, fontSize: 18, color: colors.ink3Text,
           textDecorationLine: 'line-through',
         }}>
           ₱{anchor.toLocaleString()}
         </Text>}
         {discount && (
           <View style={{
-            backgroundColor: colors.accentBg,
+            backgroundColor: colors.accentSoft,
             borderRadius: radius.pill,
-            paddingHorizontal: 10, paddingVertical: 3,
+            paddingHorizontal: 12, paddingVertical: 4,
           }}>
             <Text style={{
-              fontFamily: fonts.sansBold, fontSize: 11,
-              color: colors.accentInk, letterSpacing: 0.4,
+              fontFamily: fonts.bold, fontSize: 16, lineHeight: 20,
+              color: colors.ink,
             }}>
               {discount.percentOff}% OFF
             </Text>
@@ -186,145 +224,153 @@ export function PriceSlider({
             accessibilityValue={{ min: floor, max: ceiling, now: value }}
             accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
             onAccessibilityAction={(event) => {
-              if (!disabled) setValue(snapToStep(value + (event.nativeEvent.actionName === 'increment' ? step : -step)));
+              const action = event.nativeEvent.actionName;
+              if (!disabled && (action === 'increment' || action === 'decrement')) {
+                changeValue(snapToStep(valueRef.current + (action === 'increment' ? step : -step)));
+              }
             }}
             onLayout={onTrackLayout}
             style={{
-              height: 36, justifyContent: 'center',
-              marginBottom: 8,
+              height: 48, minWidth: THUMB, justifyContent: 'center',
+              marginBottom: 4,
+              opacity: disabled ? 0.5 : 1,
             }}
-            {...panResponder.panHandlers}
+            {...panResponder.current.panHandlers}
           >
             {/* Track */}
             <View style={{
-              height: 4, backgroundColor: colors.rule,
-              borderRadius: 2,
+              height: 10, backgroundColor: colors.bg2,
+              marginHorizontal: THUMB / 2,
+              borderRadius: 5,
             }} />
             {/* Filled portion */}
             <View style={{
               position: 'absolute',
-              left: 0, top: 16,
-              height: 4, width: filledWidth,
-              backgroundColor: colors.accentSolid,
-              borderRadius: 2,
+              left: THUMB / 2, top: 19,
+              height: 10, width: thumbX,
+              backgroundColor: colors.accent,
+              borderRadius: 5,
             }} />
-            {/* Thumb */}
-            <View style={{
+            {/* Thumb: accent fill, ink ring */}
+            <View testID="price-slider-thumb" pointerEvents="none" style={{
               position: 'absolute',
-              left: Math.max(0, thumbX - 14),
-              top: 4,
-              width: 28, height: 28, borderRadius: 14,
-              backgroundColor: colors.accentSolid,
-              borderWidth: 3, borderColor: colors.paper,
-              shadowColor: '#000', shadowOpacity: 0.15,
-              shadowOffset: { width: 0, height: 2 }, shadowRadius: 4,
-              elevation: 3,
+              left: thumbX,
+              top: (48 - THUMB) / 2,
+              width: THUMB, height: THUMB, borderRadius: THUMB / 2,
+              backgroundColor: colors.accent,
+              borderWidth: 3, borderColor: colors.ink,
+              ...shadow.soft,
             }} />
           </View>
 
           {/* Floor / ceiling labels */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 }}>
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: showEarnings ? 16 : 0 }}>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.ink3Text }}>
               ₱{floor.toLocaleString()}
             </Text>
-            <Text style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.ink3 }}>
+            <Text style={{ fontFamily: fonts.semibold, fontSize: 16, color: colors.ink3Text }}>
               ₱{ceiling.toLocaleString()}
             </Text>
           </View>
         </>
       ) : (
         <View style={{
-          backgroundColor: colors.accentBg,
-          borderRadius: radius.sm,
-          padding: 12,
+          backgroundColor: colors.bg2,
+          borderRadius: radius.field,
+          padding: 14,
           marginBottom: 14,
         }}>
-          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: colors.accentInk, marginBottom: 2 }}>
-            Launch price ₱{floor.toLocaleString()}
-          </Text>
-          <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.accentInk, lineHeight: 17 }}>
-            Locked while you complete your first 5 submissions. You'll set your own price after that.
+          <Text style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22, color: colors.ink }}>
+            Price is set at ₱{floor.toLocaleString()}
           </Text>
         </View>
       )}
 
-      {/* Live "You earn" — the psychological work happens here */}
-      <View style={{
-        flexDirection: 'row', alignItems: 'center', gap: 10,
-        backgroundColor: colors.accentBg,
-        borderRadius: radius.sm,
-        padding: 12,
-      }}>
+      {/* Live "You keep" — the psychological work happens here */}
+      {showEarnings ? (
         <View style={{
-          width: 32, height: 32, borderRadius: 16,
-          backgroundColor: colors.accentSolid,
-          alignItems: 'center', justifyContent: 'center',
+          flexDirection: 'row', alignItems: 'center', gap: 12,
+          backgroundColor: colors.accentSoft,
+          borderRadius: radius.field,
+          padding: 14,
         }}>
-          <Ionicons name="cash" size={16} color="#fff" />
+          <View style={{
+            width: 44, height: 44, borderRadius: 22,
+            backgroundColor: colors.accent,
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Ionicons name="cash-outline" size={24} color={colors.onAccent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 20, lineHeight: 26, color: colors.ink }}>
+              You keep ₱{earnings.toLocaleString()}
+            </Text>
+            <Text style={{ fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink2 }}>
+              {Math.round(commissionRate * 100)}% of ₱{value.toLocaleString()} · paid when the business pays
+            </Text>
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.sansBold, fontSize: 15, color: colors.accentInk }}>
-            You earn ₱{earnings.toLocaleString()}
-          </Text>
-          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.accentInk, opacity: 0.75 }}>
-            {Math.round(commissionRate * 100)}% of ₱{value.toLocaleString()} · paid when the business pays
-          </Text>
-        </View>
-      </View>
+      ) : null}
 
       {/* Typed-amount modal — fallback for creators who know the exact number */}
       <Modal visible={showTypedInput} transparent animationType="fade" onRequestClose={() => setShowTypedInput(false)}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.scrim }}
         >
           <View style={{
-            width: '85%', maxWidth: 320,
-            backgroundColor: colors.paper,
-            borderRadius: radius.lg,
-            padding: 22,
+            width: '88%', maxWidth: 360,
+            backgroundColor: colors.card,
+            borderRadius: radius.cardLg,
+            padding: 24,
           }}>
-            <Text style={{ fontFamily: fonts.sansBold, fontSize: 16, color: colors.ink, marginBottom: 4 }}>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 22, lineHeight: 28, color: colors.ink, marginBottom: 4 }}>
               Type your price
             </Text>
-            <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.ink3, marginBottom: 14 }}>
+            <Text style={{ fontFamily: fonts.medium, fontSize: 16, lineHeight: 22, color: colors.ink3Text, marginBottom: 16 }}>
               Between ₱{floor.toLocaleString()} and ₱{ceiling.toLocaleString()}
             </Text>
             <View style={{
               flexDirection: 'row', alignItems: 'center', gap: 6,
-              borderWidth: 1, borderColor: colors.rule, borderRadius: radius.sm,
-              paddingHorizontal: 14, height: 50, marginBottom: 16,
+              backgroundColor: colors.bg, borderRadius: radius.field,
+              paddingHorizontal: 16, height: 60, marginBottom: 18,
             }}>
-              <Text style={{ fontFamily: fonts.serif, fontSize: 22, color: colors.ink }}>₱</Text>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 24, color: colors.ink }}>₱</Text>
               <TextInput
                 value={typedInputValue}
                 onChangeText={setTypedInputValue}
                 keyboardType="number-pad"
                 autoFocus
-                style={{ flex: 1, fontFamily: fonts.serif, fontSize: 22, color: colors.ink }}
+                accessibilityLabel="Price in pesos"
+                selectionColor={colors.ink}
+                style={{ flex: 1, fontFamily: fonts.bold, fontSize: 24, color: colors.ink }}
                 onSubmitEditing={commitTypedInput}
               />
             </View>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
                 onPress={() => setShowTypedInput(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
                 style={{
-                  flex: 1, height: 44, borderRadius: radius.sm,
+                  flex: 1, minHeight: 56, borderRadius: radius.pill,
                   alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: colors.paper3, borderWidth: 1, borderColor: colors.rule,
+                  backgroundColor: colors.bg2,
                 }}
               >
-                <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: colors.ink2 }}>Cancel</Text>
+                <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.ink }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={commitTypedInput}
+                accessibilityRole="button"
+                accessibilityLabel="Set price"
                 style={{
-                  flex: 1, height: 44, borderRadius: radius.sm,
+                  flex: 1, minHeight: 56, borderRadius: radius.pill,
                   alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: colors.accentSolid,
+                  backgroundColor: colors.accent,
                 }}
               >
-                <Text style={{ fontFamily: fonts.sansMed, fontSize: 14, color: '#fff' }}>Set price</Text>
+                <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.onAccent }}>Set price</Text>
               </TouchableOpacity>
             </View>
           </View>

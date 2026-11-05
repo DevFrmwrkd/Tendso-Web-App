@@ -1,0 +1,65 @@
+/* Phone frame. Width comes from --pw (or the parent); everything else scales with it via cqw.
+   The app screen inside is authored at 390×844 and scaled by --s (set by T.fitPhones). */
+.phone {
+  --pw: 300px;
+  position: relative;
+  width: var(--pw);
+  max-width: 100%;
+  container-type: inline-size;   /* cqw below resolves against the phone's own width */
+  border-radius: 15.5%;
+  isolation: isolate;
+}
+.phone-body {
+  position: relative;
+  padding: 3.1cqw;
+  border-radius: 15.5cqw;
+  background: #0E0E0D;
+  box-shadow:
+    inset 0 0 0 0.45cqw #2B2B29,
+    inset 0 0 0 0.9cqw #0E0E0D,
+    var(--shadow-object);
+}
+.phone--sm { --pw: 220px; }
+.phone--md { --pw: 300px; }
+.phone--lg { --pw: 360px; }
+.phone-screen {
+  position: relative;
+  aspect-ratio: 390 / 844;
+  border-radius: 12.6cqw;
+  overflow: hidden;
+  background: #F8F5EE;
+  transform: translateZ(0);
+}
+.phone[data-theme="dark"] .phone-screen { background: #0a0a0a; }
+.screen-root {
+  position: absolute; left: 0; top: 0;
+  width: 390px; height: 844px;
+  transform-origin: 0 0;
+  transform: scale(var(--s, 0.7));
+  overflow: hidden;
+}
+.phone-island {
+  position: absolute; z-index: 5;
+  left: 50%; top: 1.45%;
+  width: 31%; height: 3.55%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #000;
+}
+.phone-btn { position: absolute; width: 0.9cqw; background: #1b1b1a; border-radius: 1cqw; }
+.phone-btn--a { left: -0.6cqw; top: 18%; height: 6%; }
+.phone-btn--b { left: -0.6cqw; top: 27%; height: 11%; }
+.phone-btn--c { right: -0.6cqw; top: 25%; height: 15%; }
+
+/* status bar used by every screen (T.statusBar) */
+.sb {
+  position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 30px 0 44px;
+  color: #1B1C24;
+  font: 600 16px/1 -apple-system, "SF Pro Text", "Onest", sans-serif;
+  letter-spacing: -0.2px;
+}
+.sb--dark { color: #fff; }
+.sb-icons { display: inline-flex; gap: 6px; align-items: center; }
+.sb svg { fill: currentColor; }

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tendso Screens Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css">
+<link rel="stylesheet" href="../css/screens.css">
+<style>
+  body { margin: 0; padding: 28px 24px 48px; background: #fff; font-family: var(--font); color: var(--ink); }
+  .t-title { font: 500 13px/1 var(--mono); letter-spacing: 1.4px; text-transform: uppercase; margin: 0 0 22px; color: var(--muted); }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px 28px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  figcaption { font: 500 11px/1 var(--mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+  figcaption b { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+<p class="t-title">TendsoScreens · every shared screen · v4 rule #1 (simple-lint) · playing</p>
+<div class="grid" id="grid"></div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/screens.js"></script>
+<script>
+  // ?size=sm|md|lg  ?creator  ?lang=tl  ?static
+  const grid = document.getElementById('grid');
+  const q = new URLSearchParams(location.search);
+  const owner = q.get('creator') == null;
+  const lang = q.get('lang') || 'en';
+  const OPTS = {
+    'site-browser': { site: q.get('site') || 'kalan' },
+    'shot-guide': { type: owner ? 'food' : 'sari' },
+    'interview-cam': owner ? { video: 'assets/video/interview-1.mp4' } : { video: 'assets/video/interview-3.mp4', start: 3 },
+  };
+  window.screens = {};
+  TendsoScreens.names.forEach((name) => {
+    const fig = document.createElement('figure');
+    const cap = document.createElement('figcaption');
+    cap.innerHTML = `<b class="name">${name}</b>`;
+    const ph = T.phone({ size: q.get('size') || 'sm', theme: 'light' });
+    fig.append(cap, ph.el);
+    grid.appendChild(fig);
+    const s = TendsoScreens.mount(ph.screen, name, { owner, lang, ...(OPTS[name] || {}) });
+    window.screens[name] = s;
+    if (q.get('static') == null) s.play();
+  });
+  T.fitPhones();
+  T.init();
+</script>
+</body>
+</html>

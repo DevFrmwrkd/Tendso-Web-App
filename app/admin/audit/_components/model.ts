@@ -350,6 +350,26 @@ function read(log: AuditLog, m: Meta, biz: string | null, backfilled: string | n
         case "payment_unmatched": {
             const amount = money(m.amount)
             const sender = str(m.senderName)
+            if (m.requiresReview === true) {
+                const currency = str(m.currency)?.toUpperCase()
+                const value = num(m.amount)
+                const received = currency === "PHP" ? amount
+                    : value === null ? null : currency
+                      ? `${currency} ${value.toLocaleString("en-PH", { maximumFractionDigits: 2 })}`
+                      : `${value.toLocaleString("en-PH", { maximumFractionDigits: 2 })} (currency not supplied)`
+                const candidates = [...new Set((Array.isArray(m.candidateSubmissionIds) ? m.candidateSubmissionIds : [])
+                    .filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9_-]+$/.test(id)))]
+                return {
+                    label: "Payment verification",
+                    verb: "queued",
+                    target: received ? `a ${received} payment` : "a payment",
+                    tail: `${sender ? ` from ${sender}` : ""} for team verification`,
+                    subject: sender ? `A payment from ${sender}` : "A payment",
+                    note: sentences(str(m.reason), "No order was marked paid automatically.",
+                        candidates.length ? `${candidates.length === 1 ? "One possible submission" : `${candidates.length} possible submissions`}; amount matches are hints only. Verify the transfer before confirming payment.` : null),
+                    link: candidates.length === 1 ? submissionLink(candidates[0]) : "none",
+                }
+            }
             return {
                 label: "Payment not matched",
                 verb: "could not match a",

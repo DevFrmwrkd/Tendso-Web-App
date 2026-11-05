@@ -14,7 +14,7 @@ module.exports = {
   ],
   testMatch: ["**/__tests__/**/*.test.(ts|tsx)"],
   transformIgnorePatterns: [
-    "node_modules/(?!(jest-)?react-native|@react-native|expo|@expo|@clerk|convex|nativewind)",
+    "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|expo|@expo|@clerk|convex|nativewind)",
   ],
   moduleNameMapper: {
     "^react$": reactRoot,

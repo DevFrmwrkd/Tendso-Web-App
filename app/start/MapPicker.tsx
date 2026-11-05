@@ -35,6 +35,8 @@ type Props = {
     onChange: (next: Coordinates | null) => void;
     address: string;
     disabled?: boolean;
+    /** Some workflows require a confirmed pin before they can be submitted. */
+    requiredPin?: boolean;
 };
 const PH_CENTER: Coordinates = { lat: 12.8797, lng: 121.774 };
 const STREET_ZOOM = 17;
@@ -80,7 +82,7 @@ export default function MapPicker(props: Props) {
     );
 }
 
-function MapUnavailable({ value, onChange, disabled }: Props) {
+function MapUnavailable({ value, onChange, disabled, requiredPin = false }: Props) {
     return (
         <div
             className="rounded-r1 border border-r1-line bg-r1-fill-2 p-4"
@@ -90,8 +92,8 @@ function MapUnavailable({ value, onChange, disabled }: Props) {
                 The map is unavailable right now.
             </p>
             <p className="t-meta mt-2">
-                Your written address is saved. You can continue without a pin,
-                or reload this page to try the map again.
+                {requiredPin ? 'A saved shop pin is required for a visit request. Keep your written address here and reload this page to try the map again.'
+                    : 'Your written address is saved. You can continue without a pin, or reload this page to try the map again.'}
             </p>
             {value ? (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -119,7 +121,7 @@ function MapUnavailable({ value, onChange, disabled }: Props) {
     );
 }
 
-function LocationPicker({ value, onChange, address, disabled = false }: Props) {
+function LocationPicker({ value, onChange, address, disabled = false, requiredPin = false }: Props) {
     const status = useApiLoadingStatus();
     const instructionId = useId();
     const [camera, setCamera] = useState(() => ({
@@ -370,6 +372,7 @@ function LocationPicker({ value, onChange, address, disabled = false }: Props) {
                 onChange={onChange}
                 address={address}
                 disabled={disabled}
+                requiredPin={requiredPin}
             />
         );
 
@@ -652,8 +655,8 @@ function LocationPicker({ value, onChange, address, disabled = false }: Props) {
                         </p>
                     ) : null}
                     <p className="t-help">
-                        The pin is optional. You can continue using your written
-                        address.
+                        {requiredPin ? "Confirm your shop’s pin before sending your visit request."
+                            : "The pin is optional. You can continue using your written address."}
                     </p>
                 </div>
             )}

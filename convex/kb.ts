@@ -10,6 +10,7 @@ import {
     KEYWORD_POPULAR_BONUS,
 } from './knowledgeAI';
 import type { Doc, Id } from './_generated/dataModel';
+import { ANONYMOUS_KNOWLEDGE_VIEWER, canReadKnowledgeArticle } from './lib/knowledgeAccess';
 
 /**
  * Read-only search over the public knowledge base, exposed for external bots (a
@@ -76,7 +77,9 @@ export const keywordSearch = internalQuery({
             .collect();
 
         const denom = KEYWORD_MAX_PER_TERM * terms.length; // normalize raw score → 0–1
-        const ranked = corpus
+        const allowed = (await Promise.all(corpus.map(async article => await canReadKnowledgeArticle(ctx, article, ANONYMOUS_KNOWLEDGE_VIEWER) ? article : null)))
+            .filter((article): article is Doc<'knowledgeArticles'> => article !== null);
+        const ranked = allowed
             .map((a) => ({ a, raw: keywordScore(a, terms) }))
             // Require a GENUINE term match: strip the popularity nudge so a merely
             // `popular` article can't phantom-match a query it shares no words with
@@ -112,6 +115,7 @@ export const resolveHits = internalQuery({
             // Never leak drafts or the internal 'wiki' workspace through the
             // public endpoint — only published Help Center articles.
             if (!article || article.status !== 'published' || article.workspace !== 'help') continue;
+            if (!await canReadKnowledgeArticle(ctx, article, ANONYMOUS_KNOWLEDGE_VIEWER)) continue;
             out.push(await toSearchArticle(ctx, article, scoreById.get(id) ?? 0));
         }
         return out;

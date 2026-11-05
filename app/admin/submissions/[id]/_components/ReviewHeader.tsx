@@ -7,6 +7,7 @@ import { Button, ButtonLink, Icon, MoreMenu, Segmented, Status, submissionStatus
 import type { StatusWord } from "@/components/r1/statusWords";
 import type { EditorTools } from "@/components/editor/editorProps";
 import { PREVIEW_DEVICE_OPTIONS } from "@/components/WebsitePreview";
+import styles from "../../_queue/SubmissionWorkspace.module.css";
 
 /**
  * The one workspace header (board Review). It replaces two bars: the old top
@@ -49,7 +50,7 @@ export function ReviewHeader({
 }) {
     const word = statusWord ?? submissionStatus(status, "admin");
     return (
-        <header className="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-r1-line bg-r1-paper px-3 py-2.5 lg:h-16 lg:flex-nowrap lg:py-0 lg:pl-3 lg:pr-4">
+        <header className={styles.reviewHeader}>
             <div className="flex min-w-0 basis-full items-center gap-3 lg:flex-1 lg:basis-0">
                 <ButtonLink variant="ghost" href="/admin/submissions" className="flex-none px-2.5" aria-label="Back to submissions">
                     <Icon icon={ArrowLeft} />
@@ -57,7 +58,7 @@ export function ReviewHeader({
                 </ButtonLink>
                 <span className="hidden h-7 w-px flex-none bg-r1-line sm:block" aria-hidden="true" />
                 <div className="flex min-w-0 flex-col gap-0.5">
-                    <h1 className="truncate font-r1-serif text-[22px] font-normal leading-7 tracking-[-0.01em] text-r1-ink sm:text-2xl">{businessName}</h1>
+                    <h1 className={styles.reviewTitle} title={businessName}>{businessName}</h1>
                     <p className="hidden truncate text-[13px] leading-4 text-r1-ink-3 min-[1440px]:block">{statusWord ? "Giveaway eligibility and website progress" : "Is this site ready to go live?"}</p>
                     <Status {...word} className="whitespace-normal break-words min-[1440px]:hidden" />
                 </div>

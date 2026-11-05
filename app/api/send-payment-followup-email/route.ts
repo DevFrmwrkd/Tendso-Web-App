@@ -24,17 +24,22 @@ export async function POST(request: NextRequest) {
         // Dual auth: internal secret OR admin Clerk session
         let authorized = false
         let triggeredBy: 'cron' | 'admin' = 'cron'
+        let token: string | undefined
+        let internalSecret: string | undefined
 
         const providedSecret = request.headers.get('x-internal-secret')
         const expectedSecret = process.env.INTERNAL_API_SECRET
         if (expectedSecret && providedSecret === expectedSecret) {
             authorized = true
             triggeredBy = 'cron'
+            internalSecret = expectedSecret
         } else {
-            const { userId } = await auth()
+            const { userId, getToken } = await auth()
             if (userId) {
-                const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
-                if (creator?.role === 'admin') {
+                token = await getToken({ template: 'convex' }) ?? undefined
+                if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+                const creator = await fetchQuery(api.creators.getByClerkId, { clerkId: userId }, { token })
+                if (creator?.role === 'admin' && !creator.isDeleted && creator.status !== 'deleted' && creator.status !== 'suspended') {
                     authorized = true
                     triggeredBy = 'admin'
                 }
@@ -58,7 +63,8 @@ export async function POST(request: NextRequest) {
 
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<'submissions'>,
-        })
+            ...(internalSecret ? { internalSecret } : {}),
+        }, { token })
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
@@ -75,7 +81,8 @@ export async function POST(request: NextRequest) {
         // Pull website URL from generatedWebsites so the email can link back
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as Id<'submissions'>,
-        }).catch(() => null)
+            ...(internalSecret ? { internalSecret } : {}),
+        }, { token }).catch(() => null)
         const websiteUrl = website?.publishedUrl || (submission as any).websiteUrl || undefined
 
         // Hours remaining until auto-unpublish (3 days from sentEmailAt)
@@ -105,7 +112,7 @@ export async function POST(request: NextRequest) {
         try {
             await fetchMutation(api.submissions.markFollowUpSent, {
                 id: submissionId as Id<'submissions'>,
-            })
+            }, { token })
         } catch (markErr: any) {
             console.error('[followup] markFollowUpSent failed:', markErr?.message || markErr)
         }

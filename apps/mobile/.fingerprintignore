@@ -1,0 +1,4 @@
+# Expo SDK 54's config loader misses these default exclusions on Windows when
+# they resolve from the monorepo root. Apply them after path normalization too,
+# so local and EAS runtime fingerprints agree. Native dependencies stay hashed.
+**/node_modules/{ansi-styles,chalk,json5}/**/*

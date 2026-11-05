@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner mobile review · Tendso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="../css/app-kit.css">
+<link rel="stylesheet" href="../css/screens.css">
+<link rel="stylesheet" href="owner.css">
+</head>
+<body class="ow-body">
+<header class="ow-head">
+  <h1 class="ow-title">Owner mobile</h1>
+  <p class="ow-lede">The business owner side of Tendso. Make your site yourself, or request a field-agent visit.</p>
+  <section id="review" class="ow-review" aria-labelledby="ow-review-heading">
+    <h2 id="ow-review-heading">Current review</h2>
+    <p>These panels explain the flow; they are design references, not live account screenshots.</p>
+    <ul>
+      <li><b>Account and resume:</b> passwordless email code, retryable setup, separate drafts for each login and shop.</li>
+      <li><b>Multiple businesses:</b> switch businesses from Today or My site. Each business keeps its own photos, answers, design, review and payment status. Add business starts a separate setup; up to three website drafts can be open at once.</li>
+      <li><b>Pause setup:</b> Save &amp; exit keeps your current shop details, completed recordings, photos and design on this phone before returning to Today. Switch businesses there, then Keep going to resume. Building and payment screens offer Back to Today. Close the camera or recorder first to pause capture.</li>
+      <li><b>Capture and submit:</b> restore saved shop details, wait for the current draft before opening the camera, complete ten interview answers and at least three photos.</li>
+      <li><b>Review and payment:</b> new paid websites, including field-agent submissions, stay private while the owner checks the preview. Approve the preview and pay in full before publication. A down payment keeps it private until the balance is paid. Existing published sites keep their current behavior.</li>
+      <li><b>Expired payment:</b> Pay again opens a fresh payment request after checking the latest balance. Completed payments, received deposits and pending checkouts are checked before asking for more money; the website preview and saved business details remain available.</li>
+      <li><b>Device checks still needed:</b> email-code delivery, camera and microphone, map permissions and the hosted payment handoff on an iPhone.</li>
+    </ul>
+    <p>Photo enhancement choices, owner push notifications and the nearby-agent directory remain proposed. A visit request is confirmed by the team.</p>
+    <p><a href="#businesses">Compare business switching and setup</a> · Interactive sample data; these panels do not change an account.</p>
+  </section>
+  <div class="ow-legend"><button id="ow-toggle" class="ow-toggle" type="button" aria-pressed="false"><span class="ow-switch"><i></i></span>Show proposed</button><span id="ow-count"></span></div>
+</header>
+<main id="ow-board" class="ow-board"></main>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/screens.js"></script>
+<script src="owner.js"></script>
+</body>
+</html>

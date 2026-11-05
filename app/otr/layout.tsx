@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { PbRoot } from "@/components/v2/pages-b/PbRoot";
 
 import { campaignListPrice, campaignSellPrice, formatPHP } from "@/lib/pricing";
 
 const TITLE = "OTR viewers: 30% off your website — Tendso";
 const DESCRIPTION = `Scanned the code on Off The Record? Your business gets a real website for ${formatPHP(
     campaignSellPrice("otr"),
-)} instead of ${formatPHP(campaignListPrice("otr"))}, paid once after it is live. No monthly fees.`;
+)} instead of ${formatPHP(campaignListPrice("otr"))}. See it first, pay once to publish.`;
 
 /**
  * The page itself is a client component, which cannot export metadata, and this
@@ -31,5 +32,5 @@ export const metadata: Metadata = {
 };
 
 export default function OtrLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return <PbRoot>{children}</PbRoot>;
 }

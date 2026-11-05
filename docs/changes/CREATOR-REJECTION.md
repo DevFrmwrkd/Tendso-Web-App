@@ -1,5 +1,7 @@
 # Web-side prompt — Reject Creator Verification (admin)
 
+> **Current mobile behavior (October 2026):** The historical retake flow below has been replaced in the updated mobile UI. **Edit profile** opens `edit-profile?review=1` with the saved details and admin's reason; the name/mobile **Edit** rows add a field target and bring that field into view. **Resubmit for review** calls `creators.resubmitProfileForReview` to save the corrected name/mobile/photo and clear rejection in one transaction. It preserves `quizPassedAt` and returns to pending review, without granting certification. Optional `reviewSubmittedAt` fields on creators/approval requests distinguish another review from a new quiz pass; stale Discord decisions cannot resolve the new review. The old `requestRecertification` endpoint remains for older clients that explicitly retake. The web rejection page still offers support; its UI is unchanged.
+
 > **Hand this entire document to the agent / developer working in the web repo.** Self-contained spec for adding a "Reject" action to the Pending Approval admin queue, plus a Rejected creators view. Do NOT run `npx convex deploy --prod` from the web repo until everything below is in place.
 >
 > **Sister docs:** [WEB-SYNC-MOBILE-FEATURES.md](./WEB-SYNC-MOBILE-FEATURES.md) (approval flow + schema sync), [WEB-LEAD-CRM-CREATORS-PAGE.md](./WEB-LEAD-CRM-CREATORS-PAGE.md) (leads page). Apply the same Editorial Paper design tokens described in those docs (greens + khaki, NO orange, Instrument Serif + Onest + JetBrains Mono).

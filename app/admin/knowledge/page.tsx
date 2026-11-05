@@ -22,8 +22,8 @@ import PanelBoundary from "./_components/PanelBoundary";
 import TrainAiMenu from "./_components/TrainAiMenu";
 import TrainAiScreen, { TrainAiSkeleton } from "./_components/TrainAiScreen";
 
-const TITLE = "Train AI";
-const SUB = "What can’t the help AI answer yet?";
+const TITLE = "Knowledge base";
+const SUB = "One shared library. Give every account the right answers.";
 
 export default function AdminTrainAiPage() {
     const { isAdmin, loading } = useAdminAuth();

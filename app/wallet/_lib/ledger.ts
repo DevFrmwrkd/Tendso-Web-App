@@ -155,6 +155,7 @@ function earningCopy(e: LedgerEarning, sub: Submission | undefined): { title: st
     // A referral earning points its submissionId at a creator, so its lookup
     // comes back "Unknown"; any other miss reads the same way.
     const name = e.businessName && e.businessName !== "Unknown" ? e.businessName : "A website";
+    if (e.type === "creator_override") return { title: name, sub: "5% team commission from an invited field agent's sale" };
     if (e.type === "lead_bonus") return { title: name, sub: "Lead bonus" };
     if (!sub) return { title: name, sub: "Your share of the sale" };
     if (isComped(sub)) return { title: name, sub: "Free promo site · you still earn your share" };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { MobileAccountProvider, useMobileAccount } from '../hooks/useMobileAccount';
 
 let mockAuth: any;
@@ -35,18 +35,19 @@ beforeEach(() => {
   mockAccount = { _id: 'admin-id', clerkId: 'current-user', role: 'admin', status: 'active' };
   mockStorage.clear(); mockQuery.mockClear();
 });
-it('changes preview locally without changing the actual account or authorization', async () => {
+it.each(['creator', 'affiliate', 'admin'])('derives the native %s view from its account role without a view-switching API', async role => {
+  mockAccount = { ...mockAccount, role };
   mount();
   await waitFor(() => expect(mockState.isLoading).toBe(false));
-  act(() => mockState.setView('affiliate'));
-  expect(mockState.view).toBe('affiliate');
-  expect(mockState.isPreview).toBe(true);
-  expect(mockState.account?.role).toBe('admin');
+  expect(mockState.view).toBe(role);
+  expect(mockState.isPreview).toBe(false);
+  expect(mockState.account?.role).toBe(role);
+  expect(mockState).not.toHaveProperty('setView');
 });
 it('removes admin view synchronously on role revocation', async () => {
   const screen = mount();
   await waitFor(() => expect(mockState.isAdmin).toBe(true));
-  act(() => mockState.setView('affiliate'));
+  expect(mockState.view).toBe('admin');
   mockAccount = { ...mockAccount, role: 'creator' };
   screen.rerender(<MobileAccountProvider><State /></MobileAccountProvider>);
   expect(mockState.isAdmin).toBe(false);
@@ -75,7 +76,9 @@ it('cached offline admin roles never grant admin queries or preview access', asy
   mockStorage.set('ndm_mobile_account_role', JSON.stringify({ clerkId: 'current-user', role: 'admin' }));
   mount(); await waitFor(() => expect(mockState.isLoading).toBe(false));
   expect(mockState.role).toBe('admin');
+  expect(mockState.view).toBe('admin');
   expect(mockState.isAdmin).toBe(false);
+  expect(mockState.isPreview).toBe(false);
   expect(mockState.account).toBeUndefined();
   expect(mockQuery).toHaveBeenCalledWith('adminAccess:me', 'skip');
 });

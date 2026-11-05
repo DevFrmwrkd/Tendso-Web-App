@@ -1,4 +1,7 @@
 import { v } from 'convex/values';
+import { canReadKnowledgeArticle, getKnowledgeViewerForSubject, knowledgeAccessArgs } from './lib/knowledgeAccess';
+import { knowledgeInboxFacts } from './lib/ownerInbox';
+import { normalizeKnowledgeAudiences } from '../packages/shared/knowledge';
 import { internalAction, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
@@ -52,18 +55,22 @@ const OPEN_STATUSES = new Set(['pending', 'answered', 'learned']);
 
 /** Dedup: is there already an open escalation for this question? */
 export const findOpenByQuestion = internalQuery({
-    args: { normalizedQuestion: v.string() },
+    args: { normalizedQuestion: v.string(), workspace: v.optional(workspaceArg), askerUserId: v.optional(v.string()), ...knowledgeAccessArgs },
     handler: async (ctx, args) => {
         const rows = await ctx.db
             .query('escalations')
             .withIndex('by_normalized', (q) => q.eq('normalizedQuestion', args.normalizedQuestion))
             .collect();
-        return rows.find((r) => OPEN_STATUSES.has(r.status)) ?? null;
+        // Never merge different accounts' private questions or deliver an answer across scopes.
+        return rows.find((r) => OPEN_STATUSES.has(r.status) && r.workspace === args.workspace && r.askerUserId === args.askerUserId
+            && (r.visibility ?? 'internal') === (args.visibility ?? 'internal')
+            && JSON.stringify([...(r.audiences ?? ['admin'])].sort()) === JSON.stringify([...(args.audiences ?? ['admin'])].sort())) ?? null;
     },
 });
 
 export const insertEscalation = internalMutation({
     args: {
+        ...knowledgeAccessArgs,
         question: v.string(),
         normalizedQuestion: v.string(),
         workspace: workspaceArg,
@@ -78,6 +85,8 @@ export const insertEscalation = internalMutation({
             workspace: args.workspace,
             askerUserId: args.askerUserId,
             fieldCoachRef: args.fieldCoachRef,
+            audiences: args.audiences ? normalizeKnowledgeAudiences(args.audiences) : ['admin'],
+            visibility: args.visibility ?? 'internal',
             status: 'pending',
             createdAt: now,
             updatedAt: now,
@@ -130,6 +139,7 @@ export const patchEscalation = internalMutation({
  */
 export const createAndPost = internalAction({
     args: {
+        ...knowledgeAccessArgs,
         question: v.string(),
         workspace: workspaceArg,
         askerUserId: v.optional(v.string()),
@@ -147,7 +157,7 @@ export const createAndPost = internalAction({
         const normalizedQuestion = normalizeQuestion(args.question);
 
         // Dedup: skip if this question is already being handled.
-        const existing = await ctx.runQuery(internal.escalations.findOpenByQuestion, { normalizedQuestion });
+        const existing = await ctx.runQuery(internal.escalations.findOpenByQuestion, { normalizedQuestion, workspace: args.workspace, askerUserId: args.askerUserId, audiences: args.audiences, visibility: args.visibility });
         if (existing) {
             console.log('[KB-ESCALATION] duplicate question already open, skipping:', normalizedQuestion.slice(0, 60));
             return;
@@ -167,6 +177,7 @@ export const createAndPost = internalAction({
             workspace: args.workspace,
             askerUserId: args.askerUserId,
             fieldCoachRef: args.fieldCoachRef,
+            audiences: args.audiences, visibility: args.visibility,
         });
 
         const channelId = process.env.DISCORD_ESCALATION_CHANNEL_ID;
@@ -186,7 +197,7 @@ export const createAndPost = internalAction({
                 body: JSON.stringify({
                     content:
                         `❓ **Unanswered question from the Knowledge Hub${originLabel}**\n\n>>> ${args.question}\n\n` +
-                        `_Reply in this thread with the answer — the bot will add it to the knowledge base._`,
+                        `_Reply in this thread with the answer. A private review draft is saved; an admin must approve it before the assistant can use it._`,
                     allowed_mentions: { parse: [] },
                 }),
             });
@@ -264,19 +275,30 @@ export const notifyAsker = internalMutation({
     // KB article the answer was captured as (handleNotificationPress routes on
     // data.articleSlug). Optional so older callers / a missing article degrade
     // to a non-linking notification rather than failing.
-    args: { askerUserId: v.string(), question: v.string(), answer: v.string(), articleSlug: v.optional(v.string()) },
+    args: { askerUserId: v.string(), question: v.string(), answer: v.string(), articleSlug: v.optional(v.string()), escalationId: v.optional(v.id('escalations')) },
     handler: async (ctx, args): Promise<boolean> => {
+        const viewer = await getKnowledgeViewerForSubject(ctx, args.askerUserId);
+        if (viewer.blocked) return false;
         const creator = await ctx.db
             .query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.askerUserId))
             .first();
-        if (!creator) return false;
+        if (!creator) {
+            const owner = await ctx.db.query('businessOwners').withIndex('by_clerk_id', q => q.eq('clerkId', args.askerUserId)).first();
+            if (!owner || !args.escalationId) return false;
+            const item = (await knowledgeInboxFacts(ctx, owner._id)).find(row => row.key.startsWith(`kb:${args.escalationId}:`));
+            if (!item) return false;
+            await ctx.scheduler.runAfter(0, internal.ownerInbox.sendPush, { ownerId: owner._id, eventKey: item.key, title: item.title, body: item.body });
+            return true;
+        }
+        const article = args.articleSlug ? await ctx.db.query('knowledgeArticles').withIndex('by_slug', q => q.eq('slug', args.articleSlug!)).first() : null;
+        const readable = !!article && await canReadKnowledgeArticle(ctx, article, viewer);
         await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
             creatorId: creator._id,
             type: 'system',
-            title: 'Your question was answered',
-            body: `${args.question}\n\n${args.answer.slice(0, 300)}`,
-            data: { kbEscalation: true, articleSlug: args.articleSlug },
+            title: readable ? 'Your answer is ready' : 'Your question is being reviewed',
+            body: readable ? 'An answer to your question is ready in Ask Tendso.' : 'The team replied and is checking the answer before sharing it. You do not need to submit your question again.',
+            data: { kbEscalation: true, ...(readable ? { articleSlug: article.slug } : {}) },
         });
         return true;
     },
@@ -451,28 +473,31 @@ export const pollPending = internalAction({
                     question: esc.question,
                     answer,
                     workspace: esc.workspace,
+                    audiences: esc.audiences ?? ['admin'], visibility: esc.visibility ?? 'internal',
                     grounded: true,
                 });
 
-                // Link to the new article for the thread confirmation (same deep-link
-                // format the Discord /ask bot uses). Skipped if SITE_URL isn't set.
-                const [savedArticle] = await ctx.runQuery(internal.knowledge.getArticlesByIds, { ids: [articleId] });
-                const siteUrl = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
-                const articleLink =
-                    savedArticle && siteUrl
-                        ? `${siteUrl}/knowledge?ws=${esc.workspace}&article=${encodeURIComponent(savedArticle.slug)}`
-                        : null;
+                // Review drafts have no public article URL or notification citation.
+                const articleLink: string | null = null;
+                const answeredAt = Date.now();
+                // Owner inbox events derive from these stored facts. Capture them
+                // before scheduling a push so its event key is already authorized.
+                await ctx.runMutation(internal.escalations.patchEscalation, {
+                    id: esc._id, status: 'learned', answer,
+                    answeredBy: firstHuman.author.username, answeredAt,
+                    learnedArticleId: articleId, lastPolledAt: answeredAt,
+                });
 
                 // Deliver back to the original asker if they were signed in.
                 let delivered = false;
                 if (esc.askerUserId) {
                     delivered = await ctx.runMutation(internal.escalations.notifyAsker, {
                         askerUserId: esc.askerUserId,
+                        escalationId: esc._id,
                         question: esc.question,
                         answer,
-                        // Same slug already resolved above for the Discord link —
-                        // lets the mobile notification open the captured article.
-                        articleSlug: savedArticle?.slug,
+                        // The captured KB article is a private draft awaiting review.
+                        articleSlug: undefined,
                     });
                 }
 
@@ -481,7 +506,7 @@ export const pollPending = internalAction({
                     status: delivered ? 'delivered' : 'learned',
                     answer,
                     answeredBy: firstHuman.author.username,
-                    answeredAt: Date.now(),
+                    answeredAt,
                     learnedArticleId: articleId,
                     lastPolledAt: Date.now(),
                 });
@@ -505,7 +530,7 @@ export const pollPending = internalAction({
                     headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         content:
-                            `✅ Added to the knowledge base — the agent will use this next time:\n\n>>> ${answer.slice(0, 1500)}` +
+                            `✅ Saved as a private review draft. An admin must review and publish it before the agent can use it:\n\n>>> ${answer.slice(0, 1500)}` +
                             (articleLink ? `\n\n🔗 ${articleLink}` : ''),
                         allowed_mentions: { parse: [] },
                     }),

@@ -2,7 +2,22 @@ import { v } from 'convex/values';
 import { query, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { isCreatorAccount } from '../lib/accounts';
-import { isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
+import { earnsCreatorOverride, isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
+import { attachRecruit } from './lib/creatorRecruits';
+import { resolveReferralCode } from './lib/referralCodes';
+import { requireAuth } from './lib/auth';
+import type { QueryCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+
+async function requireReferralReader(ctx: QueryCtx, referrerId: Id<'creators'>) {
+    const identity = await requireAuth(ctx);
+    const me = await ctx.db.query('creators').withIndex('by_clerk_id', q => q.eq('clerkId', identity.subject)).first();
+    // Paused affiliates retain settlement history, as in their existing portal.
+    if (!me || me.isDeleted || me.status === 'deleted' || (me.status === 'suspended' && me.role !== 'affiliate')) {
+        throw new Error('Forbidden: account access required');
+    }
+    if (me._id !== referrerId && me.role !== 'admin') throw new Error('Forbidden: you can only access your own account');
+}
 
 // ==================== INTERNAL MUTATIONS ====================
 
@@ -19,10 +34,11 @@ export const createFromSignup = internalMutation({
         const referred = await ctx.db.get(args.referredId);
         if (!isCreatorAccount(referred)) throw new Error('Only creator accounts can be referred. Affiliates cannot be referred.');
         const referrer = await ctx.db.get(args.referrerId);
+        const codeOwner = await resolveReferralCode(ctx, args.referralCode);
         if (!referrer || referrer.isDeleted || referrer.status === 'suspended'
             || (referrer.role === 'affiliate' && referrer.status !== 'active')
             || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')
-            || referrer.referralCode !== args.referralCode || args.referrerId === args.referredId) {
+            || codeOwner?._id !== referrer._id || args.referrerId === args.referredId) {
             throw new Error('Invalid referrer');
         }
         // Dedup: check if referral already exists
@@ -32,6 +48,14 @@ export const createFromSignup = internalMutation({
             .first();
 
         if (existing) return existing._id;
+
+        // Creator recruits from CREATOR_OVERRIDE_CUTOVER on earn the creator 5%
+        // of each sale for 12 months instead of the ₱1,000 bonus, so no
+        // referral row is written for them. Field-agent invites are unchanged.
+        if (referrer.role === 'affiliate' && earnsCreatorOverride(Date.now())) {
+            await attachRecruit(ctx, referred!, referrer, 'code');
+            return null;
+        }
 
         return await ctx.db.insert('referrals', {
             referrerId: args.referrerId,
@@ -118,6 +142,7 @@ export const qualifyByCreator = internalMutation({
 export const getByReferrer = query({
     args: { referrerId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireReferralReader(ctx, args.referrerId);
         const referrals = await ctx.db
             .query('referrals')
             .withIndex('by_referrer', (q) => q.eq('referrerId', args.referrerId))
@@ -130,7 +155,7 @@ export const getByReferrer = query({
                 return {
                     ...referral,
                     referredName: referred
-                        ? `${referred.firstName} ${referred.lastName}`
+                        ? [referred.firstName, referred.lastName].filter(value => typeof value === 'string' && value.trim()).map(value => value!.trim()).join(' ') || 'Field agent'
                         : 'Unknown',
                 };
             })
@@ -144,6 +169,7 @@ export const getByReferrer = query({
 export const getStats = query({
     args: { referrerId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireReferralReader(ctx, args.referrerId);
         const referrals = await ctx.db
             .query('referrals')
             .withIndex('by_referrer', (q) => q.eq('referrerId', args.referrerId))
@@ -154,7 +180,7 @@ export const getStats = query({
             pending: referrals.filter((r) => r.status === 'pending').length,
             qualified: referrals.filter((r) => r.status === 'qualified').length,
             paid: referrals.filter((r) => r.status === 'paid').length,
-            totalEarned: referrals.reduce((sum, r) => sum + (r.bonusAmount || 0), 0),
+            totalEarned: referrals.reduce((sum, r) => sum + (r.status === 'qualified' || r.status === 'paid' ? r.bonusAmount || 0 : 0), 0),
         };
     },
 });

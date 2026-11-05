@@ -9,27 +9,35 @@ import { Button, EmptyState, Loading, PageHeader, SkeletonRows, Status } from "@
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { useAdminAuth } from "@/hooks/useAdmin";
+import styles from "./Affiliates.module.css";
 
 export default function AdminAffiliatesPage() {
     const { isAdmin, loading } = useAdminAuth();
     const { isAuthenticated } = useConvexAuth();
     const affiliates = useQuery(api.affiliates.list, isAdmin && isAuthenticated ? {} : "skip");
 
-    if (loading || (isAdmin && !isAuthenticated)) return <AdminLayout><Loading label="Loading affiliates"><SkeletonRows count={4} /></Loading></AdminLayout>;
-    if (!isAdmin) return <div className="r1 p-6"><EmptyState title="Admin access required" /></div>;
+    if (!loading && !isAdmin) return <div className="r1 p-6"><EmptyState title="Admin access required" /></div>;
 
     return (
         <AdminLayout>
             <PageHeader title="Affiliates" sub="Review new affiliate accounts before they can share their page. Manage active accounts here." />
-            {affiliates === undefined ? (
+            {loading || !isAuthenticated || affiliates === undefined ? (
                 <Loading label="Loading affiliates"><SkeletonRows count={4} /></Loading>
             ) : affiliates.length === 0 ? (
                 <EmptyState title="No affiliates yet" body="New affiliate accounts will appear here." />
             ) : (
-                <ul className="t-card divide-y divide-r1-line">
-                    {[...affiliates].sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending"))
-                        .map((affiliate) => <AffiliateRow key={affiliate._id} affiliate={affiliate} />)}
-                </ul>
+                <div className={styles.workspace}>
+                    <dl className={styles.summary} aria-label="Affiliate accounts">
+                        <div className={styles.metric}><dt>Awaiting approval</dt><dd>{affiliates.filter(account => account.status === "pending").length}</dd></div>
+                        <div className={styles.metric}><dt>Active affiliates</dt><dd>{affiliates.filter(account => account.status === "active").length}</dd></div>
+                        <div className={styles.metric}><dt>Total accounts</dt><dd>{affiliates.length}</dd></div>
+                    </dl>
+                    <div className={styles.listHead}><h2>Affiliate accounts</h2><p>New applications first. Select an action to update their access.</p></div>
+                    <ul className={styles.list}>
+                        {[...affiliates].sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending"))
+                            .map((affiliate) => <AffiliateRow key={affiliate._id} affiliate={affiliate} />)}
+                    </ul>
+                </div>
             )}
         </AdminLayout>
     );
@@ -58,16 +66,22 @@ function AffiliateRow({ affiliate }: { affiliate: Doc<"creators"> }) {
     }
 
     return (
-        <li className="flex flex-wrap items-center gap-4 p-4">
-            <div className="min-w-0 flex-1">
-                <p className="t-row-title">{name}</p>
-                <p className="t-meta break-words">@{affiliate.affiliateHandle} · {affiliate.email} · {affiliate.phone}</p>
+        <li className={styles.row}>
+            <div className={styles.identity}>
+                <span className={styles.avatar} aria-hidden="true">{name.trim().charAt(0).toUpperCase()}</span>
+                <div className={styles.person}>
+                    <h3>{name}</h3>
+                    {affiliate.affiliateHandle ? <p className={styles.handle}>@{affiliate.affiliateHandle}</p> : null}
+                    <p className={styles.contacts}><span>{affiliate.email}</span>{affiliate.phone ? <span>{affiliate.phone}</span> : null}</p>
+                </div>
             </div>
-            <Status tone={pending ? "attn" : suspended ? "bad" : active ? "done" : "off"}
-                word={pending ? "Pending approval" : suspended ? "Suspended" : active ? "Active" : "Unavailable"} />
-            {action && <Button variant={pending ? "primary" : "secondary"} disabled={saving} aria-busy={saving} aria-label={`${action} ${name}`} onClick={changeStatus}>
-                {saving ? "Saving…" : action}
-            </Button>}
+            <div className={styles.actions}>
+                <Status tone={pending ? "attn" : suspended ? "bad" : active ? "done" : "off"}
+                    word={pending ? "Pending approval" : suspended ? "Suspended" : active ? "Active" : "Unavailable"} />
+                {action && <Button variant={pending ? "primary" : "secondary"} disabled={saving} aria-busy={saving} aria-label={`${action} ${name}`} onClick={changeStatus}>
+                    {saving ? "Saving…" : action}
+                </Button>}
+            </div>
         </li>
     );
 }

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
+import { useArticleBookmarks } from './useArticleBookmarks';
 import {
   useArticles,
   useCanAccessWiki,
@@ -10,7 +11,7 @@ import {
   type Workspace,
 } from './api';
 
-type KnowledgeCtx = {
+type KnowledgeCtx = ReturnType<typeof useArticleBookmarks> & {
   workspace: Workspace;
   setWorkspace: (w: Workspace) => void;
   canAccessWiki: boolean | undefined;
@@ -29,6 +30,7 @@ const Ctx = createContext<KnowledgeCtx | null>(null);
  */
 export function KnowledgeProvider({ children }: { children: React.ReactNode }) {
   const [workspace, setWorkspace] = useState<Workspace>('help');
+  const bookmarks = useArticleBookmarks();
   const canAccessWiki = useCanAccessWiki();
   const categories = useCategories(workspace);
   const articles = useArticles(workspace);
@@ -37,6 +39,7 @@ export function KnowledgeProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<KnowledgeCtx>(
     () => ({
+      ...bookmarks,
       workspace,
       setWorkspace,
       canAccessWiki,
@@ -45,7 +48,8 @@ export function KnowledgeProvider({ children }: { children: React.ReactNode }) {
       faqs: faqs ?? [],
       loading,
     }),
-    [workspace, canAccessWiki, categories, articles, faqs, loading],
+    [workspace, canAccessWiki, categories, articles, faqs, loading, bookmarks.bookmarkedIds,
+      bookmarks.bookmarksReady, bookmarks.bookmarkSaving, bookmarks.bookmarkError, bookmarks.toggleBookmark, bookmarks.reloadBookmarks],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pay For Your Website</title>
+<meta name="description" content="Your Tendso website is ready. See it first. Pay once to publish.">
+<meta name="robots" content="noindex">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="pay.css">
+</head>
+<body class="sp py">
+
+<!-- Reached from the payment email (production /pay/[token]). Wordmark + one quiet way to Help. -->
+<header class="py-bar" id="nav">
+  <div class="wrap py-bar-in">
+    <a class="brand" href="../index.html" aria-label="Tendso home"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <a class="btn btn--line btn--sm" href="help.html#a-how-pay">Help</a>
+  </div>
+</header>
+
+<main class="py-main">
+  <!-- 1. See it first -->
+  <section class="wrap py-hero" aria-labelledby="py-h">
+    <div class="py-hero-text">
+      <p class="py-biz" data-reveal><span class="py-dot" id="py-dot"></span><span id="py-state">Ready to publish</span><b>Forge Barbers</b></p>
+      <h1 class="py-h" id="py-h" data-reveal style="--i:1">Your site is ready.</h1>
+      <p class="py-sub" data-reveal style="--i:2" id="py-sub">See it first. Then pay once to publish.</p>
+      <div class="py-hero-cta" data-reveal style="--i:3">
+        <a class="btn btn--line" href="examples.html#forge" id="py-see">See your site</a>
+        <a class="btn btn--accent" href="#pay" id="py-jump">Pay ₱4,999 once</a>
+      </div>
+    </div>
+    <div class="py-stage" data-reveal style="--i:2">
+      <div class="browser py-browser">
+        <div class="browser-bar">
+          <div class="browser-dots"><i></i><i></i><i></i></div>
+          <div class="browser-url"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.2" width="8" height="5.8" rx="1.4" fill="currentColor"/><path d="M4 5.2V3.8a2 2 0 0 1 4 0v1.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>forge.tendso.site</div>
+          <div class="browser-dots" style="visibility:hidden"><i></i><i></i><i></i></div>
+        </div>
+        <div class="browser-view"><img src="../assets/sites/showcase/forge-d-long.jpg" alt="Forge Barbers' finished website" id="py-dimg"></div>
+      </div>
+      <div class="py-phone" id="py-phone"></div>
+      <span class="py-preview" id="py-preview">Preview · not public yet</span>
+    </div>
+  </section>
+
+  <!-- 2. Pay once (pending) -->
+  <section class="wrap py-pay" id="pay" aria-labelledby="pay-h" data-view="pending">
+    <div class="py-price" data-reveal>
+      <p class="label">Pay once to publish</p>
+      <h2 class="py-amt" id="pay-h">₱4,999.<small>Once. No monthly fee.</small></h2>
+    </div>
+    <ol class="py-steps">
+      <li class="py-step" data-reveal>
+        <span class="py-n">1</span>
+        <div class="py-step-in">
+          <h3>Open Wise. Send to Tendso.</h3>
+          <div class="py-copy"><span class="py-k">Wise email</span><b>support@negosyo.digital</b><button class="btn btn--line btn--sm" type="button" data-copy="support@negosyo.digital" data-done="Wise email copied">Copy</button></div>
+          <div class="py-copy"><span class="py-k">Name</span><b>VONAS, OPC</b><button class="btn btn--line btn--sm" type="button" data-copy="VONAS, OPC" data-done="Name copied">Copy</button></div>
+        </div>
+      </li>
+      <li class="py-step" data-reveal style="--i:1">
+        <span class="py-n">2</span>
+        <div class="py-step-in">
+          <h3>Send this exact amount.</h3>
+          <div class="py-copy"><span class="py-k">Amount</span><b>₱4,999.00 PHP</b><button class="btn btn--line btn--sm" type="button" data-copy="4999.00" data-done="Amount copied">Copy</button></div>
+        </div>
+      </li>
+      <li class="py-step py-step--code" data-reveal style="--i:2">
+        <span class="py-n">3</span>
+        <div class="py-step-in">
+          <h3>Paste this code in the note.</h3>
+          <div class="py-code"><b>TND-7K4M</b><button class="btn btn--ink" type="button" data-copy="TND-7K4M" data-done="Code copied. Paste it in the Wise note">Copy code</button></div>
+          <p class="py-note"><i></i>Always add the code. It’s how we know the money is from you.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="tile tile--quiet py-wait" data-reveal>
+      <div class="py-wait-l">
+        <span class="py-pulse" aria-hidden="true"></span>
+        <div>
+          <p class="py-wait-h" id="py-wait-h">Waiting for your transfer</p>
+          <p class="py-wait-p" id="py-wait-p">We match it by itself. Your site goes live, and this page becomes your receipt.</p>
+        </div>
+      </div>
+      <button class="btn btn--accent" type="button" id="py-sent">I’ve sent it</button>
+    </div>
+    <details class="qa py-abroad">
+      <summary>Paying from abroad, or no Wise account?<span class="qa-plus"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></summary>
+      <div class="qa-a"><p>Wise works from most countries. Send to the same email, pick PHP as what Tendso gets, and keep the code in the note. Stuck? <a href="help.html#contact">Ask a person.</a></p></div>
+    </details>
+  </section>
+
+  <!-- 2b. Paid: the receipt -->
+  <section class="wrap py-done" id="paid" aria-labelledby="paid-h" hidden>
+    <div class="py-done-mark"><svg width="34" height="34" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 class="py-done-h" id="paid-h">Paid. You’re live.</h2>
+    <p class="py-done-p">Your website is yours. Keep this page as your receipt.</p>
+    <dl class="py-receipt">
+      <div><dt>Website, paid once</dt><dd>₱4,999.00</dd></div>
+      <div><dt>Paid with</dt><dd>Wise transfer</dd></div>
+      <div><dt>Reference</dt><dd class="mono">TND-7K4M</dd></div>
+      <div><dt>Live at</dt><dd><a href="examples.html#forge">forge.tendso.site</a></dd></div>
+    </dl>
+    <div class="py-done-cta"><a class="btn btn--accent" href="examples.html#forge">Open my website</a><a class="btn btn--line" href="help.html#a-edits">Need a change?</a></div>
+  </section>
+
+  <!-- 2c. Expired link -->
+  <section class="wrap py-done" id="expired" aria-labelledby="exp-h" hidden>
+    <h2 class="py-done-h" id="exp-h">This link expired.</h2>
+    <p class="py-done-p">Ask us for a new one. Already sent money with the old code? It still reaches us.</p>
+    <div class="py-done-cta"><a class="btn btn--ink" href="mailto:frmwrkd.media@gmail.com?subject=New%20payment%20link">Ask for a new link</a><a class="btn btn--line" href="help.html#contact">Other questions</a></div>
+  </section>
+</main>
+
+<div class="py-toast" id="py-toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="business.js"></script>
+<script src="pay.js"></script>
+</body>
+</html>

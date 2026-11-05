@@ -99,6 +99,8 @@ export const STATE_TO_BRIDGE: Record<string, string> = {
 // A short, on-brand subset the v2 rail surfaces first; any COLOR_SCHEMES id is
 // still selectable. All ids must exist in COLOR_SCHEMES above.
 export const CURATED: Record<TemplateFamily, string[]> = {
+    // Auto preserves the approved category palette; these are optional overrides.
+    business:    ["professional", "brown", "green", "blue", "orange", "dark"],
     generic:     ["brown", "green", "blue", "orange", "professional", "dark"],
     restaurant:  ["orange", "brown", "red", "maroon", "gold"],
     barbershop:  ["brown", "dark", "black", "maroon", "orange"],

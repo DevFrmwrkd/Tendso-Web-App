@@ -1,0 +1,771 @@
+[
+  {
+    "id": "pan-de-umaga",
+    "category": "food",
+    "designs": [
+      "foodcraft:AL"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Pan de Umaga",
+        "tagline": "Bread for the way you start your day",
+        "contact": {
+          "address": "Poblacion\nSan Pedro City, Laguna",
+          "city": "San Pedro City",
+          "phone": "+639000000003",
+          "email": "hello@pandeumaga.example"
+        },
+        "navLinks": [
+          {
+            "label": "From the oven",
+            "href": "#gallery"
+          },
+          {
+            "label": "Visit",
+            "href": "#location"
+          }
+        ]
+      },
+      "content": {
+        "business_city": "San Pedro City",
+        "description": "A fictional sample neighbourhood bakery with pandesal, soft breads and pre-order boxes.",
+        "hero": {
+          "kicker": "Sample panaderya · San Pedro",
+          "headlineLines": [
+            "A warm start",
+            "to your day."
+          ],
+          "sub": "Pandesal for breakfast, a soft bun for merienda and a few extra pieces to take home.",
+          "image": "asset:bakery",
+          "tag": "From the morning bake",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#location"
+          },
+          "cta2": {
+            "text": "See the breads",
+            "href": "#gallery"
+          }
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "6 am",
+              "label": "Doors open"
+            },
+            {
+              "num": "By piece",
+              "label": "Or in a takeaway box"
+            },
+            {
+              "num": "Pre-order",
+              "label": "Ask about larger quantities"
+            }
+          ]
+        },
+        "about": {
+          "tag": "A neighbourhood oven",
+          "headline": "Simple breads for everyday breaks.",
+          "paragraphs": [
+            "Stop by for breakfast bread or pick up something for the afternoon coffee break.",
+            "Planning bread for a gathering? Ask about the quantity and collection time before placing your order."
+          ],
+          "image": "asset:bakery",
+          "imageCaption": "An example bakery photo",
+          "signature": "The Pan de Umaga team"
+        },
+        "services": {
+          "tag": "On the bread counter",
+          "headline": "Choose your merienda.",
+          "sub": "Sample prices for this fictional bakery. Ask about the day's available breads.",
+          "items": [
+            {
+              "title": "Pandesal",
+              "desc": "A simple roll for breakfast or a filling of your choice.",
+              "price": "₱5 each",
+              "duration": "By piece"
+            },
+            {
+              "title": "Cheese bread",
+              "desc": "A soft bun with a savoury cheese topping.",
+              "price": "₱15 each"
+            },
+            {
+              "title": "Ensaymada",
+              "desc": "A soft, lightly sweet bun for your afternoon break.",
+              "price": "₱30 each"
+            },
+            {
+              "title": "Mixed bread box",
+              "desc": "An assortment for sharing. Confirm the selection when you order.",
+              "price": "From ₱180",
+              "duration": "Pre-order"
+            }
+          ]
+        },
+        "why": {
+          "tag": "Your everyday stop",
+          "headline": "Take a little comfort home.",
+          "items": [
+            {
+              "title": "Buy what you need",
+              "body": "Pick a few pieces or ask us to put together a box."
+            },
+            {
+              "title": "Ask about the next bake",
+              "body": "We can tell you what is on the counter and what is coming next."
+            },
+            {
+              "title": "Plan a bigger order",
+              "body": "Confirm quantities and pickup times for meetings or gatherings."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Picking up bread",
+          "headline": "An easy stop on your day.",
+          "steps": [
+            {
+              "title": "Choose your breads",
+              "body": "Check what is available or ask about a pre-order."
+            },
+            {
+              "title": "Confirm the quantity",
+              "body": "For a larger order, agree on the selection and pickup time."
+            },
+            {
+              "title": "Take it home",
+              "body": "Collect your bread at the counter and enjoy it your way."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "From the oven",
+          "headline": "A look at the bread counter.",
+          "sub": "An example image for this fictional sample bakery.",
+          "items": [
+            {
+              "image": "asset:bakery",
+              "caption": "Bread and bakery details"
+            }
+          ]
+        },
+        "area": {
+          "tag": "Find us nearby",
+          "headline": "Your neighbourhood bread stop.",
+          "body": "Visit the bakery for counter orders. Larger quantities are collected at an agreed time.",
+          "places": [
+            "San Pedro",
+            "Biñan",
+            "Muntinlupa"
+          ]
+        },
+        "faq": {
+          "tag": "Before you come by",
+          "headline": "A few useful answers.",
+          "items": [
+            {
+              "q": "Can I place a larger order?",
+              "a": "Yes. Ask about the quantity, selection and pickup time before ordering."
+            },
+            {
+              "q": "Are the same breads available all day?",
+              "a": "Availability changes through the day. Call to check a particular item before travelling."
+            },
+            {
+              "q": "Where can I ask about ingredients?",
+              "a": "Speak with the bakery before ordering if you need ingredient or allergen information."
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Find your morning bread.",
+          "sub": "The sample bakery is in Poblacion, San Pedro.",
+          "hours": [
+            {
+              "day": "Monday–Saturday",
+              "time": "6 am–6 pm"
+            },
+            {
+              "day": "Sunday",
+              "time": "6 am–12 noon"
+            }
+          ],
+          "mapCaption": "Sample location · San Pedro",
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Poblacion+San+Pedro+Laguna"
+          }
+        },
+        "ctaBand": {
+          "tag": "For breakfast or merienda",
+          "headline": "What is in your bread bag?",
+          "sub": "Come by the counter or call ahead for a larger order.",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#location"
+          },
+          "cta2": {
+            "text": "Call the bakery",
+            "href": "tel:+639000000003"
+          }
+        },
+        "footer": {
+          "brand": "Pan de Umaga",
+          "blurb": "Everyday breads and boxes to share.",
+          "visit": {
+            "lines": [
+              "Poblacion",
+              "San Pedro City, Laguna"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "From the oven",
+                "href": "#gallery"
+              },
+              {
+                "text": "Visit",
+                "href": "#location"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Mon–Sat",
+              "time": "6 am–6 pm"
+            },
+            {
+              "day": "Sunday",
+              "time": "6 am–12 noon"
+            }
+          ],
+          "notes": [
+            "Fictional sample business. Photos and prices are for design preview only."
+          ]
+        }
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      }
+    }
+  },
+  {
+    "id": "haplos-coffee",
+    "category": "food",
+    "designs": [
+      "foodcraft:BL"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Haplos Coffee",
+        "tagline": "A little pause in the middle of your day",
+        "contact": {
+          "address": "Sto. Niño\nMarikina City, Metro Manila",
+          "city": "Marikina City",
+          "phone": "+639000000004",
+          "email": "hello@haplos.example"
+        },
+        "navLinks": [
+          {
+            "label": "Menu",
+            "href": "#menu"
+          },
+          {
+            "label": "Our space",
+            "href": "#about"
+          },
+          {
+            "label": "Visit",
+            "href": "#location"
+          }
+        ]
+      },
+      "content": {
+        "business_city": "Marikina City",
+        "description": "A fictional sample neighbourhood coffee shop with espresso drinks, iced coffee and simple snacks.",
+        "hero": {
+          "kicker": "Coffee in Marikina",
+          "headline": "A good cup, a little pause.",
+          "sub": "Drop in for a coffee, find a quiet seat or take a cup along for the rest of your day.",
+          "image": "asset:cafe",
+          "cta1": {
+            "text": "Find a seat",
+            "href": "#location"
+          },
+          "cta2": {
+            "text": "See the menu",
+            "href": "#menu"
+          },
+          "meta1": "Coffee and small bites",
+          "meta2": "Dine in or takeaway",
+          "trustLine": "Ask about the daily bake"
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "8 am",
+              "label": "Doors open"
+            },
+            {
+              "num": "Hot / iced",
+              "label": "Your everyday cup"
+            },
+            {
+              "num": "Takeaway",
+              "label": "Or stay a little longer"
+            }
+          ]
+        },
+        "about": {
+          "tag": "A place to pause",
+          "headline": "Make a little room for coffee.",
+          "lead": "A neighbourhood spot for a familiar cup and an unhurried break.",
+          "paragraphs": [
+            "Order at the counter, choose a seat and settle into your day.",
+            "Meeting a friend or heading back to work? We can prepare your drink for here or to go."
+          ],
+          "image": "asset:cafe",
+          "signature": "The Haplos team",
+          "specs": [
+            {
+              "label": "To enjoy",
+              "value": "Coffee and small bites"
+            },
+            {
+              "label": "Your choice",
+              "value": "Dine in or takeaway"
+            }
+          ]
+        },
+        "services": {
+          "tag": "At the counter",
+          "headline": "Your usual, or something new.",
+          "sub": "Sample menu and prices. Ask at the counter about availability and ingredients.",
+          "items": [
+            {
+              "tag": "Espresso",
+              "title": "Americano",
+              "desc": "Espresso and water, served hot or over ice.",
+              "note": "Hot or iced",
+              "price": "₱95"
+            },
+            {
+              "tag": "With milk",
+              "title": "Café latte",
+              "desc": "Espresso with milk for an easy everyday cup.",
+              "note": "Hot or iced",
+              "price": "₱130"
+            },
+            {
+              "tag": "A small bite",
+              "title": "Toast and spread",
+              "desc": "A simple snack to pair with your coffee.",
+              "note": "Ask for today's spread",
+              "price": "₱85"
+            }
+          ]
+        },
+        "why": {
+          "tag": "A simple coffee break",
+          "headline": "Have it your way.",
+          "items": [
+            {
+              "title": "Stay or go",
+              "body": "Choose a seat or take your coffee along."
+            },
+            {
+              "title": "A drink to suit your day",
+              "body": "Ask about the menu before choosing your cup."
+            },
+            {
+              "title": "Something alongside",
+              "body": "Check the counter for available snacks."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Your coffee break",
+          "headline": "Come in, take a pause.",
+          "steps": [
+            {
+              "title": "Choose a cup",
+              "body": "Tell us your drink and whether you would like it hot or iced."
+            },
+            {
+              "title": "Make it for here or to go",
+              "body": "Order at the counter and choose your spot."
+            },
+            {
+              "title": "Enjoy your break",
+              "body": "We will let you know when your order is ready."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "Around the café",
+          "headline": "A little room to slow down.",
+          "sub": "An example image for this fictional sample café.",
+          "items": [
+            {
+              "image": "asset:cafe",
+              "caption": "Coffee and café details"
+            }
+          ]
+        },
+        "area": {
+          "tag": "In the neighbourhood",
+          "headline": "A coffee stop in Marikina.",
+          "body": "Dine in and takeaway orders are placed at the counter.",
+          "places": [
+            "Sto. Niño",
+            "San Roque",
+            "Concepcion Uno"
+          ]
+        },
+        "faq": {
+          "tag": "Before your visit",
+          "headline": "Good to know.",
+          "items": [
+            {
+              "q": "Can I take my drink to go?",
+              "a": "Yes. Let us know at the counter when you order."
+            },
+            {
+              "q": "Do you accept advance group orders?",
+              "a": "Call with the quantity and pickup time so we can discuss what is possible."
+            },
+            {
+              "q": "Can I ask about ingredients?",
+              "a": "Please ask before ordering if you have an allergy or a specific dietary requirement."
+            }
+          ]
+        },
+        "location": {
+          "tag": "Visit us",
+          "headline": "Sto. Niño, Marikina.",
+          "sub": "Come in for a cup or pick one up on your way.",
+          "phone": "+639000000004",
+          "hours": "Sample hours. Please call before a special trip.",
+          "rules": [
+            {
+              "label": "Monday–Saturday",
+              "value": "8 am–8 pm"
+            },
+            {
+              "label": "Sunday",
+              "value": "9 am–6 pm"
+            }
+          ]
+        },
+        "ctaBand": {
+          "tag": "Take a little pause",
+          "headline": "There is time for a cup.",
+          "sub": "Find us in the neighbourhood or call with a pickup enquiry.",
+          "image": "asset:cafe",
+          "cta": {
+            "text": "Find the café",
+            "href": "#location"
+          }
+        },
+        "footer": {
+          "brand": "Haplos Coffee",
+          "blurb": "Coffee, small bites and a little pause in your day.",
+          "visit": {
+            "title": "Come by",
+            "lines": [
+              "Sto. Niño",
+              "Marikina City"
+            ]
+          },
+          "explore": {
+            "title": "Explore",
+            "links": [
+              {
+                "text": "Menu",
+                "href": "#menu"
+              },
+              {
+                "text": "Our space",
+                "href": "#about"
+              },
+              {
+                "text": "Visit",
+                "href": "#location"
+              }
+            ]
+          },
+          "notes": [
+            "Fictional sample business. Photos and prices are for design preview only."
+          ]
+        }
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      }
+    }
+  },
+  {
+    "id": "kusina-ni-tala",
+    "category": "food",
+    "designs": [
+      "restaurant:U"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Kusina ni Tala",
+        "tagline": "An everyday lunch, made familiar",
+        "contact": {
+          "address": "Bayanan\nBacoor City, Cavite",
+          "city": "Bacoor City",
+          "phone": "+639000000005",
+          "email": "hello@kusinanitala.example"
+        },
+        "navLinks": [
+          {
+            "label": "Today's choices",
+            "href": "#services"
+          },
+          {
+            "label": "How to order",
+            "href": "#how"
+          },
+          {
+            "label": "Visit",
+            "href": "#location"
+          }
+        ]
+      },
+      "content": {
+        "business_city": "Bacoor City",
+        "description": "A fictional sample carinderia serving everyday ulam, rice meals and pre-order sharing trays.",
+        "hero": {
+          "kicker": "Sample carinderia · Bacoor",
+          "headlineLines": [
+            "Lutong bahay.",
+            "Made for your day."
+          ],
+          "sub": "Choose your ulam, add rice and make a little time for lunch. Dine in or bring a meal home.",
+          "image": "asset:food",
+          "tag": "Your everyday lunch",
+          "cta1": {
+            "text": "See today's choices",
+            "href": "#services"
+          },
+          "cta2": {
+            "text": "Find the kitchen",
+            "href": "#location"
+          },
+          "headline": "Lutong bahay. Made for your day."
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "10 am",
+              "label": "Sample lunch opening"
+            },
+            {
+              "num": "Dine in",
+              "label": "Or take your meal home"
+            },
+            {
+              "num": "By order",
+              "label": "Ask about sharing trays"
+            }
+          ]
+        },
+        "about": {
+          "tag": "From our kitchen",
+          "headline": "Lunch does not need to be complicated.",
+          "paragraphs": [
+            "Some days call for a familiar ulam and a serving of rice. Choose from the dishes available at the counter.",
+            "If you are feeding a few more people, ask us about a tray and an agreed pickup time."
+          ],
+          "image": "asset:food",
+          "signature": "The Kusina ni Tala team"
+        },
+        "services": {
+          "tag": "At the counter",
+          "headline": "Choose your ulam.",
+          "sub": "Sample dishes and prices. The day's selection can change; please call to check a particular dish.",
+          "items": [
+            {
+              "title": "Chicken adobo meal",
+              "desc": "A serving of chicken adobo with steamed rice.",
+              "price": "₱95",
+              "tag": "Rice meal"
+            },
+            {
+              "title": "Ginisang gulay meal",
+              "desc": "The day's sautéed vegetables with steamed rice.",
+              "price": "₱75",
+              "tag": "Rice meal"
+            },
+            {
+              "title": "Pancit bihon",
+              "desc": "A serving for merienda or alongside your meal.",
+              "price": "₱60",
+              "tag": "By serving"
+            },
+            {
+              "title": "Sharing tray",
+              "desc": "Discuss the dish, quantity and pickup time before ordering.",
+              "price": "Quoted to order",
+              "tag": "Pre-order"
+            }
+          ]
+        },
+        "why": {
+          "tag": "An everyday choice",
+          "headline": "A meal that fits your day.",
+          "items": [
+            {
+              "title": "Choose at the counter",
+              "body": "See the available dishes before ordering."
+            },
+            {
+              "title": "Stay or take it home",
+              "body": "Tell us whether your meal is for dine in or takeaway."
+            },
+            {
+              "title": "Plan for a group",
+              "body": "Ask about available dishes and quantities for a sharing tray."
+            }
+          ]
+        },
+        "how": {
+          "tag": "How to order",
+          "headline": "An easy lunch stop.",
+          "steps": [
+            {
+              "title": "Choose a dish",
+              "body": "Check the available ulam or call before coming by."
+            },
+            {
+              "title": "Add what you need",
+              "body": "Tell us your rice and takeaway requirements."
+            },
+            {
+              "title": "Enjoy your lunch",
+              "body": "Take a seat or collect your meal at the counter."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "From the kitchen",
+          "headline": "A look at lunchtime.",
+          "sub": "An example image for this fictional sample carinderia.",
+          "items": [
+            {
+              "image": "asset:food",
+              "caption": "Food and kitchen details"
+            }
+          ]
+        },
+        "area": {
+          "tag": "Find us nearby",
+          "headline": "A lunch stop in Bacoor.",
+          "sub": "Counter orders and pre-arranged pickups in Bayanan.",
+          "places": [
+            "Bayanan",
+            "Molino",
+            "Talaba"
+          ]
+        },
+        "faq": {
+          "tag": "Before lunch",
+          "headline": "A few quick answers.",
+          "items": [
+            {
+              "q": "Is the menu the same every day?",
+              "a": "The available dishes can change. Call if you are looking for a particular ulam."
+            },
+            {
+              "q": "Can I order a sharing tray?",
+              "a": "Please ask about your chosen dish, quantity and date before placing an order."
+            },
+            {
+              "q": "Where can I check ingredients?",
+              "a": "Ask the kitchen before ordering if you need ingredient or allergen information."
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Lunch in the neighbourhood.",
+          "sub": "The sample kitchen is in Bayanan, Bacoor.",
+          "phone": "+639000000005",
+          "email": "hello@kusinanitala.example",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "10:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "10:00 AM – 3:00 PM"
+            }
+          ],
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Bayanan+Bacoor+Cavite"
+          }
+        },
+        "ctaBand": {
+          "tag": "Lunch or a little gathering",
+          "headline": "What are you having today?",
+          "sub": "Check today's dishes or call to discuss a tray for sharing.",
+          "cta1": {
+            "text": "See the choices",
+            "href": "#services"
+          },
+          "cta2": {
+            "text": "Call the kitchen",
+            "href": "tel:+639000000005"
+          },
+          "cta3": {
+            "text": "Find us",
+            "href": "#location"
+          }
+        },
+        "footer": {
+          "brand": "Kusina ni Tala",
+          "blurb": "Everyday ulam, rice meals and trays to share.",
+          "visit": {
+            "lines": [
+              "Bayanan",
+              "Bacoor City, Cavite"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Today's choices",
+                "href": "#services"
+              },
+              {
+                "text": "How to order",
+                "href": "#how"
+              },
+              {
+                "text": "Visit",
+                "href": "#location"
+              }
+            ]
+          },
+          "notes": [
+            "Fictional sample business. Photos and prices are for design preview only."
+          ]
+        }
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      }
+    }
+  }
+]

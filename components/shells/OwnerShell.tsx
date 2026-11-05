@@ -1,66 +1,97 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { CircleHelp, CreditCard, Globe } from "lucide-react";
-import type { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowLeft, ArrowUpRight, Bell, CalendarDays, Home, LayoutGrid } from "lucide-react";
+import { Component, type ReactNode } from "react";
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { OwnerWebScopeProvider, useOwnerWebScope } from '@/hooks/useOwnerWebScope';
+import styles from "./OwnerShell.module.css";
 
-import { AppShell, type NavBadge, type SidebarProps } from "@/components/r1";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
-import { useOwnerAuth } from "@/hooks/useOwnerAuth";
-
-/**
- * The business owner's frame (boards OwnerHome, Account owner variant):
- * My website, Payment and Help, and the owner at the foot opening Account.
- * Owners and admins have no primary action under the logo.
- *
- * Payment says Due while a site is live and awaiting the owner's payment, and
- * Paid once it is paid; it opens that site on My website, where its payment
- * state is. It deliberately does NOT look up the /pay/<token> link: the only
- * query that returns a token by submission (paymentTokens.getBySubmissionId)
- * has no auth check, and an owner-gated way to fetch the pay link does not
- * exist yet. The payment email remains the way to the pay page.
- *
- * Read-only: the pages inside keep their own auth checks (useOwnerAuth).
- */
-
-const DUE = new Set(["deployed", "pending_payment"]);
-const PAID = new Set(["paid", "completed"]);
-
-type Site = { submissionId: Id<"submissions">; businessName?: string; status: string };
-
+/** Shared owner workspace chrome. Each page keeps its ownership gate. */
 export function OwnerShell({ children }: { children: ReactNode }) {
-    const { owner, isOwner } = useOwnerAuth();
-    const sites = useQuery(api.businessOwners.getMyWebsites, isOwner ? {} : "skip") as Site[] | undefined;
+    return <OwnerWebScopeProvider><ConnectedOwnerShell>{children}</ConnectedOwnerShell></OwnerWebScopeProvider>;
+}
 
-    const due = sites?.find((s) => DUE.has(s.status));
-    const paid = !due && sites?.some((s) => PAID.has(s.status));
-    const payHref = due ? `/my-business/${due.submissionId}` : "/my-business";
-    const payBadge: NavBadge | null = due ? { tone: "attn", word: "Due" } : paid ? { tone: "done", word: "Paid" } : null;
+function ConnectedOwnerShell({ children }: { children: ReactNode }) {
+    const scope = useOwnerWebScope();
+    const notificationsActive = (usePathname() ?? '').startsWith('/my-business/notifications');
+    return <OwnerShellView key={scope.scopeKey} name={scope.owner?.name?.trim() || scope.owner?.email || 'Your account'}
+        notificationSlot={<OwnerInboxBoundary key={scope.scopeKey} fallback={<OwnerInboxLink active={notificationsActive} />}>
+            <ConnectedOwnerInboxLink active={notificationsActive} />
+        </OwnerInboxBoundary>}>{children}</OwnerShellView>;
+}
 
-    const first = sites?.[0];
-    const sidebar: SidebarProps = {
-        homeHref: "/my-business",
-        items: [
-            { href: "/my-business", label: "My website", icon: Globe },
-            {
-                href: payHref,
-                label: "Payment",
-                icon: CreditCard,
-                badge: payBadge,
-                // My website already lights for /my-business/*; Payment only for the pay page itself.
-                isCurrent: (p) => p.startsWith("/pay/"),
-            },
-            { href: "/knowledge", label: "Help", icon: CircleHelp },
-        ],
-        me: owner
-            ? {
-                  name: owner.name || owner.email,
-                  meta: first?.businessName ? `Owner of ${first.businessName}` : "Owner",
-                  href: "/profile",
-              }
-            : null,
-    };
+/** An optional unread count must never take down the owner navigation. */
+class OwnerInboxBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+    state = { failed: false };
+    static getDerivedStateFromError() { return { failed: true }; }
+    render() { return this.state.failed ? this.props.fallback : this.props.children; }
+}
 
-    return <AppShell sidebar={sidebar}>{children}</AppShell>;
+function ConnectedOwnerInboxLink({ active }: { active: boolean }) {
+    const scope = useOwnerWebScope();
+    const inbox = useQuery(api.ownerInbox.list, scope.ready && scope.userId ? { clerkId: scope.userId } : 'skip');
+    const unread = scope.ready && inbox?.actorClerkId === scope.userId && inbox.ownerId === scope.owner?._id ? inbox.unreadCount : undefined;
+    return <OwnerInboxLink active={active} unreadCount={unread} />;
+}
+
+/** Pure bell presentation, also used when the optional unread query fails. */
+export function OwnerInboxLink({ href = '/my-business/notifications', active = false, unreadCount }: { href?: string; active?: boolean; unreadCount?: number }) {
+    return <Link className={styles.inbox} href={href} aria-current={active ? 'page' : undefined}
+        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}><Bell size={21} aria-hidden="true" />
+        {unreadCount ? <span className={styles.unread}>{unreadCount > 99 ? '99+' : unreadCount}</span> : null}</Link>;
+}
+
+export type OwnerWebSection = 'today' | 'businesses' | 'visits' | 'notifications';
+
+/** Auth-free presentation shared by the owner workspace and admin samples. */
+export function OwnerShellView({ children, name = "Your account", preview = false, previewSection = 'businesses', unreadCount, notificationSlot }: {
+    children: ReactNode; name?: string; preview?: boolean; previewSection?: OwnerWebSection; unreadCount?: number; notificationSlot?: ReactNode;
+}) {
+    const pathname = usePathname() ?? "";
+    const label = name.trim() || "Your account";
+    const initial = label.charAt(0).toUpperCase();
+    const accountPage = pathname === "/profile" || pathname.startsWith("/profile/");
+    const section: OwnerWebSection = preview ? previewSection : pathname.startsWith('/my-business/visits') ? 'visits'
+        : pathname.startsWith('/my-business/notifications') ? 'notifications' : pathname === '/my-business/today' ? 'today' : 'businesses';
+    const href = (value: OwnerWebSection) => preview ? `/admin/preview/owner?section=${value}`
+        : value === 'businesses' ? '/my-business' : `/my-business/${value}`;
+    const homeHref = href('today');
+    const identity = <><span className={styles.avatar} aria-hidden="true">{initial}</span><span className={styles.accountName}>{label}</span><ArrowUpRight size={15} aria-hidden="true" /></>;
+    return <div className={`r1 ${styles.shell}`}>
+        <a href="#owner-main" className={styles.skip}>Skip to your workspace</a>
+        <header className={styles.header}>
+            <div className={styles.headerInner}>
+                <Link href={homeHref} className={styles.brand} aria-label="Tendso business workspace">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/v2/brand/mark-ink-256.png" alt="" width={30} height={30} />
+                    <span>tendso</span><span className={styles.workspace}>For your business</span>
+                </Link>
+                <nav className={styles.nav} aria-label="Business workspace">
+                    <Link className={styles.navLink} href={href('today')} aria-current={!accountPage && section === 'today' ? 'page' : undefined}><Home size={17} aria-hidden="true" />Today</Link>
+                    <Link className={styles.navLink} href={href('businesses')} aria-current={!accountPage && section === 'businesses' ? 'page' : undefined}><LayoutGrid size={17} aria-hidden="true" />Businesses</Link>
+                    <Link className={styles.navLink} href={href('visits')} aria-current={!accountPage && section === 'visits' ? 'page' : undefined}><CalendarDays size={17} aria-hidden="true" />Visits</Link>
+                </nav>
+                <div className={styles.headerActions}>
+                    {notificationSlot ?? <OwnerInboxLink href={href('notifications')} active={section === 'notifications'} unreadCount={unreadCount} />}
+                    {preview ? <button type="button" className={styles.account} aria-label={`Sample account for ${label}`} disabled>{identity}</button>
+                        : <Link className={styles.account} href="/profile" aria-label={`Account for ${label}`} aria-current={accountPage ? "page" : undefined}>{identity}</Link>}
+                </div>
+            </div>
+        </header>
+        <main className={styles.main} id="owner-main" tabIndex={-1}>{children}</main>
+        <footer className={styles.footer}><p>Your business. Your website. One place to keep it moving.</p>{preview ? <p>Sample business workspace · Use View as above to return to admin.</p>
+            : <div><Link href="/help#ask">Ask Tendso</Link><Link href="/privacy-policy">Privacy</Link><Link href="/terms-of-service">Terms</Link></div>}</footer>
+    </div>;
+}
+
+export function OwnerPageHeader({ title, subtitle, back = false, action, preview = false, backHref, backLabel = 'All businesses' }: {
+    title: ReactNode; subtitle: string; back?: boolean; action?: ReactNode; preview?: boolean; backHref?: string; backLabel?: string;
+}) {
+    return <header className={styles.pageHeader}><div className={styles.pageTitles}>
+        {back ? <Link className={styles.back} href={backHref ?? (preview ? "/admin/preview/owner?section=businesses#businesses" : "/my-business")}><ArrowLeft size={16} aria-hidden="true" />{backLabel}</Link> : <p className={styles.eyebrow}>YOUR BUSINESS WORKSPACE</p>}
+        <h1>{title}</h1><p className={styles.subtitle}>{subtitle}</p>
+    </div>{action ? <div className={styles.pageAction}>{action}</div> : null}</header>;
 }

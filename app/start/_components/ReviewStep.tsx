@@ -266,7 +266,7 @@ export function ReviewStep({
                                 />
                             </MoneyLines>
                         ) : null}
-                        <p className="t-meta">{quote.giveaway ? "Off the Record reviews the photo of its poster hanging in your business. There's nothing to pay for an eligible giveaway website." : "You pay once, only after your site is live. Nothing to pay now."}</p>
+                        <p className="t-meta">{quote.giveaway ? "Off the Record reviews the photo of its poster hanging in your business. There's nothing to pay for an eligible giveaway website." : "See it first. You pay once to publish. Nothing to pay now."}</p>
                     </Card>
 
                     {/* The tier. The ONE money decision on this form, and the only
@@ -348,8 +348,8 @@ export function ReviewStep({
                             when it is ready. If your application cannot be accepted, you receive an email explaining why.
                         </p> : <p className="t-body text-r1-ink">
                             Our team builds your website and emails it to{" "}
-                            <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong> within
-                            48–72 hours, with how to pay {formatPHP(quote.total)}. Nothing to pay now, nothing to install.
+                            <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong>, the same
+                            day, with how to pay {formatPHP(quote.total)}. Nothing to pay now, nothing to install.
                         </p>}
                         {!quote.giveaway && wantsCustomDomain ? (
                             <p className="t-body text-r1-ink">That bill only goes out once we&apos;ve confirmed your .com is still free.</p>

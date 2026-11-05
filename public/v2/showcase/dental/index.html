@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ngiti Dental · Quezon City</title>
+<meta name="description" content="Gentle, fairly priced dental care in Quezon City. Cleaning, fillings, braces and whitening. Open Monday to Saturday.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B0C10;
+  --mute:#5B6070;
+  --line:#D9DBE1;
+  --bg:#FFFFFF;
+  --grey:#F1F2F4;
+  --blue:#1738F5;
+  --blue-d:#0F27B8;
+  --pad:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter Tight',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{display:block;width:100%;height:100%;object-fit:cover}
+.wrap{padding:0 var(--pad);max-width:1536px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px}
+
+/* header */
+header{height:80px;border-bottom:1px solid var(--ink)}
+header .wrap{height:100%;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:22px;letter-spacing:-.02em}
+.logo i{width:22px;height:22px;background:var(--blue);display:block;border-radius:50% 50% 50% 0}
+nav{display:flex;gap:36px;font-size:16px;font-weight:500}
+nav a:hover{color:var(--blue)}
+.hdr-r{display:flex;align-items:center;gap:28px;font-size:16px;font-weight:500}
+.btn{display:inline-flex;align-items:center;gap:14px;background:var(--blue);color:#fff;font-weight:600;font-size:18px;padding:18px 28px;border-radius:0;transition:background .15s}
+.btn:hover{background:var(--blue-d)}
+.btn svg{width:18px;height:18px}
+.btn.sm{padding:12px 20px;font-size:16px}
+
+/* hero */
+.hero{height:calc(100vh - 80px);min-height:680px;padding-top:36px;padding-bottom:36px;display:flex;flex-direction:column}
+.hero .wrap{flex:1;display:flex;flex-direction:column;width:100%}
+.kicker{font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);display:flex;gap:16px;margin-bottom:20px}
+.kicker span{color:var(--mute)}
+h1{font-weight:700;font-size:clamp(44px,8.4vw,124px);line-height:.92;letter-spacing:-.045em}
+h1 em{font-style:normal;color:var(--blue)}
+.hero-top{align-items:end}
+.hero-top .h{grid-column:1/10}
+.hero-top .c{grid-column:10/13;padding-bottom:10px}
+.hero-top p{font-size:19px;color:var(--mute);margin-bottom:24px;max-width:28ch}
+.hero-bot{flex:1;min-height:0;margin-top:36px;align-items:stretch}
+.hero-photo{grid-column:1/10;min-height:0;position:relative;background:var(--grey)}
+.hero-photo img{position:absolute;inset:0;object-position:50% 38%}
+.hero-photo .tag{position:absolute;left:0;bottom:0;background:var(--ink);color:#fff;font-size:14px;font-weight:500;padding:10px 16px;letter-spacing:.02em}
+.cells{grid-column:10/13;display:grid;grid-template-rows:repeat(3,1fr);border-top:1px solid var(--ink)}
+.cell{border-bottom:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.cell:last-child{border-bottom:0}
+.cell small{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.cell b{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.cell b em{font-style:normal;color:var(--blue)}
+
+/* sections */
+section{padding:120px 0 0}
+.sec-h{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;border-top:1px solid var(--ink);padding-top:20px;margin-bottom:56px}
+.sec-h .n{grid-column:1/3;font-size:15px;font-weight:600;color:var(--blue);letter-spacing:.06em}
+.sec-h h2{grid-column:3/13;font-size:clamp(34px,4.6vw,68px);line-height:1;letter-spacing:-.04em;font-weight:700;max-width:16ch}
+
+.rows{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;align-items:baseline;padding:28px 0;border-bottom:1px solid var(--line);transition:background .15s}
+.row:hover{background:var(--grey)}
+.row .i{grid-column:1/3;font-size:15px;color:var(--mute);font-weight:500;padding-left:0}
+.row h3{grid-column:3/8;font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
+.row p{grid-column:8/12;color:var(--mute);font-size:17px}
+.row .p{grid-column:12/13;text-align:right;font-size:26px;font-weight:700;letter-spacing:-.03em;white-space:nowrap}
+.row .p small{font-size:13px;font-weight:500;color:var(--mute);display:block;letter-spacing:0}
+.note{margin-top:20px;font-size:15px;color:var(--mute)}
+
+/* dentist */
+.doc{align-items:start}
+.doc .ph{grid-column:1/5;aspect-ratio:4/5;background:var(--grey)}
+.doc .ph img{object-position:50% 25%}
+.doc .tx{grid-column:6/13}
+.doc blockquote{font-size:clamp(28px,3.2vw,46px);line-height:1.08;letter-spacing:-.035em;font-weight:600}
+.doc blockquote em{font-style:normal;color:var(--blue)}
+.doc cite{display:block;margin-top:28px;font-style:normal;font-size:17px;color:var(--mute)}
+.doc cite b{color:var(--ink);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink);margin-top:56px}
+.stats div{padding:20px 20px 0 0}
+.stats b{display:block;font-size:56px;font-weight:700;letter-spacing:-.045em;line-height:1}
+.stats span{font-size:15px;color:var(--mute)}
+
+/* steps */
+.steps{align-items:stretch}
+.steps .ph{grid-column:1/6;background:var(--grey);aspect-ratio:1/1}
+.steps .ph img{object-position:50% 30%}
+.steps ol{grid-column:7/13;list-style:none;border-top:1px solid var(--ink)}
+.steps li{display:grid;grid-template-columns:64px 1fr;padding:32px 0;border-bottom:1px solid var(--line)}
+.steps li span{font-size:15px;font-weight:600;color:var(--blue);padding-top:6px}
+.steps li h3{font-size:28px;font-weight:600;letter-spacing:-.03em;margin-bottom:6px}
+.steps li p{color:var(--mute);font-size:17px;max-width:40ch}
+
+/* visit */
+.visit{background:var(--blue);color:#fff;margin-top:120px;padding:96px 0 0}
+.visit .sec-h{border-top-color:#fff}
+.visit .sec-h .n{color:#fff;opacity:.7}
+.visit .cols{align-items:start;padding-bottom:96px}
+.visit .big{grid-column:1/8}
+.visit .big a.tel{display:block;font-size:clamp(40px,7vw,104px);font-weight:700;letter-spacing:-.05em;line-height:.95}
+.visit .big p{margin-top:24px;font-size:20px;max-width:34ch;opacity:.9}
+.visit .big .btn{background:#fff;color:var(--blue);margin-top:36px}
+.visit .big .btn:hover{background:var(--grey)}
+.hours{grid-column:9/13}
+.hours dl{border-top:1px solid #fff}
+.hours div{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.35);font-size:18px}
+.hours dt{opacity:.85}.hours dd{font-weight:600}
+.hours address{font-style:normal;margin-top:28px;font-size:18px;line-height:1.5}
+.hours address small{display:block;opacity:.75;font-size:15px;margin-top:6px}
+footer{background:var(--ink);color:#fff;font-size:15px}
+footer .wrap{display:flex;justify-content:space-between;padding-top:22px;padding-bottom:22px;gap:20px}
+footer span{opacity:.65}
+
+/* tablet */
+@media(max-width:1100px){
+  :root{--pad:32px}
+  nav{display:none}
+  .row h3{grid-column:3/13}.row p{grid-column:3/10;margin-top:6px}.row .p{grid-column:10/13}
+  .hero-top .h{grid-column:1/13}.hero-top .c{grid-column:1/13;margin-top:24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .hero-top p{margin:0}
+}
+/* mobile */
+@media(max-width:720px){
+  :root{--pad:20px}
+  body{font-size:17px}
+  header{height:64px}
+  .hdr-r a:first-child{display:none}
+  .logo{font-size:20px}
+  .hero{height:auto;min-height:0;padding-top:28px;padding-bottom:0}
+  .kicker{font-size:12px;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  h1{font-size:clamp(46px,14.2vw,60px);line-height:.94}
+  .grid{display:block}
+  .hero-top .c{display:block;margin-top:22px}
+  .hero-top p{margin-bottom:20px;font-size:18px;max-width:none}
+  .hero-top .btn{width:100%;justify-content:space-between}
+  .hero-bot{margin-top:28px}
+  .hero-photo{aspect-ratio:4/3}
+  .hero-photo .tag{display:none}
+  .cells{grid-template-rows:none;grid-template-columns:repeat(3,1fr);margin-top:0}
+  .cell{border-bottom:0;border-right:1px solid var(--line);padding:14px 10px 14px 0;margin-right:10px}
+  .cell:last-child{border:0}
+  .cell small{font-size:10.5px}.cell b{font-size:20px}
+  section{padding-top:72px}
+  .sec-h{display:block;margin-bottom:32px}
+  .sec-h .n{display:block;margin-bottom:14px}
+  .row{display:grid;grid-template-columns:36px 1fr auto;padding:22px 0}
+  .row .i{grid-column:1}.row h3{grid-column:2;font-size:22px}.row .p{grid-column:3;font-size:20px;grid-row:1}
+  .row p{grid-column:2/4;margin-top:6px;font-size:16px}
+  .doc .ph{aspect-ratio:1/1;margin-bottom:28px}
+  .stats b{font-size:36px}.stats span{font-size:13px;display:block}
+  .stats div{padding-right:8px}
+  .steps .ph{margin-bottom:28px;aspect-ratio:1/1}
+  .steps li{grid-template-columns:44px 1fr;padding:24px 0}
+  .steps li h3{font-size:23px}
+  .visit{margin-top:72px;padding-top:64px}
+  .visit .cols{padding-bottom:64px}
+  .hours{margin-top:44px}
+  .visit .big .btn{width:100%;justify-content:space-between}
+  footer .wrap{flex-direction:column;gap:4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top"><i></i>Ngiti Dental</a>
+    <nav><a href="#services">Services</a><a href="#dentist">Dentist</a><a href="#visit-steps">Your visit</a><a href="#visit">Find us</a></nav>
+    <div class="hdr-r"><a href="tel:09175550142">0917 555 0142</a><a class="btn sm" href="#visit">Book</a></div>
+  </div>
+</header>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap">
+    <div class="kicker">01 <span>Dental clinic · Quezon City</span></div>
+    <div class="grid hero-top">
+      <div class="h"><h1>Gentle dentistry. <em>Honest</em> prices.</h1></div>
+      <div class="c">
+        <p>Cleaning, fillings, braces and whitening, explained before we start.</p>
+        <a class="btn" href="#visit">Book a visit <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+    <div class="grid hero-bot">
+      <div class="hero-photo"><img src="/v2/showcase/dental/img/dental-chair.jpg" alt="Dr. Carla Mendoza showing a patient his teeth in a mirror"><span class="tag">Dr. Carla Mendoza with a patient, Laging Handa</span></div>
+      <div class="cells">
+        <div class="cell"><small>Open</small><b>Mon–Sat <em>9–6</em></b></div>
+        <div class="cell"><small>Check-up &amp; cleaning</small><b>₱800</b></div>
+        <div class="cell"><small>Walk-ins</small><b>Welcome</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="services">
+  <div class="wrap">
+    <div class="sec-h"><div class="n">02</div><h2>What we do, and what it costs.</h2></div>
+    <div class="rows">
+      <div class="row"><div class="i">2.1</div><h3>Check-up &amp; cleaning</h3><p>Exam, scaling and polish. X-ray if needed.</p><div class="p">₱800</div></div>
+      <div class="row"><div class="i">2.2</div><h3>Tooth filling (pasta)</h3><p>Tooth-coloured filling, one visit.</p><div class="p"><small>from</small>₱1,000</div></div>
+      <div class="row"><div class="i">2.3</div><h3>Extraction</h3><p>Simple pulling, numbing included.</p><div class="p"><small>from</small>₱1,200</div></div>
+      <div class="row"><div class="i">2.4</div><h3>Teeth whitening</h3><p>In-chair, about 60 minutes, up to 6 shades lighter.</p><div class="p">₱6,500</div></div>
+      <div class="row"><div class="i">2.5</div><h3>Braces</h3><p>Metal braces, installation plus monthly adjustment ₱1,500.</p><div class="p"><small>from</small>₱28,000</div></div>
+      <div class="row"><div class="i">2.6</div><h3>Dentures</h3><p>Partial or full, made to fit and checked twice.</p><div class="p"><small>from</small>₱8,000</div></div>
+    </div>
+    <p class="note">Prices as of this year. We give you the exact total before any treatment starts. GCash and cards accepted.</p>
+  </div>
+</section>
+
+<section id="dentist">
+  <div class="wrap">
+    <div class="sec-h"><div class="n">03</div><h2>The dentist.</h2></div>
+    <div class="grid doc">
+      <div class="ph"><img src="/v2/showcase/dental/img/dental-owner.jpg" alt="Dr. Carla Mendoza in her clinic"></div>
+      <div class="tx">
+        <blockquote>“Most people are not afraid of the dentist. They are afraid of <em>surprises</em>. So we tell you everything first.”</blockquote>
+        <cite><b>Dr. Carla Mendoza, DMD</b><br>UP Manila graduate. Opened Ngiti Dental in Laging Handa.</cite>
+        <div class="stats">
+          <div><b>12</b><span>years in practice</span></div>
+          <div><b>4,000+</b><span>patients seen</span></div>
+          <div><b>1</b><span>dentist. Always her.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="visit-steps">
+  <div class="wrap">
+    <div class="sec-h"><div class="n">04</div><h2>Your visit, in three steps.</h2></div>
+    <div class="grid steps">
+      <div class="ph"><img src="/v2/showcase/dental/img/dental-smile.jpg" alt="A smiling patient after her check-up"></div>
+      <ol>
+        <li><span>4.1</span><div><h3>Message or walk in</h3><p>Text us your preferred time. Same-day slots are often open.</p></div></li>
+        <li><span>4.2</span><div><h3>We look, then explain</h3><p>You see the problem, the options and the price before anything is done.</p></div></li>
+        <li><span>4.3</span><div><h3>Treat and go home</h3><p>Most fillings and cleanings are finished in one sitting.</p></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="visit" id="visit">
+  <div class="wrap">
+    <div class="sec-h"><div class="n">05</div><h2>Find us.</h2></div>
+    <div class="grid cols">
+      <div class="big">
+        <a class="tel" href="tel:09175550142">0917 555 0142</a>
+        <p>Call or text to book. We reply within the hour during clinic hours.</p>
+        <a class="btn" href="tel:09175550142">Call to book <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h13M11 4l6 6-6 6"/></svg></a>
+      </div>
+      <div class="hours">
+        <dl>
+          <div><dt>Monday to Friday</dt><dd>9:00 – 18:00</dd></div>
+          <div><dt>Saturday</dt><dd>9:00 – 15:00</dd></div>
+          <div><dt>Sunday</dt><dd>Closed</dd></div>
+        </dl>
+        <address>24 Scout Tobias Street<br>Laging Handa, Quezon City<small>Beside the pharmacy, 2nd floor. 5 minutes from Timog.</small></address>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+<footer><div class="wrap"><b>Ngiti Dental</b><span>Quezon City, Philippines · Mon–Sat</span></div></footer>
+</body>
+</html>

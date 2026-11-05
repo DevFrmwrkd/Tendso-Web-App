@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Coins, Globe, Plus, Wallet } from "lucide-react";
 import NextLink from "next/link";
 import { createContext, useContext, useId, type ComponentProps, type ReactNode } from "react";
 
@@ -23,10 +23,10 @@ import {
     SkeletonRows,
     SkeletonText,
     Status,
-    type Tone,
 } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
+import styles from "./CreatorHome.module.css";
 
 import {
     activityItems,
@@ -48,7 +48,7 @@ type Creator = Doc<"creators">;
 
 const PreviewContext = createContext(false);
 function previewHref(href: string, preview: boolean) {
-    return preview ? `/admin/preview/creator#${href.slice(1).replaceAll("/", "-")}` : href;
+    return preview ? `/admin/preview/creator#${href.split('?')[0].slice(1).replaceAll("/", "-")}` : href;
 }
 function ButtonLink(props: ComponentProps<typeof LiveButtonLink>) {
     const preview = useContext(PreviewContext);
@@ -97,16 +97,17 @@ export function CreatorHomeView({ creator, submissions, leads, withdrawals, refe
 
     return (
         <PreviewContext value={preview}>
-            <PageHeader title={`Mabuhay, ${creator.firstName || "Creator"}.`} sub="What should I do next?" />
+          <div className={styles.home} id={preview ? 'dashboard' : undefined}>
+            <PageHeader title={`Mabuhay, ${creator.firstName || "Creator"}.`} sub="Your shops, submissions and earnings in one place." />
             {submissions === undefined ? (
                 <Loading label="Loading your home" className="flex flex-col gap-6 lg:gap-8">
                     <BodyShapes />
                 </Loading>
             ) : (
                 <>
-                    <StateLine state={stateLine(submissions)} earned={earned} balance={balance} />
+                    <Overview submissions={submissions} earned={earned} balance={balance} />
 
-                    <section aria-label="Your next steps" className="flex flex-col gap-4">
+                    <section aria-label="Your next steps" className={styles.workspace}>
                         <NextStepHighlight step={pickNextStep(submissions, balance)} />
                         <SideCards
                             shop={leads === undefined ? undefined : pickShop(leads, submissions)}
@@ -118,6 +119,7 @@ export function CreatorHomeView({ creator, submissions, leads, withdrawals, refe
                     <RecentActivity items={withdrawals === undefined ? undefined : activityItems(submissions, withdrawals)} />
                 </>
             )}
+          </div>
         </PreviewContext>
     );
 }
@@ -157,43 +159,30 @@ function BodyShapes() {
     );
 }
 
-const Sep = () => (
-    <span aria-hidden="true" className="text-r1-ink-4">
-        ·
-    </span>
-);
-
-/**
- * "1 of your 2 sites is waiting on payment · ₱500 earned so far · ₱0 ready to
- * withdraw · Open wallet". The money half shows once there is money: a new
- * creator is not greeted with zeros. Earned and ready are the wallet's own
- * figures (creators.totalEarnings and creators.balance; a withdrawal leaves
- * the balance the moment it is requested).
- */
-function StateLine({ state, earned, balance }: { state: { tone: Tone; text: string } | null; earned: number; balance: number }) {
+/** Recorded wallet figures and submission totals use the same live/preview data. */
+function Overview({ submissions, earned, balance }: { submissions: Doc<'submissions'>[]; earned: number; balance: number }) {
+    const preview = useContext(PreviewContext);
+    const state = stateLine(submissions);
     const money = earned > 0 || balance > 0;
-    if (!state && !money) return null;
-    return (
-        <p className="t-body flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            {state && (
-                <>
-                    <Dot tone={state.tone} />
-                    <span>{state.text}</span>
-                </>
-            )}
-            {money && (
-                <>
-                    {state && <Sep />}
-                    <span className="t-num">{formatMoney(earned)} earned so far</span>
-                    <Sep />
-                    <span className="t-num">{formatMoney(balance)} ready to withdraw</span>
-                    <Link href="/wallet" className="t-link">
-                        Open wallet
-                    </Link>
-                </>
-            )}
-        </p>
-    );
+    return <div id={preview ? 'wallet' : undefined} className={styles.overview}>
+        <div className={styles.metrics}>
+            <Link className={styles.metric} href="/submissions">
+                <span className={styles.metricTop}><Globe size={20} aria-hidden="true" /><ArrowUpRight size={16} aria-hidden="true" /></span>
+                <strong>{submissions.length}</strong><span>Your submissions</span>
+            </Link>
+            {money ? <>
+                <Link className={styles.metric} href="/wallet">
+                    <span className={styles.metricTop}><Wallet size={20} aria-hidden="true" /><ArrowUpRight size={16} aria-hidden="true" /></span>
+                    <strong>{formatMoney(balance)}</strong><span>Ready to cash out</span>
+                </Link>
+                <Link className={styles.metric} href="/wallet">
+                    <span className={styles.metricTop}><Coins size={20} aria-hidden="true" /><ArrowUpRight size={16} aria-hidden="true" /></span>
+                    <strong>{formatMoney(earned)}</strong><span>Total earned</span>
+                </Link>
+            </> : <div className={`${styles.metric} ${styles.starting}`}><span className={styles.metricTop}><Wallet size={20} aria-hidden="true" /></span><strong>Start with one shop.</strong><span>Your paid-site earnings will appear here.</span></div>}
+        </div>
+        {state ? <p className={styles.state}><Dot tone={state.tone} /><span>{state.text}</span></p> : null}
+    </div>;
 }
 
 type StepView = { title: string; body: string; figure?: { value: string; caption: string }; actions: ReactNode };
@@ -319,7 +308,7 @@ function stepView(step: NextStep): StepView {
 function NextStepHighlight({ step }: { step: NextStep }) {
     const { title, body, figure, actions } = stepView(step);
     return (
-        <Highlight className={cx("grid gap-5 p-5 sm:p-6 lg:items-center lg:gap-x-12 lg:px-8 lg:py-7", figure && "lg:grid-cols-[minmax(0,1fr)_auto]")}>
+        <Highlight className={cx(styles.nextStep, "grid gap-5 p-5 sm:p-6 lg:items-center lg:gap-x-12 lg:px-8 lg:py-7", figure && "lg:grid-cols-[minmax(0,1fr)_auto]")}>
             <div className="flex max-w-[640px] flex-col gap-2">
                 <span className="t-label t-hl-label">Your next step</span>
                 <h2 className="t-h2 text-xl leading-7 lg:text-[22px]">{title}</h2>
@@ -349,7 +338,7 @@ function SideCards({
     const count = (shop === null ? 0 : 1) + (code ? 1 : 0);
     if (count === 0) return null;
     return (
-        <div className={cx("grid gap-4", count > 1 && "sm:grid-cols-2")}>
+        <div className={cx(styles.sideCards, "grid gap-4", count > 1 && "sm:grid-cols-2")}>
             {shop === undefined ? <SkeletonCard /> : shop && <ShopCard lead={shop} />}
             {code && <ReferralCard code={code} referrals={referrals} />}
         </div>
@@ -366,9 +355,10 @@ function CardHead({ label, children }: { label: string; children?: ReactNode }) 
 }
 
 function ShopCard({ lead }: { lead: FeedLead }) {
+    const preview = useContext(PreviewContext);
     const where = [lead.businessType, lead.businessCity].filter(Boolean).join(" · ");
     return (
-        <Card pad className="flex flex-col gap-4">
+        <Card pad id={preview ? 'leads' : undefined} className="flex flex-col gap-4">
             <CardHead label="A shop to visit">
                 <Status {...leadStatus(lead.status)} />
             </CardHead>
@@ -391,9 +381,10 @@ function ShopCard({ lead }: { lead: FeedLead }) {
  * carries the programme's terms.
  */
 function ReferralCard({ code, referrals }: { code: string; referrals: { pending: number; qualified: number; paid: number } | undefined }) {
+    const preview = useContext(PreviewContext);
     const status = referralStatus(referrals);
     return (
-        <Card pad className="flex flex-col gap-4">
+        <Card pad id={preview ? 'referrals' : undefined} className="flex flex-col gap-4">
             <CardHead label="Bring in a creator">{status && <Status {...status} />}</CardHead>
             <div className="flex flex-col gap-1">
                 <h2 className="t-h2">
@@ -412,9 +403,10 @@ function ReferralCard({ code, referrals }: { code: string; referrals: { pending:
 /** Submissions and withdrawals, newest first: three rows, then Show all in place. */
 function RecentActivity({ items }: { items: ActivityItem[] | undefined }) {
     const id = useId();
+    const preview = useContext(PreviewContext);
     if (items?.length === 0) return null;
     return (
-        <section aria-labelledby={id} className="flex flex-col gap-3">
+        <section id={preview ? 'submissions' : undefined} aria-labelledby={id} className={styles.activity}>
             <h2 className="t-h2" id={id}>
                 Recent activity
             </h2>

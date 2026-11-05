@@ -1,0 +1,92 @@
+/* Creator links — app screens (inside phones) + the board header. Kit v3/v4 language (css/app-kit.css):
+   Onest only, bold rounded headlines, pill buttons, white cards on the tinted app background,
+   ONE accent (#E4F222) as a fill with ink text. Nothing under 16px inside a phone. Prefix: cl-.
+   Board rows/cells reuse app/creator-more.css (.cm-row, .cm-strip, .cm-cell, .cm-cap…). */
+
+/* ---------- board header ---------- */
+.cl-board { background: color-mix(in oklab, var(--accent) 5%, #F7F7F4); min-height: 100vh; }
+.cl-board-head { padding: 64px var(--page-pad) 40px; display: grid; gap: 14px; max-width: 980px; }
+.cl-board-head .cl-kicker { display: inline-flex; align-items: center; gap: 10px; font: 500 15px/1.2 var(--font); color: var(--ink-2); }
+.cl-board-head .cl-kicker::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.cl-board-head h1 { font-size: clamp(40px, 4.6vw, 68px); letter-spacing: -0.05em; line-height: .96; font-weight: 500; }
+.cl-board-head p { font-size: 19px; line-height: 1.45; color: var(--ink-2); max-width: 46ch; }
+.cl-board-head a { text-decoration: underline; text-underline-offset: 3px; }
+.cl-board .cm-row { border-top: 1px solid rgba(12,10,8,.1); }
+.cl-board .cm-cell { width: 280px; }
+.cl-board .cm-cell .phone { --pw: 280px; }
+.cl-board .cm-src { font-size: 13px; }
+.cl-board .cm-note { font-size: 15px; }
+
+/* ---------- inside the phone (390×844) ---------- */
+.cl-screen .sb { color: var(--a-ink); }
+.cl-screen p, .cl-screen h1 { margin: 0; }
+.cl-main { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; padding: 8px 24px 0; display: flex; flex-direction: column; }
+.cl-main--center { align-items: center; text-align: center; padding-top: 118px; }
+.cl-h { font: 700 30px/36px var(--a-sans); letter-spacing: -0.8px; color: var(--a-ink); }
+.cl-h--xl { font-size: 34px; line-height: 40px; letter-spacing: -1px; }
+.cl-screen .cl-h--xl { margin-top: 10px; }
+.cl-h--md { font-size: 26px; line-height: 32px; }
+.cl-p { font: 500 18px/26px var(--a-sans); color: var(--a-ink2); }
+.cl-muted { color: var(--a-ink3); }
+.cl-foot { position: absolute; left: 24px; right: 24px; bottom: 42px; display: flex; flex-direction: column; gap: 12px; }
+.cl-foot--tabs { bottom: 102px; }
+.app .cl-foot .door { height: 58px; padding: 0 20px; font-size: 18px; }
+.cl-top { display: flex; align-items: center; gap: 16px; height: 52px; }
+.cl-back { width: 44px; height: 44px; }
+.cl-bar { flex: 1; height: 6px; border-radius: 99px; background: var(--a-bg2); overflow: hidden; }
+.cl-bar i { display: block; height: 100%; width: var(--p, 50%); border-radius: inherit; background: var(--a-ink); }
+
+.cl-face { display: block; flex: none; width: var(--sz, 48px); height: var(--sz, 48px); border-radius: 50%; background-color: var(--a-bg2); background-repeat: no-repeat; }
+.cl-face--txt { display: grid; place-items: center; background: var(--a-bg2); color: var(--a-ink); font: 700 calc(var(--sz) * .36)/1 var(--a-sans); letter-spacing: -0.02em; }
+.cl-hero-face { padding: 8px; border-radius: 50%; background: #fff; box-shadow: 0 18px 40px rgba(12,10,8,.10); }
+.cl-name { margin-top: 20px !important; font: 600 20px/26px var(--a-sans); color: var(--a-ink2); }
+
+/* (b) code field */
+.cl-code {
+  margin-top: 28px; display: flex; align-items: center; height: 76px; padding: 0 18px 0 24px; border-radius: 22px;
+  background: var(--a-card); box-shadow: inset 0 0 0 2px var(--a-ink); font: 800 30px/1 var(--a-sans); letter-spacing: 3px; color: var(--a-ink);
+}
+.cl-code .a-tick { width: 34px; height: 34px; }
+.cl-code .a-tick svg { width: 18px; height: 18px; }
+.cl-person { margin-top: 18px; display: flex; align-items: center; gap: 14px; padding: 12px 16px 12px 12px; border-radius: 22px; background: var(--a-card); box-shadow: var(--a-shadow); }
+.cl-person b { font: 700 20px/24px var(--a-sans); color: var(--a-ink); }
+
+/* (c) checkout */
+.cl-site { margin-top: 22px; height: 236px; border-radius: 24px; overflow: hidden; background: var(--a-bg2); box-shadow: var(--a-shadow); }
+.cl-site img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.cl-codecard { margin-top: 16px; display: flex; align-items: center; gap: 14px; padding: 14px 18px 14px 14px; border-radius: 22px; background: var(--a-card); box-shadow: var(--a-shadow); }
+.cl-codecard .m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl-codecard b { font: 700 18px/22px var(--a-sans); color: var(--a-ink); }
+.cl-codecard span { font: 600 17px/22px var(--a-sans); color: var(--a-ink2); }
+.cl-link { font: 700 16px/1 var(--a-sans); color: var(--a-ink); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.cl-price { margin-top: 22px; display: flex; align-items: baseline; gap: 14px; padding: 0 4px; }
+.cl-price s { font: 600 22px/1 var(--a-sans); color: var(--a-ink3); }
+.cl-price strong { font: 800 44px/1 var(--a-sans); letter-spacing: -1.4px; color: var(--a-ink); }
+
+/* (d) home */
+.cl-main--tabs { bottom: 84px; }
+.cl-hi { margin-top: 14px; display: flex; align-items: center; gap: 14px; }
+.cl-two { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cl-inc { display: flex; flex-direction: column; gap: 6px; padding: 18px 16px 20px; border-radius: 24px; background: var(--a-card); box-shadow: var(--a-shadow); min-width: 0; }
+.cl-inc .l { margin-top: 12px; font: 600 16px/20px var(--a-sans); color: var(--a-ink2); }
+.cl-inc strong { font: 800 29px/34px var(--a-sans); letter-spacing: -1px; color: var(--a-ink); white-space: nowrap; }
+.cl-ic { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; }
+.cl-ic--accent { background: var(--a-accent); color: var(--a-ink); box-shadow: inset 0 0 0 1.5px var(--a-ink); }
+.cl-ic--ink { background: var(--a-ink); color: #fff; }
+.cl-linkrow { margin-top: 12px; display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 20px; border-radius: 22px; background: var(--a-card); box-shadow: var(--a-shadow); color: var(--a-ink3); }
+.cl-linkrow b { font: 700 19px/1 var(--a-sans); color: var(--a-ink); }
+
+/* (e) agents */
+.cl-list { margin-top: 20px; display: flex; flex-direction: column; border-radius: 24px; background: var(--a-card); box-shadow: var(--a-shadow); padding: 4px 18px; }
+.cl-row { display: flex; align-items: center; gap: 14px; padding: 16px 0; }
+.cl-row + .cl-row { border-top: 1px solid var(--a-rule); }
+.cl-row .m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+.cl-row b { font: 700 18px/22px var(--a-sans); color: var(--a-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cl-row strong { font: 800 19px/1 var(--a-sans); color: var(--a-ink); }
+.cl-months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; max-width: 150px; }
+.cl-months i { height: 6px; border-radius: 3px; background: var(--a-bg2); }
+.cl-months i.on { background: var(--a-ink); }
+
+/* tab bar: 3 tabs, labels at 16px */
+.app .cl-tabs { grid-template-columns: repeat(3, 1fr); }
+.app .cl-tabs .a-tab { font: 600 16px/1 var(--a-sans); gap: 6px; }

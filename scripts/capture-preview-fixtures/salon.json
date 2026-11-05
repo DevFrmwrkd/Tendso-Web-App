@@ -1,0 +1,301 @@
+[
+  {
+    "id": "silong-studio",
+    "category": "salon",
+    "designs": [
+      "salonspa:L",
+      "salonspa:N",
+      "salonspa:K"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Silong Studio",
+        "tagline": "A quiet moment for your hair, and for you.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "24 Sampaguita Lane, Teachers Village\nQuezon City, Philippines",
+          "phone": "+639000000002",
+          "email": "hello@silong-studio.example"
+        },
+        "navLinks": [
+          {
+            "href": "#about",
+            "label": "Our story"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#gallery",
+            "label": "The shop"
+          },
+          {
+            "href": "#visit",
+            "label": "Visit us"
+          }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Spa/Massage",
+        "photos": [
+          "asset:salon"
+        ],
+        "navCtaText": "Plan your visit",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Quezon City · Salon & self-care",
+          "tag": "Walk in. We’ll help.",
+          "headlineLines": [
+            "A fresh look.",
+            "A little calm."
+          ],
+          "headline": "A fresh look. A little calm.",
+          "thin": "A quiet moment for your hair, and for you.",
+          "sub": "Step out of the busy day and into a relaxed salon visit. We offer thoughtful cuts, simple styling and colour consultations in Teachers Village.",
+          "image": "asset:salon",
+          "imageCaption": "A day at Silong Studio",
+          "cta1": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See our services",
+            "href": "#services"
+          },
+          "meta1": "Quezon City",
+          "meta2": "GCash accepted",
+          "meta": [
+            "Quezon City",
+            "GCash accepted"
+          ],
+          "usps": [],
+          "marqueeWords": [
+            "Cut & finish",
+            "Colour consultation",
+            "Hair treatment"
+          ]
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Walk-ins",
+              "label": "Welcome during shop hours"
+            },
+            {
+              "num": "GCash",
+              "label": "Cash or digital payment"
+            },
+            {
+              "num": "Local",
+              "label": "Here in Quezon City"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Our story",
+          "headline": "A quiet moment for your hair, and for you.",
+          "lead": "Step out of the busy day and into a relaxed salon visit. We offer thoughtful cuts, simple styling and colour consultations in Teachers Village.",
+          "body": "Step out of the busy day and into a relaxed salon visit. We offer thoughtful cuts, simple styling and colour consultations in Teachers Village. Tell us about your routine and the look you have in mind. We’ll help you choose something that feels good beyond salon day.",
+          "paragraphs": [
+            "Step out of the busy day and into a relaxed salon visit. We offer thoughtful cuts, simple styling and colour consultations in Teachers Village.",
+            "Tell us about your routine and the look you have in mind. We’ll help you choose something that feels good beyond salon day."
+          ],
+          "image": "asset:salon",
+          "signature": "The Silong Studio team",
+          "stats": [
+            {
+              "k": "Payments",
+              "v": "Cash & GCash"
+            },
+            {
+              "k": "Find us",
+              "v": "Quezon City"
+            }
+          ]
+        },
+        "services": {
+          "tag": "What we do",
+          "headline": "A little time for yourself",
+          "sub": "Ask the team about current availability before your visit.",
+          "items": [
+            {
+              "title": "Cut & finish",
+              "desc": "A consultation, shampoo and cut with a simple finish.",
+              "price": "From ₱450",
+              "duration": "45–60 min"
+            },
+            {
+              "title": "Colour consultation",
+              "desc": "Talk through your goal, hair history and a clear colour estimate.",
+              "price": "Free with booking",
+              "duration": "20 min"
+            },
+            {
+              "title": "Hair treatment",
+              "desc": "A conditioning treatment chosen for your hair’s needs.",
+              "price": "From ₱850",
+              "duration": "45 min"
+            }
+          ]
+        },
+        "why": {
+          "tag": "The way we work",
+          "headline": "Simple service. Real care.",
+          "items": [
+            {
+              "title": "We listen first",
+              "body": "A short consultation helps us understand what works for your everyday life."
+            },
+            {
+              "title": "Clear before we start",
+              "body": "We explain the service, time and price before you settle in."
+            },
+            {
+              "title": "A gentler pace",
+              "body": "A calm space to enjoy a little time to yourself."
+            }
+          ]
+        },
+        "how": {
+          "tag": "Your next visit",
+          "headline": "Easy from the start",
+          "steps": [
+            {
+              "title": "Tell us what you need",
+              "body": "Send a quick message or stop by during shop hours."
+            },
+            {
+              "title": "Choose what works",
+              "body": "We’ll explain the options, price and timing before we begin."
+            },
+            {
+              "title": "Leave the rest to us",
+              "body": "We’ll take care of the details and let you know when you’re ready."
+            }
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "A few quick answers",
+          "items": [
+            {
+              "q": "Should I book ahead?",
+              "a": "Bookings are recommended. Same-day slots may be available—message the studio first."
+            },
+            {
+              "q": "Can you give a colour price online?",
+              "a": "Share a current hair photo and your reference. We’ll confirm the estimate after a consultation."
+            },
+            {
+              "q": "Do you accept GCash?",
+              "a": "Yes. You can pay by cash or GCash after your appointment."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "Around the shop",
+          "headline": "A look at Silong Studio",
+          "sub": "Small details that make an everyday visit feel easier.",
+          "items": [
+            {
+              "image": "asset:salon",
+              "caption": "Silong Studio · Quezon City"
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Find us nearby",
+          "sub": "Message before heading over if you have a special request.",
+          "address": "24 Sampaguita Lane, Teachers Village\nQuezon City, Philippines",
+          "phone": "+639000000002",
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "directions": {
+            "text": "Get directions",
+            "href": "#visit"
+          }
+        },
+        "area": {
+          "tag": "Our neighbourhood",
+          "headline": "Just around the corner",
+          "places": [
+            "Quezon City"
+          ],
+          "rows": [
+            {
+              "place": "Quezon City",
+              "time": "Visit us in the neighbourhood"
+            }
+          ]
+        },
+        "ctaBand": {
+          "tag": "Let’s get you sorted",
+          "headline": "Make time for a fresh start.",
+          "sub": "A quiet moment for your hair, and for you.",
+          "cta": {
+            "text": "Plan your visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Silong Studio",
+          "blurb": "A quiet moment for your hair, and for you.",
+          "brand_blurb": "A quiet moment for your hair, and for you.",
+          "visit": {
+            "lines": [
+              "24 Sampaguita Lane, Teachers Village\nQuezon City, Philippines",
+              "+639000000002",
+              "hello@silong-studio.example"
+            ]
+          },
+          "explore": {
+            "links": [
+              {
+                "text": "Services",
+                "href": "#services"
+              },
+              {
+                "text": "Our story",
+                "href": "#about"
+              },
+              {
+                "text": "Visit us",
+                "href": "#visit"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Monday – Saturday",
+              "time": "9:00 AM – 7:00 PM"
+            },
+            {
+              "day": "Sunday",
+              "time": "By appointment"
+            }
+          ],
+          "notes": [
+            "Fictional business · Sample website"
+          ],
+          "social": []
+        }
+      }
+    }
+  }
+]

@@ -19,6 +19,7 @@ import {
     type QueueRow,
 } from "./model"
 import { GiveawaySummary } from "./GiveawaySummary"
+import styles from "./SubmissionWorkspace.module.css"
 
 /*
  * The queue table (ComponentKit "Table header and rows"): a header and rows
@@ -86,11 +87,11 @@ export function QueueRowButton({
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="t-row-title">{name}</span>
                     {row.giveawayApplication === true && (
-                        <span className="rounded-full border border-r1-line bg-r1-fill px-2 py-0.5 text-[11px] font-medium text-r1-ink-2">
+                        <span className={styles.tag}>
                             Giveaway
                         </span>
                     )}
-                    {affiliate && <span className="rounded-full border border-r1-line bg-r1-fill px-2 py-0.5 text-[11px] font-medium text-r1-ink-2">Affiliate</span>}
+                    {affiliate && <span className={styles.tag}>Affiliate</span>}
                 </span>
                 <span className="t-meta hidden truncate lg:block">{placeLine(row)}</span>
                 {/* Phone: the creator column folds into the meta line. */}

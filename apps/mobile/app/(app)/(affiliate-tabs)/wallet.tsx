@@ -1,1 +1,1 @@
-export { default } from '../(tabs)/wallet';
+export { AffiliateMoneyScreen as default } from '../../../components/affiliate/Money';

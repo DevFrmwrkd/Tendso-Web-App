@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Start Your Website</title>
+<meta name="description" content="Start your Tendso website on the web: your shop, five questions, a few photos. Nothing to pay now.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/phone.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="start.css">
+</head>
+<body class="sp st">
+
+<!-- Funnel frame: the wordmark, where you are, one quiet way out. No site nav, no footer. -->
+<header class="st-bar" id="nav">
+  <div class="wrap st-bar-in">
+    <a class="brand" href="../index.html" aria-label="Tendso home"><img src="../assets/brand/mark-ink-256.png" alt="">tendso</a>
+    <ol class="st-prog" id="st-prog" aria-label="Your progress"></ol>
+    <div class="st-bar-end">
+      <span class="st-saved" id="st-saved" aria-live="polite"></span>
+      <a class="btn btn--line btn--sm" href="../index.html" id="st-exit">Save and exit</a>
+    </div>
+  </div>
+  <div class="st-prog-m" aria-hidden="true"><span id="st-prog-m-t"></span><i><b id="st-prog-m-b"></b></i></div>
+</header>
+
+<main class="st-main">
+  <div class="wrap st-grid">
+    <form class="st-form" id="st-form" novalidate>
+      <div class="st-camp" id="st-camp" hidden><i></i>Off the Record giveaway · free website</div>
+      <div class="st-screens" id="st-screens"></div>
+      <div class="st-actions" id="st-actions">
+        <button class="st-back" type="button" id="st-back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="btn btn--accent st-next" type="submit" id="st-next">Continue</button>
+      </div>
+    </form>
+
+    <aside class="st-side" aria-label="What your site will look like">
+      <div class="st-stage">
+        <span class="sample-tag st-tag">Sample design · <span id="st-kind-name">Barbershop</span></span>
+        <div class="st-phone" id="st-phone"></div>
+      </div>
+      <div class="st-price" id="st-price">
+        <p class="st-price-k">Nothing to pay now</p>
+        <p class="st-price-v"><b>₱4,999</b> once, after you see your site.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div class="hc-toast st-toast" id="st-toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/data.js"></script>
+<script src="business.js"></script>
+<script src="start.js"></script>
+</body>
+</html>

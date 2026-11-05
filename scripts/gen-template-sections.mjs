@@ -26,6 +26,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { businessTemplateBlocks } from './business-template-blocks.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -81,6 +82,11 @@ const findFile = (name) => {
  */
 const collect = (file, acc = new Map(), depth = 0) => {
     if (!file || depth > 2) return acc;
+    const businessBlocks = businessTemplateBlocks(file);
+    if (businessBlocks) {
+        for (const [type, entry] of businessBlocks) if (!acc.has(type)) acc.set(type, entry);
+        return acc;
+    }
     const body = bodyOf(file);
     for (const m of body.matchAll(/<([A-Z][A-Za-z]+)[\s/>]/g)) {
         const name = m[1];

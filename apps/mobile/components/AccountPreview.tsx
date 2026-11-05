@@ -1,34 +1,53 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View, Text } from 'react-native';
 import { useMobileAccount } from '../hooks/useMobileAccount';
-import { colors, fonts, radius } from '../theme/tokens';
+import { BigNumber, Card, ScreenShell, Text, formatPeso } from './v2';
+import { space } from '../theme/v2';
 
 function Preview({ title, children }: { title: string; children: ReactNode }) {
-  return <ScrollView style={{ flex: 1, backgroundColor: colors.paper }} contentContainerStyle={{ padding: 24, gap: 20 }}>
-    <Text style={{ fontFamily: fonts.serif, fontSize: 36, color: colors.ink }}>{title}</Text>
-    <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>Sample account · read-only preview</Text>
-    {children}
-  </ScrollView>;
+  return (
+    <ScreenShell insetBottom={false} title={title} subtitle="Sample account. Read-only preview." contentStyle={{ gap: space.lg }}>
+      {children}
+    </ScreenShell>
+  );
 }
 function Tile({ label, value }: { label: string; value: string }) {
-  return <View style={{ padding: 20, gap: 8, backgroundColor: colors.paper3, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.rule }}>
-    <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>{label}</Text>
-    <Text style={{ fontFamily: fonts.serif, fontSize: 28, color: colors.ink }}>{value}</Text>
-  </View>;
+  return (
+    <Card variant="lg">
+      <BigNumber value={value} label={label} />
+    </Card>
+  );
 }
 export function PreviewWallet() {
-  return <Preview title="Wallet"><Tile label="Available balance" value="₱0.00" /><Tile label="Total earned" value="₱0.00" />
-    <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>Earnings, Wise payout setup and withdrawal history appear here. Withdrawing is disabled in preview.</Text>
-  </Preview>;
+  return (
+    <Preview title="Earn">
+      <Tile label="Available balance" value={formatPeso(0)} />
+      <Tile label="Total earned" value={formatPeso(0)} />
+      <Text variant="bodyLg" tone="ink2">
+        Earnings and your Wise payout setup show up here. Withdrawing is off in preview.
+      </Text>
+    </Preview>
+  );
 }
 export function PreviewProfile() {
   const { view } = useMobileAccount();
-  return <Preview title="Profile"><Tile label="Account type" value={view === 'affiliate' ? 'Affiliate' : 'Creator'} /><Tile label="Name" value="Sample account" />
-    <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>Personal details and account settings appear here. Use Admin view to manage real accounts.</Text>
-  </Preview>;
+  return (
+    <Preview title="Me">
+      <Tile label="Account type" value={view === 'affiliate' ? 'Creator' : 'Field agent'} />
+      <Tile label="Name" value="Sample account" />
+      <Text variant="bodyLg" tone="ink2">
+        Your details and settings show up here. Use Admin view to manage real accounts.
+      </Text>
+    </Preview>
+  );
 }
 export function CreatorDashboardPreview() {
-  return <Preview title="Creator dashboard"><Tile label="Submissions" value="0" /><Tile label="Available balance" value="₱0.00" />
-    <Text style={{ fontFamily: fonts.sans, color: colors.ink2 }}>Creators complete training, visit businesses, take photos and record interviews. Their submissions and leads appear here.</Text>
-  </Preview>;
+  return (
+    <Preview title="Home">
+      <Tile label="Sites" value="0" />
+      <Tile label="Available balance" value={formatPeso(0)} />
+      <Text variant="bodyLg" tone="ink2">
+        Field agents visit shops, take photos and record an interview. Their sites and leads show up here.
+      </Text>
+    </Preview>
+  );
 }

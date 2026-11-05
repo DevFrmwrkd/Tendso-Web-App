@@ -233,7 +233,7 @@ export function rowShareNote(stage: Stage): string | null {
 
 /** The same, beside the status in the drawer's head. */
 export function headShareNote(stage: Stage): string | null {
-    if (stage === "draft" || stage === "review" || stage === "building") return "once it's live and paid";
+    if (stage === "draft" || stage === "review" || stage === "building") return "once the owner pays";
     return rowShareNote(stage);
 }
 

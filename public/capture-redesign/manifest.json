@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "approved": true,
+  "sourceHash": "83004533bb7170aef62aceb2041c2cdc4789c551238543baa5724ba1ce618730",
+  "catalogSha256": "dda20c14589fba1e0eca5180b9564317d89f8f76c298cb44797d85b35f424a68",
+  "catalogJsSha256": "f1dac2874870b199344ceca2c5b46c810c04013d93984300959654ec936ec020",
+  "documents": [
+    {
+      "id": "barber-editorial",
+      "code": "business:CA",
+      "file": "barber-editorial.html",
+      "sha256": "b56dab80462fee4a8372197d7dce4d4c38950db67cd89344669c7e929d9939f3"
+    },
+    {
+      "id": "barber-immersive",
+      "code": "business:CB",
+      "file": "barber-immersive.html",
+      "sha256": "f910c8b4019d37cf32c66e2eaf2c1e90db75db08e77d402c9f4a40bdf924461a"
+    },
+    {
+      "id": "barber-studio",
+      "code": "business:CC",
+      "file": "barber-studio.html",
+      "sha256": "3a42126b366179a29c3b52953474e53430793ab4864a2f5b5bcef26bd577510a"
+    },
+    {
+      "id": "repair-editorial",
+      "code": "business:CD",
+      "file": "repair-editorial.html",
+      "sha256": "5eac98f719e72e946a7f3800e35e2f262286ac28c321e3adb5b0ec1479753251"
+    },
+    {
+      "id": "repair-immersive",
+      "code": "business:CE",
+      "file": "repair-immersive.html",
+      "sha256": "e56db46be99155a044e7df1f60a67bdf033d890a2740810d8f7c3608322864e0"
+    },
+    {
+      "id": "repair-studio",
+      "code": "business:CF",
+      "file": "repair-studio.html",
+      "sha256": "bb9cdcea97cd816f155734613fb49808df44c30387f6419e2ee5a83e2dbd394c"
+    },
+    {
+      "id": "spa-editorial",
+      "code": "business:CG",
+      "file": "spa-editorial.html",
+      "sha256": "fbfae9ec26fa923a82128dc0d716bbfdb5eeb1d7f0bb06c68297451426e6585f"
+    },
+    {
+      "id": "spa-immersive",
+      "code": "business:CH",
+      "file": "spa-immersive.html",
+      "sha256": "1bb0a36b0768d49cbb96367a09e63f580ed51a9d7dc2ecb656db3b30e8033fd2"
+    },
+    {
+      "id": "spa-studio",
+      "code": "business:CI",
+      "file": "spa-studio.html",
+      "sha256": "fe13501b2878217d9fd4409c0ad6d24327c14342a4bc2194960b1fdc29b8ee0d"
+    },
+    {
+      "id": "food-editorial",
+      "code": "business:CJ",
+      "file": "food-editorial.html",
+      "sha256": "cdabe2ad83a8d7f7dfe913b89c8972f92c5f4628e35087f31fc35d78f8064534"
+    },
+    {
+      "id": "food-immersive",
+      "code": "business:CK",
+      "file": "food-immersive.html",
+      "sha256": "a6bd0fafb6feade7a41f953055f00040d7f61be0b45d5cc5af4acbae96096cce"
+    },
+    {
+      "id": "food-studio",
+      "code": "business:CL",
+      "file": "food-studio.html",
+      "sha256": "b48c1990598ff5461e7a4fbd9db30a6ef592f5098545989895ad12e73db30085"
+    },
+    {
+      "id": "clinic-editorial",
+      "code": "business:CM",
+      "file": "clinic-editorial.html",
+      "sha256": "a3d5eb587dbe505a6b2bf8a40f3e4dba6ba8848b95e340395d44171176b59ef9"
+    },
+    {
+      "id": "clinic-immersive",
+      "code": "business:CN",
+      "file": "clinic-immersive.html",
+      "sha256": "bea7be2719a0a60a63fe5b3d2f53763f14f5f2b52987e1dfcbdafa7aa3b5a4d0"
+    },
+    {
+      "id": "clinic-studio",
+      "code": "business:CO",
+      "file": "clinic-studio.html",
+      "sha256": "6fa80bbd4953a75c412cc993f2d756fc20904e8398f5c1967a7f5f5fff5faa6c"
+    },
+    {
+      "id": "law-editorial",
+      "code": "business:CP",
+      "file": "law-editorial.html",
+      "sha256": "db96d3b148e06d7f2ad16dc465e98751e29f2350ef93df38579d5083a56a9cb0"
+    },
+    {
+      "id": "law-immersive",
+      "code": "business:CQ",
+      "file": "law-immersive.html",
+      "sha256": "aba91320f31e7c1d793ac6d3e3d1aba30642ae6aa31cd55c41563fb4c3aaadcd"
+    },
+    {
+      "id": "law-studio",
+      "code": "business:CR",
+      "file": "law-studio.html",
+      "sha256": "9a1b965851a924cff5859180866f1b1a6a6478bb7ebe1f9a1255c8237e8774f7"
+    },
+    {
+      "id": "craft-editorial",
+      "code": "business:CS",
+      "file": "craft-editorial.html",
+      "sha256": "055641340bbe29a3953896d2eb8ec425b506c46311ceb62724a61218928d9f86"
+    },
+    {
+      "id": "craft-immersive",
+      "code": "business:CT",
+      "file": "craft-immersive.html",
+      "sha256": "55c3fd2f00ad49dc2da50cdb8c58a2845e173aa140a7b07642bea09c7665bf9e"
+    },
+    {
+      "id": "craft-studio",
+      "code": "business:CU",
+      "file": "craft-studio.html",
+      "sha256": "0446fc2a34d1eef8e4ae7f2bcd1079cc1696e71c4416cb767c296bbc43d2b5da"
+    },
+    {
+      "id": "other-editorial",
+      "code": "business:CV",
+      "file": "other-editorial.html",
+      "sha256": "01718ce1b324beb93dc1c6639c54890e064f97d91fd3c4fc2244d705f1bffc26"
+    },
+    {
+      "id": "other-immersive",
+      "code": "business:CW",
+      "file": "other-immersive.html",
+      "sha256": "3127badc87763745b80f511423dd447f090ed62377ebe1797ae92edb11aab781"
+    },
+    {
+      "id": "other-studio",
+      "code": "business:CX",
+      "file": "other-studio.html",
+      "sha256": "bd70a396346c55ce77aa10872f020362a47b30a5cf3107e6594ac6056b90c824"
+    }
+  ]
+}

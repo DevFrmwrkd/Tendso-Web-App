@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Padyak Bike Shop · Marikina</title>
+<meta name="description" content="Bike repair and parts in Marikina. Flat fixes, brake tune-ups, full services. Same-day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1d3cff; --deep:#0b1fb8; --ink:#0a0f3a; --yellow:#ffe14a; --white:#fff; --red:#ff4d2e;
+  --display:'Anton','Impact',sans-serif; --body:'Space Grotesk',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--blue);color:var(--white);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.btn{display:inline-flex;align-items:center;gap:12px;background:var(--yellow);color:var(--ink);font-weight:700;font-size:18px;padding:18px 30px;border-radius:999px;transition:transform .2s}
+.btn:hover{transform:translateY(-2px) rotate(-1deg)}
+.btn svg{width:20px;height:20px}
+
+/* HERO */
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;background:var(--blue);position:relative;overflow:hidden}
+nav{display:flex;align-items:center;justify-content:space-between;padding:26px clamp(20px,4vw,64px)}
+.logo{font-family:var(--display);font-size:30px;letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.logo i{width:30px;height:30px;border-radius:50%;border:5px solid var(--yellow);display:inline-block;position:relative}
+.logo i:after{content:"";position:absolute;inset:6px;background:var(--yellow);border-radius:50%}
+nav .links{display:flex;gap:34px;font-weight:500;font-size:17px}
+nav .call{font-weight:700;font-size:16px;border:2px solid var(--white);padding:11px 20px;border-radius:999px}
+.stage{flex:1;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:20px;padding:0 clamp(20px,4vw,64px) 28px;position:relative}
+.pill{display:inline-block;font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;border:2px solid rgba(255,255,255,.55);padding:9px 18px;border-radius:999px;margin-bottom:26px}
+h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(88px,11.6vw,190px);line-height:.9;letter-spacing:.005em}
+h1 em{font-style:normal;color:var(--yellow)}
+.lede{font-size:clamp(18px,1.5vw,22px);line-height:1.45;max-width:30ch;margin:26px 0 34px;color:rgba(255,255,255,.92)}
+.orbit{position:relative;justify-self:center;width:min(620px,42vw,68vh);aspect-ratio:1}
+.orbit .photo{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:10px solid var(--yellow);box-shadow:0 30px 70px rgba(5,10,90,.45)}
+.orbit .photo img{width:100%;height:100%;object-fit:cover;object-position:32% 50%}
+.badge{position:absolute;left:-8%;bottom:2%;width:34%;aspect-ratio:1;border-radius:50%;background:var(--yellow);color:var(--ink);animation:spin 18s linear infinite}
+.badge svg{width:100%;height:100%}
+.badge text{font-family:var(--display);font-size:13px;fill:var(--ink)}
+.badge b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:400;font-size:clamp(30px,3.6vw,56px);animation:spin 18s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sticker{position:absolute;right:-3%;top:6%;background:var(--red);color:#fff;font-family:var(--display);font-size:clamp(20px,2.1vw,32px);line-height:1;text-transform:uppercase;padding:16px 20px;border-radius:18px;transform:rotate(8deg);text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.sticker small{display:block;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.12em;margin-bottom:4px}
+
+.marquee{background:var(--yellow);color:var(--ink);overflow:hidden;white-space:nowrap;padding:16px 0;transform:rotate(-1.2deg) scale(1.03);margin-bottom:6px}
+.marquee div{display:inline-flex;gap:0;animation:slide 28s linear infinite}
+.marquee span{font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:.03em;padding:0 22px;display:flex;align-items:center;gap:44px}
+.marquee span:after{content:"";width:16px;height:16px;border-radius:50%;background:var(--blue);display:inline-block}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* SERVICES */
+.services{background:var(--yellow);color:var(--ink);padding:clamp(70px,9vw,130px) clamp(20px,4vw,64px)}
+.services h2,.visit h2,.story h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(60px,8.5vw,140px);line-height:.92}
+.services h2{margin-bottom:46px}
+.row{display:grid;grid-template-columns:80px 1fr auto;gap:28px;align-items:center;padding:28px 0;border-top:3px solid var(--ink)}
+.row:last-child{border-bottom:3px solid var(--ink)}
+.row .n{font-family:var(--display);font-size:34px;color:var(--blue)}
+.row h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:clamp(32px,3.6vw,54px);line-height:1}
+.row p{font-size:18px;margin-top:8px;max-width:48ch;line-height:1.4}
+.row .price{font-family:var(--display);font-size:clamp(44px,5vw,78px);line-height:1;color:var(--blue)}
+.row .price small{font-size:.35em;color:var(--ink);margin-right:6px;font-family:var(--body);font-weight:700;letter-spacing:.1em}
+
+/* STORY */
+.story{background:var(--deep);padding:clamp(70px,9vw,130px) clamp(20px,4vw,64px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,100px);align-items:center}
+.story .stack{position:relative;height:clamp(460px,46vw,680px)}
+.story .card{position:absolute;overflow:hidden;border:8px solid var(--white);box-shadow:0 24px 50px rgba(0,0,10,.4)}
+.story .card img{width:100%;height:100%;object-fit:cover}
+.card.a{left:0;top:0;width:68%;height:82%;border-radius:36px;transform:rotate(-4deg)}
+.card.b{right:0;bottom:0;width:44%;aspect-ratio:1;border-radius:50%;border-color:var(--yellow)}
+.story h2{font-size:clamp(54px,6.4vw,104px);margin-bottom:26px}
+.story h2 em{font-style:normal;color:var(--yellow)}
+.story p{font-size:clamp(18px,1.5vw,22px);line-height:1.55;max-width:42ch;color:rgba(255,255,255,.9)}
+.stats{display:flex;gap:40px;margin-top:38px;flex-wrap:wrap}
+.stats div{font-family:var(--display);font-size:clamp(54px,5.5vw,88px);line-height:1;color:var(--yellow)}
+.stats span{display:block;font-family:var(--body);font-weight:500;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-top:8px}
+
+/* VISIT */
+.visit{background:var(--red);color:#fff;padding:clamp(70px,9vw,130px) clamp(20px,4vw,64px) 40px}
+.visit h2{font-size:clamp(60px,9vw,150px);margin-bottom:50px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,64px)}
+.cols h4{font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:16px;opacity:.85}
+.cols p,.cols li{font-size:clamp(20px,1.8vw,26px);line-height:1.4;list-style:none}
+.cols li{display:flex;justify-content:space-between;border-bottom:2px solid rgba(255,255,255,.35);padding:9px 0;max-width:380px}
+.big{font-family:var(--display);font-size:clamp(40px,4.4vw,68px);line-height:1;display:block;margin-bottom:22px}
+.visit .btn{background:#fff}
+footer{background:var(--ink);color:rgba(255,255,255,.8);padding:26px clamp(20px,4vw,64px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:15px}
+
+@media(max-width:860px){
+  nav .links{display:none}
+  nav{padding:18px 20px}
+  .logo{font-size:25px}
+  .stage{grid-template-columns:1fr;gap:6px;padding-bottom:24px}
+  .pill{font-size:12px;margin-bottom:16px;padding:8px 14px}
+  h1{font-size:21vw}
+  .lede{font-size:16px;margin:14px 0 20px}
+  .orbit{width:72vw;margin:24px auto 0}
+  .badge{left:-5%;width:36%}
+  .sticker{right:-2%;padding:12px 14px}
+  .btn{font-size:17px;padding:16px 26px}
+  .marquee span{font-size:22px}
+  .row{grid-template-columns:44px 1fr;gap:14px}
+  .row .price{grid-column:2;margin-top:2px}
+  .row .n{font-size:24px}
+  .story{grid-template-columns:1fr}
+  .story .stack{height:112vw}
+  .cols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <nav>
+    <a class="logo" href="#"><i></i>Padyak</a>
+    <div class="links"><a href="#services">Services</a><a href="#story">The shop</a><a href="#visit">Visit</a></div>
+    <a class="call" href="tel:09175550142">0917 555 0142</a>
+  </nav>
+  <div class="stage">
+    <div>
+      <span class="pill">Bike repair &amp; parts · Marikina</span>
+      <h1>Get<br>rolling<br><em>again.</em></h1>
+      <p class="lede">Flat tire, loose brakes, noisy chain. Drop it off in the morning, ride it home today.</p>
+      <a class="btn" href="#visit">Book a tune-up
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <div class="orbit">
+      <div class="photo"><img src="/v2/showcase/bike/img/bike-work.jpg" alt="Kuya Ben truing a bicycle wheel"></div>
+      <div class="badge">
+        <svg viewBox="0 0 100 100"><defs><path id="c" d="M50,50 m-35,0 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0"/></defs>
+          <text><textPath href="#c" textLength="214" lengthAdjust="spacing">FLATS · BRAKES · GEARS · WHEELS ·</textPath></text></svg>
+        <b>★</b>
+      </div>
+      <div class="sticker"><small>FLAT FIX</small>₱150</div>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true"><div>
+    <span>Flat fix ₱150</span><span>Brake tune ₱250</span><span>Full service ₱650</span><span>Wheel true ₱200</span><span>Parts in stock</span><span>Same-day repairs</span>
+    <span>Flat fix ₱150</span><span>Brake tune ₱250</span><span>Full service ₱650</span><span>Wheel true ₱200</span><span>Parts in stock</span><span>Same-day repairs</span>
+  </div></div>
+</header>
+
+<section class="services" id="services">
+  <h2>What we<br>fix</h2>
+  <div class="row"><span class="n">01</span><div><h3>Flat tire fix</h3><p>New tube, patch or tubeless sealant. Tires checked front and back.</p></div><div class="price"><small>FROM</small>₱150</div></div>
+  <div class="row"><span class="n">02</span><div><h3>Brake tune-up</h3><p>Pads, cables and levers adjusted so you actually stop.</p></div><div class="price"><small>FROM</small>₱250</div></div>
+  <div class="row"><span class="n">03</span><div><h3>Wheel truing</h3><p>Wobbly rim straightened and spokes tensioned.</p></div><div class="price"><small>FROM</small>₱200</div></div>
+  <div class="row"><span class="n">04</span><div><h3>Full service</h3><p>Clean, lube, gears, brakes, bolts and a test ride. Ready for the road.</p></div><div class="price"><small>FROM</small>₱650</div></div>
+  <div class="row"><span class="n">05</span><div><h3>Parts &amp; accessories</h3><p>Chains, tires, saddles, lights, locks and helmets. Walk in and ask.</p></div><div class="price"><small>FROM</small>₱120</div></div>
+</section>
+
+<section class="story" id="story">
+  <div class="stack">
+    <div class="card a"><img src="/v2/showcase/bike/img/bike-owner.jpg" alt="Kuya Ben in his shop" style="object-position:50% 25%"></div>
+    <div class="card b"><img src="/v2/showcase/bike/img/bike-shop.jpg" alt="A repaired red bike handed to a happy customer"></div>
+  </div>
+  <div>
+    <h2>Marikina's<br>bike <em>doctor</em><br>since 2009.</h2>
+    <p>Kuya Ben Santos opened Padyak with one repair stand and a toolbox. Today the whole barangay brings their bikes here, from school kids to riders training for the weekend.</p>
+    <div class="stats">
+      <div>15<span>Years open</span></div>
+      <div>4,000+<span>Bikes fixed</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <h2>Come<br>say hi.</h2>
+  <div class="cols">
+    <div>
+      <h4>Call or text</h4>
+      <a class="big" href="tel:09175550142">0917 555 0142</a>
+      <a class="btn" href="tel:09175550142">Call the shop</a>
+    </div>
+    <div>
+      <h4>Hours</h4>
+      <ul>
+        <li><span>Mon – Sat</span><span>8:00 – 6:00</span></li>
+        <li><span>Sunday</span><span>9:00 – 2:00</span></li>
+        <li><span>Holidays</span><span>By message</span></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Find us</h4>
+      <p>128 Shoe Avenue, Sto. Niño<br>Marikina City, Metro Manila<br>Near the bike lane, beside the bakery.</p>
+    </div>
+  </div>
+</section>
+<footer><span>© Padyak Bike Shop</span><span>Sto. Niño, Marikina City</span></footer>
+</body>
+</html>

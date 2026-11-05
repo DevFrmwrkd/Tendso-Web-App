@@ -1,0 +1,299 @@
+[
+  {
+    "id": "barber",
+    "businessType": "Barber/Salon",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Kanto Cuts",
+        "tagline": "A good cut, a familiar chair and a little time for yourself.",
+        "contact": { "address": "Sample Shop 4, 18 J.P. Rizal Street\nMarikina City, Philippines", "phone": "+639000000001", "email": "hello@kanto-cuts.example" }
+      },
+      "content": {
+        "id": "kanto-cuts",
+        "business_type": "Barber/Salon",
+        "city": "Marikina City",
+        "hero": { "kicker": "The neighbourhood barbershop · Marikina", "headline": "The good kind of fresh start.", "sub": "A tidy trim, a new shape or your usual cut. Settle into the chair, tell us what you have in mind, and leave the everyday rush at the door.", "image": "/capture-previews/photos/barber-sample-v1.webp", "cta1": { "text": "Find your chair" } },
+        "about": { "paras": ["There is something good about having a barbershop around the corner. A place where you can drop in, talk through your cut and take a little time for yourself.", "At Kanto Cuts, the conversation comes before the clippers. Bring a reference, ask for your usual or work out a new look with us. We’ll agree on the details before we begin."] },
+        "services": { "title": "Cuts & grooming", "items": [
+          { "title": "The everyday cut", "description": "A cut shaped around how you wear your hair, finished with a tidy neckline and a simple style.", "price": "₱200", "meta": "Sample price · Haircut & finish" },
+          { "title": "Beard tidy", "description": "A trim to bring your beard back into shape, with the length and edges discussed before we start.", "price": "₱100", "meta": "Sample price · Shape & trim" },
+          { "title": "Clean shave", "description": "A little extra time in the chair for a close shave and a fresh finish.", "price": "₱150", "meta": "Sample price · Ask in the shop" }
+        ] },
+        "highlights": ["Walk in or call ahead", "Cuts & everyday grooming", "Here in Marikina"],
+        "gallery": { "title": "Inside the shop", "items": [{ "src": "/capture-previews/photos/barber-sample-v1.webp", "alt": "Fictional Kanto Cuts barbershop with empty barber chairs and a barber beside the counter", "caption": "A familiar chair. A fresh start." }] },
+        "how": { "items": [
+          { "title": "Come by or call ahead", "description": "Ask about the queue and choose a time that works for your day." },
+          { "title": "Talk through the cut", "description": "Show a reference or tell us the shape, length and finish you have in mind." },
+          { "title": "Make yourself comfortable", "description": "Take a seat. We’ll check the details with you as we go." }
+        ] },
+        "faq": { "items": [
+          { "question": "Do I need an appointment?", "answer": "Walk-ins are welcome in this sample shop. Call ahead if you want to check the queue or ask about a particular time." },
+          { "question": "Can I bring a photo of the cut I want?", "answer": "Yes. A reference helps explain the shape, length and finish you have in mind. We’ll talk it through before we start." },
+          { "question": "Can I ask for a different finish?", "answer": "Tell us how you usually style your hair and the finish you prefer. We’ll talk through the options before beginning the cut." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Saturday", "time": "9:00 AM–7:00 PM" }, { "days": "Sunday", "time": "9:00 AM–5:00 PM" }] }
+      }
+    }
+  },
+  {
+    "id": "repair",
+    "businessType": "Auto Shop",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Talyer Uno",
+        "tagline": "A clear conversation about the car and the work ahead.",
+        "contact": { "address": "Sample Bay 3, 26 Molino Road\nBacoor, Cavite, Philippines", "phone": "+639000000002", "email": "hello@talyer-uno.example" }
+      },
+      "content": {
+        "id": "talyer-uno",
+        "business_type": "Auto Shop",
+        "city": "Bacoor, Cavite",
+        "hero": { "kicker": "Your local workshop · Bacoor", "headline": "For the road ahead.", "sub": "A new noise, a warning light or a service that is due. Tell us what has changed, and let’s take a closer look before deciding on the work.", "image": "/capture-previews/photos/repair-sample-v1.webp", "cta1": { "text": "Talk about your car" } },
+        "about": { "paras": ["Car trouble often starts with a small change: a sound you have not heard before, a different feel on the road or a light on the dash. Those details are a useful place to begin.", "Bring your questions and any service records you have. We’ll discuss the inspection, explain the proposed work and agree on the scope and estimate before repairs begin."] },
+        "services": { "title": "Workshop services", "items": [
+          { "title": "Checks & diagnostics", "description": "Start with the symptoms, recent changes and any warning lights. Ask what needs checking and what the next step involves.", "meta": "Scope discussed before inspection" },
+          { "title": "Routine maintenance", "description": "Plan a service around your vehicle, its use and the maintenance records you can provide.", "meta": "Bring your service history" },
+          { "title": "Repairs & follow-up", "description": "Talk through the proposed repair, parts, timing and estimate before approving the work.", "meta": "Estimate agreed before work" }
+        ] },
+        "highlights": ["Explain the issue first", "Agree on the work & estimate", "Here in Bacoor"],
+        "gallery": { "title": "The workshop", "items": [{ "src": "/capture-previews/photos/repair-sample-v1.webp", "alt": "Fictional local vehicle workshop with a mechanic and organised equipment", "caption": "A closer look, before the next step." }] },
+        "how": { "items": [
+          { "title": "Tell us what changed", "description": "Share the vehicle details, symptoms and when you first noticed the issue." },
+          { "title": "Discuss the inspection", "description": "Confirm what will be checked, any inspection fee and the expected timing." },
+          { "title": "Agree before repairs", "description": "Review the recommended work and estimate before giving your approval." }
+        ] },
+        "faq": { "items": [
+          { "question": "What should I bring?", "answer": "Bring your vehicle details, relevant service records and a short description of what has changed. A photo of a warning light can also help explain the issue." },
+          { "question": "Will I get an estimate before repairs?", "answer": "This sample workshop discusses the proposed work and estimate before repairs. Any changes to scope or parts would be discussed with the owner." },
+          { "question": "Can I ask about a particular vehicle?", "answer": "Contact the workshop with the make, model, year and issue so it can confirm whether the requested work is available." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Saturday", "time": "8:00 AM–6:00 PM" }, { "days": "Sunday", "time": "By arrangement" }] }
+      }
+    }
+  },
+  {
+    "id": "spa",
+    "businessType": "Spa/Massage",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Luntian Spa",
+        "tagline": "A slower hour, away from the everyday.",
+        "contact": { "address": "Sample Suite 2, 12 Kamuning Lane\nQuezon City, Philippines", "phone": "+639000000003", "email": "hello@luntian-spa.example" }
+      },
+      "content": {
+        "id": "luntian-spa",
+        "business_type": "Spa/Massage",
+        "city": "Quezon City",
+        "hero": { "kicker": "A quieter corner · Quezon City", "headline": "A little stillness, just for you.", "sub": "Step out of the rush and into a slower hour. A quiet room, a considered welcome and time set aside for your comfort.", "image": "/capture-previews/photos/spa-redesign-v1.webp", "cta1": { "text": "Plan a quiet hour" } },
+        "about": { "paras": ["Some days call for a little less noise. Luntian is a small space to pause, put your phone aside and take a moment for yourself.", "Tell us your preferences when arranging your visit. We’ll explain the available sessions, confirm the duration and fee, and leave room for questions before you begin."] },
+        "services": { "title": "Time for yourself", "items": [
+          { "title": "A slower hour", "description": "Explore the available massage sessions and choose a length of time that fits your day.", "meta": "Ask about session options" },
+          { "title": "Your preferred pace", "description": "Talk about comfort, pressure and any preferences before the session begins.", "meta": "Preferences discussed first" },
+          { "title": "A quiet visit together", "description": "Ask about arranging appointments for two and which room options are available.", "meta": "Subject to room availability" }
+        ] },
+        "highlights": ["Appointments by arrangement", "Session & fee confirmed first", "A quiet space in Quezon City"],
+        "gallery": { "title": "A quieter space", "items": [{ "src": "/capture-previews/photos/spa-redesign-v1.webp", "alt": "Fictional spa room with a neatly prepared treatment bed and natural materials", "caption": "Leave a little room in your day." }] },
+        "how": { "items": [
+          { "title": "Choose your time", "description": "Get in touch with your preferred day and ask about the available sessions." },
+          { "title": "Tell us your preferences", "description": "Discuss comfort, timing and anything you would like the team to know before your visit." },
+          { "title": "Arrive a little early", "description": "Give yourself time to settle in and confirm the session details without rushing." }
+        ] },
+        "faq": { "items": [
+          { "question": "Should I book in advance?", "answer": "Please get in touch before coming by so the sample spa can confirm the available time, room and session." },
+          { "question": "Can I ask about the session before booking?", "answer": "Yes. Ask about the duration, approach, price and room options before deciding on your visit." },
+          { "question": "What should I share before booking?", "answer": "Tell the team about your preferences and anything that may affect the suitability of a session. Ask any questions you have before arranging the visit." }
+        ] },
+        "location": { "hours": [{ "days": "Tuesday–Sunday", "time": "11:00 AM–8:00 PM" }, { "days": "Monday", "time": "Closed" }] }
+      }
+    }
+  },
+  {
+    "id": "food",
+    "businessType": "Restaurant",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Kusina ni Tala",
+        "tagline": "Familiar Filipino food, made for the everyday table.",
+        "contact": { "address": "Sample Kitchen 5, 24 Mabini Street\nMarikina City, Philippines", "phone": "+639000000004", "email": "hello@kusina-ni-tala.example" }
+      },
+      "content": {
+        "id": "kusina-ni-tala",
+        "business_type": "Restaurant",
+        "city": "Marikina City",
+        "hero": { "kicker": "A neighbourhood kitchen · Marikina", "headline": "Good food. A seat at our table.", "sub": "Rice on the plate, something good from the kitchen and a little time to enjoy it. Come hungry. Bring someone with you.", "image": "/capture-previews/photos/food-sample-v1.webp", "cta1": { "text": "Come over for lunch" } },
+        "about": { "paras": ["The everyday meal deserves a little care. At Kusina ni Tala, the table is set for familiar flavours, a warm plate and the company you bring along.", "Our sample menu keeps things simple: Filipino favourites, rice meals and a few things to share. Ask what is coming from the kitchen today, or call ahead when you are bringing the family."] },
+        "services": { "title": "From the kitchen", "items": [
+          { "title": "Chicken adobo", "description": "A familiar favourite with garlic, soy and vinegar, served with steamed rice.", "price": "₱160", "meta": "Sample menu · Rice meal" },
+          { "title": "Pork sinigang", "description": "A sour, savoury bowl with vegetables, made for sharing around the table.", "price": "₱290", "meta": "Sample menu · For sharing" },
+          { "title": "Vegetable lumpia", "description": "Golden rolls with a vegetable filling and a dipping sauce on the side.", "price": "₱120", "meta": "Sample menu · A little something extra" },
+          { "title": "Fresh calamansi", "description": "Bright, simple and served over ice. Ask for the sweetness you prefer.", "price": "₱65", "meta": "Sample menu · By the glass" }
+        ] },
+        "highlights": ["Dine in or take away", "Ask what’s cooking today", "Here in Marikina"],
+        "gallery": { "title": "At our table", "items": [{ "src": "/capture-previews/photos/food-sample-v1.webp", "alt": "A fictional Filipino neighbourhood restaurant’s freshly prepared meal", "caption": "A familiar plate. A little time together." }] },
+        "how": { "items": [
+          { "title": "Find your table", "description": "Come by for a meal, or call ahead if you are planning to bring a group." },
+          { "title": "Ask what’s cooking", "description": "Check the day’s dishes and tell us about any ingredient questions before ordering." },
+          { "title": "Stay a little longer", "description": "Enjoy your meal here, or ask us to pack it for the table waiting at home." }
+        ] },
+        "faq": { "items": [
+          { "question": "Can I order for takeaway?", "answer": "Yes. Ask the sample kitchen about the dishes available for takeaway and the preparation time when ordering." },
+          { "question": "Can I ask about ingredients?", "answer": "Please tell the team about allergies or ingredient questions before you order. It will explain what it can confirm about the dish and kitchen preparation." },
+          { "question": "Can we come as a group?", "answer": "Call ahead with the number of guests and preferred time so the kitchen can discuss seating and availability." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Saturday", "time": "10:00 AM–8:00 PM" }, { "days": "Sunday", "time": "10:00 AM–6:00 PM" }] }
+      }
+    }
+  },
+  {
+    "id": "clinic",
+    "businessType": "Clinic",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Mabuti Family Clinic",
+        "tagline": "A welcoming place for everyday health conversations.",
+        "contact": { "address": "Sample Clinic 1B, 16 Acacia Street\nPasig City, Philippines", "phone": "+639000000005", "email": "appointments@mabuti-clinic.example" }
+      },
+      "content": {
+        "id": "mabuti-family-clinic",
+        "business_type": "Clinic",
+        "city": "Pasig City",
+        "hero": { "kicker": "Everyday care, close to home · Pasig", "headline": "A little care, closer to home.", "sub": "A place to ask questions, explain what has changed and plan your visit. Get in touch to confirm the available services and appointment details.", "image": "/capture-previews/photos/clinic-redesign-v1.webp", "cta1": { "text": "Ask about a visit" } },
+        "about": { "paras": ["An appointment starts with your questions. Tell us what you would like to discuss, what has changed and which records you can bring to the conversation.", "Before you visit, ask about the available appointments, fees and any preparation you need. Clear visit details help you plan your day and arrive with the information the clinic has requested."] },
+        "services": { "title": "Plan your care", "items": [
+          { "title": "Consultation visits", "description": "Ask about available consultation appointments, the information to prepare and the visit fee.", "meta": "Confirm availability before your visit" },
+          { "title": "Follow-up appointments", "description": "Arrange a return visit and ask which records or previous results the clinic needs you to bring.", "meta": "Bring relevant records" },
+          { "title": "Visit information", "description": "Find out about appointment times, accessibility needs, payment options and the services currently offered.", "meta": "Questions welcome before booking" }
+        ] },
+        "highlights": ["Appointments confirmed directly", "Visit details explained first", "Here in Pasig City"],
+        "gallery": { "title": "Before your visit", "items": [{ "src": "/capture-previews/photos/clinic-redesign-v1.webp", "alt": "Fictional family clinic consultation room with a clean desk and examination area", "caption": "A calm space for your appointment." }] },
+        "how": { "items": [
+          { "title": "Get in touch", "description": "Ask about the service you need and the next available appointment." },
+          { "title": "Prepare for the visit", "description": "Confirm the fee and ask which records, identification or previous results to bring." },
+          { "title": "Come with your questions", "description": "Allow time to check in and explain what you want to discuss during your appointment." }
+        ] },
+        "faq": { "items": [
+          { "question": "How do I arrange an appointment?", "answer": "Contact the clinic directly with the type of visit you are asking about and your preferred availability. The clinic confirms its current services and schedule." },
+          { "question": "What should I bring?", "answer": "Ask the clinic before coming in. It can explain which records, identification and previous results are relevant to the appointment you have arranged." },
+          { "question": "Can I ask about the visit fee first?", "answer": "Yes. Contact the clinic to confirm the consultation fee, accepted payment options and any other appointment details before you come in." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Friday", "time": "9:00 AM–5:00 PM" }, { "days": "Saturday", "time": "9:00 AM–12:00 PM · By appointment" }] }
+      }
+    }
+  },
+  {
+    "id": "law",
+    "businessType": "Law Office",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Narra Legal Office",
+        "tagline": "A clear conversation about your next step.",
+        "contact": { "address": "Sample Office 2B, 18 Narra Street\nQuezon City, Philippines", "phone": "+639000000006", "email": "appointments@narra-legal.example" }
+      },
+      "content": {
+        "id": "narra-legal-office",
+        "business_type": "Law Office",
+        "city": "Quezon City",
+        "hero": { "kicker": "A considered conversation · Quezon City", "headline": "Bring your questions. Find your next step.", "sub": "A legal question can come with a lot of paperwork. Start with a conversation about your situation, the records you have and the work you may need.", "image": "/capture-previews/photos/law-office-sample-v1.webp", "cta1": { "text": "Arrange a conversation" } },
+        "about": { "paras": ["The first step does not have to be a complicated one. Bring your questions, the dates that matter and the documents you already have. There is room to talk through what comes next.", "A useful conversation starts with the practical details. Arrange a time, confirm the consultation fee and ask what to bring. Any further work, scope and fees are discussed before an engagement is agreed."] },
+        "services": { "title": "How we can help", "items": [
+          { "title": "Consultation appointments", "description": "Set aside time to explain your situation, ask questions and discuss what information may be needed.", "meta": "By appointment" },
+          { "title": "Document review", "description": "Bring a contract, letter or other relevant record to discuss its terms and the questions you have.", "meta": "Scope agreed before work" },
+          { "title": "Preparing the next step", "description": "Organise the records, important dates and other information for the next stage of your matter.", "meta": "Based on your situation" }
+        ] },
+        "highlights": ["Conversations by appointment", "Scope & fees discussed first", "Here in Quezon City"],
+        "gallery": { "title": "The office", "items": [{ "src": "/capture-previews/photos/law-office-sample-v1.webp", "alt": "Fictional legal office consultation room with a wooden desk and two visitor chairs", "caption": "A space for a clear conversation." }] },
+        "how": { "items": [
+          { "title": "Request a conversation", "description": "Share the general topic and your availability when arranging an appointment." },
+          { "title": "Gather what you have", "description": "Bring relevant documents, correspondence and a short timeline of important events." },
+          { "title": "Discuss the next step", "description": "Ask about the proposed scope, fees and any additional information needed before further work." }
+        ] },
+        "faq": { "items": [
+          { "question": "How do I arrange a consultation?", "answer": "Contact the office with your availability and the general topic you want to discuss. Confirm the appointment details and consultation fee before visiting." },
+          { "question": "What should I bring?", "answer": "Bring complete copies of relevant documents, related correspondence and a simple timeline of important dates. Ask the office if anything else is needed." },
+          { "question": "Does an appointment request start legal work?", "answer": "An inquiry or appointment request is a first contact. Any professional engagement, proposed work and fees would need to be discussed and agreed with the real office." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Friday", "time": "9:00 AM–5:00 PM" }, { "days": "Consultations", "time": "By appointment" }] }
+      }
+    }
+  },
+  {
+    "id": "craft",
+    "businessType": "Craft/Producer",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Likha Wood Studio",
+        "tagline": "Useful pieces, considered details and the character of wood.",
+        "contact": { "address": "Sample Workshop 7, 9 Narra Lane\nAntipolo City, Philippines", "phone": "+639000000007", "email": "hello@likha-wood.example" }
+      },
+      "content": {
+        "id": "likha-wood-studio",
+        "business_type": "Craft/Producer",
+        "city": "Antipolo City",
+        "hero": { "kicker": "Small workshop. Considered pieces. · Antipolo", "headline": "Wood, made for the way you live.", "sub": "A table for everyday meals. A shelf for the things you keep. Tell us about your space, and let’s work through a piece that belongs in it.", "image": "/capture-previews/photos/wood-sample-v1.webp", "cta1": { "text": "Talk about a piece" } },
+        "about": { "paras": ["The pieces we use every day become part of the room around them. We like a practical shape, a comfortable proportion and a finish that lets the grain have its say.", "Start with a sketch, a few measurements or a photo of the space. We’ll discuss the material, construction and finish, then agree on the dimensions, scope and quote before making begins."] },
+        "services": { "title": "From the workshop", "items": [
+          { "title": "Tables for everyday use", "description": "Dining tables, work tables and smaller surfaces planned around the space and the way you use it.", "meta": "Dimensions & finish agreed together" },
+          { "title": "Shelves & storage", "description": "A place for books, collections and the useful things you want within reach.", "meta": "Made to the agreed measurements" },
+          { "title": "A piece of your own", "description": "Bring an idea or reference and talk through what the workshop can make, the material options and the estimate.", "meta": "Quote before making" }
+        ] },
+        "highlights": ["Start with your space", "Material & quote agreed first", "Made in a small Antipolo workshop"],
+        "gallery": { "title": "The work", "items": [{ "src": "/capture-previews/photos/wood-sample-v1.webp", "alt": "Fictional wood studio with a handmade wooden piece and working tools", "caption": "A useful shape. The character of wood." }] },
+        "how": { "items": [
+          { "title": "Bring the idea", "description": "Share your reference, intended use and measurements of the room or space." },
+          { "title": "Work through the details", "description": "Agree on dimensions, material, finish, estimate and the expected making schedule." },
+          { "title": "Plan the handover", "description": "Confirm collection or delivery arrangements and the care instructions for the finished piece." }
+        ] },
+        "faq": { "items": [
+          { "question": "Can I ask for a custom size?", "answer": "Share the dimensions, intended use and any references. The workshop can discuss what it can make and prepare a quote for the agreed design." },
+          { "question": "How long will a piece take?", "answer": "The schedule depends on the design, material and current work. Confirm the estimated timing and any changes directly with the workshop." },
+          { "question": "Can I visit before deciding?", "answer": "Get in touch to arrange a workshop visit. Bring your measurements or references so the conversation can focus on the piece you have in mind." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Saturday", "time": "9:00 AM–5:00 PM" }, { "days": "Workshop visits", "time": "Please arrange ahead" }] }
+      }
+    }
+  },
+  {
+    "id": "other",
+    "businessType": "Other",
+    "siteData": {
+      "sample": true,
+      "layout": {
+        "businessName": "Nena Corner Store",
+        "tagline": "The familiar little stop for what the day needs.",
+        "contact": { "address": "Sample Store 8, 11 Sampaguita Street\nGeneral Trias, Cavite, Philippines", "phone": "+639000000008", "email": "hello@nena-store.example" }
+      },
+      "content": {
+        "id": "nena-corner-store",
+        "business_type": "Other",
+        "city": "General Trias, Cavite",
+        "hero": { "kicker": "Your neighbourhood sari-sari store · General Trias", "headline": "Everyday essentials. Just around the corner.", "sub": "Something for the kitchen, a cool drink or the small thing you forgot. A familiar stop, close enough to fit into your day.", "image": "/capture-previews/photos/store-redesign-v1.webp", "cta1": { "text": "Find our corner" } },
+        "about": { "paras": ["A neighbourhood store is part of the rhythm of the street. A quick stop before cooking, a drink on a warm afternoon or something small to bring home.", "Our shelves follow the everyday needs of the neighbourhood: pantry staples, snacks and drinks, with a few familiar extras. Come by and ask for what you need, or call ahead to check what is in stock."] },
+        "services": { "title": "What’s on the shelves", "items": [
+          { "title": "For the everyday kitchen", "description": "Rice, pantry staples and the small ingredients that help you put a meal together.", "meta": "Ask about today’s stock" },
+          { "title": "A quick merienda", "description": "Snacks and familiar little treats for the break between one thing and the next.", "meta": "Something for the way home" },
+          { "title": "Something cool", "description": "Drinks for a warm day. Stop by and see what is in the cooler.", "meta": "Availability varies" }
+        ] },
+        "highlights": ["Everyday pantry & snacks", "Ask what’s in stock", "Here in the neighbourhood"],
+        "gallery": { "title": "Our little corner", "items": [{ "src": "/capture-previews/photos/store-redesign-v1.webp", "alt": "Fictional Philippine sari-sari store with a friendly storefront and everyday goods on its shelves", "caption": "A little stop for what the day needs." }] },
+        "how": { "items": [
+          { "title": "Come around the corner", "description": "Find us on Sampaguita Street during the opening hours shown below." },
+          { "title": "Ask for what you need", "description": "Tell us what you are looking for or ask about what is available today." },
+          { "title": "Take a little home", "description": "Pick up the everyday essentials and carry on with your day." }
+        ] },
+        "faq": { "items": [
+          { "question": "Can I check whether something is in stock?", "answer": "Call or come by to ask about a specific product. Stock and sizes can vary from day to day." },
+          { "question": "Are you easy to find?", "answer": "Find us on Sampaguita Street in General Trias. Use the address and directions below, or give us a call if you need help finding the corner." },
+          { "question": "What time can I come by?", "answer": "Our opening hours are listed below. Call ahead if you are planning a visit close to opening or closing time." }
+        ] },
+        "location": { "hours": [{ "days": "Monday–Saturday", "time": "6:30 AM–9:00 PM" }, { "days": "Sunday", "time": "7:00 AM–8:00 PM" }] }
+      }
+    }
+  }
+]

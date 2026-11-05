@@ -72,7 +72,7 @@ const CertificateCard = forwardRef<View, CertificateCardProps>(
             fontSize: 22, fontWeight: '900', color: '#18181b',
             textAlign: 'center', marginBottom: 4,
           }}>
-            Certified Creator
+            Certified Field Agent
           </Text>
 
           {/* Thin divider */}
@@ -103,7 +103,7 @@ const CertificateCard = forwardRef<View, CertificateCardProps>(
               fontSize: 16, fontWeight: '900', color: '#fff',
               letterSpacing: 1, textAlign: 'center',
             }}>
-              {creatorName || 'CERTIFIED CREATOR'}
+              {creatorName || 'CERTIFIED FIELD AGENT'}
             </Text>
           </View>
 

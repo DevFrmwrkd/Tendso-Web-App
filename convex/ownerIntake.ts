@@ -10,6 +10,7 @@ import { INTAKE_QUESTIONS, buildNarrativeFromQa, meetsAnswerMinimum } from '../l
 import type { IntakeQuestion, QaPair } from '../lib/narrativeFromQa';
 import { assertGiveawayIdentityAvailable, GIVEAWAY_CLOSED_MESSAGE, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
 import { resolveAffiliateOffer } from './lib/affiliateOffer';
+import { ensureSubmissionOwnerLink } from './owners';
 
 /**
  * Owner-supplied intake — the /start funnel's single write.
@@ -460,10 +461,9 @@ export const submitOwnerIntake = mutation({
         businessType: v.string(),
         ownerName: v.string(),
         ownerPhone: v.string(),
-        // REQUIRED here, unlike the creator funnel where it is optional and
-        // labelled as such: /api/send-website-email 400s without it (:44-46) and
-        // the 72h follow-up cron filters on it (convex/followUp.ts:52). With no
-        // creator standing in the shop, it is the only channel back to the owner.
+        // Required in owner intake and on final creator submission: website
+        // emails and payment follow-ups need the owner’s email address.
+        // Creator drafts may still save before that address is collected.
         ownerEmail: v.string(),
         address: v.string(),
         city: v.string(),
@@ -703,7 +703,12 @@ export const submitOwnerIntake = mutation({
             // real figure at the moment the domain is genuinely charged.
             airtableSyncStatus: giveaway ? 'pending_review' : 'pending_push',
             contentSource: 'owner_intake',
+            ...(!giveaway ? { publishPolicy: 'pay_then_publish' as const } : {}),
         });
+        if (!giveaway) {
+            const saved = await ctx.db.get(submissionId);
+            if (saved) await ensureSubmissionOwnerLink(ctx, saved);
+        }
 
         if (giveaway && giveaway.held + 1 === giveaway.config.cap) {
             await ctx.scheduler.runAfter(0, internal.discord.notifyGiveawayMilestone, {

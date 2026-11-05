@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tindahan ni Aling Nena · Batangas City</title>
+<meta name="description" content="Sari-sari store with home delivery in Batangas City. Rice, canned goods, snacks, load and LPG, open 6am to 10pm.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--green:#06a75f;--deep:#034d2e;--yellow:#ffd426;--red:#ff4f2e;--white:#fff;--ink:#06281a;--d:'Archivo Black','Impact',sans-serif;--b:'Archivo',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--b);background:var(--green);color:var(--white);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.btn{display:inline-flex;align-items:center;gap:12px;background:var(--yellow);color:var(--ink);font-family:var(--d);font-size:19px;padding:20px 34px;border-radius:999px;transition:transform .2s;letter-spacing:.01em}
+.btn:hover{transform:translateY(-2px) scale(1.02)}
+
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+nav{display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,56px)}
+.logo{font-family:var(--d);font-size:22px;text-transform:uppercase;letter-spacing:.01em;line-height:1}
+.logo small{display:block;font-family:var(--b);font-weight:700;font-size:12px;letter-spacing:.18em;margin-top:5px;opacity:.85}
+nav .tel{font-weight:700;font-size:16px;border:2px solid #fff;padding:12px 22px;border-radius:999px}
+.mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 20px 22px}
+.chip{background:var(--deep);color:#fff;font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;padding:11px 22px;border-radius:999px;margin-bottom:22px}
+h1{font-family:var(--d);font-weight:400;text-transform:uppercase;font-size:clamp(70px,9.8vw,160px);line-height:1;letter-spacing:-.01em;display:flex;flex-direction:column;align-items:center;gap:.04em}
+h1 .ln{display:flex;align-items:center;gap:.16em;white-space:nowrap}
+h1 em{font-style:normal;color:var(--yellow)}
+.pl{display:inline-block;height:.86em;border-radius:999px;overflow:hidden;border:.05em solid var(--yellow);flex:none}
+.pl img{width:100%;height:100%;object-fit:cover}
+.pl.a{width:1.9em}.pl.a img{object-position:48% 35%}
+.pl.b{width:1.9em}.pl.b img{object-position:50% 38%}
+.lede{font-size:clamp(18px,1.5vw,22px);font-weight:500;margin:22px 0 28px;max-width:44ch;line-height:1.4}
+.sticker{position:absolute;right:clamp(24px,5vw,90px);top:128px;width:clamp(110px,10vw,150px);aspect-ratio:1;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;text-align:center;font-family:var(--d);font-size:clamp(15px,1.4vw,21px);line-height:1.05;transform:rotate(12deg);box-shadow:0 10px 24px rgba(0,50,20,.35)}
+.sticker small{display:block;font-family:var(--b);font-weight:700;font-size:.6em;letter-spacing:.1em;margin-bottom:3px}
+.mob{display:none}
+.marquee{background:var(--red);color:#fff;overflow:hidden;white-space:nowrap;padding:15px 0;border-block:3px solid var(--ink)}
+.marquee div{display:inline-flex;animation:slide 30s linear infinite}
+.marquee span{font-family:var(--d);font-size:24px;text-transform:uppercase;padding:0 20px;display:flex;align-items:center;gap:40px}
+.marquee span:after{content:"";width:14px;height:14px;background:var(--yellow);border-radius:50%}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* SPECIALS */
+.specials{background:var(--yellow);color:var(--ink);text-align:center;padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px)}
+.specials h2,.deliver h2,.visit h2{font-family:var(--d);font-weight:400;text-transform:uppercase;font-size:clamp(48px,7.2vw,120px);line-height:.95}
+.specials h2{margin-bottom:14px}
+.specials p.s{font-size:clamp(18px,1.5vw,22px);font-weight:500;margin-bottom:50px}
+.tags{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,2vw,30px);max-width:1200px;margin:0 auto}
+.tag{aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px}
+.tag b{font-family:var(--d);font-weight:400;font-size:clamp(34px,4vw,64px);line-height:1}
+.tag span{font-weight:700;font-size:clamp(14px,1.3vw,19px);margin-top:8px;line-height:1.2}
+.tag small{font-weight:500;font-size:clamp(12px,1vw,15px);opacity:.8}
+.t1{background:var(--green);color:#fff}.t2{background:var(--red);color:#fff}.t3{background:var(--ink);color:var(--yellow)}.t4{background:#fff}
+.t5{background:var(--red);color:#fff}.t6{background:#fff}.t7{background:var(--green);color:#fff}.t8{background:var(--ink);color:var(--yellow)}
+
+/* DELIVER */
+.deliver{background:var(--deep);padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px);display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,6vw,90px);align-items:center}
+.deliver .photo{border-radius:44px;overflow:hidden;aspect-ratio:1/1;position:relative;transform:rotate(-2deg);border:8px solid var(--yellow)}
+.deliver .photo img{width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+.deliver .pill2{position:absolute;right:-10px;bottom:-10px}
+.deliver h2{margin-bottom:34px}
+.deliver h2 em{font-style:normal;color:var(--yellow)}
+.how{list-style:none;counter-reset:s}
+.how li{counter-increment:s;display:grid;grid-template-columns:70px 1fr;gap:16px;align-items:center;padding:20px 0;border-top:2px solid rgba(255,255,255,.28);font-size:clamp(18px,1.5vw,22px);line-height:1.4}
+.how li:before{content:counter(s);font-family:var(--d);font-size:54px;color:var(--yellow);line-height:1}
+.how b{display:block;font-family:var(--d);font-weight:400;font-size:clamp(24px,2.2vw,32px);margin-bottom:4px;text-transform:uppercase}
+.fees{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
+.fees span{background:var(--yellow);color:var(--ink);font-weight:700;padding:12px 20px;border-radius:999px;font-size:17px}
+
+/* VISIT */
+.visit{background:var(--red);padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px) 40px;text-align:center}
+.avatar{width:clamp(130px,14vw,200px);aspect-ratio:1;border-radius:50%;overflow:hidden;border:8px solid var(--yellow);margin:0 auto 28px}
+.avatar img{width:100%;height:100%;object-fit:cover;object-position:50% 35%}
+.visit h2{margin-bottom:14px}
+.visit .q{font-size:clamp(18px,1.5vw,22px);max-width:46ch;margin:0 auto 44px;line-height:1.45;font-weight:500}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);text-align:left;max-width:1200px;margin:0 auto 44px}
+.cols h4{font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px;opacity:.9}
+.cols p,.cols li{font-size:clamp(19px,1.7vw,25px);line-height:1.35;font-weight:500;list-style:none}
+.cols li{display:flex;justify-content:space-between;border-bottom:2px solid rgba(255,255,255,.5);padding:9px 0;max-width:380px}
+.cols .big{font-family:var(--d);font-size:clamp(34px,3.6vw,54px);line-height:1;display:block}
+.visit .btn{background:var(--yellow)}
+footer{background:var(--ink);color:rgba(255,255,255,.75);padding:24px clamp(20px,4vw,56px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:15px}
+
+@media(max-width:900px){
+  nav{padding:16px 20px}
+  .logo{font-size:18px}.logo small{font-size:10px}
+  nav .tel{font-size:14px;padding:10px 16px}
+  .chip{font-size:11px;padding:9px 16px;margin-bottom:18px}
+  h1{font-size:13.4vw}
+  .mid{justify-content:flex-start;padding-top:34px}
+  nav .tel{white-space:nowrap}
+  .logo{max-width:58%}
+  h1 .pl{display:none}
+  .sticker{display:none}
+  .mob{display:flex;gap:10px;margin:22px 0 4px;justify-content:center}
+  .mob div{width:27vw;height:40vw;border-radius:999px;overflow:hidden;border:4px solid var(--yellow)}
+  .mob div:nth-child(2){margin-top:22px}
+  .mob img{width:100%;height:100%;object-fit:cover}
+  .lede{font-size:16px;margin:14px 0 20px}
+  .btn{font-size:17px;padding:17px 28px}
+  .marquee span{font-size:19px}
+  .tags{grid-template-columns:repeat(2,1fr)}
+  .deliver{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <nav>
+    <a class="logo" href="#">Tindahan ni Aling Nena<small>BATANGAS CITY</small></a>
+    <a class="tel" href="tel:09175550123">0917 555 0123</a>
+  </nav>
+  <div class="sticker"><div><small>DELIVERY</small>₱20<br>flat fee</div></div>
+  <div class="mid">
+    <span class="chip">Sari-sari store · Open 6am – 10pm</span>
+    <h1>
+      <span class="ln">Sari-sari <span class="pl a"><img src="/v2/showcase/sarisari/img/sarisari-bag.jpg" alt="Aling Nena packing groceries"></span></span>
+      <span class="ln"><span class="pl b"><img src="/v2/showcase/sarisari/img/sarisari-rider.jpg" alt="Handing a grocery bag to the delivery rider"></span> <em>delivered.</em></span>
+    </h1>
+    <div class="mob">
+      <div><img src="/v2/showcase/sarisari/img/sarisari-owner.jpg" alt="Aling Nena at her store window" style="object-position:50% 38%"></div>
+      <div><img src="/v2/showcase/sarisari/img/sarisari-rider.jpg" alt="Handing a grocery bag to the delivery rider" style="object-position:30% 50%"></div>
+      <div><img src="/v2/showcase/sarisari/img/sarisari-bag.jpg" alt="Packing a grocery bag" style="object-position:45% 50%"></div>
+    </div>
+    <p class="lede">Rice, canned goods, snacks, load and gas. Message us, we pack it, a rider brings it in 30 minutes.</p>
+    <a class="btn" href="#visit">Order for delivery</a>
+  </div>
+  <div class="marquee" aria-hidden="true"><div>
+    <span>Bigas ₱56/kilo</span><span>Free delivery over ₱500</span><span>Load from ₱10</span><span>LPG refill ₱950</span><span>Open 6am – 10pm</span><span>Utang? Hindi po</span>
+    <span>Bigas ₱56/kilo</span><span>Free delivery over ₱500</span><span>Load from ₱10</span><span>LPG refill ₱950</span><span>Open 6am – 10pm</span><span>Utang? Hindi po</span>
+  </div></div>
+</header>
+
+<section class="specials" id="specials">
+  <h2>Everyday<br>prices</h2>
+  <p class="s">What Batangas neighbours order the most.</p>
+  <div class="tags">
+    <div class="tag t1"><b>₱56</b><span>Bigas</span><small>per kilo</small></div>
+    <div class="tag t2"><b>₱16</b><span>Pancit canton</span><small>per pack</small></div>
+    <div class="tag t3"><b>₱24</b><span>Sardines</span><small>155g can</small></div>
+    <div class="tag t4"><b>₱8</b><span>Kape 3-in-1</span><small>per sachet</small></div>
+    <div class="tag t5"><b>₱255</b><span>Itlog</span><small>tray of 30</small></div>
+    <div class="tag t6"><b>₱42</b><span>Softdrink</span><small>1 liter</small></div>
+    <div class="tag t7"><b>₱10+</b><span>Load</span><small>all networks</small></div>
+    <div class="tag t8"><b>₱950</b><span>LPG refill</span><small>11 kg tank</small></div>
+  </div>
+</section>
+
+<section class="deliver" id="deliver">
+  <div class="photo"><img src="/v2/showcase/sarisari/img/sarisari-bag.jpg" alt="Aling Nena packing a grocery bag"></div>
+  <div>
+    <h2>Order from<br>your <em>sofa.</em></h2>
+    <ol class="how">
+      <li><div><b>Message us</b>Send your list on Messenger or text.</div></li>
+      <li><div><b>We pack it</b>Aling Nena picks every item herself.</div></li>
+      <li><div><b>Rider delivers</b>At your door in about 30 minutes. Pay cash on delivery.</div></li>
+    </ol>
+    <div class="fees"><span>Your barangay ₱20</span><span>Anywhere in the city ₱40</span><span>Free over ₱500</span></div>
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <div class="avatar"><img src="/v2/showcase/sarisari/img/sarisari-owner.jpg" alt="Aling Nena"></div>
+  <h2>Dumaan ka<br>sa amin.</h2>
+  <p class="q">Over 20 years of serving the same street. If we don't have it, we'll get it by tomorrow.</p>
+  <div class="cols">
+    <div><h4>Call or text</h4><a class="big" href="tel:09175550123">0917 555 0123</a></div>
+    <div><h4>Hours</h4><ul><li><span>Every day</span><span>6:00 am – 10:00 pm</span></li><li><span>Delivery</span><span>7:00 am – 8:00 pm</span></li></ul></div>
+    <div><h4>Find us</h4><p>Purok 3, Brgy. Kumintang Ibaba<br>Batangas City, Batangas<br>Green gate beside the chapel</p></div>
+  </div>
+  <a class="btn" href="tel:09175550123">Order now</a>
+</section>
+<footer><span>© Tindahan ni Aling Nena</span><span>Batangas City</span></footer>
+</body>
+</html>

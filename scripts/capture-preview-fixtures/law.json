@@ -1,0 +1,190 @@
+[
+  {
+    "id": "narra-legal-office",
+    "category": "law",
+    "designs": ["generic:B", "generic:D", "generic:E"],
+    "designNames": { "generic:E": "Clearview" },
+    "siteData": {
+      "layout": {
+        "businessName": "Narra Legal Office",
+        "tagline": "A clear conversation about your next step.",
+        "colorScheme": "auto",
+        "fontPairing": "auto",
+        "contact": {
+          "address": "Sample Office 2B, 18 Narra Street\nQuezon City, Philippines",
+          "phone": "+639000000011",
+          "email": "appointments@narra-legal.example"
+        },
+        "navLinks": [
+          { "href": "#about", "label": "The office" },
+          { "href": "#services", "label": "How we help" },
+          { "href": "#gallery", "label": "Your visit" },
+          { "href": "#visit", "label": "Appointments" }
+        ],
+        "socialLinks": []
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      },
+      "content": {
+        "business_type": "Law Office",
+        "description": "Fictional law-office website example: consultation appointments, document review and help preparing for a legal discussion.",
+        "photos": ["asset:law"],
+        "navCtaText": "Plan a visit",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Fictional sample · Law office · Quezon City",
+          "headlineLines": ["Clear advice.", "A way forward."],
+          "headline": "Clear advice. A way forward.",
+          "headlineMain": "Clear advice.",
+          "headlineSub": "A way forward.",
+          "thin": "A clear conversation about your next step.",
+          "sub": "Bring your questions and the documents you already have. Start with a consultation to discuss your situation and the work that may be needed.",
+          "image": "asset:law",
+          "imageCaption": "Fictional sample consultation room",
+          "cta1": { "text": "Plan a consultation", "href": "#visit" },
+          "cta2": { "text": "How we can help", "href": "#services" },
+          "meta1": "Appointments by arrangement",
+          "meta2": "Fees discussed before work begins",
+          "showreel": [
+            { "image": "asset:law", "label": "A space to talk" },
+            { "image": "asset:law", "label": "Prepare for your visit" }
+          ]
+        },
+        "marquee": { "text": "Consultations · Document review · Preparing your next step" },
+        "trust": {
+          "cells": [
+            { "num": "Talk", "label": "Explain your situation" },
+            { "num": "Prepare", "label": "Bring relevant documents" },
+            { "num": "Plan", "label": "Discuss the next step" }
+          ]
+        },
+        "about": {
+          "tag": "The office",
+          "tag2": "Fictional sample office",
+          "tagCode": "Fictional sample office",
+          "headline": "Make room for a clear conversation.",
+          "lead": "A legal question can come with a lot of paperwork. A first visit gives you time to explain what happened and ask what comes next.",
+          "paragraphs": [
+            "A legal question can come with a lot of paperwork. A first visit gives you time to explain what happened and ask what comes next.",
+            "Tell the office the general topic when arranging your appointment. Bring the relevant records, dates and questions so the consultation can focus on your situation."
+          ],
+          "body": "A first visit gives you time to explain your situation, review the documents you already have and discuss the next step. Contact the office to arrange a consultation.",
+          "image": "asset:law",
+          "signature": "Narra Legal Office",
+          "note": "Fictional office and sample website. Consultation details and fees are confirmed before an appointment."
+        },
+        "services": {
+          "tag": "How we can help",
+          "headline": "Start with the question in front of you.",
+          "sub": "Discuss the scope of the appointment and any proposed work before proceeding.",
+          "items": [
+            {
+              "num": "01",
+              "tag": "01 / Consult",
+              "size": "b-sm",
+              "title": "Consultation appointments",
+              "desc": "Set aside time to explain your situation, ask questions and discuss the next step.",
+              "image": "asset:law",
+              "meta": "By appointment",
+              "bullets": ["Discuss the general topic", "Prepare questions in advance", "Confirm the appointment fee"]
+            },
+            {
+              "num": "02",
+              "tag": "02 / Review",
+              "size": "b-sm",
+              "title": "Document review",
+              "desc": "Bring a contract, letter or other relevant record for a discussion of its terms and your questions.",
+              "image": "asset:law",
+              "meta": "Scope agreed before work",
+              "bullets": ["Bring complete copies", "Include related correspondence", "Agree on the review scope"]
+            },
+            {
+              "num": "03",
+              "tag": "03 / Prepare",
+              "size": "b-sm",
+              "title": "Planning the next step",
+              "desc": "Organise the information and documents needed for the next stage of your matter.",
+              "image": "asset:law",
+              "meta": "Based on your situation",
+              "bullets": ["List important dates", "Identify missing records", "Discuss proposed work and fees"]
+            }
+          ]
+        },
+        "why": {
+          "tag": "Before your visit",
+          "headline": "A little preparation helps.",
+          "items": [
+            { "title": "Explain the topic", "body": "Share a short outline when requesting an appointment so the office can confirm the visit details." },
+            { "title": "Keep your records together", "body": "Bring relevant documents, letters and a simple timeline of important events." },
+            { "title": "Discuss the scope", "body": "Ask about the appointment fee, any proposed work and what information is still needed." }
+          ]
+        },
+        "how": {
+          "tag": "Arranging a consultation",
+          "headline": "One step at a time.",
+          "steps": [
+            { "title": "Request an appointment", "body": "Contact the office with your availability and the general topic you want to discuss." },
+            { "title": "Prepare your documents", "body": "Gather relevant records and note the questions you want to cover." },
+            { "title": "Discuss what comes next", "body": "Use the consultation to review your situation and agree on any further work and fees." }
+          ]
+        },
+        "faq": {
+          "tag": "Planning your visit",
+          "headline": "A few questions before you come in.",
+          "items": [
+            { "q": "How do I arrange a consultation?", "a": "Contact the office with a brief description of the topic and your preferred times. The appointment details and fee are confirmed before your visit." },
+            { "q": "What should I bring?", "a": "Bring relevant documents, correspondence and a list of important dates. Keep original records with you unless another arrangement is specifically agreed." },
+            { "q": "Can I ask about fees first?", "a": "Yes. Ask about the consultation fee and the scope and cost of any further work before proceeding." },
+            { "q": "Does requesting an appointment start legal work?", "a": "An appointment request is an enquiry. The scope and terms of any work are discussed separately with the office." }
+          ]
+        },
+        "gallery": {
+          "tag": "Your visit",
+          "headline": "A space for the conversation.",
+          "sub": "A fictional example of a neighbourhood legal-office consultation room.",
+          "items": [{ "image": "asset:law", "caption": "Sample consultation room · Narra Legal Office" }]
+        },
+        "location": {
+          "tag": "Appointments",
+          "headline": "Plan your visit.",
+          "sub": "Contact the office before travelling to confirm your appointment and what to bring.",
+          "address": "Sample Office 2B, 18 Narra Street\nQuezon City, Philippines",
+          "phone": "+639000000011",
+          "email": "appointments@narra-legal.example",
+          "hours": "Monday–Friday · 9:00 AM–5:00 PM · By appointment",
+          "directions": { "text": "See the sample area", "href": "https://maps.google.com/?q=Quezon%20City" }
+        },
+        "area": {
+          "tag": "Visit the office",
+          "headline": "Here in Quezon City.",
+          "body": "Consultations are arranged in advance. Confirm the meeting location and appointment details before your visit.",
+          "places": ["Quezon City"],
+          "rows": [{ "place": "Quezon City", "time": "Appointments by arrangement" }]
+        },
+        "credentials": { "items": [] },
+        "testimonials": { "items": [] },
+        "ctaBand": {
+          "headline": "Bring your questions. Plan the next step.",
+          "sub": "Contact the office to discuss an appointment and the documents to prepare.",
+          "cta": { "text": "Plan a consultation", "href": "#visit" }
+        },
+        "footer": {
+          "brand": "Narra Legal Office",
+          "blurb": "A clear conversation about your next step.",
+          "brand_blurb": "A clear conversation about your next step.",
+          "visit": { "lines": ["Sample Office 2B, 18 Narra Street", "Quezon City, Philippines", "+639000000011", "appointments@narra-legal.example"] },
+          "explore": { "links": [
+            { "text": "How we help", "href": "#services" },
+            { "text": "The office", "href": "#about" },
+            { "text": "Appointments", "href": "#visit" }
+          ] },
+          "hours": [{ "day": "Monday–Friday", "time": "9:00 AM–5:00 PM" }, { "day": "Visits", "time": "By appointment" }],
+          "notes": ["Fictional office · Sample website · No real client or professional credentials"],
+          "social": []
+        }
+      }
+    }
+  }
+]

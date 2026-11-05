@@ -1,9 +1,9 @@
 import React from 'react';
 import { Text, StyleProp, TextStyle } from 'react-native';
 import { highlightParts } from '../../services/knowledge/search';
-import { colors, fonts } from '../../theme/tokens';
+import { colors, fonts } from '../../theme/v2';
 
-/** Renders `text` with search terms from `query` highlighted. */
+/** Renders `text` with search terms from `query` highlighted (accent fill, ink text). */
 export function Highlight({
   text,
   query,
@@ -20,10 +20,7 @@ export function Highlight({
     <Text style={style} numberOfLines={numberOfLines}>
       {parts.map((p, i) =>
         p.m ? (
-          <Text
-            key={i}
-            style={{ backgroundColor: colors.accentBg, color: colors.accentInk, fontFamily: fonts.sansMed }}
-          >
+          <Text key={i} style={{ backgroundColor: colors.accent, color: colors.onAccent, fontFamily: fonts.bold }}>
             {p.text}
           </Text>
         ) : (

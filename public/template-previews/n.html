@@ -65,6 +65,16 @@ header{position:sticky;top:0;z-index:1000;background:var(--paper);border-bottom:
 .navtail{display:flex;align-items:center;gap:18px}
 .navtail .ph{font-family:var(--sans);font-weight:700;font-size:14px}
 @media(max-width:980px){.navlinks{display:none}.navtail .ph{display:none}}
+/* The generated HeaderK moves its CTA into a drawer. This sample keeps it visible,
+   so let the brand/CTA wrap and reduce their phone spacing instead of overflowing. */
+@media(max-width:520px){
+  .wrap{padding-inline:18px}
+  .nav{height:auto;min-height:74px;gap:12px;flex-wrap:wrap;padding-block:12px}
+  .logo{font-size:26px;gap:6px}
+  .logo i{font-size:8px;letter-spacing:.12em;padding:4px 5px}
+  .navtail{min-width:0}
+  .navtail .btn{font-size:12px;padding-inline:18px;white-space:normal;text-align:center;justify-content:center;min-height:44px}
+}
 
 /* HERO: kinetic oversized type */
 .hero{background:var(--ink);color:var(--paper);padding:70px 0 0;overflow:hidden}
@@ -102,7 +112,7 @@ header{position:sticky;top:0;z-index:1000;background:var(--paper);border-bottom:
 .bignum .cell:first-child{border-left:none}
 .bignum .cell b{font-family:var(--disp);font-size:clamp(50px,7vw,86px);display:block;line-height:.9}
 .bignum .cell span{display:block;margin-top:10px;font-weight:600;font-size:14px;letter-spacing:.02em}
-@media(max-width:760px){.bignum .grid{grid-template-columns:1fr 1fr}.bignum .cell:nth-child(3){border-left:none}}
+@media(max-width:760px){.bignum .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bignum .cell{min-width:0;padding:28px 18px;overflow-wrap:anywhere}.bignum .cell b{font-size:clamp(34px,7vw,52px)}.bignum .cell:nth-child(3){border-left:none}}
 
 /* ABOUT: giant number + manifesto */
 .about-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:50px;align-items:center}

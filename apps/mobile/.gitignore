@@ -55,3 +55,4 @@ credentials.json
 *.ipa
 # APK build logs
 build.log
+!.env.example

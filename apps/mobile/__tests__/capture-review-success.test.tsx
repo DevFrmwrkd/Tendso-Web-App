@@ -1,0 +1,1047 @@
+import React from 'react';
+jest.mock('../hooks/useCaptureProgress', () => ({ useCaptureProgress: jest.fn() }));
+import { Alert, StyleSheet } from 'react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import SubmitReviewScreen from '../app/(app)/submit/review';
+import SubmitSuccessScreen from '../app/(app)/submit/success';
+import { Audio } from 'expo-av';
+
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+const mockSetTier = jest.fn();
+const mockChooseDesign = jest.fn();
+const mockSubmit = jest.fn();
+const mockCheckDomain = jest.fn();
+const mockRead = jest.fn();
+const mockWrite = jest.fn();
+const mockRemove = jest.fn();
+const mockFindLookup = jest.fn();
+let mockActor = 'agent-1';
+let mockOffline = false;
+let mockRevision = 0;
+let mockFocused = true;
+let mockParams: Record<string, string>;
+let mockSubmissions: Record<string, any>;
+let mockFinds: Record<string, any>;
+const mockStorage = new Map<string, unknown>();
+
+jest.mock('../hooks/useCaptureSession', () => ({ useCaptureSession: () => {
+  const actor = mockActor;
+  return {
+    actor: { creatorId: actor, clerkId: 'clerk-' + actor }, actorKey: actor,
+    isReady: true, isOffline: mockOffline, canQuery: !mockOffline, revision: mockRevision,
+    isCurrent: () => actor === mockActor,
+    canMutate: () => actor === mockActor && !mockOffline,
+    read: mockRead, write: mockWrite, remove: mockRemove,
+  };
+} }));
+jest.mock('../hooks/useGuardedRouter', () => ({ useGuardedRouter: () => mockRouter }));
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: () => mockParams,
+  useFocusEffect: (effect: () => void | (() => void)) => require('react').useEffect(() => mockFocused ? effect() : undefined, [effect, mockFocused]),
+}));
+jest.mock('@tendso/convex-client', () => ({ api: {
+  submissions: { getById: 'get', getPricingContext: 'pricing', setDomainTier: 'tier', chooseDesign: 'choose-design', submit: 'submit' },
+  leads: { getDetailForMobileCRM: 'source-find' },
+  files: { getMultipleUrls: 'photos', getUrl: 'file' }, domains: { checkDomainAvailability: 'domain' },
+} }));
+jest.mock('convex/react', () => ({
+  useQuery: (reference: string, args: any) => {
+    if (args === 'skip') return undefined;
+    if (reference === 'get') return mockSubmissions[args.id] ?? null;
+    if (reference === 'source-find') { mockFindLookup(args); return mockFinds[args.id] ?? null; }
+    if (reference === 'pricing') return { basePrice: 999, priceCeiling: 4999, unlocked: true };
+    if (reference === 'photos') return args.storageIds.map((key: string) => 'https://images.example.com/' + key);
+    if (reference === 'file') return 'https://media.example.com/' + args.storageId;
+    throw new Error('Unexpected query ' + reference);
+  },
+  useMutation: (reference: string) => reference === 'tier' ? mockSetTier : reference === 'choose-design' ? mockChooseDesign : mockSubmit,
+  useAction: () => mockCheckDomain,
+}));
+jest.mock('../components/PriceSlider', () => ({ PriceSlider: ({ initialValue, onChange, disabled }: any) =>
+  require('react').createElement(require('react-native').TextInput, {
+    accessibilityLabel: 'Website price', value: String(initialValue), editable: !disabled,
+    onChangeText: (value: string) => onChange(Number(value)),
+  }),
+}));
+jest.mock('../components/OfflineBanner', () => ({ OfflineBanner: () => null }));
+jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
+jest.mock('expo-av', () => ({
+  Audio: { Sound: { createAsync: jest.fn() } }, Video: () => null, ResizeMode: { CONTAIN: 'contain' },
+}));
+jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) }));
+jest.mock('react-native-svg', () => ({
+  __esModule: true, default: 'MockSvg', Path: 'MockPath', Defs: 'MockDefs',
+  LinearGradient: 'MockGradient', Rect: 'MockRect', Stop: 'MockStop',
+}));
+
+const form = { businessName: 'Nena Store', businessType: 'Sari-Sari Store', ownerName: 'Nena Santos',
+  ownerPhone: '09171234567', ownerEmail: 'nena@example.com', address: '12 Rizal Street', city: 'Marikina' };
+const flush = async () => { for (let count = 0; count < 15; count++) await Promise.resolve(); };
+function stored(key: string, value: unknown) { mockStorage.set(mockActor + ':' + key, value); }
+function confirmation(label: string) {
+  const buttons = jest.mocked(Alert.alert).mock.calls.at(-1)![2]!;
+  return buttons.find(button => button.text === label)!.onPress!;
+}
+async function review() {
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Check it, then send')).toBeTruthy());
+  return screen;
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockActor = 'agent-1'; mockOffline = false; mockRevision = 0; mockFocused = true; mockParams = {};
+  jest.mocked(Audio.Sound.createAsync).mockReset();
+  mockFinds = {};
+  mockStorage.clear(); stored('current_submission_id', 'draft-1');
+  mockSubmissions = { 'draft-1': { _id: 'draft-1', creatorId: mockActor, status: 'draft',
+    ...form, photos: ['one', 'two', 'three'], videoStorageId: 'videos/interview.mp4' } };
+  mockRead.mockReset().mockImplementation(async (key: string) => mockStorage.get(mockActor + ':' + key) ?? null);
+  mockWrite.mockReset().mockImplementation(async (key: string, value: unknown) => { stored(key, value); });
+  mockRemove.mockReset().mockImplementation(async (key: string) => { mockStorage.delete(mockActor + ':' + key); });
+  mockSetTier.mockReset().mockResolvedValue(undefined);
+  mockChooseDesign.mockReset().mockResolvedValue({ ok: true });
+  mockSubmit.mockReset().mockResolvedValue(undefined);
+  mockCheckDomain.mockReset().mockResolvedValue({ valid: true, available: true, withinBudget: true, domain: 'nenastore.com', pricePHP: 450 });
+  jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+});
+afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
+
+it('returns a resumed review to Design while keeping the same draft', async () => {
+  mockParams = { resumed: '1' };
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Check it, then send')).toBeTruthy());
+  fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { draftId: 'draft-1', resumed: '1' } });
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it.each([false, true])('blocks an unsaved replacement interview instead of sending an older one: attached=%s', async attached => {
+  const take = { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached, storageId: attached ? 'new-audio' : undefined };
+  stored('submission_interview_draft', take);
+  const screen = await review();
+  expect(screen.getByText('Save your interview changes')).toBeTruthy();
+  expect(screen.getByText('Interview needs saving')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Save interview' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('queues the matching saved new take and keeps its Review return route', async () => {
+  const take = { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached: false };
+  stored('submission_interview_draft', take); stored('submission_pending_interview', take);
+  const screen = await review();
+  expect(screen.queryByText('Save your interview changes')).toBeNull();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit interview' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/interview', params: { returnTo: 'review' } });
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('rechecks interview changes that arrive while final confirmation or price save is pending', async () => {
+  let finish!: () => void;
+  mockSetTier.mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  stored('submission_interview_draft', { submissionId: 'draft-1', recordingUri: 'file://new.m4a', type: 'audio', attached: false });
+  await act(async () => { finish(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(screen.getByText('Save your interview changes')).toBeTruthy();
+});
+
+it.each([false, true])('stops Review audio on blur, including a late player load: pending=%s', async pending => {
+  Object.assign(mockSubmissions['draft-1'], { videoStorageId: undefined, audioStorageId: 'voice' });
+  const player = { unloadAsync: jest.fn().mockResolvedValue(undefined), setOnPlaybackStatusUpdate: jest.fn() };
+  let finish!: (value: any) => void;
+  if (pending) jest.mocked(Audio.Sound.createAsync).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  else jest.mocked(Audio.Sound.createAsync).mockResolvedValueOnce({ sound: player } as any);
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Play interview' }));
+  await act(flush);
+  mockFocused = false; screen.rerender(<SubmitReviewScreen />);
+  if (pending) await act(async () => { finish({ sound: player }); await flush(); });
+  await waitFor(() => expect(player.unloadAsync).toHaveBeenCalledTimes(1));
+  expect(screen.queryByRole('link', { name: 'Stop interview' })).toBeNull();
+});
+
+it('requires a Law Office design after a business-type change without clearing the saved media', async () => {
+  Object.assign(mockSubmissions['draft-1'], { businessType: 'Law Office', templateId: 'barbershop:F' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Choose a matching design')).toBeTruthy());
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('link', { name: 'Choose a design' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { returnTo: 'review' } });
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it.each([false, true])('requires checking retained photos after a category change before sending or queueing: offline=%s', async offline => {
+  mockOffline = offline;
+  const submissionId = offline ? 'offline_pending' : 'draft-1';
+  if (offline) {
+    stored('current_submission_id', submissionId);
+    stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, businessType: 'Law Office' } });
+    stored('submission_pending_photos', { submissionId, photoUris: ['file://one', 'file://two', 'file://three'], existingPhotos: [] });
+    stored('submission_pending_interview', { submissionId, recordingUri: 'file://interview.m4a', type: 'audio' });
+  } else mockSubmissions['draft-1'].businessType = 'Law Office';
+  stored('submission_photo_review', { submissionId, previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByText('Review photos for Law Office')).toBeTruthy();
+  expect(screen.getByText('The business type changed. Your photos and interview are saved. Check the updated photo suggestions before sending.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: offline ? 'Save and queue' : 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Review photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('allows the confirmed photo review on the same draft and removes its marker only after sending succeeds', async () => {
+  mockSubmissions['draft-1'].businessType = 'Law Office';
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100, confirmedAt: 200 });
+  let complete!: () => void;
+  mockSubmit.mockImplementation(() => new Promise<void>(resolve => { complete = resolve; }));
+  const screen = await review();
+  expect(screen.queryByText('Review photos for Law Office')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockStorage.has('agent-1:submission_photo_review')).toBe(true);
+  expect(mockRemove).not.toHaveBeenCalledWith('submission_photo_review');
+  await act(async () => { complete(); await flush(); });
+  expect(mockRemove).toHaveBeenCalledWith('submission_photo_review');
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/success', params: { submissionId: 'draft-1' } });
+});
+
+it('refreshes the confirmation when returning from Photos and retains the current price and media', async () => {
+  const marker = { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 };
+  stored('submission_photo_review', marker);
+  const screen = await review();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  stored('submission_photo_review', { ...marker, confirmedAt: 200 });
+  mockRevision++; screen.rerender(<SubmitReviewScreen />);
+  await act(flush);
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull());
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks a previous confirmation after the business type changes again', async () => {
+  mockSubmissions['draft-1'].businessType = 'Auto Shop';
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100, confirmedAt: 200 });
+  const screen = await review();
+  expect(screen.getByText('Review photos for Auto Shop')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('rechecks photo review after the send confirmation instead of using the earlier ready state', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 300 });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText(`Review photos for ${form.businessType}`)).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('stops the final send if a new review requirement arrives while the price save is in flight', async () => {
+  const marker = { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100, confirmedAt: 200 };
+  stored('submission_photo_review', marker);
+  let finishPrice!: () => void;
+  mockSetTier.mockImplementation(() => new Promise<void>(resolve => { finishPrice = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSetTier).toHaveBeenCalledTimes(1); expect(mockSubmit).not.toHaveBeenCalled();
+  stored('submission_photo_review', { ...marker, requiredAt: 300 });
+  await act(async () => { finishPrice(); await flush(); });
+  expect(screen.getByText(`Review photos for ${form.businessType}`)).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:current_submission_id')).toBe('draft-1');
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+});
+
+it('ignores and preserves another capture’s photo-review marker', async () => {
+  const foreign = { submissionId: 'other-draft', previousBusinessType: 'Barber/Salon', businessType: 'Law Office', requiredAt: 100 };
+  stored('submission_photo_review', foreign);
+  const screen = await review();
+  expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockRemove).not.toHaveBeenCalledWith('submission_photo_review');
+  expect(mockStorage.get('agent-1:submission_photo_review')).toEqual(foreign);
+});
+
+it('does not carry a pending photo review into the next signed-in account', async () => {
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  mockActor = 'agent-2';
+  stored('current_submission_id', 'draft-2');
+  mockSubmissions['draft-2'] = { ...mockSubmissions['draft-1'], _id: 'draft-2', creatorId: mockActor, businessName: 'Another shop' };
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Another shop')).toBeTruthy());
+  expect(screen.queryByRole('button', { name: 'Review photos' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  expect(mockStorage.has('agent-1:submission_photo_review')).toBe(true);
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it.each([0, 2])('keeps a %i-photo edited draft authoritative when returning from Photos without saving', async count => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: ['one', 'two'].slice(0, count).map(storageId => ({ storageId })) });
+  const screen = await review();
+  expect(screen.getByText(`${count} photos`)).toBeTruthy();
+  expect(screen.queryAllByLabelText(/^Shop photo \d+$/)).toHaveLength(count);
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByText('You have photos to add, replace or remove. Review and save them before sending.')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Review photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+  expect(mockSubmissions['draft-1'].photos).toEqual(['one', 'two', 'three']);
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks an unsaved replacement even when the photo count remains three', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [
+    { storageId: 'one' }, { storageId: 'two' }, { uri: 'file://replacement-three.jpg' },
+  ] });
+  const screen = await review();
+  expect(screen.getByText('3 photos')).toBeTruthy();
+  expect(screen.getByLabelText('Shop photo 3')).toHaveProp('source', { uri: 'file://replacement-three.jpg' });
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('allows label-only photo edits and keeps stored-image identity ahead of a local preview URI', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: ['one', 'two', 'three'].map((storageId, index) => ({
+    storageId, uri: `file://preview-${index}.jpg`, label: `Updated label ${index + 1}`,
+  })) });
+  const screen = await review();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
+it('accepts saved pending photos as the baseline and queues their matching edited list', async () => {
+  const items = [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://saved-replacement.jpg' }];
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items });
+  stored('submission_pending_photos', { submissionId: 'draft-1', existingPhotos: ['one', 'two'], photoUris: ['file://saved-replacement.jpg'], entries: items });
+  const screen = await review();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_photo_tasks')).toMatchObject({ submissionId: 'draft-1', items });
+});
+
+it('checks photo membership again after an already-open send confirmation', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://unsaved.jpg' }] });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('blocks final submit if photos change during the awaited price update', async () => {
+  let finishPrice!: () => void;
+  mockSetTier.mockImplementation(() => new Promise<void>(resolve => { finishPrice = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSetTier).toHaveBeenCalledTimes(1);
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [] });
+  await act(async () => { finishPrice(); await flush(); });
+  expect(screen.getByText('0 photos')).toBeTruthy();
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('does not send stale server photos when a saved-photo queue appears after confirmation opens', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  const items = [{ storageId: 'one' }, { storageId: 'two' }, { uri: 'file://saved-replacement.jpg' }];
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items });
+  stored('submission_pending_photos', { submissionId: 'draft-1', existingPhotos: ['one', 'two'], photoUris: ['file://saved-replacement.jpg'] });
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeEnabled();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled();
+});
+
+it('uses one photos action when both unsaved photo edits and category review need attention', async () => {
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ storageId: 'one' }, { storageId: 'two' }] });
+  stored('submission_photo_review', { submissionId: 'draft-1', previousBusinessType: 'Law Office', businessType: form.businessType, requiredAt: 100 });
+  const screen = await review();
+  expect(screen.getByText('Save your photo changes')).toBeTruthy();
+  expect(screen.getAllByRole('button', { name: 'Review photos' })).toHaveLength(1);
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+});
+
+it('does not borrow unsaved photo changes from a different capture', async () => {
+  stored('submission_photo_tasks', { submissionId: 'other-draft', items: [] });
+  const screen = await review();
+  expect(screen.getByText('3 photos')).toBeTruthy();
+  expect(screen.queryByText('Save your photo changes')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+});
+
+it('returns an ordinary photo edit to Review rather than detouring through the interview', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit photos' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/photos', params: { returnTo: 'review' } });
+});
+
+it('opens the rejected record with its saved media, design, price and feedback and resends the same ID', async () => {
+  Object.assign(mockSubmissions['draft-1'], { businessType: 'Craft/Producer', status: 'rejected', rejectionReason: 'Replace the blurry shop photo.',
+    templateId: 'florist:BR', amount: 2999, domainCostPHP: 0, submissionType: 'standard' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('Replace the blurry shop photo.')).toBeTruthy();
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  expect(screen.getByText('Bloom')).toBeTruthy(); expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  expect(mockSubmit).not.toHaveBeenCalled();
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockChooseDesign).not.toHaveBeenCalled();
+  expect(mockWrite).toHaveBeenCalledWith('submission_last_sent', expect.objectContaining({ submissionId: 'draft-1', queued: false }));
+});
+
+it('keeps the saved custom domain quote during a correction without requiring it to be available again', async () => {
+  mockCheckDomain.mockResolvedValue({ valid: true, available: false, withinBudget: true, pricePHP: 600 });
+  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', amount: 3449, domainCostPHP: 450,
+    submissionType: 'with_custom_domain', requestedDomain: 'nenastore.com' });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText('Custom domain (optional)').props.value).toBe('nenastore.com'));
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+  expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
+it('refuses an explicit repair route that no longer matches the current capture pointer', async () => {
+  mockParams = { draftId: 'jd7avrwvz69mqk3fpjftg8m6vn8hm7qm' };
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Open your capture first')).toBeTruthy());
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it('queues an offline correction with its original capture and does not claim the rejected server record was resent', async () => {
+  const rejected = { ...mockSubmissions['draft-1'], status: 'rejected', rejectionReason: 'Fix the photo.', amount: 2499 };
+  stored('submission_snapshot', { ...rejected, submissionId: 'draft-1', resolvedPhotoUrls: ['https://images.example/one.jpg'] });
+  mockOffline = true;
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('3 photos')).toBeTruthy(); expect(screen.getByText('Interview ready')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({ submissionId: 'draft-1', sellPrice: 2499 });
+  screen.unmount(); mockOffline = false; mockSubmissions['draft-1'] = rejected; mockParams = { submissionId: 'draft-1', queued: 'true' };
+  const receipt = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(receipt.getByText('Saved on this phone')).toBeTruthy());
+  expect(receipt.queryByText(/Sent! We’ll build/)).toBeNull();
+  mockSubmissions['draft-1'].status = 'submitted'; receipt.rerender(<SubmitSuccessScreen />);
+  await waitFor(() => expect(receipt.getByText('Sent! We’ll build Nena Store’s site.')).toBeTruthy());
+});
+
+it('does not resend when the pointer switches after the correction confirmation opens', async () => {
+  mockSubmissions['draft-1'].status = 'rejected';
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled());
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  stored('current_submission_id', 'different-capture');
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it.each(['videoUrl', 'audioUrl'])('keeps a legacy rejected %s interview ready to resend without recording again', async field => {
+  Object.assign(mockSubmissions['draft-1'], { status: 'rejected', videoStorageId: undefined, audioStorageId: undefined,
+    [field]: 'https://media.example.com/saved-interview', amount: 1999 });
+  const screen = render(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Fix it, then resend')).toBeTruthy());
+  expect(screen.getByText('Interview ready')).toBeTruthy(); expect(screen.getByRole('link', { name: 'Play interview' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Resend for review' })).toBeEnabled();
+  fireEvent.press(screen.getByRole('button', { name: 'Resend for review' }));
+  await act(async () => { confirmation('Resend for review')(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' });
+});
+
+it('shows the canonical design name and changes it through the existing Review route', async () => {
+  mockSubmissions['draft-1'].businessType = 'Craft/Producer';
+  mockSubmissions['draft-1'].templateId = 'florist:BR';
+  const screen = await review();
+  expect(screen.getByText('Website design')).toBeTruthy(); expect(screen.getByText('Bloom')).toBeTruthy();
+  fireEvent.press(screen.getByRole('link', { name: 'Change design' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/design', params: { returnTo: 'review' } });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  // Returning to the retained Review refreshes only its choice, preserving a local price edit.
+  fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'florist:BU', savedAt: 200 });
+  mockRevision++; screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Sampaguita')).toBeTruthy());
+  expect(screen.queryByText('Bloom')).toBeNull();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+});
+
+it('flushes a local design before price and final submission, then clears only its matching metadata', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  const order: string[] = [];
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockImplementation(() => { order.push('design'); return new Promise<void>(done => { resolve = done; }); });
+  mockSetTier.mockImplementation(async () => { order.push('price'); });
+  mockSubmit.mockImplementation(async () => { order.push('submit'); });
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:BP' });
+  expect(order).toEqual(['design']); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+  await act(async () => { resolve(); await flush(); });
+  expect(order).toEqual(['design', 'price', 'submit']);
+  expect(mockRemove).toHaveBeenCalledWith('submission_design');
+  expect(mockStorage.has('agent-1:submission_design')).toBe(false);
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/(app)/submit/success', params: { submissionId: 'draft-1' } });
+});
+
+it('preserves the draft and design for retry when design sync fails before sending', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockRejectedValueOnce(new Error('Design sync failed')).mockResolvedValueOnce({ ok: true });
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(screen.getByText('Design sync failed')).toBeTruthy();
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledTimes(2); expect(mockSubmit).toHaveBeenCalledTimes(1);
+});
+
+it('does not resave an unchanged canonical server design before the ordinary send', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  mockSubmissions['draft-1'].templateId = 'barbershop:BP';
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSetTier).toHaveBeenCalledTimes(1); expect(mockSubmit).toHaveBeenCalledTimes(1);
+});
+
+it.each([true, false])('retains only a matching offline queued design when saving again: %s', async matches => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, businessType: 'Barber/Salon' } });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
+  const submissionId = matches ? 'offline_pending' : 'different-draft';
+  stored('submission_design', { submissionId, templateId: 'barbershop:BP', savedAt: 100 });
+  stored('submission_pending_submit', { submissionId, templateId: 'barbershop:G', savedAt: 200, sellPrice: 2999, submissionType: 'standard' });
+  const screen = await review();
+  expect(screen.getByText(matches ? 'Cinematic' : 'No design selected')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({
+    submissionId: 'offline_pending', templateId: matches ? 'barbershop:G' : undefined,
+  });
+  expect(mockChooseDesign).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('keeps a newer explicit local choice ahead of an older confirmed queue selection', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  mockSubmissions['draft-1'].templateId = 'barbershop:G';
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 300 });
+  stored('submission_pending_submit', { submissionId: 'draft-1', templateId: 'barbershop:H', savedAt: 200, sellPrice: 1999, submissionType: 'standard' });
+  const screen = await review(); expect(screen.getByText('Glacier')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledWith({ id: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockSetTier).toHaveBeenCalledWith(expect.objectContaining({ sellPrice: 1999 }));
+});
+
+it('stops before pricing and final send if the signed-in actor changes during design sync', async () => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  mockChooseDesign.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockChooseDesign).toHaveBeenCalledTimes(1);
+  mockActor = 'agent-2';
+  await act(async () => { resolve(); await flush(); });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockRouter.replace).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ templateId: 'barbershop:BP' });
+});
+
+it.each(['design', 'price', 'submit'])('preserves the next draft when its pointer changes during the %s request', async pendingStage => {
+  mockSubmissions['draft-1'].businessType = 'Barber/Salon';
+  let resolve!: () => void;
+  stored('submission_design', { submissionId: 'draft-1', templateId: 'barbershop:BP', savedAt: 200 });
+  const deferred = () => new Promise<void>(done => { resolve = done; });
+  const pending = pendingStage === 'design' ? mockChooseDesign : pendingStage === 'price' ? mockSetTier : mockSubmit;
+  pending.mockImplementation(deferred);
+  const screen = await review();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(pending).toHaveBeenCalledTimes(1);
+  // Storage can advance before a focus/cache notification reaches this retained Review.
+  stored('current_submission_id', 'draft-new');
+  await act(async () => { resolve(); await flush(); });
+  if (pendingStage === 'design') expect(mockSetTier).not.toHaveBeenCalled();
+  if (pendingStage !== 'submit') expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled(); expect(mockRouter.replace).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:current_submission_id')).toBe('draft-new');
+  expect(mockStorage.get('agent-1:submission_design')).toMatchObject({ submissionId: 'draft-1', templateId: 'barbershop:BP' });
+  expect(mockStorage.has('agent-1:submission_last_sent')).toBe(false);
+});
+
+it('uses the saved server website price without changing its custom-domain add-on', async () => {
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450 });
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 4999 });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('1999');
+});
+
+it('keeps a queued final price ahead of the server draft and its older captured preference', async () => {
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450 });
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 4999 });
+  stored('submission_pending_submit', { submissionId: 'draft-1', sellPrice: 2999, submissionType: 'standard' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('2999');
+});
+
+it.each([false, true])('hydrates a saved domain on reconnect and preserves a deliberate local price edit: %s', async edited => {
+  mockOffline = true;
+  stored('submission_snapshot', { ...form, creatorId: mockActor, submissionId: 'draft-1', initialSellPrice: 3999 });
+  Object.assign(mockSubmissions['draft-1'], { amount: 2449, domainCostPHP: 450, requestedDomain: 'nenastore.com' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('3999');
+  if (edited) fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  mockOffline = false;
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByLabelText('Custom domain (optional)').props.value).toBe('nenastore.com'));
+  expect(screen.getByLabelText('Website price').props.value).toBe(edited ? '2999' : '1999');
+});
+
+it('restores an offline capture’s own saved initial price', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, initialSellPrice: 3999, formData: form });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['one', 'two', 'three'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', type: 'audio', recordingUri: 'file://audio.m4a' });
+  const screen = await review();
+  expect(screen.getByLabelText('Website price').props.value).toBe('3999');
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ sellPrice: 3999 }));
+});
+
+it('shows the actual capture, then saves its price before submitting with commission conditional on payment', async () => {
+  const order: string[] = [];
+  mockSetTier.mockImplementation(async () => { order.push('price'); });
+  mockSubmit.mockImplementation(async () => { order.push('submit'); });
+  const screen = await review();
+  expect(screen.getByText('Nena Store')).toBeTruthy();
+  expect(screen.getByText('3 photos')).toBeTruthy();
+  fireEvent.changeText(screen.getByLabelText('Website price'), '1999');
+  expect(screen.getByText('₱1,000')).toBeTruthy();
+  expect(screen.getByText('You keep after payment')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  expect(Alert.alert).toHaveBeenCalledWith('Send this capture for review?',
+    expect.stringContaining('Your ₱1,000 commission depends on the shop completing payment.'), expect.any(Array), expect.any(Object));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  await waitFor(() => expect(mockSubmit).toHaveBeenCalledWith({ id: 'draft-1' }));
+  expect(order).toEqual(['price', 'submit']);
+  expect(mockChooseDesign).not.toHaveBeenCalled();
+  expect(mockSetTier).toHaveBeenCalledWith({
+    id: 'draft-1', submissionType: 'standard', requestedDomain: undefined, sellPrice: 1999, domainPricePHP: undefined,
+  });
+  expect(mockWrite).toHaveBeenCalledWith('submission_last_sent', expect.objectContaining({ submissionId: 'draft-1', queued: false }));
+  expect(mockRemove).toHaveBeenCalledWith('current_submission_id');
+});
+
+it('shows the current capture photo beside an unclamped business name with a fixed-size crop', async () => {
+  const businessName = 'Nena and Family General Merchandise and Neighborhood Convenience Store';
+  mockSubmissions['draft-1'].businessName = businessName;
+  const screen = await review();
+  const thumbnail = screen.getByRole('image', { name: `Shop photo for ${businessName}` });
+  expect(thumbnail).toHaveProp('source', { uri: 'https://images.example.com/one' });
+  expect(thumbnail).toHaveProp('resizeMode', 'cover');
+  expect(thumbnail).toHaveStyle({ width: 56, height: 56, flexShrink: 0 });
+  expect(screen.getByText(businessName).props.numberOfLines).toBeUndefined();
+  fireEvent.press(screen.getAllByRole('link', { name: 'Edit' })[0]);
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+});
+
+it.each([2, 3])('prefers the original Spot photo without adding it to the %i captured photos', async (count) => {
+  mockSubmissions['draft-1'].prospectLeadId = 'source-find';
+  mockSubmissions['draft-1'].photos = ['one', 'two', 'three'].slice(0, count);
+  mockFinds['source-find'] = { lead: { _id: 'source-find' }, photoUrl: 'https://shared.example.com/spotted-shop.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).toHaveBeenCalledWith({ id: 'source-find' });
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/spotted-shop.jpg',
+  });
+  expect(screen.getByText(`${count} photos`)).toBeTruthy();
+  expect(screen.getAllByLabelText(/^Shop photo \d+$/)).toHaveLength(count);
+  for (const [index, key] of ['one', 'two', 'three'].slice(0, count).entries()) {
+    expect(screen.getByLabelText(`Shop photo ${index + 1}`)).toHaveProp('source', { uri: 'https://images.example.com/' + key });
+  }
+  expect(screen.getByRole('button', { name: 'Send for review' }).props.accessibilityState.disabled).toBe(count < 3);
+});
+
+it.each([null, 'https://shared.example.com/broken.jpg'])('does not use another agent’s capture media when the shared cover is missing or broken: %s', async (photoUrl) => {
+  mockSubmissions['draft-1'].prospectLeadId = 'source-find';
+  mockSubmissions['draft-1'].photos = ['one'];
+  mockFinds['source-find'] = { lead: { _id: 'source-find' }, photoUrl, canViewCaptureMedia: false,
+    business: { photos: ['https://private.example.com/other-agent-capture.jpg'] } };
+  const screen = await review();
+  if (photoUrl) {
+    const thumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+    expect(thumbnail).toHaveProp('source', { uri: photoUrl });
+    fireEvent(thumbnail, 'error', { nativeEvent: { error: 'Shared cover could not load' } });
+  }
+  const ownThumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+  expect(ownThumbnail).toHaveProp('source', { uri: 'https://images.example.com/one' });
+  fireEvent(ownThumbnail, 'error', { nativeEvent: { error: 'Own capture photo could not load' } });
+  expect(screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' })).toBeTruthy();
+  expect(screen.getAllByLabelText(/^Shop photo \d+$/)).toHaveLength(1);
+});
+
+it('keeps the owned server source link ahead of a different pending source link', async () => {
+  mockSubmissions['draft-1'].prospectLeadId = 'original-source';
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'pending-source', formData: form });
+  mockFinds['original-source'] = { lead: { _id: 'original-source' }, photoUrl: 'https://shared.example.com/original.jpg' };
+  mockFinds['pending-source'] = { lead: { _id: 'pending-source' }, photoUrl: 'https://shared.example.com/other.jpg' };
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/original.jpg',
+  });
+  expect(mockFindLookup).toHaveBeenCalledWith({ id: 'original-source' });
+  expect(mockFindLookup).not.toHaveBeenCalledWith({ id: 'pending-source' });
+});
+
+it('does not introduce a source lookup from pending details when the server draft is unlinked', async () => {
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'pending-source', formData: form });
+  mockFinds['pending-source'] = { lead: { _id: 'pending-source' }, photoUrl: 'https://shared.example.com/pending.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://images.example.com/one',
+  });
+});
+
+it.each([
+  { creatorId: 'another-agent', existingDraftId: 'draft-1' },
+  { creatorId: 'agent-1', existingDraftId: 'other-draft' },
+])('ignores a source link from mismatched cached capture details: %j', async (scope) => {
+  stored('submission_pending_sync', { ...scope, prospectLeadId: 'wrong-source', formData: form });
+  mockFinds['wrong-source'] = { lead: { _id: 'wrong-source' }, photoUrl: 'https://shared.example.com/wrong.jpg' };
+  const screen = await review();
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://images.example.com/one',
+  });
+});
+
+it('clears the original shop cover when the signed-in capture account changes', async () => {
+  mockSubmissions['draft-1'].prospectLeadId = 'original-source';
+  mockFinds['original-source'] = { lead: { _id: 'original-source' }, photoUrl: 'https://shared.example.com/original.jpg' };
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', {
+    uri: 'https://shared.example.com/original.jpg',
+  });
+  mockActor = 'agent-2';
+  stored('current_submission_id', 'draft-2');
+  mockSubmissions['draft-2'] = { ...mockSubmissions['draft-1'], _id: 'draft-2', creatorId: mockActor,
+    businessName: 'Second Shop', prospectLeadId: undefined, photos: ['second-shop'] };
+  mockFindLookup.mockClear();
+  screen.rerender(<SubmitReviewScreen />);
+  await waitFor(() => expect(screen.getByText('Second Shop')).toBeTruthy());
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('image', { name: 'Shop photo for Second Shop' })).toHaveProp('source', {
+    uri: 'https://images.example.com/second-shop',
+  });
+  expect(mockFindLookup).not.toHaveBeenCalled();
+});
+
+it('tries the next current-capture photo after a load failure and falls back safely if all fail', async () => {
+  const screen = await review();
+  for (const key of ['one', 'two', 'three']) {
+    const thumbnail = screen.getByRole('image', { name: 'Shop photo for Nena Store' });
+    expect(thumbnail).toHaveProp('source', { uri: 'https://images.example.com/' + key });
+    fireEvent(thumbnail, 'error', { nativeEvent: { error: 'Image could not load' } });
+  }
+  const fallback = screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' });
+  expect(fallback).toHaveStyle({ width: 56, height: 56 });
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled();
+});
+
+it('uses the storefront fallback without inventing a photo when this capture has none', async () => {
+  mockSubmissions['draft-1'].photos = [];
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo unavailable for Nena Store' })).toBeTruthy();
+  expect(screen.queryByRole('image', { name: 'Shop photo for Nena Store' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+});
+
+it('keeps the price comparison tiles equally flexible and stretched without fixed text heights', async () => {
+  const screen = await review();
+  expect(screen.getByTestId('capture-price-stats')).toHaveStyle({ flexDirection: 'row', alignItems: 'stretch' });
+  for (const id of ['capture-earnings', 'capture-savings']) {
+    const tile = screen.getByTestId(id);
+    expect(tile).toHaveStyle({ flex: 1, minWidth: 0, justifyContent: 'flex-start' });
+    expect(StyleSheet.flatten(tile.props.style).height).toBeUndefined();
+  }
+  for (const label of ['You keep after payment', 'The shop saves']) {
+    const text = screen.getByText(label);
+    expect(text.props.numberOfLines).toBeUndefined();
+    expect(text.props.allowFontScaling).not.toBe(false);
+  }
+});
+
+it('queues offline media and the selected price without sending or inventing a payout', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, prospectLeadId: 'offline-source', formData: form });
+  mockFinds['offline-source'] = { lead: { _id: 'offline-source' }, photoUrl: 'https://shared.example.com/offline-source.jpg' };
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', { uri: 'file://1' });
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  fireEvent.changeText(screen.getByLabelText('Website price'), '2999');
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockStorage.get('agent-1:submission_pending_submit')).toMatchObject({
+    submissionId: 'offline_pending', sellPrice: 2999, submissionType: 'standard',
+  });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRouter.replace).toHaveBeenCalledWith({
+    pathname: '/(app)/submit/success', params: { queued: 'true', submissionId: 'offline_pending' },
+  });
+});
+
+it('uses this draft’s cached photo offline and ignores another draft’s pending images', async () => {
+  mockOffline = true;
+  stored('submission_snapshot', { ...form, submissionId: 'draft-1', creatorId: mockActor });
+  stored('submission_photo_tasks', { submissionId: 'draft-1', items: [{ uri: 'file://current-shop.jpg' }] });
+  stored('submission_pending_photos', { submissionId: 'other-draft', photoUris: ['file://other-shop.jpg'], existingPhotos: [] });
+  const screen = await review();
+  expect(screen.getByRole('image', { name: 'Shop photo for Nena Store' })).toHaveProp('source', { uri: 'file://current-shop.jpg' });
+  expect(screen.queryByLabelText('Shop photo 2')).toBeNull();
+  expect(mockWrite).not.toHaveBeenCalled();
+});
+
+it.each(['', 'not-an-email'])('keeps a legacy draft with invalid email (%s) editable without submitting it', async (email) => {
+  mockSubmissions['draft-1'].ownerEmail = email;
+  const screen = await review();
+  expect(screen.getByText('Owner’s email required')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit shop details' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+  expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('does not queue an older offline capture until its missing owner email is added', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  const { ownerEmail: _email, ...legacyForm } = form;
+  stored('submission_pending_sync', { creatorId: mockActor, formData: legacyForm });
+  stored('submission_pending_photos', { submissionId: 'offline_pending', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'offline_pending', recordingUri: 'file://interview.m4a', type: 'audio' });
+  const screen = await review();
+  expect(screen.getByText('Owner’s email required')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Save and queue' })).toBeDisabled();
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+  expect(mockStorage.get('agent-1:submission_pending_photos')).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('keeps ordinary Business edit on the exact draft shown in review', async () => {
+  const screen = await review();
+  fireEvent.press(screen.getAllByRole('link', { name: 'Edit' })[0]);
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'draft-1' } });
+});
+
+it('passes the offline pending target when repairing its email from review', async () => {
+  mockOffline = true; stored('current_submission_id', 'offline_pending');
+  stored('submission_pending_sync', { creatorId: mockActor, formData: { ...form, ownerEmail: '' } });
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Edit shop details' }));
+  expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/(app)/submit/info', params: { draftId: 'offline_pending' } });
+  expect(mockWrite).not.toHaveBeenCalled(); expect(mockRemove).not.toHaveBeenCalled();
+});
+
+it('uses corrected owned pending details and queues them before submitting a server draft with no email', async () => {
+  mockSubmissions['draft-1'].ownerEmail = '';
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', formData: form });
+  const screen = await review();
+  expect(screen.queryByText('Owner’s email required')).toBeNull();
+  expect(screen.getByText('nena@example.com')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Save and queue' }));
+  await act(async () => { confirmation('Save and queue')(); await flush(); });
+  expect(mockWrite).toHaveBeenCalledWith('submission_pending_submit', expect.objectContaining({ submissionId: 'draft-1' }));
+  expect(mockSetTier).not.toHaveBeenCalled(); expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('blocks a foreign server capture even if local metadata would otherwise allow sending', async () => {
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], creatorId: 'another-agent', businessName: 'Private shop', prospectLeadId: 'private-source' };
+  stored('submission_pending_sync', { creatorId: mockActor, existingDraftId: 'draft-1', prospectLeadId: 'private-source', formData: form });
+  mockFinds['private-source'] = { lead: { _id: 'private-source' }, photoUrl: 'https://shared.example.com/private-source.jpg' };
+  stored('submission_snapshot', { ...form, submissionId: 'draft-1', creatorId: mockActor });
+  stored('submission_pending_photos', { submissionId: 'draft-1', photoUris: ['file://1', 'file://2', 'file://3'], existingPhotos: [] });
+  stored('submission_pending_interview', { submissionId: 'draft-1', recordingUri: 'file://take.m4a', type: 'audio' });
+  const screen = render(<SubmitReviewScreen />);
+  await act(flush);
+  expect(screen.queryByRole('button', { name: 'Send for review' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Save and queue' })).toBeNull();
+  expect(screen.queryByText('Private shop')).toBeNull();
+  expect(screen.queryByRole('image', { name: /Shop photo/ })).toBeNull();
+  expect(mockFindLookup).not.toHaveBeenCalled();
+  expect(mockSubmit).not.toHaveBeenCalled();
+});
+
+it('ignores an older domain result and sends only the current domain quote', async () => {
+  jest.useFakeTimers();
+  let first!: (result: any) => void;
+  let second!: (result: any) => void;
+  mockCheckDomain.mockReturnValueOnce(new Promise(resolve => { first = resolve; }))
+    .mockReturnValueOnce(new Promise(resolve => { second = resolve; }));
+  const screen = await review();
+  fireEvent.press(screen.getByRole('link', { name: 'Add custom' }));
+  fireEvent.changeText(screen.getByLabelText('Custom domain (optional)'), 'old-address.com');
+  await act(async () => { jest.advanceTimersByTime(500); await flush(); });
+  fireEvent.changeText(screen.getByLabelText('Custom domain (optional)'), 'new-address.com');
+  await act(async () => { jest.advanceTimersByTime(500); await flush(); });
+  await act(async () => { first({ valid: true, available: true, withinBudget: true, domain: 'old-address.com', pricePHP: 200 }); await flush(); });
+  expect(screen.getByRole('button', { name: 'Send for review' })).toBeDisabled();
+  expect(screen.queryByText('Available · ₱200 added to the website price')).toBeNull();
+  await act(async () => { second({ valid: true, available: true, withinBudget: true, domain: 'new-address.com', pricePHP: 450 }); await flush(); });
+  expect(screen.getByText('Owner total: ₱1,449')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Send for review' }));
+  await act(async () => { confirmation('Send for review')(); await flush(); });
+  expect(mockSetTier).toHaveBeenCalledWith(expect.objectContaining({
+    requestedDomain: 'new-address.com', domainPricePHP: 450, sellPrice: 999,
+  }));
+});
+
+it('deduplicates confirmation and send while a live submission is in progress', async () => {
+  let finish!: () => void;
+  mockSetTier.mockReturnValueOnce(new Promise<void>(resolve => { finish = resolve; }));
+  const screen = await review();
+  const button = screen.getByRole('button', { name: 'Send for review' });
+  fireEvent.press(button); fireEvent.press(button);
+  expect(Alert.alert).toHaveBeenCalledTimes(1);
+  const send = confirmation('Send for review');
+  act(() => { send(); send(); });
+  await waitFor(() => expect(mockSetTier).toHaveBeenCalledTimes(1));
+  await act(async () => { finish(); await flush(); });
+  expect(mockSubmit).toHaveBeenCalledTimes(1);
+});
+
+it('updates a queued receipt to the actual submitted capture after the cache revision changes', async () => {
+  mockOffline = true;
+  mockParams = { submissionId: 'offline_pending', queued: 'true' };
+  stored('submission_last_sent', { submissionId: 'offline_pending', queued: true, sentAt: 100, businessName: 'Nena Store' });
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('Saved on this phone')).toBeTruthy());
+  expect(screen.getByText('Waiting for a connection')).toBeTruthy();
+  mockOffline = false; mockRevision++;
+  stored('submission_last_sent', { submissionId: 'draft-1', queued: false, sentAt: 200, businessName: 'Nena Store' });
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], status: 'submitted', creatorPayout: 500 };
+  screen.rerender(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('Sent! We’ll build Nena Store’s site.')).toBeTruthy());
+  expect(screen.queryByText('Saved on this phone')).toBeNull();
+  expect(screen.getByText('Commission becomes eligible after the owner pays')).toBeTruthy();
+  fireEvent.press(screen.getByRole('button', { name: 'Back to the map' }));
+  expect(mockRouter.replace).toHaveBeenCalledWith('/(app)/(tabs)/');
+});
+
+it('shows the explicitly requested owned capture instead of an unrelated last-sent receipt', async () => {
+  stored('submission_last_sent', { submissionId: 'previous-capture', queued: false, sentAt: 100, businessName: 'Previous Shop' });
+  mockSubmissions['previous-capture'] = { _id: 'previous-capture', creatorId: mockActor, status: 'paid', businessName: 'Previous Shop', creatorPayout: 2500 };
+  mockSubmissions['capture-b'] = { _id: 'capture-b', creatorId: mockActor, status: 'submitted', businessName: 'Current Shop', creatorPayout: 500 };
+  mockParams = { submissionId: 'capture-b' };
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('Sent! We’ll build Current Shop’s site.')).toBeTruthy());
+  expect(screen.queryByText(/Previous Shop/)).toBeNull();
+  expect(screen.getByText('Your commission: ₱500')).toBeTruthy();
+  expect(screen.queryByText('Your commission: ₱2,500')).toBeNull();
+});
+
+it('does not call an owned server draft Sent even when an old matching local receipt says sent', async () => {
+  stored('submission_last_sent', { submissionId: 'draft-1', queued: false, sentAt: 100, businessName: form.businessName });
+  mockParams = { submissionId: 'draft-1' };
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('This capture is still a draft')).toBeTruthy());
+  expect(screen.queryByText(/Sent!/)).toBeNull();
+  expect(screen.queryByText('Saved on this phone')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Review capture' })).toBeTruthy();
+});
+
+it('does not trust a queued URL flag without a matching saved queue receipt', async () => {
+  mockParams = { submissionId: 'draft-1', queued: 'true' };
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('This capture is still a draft')).toBeTruthy());
+  expect(screen.queryByText('Saved on this phone')).toBeNull();
+  expect(screen.queryByText(/Sent!/)).toBeNull();
+});
+
+it('does not borrow another capture receipt for an explicit route while offline', async () => {
+  mockOffline = true;
+  stored('submission_last_sent', { submissionId: 'previous-capture', queued: false, sentAt: 100, businessName: 'Previous Shop' });
+  mockParams = { submissionId: 'capture-b' };
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('No capture receipt here')).toBeTruthy());
+  expect(screen.queryByText(/Previous Shop/)).toBeNull();
+  expect(screen.queryByText(/Sent!/)).toBeNull();
+});
+
+it('blocks a foreign receipt instead of showing another agent’s business or a false Sent state', async () => {
+  stored('submission_last_sent', { submissionId: 'foreign', queued: false, sentAt: 100, businessName: 'Unverified cached name' });
+  mockSubmissions.foreign = { _id: 'foreign', creatorId: 'another-agent', status: 'paid', businessName: 'Private shop', creatorPayout: 2500 };
+  mockParams = { submissionId: 'foreign' };
+  const screen = render(<SubmitSuccessScreen />);
+  await act(flush);
+  expect(screen.queryByText(/Sent!/)).toBeNull();
+  expect(screen.queryByText('Private shop')).toBeNull();
+  expect(screen.queryByText('Your commission: ₱2,500')).toBeNull();
+  expect(screen.getByRole('button', { name: 'Back to the map' })).toBeTruthy();
+});
+
+it('shows no payout completion before owner payment and reads paid status from the server', async () => {
+  stored('submission_last_sent', { submissionId: 'draft-1', queued: false, sentAt: 100, businessName: 'Nena Store' });
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], status: 'deployed', creatorPayout: 500, websiteUrl: 'https://nena.example.com' };
+  const screen = render(<SubmitSuccessScreen />);
+  await waitFor(() => expect(screen.getByText('Your commission: ₱500')).toBeTruthy());
+  expect(screen.getByText('Commission becomes eligible after the owner pays')).toBeTruthy();
+  expect(screen.queryByText('Check Earn for the payment and payout status')).toBeNull();
+  mockSubmissions['draft-1'] = { ...mockSubmissions['draft-1'], status: 'paid' };
+  screen.rerender(<SubmitSuccessScreen />);
+  expect(screen.getByText('Check Earn for the payment and payout status')).toBeTruthy();
+  expect(mockSubmit).not.toHaveBeenCalled(); expect(mockSetTier).not.toHaveBeenCalled();
+});

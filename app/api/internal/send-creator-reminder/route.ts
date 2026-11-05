@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         }
 
         const id = submissionId as Id<'submissions'>
-        const submission = await fetchQuery(api.submissions.getById, { id })
+        const submission = await fetchQuery(api.submissions.getById, { id, internalSecret: expectedSecret })
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Business owner email not found' }, { status: 400 })
         }
 
-        const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, { submissionId: id }).catch(() => null)
+        const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, { submissionId: id, internalSecret: expectedSecret }).catch(() => null)
 
         await sendCreatorReminderEmail({
             creatorName,

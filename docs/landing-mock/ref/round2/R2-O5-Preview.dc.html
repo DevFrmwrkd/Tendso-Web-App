@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Owner 5 · Site and price</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1A1733}a:hover{color:#000}
+.serif{font-family:Fraunces,serif}
+.seg{flex:1;border:0;font-family:inherit;font-size:14px;font-weight:700;border-radius:999px;padding:10px 0;cursor:pointer;min-height:42px}
+.mo{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#6B6880}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: {{grad}}; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1A1733; display: flex; flex-direction: column; padding: 20px 20px 28px; gap: 16px">
+  <div style="font-size: 13px; font-weight: 700; color: #6B6880">4 / 4</div>
+  <h1 style="margin: -8px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px">Your site is ready!</h1>
+
+  <div style="display: flex; gap: 14px; align-items: stretch">
+    <div style="width: 128px; height: 228px; flex: 0 0 128px; border-radius: 22px; background: #F6EEE2; overflow: hidden; border: 4px solid #FFFFFF; box-shadow: 0 12px 28px rgba(60,40,160,.18); display: flex; flex-direction: column">
+      <div style="position: relative; height: 128px">
+        <img src="/_blob/b26502477e2a9a341363d2cf4bc6f78f" alt="Rosa's Bakery website preview" style="width: 100%; height: 100%; object-fit: cover">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.55) 100%)"></div>
+        <div style="position: absolute; left: 8px; bottom: 8px; color: #FFF; font-size: 17px; font-weight: 800; line-height: .95">FRESH.<br>DAILY.</div>
+      </div>
+      <div style="padding: 8px; display: flex; flex-direction: column; gap: 5px">
+        <div class="serif" style="font-size: 13px; font-weight: 700; color: #3B2412">Rosa's Bakery</div>
+        <div style="font-size: 8px; font-weight: 600; color: #6B4B2E">Open daily · 5AM–8PM</div>
+        <div style="align-self: flex-start; background: #5B3A1E; color: #F6EEE2; font-size: 8px; font-weight: 700; border-radius: 999px; padding: 4px 8px">Order on Messenger</div>
+      </div>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center">
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 10px 12px">
+        <div style="font-size: 11px; font-weight: 700; color: {{ac}}">FREE ADDRESS</div>
+        <div style="font-size: 13px; font-weight: 700; word-break: break-all">rosasbakery.sites.tendso.com</div>
+      </div>
+      <a href="#" style="background: rgba(255,255,255,.6); border: 1.5px dashed #C9C4DD; border-radius: 16px; padding: 10px 12px; text-decoration: none">
+        <div style="font-size: 13px; font-weight: 700">Want rosasbakery.com?</div>
+        <div style="font-size: 12px; font-weight: 600; color: #6B6880">+₱500 · we set it up</div>
+      </a>
+      <a href="#" style="font-size: 13px; font-weight: 700; color: {{ac}}; text-decoration: none">Change anything →</a>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 26px; padding: 14px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 10px 30px rgba(60,40,160,.08)">
+    <div style="display: flex; gap: 4px; background: #F1EFF7; border-radius: 999px; padding: 4px">
+      <button class="seg" onClick="{{pickOnce}}" style="background: {{onceBg}}; color: {{onceFg}}">Pay once</button>
+      <button class="seg" onClick="{{pickMonthly}}" style="background: {{moBg}}; color: {{moFg}}">Pay monthly</button>
+    </div>
+
+    <sc-if value="{{isOnce}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 4px">
+        <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 40px; font-weight: 800; letter-spacing: -1.5px">₱4,999</span><span style="font-size: 14px; font-weight: 700; color: #6B6880">one time. yours forever.</span></div>
+        <div style="font-size: 12px; font-weight: 700; color: #6B6880">What you pay over 3 years</div>
+        <div style="display: flex; align-items: center; gap: 10px"><div style="width: 15%; height: 12px; border-radius: 999px; background: {{ac}}"></div><span style="font-size: 13px; font-weight: 800">Tendso ₱4,999</span></div>
+        <div style="display: flex; align-items: center; gap: 10px"><div style="width: 62%; height: 12px; border-radius: 999px; background: #DAD6E8"></div><span style="font-size: 13px; font-weight: 700; color: #6B6880">Wix ~₱32,000</span></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{isMonthly}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 4px">
+        <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 40px; font-weight: 800; letter-spacing: -1.5px">₱1,000</span><span style="font-size: 14px; font-weight: 700; color: #6B6880">a month × 5</span></div>
+        <div style="display: flex; gap: 6px">
+          <div class="mo"><div style="width: 100%; height: 10px; border-radius: 999px; background: {{ac}}"></div>Nov</div>
+          <div class="mo"><div style="width: 100%; height: 10px; border-radius: 999px; background: #DAD6E8"></div>Dec</div>
+          <div class="mo"><div style="width: 100%; height: 10px; border-radius: 999px; background: #DAD6E8"></div>Jan</div>
+          <div class="mo"><div style="width: 100%; height: 10px; border-radius: 999px; background: #DAD6E8"></div>Feb</div>
+          <div class="mo"><div style="width: 100%; height: 10px; border-radius: 999px; background: #DAD6E8"></div>Mar</div>
+        </div>
+        <div style="font-size: 13px; font-weight: 700">Live today. After March, it's 100% yours.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1"></div>
+  <a href="R2-O6-Home.dc.html" style="text-decoration: none; background: {{btnGrad}}; color: #FFFFFF; font-size: 17px; font-weight: 800; border-radius: 999px; padding: 16px; text-align: center; box-shadow: 0 10px 24px rgba(80,60,200,.3)">{{cta}}</a>
+  <div style="text-align: center; font-size: 12px; font-weight: 600; color: #6B6880; margin-top: -6px">GCash, Maya or card · No monthly fees after</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["Lilac","Mint","Sky"],"default":"Lilac"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { plan: 'once' };
+  }
+  renderVals() {
+    const P = {
+      Lilac: { ac: '#6E4BFF', ac2: '#4F8BFF', soft: '#EFEAFF', grad: 'linear-gradient(170deg,#EAE3FF 0%,#F7F5FF 45%,#E6EFFF 100%)' },
+      Mint:  { ac: '#1E9E5C', ac2: '#2BB5A0', soft: '#E4F6EC', grad: 'linear-gradient(170deg,#DDF5E8 0%,#F6FBF8 45%,#E2F4F2 100%)' },
+      Sky:   { ac: '#2F6BFF', ac2: '#7A5CFF', soft: '#E8F0FF', grad: 'linear-gradient(170deg,#E1ECFF 0%,#F6F9FF 45%,#ECE6FF 100%)' }
+    };
+    const p = P[this.props.palette] || P.Lilac;
+    const once = this.state.plan === 'once';
+    return Object.assign({}, p, {
+      btnGrad: p.ac,
+      isOnce: once,
+      isMonthly: !once,
+      onceBg: once ? '#FFFFFF' : 'transparent',
+      onceFg: once ? '#1A1733' : '#6B6880',
+      moBg: once ? 'transparent' : '#FFFFFF',
+      moFg: once ? '#6B6880' : '#1A1733',
+      pickOnce: () => this.setState({ plan: 'once' }),
+      pickMonthly: () => this.setState({ plan: 'monthly' }),
+      cta: once ? 'Publish for ₱4,999' : 'Publish · pay ₱1,000 today'
+    });
+  }
+}
+</script>
+</body>
+</html>

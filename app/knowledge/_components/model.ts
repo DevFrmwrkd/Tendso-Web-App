@@ -7,16 +7,15 @@ import type { ArticleCard, Block, Category, Workspace } from "./types";
 
 // ---- URLs ----
 // A help article has its own crawlable route (/knowledge/[slug]). Everything
-// else is a view of /knowledge chosen by its query: ?cat=, ?ws=wiki, and
-// ?ws=wiki&article= for the gated wiki, which the server cannot render because
-// it does not know who is reading.
+// Public topics open on the redesigned /help answers view. The private wiki
+// stays under /knowledge?ws=wiki with its existing backend access checks.
 
-export const HELP_HOME = "/knowledge";
+export const HELP_HOME = "/help";
 export const WIKI_HOME = "/knowledge?ws=wiki";
 /** The "Ask a person" card on the Help Center home. /contact redirects here. */
-export const CONTACT_HREF = "/knowledge#contact";
+export const CONTACT_HREF = "/help#contact";
 /** The creator questions that used to be /help-faq. /help-faq redirects here. */
-export const CREATOR_FAQ_HREF = "/knowledge#creator-faq";
+export const CREATOR_FAQ_HREF = "/help#answers";
 
 export function articleHref(a: { slug: string; workspace: Workspace }): string {
     return a.workspace === "wiki"
@@ -27,7 +26,7 @@ export function articleHref(a: { slug: string; workspace: Workspace }): string {
 export function categoryHref(c: { slug: string; workspace: Workspace }): string {
     return c.workspace === "wiki"
         ? `/knowledge?ws=wiki&cat=${encodeURIComponent(c.slug)}`
-        : `/knowledge?cat=${encodeURIComponent(c.slug)}`;
+        : `/help?cat=${encodeURIComponent(c.slug)}#answers`;
 }
 
 // ---- Labels ----

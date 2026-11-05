@@ -69,11 +69,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Website not found. Generate it first.' }, { status: 404 })
         }
 
-        const htmlToDeploy = await resolveWebsiteHtml(website)
-        if (!htmlToDeploy) {
-            return NextResponse.json({ error: 'No HTML content to deploy' }, { status: 400 })
-        }
-
         // Get the submission for business name
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
@@ -81,6 +76,26 @@ export async function POST(request: NextRequest) {
 
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
+        }
+
+        // Check the server policy before assigning an address or making any
+        // Cloudflare request. The publishing mutation rechecks it atomically.
+        const publication = await fetchQuery(api.generatedWebsites.publicationCheck, {
+            submissionId: submissionId as Id<'submissions'>,
+        }, { token })
+        if (!publication.allowed) {
+            return NextResponse.json({
+                error: publication.reason === 'unpaid'
+                    ? 'The owner must pay in full before this website can be published.'
+                    : publication.reason === 'not approved'
+                        ? 'The owner must approve the private preview before publishing.'
+                        : 'Finish the owner’s requested changes before publishing.',
+            }, { status: 409 })
+        }
+
+        const htmlToDeploy = await resolveWebsiteHtml(website)
+        if (!htmlToDeploy) {
+            return NextResponse.json({ error: 'No HTML content to deploy' }, { status: 400 })
         }
 
         // ── The <slug>.sites.tendso.com address ───────────────────────────
@@ -125,8 +140,7 @@ export async function POST(request: NextRequest) {
         const publishedUrl = publishAddressFor(website, siteSlug)
 
         // Update generated website in Convex with published info
-        try {
-            await fetchMutation(api.generatedWebsites.publish, {
+        await fetchMutation(api.generatedWebsites.publish, {
                 submissionId: submissionId as Id<"submissions">,
                 publishedUrl,
                 // Omitted when no Worker was deployed. The mutation does not
@@ -134,10 +148,7 @@ export async function POST(request: NextRequest) {
                 // keeps it.
                 ...(workerName ? { cfPagesProjectName: workerName } : {}),
                 slug: siteSlug,
-            }, { token })
-        } catch (updateError: any) {
-            console.error('Database update error:', updateError?.message || updateError)
-        }
+        }, { token })
 
         // Update submission status to deployed and set websiteUrl
         try {

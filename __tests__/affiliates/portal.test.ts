@@ -110,6 +110,10 @@ describe('affiliate portal authorization', () => {
         await sale(t, otherId, { status: 'pending_payment', creatorPayout: 5000 });
         await withdrawal(t, otherId, { amount: 4000 });
         await referral(t, otherId, { status: 'paid', bonusAmount: 1000 });
+        await t.run((ctx) => ctx.db.insert('creators', {
+            clerkId: 'foreign-recruit', email: 'foreign-recruit-private@example.com', role: 'creator', status: 'active',
+            firstName: 'Foreign Recruit', recruitedByCreatorId: otherId, recruitedAt: Date.UTC(2026, 9, 22),
+        }));
         const forged = { creatorId: otherId };
         // @ts-expect-error Also verify runtime rejection of account selection forbidden by generated types.
         await expect(affiliate.query(api.affiliates.portal, forged)).rejects.toThrow();
@@ -118,12 +122,16 @@ describe('affiliate portal authorization', () => {
         expect(result.earnings.map((row) => row.businessName)).toEqual(['Own Paid Shop']);
         expect(result.withdrawals).toEqual([]);
         expect(result.referrals).toEqual([]);
+        expect(result.recruits).toEqual([]);
+        expect(result.recruitStats).toEqual({ total: 0, earning: 0, totalEarned: 0 });
         expect(result.referralStats).toEqual({ total: 0, pending: 0, qualified: 0, paid: 0, totalEarned: 0 });
         const foreign = await other.query(api.affiliates.portal, {});
         expect(foreign.summary).toEqual({ balance: 99999, totalEarned: 9999, totalWithdrawn: 0, pendingCommission: 5000, inFlight: 4000 });
         expect(foreign.earnings.map((row) => row.businessName)).toEqual(['Foreign Paid Shop']);
         expect(foreign.withdrawals).toHaveLength(1);
         expect(foreign.referrals).toHaveLength(1);
+        expect(foreign.recruits).toEqual([expect.objectContaining({ referredName: 'Foreign Recruit' })]);
+        expect(JSON.stringify(foreign.recruits)).not.toContain('foreign-recruit-private@example.com');
     });
 });
 

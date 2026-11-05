@@ -10,8 +10,12 @@ import type { Id } from './_generated/dataModel';
  *    npx convex run knowledgeAI:backfillEmbeddings
  *
  * Idempotent — re-running upserts by slug / (workspace + question), so it's
- * safe to tweak copy here and re-run. Facts (pricing, flow, payouts) are
- * sourced from lib/pricing.ts and the live product as of 2026-06-15.
+ * safe to tweak copy here and re-run. NEVER change a slug or an FAQ question
+ * to reword it: that is the upsert key, so the old row would stay behind as a
+ * duplicate. Facts (pricing, flow, payouts) follow lib/pricing.ts and the
+ * 2026-10-21 decisions: built in about 20 minutes the same day, ₱4,999 or a
+ * down payment from ₱500, "See it first. Pay once to publish.", field agent
+ * (visits shops) vs creator (promotes online).
  */
 
 // ---- block helpers (mirror the design content model) ----
@@ -71,15 +75,15 @@ type SeedFaq = {
 const CATEGORIES: SeedCategory[] = [
     // ---- Help Center (public, business owners) ----
     { slug: 'getting-started', title: 'Getting Started', description: 'How Tendso works, from the first visit to a live website.', icon: 'rocket', hue: 'clay', workspace: 'help', order: 1 },
-    { slug: 'pricing-payment', title: 'Pricing & Payment', description: 'What a website costs and how you pay — only after you approve.', icon: 'card', hue: 'sage', workspace: 'help', order: 2 },
-    { slug: 'your-website', title: 'Your Website', description: 'Reviewing, approving, and updating your live page.', icon: 'book', hue: 'plum', workspace: 'help', order: 3 },
+    { slug: 'pricing-payment', title: 'Pricing & Payment', description: 'What a website costs and how you pay: see it first, pay once to publish.', icon: 'card', hue: 'sage', workspace: 'help', order: 2 },
+    { slug: 'your-website', title: 'Your Website', description: 'Seeing your page first, asking for changes, and updating it once it is live.', icon: 'book', hue: 'plum', workspace: 'help', order: 3 },
     { slug: 'domains', title: 'Custom Domains', description: 'Use your own .com instead of a free Tendso address.', icon: 'globe', hue: 'indigo', workspace: 'help', order: 4 },
     { slug: 'trust-support', title: 'Trust & Support', description: 'Your data, your guarantees, and how to reach a human.', icon: 'shield', hue: 'slate', workspace: 'help', order: 5 },
 
     // ---- Internal Wiki (field agents / creators) ----
-    { slug: 'onboarding', title: 'Onboarding', description: 'Certification, your first match, and your first week.', icon: 'rocket', hue: 'clay', workspace: 'wiki', order: 1 },
+    { slug: 'onboarding', title: 'Onboarding', description: 'Certification, your first match, and your first week as a field agent.', icon: 'rocket', hue: 'clay', workspace: 'wiki', order: 1 },
     { slug: 'interview-capture', title: 'Interview & Capture', description: 'Running the interview, photos, audio, and submitting.', icon: 'book', hue: 'plum', workspace: 'wiki', order: 2 },
-    { slug: 'payouts-earnings', title: 'Payouts & Earnings', description: 'How you get paid, your price band, and bonuses.', icon: 'card', hue: 'sage', workspace: 'wiki', order: 3 },
+    { slug: 'payouts-earnings', title: 'Payouts & Earnings', description: 'How you get paid, your price band, down payments, and the creator program.', icon: 'card', hue: 'sage', workspace: 'wiki', order: 3 },
     { slug: 'prospecting', title: 'Prospecting & Leads', description: 'Finding businesses, claiming prospects, and the pool.', icon: 'chart', hue: 'amber', workspace: 'wiki', order: 4 },
     { slug: 'field-troubleshooting', title: 'Troubleshooting', description: 'Fixing uploads, transcripts, and common field issues.', icon: 'wrench', hue: 'slate', workspace: 'wiki', order: 5 },
 ];
@@ -91,78 +95,80 @@ const HELP_ARTICLES: SeedArticle[] = [
     {
         slug: 'what-happens-in-the-interview',
         title: 'What happens in the 30-minute interview?',
-        summary: 'A creator visits your shop, asks a few questions, and photographs your work. You keep working — the website forms around what they capture.',
+        summary: 'A field agent visits your shop, asks a few questions, and photographs your work. You keep working — the website forms around what they capture.',
         categorySlug: 'getting-started',
         workspace: 'help',
         author: 'Tendso Team',
         readMin: 3,
         popular: true,
-        keywords: ['interview', 'visit', 'how it works', 'getting started', 'creator', 'photos', 'shop'],
+        keywords: ['interview', 'visit', 'how it works', 'getting started', 'field agent', 'photos', 'shop'],
         body: [
-            p('Tendso websites are built from a single short visit. A certified creator comes to your business with a phone and a checklist. You do not need to prepare anything or stop working — the interview is designed to fit around a normal day.'),
-            h('What the creator does'),
+            p('Tendso websites are built from a single short visit. A trained field agent comes to your business with a phone and a checklist. You do not need to prepare anything or stop working — the interview is designed to fit around a normal day.'),
+            h('What the field agent does'),
             ol(
                 'Asks a handful of plain questions about what you do, who you serve, and what makes your place worth visiting.',
                 'Records the conversation so nothing is lost — the words become your website copy.',
                 'Photographs your space, your products, and you or your team at work.',
             ),
-            note('You never have to write anything. The thinking ends at the interview — the creator and our system handle the rest.'),
+            note('You never have to write anything. The thinking ends at the interview — the field agent and our system handle the rest.'),
             h('What happens next'),
-            p('Within 48 hours your draft website is ready to review. You look it over, ask for any changes, and only pay once you are happy with it.'),
+            p('About 20 minutes after the interview and photos, your website is built, the same day. See it first. Ask for any changes, and pay once to publish it when you are happy.'),
         ],
     },
     {
         slug: 'how-much-does-a-website-cost',
         title: 'How much does a Tendso website cost?',
-        summary: 'A complete website is ₱999, one time. A custom domain is an optional ₱500 add-on. No subscriptions, no hidden fees.',
+        summary: 'A complete website is ₱4,999, or start with a down payment from ₱500. A field agent or creator can offer a discount, as low as ₱999. A custom domain is an optional ₱500 add-on.',
         categorySlug: 'pricing-payment',
         workspace: 'help',
         author: 'Tendso Team',
         readMin: 3,
         popular: true,
-        keywords: ['price', 'cost', 'how much', 'fee', 'pricing', '999', 'payment', 'subscription'],
+        keywords: ['price', 'cost', 'how much', 'fee', 'pricing', '4999', '4,999', '999', 'discount', 'down payment', 'payment'],
         body: [
-            p('A Tendso website is a one-time payment of ₱999. That includes the interview, the photography, the writing, and a fully built, live website hosted for you.'),
+            p('A Tendso website is ₱4,999. A field agent or creator may offer you a discount, as low as ₱999, and a Tendso creator\'s code is 30% off by default (₱3,499). You can pay in full, or start with a down payment of at least ₱500 and pay the rest afterwards. The price includes the interview, the photography, the writing, and a fully built website hosted for you.'),
             h("What's included"),
             ul(
-                'A creator visit and 30-minute interview.',
+                'A field agent visit and 30-minute interview.',
                 'Professional photos of your business.',
                 'A written, designed, mobile-ready website.',
                 'A free Tendso web address and hosting.',
                 'Free edits for the first year — you ask, we make the change.',
             ),
             h('Optional add-ons'),
-            p('If you want your own domain name (for example yourshop.com instead of a free Tendso address), that is a flat ₱500 add-on, bringing the total to ₱1,499.'),
-            note('There is no monthly subscription. You pay once, and the website is yours.'),
+            p('If you want your own domain name (for example yourshop.com instead of a free Tendso address), that is a flat ₱500 add-on on top of the website price.'),
+            note('See it first. Pay once to publish. The website is yours.'),
             h('When do I pay?'),
-            p('Only after you have seen the finished website and approved it. If you do not approve, you do not pay.'),
+            p('After you have seen the finished website and you are happy with it. If a field agent set your site up for you, it may already be online so you can look at it; if it is not paid for, it is taken down. If you do not want it, you do not pay.'),
         ],
     },
     {
         slug: 'how-payment-works',
-        title: 'How payment works — you approve before you pay',
-        summary: 'You review the finished website first. Payment is requested only after you approve, through a secure link.',
+        title: 'How payment works — see it first, pay once to publish',
+        summary: 'You see the finished website first. Then you pay once to publish it, through a secure link, in full or with a down payment from ₱500.',
         categorySlug: 'pricing-payment',
         workspace: 'help',
         author: 'Tendso Team',
         readMin: 3,
-        keywords: ['payment', 'pay', 'approve', 'secure', 'link', 'invoice', 'gcash', 'bank'],
+        keywords: ['payment', 'pay', 'publish', 'see it first', 'secure', 'link', 'invoice', 'gcash', 'maya', 'card', 'wise', 'bank', 'down payment'],
         body: [
-            p('Tendso never asks for payment up front. The order is always: build first, approve, then pay.'),
+            p('Tendso never asks you to pay before you have seen your website. See it first. Pay once to publish.'),
             h('The steps'),
             ol(
-                'The creator finishes your website and sends you the draft to review.',
-                'Once you approve it, you receive a secure payment link with a unique reference code.',
-                'You pay the amount shown. When the payment is confirmed, your website goes live on its public address.',
+                'Your field agent interviews you and takes your photos. Your website is built the same day, about 20 minutes later.',
+                'You see it first. Ask for changes, or say yes.',
+                'You receive a secure payment link with a unique reference code. Pay in full, or start with a down payment of at least ₱500.',
+                'When your payment is confirmed, your website is published at its public address.',
             ),
+            p('Today you pay by bank transfer through Wise, and the payment link shows exactly how. Paying with GCash, Maya or a card is being added.'),
             note('Keep your reference code with your payment — it is how we match your payment to your website automatically.', 'warn'),
-            p('If you have any trouble with a payment link, contact support and we will sort it out before anything goes live.'),
+            p('If a field agent set your site up for you, it is published first so you can look at it. If it is not paid for, it is taken down. If you have any trouble with a payment link, contact support and we will sort it out.'),
         ],
     },
     {
         slug: 'what-if-i-dont-like-it',
         title: "What if you don't like the result?",
-        summary: 'You only pay after you approve. If the first draft is not right, we revise it once for free.',
+        summary: 'You see your website first and pay once to publish it when you are happy. If something is not right, ask for a change.',
         categorySlug: 'your-website',
         workspace: 'help',
         author: 'Tendso Team',
@@ -170,35 +176,35 @@ const HELP_ARTICLES: SeedArticle[] = [
         popular: true,
         keywords: ['revision', 'changes', 'reject', 'not happy', 'redo', 'edit', 'approve', 'guarantee'],
         body: [
-            p('There is no risk in trying Tendso. You see the finished website before any money changes hands.'),
+            p('There is no risk in trying Tendso. You see the finished website before you pay to publish it.'),
             h('If the draft is not right'),
             ul(
-                'Tell the creator what you would like changed.',
-                'They revise the website once at no extra cost.',
-                'If it still is not for you, you simply do not approve it — and you pay nothing.',
+                'Tell your field agent, or message Tendso, what you would like changed.',
+                'We update the website and you look at it again.',
+                'If it still is not for you, you do not pay.',
             ),
-            quote("You don't pay until you approve. Then it's yours, or it's nothing.", 'The Tendso promise'),
+            quote('See it first. Pay once to publish.', 'The Tendso promise'),
         ],
     },
     {
         slug: 'how-fast-can-it-go-live',
         title: 'How fast can my website go live?',
-        summary: 'Most websites are ready to review within 48 hours of the interview, and go live the moment you approve and pay.',
+        summary: 'Your website is built the same day, about 20 minutes after the interview and photos. It is published once you have seen it and paid.',
         categorySlug: 'getting-started',
         workspace: 'help',
         author: 'Tendso Team',
         readMin: 2,
         popular: true,
-        keywords: ['fast', 'how long', 'time', '48 hours', 'speed', 'live', 'turnaround'],
+        keywords: ['fast', 'how long', 'time', '20 minutes', 'same day', 'speed', 'live', 'turnaround'],
         body: [
-            p('Speed is the point. Because the website is built from one focused visit, there is no long back-and-forth.'),
+            p('Speed is the point. Because the website is built from one focused visit, there is no long back-and-forth. A site takes about 20 minutes to build once the interview and photos are in.'),
             h('The timeline'),
             ol(
-                'Day 0 — the creator visits and runs the interview.',
-                'Within 48 hours — your draft website is ready to review.',
-                'On approval — your website goes live as soon as payment is confirmed.',
+                'Day 0 — the field agent visits, runs the interview and takes the photos.',
+                'About 20 minutes later, the same day — your website is built and ready for you to see.',
+                'When you pay — your website is published and stays live.',
             ),
-            note('Need it sooner for an event or a launch? Mention it during the interview and the creator will flag it.'),
+            note('Need it sooner for an event or a launch? Mention it during the interview and the field agent will flag it.'),
         ],
     },
     {
@@ -213,10 +219,10 @@ const HELP_ARTICLES: SeedArticle[] = [
         body: [
             p('Every Tendso website comes with a free web address. If you would like a more memorable, branded address — like yourshop.com — you can add a custom domain.'),
             h('What it costs'),
-            p('A custom domain is a flat ₱500 add-on (covering registration for the first year and setup). That brings your total to ₱1,499 for the website plus domain.'),
+            p('A custom domain is a flat ₱500 add-on (covering registration for the first year and setup). That is added to the website price.'),
             h('How it works'),
             ol(
-                'Tell your creator the domain you want during or after the interview.',
+                'Tell your field agent the domain you want during or after the interview.',
                 'We check it is available and register it for you.',
                 'We connect it to your website and set up secure HTTPS automatically.',
             ),
@@ -261,7 +267,47 @@ const HELP_ARTICLES: SeedArticle[] = [
                 'Payment links are unique and expire — we never store card numbers.',
             ),
             h('You stay in control'),
-            p('Nothing goes public until you approve it. If you ever want your website taken down, contact support and we will unpublish it.'),
+            p('You decide what stays on your website. If you ever want it taken down, contact support and we will unpublish it.'),
+        ],
+    },
+    {
+        slug: 'down-payments',
+        title: 'Can I start with a down payment?',
+        summary: 'Yes. You can start with a down payment of at least ₱500 and pay the rest afterwards, instead of the full price at once.',
+        categorySlug: 'pricing-payment',
+        workspace: 'help',
+        author: 'Tendso Team',
+        readMin: 2,
+        keywords: ['down payment', 'installment', 'instalment', 'partial', 'split', 'pay later', '500', 'afford', 'pay in parts'],
+        body: [
+            p('A Tendso website is ₱4,999, or less when a field agent or creator offers you a discount. If paying it all at once is hard, you can start with a down payment instead.'),
+            h('How it works'),
+            ul(
+                'The smallest down payment is ₱500. The amount you can start with depends on the price you were offered.',
+                'You pay the first part, and the rest afterwards. Tendso collects the rest from you; your field agent does not chase you for it.',
+                'The payment link tells you how much is left and how to pay it.',
+            ),
+            note('See it first. Pay once to publish. A down payment just lets you split that one payment.'),
+        ],
+    },
+    {
+        slug: 'sign-in-with-email-code',
+        title: 'How do I sign in?',
+        summary: 'Tendso sends a code to your email each time you sign in. There is no password to remember and no SMS.',
+        categorySlug: 'trust-support',
+        workspace: 'help',
+        author: 'Tendso Team',
+        readMin: 2,
+        keywords: ['sign in', 'login', 'log in', 'code', 'email code', 'password', 'sms', 'account', 'forgot password'],
+        body: [
+            p('Business owners, field agents and creators all sign in the same way: with a code sent to their email.'),
+            h('The steps'),
+            ol(
+                'Enter your email address.',
+                'Open the email from Tendso and copy the code.',
+                'Type the code in. You are signed in.',
+            ),
+            note('There is no password and no text message. If the code does not arrive, check your spam folder, then ask for a new one.'),
         ],
     },
 ];
@@ -272,7 +318,7 @@ const HELP_ARTICLES: SeedArticle[] = [
 const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'your-first-week',
-        title: 'Your first week as a certified creator',
+        title: 'Your first week as a certified field agent',
         summary: 'A day-by-day map: certification, your first match, your first interview, and your first payout.',
         categorySlug: 'onboarding',
         workspace: 'wiki',
@@ -281,7 +327,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
         popular: true,
         keywords: ['first week', 'onboarding', 'new', 'start', 'certified', 'match', 'getting started'],
         body: [
-            p('Welcome to Tendso. Your job is simple to describe and rewarding to do well: visit a local business, capture it honestly, and let the website form around the work. Here is how your first week usually goes.'),
+            p('Welcome to Tendso. A field agent visits shops. Your job is simple to describe and rewarding to do well: visit a local business, capture it honestly, and let the website form around the work. Here is how your first week usually goes.'),
             h('Day 1 — get certified'),
             ul(
                 'Finish the certification quiz in the app. A passing score puts you in the review queue.',
@@ -308,7 +354,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
         readMin: 4,
         keywords: ['quiz', 'certification', 'pass', 'exam', 'training', 'approve', 'certified'],
         body: [
-            p('Before you can take jobs, you complete a short certification quiz in the app. It confirms you understand how to run a respectful interview, capture usable photos and audio, and represent Tendso well.'),
+            p('Before you can take jobs, you complete a short certification quiz in the app. You sign in with a code we email you: no password, and no SMS. It confirms you understand how to run a respectful interview, capture usable photos and audio, and represent Tendso well.'),
             h('What it covers'),
             ul(
                 'The interview flow and the questions that matter.',
@@ -318,7 +364,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
             ),
             h('After you pass'),
             p('Passing sets your account to "awaiting approval". An admin reviews and certifies you — only then can you claim prospects. If you do not pass, you can review the material and retake it.'),
-            note('Certification is per creator. Do not run interviews for anyone before you are certified — those submissions cannot be approved.', 'warn'),
+            note('Certification is per field agent. Do not run interviews for anyone before you are certified — those submissions cannot be approved.', 'warn'),
         ],
     },
     {
@@ -431,7 +477,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'how-wise-payouts-work',
         title: 'How Wise payouts work',
-        summary: 'Link Wise once. You earn 50% of the sell price; funds are released after the submission is approved and the owner pays.',
+        summary: 'Link Wise once. You keep 50% of the sell price, even when the shop starts with a down payment. Funds are released once the submission is approved and the owner pays.',
         categorySlug: 'payouts-earnings',
         workspace: 'wiki',
         author: 'Creator Success',
@@ -443,7 +489,8 @@ const WIKI_ARTICLES: SeedArticle[] = [
             h('What you earn'),
             ul(
                 'Your commission is 50% of the website sell price.',
-                'At the ₱999 base price, that is ₱500 per approved, paid website.',
+                'You set the price anywhere from ₱999 to ₱4,999: ₱500 at ₱999, ₱2,500 at ₱4,999.',
+                'If the shop starts with a down payment (minimum ₱500), you still get your whole share. Tendso collects the rest from the shop.',
                 'The custom-domain add-on is a pass-through cost and is not part of your commission.',
             ),
             h('When you get paid'),
@@ -458,7 +505,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'your-price-band',
         title: 'Your price band: ₱999 to ₱4,999',
-        summary: 'Set any price from ₱999 to ₱4,999 on every website, starting with your first. Your commission is half of it.',
+        summary: 'Set any price from ₱999 to ₱4,999 on every website, starting with your first. You keep half of it.',
         categorySlug: 'payouts-earnings',
         workspace: 'wiki',
         author: 'Creator Success',
@@ -473,28 +520,30 @@ const WIKI_ARTICLES: SeedArticle[] = [
                 'On the last step of each submission your price starts at ₱4,999, the full list price. Lower it to give the owner a discount: their bill shows ₱4,999 struck through, then your price and the percentage off.',
             ),
             h('Why it matters for earnings'),
-            p('Because commission is 50% of the sell price, a higher price means a higher payout: ₱999 pays you ₱500, while ₱4,999 pays you ₱2,500 on a single website.'),
+            p('Because you keep 50% of the sell price, a higher price means a higher payout: ₱999 pays you ₱500, while ₱4,999 pays you ₱2,500 on a single website.'),
             note('Price to the value you deliver and what the business can bear — a fair price that closes beats a high price that does not.'),
         ],
     },
     {
         slug: 'referral-bonus',
-        title: 'The ₱1,000 referral bonus',
-        summary: 'Share your link. When a creator you referred lands their first paid submission, you earn ₱1,000.',
+        title: 'Referrals: the creator override replaces the ₱1,000 bonus',
+        summary: 'Creators earn 5% of the sales made by field agents they recruit, for 12 months. The old ₱1,000 bonus only applies to referrals that were already pending.',
         categorySlug: 'payouts-earnings',
         workspace: 'wiki',
         author: 'Creator Success',
         readMin: 3,
-        keywords: ['referral', 'bonus', 'refer', 'friend', 'invite', '1000', 'link'],
+        keywords: ['referral', 'bonus', 'refer', 'friend', 'invite', '1000', 'link', 'override', '5%', 'recruit', 'creator'],
         body: [
-            p('Know someone who would make a great creator? Refer them and you both win.'),
-            h('How it works'),
-            ol(
-                'Share your referral link from the app.',
-                'They sign up using your link and get certified.',
-                'When their first submission is approved and paid, you earn a ₱1,000 bonus.',
+            p('New field agents are recruited through a creator\'s link. In place of the old ₱1,000 referral bonus, the creator now earns a share of what their recruits sell.'),
+            h('How it works now'),
+            ul(
+                'A creator earns 5% of each sale made by a field agent who joined through their link.',
+                'It runs for 12 months from the day that field agent joins, and only one level: nobody earns on their recruit\'s recruits.',
+                'It is paid when the shop has paid in full. Nothing is paid for sign-ups.',
+                'It is on top of the field agent\'s own 50%, so recruiting never reduces what you keep.',
+                'Nobody earns on their own site: no self-referral.',
             ),
-            note('The bonus pays out on the referred creator\'s first paid submission — not just on signup. Encourage your referrals to land that first job.'),
+            note('Referrals that were already pending before the change keep their ₱1,000 bonus, paid on the recruit\'s first paid submission. New recruits earn the 5% override instead.'),
         ],
     },
     {
@@ -508,7 +557,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
         popular: true,
         keywords: ['prospect', 'claim', 'leads', 'pool', 'find', 'business', 'nearby', 'reserve'],
         body: [
-            p('Tendso maintains a shared pool of local businesses to approach. You claim one to signal you are working it, so two creators do not show up at the same shop.'),
+            p('Tendso maintains a shared pool of local businesses to approach. You claim one to signal you are working it, so two field agents do not show up at the same shop.'),
             h('Claiming a prospect'),
             ol(
                 'Open the prospects view and filter to your area.',
@@ -551,7 +600,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'is-this-a-job',
         title: 'Is this a job? The field-agent role explained',
-        summary: 'Being a Tendso field agent is part-time and on your own initiative. You earn per result — 50% of every website a business owner pays for — not a fixed salary.',
+        summary: 'Being a Tendso field agent is part-time and on your own initiative. You earn per result — you keep 50% of every website a business owner pays for — not a fixed salary.',
         categorySlug: 'onboarding',
         workspace: 'wiki',
         author: 'Creator Success',
@@ -562,9 +611,9 @@ const WIKI_ARTICLES: SeedArticle[] = [
             p('A Tendso field agent is a part-time, flexible role. You decide when you work, which neighborhoods you cover, and which businesses you approach. There is no fixed schedule and no experience required.'),
             h('How you earn'),
             ul(
-                'You keep 50% of every website a business owner pays for — ₱500 at the ₱999 base price.',
+                'You keep 50% of every website a business owner pays for — ₱500 at ₱999.',
                 'Set a higher price (see "Your price band") and the same 50% scales up to ₱2,500 per website.',
-                'You earn a ₱1,000 referral bonus when someone you refer lands their first paid website.',
+                'If the shop starts with a down payment, you still get your whole share upfront.',
             ),
             h('What it is not'),
             ul(
@@ -578,7 +627,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'if-owner-doesnt-pay',
         title: "What if a business owner doesn't pay?",
-        summary: 'You are paid 50% of every website an owner approves and pays for. Interviews that don\'t convert aren\'t separately compensated — the model is built so paying is easy and low-risk for the owner.',
+        summary: 'You are paid 50% of every website an owner approves and pays for. Interviews that don\'t convert aren\'t separately compensated — the model is built so paying is easy and low-risk for the owner: they see it first.',
         categorySlug: 'payouts-earnings',
         workspace: 'wiki',
         author: 'Creator Success',
@@ -591,14 +640,14 @@ const WIKI_ARTICLES: SeedArticle[] = [
             p('You earn when a business owner approves and pays for a website — 50% of the sale. If an owner you interviewed decides not to pay, you do not earn for that visit, and there is no separate payment for the time or transport spent. Running interviews is on your own initiative as a part-time field agent.'),
             h('Why the model still works for you'),
             ul(
-                'Approve-before-pay removes the owner\'s risk: they only pay once they see a finished site they like, which makes saying yes easy.',
+                'See-it-first removes the owner\'s risk: they only pay once they have seen a finished site they like, and a down payment from ₱500 makes saying yes easier.',
                 'You choose who to approach — focus on active, owner-run businesses that clearly need a site.',
-                'There is no cost to you to run an interview, and your upside per sale runs from ₱500 to ₱2,500, depending on the price you set.',
+                'There is no cost to you to run an interview, and your share per sale runs from ₱500 to ₱2,500, depending on the price you set.',
             ),
             h('How to convert more interviews'),
             ol(
                 'Build trust first — explain there\'s no upfront cost and they only pay if they love the result.',
-                'Follow up: make sure the owner received the draft and the secure payment link, and answer any questions.',
+                'Follow up: make sure the owner has seen the website and received the secure payment link, and answer any questions. If it is not paid for, the site is taken down.',
                 'Pick businesses where you can reach the actual decision-maker, not just staff.',
             ),
             note('If an owner seems unsure or suspicious, that\'s normal — read "When an owner thinks it\'s a scam" for how to handle it.', 'warn'),
@@ -607,7 +656,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'handling-scam-objection',
         title: "When an owner thinks it's a scam",
-        summary: 'Some owners are wary at first. Lead with approve-before-pay, no upfront cost, and a real example — then give them space to decide.',
+        summary: 'Some owners are wary at first. Lead with see-it-first, no upfront cost, and a real example — then give them space to decide.',
         categorySlug: 'prospecting',
         workspace: 'wiki',
         author: 'Field Playbook',
@@ -618,18 +667,18 @@ const WIKI_ARTICLES: SeedArticle[] = [
             p('Some business owners are busy or skeptical and worry that a free-looking offer is a scam. That reaction is normal — here is how to earn their trust.'),
             h('Lead with the things that lower risk'),
             ul(
-                'They pay nothing up front — Tendso builds the site first and they only pay if they approve it.',
-                'There is no subscription; it\'s a one-time ₱999.',
+                'They pay nothing up front — Tendso builds the site first and they pay once to publish it if they like it.',
+                'The price is clear: ₱4,999, or less with your discount, and they can start with a down payment from ₱500.',
                 'Payment is a secure link with a unique reference — you never handle their money or card.',
                 'Edits are free for the first year — they contact Tendso and we make the change for them.',
             ),
             h('Show, don\'t just tell'),
             ol(
                 'Show a real Tendso site on your phone so they see exactly what they\'d get.',
-                'Explain the simple flow: a 30-minute chat, photos, and a live site within 48 hours.',
+                'Explain the simple flow: a 30-minute chat, photos, and a finished site the same day, about 20 minutes after.',
                 'Leave them the link to review on their own time — busy owners often say yes after they\'ve looked.',
             ),
-            quote("You don't pay until you approve. If you don't like it, you owe nothing.", 'The line that resets most doubts'),
+            quote("See it first. Pay once to publish. If you don't like it, you owe nothing.", 'The line that resets most doubts'),
             note('Never pressure an owner. A calm, no-risk explanation converts far better than a hard sell — and protects Tendso\'s reputation.'),
         ],
     },
@@ -645,14 +694,93 @@ const WIKI_ARTICLES: SeedArticle[] = [
         body: [
             p('Keep your opener short and warm. You\'re offering something useful with no risk — say that plainly and let them get curious.'),
             h('A simple opener'),
-            quote("Hi! I\'m with Tendso. We build a proper website for local businesses from one quick 30-minute visit — and you only pay if you love the result. Mind if I show you an example?", 'Adapt it to your own voice'),
+            quote("Hi! I\'m with Tendso. We build a proper website for local businesses from one quick 30-minute visit — and you see it first and only pay to publish it if you love it. Mind if I show you an example?", 'Adapt it to your own voice'),
             h('What to cover, in order'),
             ol(
                 'Who you are and what Tendso does, in one sentence.',
-                'The no-risk promise: you only pay if you approve the finished site.',
-                'The ask: a 30-minute chat and some photos, with the site live in 48 hours.',
+                'The no-risk promise: see it first, pay once to publish.',
+                'The ask: a 30-minute chat and some photos, with the site built the same day.',
             ),
             note('Respect their time. If they\'re mid-rush, leave the example and a way to reach you, and follow up later.'),
+        ],
+    },
+    // ----- 2026-10-21: field agent vs creator, creator program, down payments -----
+    {
+        slug: 'field-agent-vs-creator',
+        title: 'Field agent or creator: which one are you?',
+        summary: 'A field agent visits shops. A creator promotes Tendso online with a link and a code. Both earn 50% of every sale they bring in.',
+        categorySlug: 'onboarding',
+        workspace: 'wiki',
+        author: 'Creator Success',
+        readMin: 3,
+        popular: true,
+        keywords: ['field agent', 'creator', 'difference', 'role', 'affiliate', 'link', 'code', 'which', 'online', 'visit'],
+        body: [
+            p('Tendso has two ways to earn, and they are different people doing different work.'),
+            h('Field agent'),
+            ul(
+                'Visits shops in person, records the interview and takes the photos.',
+                'Sets the price from ₱999 to ₱4,999 and keeps 50% of it.',
+                'Signs in with the Tendso app.',
+            ),
+            h('Creator'),
+            ul(
+                'Promotes Tendso online and never visits shops.',
+                'Has a link and a discount code. The code is 30% off by default.',
+                'Keeps 50% of every shop that buys through their code, and earns 5% of what field agents they recruit sell.',
+            ),
+            note('Both sign in with an email code: no password, no SMS. Inside the app and the database a field agent is still called a "creator" and a creator an "affiliate"; only the names you read are different.'),
+        ],
+    },
+    {
+        slug: 'creator-program',
+        title: 'The creator program: how creators earn',
+        summary: 'Share a link and a code. A shop that buys with your code saves 30% and you keep 50%. You also earn 5% of every sale made by field agents you recruit, for 12 months.',
+        categorySlug: 'payouts-earnings',
+        workspace: 'wiki',
+        author: 'Creator Success',
+        readMin: 4,
+        popular: true,
+        keywords: ['creator', 'creator program', 'code', 'discount', '30%', '3499', '1750', 'link', 'earn', 'affiliate', 'override', '5%', 'recruit', '12 months'],
+        body: [
+            p('A creator promotes Tendso online. You do not visit shops. You have a link and a code, and you earn two ways.'),
+            h('1. Shops that buy with your code'),
+            ul(
+                'Your code gives the shop 30% off by default: ₱3,499 instead of ₱4,999.',
+                'You keep 50% of what the shop pays: ₱1,750 at ₱3,499.',
+                'You can lower the price further, down to ₱999. You keep 50% either way.',
+                'A shop can start with a down payment of at least ₱500. You still get your whole share.',
+            ),
+            h('2. Field agents you recruit'),
+            ul(
+                'Field agents who join through your link are your recruits.',
+                'You earn 5% of each sale they make, for 12 months from the day each one joins.',
+                'One level only: you do not earn on your recruit\'s recruits.',
+                'It is paid when the shop has paid in full. Nothing is paid for sign-ups.',
+            ),
+            note('Nobody earns on their own site. An owner never gets a cut of their own website, and the same person cannot be the shop and the creator on one sale.', 'warn'),
+            p('This replaces the old ₱1,000 referral bonus for new recruits. See "Referrals: the creator override replaces the ₱1,000 bonus".'),
+        ],
+    },
+    {
+        slug: 'down-payments-for-agents',
+        title: 'Down payments: what they mean for your pay',
+        summary: 'A shop can start with a down payment of at least ₱500. You still get your whole share upfront; Tendso collects the rest from the shop.',
+        categorySlug: 'payouts-earnings',
+        workspace: 'wiki',
+        author: 'Creator Success',
+        readMin: 3,
+        keywords: ['down payment', 'installment', 'instalment', 'partial', 'upfront', 'pay later', '500', 'commission', 'payout'],
+        body: [
+            p('Many shop owners cannot pay ₱4,999 at once. A down payment lets them say yes today.'),
+            h('How it works'),
+            ul(
+                'The smallest down payment is ₱500. The amount depends on the price you agreed with the shop.',
+                'You still get your whole 50% share. It does not wait for the shop to finish paying.',
+                'Tendso, not you, collects the rest from the shop. You never handle their money.',
+                'A creator\'s 5% on a recruit\'s sale is paid once the shop has paid in full.',
+            ),
+            note('See it first. Pay once to publish. Tell the owner they can start with ₱500 if that is easier.'),
         ],
     },
 ];
@@ -662,22 +790,27 @@ const WIKI_ARTICLES: SeedArticle[] = [
 // ============================================================
 const FAQS: SeedFaq[] = [
     // Help Center
-    { workspace: 'help', question: 'How much does a Tendso website cost?', answer: 'A complete website is a one-time ₱999. A custom domain is an optional ₱500 add-on. No subscriptions.', linkArticleSlug: 'how-much-does-a-website-cost', order: 1 },
-    { workspace: 'help', question: 'When do I pay?', answer: 'Only after you have reviewed and approved the finished website. If you do not approve, you do not pay.', linkArticleSlug: 'how-payment-works', order: 2 },
-    { workspace: 'help', question: 'How fast can it go live?', answer: 'Your draft is usually ready within 48 hours of the interview, and goes live the moment you approve and pay.', linkArticleSlug: 'how-fast-can-it-go-live', order: 3 },
-    { workspace: 'help', question: 'What if I want changes?', answer: 'Tell us what to change — the first draft is revised once for free. After launch, edits are free for the first year.', linkArticleSlug: 'what-if-i-dont-like-it', order: 4 },
+    { workspace: 'help', question: 'How much does a Tendso website cost?', answer: 'A complete website is ₱4,999, or less if a field agent or creator offers you a discount (as low as ₱999). Start with a down payment from ₱500 if you like. A custom domain is an optional ₱500 add-on.', linkArticleSlug: 'how-much-does-a-website-cost', order: 1 },
+    { workspace: 'help', question: 'When do I pay?', answer: 'After you have seen the finished website: see it first, pay once to publish. Pay in full, or start with a down payment from ₱500. If you do not want it, you do not pay.', linkArticleSlug: 'how-payment-works', order: 2 },
+    { workspace: 'help', question: 'How fast can it go live?', answer: 'Your website is built the same day, about 20 minutes after the interview and photos, and published once you have seen it and paid.', linkArticleSlug: 'how-fast-can-it-go-live', order: 3 },
+    { workspace: 'help', question: 'What if I want changes?', answer: 'Tell us what to change and we update it before you pay. After launch, edits are free for the first year.', linkArticleSlug: 'what-if-i-dont-like-it', order: 4 },
+    { workspace: 'help', question: 'Can I start with a down payment?', answer: 'Yes. Start with at least ₱500 and pay the rest afterwards. See it first, pay once to publish.', linkArticleSlug: 'down-payments', order: 7 },
+    { workspace: 'help', question: 'How do I sign in?', answer: 'With a code Tendso emails you each time. No password and no SMS.', linkArticleSlug: 'sign-in-with-email-code', order: 8 },
     { workspace: 'help', question: 'Can I use my own domain?', answer: 'Yes — a custom domain is a flat ₱500 add-on, and we register and connect it for you.', linkArticleSlug: 'custom-domain', order: 5 },
     { workspace: 'help', question: 'Can I change my website after it goes live?', answer: 'Yes — edits are free for the first year. Contact Tendso, tell us what to change, and we make it for you.', linkArticleSlug: 'can-i-edit-my-site', order: 6 },
 
     // Wiki
-    { workspace: 'wiki', question: 'How much do I earn per website?', answer: 'You earn 50% of the sell price — ₱500 at the ₱999 base, up to ₱2,500 at the ₱4,999 ceiling.', linkArticleSlug: 'how-wise-payouts-work', order: 1 },
+    { workspace: 'wiki', question: 'How much do I earn per website?', answer: 'You keep 50% of the sell price — ₱500 at ₱999, up to ₱2,500 at ₱4,999, even if the shop starts with a down payment.', linkArticleSlug: 'how-wise-payouts-work', order: 1 },
     { workspace: 'wiki', question: 'When does my payout arrive?', answer: 'After your submission is approved and the owner pays, your Wise payout is typically released within 48 hours.', linkArticleSlug: 'how-wise-payouts-work', order: 2 },
     // The question is the upsert key: changing it would leave this row behind as a second FAQ.
-    { workspace: 'wiki', question: 'How do I raise my price ceiling?', answer: 'There is nothing to unlock. Every creator can charge anywhere from ₱999 to ₱4,999, starting with their first submission.', linkArticleSlug: 'your-price-band', order: 3 },
+    { workspace: 'wiki', question: 'How do I raise my price ceiling?', answer: 'There is nothing to unlock. Every field agent can charge anywhere from ₱999 to ₱4,999, starting with their first submission.', linkArticleSlug: 'your-price-band', order: 3 },
     { workspace: 'wiki', question: 'How long does a prospect claim last?', answer: 'A claim holds for a limited window and is auto-released after about 24 hours so the shared pool stays fresh.', linkArticleSlug: 'finding-and-claiming-prospects', order: 4 },
     { workspace: 'wiki', question: 'My upload failed — what do I do?', answer: 'Check your connection and free storage, then retry. If a transcript fails, re-upload or submit with a note for review.', linkArticleSlug: 'fixing-failed-uploads', order: 5 },
-    { workspace: 'wiki', question: "If an owner doesn't pay, do I still get paid?", answer: "No — you earn 50% of each website an owner approves and pays for. Interviews that don't convert aren't separately reimbursed, and the approve-before-pay flow is designed to make paying easy.", linkArticleSlug: 'if-owner-doesnt-pay', order: 6 },
-    { workspace: 'wiki', question: 'Is this a job or freelance?', answer: "It's a flexible, part-time field-agent role. You choose when and who to approach and earn per result (50% commission + referral bonus) — not a fixed salary.", linkArticleSlug: 'is-this-a-job', order: 7 },
+    { workspace: 'wiki', question: "If an owner doesn't pay, do I still get paid?", answer: "No — you earn 50% of each website an owner pays for. Interviews that don't convert aren't separately reimbursed, and the see-it-first flow is designed to make paying easy.", linkArticleSlug: 'if-owner-doesnt-pay', order: 6 },
+    { workspace: 'wiki', question: 'What is the difference between a field agent and a creator?', answer: 'A field agent visits shops and sets the price (₱999 to ₱4,999). A creator promotes Tendso online with a link and a code (30% off by default). Both keep 50% of what they sell.', linkArticleSlug: 'field-agent-vs-creator', order: 8 },
+    { workspace: 'wiki', question: 'How does a creator earn from recruited field agents?', answer: 'A creator earns 5% of each sale made by field agents who joined through their link, for 12 months, one level only, paid when the shop has paid in full.', linkArticleSlug: 'creator-program', order: 9 },
+    { workspace: 'wiki', question: 'Can a shop start with a down payment?', answer: 'Yes, from ₱500. The field agent or creator still gets their whole share, and Tendso collects the rest from the shop.', linkArticleSlug: 'down-payments-for-agents', order: 10 },
+    { workspace: 'wiki', question: 'Is this a job or freelance?', answer: "It's a flexible, part-time field-agent role. You choose when and who to approach and earn per result (you keep 50% of each sale) — not a fixed salary.", linkArticleSlug: 'is-this-a-job', order: 7 },
 ];
 
 // ============================================================

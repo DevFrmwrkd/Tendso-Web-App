@@ -32,7 +32,7 @@ export default function TrainAiMenu() {
     const [busy, setBusy] = useState(false)
 
     const nTrained = trained?.length ?? 0
-    const nLearning = trained?.filter((t) => !t.embedded).length ?? 0
+    const nLearning = trained?.filter((t) => t.status !== "draft" && !t.embedded).length ?? 0
     const nWaiting = unanswered ? groupQuestions(unanswered).length : 0
 
     async function run(task: () => Promise<void>) {

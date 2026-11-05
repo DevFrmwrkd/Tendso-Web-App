@@ -13,3 +13,13 @@ export function parseKnowledgeKeywords(text: string): string[] {
         return true
     })
 }
+
+/** Article media is an explicit HTTPS URL, never an executable or local URI. */
+export function knowledgeImageUrl(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) return null
+    const candidate = value.trim()
+    try {
+        const url = new URL(candidate)
+        return url.protocol === 'https:' && !!url.hostname && !url.username && !url.password ? candidate : null
+    } catch { return null }
+}

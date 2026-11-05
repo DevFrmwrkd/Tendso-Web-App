@@ -1276,9 +1276,9 @@ export function getPaymentFollowUpEmailHtml(params: {
         ? `A reminder from ${fromCreator}`
         : isManual ? "We're following up on your website" : 'Final reminder — your website goes offline soon'
     const intro = fromCreator
-        ? `${fromCreator}, who made <strong style="color:#C89548;">${businessName}</strong>'s website with you, asked us to send you a reminder. Your website is live, and it stays live once it is paid — one payment, no monthly fees, no contracts.`
+        ? `${fromCreator}, who made <strong style="color:#C89548;">${businessName}</strong>'s website with you, asked us to send you a reminder. Your website is live, and it stays live once it is paid — one payment to keep it, no contracts.`
         : isManual
-        ? `We're checking in on <strong style="color:#C89548;">${businessName}</strong>'s website. It's been live and waiting for you. Once we receive payment, your website stays live permanently — no monthly fees, no contracts.`
+        ? `We're checking in on <strong style="color:#C89548;">${businessName}</strong>'s website. It's been live and waiting for you. Once we receive payment, your website stays live — no contracts.`
         : `Your website for <strong style="color:#C89548;">${businessName}</strong> will be taken offline in about <strong style="color:#dc2626;">${hoursLeft} hours</strong> if payment is not received. We don't want you to miss this — your site has been ready and live this whole time.`
 
     return `
@@ -1340,7 +1340,7 @@ export function getPaymentFollowUpEmailHtml(params: {
                                         ${aroundTotal.above}
                                         <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">₱${amount.toLocaleString('en-PH')}</p>
                                         ${aroundTotal.below}
-                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">One-time. No monthly fees. Website stays live forever.</p>
+                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">Pay once and your website stays live.</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1457,7 +1457,7 @@ export function getPaymentFollowUpEmailHtml(params: {
 // convex/ownerIntake's submitOwnerIntake.
 //
 // WHY IT EXISTS: the payment email cannot fire until the admin has reviewed,
-// generated, picked a template, approved and published — 48-72h of total
+// generated, picked a template, approved and published — hours of total
 // silence. On the creator funnel that silence was invisible because the creator
 // was standing in the shop closing the loop verbally. With the creator removed,
 // the owner's first contact would otherwise be a bill for a website nobody ever
@@ -1527,8 +1527,8 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;">
                                 <tr>
                                     <td style="padding:24px;text-align:center;">
-                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your Website Will Be Ready In</p>
-                                        <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">48&ndash;72 hours</p>
+                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your Website Will Be Ready</p>
+                                        <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">Today</p>
                                         <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">We will email you the moment it is done.</p>
                                     </td>
                                 </tr>
@@ -1552,7 +1552,7 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">2</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Within <strong>48&ndash;72 hours</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.</p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">The <strong>same day</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.</p></td>
                                 </tr>
                             </table>
                             <!-- Step 3 -->
@@ -1570,7 +1570,7 @@ export function getIntakeReceivedEmailHtml(params: {
                         <td style="padding:0 40px 24px;">
                             <div style="padding:16px 20px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
                                 <p style="margin:0;font-size:15px;color:#1e40af;line-height:1.6;">
-                                    💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong>, one time — no monthly fees, no contract — and you only pay after you have seen your finished website.
+                                    💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong> — see it first, then pay once to publish it. No contract.
                                 </p>
                             </div>
                         </td>

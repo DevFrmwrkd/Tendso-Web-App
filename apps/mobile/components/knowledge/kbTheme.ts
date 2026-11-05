@@ -1,20 +1,21 @@
 /**
  * Knowledge Base visual mappings — bridges the web KB's `hue` + `icon` string
- * fields onto the mobile editorial-paper design system (Ionicons + warm palette).
+ * fields onto the design v2 neutral palette (Ionicons, soft tints, ink glyphs).
  */
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/tokens';
+import { colors } from '../../theme/v2';
 
 type Hue = { bg: string; ink: string };
 
-// Web hues (clay|sage|indigo|slate|amber|plum) → warm-paper tints.
+// Web hues (clay|sage|indigo|slate|amber|plum) -> soft v2 tints with an ink glyph.
+// Hue names stay as the backend sends them; only the colours are neutral now.
 const HUES: Record<string, Hue> = {
-  clay: { bg: '#F0E0D6', ink: '#8A4B2F' },
-  sage: { bg: '#E3EADF', ink: '#4A5D42' },
-  indigo: { bg: '#E2E4F1', ink: '#3B3E70' },
-  slate: { bg: '#E4E7ED', ink: '#3C4654' },
-  amber: { bg: colors.accentBg, ink: colors.accentInk },
-  plum: { bg: '#ECE0EC', ink: '#6D3A6A' },
+  clay: { bg: colors.warnBg, ink: colors.ink },
+  sage: { bg: colors.accentSoft, ink: colors.ink },
+  indigo: { bg: colors.infoBg, ink: colors.ink },
+  slate: { bg: colors.bg2, ink: colors.ink },
+  amber: { bg: colors.accentSoft, ink: colors.ink },
+  plum: { bg: colors.bg2, ink: colors.ink },
 };
 
 export function hue(name: string | undefined): Hue {

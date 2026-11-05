@@ -51,6 +51,7 @@ export const markSubmissionUnpublished = internalMutation({
         if (website) {
             await ctx.db.patch(website._id, { offlineAt: Date.now() });
         }
+        await ctx.scheduler.runAfter(0, internal.ownerInbox.captureSiteUpdates, { submissionId: args.submissionId });
     },
 });
 

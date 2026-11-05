@@ -3,12 +3,14 @@
 import { useUser } from "@clerk/nextjs";
 import { useConvexAuth, useQuery } from "convex/react";
 import { Bell, BookOpen, Gift, Home, Inbox, MapPin, Plus, User, Wallet } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 import { AppShell, Dot, Icon, TabBar, type NavLinkEntry, type SidebarProps } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
+import styles from "./CreatorShell.module.css";
 
 /**
  * The creator's frame (boards Main, Submissions, NewSubmission, Leads, Wallet,
@@ -49,7 +51,7 @@ export function CreatorShell({ children }: { children: ReactNode }) {
     const affiliate = creator?.role === "affiliate";
     const missingProfile = creator === null;
     const submissions = useQuery(api.submissions.getByCreatorId, isAuthenticated && creator && !affiliate ? { creatorId: creator._id } : "skip");
-    const unread = useQuery(api.notifications.getUnreadCount, creator && !affiliate ? { creatorId: creator._id } : "skip");
+    const unread = useQuery(api.notifications.getUnreadCount, isAuthenticated && creator?.clerkId === user?.id && creator && !affiliate ? { creatorId: creator._id } : "skip");
     useEffect(() => {
         if (isLoaded && !isSignedIn) router.replace("/login");
         else if (isLoaded && isSignedIn && missingProfile) router.replace("/onboarding");
@@ -79,6 +81,7 @@ export function CreatorShellView({ children, name, open = 0, unread = 0, preview
         : item;
     const sidebar: SidebarProps = {
         homeHref: href("/dashboard"),
+        brand: <span className={styles.brand}><Image src="/v2/brand/mark-ink-256.png" width={31} height={31} alt="" /><span>tendso</span><small>Field agent</small></span>,
         primary: { href: href("/submit/info"), label: "New submission", icon: Plus, currentPrefix: "/submit" },
         items: [
             HOME,
@@ -89,11 +92,12 @@ export function CreatorShellView({ children, name, open = 0, unread = 0, preview
             { href: "/knowledge", label: "Learn", icon: BookOpen },
         ].map(entry),
         footItems: [entry({ href: "/notifications", label: "Notifications", icon: Bell, badge: unread ? { tone: "attn", count: unread } : null })],
-        me: name ? { name, meta: "Creator", href: href(ACCOUNT.href) } : null,
+        me: name ? { name, meta: "Field agent", href: href(ACCOUNT.href) } : null,
     };
 
     return (
         <AppShell
+            className={styles.shell}
             sidebar={sidebar}
             topbarActions={
                 <Link

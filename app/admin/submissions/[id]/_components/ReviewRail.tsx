@@ -1,12 +1,14 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Home, Inbox, LayoutTemplate, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet } from "lucide-react";
+import { CalendarDays, Home, Inbox, LayoutTemplate, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "convex/react";
 
-import { Avatar, Dot, Icon, Logo, type Tone } from "@/components/r1";
+import { Avatar, Dot, Icon, type Tone } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
+import styles from "../../_queue/SubmissionWorkspace.module.css";
 
 /**
  * The admin sidebar folded to a 64px icon rail, so the review workspace keeps
@@ -58,6 +60,8 @@ export function ReviewRail({ isAdmin, name }: { isAdmin: boolean; name: string |
             badgeWord: `${waiting} waiting for approval`,
         },
         { href: "/admin/leads", label: "Leads", icon: MapPin },
+        { href: "/admin/visits", label: "Visit requests", icon: CalendarDays },
+        { href: "/admin/affiliates", label: "Affiliates", icon: Users },
         {
             href: "/admin/payouts",
             label: "Payouts",
@@ -76,15 +80,14 @@ export function ReviewRail({ isAdmin, name }: { isAdmin: boolean; name: string |
     return (
         <aside
             aria-label="Main navigation"
-            className="hidden w-16 flex-none flex-col items-center gap-4 border-r border-r1-line bg-r1-paper pb-4 pt-3 lg:flex"
+            className={`hidden flex-none flex-col items-center border-r border-r1-line lg:flex ${styles.rail}`}
         >
             <Link
                 href="/admin"
                 aria-label="Tendso admin"
-                className="flex h-10 w-10 items-center justify-center rounded-r1 hover:bg-r1-fill"
+                className={`flex flex-none items-center justify-center ${styles.railLink} ${styles.railBrand}`}
             >
-                {/* The wordmark's first letter only: the rail is 64px wide. */}
-                <Logo height={16} className="w-[14px] object-cover object-left" />
+                <Image src="/v2/brand/mark-ink-256.png" alt="" width={28} height={28} />
             </Link>
             <nav aria-label="Sections" className="flex flex-col items-center gap-1">
                 {entries.map((e, i) =>
@@ -97,7 +100,7 @@ export function ReviewRail({ isAdmin, name }: { isAdmin: boolean; name: string |
                             aria-label={e.badge ? `${e.label}, ${e.badgeWord}` : e.label}
                             title={e.label}
                             aria-current={e.current ? "page" : undefined}
-                            className="relative flex h-10 w-10 items-center justify-center rounded-r1 text-r1-ink-3 hover:bg-r1-fill hover:text-r1-ink aria-[current=page]:bg-r1-fill-nav aria-[current=page]:text-r1-ink"
+                            className={`relative flex items-center justify-center text-r1-ink-3 hover:bg-r1-fill hover:text-r1-ink ${styles.railLink}`}
                         >
                             <Icon icon={e.icon} size={18} />
                             {e.badge && <Dot tone={e.badge.tone} className="absolute right-[7px] top-[7px] h-[7px] w-[7px]" />}
@@ -111,7 +114,7 @@ export function ReviewRail({ isAdmin, name }: { isAdmin: boolean; name: string |
                         href="/profile"
                         aria-label={`${name}, Admin — account`}
                         title={`${name} · Admin`}
-                        className="flex h-10 w-10 items-center justify-center rounded-r1 hover:bg-r1-fill"
+                        className={`flex items-center justify-center hover:bg-r1-fill ${styles.railLink}`}
                     >
                         <Avatar name={name} />
                     </Link>

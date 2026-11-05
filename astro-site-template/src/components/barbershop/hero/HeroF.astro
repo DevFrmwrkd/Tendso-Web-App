@@ -190,6 +190,8 @@ const marqueeDoubled = [...marqueeWords, ...marqueeWords];
     .hero-copy { padding-top: 124px; }
   }
   @media (max-width: 760px) {
+    /* The photo becomes the first row; keep it below the fixed 44px menu + padding. */
+    .hero { padding-top: 69px; }
     .hero h1 { font-size: clamp(44px, 11vw, 72px); }
     .hero-copy { padding: 108px var(--pad) 56px; }
     .hero-media { min-height: 40svh; }

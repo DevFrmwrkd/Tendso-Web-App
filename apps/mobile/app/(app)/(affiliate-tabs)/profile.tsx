@@ -1,1 +1,1 @@
-export { default } from '../(tabs)/profile';
+export { AffiliateMeScreen as default } from '../../../components/affiliate/Me';

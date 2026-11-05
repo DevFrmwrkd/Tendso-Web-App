@@ -16,7 +16,7 @@ import "./self-hosted-fonts.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-  description: `A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48–72 hours. No template, no blank screen. ${formatPHP(WEBSITE_PRICE)} one-time. For Filipino local businesses whose hands are full.`,
+  description: `A business page built around the work, not the other way around. A field agent visits, asks a few questions, photographs your shop, and your page is built the same day, in about 20 minutes. No template, no blank screen. ${formatPHP(WEBSITE_PRICE)}, or a down payment from ₱500. See it first, pay once to publish. For Filipino local businesses whose hands are full.`,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     locale: "en_PH",
     url: SITE_URL,
     title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-    description: `Filipino local businesses get online in 48–72 hours. ${formatPHP(WEBSITE_PRICE)} one-time. Built around the work, not the other way around.`,
+    description: `Filipino local businesses get online the same day. ${formatPHP(WEBSITE_PRICE)}, or a down payment from ₱500. Built around the work, not the other way around.`,
   },
-  twitter: { card: "summary_large_image", title: "Tendso", description: "Filipino local businesses get online in 48–72 hours." },
+  twitter: { card: "summary_large_image", title: "Tendso", description: "Filipino local businesses get online the same day." },
 };
 
 export default function RootLayout({
@@ -39,7 +39,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/tendso-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#E4B05E" />
+        <meta name="theme-color" content="#E4F222" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Tendso" />

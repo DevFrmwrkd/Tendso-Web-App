@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paws &amp; Ligo Pet Grooming · Las Piñas</title>
+<meta name="description" content="Gentle dog and cat grooming in Las Piñas. Baths from ₱350, full grooms, nail trims and anti-tick treatment. Walk-ins welcome.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#FFD6E5;
+  --pink2:#FFB8D2;
+  --teal:#0E9F96;
+  --teal-d:#0A7E77;
+  --mint:#CFF3EC;
+  --sun:#FFD83D;
+  --lilac:#DCD3FF;
+  --ink:#1D2B3A;
+  --white:#fff;
+  --r:36px;
+  --pad:32px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',system-ui,sans-serif;background:var(--pink);color:var(--ink);font-size:18px;line-height:1.45;font-weight:600;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.fr{font-family:'Fredoka',system-ui,sans-serif;font-weight:600;letter-spacing:-.01em}
+a{color:inherit;text-decoration:none}
+img{display:block;width:100%;height:100%;object-fit:cover}
+svg.i{width:1em;height:1em;fill:currentColor}
+.wrap{max-width:1480px;margin:0 auto;padding:0 var(--pad)}
+
+/* nav */
+.nav{display:flex;align-items:center;justify-content:space-between;background:var(--white);border-radius:999px;padding:10px 12px 10px 22px;margin-top:20px;box-shadow:0 4px 0 rgba(29,43,58,.08)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Fredoka';font-weight:600;font-size:23px;letter-spacing:-.01em}
+.logo span{width:38px;height:38px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:21px}
+.links{display:flex;gap:30px;font-weight:700;font-size:16px}
+.links a:hover{color:var(--teal)}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--sun);color:var(--ink);font-family:'Fredoka';font-weight:600;font-size:21px;padding:16px 28px;border-radius:999px;box-shadow:0 5px 0 var(--ink);transition:transform .1s,box-shadow .1s;border:2.5px solid var(--ink)}
+.btn:hover{transform:translateY(2px);box-shadow:0 3px 0 var(--ink)}
+.btn.sm{font-size:17px;padding:10px 20px;box-shadow:0 4px 0 var(--ink)}
+.btn.tl{background:var(--teal);color:#fff}
+
+/* hero bento */
+.hero{height:calc(100vh - 100px);min-height:640px;padding:20px 0 28px}
+.hero .wrap{height:100%}
+.bento{height:100%;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:1.45fr 1fr;gap:20px}
+.card{border-radius:var(--r);position:relative;overflow:hidden}
+.main{grid-column:1/8;grid-row:1/3;background:var(--teal);color:#fff;padding:52px 56px;display:flex;flex-direction:column;justify-content:center}
+.pill{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;background:var(--white);color:var(--ink);border-radius:999px;padding:8px 18px 8px 12px;font-size:15px;font-weight:800}
+.pill .i{color:var(--teal);font-size:20px}
+.main h1{font-size:clamp(44px,6.5vw,96px);line-height:.98;margin:26px 0 20px;max-width:12em}
+.main h1 em{font-style:normal;color:var(--sun);position:relative;white-space:nowrap}
+.main p{font-size:21px;max-width:25em;opacity:.95;font-weight:600}
+.main .row{display:flex;align-items:center;gap:22px;margin-top:34px;flex-wrap:wrap}
+.main .row small{font-size:15px;font-weight:700;opacity:.92}
+.main .dd{position:absolute;pointer-events:none}
+.ph1{grid-column:8/13;grid-row:1/2;background:var(--white)}
+.ph1 img{object-position:40% 50%}
+.stk{position:absolute;display:grid;place-items:center;text-align:center;border-radius:50%;font-family:'Fredoka';font-weight:600;line-height:1;border:2.5px solid var(--ink);z-index:3}
+.stk.a{width:122px;height:122px;background:var(--sun);color:var(--ink);right:20px;bottom:18px;transform:rotate(-10deg);font-size:23px;box-shadow:0 5px 0 var(--ink)}
+.cardY{grid-column:8/10;grid-row:2/3;background:var(--sun);padding:26px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.cardY small{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.cardY b{font-family:'Fredoka';font-size:clamp(42px,4.2vw,64px);line-height:1;font-weight:600}
+.cardY span{font-size:16px;font-weight:700}
+.cardP{grid-column:10/13;grid-row:2/3;background:var(--white)}
+.cardP img{object-position:50% 40%}
+.cardP .lab{position:absolute;left:14px;bottom:14px;background:var(--white);border-radius:999px;padding:8px 16px;font-size:15px;font-weight:800;border:2.5px solid var(--ink)}
+
+/* sections */
+section{padding-top:110px}
+.hd{text-align:center;max-width:760px;margin:0 auto 54px}
+.hd .tag{display:inline-block;background:var(--white);border-radius:999px;padding:8px 20px;font-weight:800;font-size:15px;margin-bottom:18px;border:2.5px solid var(--ink)}
+.hd h2{font-size:clamp(36px,5vw,68px);line-height:1}
+.hd p{margin-top:14px;font-size:20px}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.m{border-radius:var(--r);padding:30px 30px 28px;border:2.5px solid var(--ink);position:relative;display:flex;flex-direction:column;box-shadow:0 7px 0 var(--ink)}
+.m:nth-child(1){background:var(--white)}
+.m:nth-child(2){background:var(--mint)}
+.m:nth-child(3){background:var(--lilac)}
+.m:nth-child(4){background:var(--sun)}
+.m:nth-child(5){background:var(--mint)}
+.m:nth-child(6){background:var(--white)}
+.m .ic{width:62px;height:62px;border-radius:20px;background:var(--pink2);display:grid;place-items:center;font-size:34px;border:2.5px solid var(--ink)}
+.m h3{font-size:30px;margin-top:20px;line-height:1.05}
+.m p{margin-top:8px;font-size:17px;opacity:.88}
+.sz{display:flex;gap:8px;margin-top:auto;padding-top:22px;flex-wrap:wrap}
+.sz span{background:rgba(255,255,255,.7);border:2px solid var(--ink);border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px}
+.sz span b{font-family:'Fredoka';font-weight:600;font-size:19px;margin-left:4px}
+.m .one{margin-top:auto;padding-top:22px;font-family:'Fredoka';font-size:36px;font-weight:600;line-height:1}
+.m .one small{font-family:'Nunito';font-size:15px;font-weight:700;margin-right:6px;opacity:.8}
+.note{text-align:center;margin-top:34px;font-size:16px;opacity:.85}
+
+/* meet */
+.meet{display:grid;grid-template-columns:5fr 6fr;gap:64px;align-items:center}
+.arch{position:relative;aspect-ratio:4/5;border-radius:999px 999px 36px 36px;overflow:hidden;border:3px solid var(--ink);background:var(--mint);max-width:520px;box-shadow:12px 12px 0 var(--teal)}
+.arch img{object-position:50% 20%}
+.meet h2{font-size:clamp(36px,4.6vw,64px);line-height:1}
+.meet h2 em{font-style:normal;color:var(--teal)}
+.meet p{font-size:21px;margin-top:22px;max-width:28em}
+.chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.chips span{display:inline-flex;align-items:center;gap:8px;background:var(--white);border:2.5px solid var(--ink);border-radius:999px;padding:10px 18px 10px 12px;font-weight:800;font-size:16px}
+.chips span:nth-child(2){background:var(--sun)}
+.chips span:nth-child(3){background:var(--mint)}
+.chips .i{font-size:20px;color:var(--teal)}
+.meet .by{margin-top:28px;font-size:17px;opacity:.85}
+
+/* gallery */
+.gal{display:grid;grid-template-columns:7fr 5fr;gap:22px;align-items:stretch}
+.gal .g{border-radius:var(--r);overflow:hidden;border:3px solid var(--ink);position:relative;min-height:420px;background:var(--white)}
+.gal .g:nth-child(2) img{object-position:40% 50%}
+.gal .cap{position:absolute;left:18px;top:18px;background:var(--white);border:2.5px solid var(--ink);border-radius:999px;padding:8px 18px;font-weight:800;font-size:16px;z-index:2}
+
+/* visit */
+.visit{background:var(--teal);color:#fff;border-radius:60px 60px 0 0;margin-top:110px;padding:84px 0 0;position:relative;overflow:hidden}
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:56px;padding-bottom:80px;align-items:start}
+.visit h2{font-size:clamp(40px,5.6vw,82px);line-height:.98}
+.visit h2 em{font-style:normal;color:var(--sun)}
+.visit .tel{display:block;font-family:'Fredoka';font-weight:600;font-size:clamp(34px,4.2vw,58px);margin-top:26px;line-height:1}
+.visit p{margin-top:16px;font-size:20px;max-width:26em}
+.visit .btn{margin-top:30px}
+.hrs{background:var(--white);color:var(--ink);border-radius:var(--r);padding:30px 32px;border:3px solid var(--ink);box-shadow:0 8px 0 var(--ink)}
+.hrs div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:2.5px dotted rgba(29,43,58,.3);font-size:19px}
+.hrs div:last-of-type{border:0}
+.hrs b{font-family:'Fredoka';font-weight:600}
+.hrs address{font-style:normal;margin-top:16px;padding-top:18px;border-top:3px solid var(--ink);font-size:19px;line-height:1.45}
+.hrs address small{display:block;font-size:15px;opacity:.75;margin-top:6px}
+.ft{background:var(--teal-d);color:#fff;font-size:15px;font-weight:700}
+.ft .wrap{display:flex;justify-content:space-between;padding-top:18px;padding-bottom:18px}
+
+@media(max-width:1100px){
+  .links{display:none}
+  .menu{grid-template-columns:repeat(2,1fr)}
+  .meet,.vg{grid-template-columns:1fr;gap:44px}
+  .gal{grid-template-columns:1fr}
+  .bento{grid-template-rows:auto}
+  .main{padding:44px}
+}
+@media(max-width:720px){
+  :root{--pad:16px;--r:28px}
+  body{font-size:17px}
+  .nav{margin-top:14px;padding:8px 8px 8px 16px}
+  .logo{font-size:19px}
+  .logo span{width:32px;height:32px;font-size:17px}
+  .nav .btn{font-size:15px;padding:9px 16px;box-shadow:0 3px 0 var(--ink)}
+  .nav .tel-l{display:none}
+  .hero{height:auto;min-height:0;padding-top:14px}
+  .bento{display:flex;flex-direction:column;gap:14px}
+  .main{padding:28px 22px 30px}
+  .pill{font-size:13px}
+  .main .dd:nth-of-type(n+2){display:none}
+  .main h1{font-size:clamp(46px,14.3vw,58px);margin:18px 0 14px}
+  .main p{font-size:18px}
+  .main .row{margin-top:22px;gap:12px}
+  .main .row .btn{width:100%;justify-content:center}
+  .main .row small{display:none}
+  .ph1{height:260px;order:0}
+  .stk.a{width:92px;height:92px;font-size:17px;right:12px;bottom:12px}
+  .cardY{padding:20px;flex-direction:row;align-items:center;gap:14px}
+  .cardY b{font-size:40px}
+  .cardP{height:200px}
+  section{padding-top:76px}
+  .hd{margin-bottom:34px}
+  .hd p{font-size:18px}
+  .menu{grid-template-columns:1fr;gap:18px}
+  .m{padding:24px}
+  .m h3{font-size:26px}
+  .meet{gap:34px}
+  .arch{max-width:340px;margin:0 auto 6px;box-shadow:8px 8px 0 var(--teal)}
+  .meet p{font-size:18px}
+  .gal .g{min-height:300px}
+  .visit{border-radius:40px 40px 0 0;margin-top:76px;padding-top:56px}
+  .vg{padding-bottom:50px;gap:34px}
+  .visit .btn{width:100%;justify-content:center}
+  .hrs{padding:22px}
+  .hrs div{font-size:17px}
+  .ft .wrap{flex-direction:column;gap:2px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="paw" viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="14" ry="11"/><ellipse cx="14" cy="28" rx="6" ry="8" transform="rotate(-20 14 28)"/><ellipse cx="25" cy="16" rx="6" ry="8.5" transform="rotate(-6 25 16)"/><ellipse cx="39" cy="16" rx="6" ry="8.5" transform="rotate(6 39 16)"/><ellipse cx="50" cy="28" rx="6" ry="8" transform="rotate(20 50 28)"/></symbol>
+  <symbol id="drop" viewBox="0 0 64 64"><path d="M32 6C24 20 12 29 12 42a20 20 0 0 0 40 0C52 29 40 20 32 6z"/></symbol>
+  <symbol id="heart" viewBox="0 0 64 64"><path d="M32 56S6 40 6 22A13 13 0 0 1 32 17a13 13 0 0 1 26 5c0 18-26 34-26 34z"/></symbol>
+  <symbol id="scissors" viewBox="0 0 64 64"><path d="M10 10l26 26-4 4L6 14zM54 10L28 36l4 4 26-26z" /><circle cx="14" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="6"/></symbol>
+  <symbol id="star" viewBox="0 0 64 64"><path d="M32 4l7 20 21 1-17 13 6 21-17-12-17 12 6-21L4 25l21-1z"/></symbol>
+  <symbol id="bone" viewBox="0 0 64 64"><path d="M16 22a8 8 0 1 1 10-6l12 12a8 8 0 1 1 6 10 8 8 0 1 1-10 6L22 32a8 8 0 1 1-6-10z" transform="translate(0 0)"/></symbol>
+  <symbol id="cat" viewBox="0 0 64 64"><path d="M10 8l14 10h16L54 8v26a22 18 0 0 1-44 0z"/></symbol>
+  <symbol id="tick" viewBox="0 0 64 64"><ellipse cx="32" cy="36" rx="14" ry="16"/><path d="M12 24l10 6M10 38h10M14 52l9-6M52 24l-10 6M54 38H44M50 52l-9-6" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="tooth" viewBox="0 0 64 64"><path d="M18 8c-8 0-12 8-10 18 2 8 6 10 6 22 0 6 6 6 8-2 2-8 2-10 4-10s2 2 4 10c2 8 8 8 8 2 0-12 4-14 6-22 2-10-2-18-10-18-4 0-6 2-8 2s-4-2-8-2z" transform="translate(4 0)"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="nav">
+    <a class="logo" href="#top"><span><svg class="i"><use href="#paw"/></svg></span>Paws &amp; Ligo</a>
+    <div class="links"><a href="#menu">Price menu</a><a href="#meet">Meet Ate Joy</a><a href="#gallery">Happy pups</a><a href="#visit">Find us</a></div>
+    <div style="display:flex;align-items:center;gap:22px"><a class="tel-l" href="tel:09175550123" style="font-weight:800;font-size:16px">0917 555 0123</a><a class="btn sm" href="#visit">Book now</a></div>
+  </div>
+</div>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap">
+    <div class="bento">
+      <div class="card main">
+        <div class="pill"><svg class="i"><use href="#paw"/></svg>Pet grooming · Las Piñas</div>
+        <h1>Bubbles, fluff, <em>happy tails.</em></h1>
+        <p>Gentle baths and haircuts for dogs and cats. No cages, no rush, no stress.</p>
+        <div class="row"><a class="btn" href="#visit">Book a groom <svg class="i" viewBox="0 0 24 24" style="font-size:20px"><path d="M4 11h13l-5-5 1.5-1.5L21 12l-7.5 7.5L12 18l5-5H4z"/></svg></a><small>Walk-ins welcome, daily 9 to 6</small></div>
+        <svg class="dd i" style="right:-30px;top:-30px;width:170px;height:170px;color:rgba(255,255,255,.14)"><use href="#paw"/></svg>
+        <svg class="dd i" style="right:40px;bottom:36px;width:46px;height:46px;color:var(--sun);transform:rotate(14deg)"><use href="#star"/></svg>
+        <svg class="dd i" style="right:110px;bottom:78px;width:26px;height:26px;color:#fff;opacity:.7"><use href="#star"/></svg>
+        <svg class="dd i" style="right:60px;top:230px;width:56px;height:56px;color:var(--pink2);transform:rotate(12deg)"><use href="#heart"/></svg>
+        <svg class="dd" style="right:30px;bottom:150px;width:60px;height:60px" viewBox="0 0 60 60" fill="none" stroke="#fff" stroke-width="3" opacity=".7"><circle cx="20" cy="38" r="14"/><circle cx="44" cy="16" r="9"/><circle cx="46" cy="44" r="5"/></svg>
+      </div>
+      <div class="card ph1">
+        <img src="/v2/showcase/petgroom/img/petgroom-bath.jpg" alt="Ate Joy bathing a golden retriever in the shop">
+        <div class="stk a">Walk-ins<br>okay!</div>
+      </div>
+      <div class="card cardY"><div><small>Bath &amp; blow dry from</small></div><b>₱350</b><span>small dogs and cats</span></div>
+      <div class="card cardP"><img src="/v2/showcase/petgroom/img/petgroom-poodle.jpg" alt="A freshly groomed white poodle with a pink bow"><span class="lab">Fresh from the table</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="menu">
+  <div class="wrap">
+    <div class="hd"><span class="tag">Price menu</span><h2>Pick a treat for your pet.</h2><p>Prices by size. We weigh and confirm before we start.</p></div>
+    <div class="menu">
+      <div class="m"><div class="ic"><svg class="i"><use href="#drop"/></svg></div><h3>Bath &amp; blow dry</h3><p>Shampoo, conditioner, ear wipe and a fluffy dry.</p><div class="sz"><span>Small<b>₱350</b></span><span>Medium<b>₱500</b></span><span>Large<b>₱750</b></span></div></div>
+      <div class="m"><div class="ic"><svg class="i"><use href="#scissors"/></svg></div><h3>Full groom</h3><p>Bath plus haircut, nails and a bow or bandana.</p><div class="sz"><span>Small<b>₱600</b></span><span>Medium<b>₱850</b></span><span>Large<b>₱1,200</b></span></div></div>
+      <div class="m"><div class="ic"><svg class="i"><use href="#cat"/></svg></div><h3>Cat spa</h3><p>Calm, quiet bath and brush. A groomer who loves cats.</p><div class="one"><small>from</small>₱450</div></div>
+      <div class="m"><div class="ic"><svg class="i"><use href="#tick"/></svg></div><h3>Anti-tick &amp; flea</h3><p>Medicated wash with a safe soak. Add to any bath.</p><div class="one"><small>add</small>₱250</div></div>
+      <div class="m"><div class="ic"><svg class="i"><use href="#paw"/></svg></div><h3>Nails &amp; ears</h3><p>Nail trim, paw tidy and a gentle ear clean.</p><div class="one">₱150</div></div>
+      <div class="m"><div class="ic"><svg class="i"><use href="#tooth"/></svg></div><h3>Teeth brushing</h3><p>Fresh breath, pet-safe toothpaste. Takes ten minutes.</p><div class="one">₱120</div></div>
+    </div>
+    <p class="note">Matted fur or extra-large breeds may cost a little more. We always tell you first.</p>
+  </div>
+</section>
+
+<section id="meet">
+  <div class="wrap">
+    <div class="meet">
+      <div class="arch"><img src="/v2/showcase/petgroom/img/petgroom-owner.jpg" alt="Ate Joy holding a fluffy shih tzu"></div>
+      <div>
+        <div class="hd" style="text-align:left;margin:0 0 0"><span class="tag">Meet the groomer</span></div>
+        <h2>Hi, I’m <em>Ate Joy</em>.</h2>
+        <p>I opened Paws &amp; Ligo after grooming my neighbours’ dogs in our garage. Today we still do one pet at a time, so yours is never left waiting in a cage.</p>
+        <div class="chips"><span><svg class="i"><use href="#heart"/></svg>One pet at a time</span><span><svg class="i"><use href="#paw"/></svg>Cage-free drying</span><span><svg class="i"><use href="#star"/></svg>Photo when done</span></div>
+        <p class="by">Joy Villanueva, owner and head groomer. 8 years grooming in Las Piñas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="hd"><span class="tag">Happy pups</span><h2>Clean, calm and wagging.</h2></div>
+    <div class="gal">
+      <div class="g"><span class="cap">Bath time, Golden style</span><img src="/v2/showcase/petgroom/img/petgroom-bath.jpg" alt="Golden retriever enjoying a bubble bath"></div>
+      <div class="g"><span class="cap">Bow on, ready to go</span><img src="/v2/showcase/petgroom/img/petgroom-poodle.jpg" alt="Groomed white poodle being combed"></div>
+    </div>
+  </div>
+</section>
+
+<div class="visit" id="visit">
+  <div class="wrap">
+    <div class="vg">
+      <div>
+        <h2>Ready for a <em>fresh</em> pup?</h2>
+        <a class="tel" href="tel:09175550123">0917 555 0123</a>
+        <p>Text us your pet’s size and a good time. We confirm within the hour.</p>
+        <a class="btn" href="tel:09175550123">Call or text us <svg class="i" viewBox="0 0 24 24" style="font-size:20px"><path d="M4 11h13l-5-5 1.5-1.5L21 12l-7.5 7.5L12 18l5-5H4z"/></svg></a>
+      </div>
+      <div class="hrs">
+        <div><span>Monday to Saturday</span><b>9:00am – 6:00pm</b></div>
+        <div><span>Sunday</span><b>10:00am – 4:00pm</b></div>
+        <address>Block 4 Lot 12, Alabang-Zapote Road<br>Pamplona Uno, Las Piñas City<small>Beside the pharmacy, across the Pamplona market.</small></address>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><div class="wrap"><span>Paws &amp; Ligo Pet Grooming</span><span>Las Piñas, Philippines</span></div></div>
+</div>
+</main>
+</body>
+</html>

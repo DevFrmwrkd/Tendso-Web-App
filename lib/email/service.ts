@@ -26,6 +26,7 @@
  * cleanup PR after Resend is verified in prod.
  */
 import { Resend } from 'resend';
+import { ownerPreviewReadyEmail } from './ownerV2Templates';
 import {
     getApprovalEmailHtml,
     getPaymentConfirmationEmailHtml,
@@ -149,6 +150,21 @@ async function sendEmail(args: SendArgs): Promise<{ success: true; messageId: st
     return { success: true, messageId: result.data?.id ?? 'unknown' };
 }
 
+/** Private review comes before billing and public hosting for a new order. */
+export async function sendOwnerPreviewEmail(data: {
+    businessName: string;
+    ownerName?: string;
+    ownerEmail: string;
+    previewUrl: string;
+    amount: number;
+}) {
+    const email = ownerPreviewReadyEmail({
+        businessName: data.businessName, ownerName: data.ownerName, appUrl: data.previewUrl,
+        priceText: `₱${data.amount.toLocaleString('en-PH')}`,
+    });
+    return sendEmail({ to: data.ownerEmail, subject: email.subject, html: email.html });
+}
+
 // ── Named functions (signatures unchanged from nodemailer version) ────
 
 interface IntakeReceivedEmailData {
@@ -166,7 +182,7 @@ interface IntakeReceivedEmailData {
  * of them finishing /start, before any admin has touched the row.
  *
  * Everything else in this file fires from the admin's own clicks, which on the
- * owner path is 48-72h away. Without this one the owner's first contact from us
+ * owner path is some hours away. Without this one the owner's first contact from us
  * is a bill. See getIntakeReceivedEmailHtml for what it does and does not
  * promise.
  */

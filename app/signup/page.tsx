@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { Loading, Skeleton } from "@/components/r1";
 import { AUTH_BODY, AuthFrame, AuthTabs } from "@/app/auth/_components/AuthFrame";
+import { AUTH_CLERK_APPEARANCE } from "@/app/auth/_components/authAppearance";
 import { COMMISSION_RATE } from "@/lib/pricing";
 
 /**
@@ -15,9 +16,8 @@ import { COMMISSION_RATE } from "@/lib/pricing";
  * hash routing, /onboarding after sign-up (where the creator record is made in
  * Convex), /login as the way to sign in. Clerk keeps owning what the board
  * does not draw: the email code, its own password rules, bot protection and
- * the Google hand-off. Its look is the Round 1 one, set for every Clerk screen
- * in components/providers/ConvexClerkProvider.tsx; the appearance below only
- * seats it inside the board's card.
+ * the Google hand-off. A local Tendso appearance seats it in the shared auth
+ * frame without changing the provider or the verification flow.
  *
  * Two things the board shows that Clerk words its own way: the button says
  * "Continue", and the password hint is Clerk's rather than the four-bar meter.
@@ -116,6 +116,7 @@ export default function SignupPage() {
             <div className={AUTH_BODY}>
                 <SignUp
                     appearance={{
+                        ...AUTH_CLERK_APPEARANCE,
                         // No logo (the header has it) and no second card or
                         // heading (the page has them): Clerk's form sits in the
                         // board's card as its body. Only the title and subtitle
@@ -124,6 +125,7 @@ export default function SignupPage() {
                         // button, the way back to fix a mistyped email.
                         layout: { logoPlacement: "none" },
                         elements: {
+                            ...AUTH_CLERK_APPEARANCE.elements,
                             rootBox: { width: "100%" },
                             cardBox: { width: "100%", maxWidth: "none", border: "none", borderRadius: "0", boxShadow: "none" },
                             card: { width: "100%", padding: "0", gap: "16px", border: "none", borderRadius: "0", boxShadow: "none", backgroundColor: "transparent" },

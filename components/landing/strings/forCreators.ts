@@ -68,7 +68,7 @@ export const strings: Strings = {
             "A barber, carinderia, salon or print shop that is open but not online. The app lists leads near you.",
         "r1.forCreators.how.s4.title": "Interview and take photos",
         "r1.forCreators.how.s4.body":
-            "Record the owner while they work, photograph the shop, submit. We build the site in 48–72 hours.",
+            "Record the owner while they work, photograph the shop, submit. We build the site in about 20 minutes, the same day.",
         "r1.forCreators.how.s4.time": "About 30 minutes on site",
         "r1.forCreators.how.s5.title": "Get paid when the owner pays",
         "r1.forCreators.how.s5.body":
@@ -191,7 +191,7 @@ export const strings: Strings = {
             "Barbero, carinderia, salon o print shop na bukas pero wala pang online. May listahan ng mga lead malapit sa'yo sa app.",
         "r1.forCreators.how.s4.title": "Mag-interview at kumuha ng litrato",
         "r1.forCreators.how.s4.body":
-            "I-record ang may-ari habang nagtatrabaho, kunan ng litrato ang tindahan, at i-submit. Gagawin namin ang site sa loob ng 48–72 oras.",
+            "I-record ang may-ari habang nagtatrabaho, kunan ng litrato ang tindahan, at i-submit. Gagawin namin ang site sa loob ng mga 20 minuto, sa parehong araw.",
         "r1.forCreators.how.s4.time": "Mga 30 minuto sa lugar",
         "r1.forCreators.how.s5.title": "Bayad ka kapag nagbayad ang may-ari",
         "r1.forCreators.how.s5.body":

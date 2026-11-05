@@ -1,9 +1,10 @@
 import { v } from 'convex/values';
-import { knowledgeSlugError } from '../lib/knowledgeArticle';
-import { query, mutation, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { knowledgeImageUrl, knowledgeSlugError } from '../lib/knowledgeArticle';
+import { query, mutation, internalQuery, internalMutation, type QueryCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin } from './lib/auth';
-import { isCreatorAccount } from '../lib/accounts';
+import { normalizeKnowledgeAudiences, resolveKnowledgeAccess, type KnowledgeAccess, type KnowledgeAccessRecord } from '../packages/shared/knowledge';
+import { ANONYMOUS_KNOWLEDGE_VIEWER, canReadKnowledgeArticle, canReadKnowledgeContent, getKnowledgeViewer, knowledgeAccessArgs, knowledgeAudienceValidator, knowledgeVisibilityValidator, type KnowledgeViewer } from './lib/knowledgeAccess';
 import type { Doc, Id } from './_generated/dataModel';
 
 /**
@@ -21,29 +22,22 @@ import type { Doc, Id } from './_generated/dataModel';
 
 const workspaceArg = v.union(v.literal('help'), v.literal('wiki'));
 
-// ---- viewer / wiki access ----
-async function getViewer(ctx: QueryCtx | MutationCtx): Promise<Doc<'creators'> | null> {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    return await ctx.db
-        .query('creators')
-        .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-        .first();
+export const viewerContext = query({ args: {}, handler: getKnowledgeViewer });
+export const viewerContextInternal = internalQuery({ args: {}, handler: getKnowledgeViewer });
+
+function withoutEmbedding(article: Doc<'knowledgeArticles'>) {
+    const { embedding: _embedding, embeddingUpdatedAt: _embeddingUpdatedAt, ...rest } = article;
+    void _embedding;
+    void _embeddingUpdatedAt;
+    return rest;
 }
 
-// A creator may read the internal wiki if they're an admin or a certified
-// (approved) field-agent creator.
-function creatorCanAccessWiki(me: Doc<'creators'> | null): boolean {
-    if (!me || me.isDeleted || me.status === 'deleted' || me.status === 'suspended') return false;
-    return me.role === 'admin' || (isCreatorAccount(me) && !!me.certifiedAt);
-}
-
-async function ensureWorkspaceReadable(
-    ctx: QueryCtx | MutationCtx,
-    workspace: 'help' | 'wiki',
-): Promise<boolean> {
-    if (workspace === 'help') return true;
-    return creatorCanAccessWiki(await getViewer(ctx));
+async function readableArticles(ctx: QueryCtx, workspace: 'help' | 'wiki' | undefined, viewer: KnowledgeViewer, assistant = false) {
+    const rows = workspace
+        ? await ctx.db.query('knowledgeArticles').withIndex('by_workspace_status', q => q.eq('workspace', workspace).eq('status', 'published')).collect()
+        : await ctx.db.query('knowledgeArticles').filter(q => q.eq(q.field('status'), 'published')).collect();
+    const readable = await Promise.all(rows.map(async article => await canReadKnowledgeArticle(ctx, article, viewer, assistant) ? article : null));
+    return readable.filter((article): article is Doc<'knowledgeArticles'> => article !== null);
 }
 
 // ==================== QUERIES ====================
@@ -52,7 +46,7 @@ async function ensureWorkspaceReadable(
 export const canAccessWiki = query({
     args: {},
     handler: async (ctx) => {
-        return creatorCanAccessWiki(await getViewer(ctx));
+        return (await getKnowledgeViewer(ctx)).canAccessWiki;
     },
 });
 
@@ -60,12 +54,12 @@ export const canAccessWiki = query({
 export const listCategories = query({
     args: { workspace: workspaceArg },
     handler: async (ctx, args) => {
-        if (!(await ensureWorkspaceReadable(ctx, args.workspace))) return [];
+        const viewer = await getKnowledgeViewer(ctx);
         const cats = await ctx.db
             .query('knowledgeCategories')
             .withIndex('by_workspace', (q) => q.eq('workspace', args.workspace))
             .collect();
-        return cats.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+        return cats.filter(category => canReadKnowledgeContent(category, viewer)).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
     },
 });
 
@@ -76,13 +70,7 @@ export const listCategories = query({
 export const listArticles = query({
     args: { workspace: workspaceArg },
     handler: async (ctx, args) => {
-        if (!(await ensureWorkspaceReadable(ctx, args.workspace))) return [];
-        const articles = await ctx.db
-            .query('knowledgeArticles')
-            .withIndex('by_workspace_status', (q) =>
-                q.eq('workspace', args.workspace).eq('status', 'published'),
-            )
-            .collect();
+        const articles = await readableArticles(ctx, args.workspace, await getKnowledgeViewer(ctx));
         // Never ship the embedding vector to the client (large + useless there).
         return articles
             .map((a) => {
@@ -107,7 +95,7 @@ export const getArticleBySlug = query({
             .withIndex('by_slug', (q) => q.eq('slug', args.slug))
             .first();
         if (!article || article.status !== 'published') return null;
-        if (!(await ensureWorkspaceReadable(ctx, article.workspace))) return null;
+        if (!await canReadKnowledgeArticle(ctx, article, await getKnowledgeViewer(ctx))) return null;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { embedding, embeddingUpdatedAt, ...rest } = article;
         return rest;
@@ -121,12 +109,8 @@ export const getArticleBySlug = query({
 export const listPublishedHelpSlugs = query({
     args: {},
     handler: async (ctx) => {
-        const articles = await ctx.db
-            .query('knowledgeArticles')
-            .withIndex('by_workspace_status', (q) =>
-                q.eq('workspace', 'help').eq('status', 'published'),
-            )
-            .collect();
+        // Sitemaps/static params stay public even when the caller is an admin.
+        const articles = await readableArticles(ctx, 'help', ANONYMOUS_KNOWLEDGE_VIEWER);
         return articles.map((a) => ({ slug: a.slug, updatedAt: a.updatedAt }));
     },
 });
@@ -135,12 +119,47 @@ export const listPublishedHelpSlugs = query({
 export const listFaqs = query({
     args: { workspace: workspaceArg },
     handler: async (ctx, args) => {
-        if (!(await ensureWorkspaceReadable(ctx, args.workspace))) return [];
+        const viewer = await getKnowledgeViewer(ctx);
         const faqs = await ctx.db
             .query('knowledgeFaqs')
             .withIndex('by_workspace', (q) => q.eq('workspace', args.workspace))
             .collect();
-        return faqs.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+        const allowed = await Promise.all(faqs.map(async faq => {
+            if (!canReadKnowledgeContent(faq, viewer)) return null;
+            if (faq.linkArticleSlug && !viewer.isAdmin) {
+                const article = await ctx.db.query('knowledgeArticles').withIndex('by_slug', q => q.eq('slug', faq.linkArticleSlug!)).first();
+                if (!article || !await canReadKnowledgeArticle(ctx, article, viewer)) return null;
+            }
+            return faq;
+        }));
+        return allowed.filter((faq): faq is Doc<'knowledgeFaqs'> => faq !== null).sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    },
+});
+
+/** The actor accompanies all browse data, allowing clients to fence retained session caches. */
+export const libraryForViewer = query({
+    args: { workspace: workspaceArg },
+    handler: async (ctx, args) => {
+        const viewer = await getKnowledgeViewer(ctx);
+        const [categoryRows, articleRows, faqRows] = await Promise.all([
+            ctx.db.query('knowledgeCategories').withIndex('by_workspace', q => q.eq('workspace', args.workspace)).collect(),
+            readableArticles(ctx, args.workspace, viewer),
+            ctx.db.query('knowledgeFaqs').withIndex('by_workspace', q => q.eq('workspace', args.workspace)).collect(),
+        ]);
+        const faqs = await Promise.all(faqRows.map(async faq => {
+            if (!canReadKnowledgeContent(faq, viewer)) return null;
+            if (faq.linkArticleSlug && !viewer.isAdmin) {
+                const article = await ctx.db.query('knowledgeArticles').withIndex('by_slug', q => q.eq('slug', faq.linkArticleSlug!)).first();
+                if (!article || !await canReadKnowledgeArticle(ctx, article, viewer)) return null;
+            }
+            return faq;
+        }));
+        return {
+            viewer,
+            categories: categoryRows.filter(row => canReadKnowledgeContent(row, viewer)).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)),
+            articles: articleRows.map(withoutEmbedding).sort((a, b) => b.updatedAt - a.updatedAt),
+            faqs: faqs.filter((faq): faq is Doc<'knowledgeFaqs'> => faq !== null).sort((a, b) => (a.order ?? 999) - (b.order ?? 999)),
+        };
     },
 });
 
@@ -157,7 +176,7 @@ export const recordFeedback = mutation({
             .query('knowledgeArticles')
             .withIndex('by_slug', (q) => q.eq('slug', args.slug))
             .first();
-        if (!article) return;
+        if (!article || !await canReadKnowledgeArticle(ctx, article, await getKnowledgeViewer(ctx))) return;
         await ctx.db.patch(article._id, {
             helpfulYes: (article.helpfulYes ?? 0) + (args.helpful ? 1 : 0),
             helpfulNo: (article.helpfulNo ?? 0) + (args.helpful ? 0 : 1),
@@ -168,6 +187,7 @@ export const recordFeedback = mutation({
 /** Admin: create or update a category (idempotent by slug). */
 export const upsertCategory = mutation({
     args: {
+        ...knowledgeAccessArgs,
         slug: v.string(),
         title: v.string(),
         description: v.string(),
@@ -183,16 +203,20 @@ export const upsertCategory = mutation({
             .withIndex('by_slug', (q) => q.eq('slug', args.slug))
             .first();
         if (existing) {
-            await ctx.db.patch(existing._id, args);
+            await ctx.db.patch(existing._id, {
+                ...(existing.workspace !== args.workspace ? resolveKnowledgeAccess(existing) : {}),
+                ...args, ...(args.audiences ? { audiences: normalizeKnowledgeAudiences(args.audiences) } : {}),
+            });
             return existing._id;
         }
-        return await ctx.db.insert('knowledgeCategories', args);
+        return await ctx.db.insert('knowledgeCategories', { ...args, ...(args.audiences ? { audiences: normalizeKnowledgeAudiences(args.audiences) } : {}) });
     },
 });
 
 /** Admin: create or update an FAQ (idempotent by workspace + question). */
 export const upsertFaq = mutation({
     args: {
+        ...knowledgeAccessArgs,
         workspace: workspaceArg,
         question: v.string(),
         answer: v.string(),
@@ -207,10 +231,10 @@ export const upsertFaq = mutation({
             .collect();
         const match = existing.find((f) => f.question === args.question);
         if (match) {
-            await ctx.db.patch(match._id, args);
+            await ctx.db.patch(match._id, { ...args, ...(args.audiences ? { audiences: normalizeKnowledgeAudiences(args.audiences) } : {}) });
             return match._id;
         }
-        return await ctx.db.insert('knowledgeFaqs', args);
+        return await ctx.db.insert('knowledgeFaqs', { ...args, ...(args.audiences ? { audiences: normalizeKnowledgeAudiences(args.audiences) } : {}) });
     },
 });
 
@@ -223,6 +247,7 @@ const bodyBlockArg = v.array(v.any());
  */
 export const upsertArticle = mutation({
     args: {
+        ...knowledgeAccessArgs,
         articleId: v.optional(v.id('knowledgeArticles')),
         slug: v.string(),
         title: v.string(),
@@ -238,6 +263,11 @@ export const upsertArticle = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        for (const block of args.body) {
+            if (block?.t === 'image' && block.url !== undefined && !knowledgeImageUrl(block.url)) {
+                throw new Error('Article photos must use a valid HTTPS image URL.');
+            }
+        }
         const category = await ctx.db
             .query('knowledgeCategories')
             .withIndex('by_slug', (q) => q.eq('slug', args.categorySlug))
@@ -266,6 +296,10 @@ export const upsertArticle = mutation({
         }
 
         const fields = {
+            // Moving a legacy internal article to Help must not make it public.
+            ...(existing && existing.workspace !== args.workspace ? resolveKnowledgeAccess(existing) : {}),
+            ...(args.audiences ? { audiences: normalizeKnowledgeAudiences(args.audiences) } : {}),
+            ...(args.visibility ? { visibility: args.visibility } : {}),
             slug: args.slug,
             title: args.title,
             summary: args.summary,
@@ -305,7 +339,111 @@ export const upsertArticle = mutation({
     },
 });
 
-// ==================== INTERNAL (used by the RAG action) ====================
+/** Viewer context travels with the article so native caches can fence session switches. */
+export const articleForViewer = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        const viewer = await getKnowledgeViewer(ctx);
+        const article = await ctx.db.query('knowledgeArticles').withIndex('by_slug', q => q.eq('slug', args.slug)).first();
+        return { viewer, article: article && await canReadKnowledgeArticle(ctx, article, viewer) ? withoutEmbedding(article) : null };
+    },
+});
+
+/** Admin library includes drafts and every scope; embeddings never leave the server. */
+export const listAdminArticles = query({
+    args: { workspace: v.optional(workspaceArg) },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const rows = await ctx.db.query('knowledgeArticles').collect();
+        return rows.filter(row => !args.workspace || row.workspace === args.workspace).map(withoutEmbedding).sort((a, b) => b.updatedAt - a.updatedAt);
+    },
+});
+export const getAdminArticle = query({
+    args: { articleId: v.id('knowledgeArticles') },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const article = await ctx.db.get(args.articleId);
+        return article ? withoutEmbedding(article) : null;
+    },
+});
+
+/** Change access only; preserve typed blocks and the complete editorial content. */
+export const setKnowledgeAccess = mutation({
+    args: {
+        kind: v.union(v.literal('article'), v.literal('category'), v.literal('faq')),
+        id: v.union(v.id('knowledgeArticles'), v.id('knowledgeCategories'), v.id('knowledgeFaqs')),
+        audiences: v.array(knowledgeAudienceValidator), visibility: knowledgeVisibilityValidator,
+    },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const table = args.kind === 'article' ? 'knowledgeArticles' : args.kind === 'category' ? 'knowledgeCategories' : 'knowledgeFaqs';
+        const id = ctx.db.normalizeId(table, args.id);
+        if (!id || !await ctx.db.get(id)) throw new Error('Knowledge item not found.');
+        await ctx.db.patch(id, { audiences: normalizeKnowledgeAudiences(args.audiences), visibility: args.visibility });
+    },
+});
+
+/** Action identity propagates; neither workspace nor a client role grants access. */
+export const listForAssistantInternal = internalQuery({
+    args: { workspace: v.optional(workspaceArg) },
+    handler: async (ctx, args) => readableArticles(ctx, args.workspace, await getKnowledgeViewer(ctx), true),
+});
+
+/** Trusted draft context; a supplied job ID must already have been claimed. */
+export const trainingContextInternal = internalQuery({
+    args: { jobId: v.id('knowledgeTrainingJobs') },
+    handler: async (ctx, { jobId }) => {
+        const job = await ctx.db.get(jobId);
+        if (!job || job.status !== 'processing') throw new Error('A processing training job is required.');
+        const scope = resolveKnowledgeAccess({ workspace: job.workspace, audiences: job.audiences ?? ['admin'], visibility: job.visibility ?? 'internal' });
+        return { ...scope, workspace: job.workspace };
+    },
+});
+
+/** Only a claimed, admin-enqueued job can request a wider training corpus. */
+export const listForTrainingInternal = internalQuery({
+    args: { jobId: v.id('knowledgeTrainingJobs') },
+    handler: async (ctx, args) => {
+        const job = await ctx.db.get(args.jobId);
+        if (!job || job.status !== 'processing') return [];
+        const scope: KnowledgeAccess = { audiences: job.audiences ?? ['admin'], visibility: job.visibility ?? 'internal' };
+        const ranks = { public: 0, authenticated: 1, internal: 2 };
+        const permittedScope = (record: KnowledgeAccessRecord) => ranks[resolveKnowledgeAccess(record).visibility] <= ranks[scope.visibility];
+        const viewers: KnowledgeViewer[] = scope.audiences.map(audience => ({
+            ...ANONYMOUS_KNOWLEDGE_VIEWER, audience,
+            authenticated: scope.visibility !== 'public',
+            isAdmin: scope.visibility !== 'public' && audience === 'admin',
+            canAccessWiki: scope.visibility === 'internal' && (audience === 'field_agent' || audience === 'admin'),
+        }));
+        const articles = await ctx.db.query('knowledgeArticles').withIndex('by_workspace_status', q => q.eq('workspace', job.workspace).eq('status', 'published')).collect();
+        const allowed = await Promise.all(articles.map(async article => {
+            const category = await ctx.db.get(article.categoryId);
+            if (!category || !permittedScope(article) || !permittedScope(category)) return null;
+            // Every intended audience must be allowed to see each source. A public
+            // draft can never accidentally summarize an internal/admin answer.
+            for (const viewer of viewers) if (!await canReadKnowledgeArticle(ctx, article, viewer, true)) return null;
+            return article;
+        }));
+        return allowed.filter((article): article is Doc<'knowledgeArticles'> => article !== null);
+    },
+});
+
+// ==================== INTERNAL (maintenance only, never user retrieval) ====================
+
+/** Read-only inventory for an explicit deployment audit; no bodies, answers or embeddings. */
+export const accessAuditInternal = internalQuery({
+    args: {},
+    handler: async ctx => {
+        const [articles, categories, faqs] = await Promise.all([
+            ctx.db.query('knowledgeArticles').collect(), ctx.db.query('knowledgeCategories').collect(), ctx.db.query('knowledgeFaqs').collect(),
+        ]);
+        return {
+            articles: articles.map(({ _id, slug, title, categoryId, workspace, audiences, visibility, status, source }) => ({ _id, slug, title, categoryId, workspace, audiences, visibility, status, source })),
+            categories: categories.map(({ _id, slug, title, workspace, audiences, visibility }) => ({ _id, slug, title, workspace, audiences, visibility })),
+            faqs: faqs.map(({ _id, question, workspace, audiences, visibility }) => ({ _id, question, workspace, audiences, visibility })),
+        };
+    },
+});
 
 /** Load article docs by id, preserving order, dropping missing ones. */
 export const getArticlesByIds = internalQuery({
@@ -372,6 +510,7 @@ export const consumeRateLimit = internalMutation({
 /** Append a row to the AI query log (called by the RAG action). */
 export const logQuery = internalMutation({
     args: {
+        ...knowledgeAccessArgs,
         source: v.union(v.literal('web'), v.literal('discord'), v.literal('chatbot')),
         workspace: workspaceArg,
         query: v.string(),

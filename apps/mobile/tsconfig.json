@@ -6,7 +6,10 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@tendso/convex-client": ["../../packages/convex-client/index.d.ts"],
+      "@tendso/shared": ["../../packages/shared"],
+      "@tendso/shared/*": ["../../packages/shared/*"]
     }
   },
   "include": [

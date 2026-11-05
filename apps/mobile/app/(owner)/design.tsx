@@ -1,0 +1,73 @@
+import React, { useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { OwnerDesignGallery } from '../../components/v2/owner/OwnerDesignGallery';
+import { OwnerSaveExit } from '../../components/v2/owner/OwnerSaveExit';
+import { ownerDesignChoices, sellKindFromServer } from '../../lib/v2/ownerContent';
+import { useChooseDesign, useOwnerSubmission, useSubmitSite } from '../../lib/v2/ownerData';
+import { ownerIntake, useOwnerIntake } from '../../lib/v2/ownerIntake';
+import { firstMissingAnswer, MIN_PHOTOS_TO_SEND, STEP_ROUTE } from '../../lib/v2/ownerFlow';
+import { ownerAnswersFor, ownerPhotosFor } from '../../lib/v2/ownerMedia';
+import { uploadQueue } from '../../lib/v2/uploadQueue';
+import { useOwnerUploads } from '../../lib/v2/ownerUploads';
+import { useOwnerScope } from '../../lib/v2/useOwnerScope';
+
+export default function DesignPicker() {
+  const scope = useOwnerScope();
+  return <OwnerDesignStep key={scope.scopeKey} scope={scope} />;
+}
+function OwnerDesignStep({ scope }: { scope: ReturnType<typeof useOwnerScope> }) {
+  const router = useRouter();
+  const intake = useOwnerIntake();
+  const sub = useOwnerSubmission(scope.id);
+  const choose = useChooseDesign();
+  const submit = useSubmitSite();
+  const { resume } = useOwnerUploads();
+  const ownSub = sub?.submissionId === scope.id ? sub : undefined;
+  const kind = sellKindFromServer(ownSub?.businessType, ownSub?.shotListKey);
+  const saved = (intake.submissionId === scope.id ? intake.design : null) ?? ownSub?.templateId ?? null;
+  // Barber/salon share a server category. Keep a saved valid choice visible.
+  const designs = ownerDesignChoices(kind.id, saved);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false);
+  const use = async (code: string) => {
+    if (!scope.id || !ownSub || !scope.isDraftCurrent() || scope.isOffline || inFlight.current || !designs.some(design => design.code === code)) return;
+    inFlight.current = true; setBusy(true); setError(null);
+    try {
+      await choose({ submissionId: scope.id, templateId: code });
+      if (!scope.isDraftCurrent()) return;
+      ownerIntake.set({ design: code });
+      await resume(scope.id, ownSub);
+      if (!scope.isDraftCurrent()) return;
+      await uploadQueue.drain();
+      if (!scope.isDraftCurrent()) return;
+      if (uploadQueue.snapshot().failed > 0) { uploadQueue.retry(); await uploadQueue.drain(); }
+      if (!scope.isDraftCurrent()) return;
+      if (uploadQueue.snapshot().failed > 0) throw new Error('Some answers or photos could not upload. Please try again.');
+      const reconciled = ownerIntake.get();
+      if (firstMissingAnswer(ownerAnswersFor(scope.id, ownSub, reconciled).map(answer => answer.index)) < 10)
+        throw new Error('Please finish all 10 interview answers before sending your site.');
+      if (ownerPhotosFor(scope.id, ownSub, reconciled).length < MIN_PHOTOS_TO_SEND)
+        throw new Error('Add at least 3 shop photos before sending your site.');
+      await submit({ submissionId: scope.id });
+      if (!scope.isCurrent()) return;
+      const remainingUploads = ownerIntake.get().uploads?.filter(upload => upload.submissionId !== scope.id);
+      ownerIntake.set({ shots: undefined, uploads: remainingUploads?.length ? remainingUploads : undefined });
+      await ownerIntake.flush();
+      if (scope.isCurrent()) router.replace(STEP_ROUTE.building as never);
+    } catch (cause) {
+      if (scope.isCurrent()) setError(cause instanceof Error ? cause.message : 'Could not send your site. Please try again.');
+    } finally { inFlight.current = false; if (scope.isCurrent()) setBusy(false); }
+  };
+  return <OwnerDesignGallery designs={designs} selectedCode={selected ?? saved} onSelect={code => {
+    if (!scope.isDraftCurrent() || inFlight.current) return;
+    setSelected(code);
+    ownerIntake.set({ design: code });
+  }} onUse={use}
+    headerRight={<OwnerSaveExit disabled={busy} canExit={() => !inFlight.current}
+      title={scope.site && scope.site.phase !== 'draft' ? 'Back to Today' : undefined} />}
+    onBack={() => scope.site && scope.site.phase !== 'draft' ? router.replace('/(owner)/(tabs)/site' as never) : router.back()}
+    busy={busy} disabled={!scope.id || !ownSub} canUse={!scope.isOffline && (!scope.site || scope.site.phase === 'draft')}
+    isOffline={scope.isOffline} error={scope.site && scope.site.phase !== 'draft' ? 'Your site is already sent. Ask for design changes from My site.' : scope.isOffline ? 'Reconnect to use this design and send your site.' : error} />;
+}

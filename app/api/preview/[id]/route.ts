@@ -10,10 +10,12 @@ export async function GET(
 ) {
     try {
         // Require authentication to view previews
-        const { userId } = await auth()
+        const { userId, getToken } = await auth()
         if (!userId) {
             return new NextResponse('Unauthorized', { status: 401 })
         }
+        const token = await getToken({ template: 'convex' })
+        if (!token) return new NextResponse('Unauthorized', { status: 401 })
 
         const { id: submissionId } = await params
 
@@ -24,7 +26,7 @@ export async function GET(
         // Get generated website from Convex
         const website = await fetchQuery(api.generatedWebsites.getBySubmissionId, {
             submissionId: submissionId as any
-        })
+        }, { token })
 
         const html = website ? await resolveWebsiteHtml(website) : ''
         if (!html) {

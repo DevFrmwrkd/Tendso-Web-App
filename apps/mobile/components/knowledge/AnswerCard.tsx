@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Card, SectionLabel, Text, TendsoMark } from '../v2';
 import { useAsk, type Article, type AskResult, type Workspace } from '../../services/knowledge/api';
-import { colors, fonts, radius } from '../../theme/tokens';
+import { colors, radius, space } from '../../theme/v2';
 
 /**
- * Grounded "Tendso AI" answer — calls the deployed knowledgeAI.ask RAG action
+ * Grounded Tendso answer — calls the deployed knowledgeAI.ask RAG action
  * and shows the answer + tappable source articles (resolved from the loaded set).
  */
 export function AnswerCard({
@@ -53,109 +54,83 @@ export function AnswerCard({
   const paras = (result?.answer || '').split('\n\n').filter(Boolean);
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.paper3,
-        borderWidth: 1,
-        borderColor: colors.rule,
-        borderRadius: radius.md,
-        padding: 16,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <View
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 13,
-            backgroundColor: colors.accentBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name="sparkles" size={14} color={colors.accentInk} />
-        </View>
-        <Text style={{ fontFamily: fonts.serifIt, fontSize: 18, color: colors.ink }}>Tendso AI</Text>
+    <Card variant="lg" style={styles.card}>
+      <View style={styles.head}>
+        <TendsoMark size={36} />
+        <Text variant="bodyLg" weight="bold">
+          Tendso
+        </Text>
       </View>
 
       {phase === 'thinking' ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.ink3 }}>
-            Searching {workspace === 'help' ? 'the Help Center' : 'the wiki'}…
+        <View style={styles.thinking}>
+          <ActivityIndicator size="small" color={colors.ink} />
+          <Text variant="body" tone="muted">
+            Searching {workspace === 'help' ? 'the help center' : 'the wiki'}…
           </Text>
         </View>
       ) : phase === 'error' ? (
-        <Text style={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 24, color: colors.ink2 }}>
+        <Text variant="body" tone="ink2" style={styles.para}>
           I couldn&apos;t generate an answer right now. {err}
         </Text>
       ) : (
-        <View style={{ gap: 10 }}>
+        <View style={styles.answer}>
           {paras.map((p, i) => (
-            <Text key={i} style={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 24, color: colors.ink2 }}>
+            <Text key={i} variant="body" tone="ink2" style={styles.para}>
               {p}
             </Text>
           ))}
 
           {result && result.sources.length > 0 && (
-            <View style={{ marginTop: 6, gap: 8 }}>
-              <Text
-                style={{
-                  fontFamily: fonts.monoMed,
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  color: colors.ink3,
-                }}
-              >
-                SOURCES
-              </Text>
-              {result.sources.map((s, i) => {
+            <View style={styles.sources}>
+              <SectionLabel>Sources</SectionLabel>
+              {result.sources.map((s) => {
                 const article = bySlug.get(s.slug);
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={s.slug}
                     disabled={!article}
-                    activeOpacity={0.7}
                     onPress={() => article && onOpenArticle(article)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 8,
-                      backgroundColor: colors.paper2,
-                      borderRadius: radius.sm,
-                      paddingHorizontal: 12,
-                      paddingVertical: 10,
-                      opacity: article ? 1 : 0.5,
-                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Source: ${s.title}`}
+                    cssInterop={false}
+                    style={({ pressed }) => [styles.source, { opacity: article ? (pressed ? 0.7 : 1) : 0.5 }]}
                   >
-                    <Text style={{ fontFamily: fonts.monoMed, fontSize: 11, color: colors.accentInk }}>
-                      {i + 1}
-                    </Text>
-                    <Text
-                      style={{ flex: 1, fontFamily: fonts.sansMed, fontSize: 13, color: colors.ink }}
-                      numberOfLines={1}
-                    >
+                    <Ionicons name="document-text-outline" size={20} color={colors.ink} />
+                    <Text variant="label" weight="bold" numberOfLines={2} style={styles.sourceText}>
                       {s.title}
                     </Text>
-                    {!!article && <Ionicons name="arrow-forward" size={14} color={colors.ink3} />}
-                  </TouchableOpacity>
+                    {!!article && <Ionicons name="arrow-forward" size={18} color={colors.ink3} />}
+                  </Pressable>
                 );
               })}
-              <Text
-                style={{
-                  flexDirection: 'row',
-                  fontFamily: fonts.sans,
-                  fontSize: 11,
-                  color: colors.ink3,
-                  marginTop: 2,
-                }}
-              >
-                Generated from Tendso&apos;s published content. Always verify against the source.
+              <Text variant="label" weight="medium" tone="muted">
+                Generated from Tendso&apos;s published content. Always check the source.
               </Text>
             </View>
           )}
         </View>
       )}
-    </View>
+    </Card>
   );
 }
+
+const styles = StyleSheet.create({
+  card: { gap: space.md },
+  head: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  thinking: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
+  answer: { gap: space.md },
+  para: { lineHeight: 26 },
+  sources: { gap: space.sm, marginTop: space.xs },
+  source: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 48,
+    backgroundColor: colors.bg2,
+    borderRadius: radius.field,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
+  sourceText: { flex: 1 },
+});

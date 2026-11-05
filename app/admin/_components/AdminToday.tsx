@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { useId, useMemo, useState } from "react"
+import { useAuth } from "@clerk/nextjs"
 import { useMutation, useQuery } from "convex/react"
 import type { FunctionReturnType } from "convex/server"
-import { Inbox } from "lucide-react"
+import { ArrowUpRight, CalendarDays, CheckCheck, ClipboardList, Inbox, Users, Wallet } from "lucide-react"
 import { toast } from "sonner"
 
 import {
     Button,
+    ButtonLink,
     Dot,
     EmptyState,
     Fold,
@@ -28,39 +30,32 @@ import {
 } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
 import { affiliateAttribution } from "@/lib/submissionAttribution"
-import { useCallSchedule, useNow, type FinishedCall } from "@/hooks/useCallSchedule"
+import { formatCallTime, useCallSchedule, useNow, type FinishedCall, type ScheduledCall } from "@/hooks/useCallSchedule"
 
 import { CalendarNote } from "./CallList"
 import { betweenLabel, busiestWindow, callsLeftLine, longDay, plural, shortDate } from "./calls"
 import FoldTitle from "./FoldTitle"
 import PriorityRow, { type Priority } from "./PriorityRow"
 import { monthlyEarnings } from "@/app/admin/payouts/_lib/model"
+import styles from "./TodayDashboard.module.css"
 
 type Submissions = FunctionReturnType<typeof api.submissions.getAllWithCreator>
 type Submission = Submissions[number]
 type Withdrawals = FunctionReturnType<typeof api.withdrawals.getByStatus>
 type Analytics = FunctionReturnType<typeof api.analytics.getAllAnalytics>
 type PromoStats = FunctionReturnType<typeof api.admin.getPromoStats>
+type VisitRequests = FunctionReturnType<typeof api.visitRequests.listAdmin>["requests"]
+type PendingAgents = FunctionReturnType<typeof api.creators.listPendingApproval>
 
 /**
- * The admin's Today (board AdminHome): "What needs me today?"
- *
- * The date and a one-line count of what is waiting; then the things waiting,
- * each as one count, one reason and one action (a count of 0 is cut, not
- * shown); the money in one line with the working in a fold; and a glance at
- * the newest submissions.
- *
- * Every number here comes from a query that already existed: the queue from
- * submissions.getAllWithCreator, failed payouts from the same
- * withdrawals.getByStatus the sidebar badge counts, calls from the schedule
- * the staff Today and Calls read, and the money from the analytics, domains
- * and promo queries this page has always used.
- *
- * NO REVENUE CHART. It moved to the money summary on Payouts (scope:
- * "Revenue chart, moved elsewhere"); the money fold here says where.
+ * Real work queues, the shared call schedule and the existing money summary.
+ * Page-level admin access is resolved before this component mounts. Every
+ * metric opens its authoritative queue; the visit response also carries the
+ * expected Clerk subject so another actor's result is never displayed.
  */
 export default function AdminToday() {
     const now = useNow()
+    const { userId } = useAuth()
 
     const submissions = useQuery(api.submissions.getAllWithCreator, {})
     // Safely handle checkBackfillNeeded query with error fallback
@@ -80,6 +75,9 @@ export default function AdminToday() {
     const failedPayouts = useQuery(api.withdrawals.getByStatus, { status: "failed" })
     const pendingPayouts = useQuery(api.withdrawals.getByStatus, { status: "pending" })
     const processingPayouts = useQuery(api.withdrawals.getByStatus, { status: "processing" })
+    const pendingAgents = useQuery(api.creators.listPendingApproval, {})
+    const visitResult = useQuery(api.visitRequests.listAdmin, userId ? { status: "requested", clerkId: userId } : "skip")
+    const visits = visitResult?.actorClerkId === userId ? visitResult?.requests : undefined
 
     // The same schedule the staff Today and Calls read, so the three cannot
     // disagree about what is booked or still unanswered.
@@ -92,6 +90,8 @@ export default function AdminToday() {
             failedPayouts === undefined ||
             pendingPayouts === undefined ||
             processingPayouts === undefined ||
+            visits === undefined ||
+            pendingAgents === undefined ||
             schedule.loading ||
             slotConfig === undefined
         ) {
@@ -101,10 +101,14 @@ export default function AdminToday() {
             submissions,
             failed: failedPayouts,
             inFlight: pendingPayouts.length + processingPayouts.length,
+            visits,
+            pendingAgents,
             unanswered: schedule.needsAttendance,
             windows: slotConfig.windows.map((w) => [w[0], w[1]] as [number, number]),
         })
-    }, [submissions, failedPayouts, pendingPayouts, processingPayouts, schedule.loading, schedule.needsAttendance, slotConfig])
+    }, [submissions, failedPayouts, pendingPayouts, processingPayouts, visits, pendingAgents, schedule.loading, schedule.needsAttendance, slotConfig])
+
+    const reviewCount = submissions?.filter(submission => submission.status === "submitted" || submission.status === "in_review").length
 
     const handleBackfill = async () => {
         setBackfilling(true)
@@ -122,94 +126,82 @@ export default function AdminToday() {
     }
 
     return (
-        <>
-            <div className="flex flex-col gap-4">
-                <PageHeader title="Today" sub="What needs me today?" />
-                {priorities ? (
-                    <p className="t-body flex items-start gap-2.5">
-                        <Dot tone={priorities.length > 0 ? "attn" : "done"} className="mt-1.5" />
-                        <span>
-                            <strong className="font-medium text-r1-ink">{longDay(now)}</strong> ·{" "}
-                            {priorities.length === 0
-                                ? "nothing is waiting on you"
-                                : `${priorities.length} ${plural(priorities.length, "thing is", "things are")} waiting on you`}{" "}
-                            · {callsLeftLine(schedule.upcoming, now)}
-                        </span>
-                    </p>
-                ) : (
-                    <Loading label="Loading today's summary">
-                        <Skeleton width="60%" height={14} />
-                    </Loading>
-                )}
+        <div className={styles.dashboard}>
+            <PageHeader title="Today" sub="Keep websites moving and your team in sync." />
+            <section className={styles.overview} aria-label="Today's work">
+                <div className={styles.overviewCopy}>
+                    <span className={styles.date}><CalendarDays size={16} aria-hidden="true" />{longDay(now)}</span>
+                    {priorities === null ? <Loading label="Loading today's summary"><Skeleton width="80%" height={38} /></Loading> : <>
+                        <h2>{priorities.length ? `${priorities.length} ${plural(priorities.length, "queue needs", "queues need")} your attention.` : "You’re up to date."}</h2>
+                        <p>{priorities.length ? "Start with the work waiting below. Each action takes you straight to the right queue." : "No reviews, visit requests, failed payouts or call outcomes are waiting on you."}</p>
+                    </>}
+                    <span className={styles.overviewNote}><Dot tone="progress" />{schedule.loading ? "Loading call schedule…" : callsLeftLine(schedule.upcoming, now)} · Philippine time</span>
+                </div>
+                <div className={styles.overviewMark} aria-hidden="true">{priorities?.length ? <ClipboardList size={43} strokeWidth={1.5} /> : <CheckCheck size={48} strokeWidth={1.5} />}</div>
+            </section>
+
+            <div className={styles.metrics} aria-label="Work queues">
+                <DashboardMetric href="/admin/submissions" label="Submissions to review" value={reviewCount} icon={ClipboardList} accent />
+                <DashboardMetric href="/admin/creators?view=pending" label="Agents to approve" value={pendingAgents?.length} icon={Users} />
+                <DashboardMetric href="/admin/visits" label="Visits to assign" value={visits?.length} icon={CalendarDays} capped />
+                <DashboardMetric href="/admin/payouts" label="Failed payouts" value={failedPayouts?.length} icon={Wallet} />
             </div>
 
-            <div className="flex w-full max-w-[880px] flex-col gap-6 lg:gap-8">
-                {/* The calls part of the line above is then our own rows alone. */}
-                {schedule.calendarError && <CalendarNote error={schedule.calendarError} />}
-
-                <section aria-label="Needs you" className="t-card overflow-hidden">
-                    {priorities === null ? (
-                        <Loading label="Loading what needs you">
-                            <div className="t-list" aria-hidden="true">
-                                {[0, 1, 2].map((i) => (
-                                    <div key={i} className="t-row min-h-[88px] gap-4 px-4 sm:gap-5 sm:px-6">
-                                        <Skeleton width={40} height={32} />
-                                        <span className="flex flex-1 flex-col gap-2">
-                                            <Skeleton width="45%" height={16} />
-                                            <Skeleton width="75%" height={12} />
-                                        </span>
-                                        <Skeleton width={176} height={40} className="hidden sm:block" />
-                                    </div>
-                                ))}
-                            </div>
-                        </Loading>
-                    ) : priorities.length > 0 ? (
-                        <div className="t-list">
-                            {priorities.map(({ key, ...p }) => (
-                                <PriorityRow key={key} {...p} />
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="t-body flex min-h-16 items-center gap-2.5 px-4 py-4 sm:px-6">
-                            <Dot tone="done" />
-                            Nothing is waiting on you: no submission to review, no failed payout, no call without an outcome.
-                        </p>
-                    )}
-                </section>
-
-                {/* The website-link repair. Shown only while the check says one
-                    is needed; it fills blanks on either side and never
-                    overwrites a link that is already there. */}
-                {isBackfillNeeded === true && (
-                    <div className="flex flex-col items-start gap-3 rounded-r1-card border border-r1-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                        <p className="t-body flex items-start gap-2.5">
-                            <Dot tone="attn" className="mt-1.5" />
-                            Some live sites and their submissions disagree about the site link.
-                        </p>
-                        <Button size="sm" onClick={handleBackfill} disabled={backfilling} aria-busy={backfilling}>
-                            {backfilling ? "Syncing…" : "Sync site links"}
-                        </Button>
+            {schedule.calendarError && <CalendarNote error={schedule.calendarError} />}
+            <div className={styles.workspace}>
+                <section aria-label="Needs you" className={styles.workSection}>
+                    <div className={styles.sectionHeading}><h2 className="t-h2">Needs attention</h2><span>Where to focus next</span></div>
+                    <div className={`t-card ${styles.priorityCard}`}>
+                        {priorities === null ? <Loading label="Loading what needs you"><SkeletonRows count={3} /></Loading>
+                            : priorities.length ? <div className="t-list">{priorities.map(({ key, ...priority }) => <PriorityRow key={key} {...priority} />)}</div>
+                                : <div className={styles.caughtUp}><span><CheckCheck size={25} aria-hidden="true" /></span><h3>Everything is moving.</h3><p>New work will appear here when it needs your attention.</p></div>}
                     </div>
-                )}
-
-                <MoneyFold analytics={allAnalytics} hostinger={totalHostingerCosts} promo={promoStats} />
-
-                <RecentSubmissions submissions={submissions} />
+                    {isBackfillNeeded === true && <div className={styles.repair}>
+                        <p><Dot tone="attn" />Some live sites and their submissions disagree about the site link.</p>
+                        <Button size="sm" onClick={handleBackfill} disabled={backfilling} aria-busy={backfilling}>{backfilling ? "Syncing…" : "Sync site links"}</Button>
+                    </div>}
+                </section>
+                <aside className={styles.sideColumn} aria-label="Call schedule and money summary">
+                    <UpcomingCalls calls={schedule.upcoming} loading={schedule.loading} />
+                    <section className={styles.moneyCard} aria-label="Money summary"><div className={styles.smallHeading}><span className={styles.iconTile}><Wallet size={20} aria-hidden="true" /></span><div><h2>Money summary</h2><p>Recorded earnings and costs</p></div></div><MoneyFold analytics={allAnalytics} hostinger={totalHostingerCosts} promo={promoStats} /></section>
+                </aside>
             </div>
-        </>
+            <div className={styles.recent}><RecentSubmissions submissions={submissions} /></div>
+        </div>
     )
+}
+
+function DashboardMetric({ href, label, value, icon: MetricIcon, accent = false, capped = false }: {
+    href: string; label: string; value: number | undefined; icon: typeof Inbox; accent?: boolean; capped?: boolean
+}) {
+    return <Link href={href} className={`${styles.metric} ${accent ? styles.metricAccent : ""}`}>
+        <span className={styles.metricHead}><span className={styles.iconTile}><MetricIcon size={20} aria-hidden="true" /></span><ArrowUpRight size={18} aria-hidden="true" /></span>
+        {value === undefined ? <Skeleton width={60} height={37} /> : <strong>{value}{capped && value >= 200 ? "+" : ""}</strong>}
+        <span>{label}</span>
+    </Link>
+}
+
+function UpcomingCalls({ calls, loading }: { calls: ScheduledCall[]; loading: boolean }) {
+    return <section className={styles.scheduleCard} aria-label="Upcoming calls">
+        <div className={styles.sectionHeading}><h2>Coming up</h2><Link href="/admin/bookings">View calls <ArrowUpRight size={14} aria-hidden="true" /></Link></div>
+        <p className={styles.cardSubtitle}>Field agent calls · Philippine time</p>
+        {loading ? <Loading label="Loading upcoming calls"><SkeletonRows count={2} /></Loading> : calls.length ? <ol className={styles.callList}>{calls.slice(0, 3).map(call => <li key={call.key}><span className={styles.callDot} aria-hidden="true" /><div><strong>{call.name}</strong><span>{formatCallTime(call.startMs)}</span></div></li>)}</ol> : <p className={styles.quiet}>No upcoming calls. New bookings will appear here.</p>}
+        <ButtonLink href="/admin/bookings" variant="ghost" className={styles.scheduleButton}>Open call schedule</ButtonLink>
+    </section>
 }
 
 /** Today while the page's own auth check runs: the header, the line and the card, in shape. */
 export function TodaySkeleton() {
     return (
-        <Loading label="Loading Today" className="flex flex-col gap-6 lg:gap-8">
+        <Loading label="Loading Today" className={styles.dashboard}>
             <div className="flex flex-col gap-3" aria-hidden="true">
                 <Skeleton width={140} height={36} />
                 <Skeleton width={200} height={16} />
                 <Skeleton width="60%" height={14} className="mt-1" />
             </div>
-            <SkeletonRows count={3} className="max-w-[880px]" />
+            <Skeleton height={190} />
+            <div className={styles.metrics} aria-hidden="true">{[0, 1, 2, 3].map(key => <Skeleton key={key} height={150} />)}</div>
+            <SkeletonRows count={3} />
         </Loading>
     )
 }
@@ -221,20 +213,23 @@ function possessive(name: string): string {
 }
 
 /**
- * The rows of the "Needs you" card, in the board's order: the review queue,
- * failed payouts, calls with no outcome. A row whose count would be 0 is not
- * built (kit: a card that would read 0 is cut).
+ * Only nonempty work queues become action rows. The first queue owns the
+ * primary action; the financial and call-outcome rules match their screens.
  */
 function buildPriorities({
     submissions,
     failed,
     inFlight,
+    visits,
+    pendingAgents,
     unanswered,
     windows,
 }: {
     submissions: Submissions
     failed: Withdrawals
     inFlight: number
+    visits: VisitRequests
+    pendingAgents: PendingAgents
     unanswered: FinishedCall[]
     windows: Array<[number, number]>
 }): Priority[] {
@@ -259,6 +254,33 @@ function buildPriorities({
                     : `Newest is ${newest.businessName} (${shortDate(newest._creationTime)}). ${oldest.businessName} has waited since ${shortDate(oldest._creationTime)}.`,
             // The queue itself: a bare /admin/submissions opens on Needs review.
             action: { label: "Start reviewing", href: "/admin/submissions" },
+        })
+    }
+
+    if (pendingAgents.length > 0) {
+        const first = pendingAgents[0]
+        const name = [first.firstName, first.lastName].filter(Boolean).join(" ") || "The first applicant"
+        rows.push({
+            key: "agents",
+            figure: pendingAgents.length,
+            tone: "attn",
+            reason: `${plural(pendingAgents.length, "field agent is", "field agents are")} waiting for approval`,
+            meta: `${name} passed the quiz ${shortDate(first.quizPassedAt)}. Review their profile before approving access.`,
+            action: { label: "Review field agents", href: "/admin/creators?view=pending" },
+        })
+    }
+
+    if (visits.length > 0) {
+        const newest = visits[0]
+        rows.push({
+            key: "visits",
+            figure: visits.length,
+            tone: "attn",
+            reason: `${plural(visits.length, "shop visit needs", "shop visits need")} an agent`,
+            meta: visits.length === 1
+                ? `${newest.shopName} in ${newest.city}. Assign an agent and propose a time.`
+                : "Owners are waiting for an agent and a proposed time. The visit is confirmed after the agent accepts.",
+            action: { label: "Assign shop visits", href: "/admin/visits" },
         })
     }
 

@@ -1,4 +1,5 @@
 import type { StatusWord } from "@/components/r1"
+import type { KnowledgeAudience, KnowledgeVisibility } from "@/packages/shared/knowledge"
 
 /**
  * Words, parsing and grouping for the Train AI page (board TrainAI). Pure: no
@@ -15,14 +16,13 @@ export const MAX_PER_PASTE = 25
 
 export const WORKSPACE_NAME: Record<Workspace, string> = { help: "Help Center", wiki: "Wiki" }
 
-/** Where the AI may use an answer, and who reads that workspace. */
+/** Collections organize one shared library; audience/access controls protect it. */
 export const WORKSPACE_OPTIONS: ReadonlyArray<{ value: Workspace; label: string }> = [
-    { value: "help", label: "Help Center · public search, chatbot" },
-    { value: "wiki", label: "Wiki · creators, Discord /ask" },
+    { value: "help", label: "Help Center" },
+    { value: "wiki", label: "Wiki" },
 ]
 
-const SOURCE_LABEL: Record<string, string> = { web: "Help Center search", chatbot: "Website chatbot", discord: "Discord /ask" }
-const SOURCE_READER: Record<string, string> = { web: "Help Center search", chatbot: "the chatbot", discord: "Discord /ask" }
+const SOURCE_LABEL: Record<string, string> = { web: "Help Center search", chatbot: "Ask Tendso", mobile: "Ask Tendso · mobile", discord: "Discord /ask" }
 
 /** knowledgeQueries.source, in words. */
 export function sourceLabel(source: string): string {
@@ -30,21 +30,11 @@ export function sourceLabel(source: string): string {
 }
 
 /**
- * The workspace a channel reads. The website chatbot asks the Help Center
- * (components/landing/ChatBot.tsx) and Discord /ask asks the Wiki
- * (convex/discord.ts). The Help Center search asks whichever workspace it is
- * showing, and listUnansweredQueries does not return the row's workspace, so
- * a search is taken to be the public Help Center.
+ * Suggested collection for an older log without workspace metadata. Access
+ * never follows this suggestion: it is selected separately by the admin.
  */
 export function workspaceRead(source: string): Workspace {
     return source === "discord" ? "wiki" : "help"
-}
-
-/** Said under the workspace picker when the asking channel would not see the answer there. */
-export function workspaceWarning(source: string, chosen: Workspace): string | null {
-    if (source === "discord" && chosen === "help") return "Discord /ask reads the Wiki, so it won’t see this answer."
-    if (source === "chatbot" && chosen === "wiki") return "The website chatbot reads the Help Center, so it won’t see this answer."
-    return null
 }
 
 /** Two questions are the same question when they differ only in case, spacing or end punctuation. */
@@ -58,8 +48,14 @@ export function questionKey(text: string): string {
         .trim()
 }
 
-export type UnansweredRow = { query: string; source: string; createdAt: number }
-export type QuestionGroup = { key: string; text: string; source: string; createdAt: number; times: number }
+export type UnansweredRow = {
+    query: string; source: string; createdAt: number; workspace?: Workspace
+    audiences?: KnowledgeAudience[]; visibility?: KnowledgeVisibility
+}
+export type QuestionGroup = {
+    key: string; text: string; source: string; createdAt: number; times: number; workspace?: Workspace
+    audiences?: KnowledgeAudience[]; visibility?: KnowledgeVisibility
+}
 
 /**
  * listUnansweredQueries returns every ungrounded ask, newest first, so one
@@ -70,19 +66,27 @@ export type QuestionGroup = { key: string; text: string; source: string; created
 export function groupQuestions(rows: UnansweredRow[]): QuestionGroup[] {
     const groups = new Map<string, QuestionGroup>()
     for (const r of rows) {
-        const key = questionKey(r.query)
-        if (!key) continue
+        const textKey = questionKey(r.query)
+        if (!textKey) continue
+        // Keep identical wording from different account types separate so an
+        // owner question cannot disappear into an affiliate question's count.
+        const scope = r.audiences?.length ? `|${[...r.audiences].sort().join(",")}|${r.visibility ?? ""}` : ""
+        const key = `${textKey}${scope}`
         const seen = groups.get(key)
         if (seen) seen.times += 1
-        else groups.set(key, { key, text: r.query.trim(), source: r.source, createdAt: r.createdAt, times: 1 })
+        else groups.set(key, {
+            key, text: r.query.trim(), source: r.source, createdAt: r.createdAt, times: 1,
+            workspace: r.workspace, audiences: r.audiences, visibility: r.visibility,
+        })
     }
     return [...groups.values()]
 }
 
 /** Where each question already has a trained answer, by questionKey. */
-export function trainedIndex(trained: ReadonlyArray<{ question: string; workspace: string }>): Map<string, Set<Workspace>> {
+export function trainedIndex(trained: ReadonlyArray<{ question: string; workspace: string; status?: string }>): Map<string, Set<Workspace>> {
     const index = new Map<string, Set<Workspace>>()
     for (const t of trained) {
+        if (t.status === "draft") continue
         const key = questionKey(t.question)
         const ws: Workspace = t.workspace === "wiki" ? "wiki" : "help"
         const set = index.get(key) ?? new Set<Workspace>()
@@ -98,14 +102,9 @@ export function trainedIndex(trained: ReadonlyArray<{ question: string; workspac
  * what tells the admin it is handled, or handled where the asker cannot see it.
  */
 export function answeredHint(group: QuestionGroup, index: Map<string, Set<Workspace>>): StatusWord | null {
-    const where = index.get(group.key)
+    const where = index.get(questionKey(group.text))
     if (!where || where.size === 0) return null
-    if (where.has(workspaceRead(group.source))) return { tone: "done", word: "Answered since" }
-    const other: Workspace = where.has("help") ? "help" : "wiki"
-    return {
-        tone: "attn",
-        word: `Answered in the ${WORKSPACE_NAME[other]} only · ${SOURCE_READER[group.source] ?? "this channel"} can’t see it`,
-    }
+    return { tone: "done", word: "Published answer available · check its audience" }
 }
 
 /**
@@ -150,7 +149,8 @@ export function plural(n: number, one: string, many = `${one}s`): string {
 }
 
 /** listTrainingQA.embedded: whether the vector the AI searches is in place yet. */
-export function trainedStatus(embedded: boolean): StatusWord {
+export function trainedStatus(embedded: boolean, status?: string): StatusWord {
+    if (status === "draft") return { tone: "attn", word: "Needs review" }
     return embedded ? { tone: "done", word: "Ready to answer" } : { tone: "progress", word: "Learning…" }
 }
 
@@ -164,7 +164,7 @@ export function jobStatus(job: { status: string; grounded: boolean | null }): St
         case "done":
             // An ungrounded draft is never saved: it would poison the knowledge
             // base. The question comes back to the unanswered list instead.
-            return job.grounded ? { tone: "done", word: "Learned" } : { tone: "attn", word: "Not grounded, not saved" }
+            return job.grounded ? { tone: "attn", word: "Draft ready for review" } : { tone: "attn", word: "Not grounded, not saved" }
         case "error":
             return { tone: "bad", word: "Failed" }
         default:

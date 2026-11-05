@@ -54,8 +54,8 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
                 {quote.discounted ? <span className="t-meta">{quote.code ? `with ${quote.code}` : `${quote.percentOff}% off`}</span> : null}
             </p>
             <p className="t-meta">
-                We build the site first and email it to you. You only pay once it&apos;s live —{" "}
-                {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
+                We build the site first and email it to you. See it first, pay once to publish —{" "}
+                {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "or start with a down payment from ₱500."}
             </p>
         </div>
     );

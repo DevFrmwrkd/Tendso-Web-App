@@ -1,0 +1,50 @@
+/* People cloud (ramp "Beyond the work"). Agent B.
+   Tall section, sticky stage; photos move by transform only (js/people.js). */
+.people { position: relative; height: 220vh; }
+.people-stage {
+  position: sticky; top: 0; height: 100vh; height: 100lvh;
+  overflow: hidden; contain: layout paint;
+}
+.people-copy {
+  position: absolute; z-index: 2; left: 50%; top: 50%;
+  width: min(100% - 2 * var(--page-pad), 1100px);
+  transform: translate(-50%, -50%);
+  text-align: center; pointer-events: none;
+}
+.people-h {
+  font-size: clamp(48px, 8.2vw, 136px);
+  font-weight: 500; letter-spacing: -0.055em; line-height: 0.92;
+  margin: 0 auto; text-wrap: wrap;
+}
+.people-sub {
+  margin: clamp(18px, 2vw, 28px) auto 0; max-width: 36ch;
+  font-size: var(--t-body); color: var(--ink-2); letter-spacing: -0.01em; line-height: 1.4;
+}
+
+.pc {
+  position: absolute; left: 50%; top: 50%; margin: 0; padding: 0; border: 0;
+  border-radius: var(--r-card); overflow: hidden; background: var(--tile-quiet);
+  will-change: transform; transform: translate3d(0, 120vh, 0);
+  backface-visibility: hidden;
+}
+.pc img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
+.pc--l0 { z-index: 3; }
+.pc--l1 { z-index: 1; opacity: .7; }
+.pc--l1 img { filter: blur(4px); transform: scale(1.06); }
+.pc--link { cursor: pointer; }
+.pc--link img { transition: transform var(--d-settle) var(--ease-expo); }
+.pc--link:hover img { transform: scale(1.04); }
+.pc--l1.pc--link:hover img { transform: scale(1.1); }
+.pc--link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .people { height: 200vh; }
+  .pc { border-radius: 14px; }
+  .pc--l1 img { filter: blur(3px); }
+  .people-h { font-size: clamp(44px, 13vw, 64px); text-wrap: balance; }
+  .people-sub { font-size: 15px; max-width: 28ch; }
+}
+
+/* reduced motion: a still, arranged cloud. No pinning, no scroll-linked moves. */
+.people.is-static { height: auto; }
+.people.is-static .people-stage { position: relative; height: max(100vh, 760px); }

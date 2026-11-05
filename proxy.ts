@@ -3,13 +3,18 @@ import { NextResponse } from 'next/server';
 
 import { isSitesHost, slugFromHost, SITE_PATH_HEADER } from '@/lib/siteSlug';
 import { ADMIN_PATH_HEADER } from '@/lib/admin-access';
+import { ownerReturnPath } from '@/lib/ownerReturnPath';
 
 const isPublicRoute = createRouteMatcher([
     '/',
     '/login(.*)',
     '/signup(.*)',
+    '/my-business/sign-in',
     '/affiliates',
     '/affiliates/join(.*)',
+    // Both portal URLs render the same verified account gate. All account reads
+    // and writes remain authorized by the backend; the shell preserves login returns.
+    '/affiliates/dashboard(.*)',
     // Affiliate links are shared with shop owners who do not have a login.
     '/a/(.*)',
     '/forgot-password(.*)',
@@ -22,6 +27,9 @@ const isPublicRoute = createRouteMatcher([
     '/terms-of-service(.*)',
     '/creators(.*)',
     '/about(.*)',
+    '/examples(.*)',
+    '/help',
+    '/legal',
     // New NEO LAB landing surface — fully public, no Clerk gate.
     '/for-creators(.*)',
     // The field-agent recruitment page, public for the same reason: it exists to
@@ -44,11 +52,7 @@ const isPublicRoute = createRouteMatcher([
     // page: paymentTokens.getByToken takes it and nothing else. Making the route
     // public grants no read that was not already reachable with the token.
     '/pay/(.*)',
-    // /for-business has no page any more: next.config redirects it 308 → `/`.
-    // next.config redirects run BEFORE the proxy, so this entry is belt and
-    // braces — but if that ever stops holding, a signed-out visitor arriving
-    // from an old link or a search result would be sent to /login instead of
-    // the page that replaced it, and the redirect would silently stop working.
+    // The redesigned owner recruitment page is now the canonical public route.
     '/for-business(.*)',
     '/knowledge(.*)',
     '/help-faq(.*)',
@@ -81,12 +85,18 @@ const isPublicRoute = createRouteMatcher([
     '/100-pages-giveaway(.*)',
     '/poster(.*)',
     '/libre(.*)',
+    // Design v2 component kit: a noindex review page for the new design system.
+    '/v2-kit(.*)',
+    // Compatibility URLs for the redesigned default pages.
+    '/v2(.*)',
     // Serves the /start desktop map picker, which decides where the map opens
     // from the address the owner typed. Public for the same reason /start is:
     // there is no account, so there is no session to authenticate. The handler
     // rate-limits by IP instead — it is the only open route that reaches a
     // third party (Nominatim), so the limit is its actual protection.
     '/api/geocode',
+    // Anonymous visit requests verify Turnstile and limit callers server-side.
+    '/api/landing-visit',
     // Called server-to-server from Convex (internal.submissions.transcribeMedia)
     // using the X-Internal-Secret header for auth — no Clerk cookie present.
     // The route handler enforces either a valid Clerk session OR a matching
@@ -158,7 +168,10 @@ export default clerkMiddleware(async (auth, req) => {
     const { userId } = await auth();
     if (!userId) {
         const signInUrl = new URL('/login', req.url);
-        signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+        if (req.nextUrl.pathname.startsWith('/my-business')) {
+            signInUrl.pathname = '/my-business/sign-in';
+            signInUrl.searchParams.set('returnTo', ownerReturnPath(req.nextUrl.pathname + req.nextUrl.search));
+        } else signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
         return NextResponse.redirect(signInUrl);
     }
     if (req.nextUrl.pathname === '/admin' || req.nextUrl.pathname.startsWith('/admin/')) {

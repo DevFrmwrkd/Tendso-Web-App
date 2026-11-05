@@ -12,8 +12,9 @@ module.exports = {
     testEnvironment: 'node',
     roots: ['<rootDir>/__tests__'],
     testMatch: ['**/*.test.ts'],
-    testPathIgnorePatterns: ['/node_modules/', '/__tests__/giveaway/', '/__tests__/affiliates/', '/__tests__/knowledge/', '/__tests__/leads/', '/__tests__/admin/'],
+    testPathIgnorePatterns: ['\\.convex\\.test\\.ts$', '/node_modules/', '/__tests__/giveaway/', '/__tests__/affiliates/', '/__tests__/knowledge/', '/__tests__/leads/', '/__tests__/admin/', '/__tests__/owners/', '/__tests__/owner-editing-convex/'],
     moduleNameMapper: {
+        '\\.module\\.css$': '<rootDir>/__tests__/mocks/styleMock.js',
         '^@/(.*)$': '<rootDir>/$1',
     },
 }

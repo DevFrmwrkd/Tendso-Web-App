@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { HelpCenterShell } from "./_components/HelpCenterShell";
+import { PbRoot } from "@/components/v2/pages-b/PbRoot";
+
+import "./knowledge.css";
 
 export const metadata: Metadata = {
     title: "Help Center — Tendso",
@@ -9,7 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function KnowledgeLayout({ children }: { children: ReactNode }) {
-    // The Round 1 frame (app/round1.css via PublicPage): the public header,
-    // the footer and the ⌘K palette, shared by /knowledge and every article.
-    return <HelpCenterShell>{children}</HelpCenterShell>;
+    return <PbRoot>{children}</PbRoot>;
 }

@@ -144,7 +144,7 @@ export default function SubmissionSuccessPage() {
 
             <PageHeader
                 title="Sent for review"
-                sub={businessName ? `Usually 48–72 hours. Nothing more is needed from ${businessName}.` : "Usually 48–72 hours."}
+                sub={businessName ? `Usually the same day. Nothing more is needed from ${businessName}.` : "Usually the same day."}
             />
 
             <section className="t-card t-card-pad flex flex-col gap-5" aria-labelledby="ns-next-h">

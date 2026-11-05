@@ -40,8 +40,8 @@ vi.mock("convex/react", () => ({
         return name === "adminAccess:me" ? state.session : [];
     },
 }));
-vi.mock("@/components/r1", () => ({
-    AppShell: ({ children, sidebar }: { children: ReactNode; sidebar: { roleLabel: string; items: ({ label: string } | string)[] } }) => createElement("main", { "data-admin-shell": sidebar.roleLabel },
+vi.mock("@/app/admin/components/AdminShell", () => ({
+    default: ({ children, sidebar }: { children: ReactNode; sidebar: { roleLabel: string; items: ({ label: string } | string)[] } }) => createElement("main", { "data-admin-shell": sidebar.roleLabel },
         createElement("nav", {}, sidebar.items.filter((item) => typeof item !== "string").map((item, index) => createElement("span", { key: index }, typeof item === "string" ? item : item.label))), children),
 }));
 vi.mock("../../app/admin/components/AdminViewBar", () => ({
@@ -52,7 +52,7 @@ import AdminLayout, { AdminAccessGate } from "../../app/admin/components/AdminLa
 import AdminRouteLayout from "../../app/admin/layout";
 import proxy from "../../proxy";
 
-const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator"] as const;
+const previewPaths = ["/admin/preview/affiliate", "/admin/preview/creator", "/admin/preview/owner"] as const;
 
 let mounted = 0;
 function ProtectedPage() {
@@ -193,6 +193,25 @@ describe("server admin layout", () => {
 });
 
 describe("admin request pathname", () => {
+    it.each([
+        '/my-business/today', '/my-business/visits/visit-one',
+        '/my-business/notifications?eventKey=visit%3Aevent-one',
+        '/my-business/visits/new?submissionId=owned-business',
+    ])('preserves a known owner deep link through the sign-in redirect: %s', async path => {
+        const runProxy = proxy as unknown as (auth: () => Promise<{ userId: string | null }>, req: NextRequest) => Promise<Response>;
+        const response = await runProxy(async () => ({ userId: null }), new NextRequest(`https://tendso.com${path}`));
+        const destination = new URL(response.headers.get('location')!);
+        expect(destination.origin).toBe('https://tendso.com');
+        expect(destination.pathname).toBe('/my-business/sign-in');
+        expect(destination.searchParams.get('returnTo')).toBe(path);
+    });
+
+    it('drops an unknown owner redirect parameter instead of forwarding it to sign-in', async () => {
+        const runProxy = proxy as unknown as (auth: () => Promise<{ userId: string | null }>, req: NextRequest) => Promise<Response>;
+        const response = await runProxy(async () => ({ userId: null }), new NextRequest('https://tendso.com/my-business/today?redirect=https://other.example'));
+        expect(new URL(response.headers.get('location')!).searchParams.get('returnTo')).toBe('/my-business');
+    });
+
     it.each(["/admin/creators", ...previewPaths])("overwrites a caller-supplied staff-safe pathname with the actual URL %s", async (pathname) => {
         const runProxy = proxy as unknown as (auth: () => Promise<{ userId: string }>, req: NextRequest) => Promise<Response>;
         const response = await runProxy(async () => ({ userId: "current-user" }), new NextRequest(`https://tendso.com${pathname}`, { headers: { [ADMIN_PATH_HEADER]: "/admin" } }));

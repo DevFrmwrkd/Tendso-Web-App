@@ -1,1 +1,2 @@
-export { AffiliateSalesScreen as default } from '../../../components/affiliate/Sales';
+import { Redirect } from 'expo-router';
+export default function LegacyAffiliateSales() { return <Redirect href={'/(app)/affiliate/sales' as never} />; }

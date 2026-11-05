@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "sourceHash": "8eb82c0815e8c2859830fefe465b40178203945a523ec686e4ff924b600f54fd",
+  "nativeSha256": "a8d1816c7fb00c8206ac6332f70dd2297f60903c7c19d5cfdc26872e15ef6b82",
+  "catalogSha256": "626bbf278e38d14901f3eb42482cc32ed93b8a4591b1c9eb39688d278cca321c",
+  "catalogJsSha256": "dd07888affe1e32074090d1cb35393287791dd9e67a814f046ab717f18c544ce",
+  "nativeCatalogSha256": "98de1fc5a1050f9630a812d9b160c0c21639fa75c999211c54b261475b35b887",
+  "documents": [
+    {
+      "code": "barbershop:F",
+      "name": "Forge",
+      "category": "barber",
+      "businessId": "kanto-cuts",
+      "businessName": "Kanto Cuts",
+      "preview": "/capture-previews/f.html",
+      "file": "f.html",
+      "sha256": "319b22c2f39ee6ed541658190e47b7f3f3e45ff3e97453b2d8d9747467eb0247"
+    },
+    {
+      "code": "barbershop:I",
+      "name": "Minimal",
+      "category": "barber",
+      "businessId": "kanto-cuts",
+      "businessName": "Kanto Cuts",
+      "preview": "/capture-previews/i.html",
+      "file": "i.html",
+      "sha256": "20282a708541200333e62dd9a263b7ba7ec285f00530a60ee3e3a0a49a5f3eef"
+    },
+    {
+      "code": "barbershop:J",
+      "name": "Stacked",
+      "category": "barber",
+      "businessId": "kanto-cuts",
+      "businessName": "Kanto Cuts",
+      "preview": "/capture-previews/j.html",
+      "file": "j.html",
+      "sha256": "215041267e7cec115ac4055c16352a5d3074819007158dda3325e62463ce070f"
+    },
+    {
+      "code": "woodworks:BV",
+      "name": "Narra & Co.",
+      "category": "craft",
+      "businessId": "likha-wood-studio",
+      "businessName": "Likha Wood Studio",
+      "preview": "/capture-previews/bv.html",
+      "file": "bv.html",
+      "sha256": "283312e88d4315dca5a5be2831aa9dc1021d08e7b423bd26da55f6b6828d3249"
+    },
+    {
+      "code": "woodworks:BW",
+      "name": "Molave",
+      "category": "craft",
+      "businessId": "likha-wood-studio",
+      "businessName": "Likha Wood Studio",
+      "preview": "/capture-previews/bw.html",
+      "file": "bw.html",
+      "sha256": "c0d7629a6c982e965139b61515a32bdf4e8966fe4ae86ad16f6c89686464b85e"
+    },
+    {
+      "code": "florist:BS",
+      "name": "Kalachuchi",
+      "category": "craft",
+      "businessId": "sinta-flower-studio",
+      "businessName": "Sinta Flower Studio",
+      "preview": "/capture-previews/bs.html",
+      "file": "bs.html",
+      "sha256": "29e4312169844e03e35001ca235f6a338f87d146e174dd7ce0400ed0f2656115"
+    },
+    {
+      "code": "foodcraft:AL",
+      "name": "Pastel Deco Panaderia",
+      "category": "food",
+      "businessId": "pan-de-umaga",
+      "businessName": "Pan de Umaga",
+      "preview": "/capture-previews/al.html",
+      "file": "al.html",
+      "sha256": "408d2b4ca57da3967933c1268aa236543d9fcbb28968b6dfeffe47210098f9a0"
+    },
+    {
+      "code": "foodcraft:BL",
+      "name": "Kalinaw Coffee",
+      "category": "food",
+      "businessId": "haplos-coffee",
+      "businessName": "Haplos Coffee",
+      "preview": "/capture-previews/bl.html",
+      "file": "bl.html",
+      "sha256": "42df461a381a8a831016d88c4ec493b80648110e4e69f678a27f88ffe8485047"
+    },
+    {
+      "code": "restaurant:U",
+      "name": "Harvest",
+      "category": "food",
+      "businessId": "kusina-ni-tala",
+      "businessName": "Kusina ni Tala",
+      "preview": "/capture-previews/u.html",
+      "file": "u.html",
+      "sha256": "2674e72ddcc215326c40dbd05be994d215cc87437ad0d8ca03177cbc253829aa"
+    },
+    {
+      "code": "generic:B",
+      "name": "Stillwater",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/b.html",
+      "file": "b.html",
+      "sha256": "ac6f901b990fa4e2cb6a8961f0660c291139642914bdae34623a6b2d941ff538"
+    },
+    {
+      "code": "generic:D",
+      "name": "Northpoint",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/d.html",
+      "file": "d.html",
+      "sha256": "517f3e908bfa79bf10607edd7a7bce5a111a4515f5b9cc77c651cdac21602d05"
+    },
+    {
+      "code": "generic:E",
+      "name": "Clearview",
+      "category": "law",
+      "businessId": "narra-legal-office",
+      "businessName": "Narra Legal Office",
+      "preview": "/capture-previews/e.html",
+      "file": "e.html",
+      "sha256": "e74da9544013e45c047ac58960a6abdb0111a4b3a27631616ab773d95fc3eea9"
+    },
+    {
+      "code": "generic:C",
+      "name": "Cedar & Stone",
+      "category": "other",
+      "businessId": "hardin-handy",
+      "businessName": "Hardin Handy",
+      "preview": "/capture-previews/c.html",
+      "file": "c.html",
+      "sha256": "013b491984d2c6df6ea91520475431b24f99f7c5e0d406cff6a875b2984b0ad6"
+    },
+    {
+      "code": "services:AS",
+      "name": "Labaná Laundry & Press",
+      "category": "other",
+      "businessId": "linis-lane",
+      "businessName": "Linis Lane",
+      "preview": "/capture-previews/as.html",
+      "file": "as.html",
+      "sha256": "62dcbb6642f555e290e3e720e96d3a72f4d9bbb4dfdf5974c4feab9cbdcf1d66"
+    },
+    {
+      "code": "generic:A",
+      "name": "Ironwood",
+      "category": "other",
+      "businessId": "liwanag-cafe",
+      "businessName": "Liwanag Cafe",
+      "preview": "/capture-previews/a.html",
+      "file": "a.html",
+      "sha256": "a30111d73a42c2b34716c93e37afd6bbd402ad66ec1eb5e6fd23b7f2d6755cd2"
+    },
+    {
+      "code": "autoshop:AF",
+      "name": "Job-Sheet Industrial",
+      "category": "repair",
+      "businessId": "talyer-uno",
+      "businessName": "Talyer Uno",
+      "preview": "/capture-previews/af.html",
+      "file": "af.html",
+      "sha256": "43ae53afb97065c891b1ac80be28c4861e55a76d26d4d0862cb476cd35b8ad42"
+    },
+    {
+      "code": "autoshop:P",
+      "name": "Foundry",
+      "category": "repair",
+      "businessId": "talyer-uno",
+      "businessName": "Talyer Uno",
+      "preview": "/capture-previews/p.html",
+      "file": "p.html",
+      "sha256": "b22b54cdfe4cf8d4a76d9d8dff50b32d260f8220e71f2929c6686ee1f9789590"
+    },
+    {
+      "code": "autoshop:AP",
+      "name": "Vulca Garage & Detailing",
+      "category": "repair",
+      "businessId": "talyer-uno",
+      "businessName": "Talyer Uno",
+      "preview": "/capture-previews/ap.html",
+      "file": "ap.html",
+      "sha256": "7f9ab113131419cfa27838fe75252a0ec72a7c507cb612c5e614aac464b79444"
+    },
+    {
+      "code": "salonspa:L",
+      "name": "Botanica",
+      "category": "salon",
+      "businessId": "silong-studio",
+      "businessName": "Silong Studio",
+      "preview": "/capture-previews/l.html",
+      "file": "l.html",
+      "sha256": "adcbff4a31666215b3a6efc9811179da9ce00384da10dacdbbd87cc47a850537"
+    },
+    {
+      "code": "salonspa:N",
+      "name": "Vogue",
+      "category": "salon",
+      "businessId": "silong-studio",
+      "businessName": "Silong Studio",
+      "preview": "/capture-previews/n.html",
+      "file": "n.html",
+      "sha256": "b7e09d2e85c6e537659cccf742614194aee6ec174d1958c9cb59a9d94076cc50"
+    },
+    {
+      "code": "salonspa:K",
+      "name": "Atelier",
+      "category": "salon",
+      "businessId": "silong-studio",
+      "businessName": "Silong Studio",
+      "preview": "/capture-previews/k.html",
+      "file": "k.html",
+      "sha256": "7827b72bca7294b97be2eb56978a266f7b3eaaf3c32824caae99ceb897dd25eb"
+    }
+  ]
+}

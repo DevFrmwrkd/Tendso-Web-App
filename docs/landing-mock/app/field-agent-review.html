@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Field agents · mobile review · Tendso</title>
+    <link rel="stylesheet" href="../css/phone.css" />
+    <link rel="stylesheet" href="field-agent-review.css" />
+  </head>
+  <body>
+    <header class="fa-mast wrap">
+      <a class="fa-brand" href="../hub.html"
+        ><img src="../assets/brand/mark-ink-256.png" alt="" /><b>tendso</b><span>/ field agents</span></a
+      ><a href="creator-core.html">Earlier capture board ↗</a>
+    </header>
+    <main>
+      <section class="fa-intro wrap">
+        <span class="eyebrow">Mobile review · updated 3 November 2026</span>
+        <h1>What’s built.<br />What needs polish.</h1>
+        <p>
+          One current board for the field-agent journey. Compare the screens, see the remaining gaps, and keep
+          a checklist for your next phone test.
+        </p>
+        <div class="fa-disclosure">
+          <b>Code-matched mockups · isolated sample data</b
+          ><span
+            >Baseline app snapshot <code>69dddc04</code>; shared-shop privacy and progress updated 2 Nov 2026.
+            Rendering, camera behavior and gestures still need confirmation in the test app. This board saves
+            review notes only in this browser.</span
+          >
+        </div>
+        <p>New paid submissions: the owner checks a private website preview, approves it and pays in full before it goes public. A down payment keeps the preview private until the balance is paid. Existing published websites keep their current behavior.</p>
+        <div class="fa-jumps" id="status-labels" role="group" aria-label="Shop status labels">
+          <span class="eyebrow">Shop badges</span>
+          <span class="fa-badge">Check website</span><span class="fa-badge">Needs website</span>
+          <span class="fa-badge">Has website</span><span class="fa-badge">Submitted</span>
+          <span class="fa-badge">Reserved</span><span class="fa-badge">Yours</span>
+          <span class="fa-badge">Live</span>
+        </div>
+        <div class="fa-jumps" role="group" aria-label="Submission status labels">
+          <span class="eyebrow">Submission badges</span>
+          <span class="fa-badge">Draft</span><span class="fa-badge">In review</span>
+          <span class="fa-badge">Approved</span><span class="fa-badge">Site ready</span>
+          <span class="fa-badge">Live</span><span class="fa-badge">Paid</span>
+          <span class="fa-badge">Rejected</span>
+        </div>
+        <div class="fa-stats" id="fa-stats"></div>
+        <nav class="fa-jumps" aria-label="Jump to a review section">
+          <a href="#status-labels">Status labels ↑</a>
+          <a href="#queue">Polish queue ↓</a><a href="#inspect">Inspect a screen ↓</a
+          ><a href="#screens">Compare the panels ↓</a>
+        </nav>
+      </section>
+      <section class="wrap fa-section" id="queue">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Start here</span>
+            <h2>Open questions and gaps.</h2>
+          </div>
+          <p>
+            These are supported by the current code. A device check is a test to run, not a confirmed defect.
+          </p>
+        </div>
+        <div class="fa-queue" id="fa-queue"></div>
+      </section>
+      <section class="wrap fa-section" id="inspect">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Try the reference</span>
+            <h2>Inspect one screen.</h2>
+          </div>
+          <p>
+            Tap through the sample. Scroll inside the phone to reach everything; scroll outside it to move
+            down the board.
+          </p>
+        </div>
+        <div class="fa-inspector-tools">
+          <button type="button" id="fa-prev" aria-label="Previous screen">←</button
+          ><label class="sr-only" for="fa-picker">Choose a screen</label
+          ><select id="fa-picker"></select
+          ><button type="button" id="fa-next" aria-label="Next screen">→</button
+          ><button type="button" id="fa-design-state" aria-pressed="false" hidden>
+            Preview with no design</button
+          ><button type="button" id="fa-shop-state" hidden>Shop example: Submitted</button
+          ><button type="button" id="fa-earn-details" aria-pressed="false" hidden>Preview long details</button
+          ><button type="button" id="fa-large" aria-pressed="false">Large text preview</button>
+        </div>
+        <div id="fa-design-category-tools" class="fa-design-review-tools" hidden>
+          <label for="fa-design-category">Sample shop type</label>
+          <select id="fa-design-category">
+            <option>Other</option><option>Barber/Salon</option><option>Spa/Massage</option>
+            <option>Auto Shop</option><option>Craft/Producer</option><option>Restaurant</option>
+            <option>Clinic</option><option>Law Office</option>
+          </select>
+          <p>Twenty-four approved designs: Editorial, Immersive and Studio for each of the eight business types. Clinic and Law Office have their own examples. The app carries the actual sample pages and photographs for offline preview; compatible older saved designs remain available.</p>
+          <p><a href="template-redesign.html" style="font-weight:700">Compare the approved website designs →</a><br />Three complete websites per business type, using the same template IDs in the mobile app and admin editor.</p>
+        </div>
+        <div id="fa-photo-guide-tools" class="fa-design-review-tools" hidden>
+          <label for="fa-photo-category">Sample photo guide</label>
+          <select id="fa-photo-category">
+            <option>Other</option><option>Barber/Salon</option><option>Spa/Massage</option>
+            <option>Auto Shop</option><option>Craft/Producer</option><option>Restaurant</option>
+            <option>Clinic</option><option>Law Office</option>
+          </select>
+          <button type="button" id="fa-photo-change-state" class="fa-chip" aria-pressed="false">Preview Law Office → Auto Shop</button>
+          <p>Compare all eight optional ten-shot guides. The changed-type sample starts from Review: saved photos, their labels and the interview stay attached; old suggestion assignments are cleared. Save reviewed photos waits for the review checkbox. Three clear photos are enough; all ten suggestions are optional. Cards show descriptive labels only; the unlabelled examples offer Add label. Try Select and removing several sample photos, then open a photo and swipe left or right. Retake and Replace explain their app actions without opening your camera or library.</p>
+        </div>
+        <div class="fa-inspector">
+          <div class="fa-stage">
+            <div id="fa-live-phone"></div>
+            <p class="fa-prototype-note">
+              Sample interactions only. Device gestures, location, camera, payments and account changes are
+              not performed here.
+            </p>
+          </div>
+          <aside id="fa-review" class="fa-review" aria-live="polite"></aside>
+        </div>
+      </section>
+      <section class="wrap fa-section" id="screens">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Whole journey</span>
+            <h2>Compare the panels.</h2>
+          </div>
+          <p>
+            Every panel names its implementation and what to verify next. Open a panel above for its full
+            scrollable view.
+          </p>
+        </div>
+        <div
+          class="fa-filter-row"
+          id="fa-area-filters"
+          role="group"
+          aria-label="Filter screens by flow"
+        ></div>
+        <div
+          class="fa-filter-row"
+          id="fa-status-filters"
+          role="group"
+          aria-label="Filter screens by review status"
+        ></div>
+        <p class="fa-results" id="fa-results" aria-live="polite"></p>
+        <div class="fa-gallery" id="fa-gallery"></div>
+        <p id="fa-no-results" hidden>
+          No panels match these filters. Choose All flows or All statuses to continue.
+        </p>
+      </section>
+      <section class="wrap fa-section fa-checks" id="device-checks">
+        <div>
+          <span class="eyebrow">Test on a phone</span>
+          <h2>The final polish pass.</h2>
+          <p>
+            Use the field-agent test account. Check these in the app, then record the outcome beside each
+            panel.
+          </p>
+        </div>
+        <ol>
+          <li>
+            <b>Images and map sheet</b>Open a shop with no photo, a broken photo, and each shop type. Drag the
+            sheet up and down; cards keep their height and illustrations fit their boxes.
+          </li>
+          <li>
+            <b>Small screens, larger text, keyboard</b>Reach every field and action on capture, profile
+            correction and cashout. Check long names, emails, distances and amounts.
+          </li>
+          <li>
+            <b>Permissions and interruptions</b>Try camera, microphone and location denial. Pause or
+            background an interview and recover the saved take.
+          </li>
+          <li>
+            <b>Offline capture</b>Queue a capture, reconnect with the app open, and check that partial uploads
+            and errors can recover without duplicate submissions.
+          </li>
+          <li>
+            <b>Unfinished captures</b>Close the app before sending, reopen and tap Submit. Check the same
+            shop and saved step return. Change its business type and verify all photos still open; try
+            an uploaded photo with a missing local copy and replace only an unrecoverable unsent photo.
+          </li>
+          <li>
+            <b>Navigation and notifications</b>Lesson Back returns to training. Fix and resend preserves the
+            quiz pass. Opening the bell leaves untouched notifications unread.
+          </li>
+          <li>
+            <b>Money</b>Compare credited earnings, available balance and payout statuses. Review sample
+            cashout screens here; real transfers are a separate test.
+          </li>
+        </ol>
+      </section>
+    </main>
+    <footer class="wrap fa-bottom">
+      <div>
+        <b>Tendso / field-agent mobile</b>
+        <p>
+          Latest source check: 2 Nov 2026 · 465 capture and design regression tests passing; mobile TypeScript and six Law Office phone-width checks passed. Earlier wallet/referral checks: 100 passing.
+          Phone confirmation remains open.
+        </p>
+      </div>
+      <div class="fa-footer-links">
+        <a href="creator-core.html">Earlier capture board ↗</a
+        ><a href="creator-more.html">Earlier Earn &amp; Me ↗</a
+        ><button type="button" id="fa-export">Export review notes</button
+        ><button type="button" id="fa-reset">Reset browser notes</button>
+      </div>
+    </footer>
+    <div id="fa-toast" role="status" class="fa-toast" hidden></div>
+    <script src="../js/core.js"></script>
+    <script src="field-agent-review-capture.js"></script>
+    <script src="field-agent-review-account.js"></script>
+    <script src="/capture-redesign/catalog.js"></script>
+    <script src="field-agent-review.js"></script>
+  </body>
+</html>

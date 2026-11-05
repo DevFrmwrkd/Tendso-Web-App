@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useClerk } from '@clerk/clerk-expo';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDeleteAccount } from '../../hooks/useDeleteAccount';
-import { Body, Display, Door, Label } from '../ui/primitives';
-import { colors } from '../../theme/tokens';
+import { Button, ScreenShell, Text } from '../v2';
+import { colors, radius, space } from '../../theme/v2';
 
 /** Replaces navigation while the reactive account query waits for admin approval. */
 export function PendingAffiliateApproval() {
   const { signOut } = useClerk();
   const deletion = useDeleteAccount();
-  const insets = useSafeAreaInsets();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const leave = async () => {
@@ -21,15 +20,28 @@ export function PendingAffiliateApproval() {
     catch { setError('Could not sign out. Please try again.'); }
     finally { setBusy(false); }
   };
-  return <ScrollView style={{ flex: 1, backgroundColor: colors.paper }}
-    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24,
-      paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24, gap: 20 }}>
-    <Label>Tendso affiliate</Label>
-    <Display size="md">Awaiting approval</Display>
-    <Body>Your affiliate account has been created. A Tendso admin needs to approve it before you can share your page and earn.</Body>
-    <Body size="sm" color={colors.ink2}>This screen updates automatically after approval. You can sign out and come back later.</Body>
-    {error ? <Body accessibilityRole="alert" color={colors.danger}>{error}</Body> : null}
-    <Door label="Sign out" onPress={() => { void leave(); }} disabled={busy || deletion.busy} loading={busy} />
-    <Door label="Delete account" onPress={deletion.requestDelete} disabled={busy || !deletion.canDelete} loading={deletion.busy} />
-  </ScrollView>;
+  return <ScreenShell
+    scroll={false}
+    contentStyle={styles.body}
+    footer={<>
+      {error ? <Text variant="body" tone="danger" align="center" accessibilityRole="alert">{error}</Text> : null}
+      <Button title="Sign out" variant="dark" onPress={() => { void leave(); }} disabled={busy || deletion.busy} loading={busy} />
+      <Button title="Delete account" variant="ghost" size="md" onPress={deletion.requestDelete} disabled={busy || !deletion.canDelete} loading={deletion.busy} />
+    </>}
+  >
+    <View style={styles.center}>
+      <View style={styles.icon} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Ionicons name="hourglass-outline" size={40} color={colors.onAccent} />
+      </View>
+      <Text variant="display" align="center" accessibilityRole="header">Awaiting approval</Text>
+      <Text variant="bodyLg" tone="ink2" align="center" style={styles.sub}>A Tendso admin is checking your creator account. This screen updates by itself.</Text>
+    </View>
+  </ScreenShell>;
 }
+
+const styles = StyleSheet.create({
+  body: { flexGrow: 1, justifyContent: 'center' },
+  center: { alignItems: 'center', gap: space.lg },
+  icon: { width: 96, height: 96, borderRadius: radius.pill, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  sub: { maxWidth: 320 },
+});

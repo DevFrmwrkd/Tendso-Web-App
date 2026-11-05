@@ -1,0 +1,86 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, type ReactNode } from "react";
+
+import { CREATOR_ACCOUNT_HREF, CREATOR_PAGE_EDITOR_HREF, CREATOR_PORTAL_NAV, creatorPortalNavHref, type CreatorPortalPage } from "@/lib/v2/creatorPortalNavigation";
+
+import { MiniFoot, SoloBar } from "./Chrome";
+import { Face } from "./Face";
+import styles from "./PortalFrame.module.css";
+
+export type PortalIdentity = { name: string; photo?: string | null };
+
+/** Presentation only. Each page keeps its existing account gate and data subscriptions. */
+export function PortalFrame({ identity, currentPage = "home", sample = false, previewBaseHref, right, utilityActions, children }: {
+    identity?: PortalIdentity;
+    currentPage?: CreatorPortalPage;
+    sample?: boolean;
+    /** Admin-only sample destinations; ignored for live portals. */
+    previewBaseHref?: string;
+    right?: ReactNode;
+    utilityActions?: ReactNode;
+    children: ReactNode;
+}) {
+    const previewBase = sample ? previewBaseHref : undefined;
+    const editorHref = previewBase ? `${previewBase}?section=my-page` : sample ? "#pt-links" : CREATOR_PAGE_EDITOR_HREF;
+    const accountHref = previewBase ? `${previewBase}?section=account` : CREATOR_ACCOUNT_HREF;
+    const nav = useRef<HTMLElement>(null);
+    const hasIdentity = !!identity;
+    useEffect(() => {
+        const navigation = nav.current;
+        const selected = navigation?.querySelector<HTMLElement>('[aria-current="page"]');
+        if (!navigation || !selected) return;
+        // Reveal the current item on narrow screens without moving the page itself.
+        const revealCurrent = () => {
+            const visible = navigation.getBoundingClientRect();
+            const current = selected.getBoundingClientRect();
+            if (current.left < visible.left) navigation.scrollLeft += current.left - visible.left;
+            else if (current.right > visible.right) navigation.scrollLeft += current.right - visible.right;
+        };
+        revealCurrent();
+        const observer = new ResizeObserver(revealCurrent);
+        observer.observe(navigation);
+        observer.observe(selected);
+        return () => observer.disconnect();
+    }, [currentPage, hasIdentity]);
+
+    return <div className={`pt-shell ${styles.shell}`}>
+        <SoloBar brandHref={previewBase} right={identity ? (
+            <Link className="pt-me" href={editorHref} aria-label="Edit your creator page">
+                <Face src={identity.photo} name={identity.name} size={32} />
+                <span>{identity.name}</span>
+                <span className="pt-me-link">My page</span>
+            </Link>
+        ) : right}>
+            {identity ? <nav ref={nav} className={`pt-nav ${styles.nav}`} aria-label="Creator portal">
+                {CREATOR_PORTAL_NAV.map((item) => (
+                    <Link
+                        key={item.id}
+                        href={previewBase ? item.id === "my-page" ? editorHref : item.id === "payouts" ? `${previewBase}?section=wallet` : `${previewBase}#${item.anchor}` : creatorPortalNavHref(item.id, sample)}
+                        className={item.id === currentPage ? "is-on" : undefined}
+                        aria-current={item.id === currentPage ? "page" : undefined}
+                    >
+                        {item.label}
+                    </Link>
+                ))}
+            </nav> : null}
+        </SoloBar>
+        <main className="wrap pt-main" id="top">
+            {identity ? <div className={styles.utilities} role="group" aria-label="Portal account tools">
+                {!sample && <Link className={styles.utilityButton} href="/help#ask">Ask Tendso</Link>}
+                {sample && !previewBase ? <span className={styles.utilityButton} aria-disabled="true">Account</span> : <Link className={styles.utilityButton} href={accountHref} aria-current={currentPage === "account" ? "page" : undefined}>Account</Link>}
+                {!sample ? utilityActions : null}
+            </div> : null}
+            {children}
+            {previewBase ? <footer className="cp-mini-foot"><span>Admin preview · Sample data</span><span>Use View as above to return to your admin dashboard.</span></footer> : <MiniFoot
+                links={[
+                    { label: "Creator rules", href: "/affiliates#rules" },
+                    { label: "Help", href: "/help" },
+                    { label: "Privacy", href: "/privacy-policy" },
+                ]}
+                note="Paid on real sales only. Your 5% is paid once the shop has paid in full."
+            />}
+        </main>
+    </div>;
+}

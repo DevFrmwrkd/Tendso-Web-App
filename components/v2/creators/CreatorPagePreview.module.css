@@ -1,0 +1,23 @@
+.preview { min-width: 0; border: 1px solid #e1e3d8; border-radius: 24px; overflow: hidden; background: #e9ebdf; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 22px 24px; background: #fff; }
+.toolbar h2 { font-size: 18px; font-weight: 600; letter-spacing: -.025em; line-height: 1.3; }
+.toolbar p { margin-top: 5px; color: #686861; font-size: 14px; line-height: 1.45; }
+.modes { display: flex; padding: 4px; gap: 4px; border-radius: 999px; background: #f2f3ee; }
+.modes button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 12px; border: 0; border-radius: 999px; background: none; font-size: 14px; font-weight: 500; cursor: pointer; }
+.modes button[aria-pressed="true"] { background: #0c0a08; color: white; }
+.address { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 12px 20px; border-block: 1px solid #e7e8df; background: #f7f8f2; font-size: 14px; color: #55574d; }
+.address > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.address small { flex: none; margin-left: auto; font-size: 14px; color: #686861; }
+.stage { min-width: 0; padding: 16px; display: flex; justify-content: center; }
+.screen { position: relative; flex: none; max-width: 100%; overflow: hidden; border: 1px solid #d8dbcd; border-radius: 16px; background: white; box-shadow: 0 8px 28px #0c0a080c; }
+.screen iframe { position: absolute; top: 0; left: 0; max-width: none; border: 0; transform-origin: top left; background: white; }
+.caption { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 20px 20px; color: #66685c; font-size: 14px; line-height: 1.45; }
+.caption p { flex: 1 1 220px; }
+.caption a { display: inline-flex; gap: 6px; align-items: center; font-weight: 500; color: #0c0a08; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 760px) {
+    .toolbar { padding: 18px; }
+    .modes { width: 100%; }
+    .modes button { flex: 1; min-height: 44px; }
+    .address { padding-inline: 16px; }
+    .caption { padding-inline: 16px; }
+}

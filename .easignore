@@ -19,6 +19,7 @@ dist/
 web-build/
 build/
 out/
+/output/
 .kotlin/
 /apps/mobile/android/
 /apps/mobile/ios/

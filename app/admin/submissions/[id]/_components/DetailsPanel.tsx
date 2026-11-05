@@ -28,8 +28,10 @@ import { giveawayWebsiteStatus } from "@/lib/giveawayReview";
 import { DomainFold } from "./DomainFold";
 import { DriveFact } from "./DriveFact";
 import { GiveawayEvidence } from "./GiveawayEvidence";
+import { ChangeRequests } from "./ChangeRequests";
 import { EmailsFold } from "./EmailsFold";
 import { formatDate, type ClientEmail, type IntakeRow, type SubmissionDoc } from "./review";
+import styles from "../../_queue/SubmissionWorkspace.module.css";
 
 export type FoldKey = "answers" | "transcript" | "checklist" | "emails" | "domain";
 
@@ -41,7 +43,7 @@ export const linkBtn =
 /** One fact: the label in a narrow column, the value (and its meta) beside it. */
 export function Fact({ label, children }: { label: ReactNode; children: ReactNode }) {
     return (
-        <div className="grid grid-cols-[92px_minmax(0,1fr)] items-start gap-3 border-b border-r1-line-3 py-2.5">
+        <div className={styles.detailFact}>
             <span className="t-label pt-0.5">{label}</span>
             <div className="flex min-w-0 flex-col gap-0.5 break-words text-sm leading-5 text-r1-ink-2">{children}</div>
         </div>
@@ -178,7 +180,7 @@ export function PhotoGrid({
                             type="button"
                             onClick={() => onOpenPhoto(i)}
                             aria-label={`Open photo ${i + 1} of ${photoUrls.length}`}
-                            className={`relative block cursor-pointer overflow-hidden rounded-r1 border-0 bg-r1-fill p-0 ${tall ? "h-24" : "h-[72px]"}`}
+                            className={`relative block cursor-pointer overflow-hidden border-0 bg-r1-fill p-0 ${styles.photo} ${tall ? "h-24" : "h-[72px]"}`}
                         >
                             <Image src={url} alt="" fill sizes="160px" className="object-cover" />
                         </button>
@@ -375,6 +377,7 @@ export function DetailsContent({
     return (
         <div className="flex flex-col">
             <GiveawayEvidence s={s} posterUrl={posterUrl} compact />
+            <ChangeRequests submissionId={s._id} />
             <Fact label={s.giveawayApplication ? "Website status" : "Status"}>
                 <Status {...(giveawayWebsiteStatus(s) ?? submissionStatus(s.status, "admin"))} className="whitespace-normal break-words" />
                 {!s.giveawayApplication && s.status === "rejected" && s.rejectionReason && <span className="t-meta">Reason: {s.rejectionReason}</span>}

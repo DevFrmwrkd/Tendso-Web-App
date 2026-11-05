@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 import { SUPPORT_EMAIL } from "@/lib/contact";
 
-import { LegalDoc, type LegalSection } from "./_components/LegalDoc";
+import type { LegalSection } from "./_components/LegalDoc";
+import { LegalDoc } from "@/components/v2/pages-a/LegalDoc";
+import { PageShell } from "@/components/v2/pages-a/PageShell";
+import { TERMS, termsDocSections } from "@/components/v2/pages-a/legal-content";
 
 const TITLE = "Privacy policy — Tendso";
 const INTRO = "Your privacy matters to us. How Tendso collects, uses, and protects your personal information.";
@@ -16,6 +19,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: INTRO,
     alternates: { canonical: "/privacy-policy" },
+    robots: { index: true, follow: true },
     openGraph: {
         type: "website",
         siteName: "Tendso",
@@ -227,14 +231,13 @@ const policySections: LegalSection[] = [
 
 export default function PrivacyPolicyPage() {
     return (
-        <LegalDoc
-            doc="privacy"
-            title="Privacy policy"
-            intro={INTRO}
-            // The page has said "UPDATED FEB 2026" since this text was written.
-            updated="February 2026"
-            sections={policySections}
-            ask="Questions about your data?"
-        />
+        <PageShell page="legal">
+            <LegalDoc
+                docs={{ privacy: { title: "Privacy policy", intro: INTRO, updated: "February 2026", sections: policySections, ask: "Questions about your data?" },
+                    terms: { ...TERMS, sections: termsDocSections } }}
+                initial="privacy"
+                mode="path"
+            />
+        </PageShell>
     );
 }

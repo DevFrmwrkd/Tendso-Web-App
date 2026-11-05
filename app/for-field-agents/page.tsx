@@ -1,14 +1,16 @@
-import { redirectKeepingQuery, type PageSearchParams } from "@/components/landing/legacyRedirect";
+import type { Metadata } from "next";
+import { AgentsPage } from "@/components/v2/pages-a/AgentsPage";
 
-// /for-field-agents is merged into /for-creators (Round 1, board: ForCreators):
-// same audience, one pitch. What it had that the board has a place for went
-// with it: the sign-up ("Start as a creator"), the creator Discord invite, the
-// "is this legit" answer and the steps, plus the 10-minute call at
-// /field-agent/book. Its title and canonical moved to /for-creators' metadata;
-// its peso earnings did not (the creator pages no longer quote them).
-//
-// The route is kept as a permanent redirect, query string and all, because
-// links to it exist in video descriptions, Discord posts and messages.
-export default async function ForFieldAgentsRedirect({ searchParams }: { searchParams: PageSearchParams }) {
-    return redirectKeepingQuery("/for-creators", searchParams);
+export const metadata: Metadata = {
+    title: "Tendso for field agents",
+    description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half.",
+    alternates: { canonical: "/for-field-agents" },
+    robots: { index: true, follow: true },
+    openGraph: { type: "website", siteName: "Tendso", locale: "en_PH", url: "/for-field-agents", title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
+    twitter: { card: "summary_large_image", title: "Tendso for field agents", description: "Visit shops near you with the Tendso app. About 30 minutes per visit. You set the price, you keep half." },
+};
+
+/** The redesigned public page, served at its default URL. */
+export default function Page() {
+    return <AgentsPage />;
 }

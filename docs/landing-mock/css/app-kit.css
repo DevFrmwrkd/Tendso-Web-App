@@ -1,0 +1,203 @@
+/* Tendso APP design system v2 ("Editorial Paper" structure, new brand colour).
+   Same layout, type and components as apps/mobile today; colours move from cream+gold to clean neutral + ONE
+   accent (the same --accent token as the landing). All app screens (landing phones, app boards) use this kit.
+   Authored at 390×844 CSS px inside .screen-root. Scope: everything lives under .app. */
+.app {
+  --a-accent: var(--accent, #E4F222);           /* fills only: primary buttons, progress, selected, live */
+  --a-on-accent: #0C0A08;
+  --a-accent-soft: color-mix(in oklab, var(--a-accent) 24%, white);   /* success/selected tint */
+  --a-bg: #F5F5F2;          /* screen background (was paper #F8F5EE) */
+  --a-bg2: #ECECE7;         /* tints, icon circles, placeholders (was paper2) */
+  --a-card: #FFFFFF;        /* cards, inputs, tab bar (was paper3) */
+  --a-ink: #0C0A08;         /* headings, solid buttons, dark panels */
+  --a-ink2: #45443F;        /* body */
+  --a-ink3: #8A8982;        /* muted, labels, icons */
+  --a-rule: #E3E3DD;
+  --a-rule-strong: #C4C3BB;
+  --a-info: #1F3654; --a-info-bg: #E7ECF3;
+  --a-warn: #A8650E; --a-warn-bg: #FBEED5;
+  --a-danger: #C2341B; --a-danger-bg: #F6DCD5;
+  --a-serif: "Onest", "Helvetica Neue", Arial, sans-serif;   /* was Instrument Serif; Theo 2026-10-21: same font as the homepage */
+  --a-sans: "Onest", "Helvetica Neue", Arial, sans-serif;
+  --a-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --a-ease: cubic-bezier(.22, 1, .36, 1);
+
+  position: absolute; inset: 0;
+  background: var(--a-bg); color: var(--a-ink2);
+  font: 400 15px/22px var(--a-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.app--dark { background: #0C0A08; color: #fff; }
+.app * { box-sizing: border-box; }
+.app-scroll { position: absolute; inset: 54px 0 0 0; overflow: hidden; }
+.app-pad { padding: 0 24px; }
+
+/* type */
+.a-label { font: 500 11px/15px var(--a-mono); letter-spacing: 1.6px; text-transform: uppercase; color: var(--a-ink3); }
+.a-label--sm { font-size: 10px; letter-spacing: 1.4px; }
+.a-display { font-family: var(--a-sans); font-weight: 500; color: var(--a-ink); margin: 0; }
+.a-display em { font-style: normal; color: var(--a-ink3); }          /* the quieter second line (was gold serif italic) */
+.a-display--sm { font-size: 25px; line-height: 28px; letter-spacing: -0.9px; }
+.a-display--md { font-size: 34px; line-height: 36px; letter-spacing: -1.4px; }
+.a-display--lg { font-size: 44px; line-height: 45px; letter-spacing: -1.9px; }
+.a-body-xs { font-size: 11px; line-height: 16px; }
+.a-body-sm { font-size: 13px; line-height: 19px; }
+.a-body-md { font-size: 15px; line-height: 22px; }
+.a-body-lg { font-size: 17px; line-height: 25px; }
+.a-strong { font-weight: 700; color: var(--a-ink); }
+.a-mark { background: linear-gradient(transparent 58%, var(--a-accent) 58%, var(--a-accent) 92%, transparent 92%); padding: 0 2px; } /* rare highlight, max one per screen */
+
+/* door button */
+.door {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 15px 22px; border-radius: 18px; border: 1px solid var(--a-ink);
+  background: var(--a-ink); color: #fff; text-align: left;
+  font: 500 16px/20px var(--a-sans); letter-spacing: -0.2px;
+}
+.door small { display: block; font: 500 10px/14px var(--a-mono); letter-spacing: 1.4px; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 2px; }
+.door svg { flex: none; width: 18px; height: 18px; }
+.door--accent { background: var(--a-accent); border-color: var(--a-accent); color: var(--a-on-accent); }
+.door--accent small { color: rgba(12,10,8,.6); }
+.door--ghost { background: transparent; color: var(--a-ink); }
+.door--ghost small { color: var(--a-ink3); }
+.door[disabled], .door.is-disabled { opacity: .5; }
+
+/* pills / chips */
+.a-pill { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--a-ink); background: transparent; color: var(--a-ink); font: 500 10.5px/1 var(--a-mono); letter-spacing: 1.2px; text-transform: uppercase; }
+.a-pill--ink { background: var(--a-ink); color: #fff; }
+.a-pill--accent { background: var(--a-accent); border-color: var(--a-accent); color: var(--a-on-accent); }
+.a-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font: 500 10px/1.3 var(--a-mono); letter-spacing: 1.1px; text-transform: uppercase; }
+.a-chip--ok { background: var(--a-accent-soft); color: var(--a-ink); }
+.a-chip--info { background: var(--a-info-bg); color: var(--a-info); }
+.a-chip--warn { background: var(--a-warn-bg); color: var(--a-warn); }
+.a-chip--danger { background: var(--a-danger-bg); color: var(--a-danger); }
+.a-chip--muted { background: var(--a-bg2); color: var(--a-ink3); }
+
+/* cards */
+.a-card { background: var(--a-card); border: 1px solid var(--a-rule); border-radius: 18px; padding: 16px; }
+.a-card--lg { border-radius: 24px; padding: 20px; }
+.a-card--dark { background: var(--a-ink); border-color: var(--a-ink); color: #fff; border-radius: 24px; }
+.a-rule { height: 1px; background: var(--a-rule); border: 0; margin: 0; }
+.a-rule--strong { background: var(--a-rule-strong); }
+
+/* header bits */
+.a-back { width: 40px; height: 40px; border-radius: 50%; background: var(--a-card); border: 1px solid var(--a-rule); display: inline-flex; align-items: center; justify-content: center; color: var(--a-ink); flex: none; }
+.a-back svg { width: 18px; height: 18px; }
+.a-progress { height: 3px; border-radius: 999px; background: var(--a-rule); overflow: hidden; }
+.a-progress > i { display: block; height: 100%; width: var(--p, 50%); background: var(--a-ink); border-radius: inherit; transition: width .6s var(--a-ease); }
+.a-progress--accent > i { background: var(--a-accent); box-shadow: inset 0 0 0 1px rgba(12,10,8,.08); }
+
+/* live dot */
+.a-live { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--a-danger)); display: inline-block; flex: none; }
+.a-live::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: a-live 1.4s var(--a-ease) infinite; }
+@keyframes a-live { from { transform: scale(1); opacity: .6; } to { transform: scale(2.4); opacity: 0; } }
+
+/* inputs */
+.a-field { display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--a-rule); background: var(--a-card); color: var(--a-ink); font-size: 15px; }
+.a-field svg { width: 18px; height: 18px; color: var(--a-ink3); flex: none; }
+.a-field .ph { color: var(--a-ink3); }
+.a-field.is-focus { border-color: var(--a-ink); box-shadow: 0 0 0 3px var(--a-accent-soft); }
+
+/* icon circle */
+.a-ic { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--a-bg2); color: var(--a-ink); flex: none; }
+.a-ic svg { width: 20px; height: 20px; }
+.a-ic--round { border-radius: 50%; }
+.a-ic--accent { background: var(--a-accent); color: var(--a-on-accent); }
+
+/* avatar */
+.a-avatar { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--a-accent-soft); color: var(--a-ink); font: 400 20px/1 var(--a-serif); flex: none; overflow: hidden; }
+.a-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* sticky footer */
+.a-footer { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 24px 34px; background: var(--a-bg); border-top: 1px solid var(--a-rule); display: flex; flex-direction: column; gap: 8px; }
+
+/* tab bar */
+.a-tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 6px 6px 24px; background: var(--a-card); border-top: 1px solid var(--a-rule); display: grid; grid-template-columns: repeat(5, 1fr); align-items: stretch; }
+.a-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--a-ink3); font: 500 9px/1 var(--a-mono); letter-spacing: 1.2px; text-transform: uppercase; }
+.a-tab svg { width: 22px; height: 22px; }
+.a-tab.is-on { color: var(--a-ink); }
+.a-tab--main { margin: 0 6px 0; border-radius: 18px; background: var(--a-accent); color: var(--a-on-accent); box-shadow: 0 4px 8px rgba(12,10,8,.12); }
+
+/* home indicator */
+.a-home { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: var(--a-ink); transform: translateX(-50%); opacity: .9; }
+.app--dark .a-home { background: #fff; }
+
+/* No italics anywhere in the app (Onest has no true italic; serif removed 2026-10-21). */
+.app em, .app i:not([data-lucide]), .app q, .app blockquote, .app [class*="quote"], .app [class*="qt"] { font-style: normal; }
+.app .a-avatar { font-family: var(--a-sans); font-weight: 600; font-size: 17px; }
+
+/* =====================================================================================
+   KIT v3 — Round 2 language (Theo, 2026-10-21): the approved Round 2 mobile sheet
+   (design canvas, artboards R2-O1…O7 owner, R2-F1…F4 field agent) in the new brand.
+   Friendly and concrete: one font (Onest, as the homepage), bold rounded headlines, pill
+   buttons, soft white cards, photo option rows, checklists, one question per screen.
+   No gradients, no mascot, no serif. Accent = fill only, ink text on it.
+   These rules override the v2 editorial styles above (same class names, new look).
+   ===================================================================================== */
+.app { --a-bg: #F6F6F3; --a-bg2: #EFEFEA; --a-card: #FFFFFF; --a-rule: #ECECE6; --a-shadow: 0 8px 24px rgba(12,10,8,.06); font-family: var(--a-sans); }
+.app .a-label { font: 600 12px/16px var(--a-sans); letter-spacing: 0; text-transform: none; color: var(--a-ink3); }
+.app .a-label--sm { font-size: 11px; }
+.app .a-display { font-weight: 700; letter-spacing: -0.04em; }
+.app .a-display em { color: var(--a-ink); }
+.app .a-display--sm { font-size: 20px; line-height: 24px; letter-spacing: -0.4px; }
+.app .a-display--md { font-size: 26px; line-height: 30px; letter-spacing: -0.6px; }
+.app .a-display--lg { font-size: 30px; line-height: 34px; letter-spacing: -0.8px; }
+.app .a-body-md, .app .a-body-sm { font-weight: 500; }
+
+/* pill buttons (Round 2): centred label, no caption, no arrow */
+.app .door { justify-content: center; text-align: center; border-radius: 999px; padding: 15px 20px; font: 700 16px/20px var(--a-sans); letter-spacing: -0.1px; }
+.app .door small { display: none; }
+.app .door > svg, .app .door > i { display: none; }
+.app .door--ghost { background: var(--a-bg2); border-color: var(--a-bg2); color: var(--a-ink); }
+
+/* chips and pills */
+.app .a-pill { height: 34px; padding: 0 14px; border: 0; background: var(--a-bg2); font: 700 13px/1 var(--a-sans); letter-spacing: 0; text-transform: none; }
+.app .a-pill--ink { background: var(--a-ink); color: #fff; }
+.app .a-chip { font: 700 11px/1.3 var(--a-sans); letter-spacing: 0; text-transform: none; }
+
+/* cards: soft, borderless */
+.app .a-card { border: 0; border-radius: 20px; box-shadow: var(--a-shadow); }
+.app .a-card--lg { border-radius: 24px; }
+.app .a-card--dark { box-shadow: none; }
+.app .a-field { border-radius: 16px; border-color: var(--a-rule); font-weight: 500; }
+.app .a-back { border: 0; background: var(--a-card); box-shadow: var(--a-shadow); }
+.app .a-progress { height: 6px; background: var(--a-bg2); }
+.app .a-progress > i { background: var(--a-ink); }
+.app .a-avatar { font: 700 16px/1 var(--a-sans); }
+
+/* tab bar: 4–5 tabs, active = ink with a small accent pill behind the icon */
+.app .a-tab { font: 600 11px/1 var(--a-sans); letter-spacing: 0; text-transform: none; }
+.app .a-tab.is-on svg { background: var(--a-accent); border-radius: 999px; padding: 3px 12px; width: 48px; height: 28px; box-sizing: border-box; color: var(--a-ink); }
+.app .a-tab--main { border-radius: 999px; margin: 4px 8px; }
+
+/* new Round 2 parts --------------------------------------------------------------- */
+.a-step { display: flex; align-items: center; gap: 12px; }                     /* back · progress · "2 / 4" */
+.a-step .a-progress { flex: 1; }
+.a-step b { font: 700 13px/1 var(--a-sans); color: var(--a-ink3); }
+.a-bubble { display: flex; align-items: flex-start; gap: 10px; }                 /* Tendso asks one question */
+.a-bubble-mark { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--a-ink); display: grid; place-items: center; }
+.a-bubble-mark img { width: 30px; height: 30px; filter: invert(1); }
+.a-bubble-text { background: var(--a-card); border-radius: 6px 22px 22px 22px; padding: 14px 16px; box-shadow: var(--a-shadow); display: flex; flex-direction: column; gap: 4px; }
+.a-bubble-text b { font: 700 19px/24px var(--a-sans); color: var(--a-ink); letter-spacing: -0.3px; }
+.a-opt { display: flex; align-items: center; gap: 14px; background: var(--a-card); border: 2px solid transparent; border-radius: 22px; padding: 10px 16px 10px 10px; font: 600 16px/20px var(--a-sans); color: var(--a-ink); box-shadow: var(--a-shadow); }
+.a-opt img { width: 44px; height: 44px; border-radius: 14px; object-fit: cover; flex: none; }
+.a-opt.is-on { border-color: var(--a-ink); }
+.a-tick { width: 26px; height: 26px; border-radius: 50%; background: var(--a-accent); color: var(--a-on-accent); display: grid; place-items: center; margin-left: auto; flex: none; box-shadow: inset 0 0 0 1.5px var(--a-ink); }
+.a-tick svg { width: 14px; height: 14px; }
+.a-check { display: flex; align-items: center; gap: 12px; background: var(--a-card); border-radius: 18px; padding: 13px 14px; font: 600 15px/20px var(--a-sans); color: var(--a-ink); box-shadow: var(--a-shadow); }
+.a-check i.c { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--a-rule-strong); flex: none; }
+.a-check.is-done { color: var(--a-ink3); } .a-check.is-done span { text-decoration: line-through; }
+.a-check.is-done i.c { background: var(--a-accent); border-color: var(--a-ink); }
+.a-check em { margin-left: auto; font: 700 12px/1 var(--a-sans); font-style: normal; color: var(--a-ink3); }
+.a-sec { font: 700 12px/16px var(--a-sans); color: var(--a-ink3); text-align: center; }
+.a-pick { position: relative; border-radius: 20px; overflow: hidden; }               /* Pinterest design card */
+.a-pick.is-on::after { content: ""; position: absolute; inset: 0; border: 3px solid var(--a-ink); border-radius: 20px; pointer-events: none; }
+.a-pick-n { position: absolute; top: 10px; right: 10px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; background: var(--a-accent); color: var(--a-on-accent); border: 2px solid var(--a-ink); font: 800 13px/1 var(--a-sans); display: grid; place-items: center; }
+.a-pick-cap { display: flex; justify-content: space-between; font: 700 12px/1 var(--a-sans); color: var(--a-ink3); padding: 7px 4px 0; }
+
+/* ---- 2026-10-21 · Theo: "did I say white background?" — Round 2 used soft tinted backgrounds.
+   Brand version: a faint lime wash at the top fading to warm off-white. Cards stay white on it.
+   Dark camera screens keep their own background. ----------------------------------------------- */
+.app { --a-grad: linear-gradient(172deg, #EFF6C6 0%, #F7F8EE 34%, #F5F5F0 64%, #EEF0EC 100%); }
+.app:not(.app--dark) { background: var(--a-grad) !important; }

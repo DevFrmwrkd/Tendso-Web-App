@@ -54,29 +54,34 @@ function displayName(creator: Pick<Doc<'creators'>, 'firstName' | 'lastName' | '
 // ── DB helpers ──────────────────────────────────────────────────────
 
 /**
- * Atomic dedup + claim: insert a fresh 'pending' row and return its id, UNLESS
- * an OPEN (pending/conflict) row already exists for this creator, in which case
- * return null. Doing the check + insert in one mutation (not a query then a
+ * Atomic dedup + claim: insert a fresh 'pending' row and return its id, unless
+ * a row already exists for this review episode, in which case return null.
+ * Doing the check + insert in one mutation (not a query then a
  * separate insert) prevents two overlapping poll runs from double-posting.
  */
 export const claimForPost = internalMutation({
-    args: { creatorId: v.id('creators'), quizPassedAt: v.number() },
+    args: { creatorId: v.id('creators'), quizPassedAt: v.number(), reviewSubmittedAt: v.optional(v.number()) },
     handler: async (ctx, args): Promise<Id<'approvalRequests'> | null> => {
         const creator = await ctx.db.get(args.creatorId);
-        if (!isCreatorAccount(creator) || creator?.isDeleted || creator?.status === 'suspended' || creator?.status === 'deleted') return null;
+        if (!creator || !isCreatorAccount(creator) || creator.isDeleted || creator.status === 'suspended' || creator.status === 'deleted'
+            || !creator.quizPassedAt || creator.quizPassedAt !== args.quizPassedAt || creator.certifiedAt || creator.rejectedAt) return null;
+        const episode = args.reviewSubmittedAt ?? args.quizPassedAt;
+        // The action may have loaded the old profile just before it was
+        // corrected. Only claim the review that is still current now.
+        if ((creator.reviewSubmittedAt ?? creator.quizPassedAt) !== episode) return null;
         const rows = await ctx.db
             .query('approvalRequests')
             .withIndex('by_creator', (q) => q.eq('creatorId', args.creatorId))
             .collect();
-        // Already handled THIS pending episode (any status — pending, resolved,
-        // expired, or errored) → don't re-post. Keying on quizPassedAt (not just
-        // 'open' statuses) means a deleted/expired post stays retired, while a
-        // re-certification (fresh quizPassedAt) has no matching row and re-posts.
-        if (rows.some((r) => r.quizPassedAt === args.quizPassedAt)) return null;
+        // Already handled THIS pending episode (any status) → don't re-post.
+        // Corrected profiles have a fresh reviewSubmittedAt while retaining
+        // their actual quizPassedAt. Old rows fall back to the quiz timestamp.
+        if (rows.some((r) => (r.reviewSubmittedAt ?? r.quizPassedAt) === episode)) return null;
         const now = Date.now();
         return await ctx.db.insert('approvalRequests', {
             creatorId: args.creatorId,
             quizPassedAt: args.quizPassedAt,
+            ...(args.reviewSubmittedAt !== undefined ? { reviewSubmittedAt: args.reviewSubmittedAt } : {}),
             status: 'pending',
             createdAt: now,
             updatedAt: now,
@@ -233,7 +238,11 @@ export const createAndPost = internalAction({
         if (!isCreatorAccount(creator) || !quizPassedAt || creator.certifiedAt || creator.rejectedAt || creator.isDeleted || creator.status === 'suspended' || creator.status === 'deleted') return;
 
         // Atomic dedup + claim — null means this pending episode was already posted.
-        const id = await ctx.runMutation(internal.approvals.claimForPost, { creatorId: args.creatorId, quizPassedAt });
+        const id = await ctx.runMutation(internal.approvals.claimForPost, {
+            creatorId: args.creatorId,
+            quizPassedAt,
+            ...(creator.reviewSubmittedAt !== undefined ? { reviewSubmittedAt: creator.reviewSubmittedAt } : {}),
+        });
         if (!id) return;
 
         try {
@@ -395,6 +404,14 @@ export const pollPending = internalAction({
                     });
                     continue;
                 }
+                const episode = req.reviewSubmittedAt ?? req.quizPassedAt;
+                if (!creator.quizPassedAt || (creator.reviewSubmittedAt ?? creator.quizPassedAt) !== episode) {
+                    await ctx.runMutation(internal.approvals.patchApproval, {
+                        id: req._id, status: 'expired', error: 'superseded by another review',
+                    });
+                    await editMessage(chan, msg, `⌛ This request was replaced — review ${displayName(creator)}'s latest profile instead.`, botToken);
+                    continue;
+                }
                 if (creator.certifiedAt) {
                     await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'approved', resolvedAt: Date.now() });
                     await editMessage(chan, msg, `✅ **Approved** — ${displayName(creator)} is now certified. (via dashboard)`, botToken);
@@ -436,13 +453,18 @@ export const pollPending = internalAction({
 
                 if (approvers.length) {
                     const who = approvers[0];
-                    const r = await ctx.runMutation(internal.creators.approveCreatorInternal, { id: req.creatorId, approvedBy: who });
+                    const r = await ctx.runMutation(internal.creators.approveCreatorInternal, {
+                        id: req.creatorId, approvedBy: who, expectedReviewSubmittedAt: episode,
+                    });
                     if (r.outcome === 'approved' || r.outcome === 'already_approved') {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'approved', resolvedBy: who, resolvedAt: Date.now() });
                         await editMessage(chan, msg, `✅ **Approved** — ${r.name} is now certified. (by <@${who}>)`, botToken);
                     } else if (r.outcome === 'already_rejected') {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'denied', resolvedBy: who, resolvedAt: Date.now() });
                         await editMessage(chan, msg, `❌ ${r.name} was already denied in the dashboard.`, botToken);
+                    } else if (r.outcome === 'stale_request') {
+                        await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'expired', error: 'superseded by another review' });
+                        await editMessage(chan, msg, `⌛ This request was replaced — review ${r.name}'s latest profile instead.`, botToken);
                     } else {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'error', error: 'creator not found' });
                     }
@@ -451,13 +473,18 @@ export const pollPending = internalAction({
 
                 if (deniers.length) {
                     const who = deniers[0];
-                    const r = await ctx.runMutation(internal.creators.rejectCreatorInternal, { id: req.creatorId, rejectedBy: `discord:${who}` });
+                    const r = await ctx.runMutation(internal.creators.rejectCreatorInternal, {
+                        id: req.creatorId, rejectedBy: `discord:${who}`, expectedReviewSubmittedAt: episode,
+                    });
                     if (r.outcome === 'rejected' || r.outcome === 'already_rejected') {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'denied', resolvedBy: who, resolvedAt: Date.now() });
                         await editMessage(chan, msg, `❌ **Denied** — ${r.name}'s application was rejected. (by <@${who}>)`, botToken);
                     } else if (r.outcome === 'already_approved') {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'approved', resolvedBy: who, resolvedAt: Date.now() });
                         await editMessage(chan, msg, `✅ ${r.name} was already approved in the dashboard.`, botToken);
+                    } else if (r.outcome === 'stale_request') {
+                        await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'expired', error: 'superseded by another review' });
+                        await editMessage(chan, msg, `⌛ This request was replaced — review ${r.name}'s latest profile instead.`, botToken);
                     } else {
                         await ctx.runMutation(internal.approvals.patchApproval, { id: req._id, status: 'error', error: 'creator not found' });
                     }

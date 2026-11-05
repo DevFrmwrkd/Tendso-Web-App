@@ -33,7 +33,7 @@
  * whole point: one source of truth, not two that drift.
  */
 
-import { TEMPLATE_FAMILIES } from "@/components/editor/templateCatalog";
+import { TEMPLATE_FAMILIES } from "../components/editor/templateCatalog";
 
 /**
  * Trade -> family. Ordered, first match wins, so put the specific patterns

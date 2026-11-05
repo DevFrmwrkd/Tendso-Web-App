@@ -4,6 +4,7 @@ import { ArrowUpDown, Check, ChevronDown, Search, X } from "lucide-react"
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react"
 
 import { Button, cx, Icon } from "@/components/r1"
+import styles from "./SubmissionWorkspace.module.css"
 
 /*
  * The queue's toolbar controls (board Queue; ComponentKit "Search", "Menu").
@@ -28,7 +29,7 @@ export function QueueSearch({
     const id = useId()
     const inputRef = useRef<HTMLInputElement>(null)
     return (
-        <div className={cx("t-input-wrap", className)}>
+        <div className={cx("t-input-wrap", styles.search, className)}>
             <label className="sr-only" htmlFor={id}>
                 Search submissions
             </label>
@@ -52,7 +53,7 @@ export function QueueSearch({
                     variant="ghost"
                     size="sm"
                     icon
-                    className="absolute top-1 right-1 text-r1-ink-3 hover:text-r1-ink"
+                    className={cx("absolute text-r1-ink-3 hover:text-r1-ink", styles.searchClear)}
                     aria-label="Clear search"
                     onClick={() => {
                         onChange("")

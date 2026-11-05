@@ -30,6 +30,11 @@ import {
     normalizeBusinessName,
     bucketCategory,
 } from './lib/quality';
+import { haversineKm } from './lib/h3';
+import {
+    pointInProspectViewport, prospectViewportCenter, prospectViewportRanges,
+    VIEWPORT_MAX_READS, VIEWPORT_MAX_RESULTS, VIEWPORT_ROWS_PER_RANGE,
+} from './lib/prospectViewport';
 
 const RESERVATION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h — spec default
 
@@ -119,6 +124,57 @@ export const searchNearby = query({
 
         all.sort((a, b) => b.qualityScore - a.qualityScore);
         return all.slice(0, limit);
+    },
+});
+
+/**
+ * Read the visible map area from existing inventory only. Coarse H3 parent
+ * ranges bound index work even for a city/country view; exact coordinates and
+ * lazy reservation expiry are checked before exposing a row. `truncated` means
+ * the caller must not present this bounded result as every shop in the view.
+ * Existing nearby discovery/scrape-sufficiency contracts remain unchanged.
+ */
+export const searchViewport = query({
+    args: {
+        south: v.number(), north: v.number(), west: v.number(), east: v.number(),
+        categoryBucket: v.optional(v.string()), limit: v.optional(v.number()),
+    },
+    handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
+        if (args.limit !== undefined && (!Number.isInteger(args.limit) || args.limit < 1)) {
+            throw new Error('Enter a valid map result limit');
+        }
+        if (args.categoryBucket !== undefined && args.categoryBucket.length > 100) {
+            throw new Error('Enter a valid category');
+        }
+        const limit = Math.min(args.limit ?? 100, VIEWPORT_MAX_RESULTS);
+        const ranges = prospectViewportRanges(args);
+        const center = prospectViewportCenter(args);
+        const now = Date.now();
+        const matches: Doc<'prospects'>[] = [];
+        let scanned = 0;
+        let truncated = false;
+        for (const range of ranges) {
+            const remaining = VIEWPORT_MAX_READS - scanned;
+            if (remaining <= 0) { truncated = true; break; }
+            const take = Math.min(VIEWPORT_ROWS_PER_RANGE + 1, remaining);
+            // Apply no database .filter here: it can scan an unbounded number
+            // of unavailable/out-of-view rows before satisfying .take().
+            const rows = await ctx.db.query('prospects').withIndex('by_h3_res7', (q) =>
+                q.gte('h3CellRes7', range.lower).lte('h3CellRes7', range.upper)).take(take);
+            scanned += rows.length;
+            if (rows.length === take) truncated = true;
+            for (const row of rows) {
+                if (isAvailableLazy(row, now)
+                    && (!args.categoryBucket || row.categoryBucket === args.categoryBucket)
+                    && pointInProspectViewport(args, row.latitude, row.longitude)) matches.push(row);
+            }
+        }
+        matches.sort((left, right) =>
+            haversineKm(center.latitude, center.longitude, left.latitude, left.longitude)
+            - haversineKm(center.latitude, center.longitude, right.latitude, right.longitude)
+            || right.qualityScore - left.qualityScore || String(left._id).localeCompare(String(right._id)));
+        return { prospects: matches.slice(0, limit), truncated: truncated || matches.length > limit };
     },
 });
 

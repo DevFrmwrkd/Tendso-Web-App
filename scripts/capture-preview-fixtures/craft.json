@@ -1,0 +1,534 @@
+[
+  {
+    "id": "likha-wood-studio",
+    "category": "craft",
+    "designs": [
+      "woodworks:BV",
+      "woodworks:BW"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Likha Wood Studio",
+        "tagline": "Furniture made for your space",
+        "contact": {
+          "address": "Concepcion Uno\nMarikina City, Metro Manila",
+          "city": "Marikina City",
+          "phone": "+639000000001",
+          "email": "hello@likha.example"
+        },
+        "navLinks": [
+          {
+            "label": "Our pieces",
+            "href": "#services"
+          },
+          {
+            "label": "How to order",
+            "href": "#how"
+          },
+          {
+            "label": "Visit",
+            "href": "#visit"
+          }
+        ]
+      },
+      "content": {
+        "business_city": "Marikina City",
+        "description": "A fictional sample furniture workshop showing made-to-order tables, shelves and small-space pieces.",
+        "navCtaText": "Plan a piece",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Made in Marikina",
+          "headline": "A place for everyday living.",
+          "headlineLines": [
+            "A place for",
+            "everyday living."
+          ],
+          "sub": "Tables, shelves and storage made around the way you use your home. Bring your measurements and an idea.",
+          "image": "asset:wood",
+          "cta1": {
+            "text": "Plan a piece",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "Explore our pieces",
+            "href": "#services"
+          },
+          "meta1": "Made to order",
+          "meta2": "Workshop visits by appointment",
+          "usps": [
+            {
+              "title": "Size",
+              "text": "Built to your measurements"
+            },
+            {
+              "title": "Finish",
+              "text": "Choose from sample finishes"
+            },
+            {
+              "title": "Timing",
+              "text": "Agreed before work starts"
+            }
+          ]
+        },
+        "marquee": {
+          "text": "Thoughtful sizes · Natural finishes · Made for your home"
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Custom",
+              "label": "Sizes and finishes"
+            },
+            {
+              "num": "By order",
+              "label": "A clear quote before making"
+            },
+            {
+              "num": "Pickup",
+              "label": "Delivery can be arranged"
+            }
+          ]
+        },
+        "about": {
+          "tag": "At the workbench",
+          "headline": "Useful things, carefully made.",
+          "lead": "We start with the space, not a standard size.",
+          "paragraphs": [
+            "A narrow entryway, a shared dining corner or a wall that needs storage: tell us what needs to work better.",
+            "We will talk through the dimensions, materials and finish before putting together your quote."
+          ],
+          "image": "asset:wood",
+          "signatureName": "The Likha team",
+          "role": "Furniture makers"
+        },
+        "services": {
+          "tag": "What we make",
+          "headline": "Pieces with a place in your home.",
+          "sub": "Starting prices. Final cost depends on dimensions, materials and finish.",
+          "ctaLabel": "Ask about a piece",
+          "ctaHref": "#visit",
+          "items": [
+            {
+              "title": "Side table",
+              "desc": "A compact table for your sofa, bedside or reading corner.",
+              "meta": "From ₱3,500",
+              "tag": "Small spaces"
+            },
+            {
+              "title": "Open shelf",
+              "desc": "Simple storage sized for books, plants and everyday essentials.",
+              "meta": "From ₱6,500",
+              "tag": "Storage"
+            },
+            {
+              "title": "Dining table",
+              "desc": "Choose the footprint and finish that suit your dining area.",
+              "meta": "From ₱14,000",
+              "tag": "Gather around"
+            },
+            {
+              "title": "Something made for you",
+              "desc": "Bring a sketch, a photo or a problem space. We will help you work out a practical piece.",
+              "meta": "Quoted after consultation",
+              "image": "asset:wood",
+              "note": "Measurements and delivery are discussed before your order is confirmed."
+            }
+          ],
+          "whole": {
+            "headline": "Have a particular space in mind?"
+          }
+        },
+        "why": {
+          "tag": "The details",
+          "headline": "Know what you are ordering.",
+          "items": [
+            {
+              "title": "Your measurements",
+              "body": "We confirm the dimensions with you before making starts."
+            },
+            {
+              "title": "A clear quote",
+              "body": "Materials, finish and any delivery cost are listed before you decide."
+            },
+            {
+              "title": "A finish you can see",
+              "body": "Compare sample finishes at your workshop appointment."
+            }
+          ]
+        },
+        "how": {
+          "tag": "From idea to home",
+          "headline": "Let us work through it together.",
+          "steps": [
+            {
+              "title": "Share your idea",
+              "body": "Send the space dimensions and a photo or sketch."
+            },
+            {
+              "title": "Agree on the details",
+              "body": "Review the design, finish, price and estimated schedule."
+            },
+            {
+              "title": "Make room for your piece",
+              "body": "Arrange pickup or a delivery quote when it is ready."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "A closer look",
+          "headline": "At the workbench.",
+          "sub": "An example photo for this fictional sample shop.",
+          "items": [
+            {
+              "image": "asset:wood",
+              "caption": "Furniture and workshop details"
+            }
+          ]
+        },
+        "area": {
+          "tag": "Getting your piece home",
+          "headline": "Pickup or planned delivery.",
+          "body": "Pickup is by appointment. Ask for a delivery quote for your address before ordering.",
+          "places": [
+            "Marikina",
+            "Quezon City",
+            "Pasig"
+          ]
+        },
+        "faq": {
+          "tag": "Before you order",
+          "headline": "A few useful details.",
+          "items": [
+            {
+              "q": "Can you change the size?",
+              "a": "Yes. Share your target dimensions so we can discuss the design and price."
+            },
+            {
+              "q": "How long will it take?",
+              "a": "The schedule depends on the piece and current work. Your quote includes an estimated completion date."
+            },
+            {
+              "q": "Can I visit the workshop?",
+              "a": "Please arrange a visit first so someone is available to discuss your project."
+            }
+          ]
+        },
+        "location": {
+          "tag": "Come by",
+          "headline": "Visit the workshop.",
+          "sub": "Please arrange an appointment before travelling.",
+          "hours": "Tuesday–Saturday · 9 am–5 pm · by appointment",
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Concepcion+Uno+Marikina"
+          }
+        },
+        "ctaBand": {
+          "headline": "What would make your space work better?",
+          "sub": "Start with a measurement, a photo or an idea.",
+          "cta": {
+            "text": "Plan a workshop visit",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Likha",
+          "locality": "Marikina · Sample shop",
+          "blurb": "Made-to-order furniture for everyday homes.",
+          "visit": {
+            "title": "Workshop"
+          },
+          "explore": {
+            "title": "Explore",
+            "links": [
+              {
+                "text": "Our pieces",
+                "href": "#services"
+              },
+              {
+                "text": "How to order",
+                "href": "#how"
+              },
+              {
+                "text": "Questions",
+                "href": "#faq"
+              }
+            ]
+          },
+          "notes": [
+            "Fictional sample business. Photos and prices are for design preview only."
+          ]
+        }
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      }
+    }
+  },
+  {
+    "id": "sinta-flower-studio",
+    "category": "craft",
+    "designs": [
+      "florist:BS"
+    ],
+    "siteData": {
+      "layout": {
+        "businessName": "Sinta Flower Studio",
+        "tagline": "Flowers for the everyday and the once-in-a-lifetime",
+        "contact": {
+          "address": "Kapitolyo\nPasig City, Metro Manila",
+          "city": "Pasig City",
+          "phone": "+639000000002",
+          "email": "hello@sinta.example"
+        },
+        "navLinks": [
+          {
+            "label": "Flowers",
+            "href": "#services"
+          },
+          {
+            "label": "Our studio",
+            "href": "#about"
+          },
+          {
+            "label": "Visit",
+            "href": "#visit"
+          }
+        ]
+      },
+      "content": {
+        "business_city": "Pasig City",
+        "description": "A fictional sample flower studio with bouquets, table flowers and small-event arrangements.",
+        "navCtaText": "Plan your flowers",
+        "navCtaHref": "#visit",
+        "hero": {
+          "kicker": "Sample flower studio · Pasig",
+          "headline": "A little thought, in flowers.",
+          "sub": "Everyday bouquets, thoughtful gifts and flowers for a table full of people you love.",
+          "image": "asset:floral",
+          "image2": "asset:floral",
+          "image3": "asset:floral",
+          "cta1": {
+            "text": "Plan your flowers",
+            "href": "#visit"
+          },
+          "cta2": {
+            "text": "See what we make",
+            "href": "#services"
+          },
+          "meta1": "Made to order",
+          "meta2": "Pickup by arrangement"
+        },
+        "marquee": {
+          "text": "For birthdays · For the table · Just because"
+        },
+        "trust": {
+          "cells": [
+            {
+              "num": "Your palette",
+              "label": "Colours discussed before making"
+            },
+            {
+              "num": "Pre-order",
+              "label": "Check your date with the studio"
+            },
+            {
+              "num": "Pickup",
+              "label": "Delivery quoted by address"
+            }
+          ]
+        },
+        "about": {
+          "tag": "Meet the studio",
+          "headline": "Flowers with a personal note.",
+          "lead": "Tell us the occasion, the colours and what you would like to spend.",
+          "paragraphs": [
+            "We put together arrangements around your brief and the flowers available for your date.",
+            "Your order is confirmed once the details, collection time and price are agreed."
+          ],
+          "image": "asset:floral",
+          "signatureName": "The Sinta team",
+          "role": "Flower studio"
+        },
+        "services": {
+          "tag": "From the studio",
+          "headline": "A flower for the moment.",
+          "sub": "Starting prices. Stem choices vary with the season and availability.",
+          "ctaLabel": "Discuss an arrangement",
+          "ctaHref": "#visit",
+          "items": [
+            {
+              "title": "Everyday bouquet",
+              "desc": "A hand-tied bunch in your chosen colour direction.",
+              "meta": "From ₱850",
+              "tag": "A thoughtful gift",
+              "image": "asset:floral"
+            },
+            {
+              "title": "Table flowers",
+              "desc": "A low arrangement for dinner, a celebration or a quiet corner.",
+              "meta": "From ₱1,400",
+              "tag": "For the table",
+              "image": "asset:floral"
+            },
+            {
+              "title": "Celebration flowers",
+              "desc": "A small set of arrangements planned around your occasion.",
+              "meta": "Quoted to your brief",
+              "tag": "Made together",
+              "image": "asset:floral"
+            }
+          ],
+          "whole": {
+            "tag": "A bigger day",
+            "headline": "Small gatherings, thoughtfully flowered.",
+            "body": "Share your date, venue and ideas. We will talk through the pieces you need and prepare a separate quote."
+          }
+        },
+        "why": {
+          "tag": "A thoughtful process",
+          "headline": "Made around your message.",
+          "items": [
+            {
+              "title": "Start with a budget",
+              "body": "Tell us your budget so we can suggest a suitable arrangement."
+            },
+            {
+              "title": "Talk through the palette",
+              "body": "Choose a colour direction and let us know any flowers to avoid."
+            },
+            {
+              "title": "Plan the handover",
+              "body": "Confirm pickup or the delivery quote before your order is final."
+            }
+          ]
+        },
+        "how": {
+          "tag": "How to order",
+          "headline": "From a thought to a bunch.",
+          "steps": [
+            {
+              "title": "Tell us the occasion",
+              "body": "Share the date, your budget and a few colour ideas."
+            },
+            {
+              "title": "Confirm your arrangement",
+              "body": "We will discuss the available flowers and agree on the order."
+            },
+            {
+              "title": "Arrange pickup or delivery",
+              "body": "Choose a collection time or request a delivery quote."
+            }
+          ]
+        },
+        "gallery": {
+          "tag": "In the studio",
+          "headline": "Flowers, close up.",
+          "sub": "An example image for this fictional sample studio.",
+          "items": [
+            {
+              "image": "asset:floral",
+              "caption": "Bouquet and studio details"
+            }
+          ]
+        },
+        "area": {
+          "tag": "Getting flowers to you",
+          "headline": "Ask about your address.",
+          "body": "Delivery availability and cost are checked when you order.",
+          "places": [
+            "Pasig",
+            "Mandaluyong",
+            "San Juan"
+          ]
+        },
+        "faq": {
+          "tag": "Good to know",
+          "headline": "Before we put it together.",
+          "items": [
+            {
+              "q": "Can I choose the exact flowers?",
+              "a": "Share your preferences. We will confirm availability and discuss alternatives before you order."
+            },
+            {
+              "q": "How early should I order?",
+              "a": "Please check your date with us. Larger arrangements need more planning than an everyday bouquet."
+            },
+            {
+              "q": "Can you add a message?",
+              "a": "Yes. Send your card message with the order details."
+            }
+          ]
+        },
+        "location": {
+          "tag": "Visit the studio",
+          "headline": "Come by with an idea.",
+          "sub": "Studio visits and pickups are by arrangement.",
+          "hours": "Tuesday–Sunday · 10 am–6 pm",
+          "rules": [
+            {
+              "label": "Pickup",
+              "value": "Please confirm a time"
+            },
+            {
+              "label": "Delivery",
+              "value": "Quoted before ordering"
+            }
+          ],
+          "directions": {
+            "text": "Find the area",
+            "href": "https://maps.google.com/?q=Kapitolyo+Pasig"
+          }
+        },
+        "ctaBand": {
+          "tag": "Flowers for someone",
+          "headline": "What would you like to say?",
+          "sub": "Tell us the occasion and we will help you plan the flowers.",
+          "cta": {
+            "text": "Plan your flowers",
+            "href": "#visit"
+          }
+        },
+        "footer": {
+          "brand": "Sinta",
+          "locality": "Pasig · Sample flower studio",
+          "blurb": "Bouquets, table flowers and arrangements for small celebrations.",
+          "visit": {
+            "title": "Studio"
+          },
+          "explore": {
+            "title": "Explore",
+            "links": [
+              {
+                "text": "Our flowers",
+                "href": "#services"
+              },
+              {
+                "text": "How to order",
+                "href": "#how"
+              },
+              {
+                "text": "Questions",
+                "href": "#faq"
+              }
+            ]
+          },
+          "hours": [
+            {
+              "day": "Tue–Sun",
+              "time": "10 am–6 pm"
+            }
+          ],
+          "notes": [
+            "Fictional sample business. Photos and prices are for design preview only."
+          ]
+        }
+      },
+      "visibility": {
+        "testimonialsBlock": false,
+        "credentialsBlock": false
+      }
+    }
+  }
+]

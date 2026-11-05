@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, internal } from '../../convex/_generated/api';
 import schema from '../../convex/schema';
+import { CREATOR_CODE_PRICE, CREATOR_OVERRIDE_CUTOVER } from '../../lib/pricing';
 import { affiliateHandleError, affiliatePriceError } from '../../lib/affiliates';
 import type { Id } from '../../convex/_generated/dataModel';
 
@@ -115,16 +116,17 @@ describe('affiliate signup and page foundation', () => {
         expect((await t.run((ctx) => ctx.db.get(tokenId)))?.status).toBe('pending');
     });
 
-    it('saves optional page fields for the signed-in active affiliate and clamps whole-peso price boundaries', async () => {
+    it('saves optional page fields while keeping the creator-code price fixed', async () => {
         const { t, affiliate, admin } = await setup();
         const id = await affiliate.mutation(api.affiliates.create, signup);
         await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
-        await affiliate.mutation(api.affiliates.updatePage, { photo: 'https://example.com/photo.jpg', displayName: ' Alex ', message: ' Websites for your shop. ', socialLink: 'https://facebook.com/alex', price: 999 });
-        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliateDisplayName: 'Alex', affiliateMessage: 'Websites for your shop.', affiliatePrice: 999 });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 4999 });
-        for (const [price, expected] of [[998, 999], [5000, 4999], [999.5, 1000]]) {
-            await affiliate.mutation(api.affiliates.updatePage, { price });
-            expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(expected);
+        await affiliate.mutation(api.affiliates.updatePage, { photo: 'https://example.com/photo.jpg', displayName: ' Alex ', message: ' Websites for your shop. ', socialLink: 'https://facebook.com/alex', price: CREATOR_CODE_PRICE });
+        expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliateDisplayName: 'Alex', affiliateMessage: 'Websites for your shop.' });
+        expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBeUndefined();
+        const before = await t.run((ctx) => ctx.db.get(id));
+        for (const price of [998, 999, 5000, 4999, 999.5, CREATOR_CODE_PRICE + .1, NaN, Infinity, -Infinity]) {
+            await expect(affiliate.mutation(api.affiliates.updatePage, { price, displayName: 'Must not save' })).rejects.toThrow('cannot be changed');
+            expect(await t.run((ctx) => ctx.db.get(id))).toEqual(before);
         }
         await expect(affiliate.mutation(api.affiliates.updatePage, { socialLink: 'javascript:alert(1)' })).rejects.toThrow('HTTPS');
         await expect(admin.mutation(api.affiliates.updatePage, { price: 999 })).rejects.toThrow('affiliate account');
@@ -134,7 +136,7 @@ describe('affiliate signup and page foundation', () => {
         await expect(affiliate.mutation(api.affiliates.updatePage, { price: 999 })).rejects.toThrow('suspended');
         await expect(affiliate.mutation(api.creators.updateStatus, { id, status: 'active' })).rejects.toThrow('admin access');
         await admin.mutation(api.creators.updateStatus, { id, status: 'active' });
-        await affiliate.mutation(api.affiliates.updatePage, { price: 1999 });
+        await affiliate.mutation(api.affiliates.updatePage, { price: CREATOR_CODE_PRICE });
     });
 
     it('keeps affiliate rows out of creator counts/lists and in the separate admin list', async () => {
@@ -172,6 +174,8 @@ describe('affiliate signup and page foundation', () => {
 
 describe('affiliate referral direction and bonus ledger', () => {
     it('allows an affiliate code for creator signup and credits exactly one ₱1,000 bonus tied to a paid submission', async () => {
+        // Legacy ₱1,000 track: creator recruits before the override cut-over.
+        vi.setSystemTime(CREATOR_OVERRIDE_CUTOVER - 1);
         const { t, affiliate, admin } = await setup();
         const referrerId = await affiliate.mutation(api.affiliates.create, signup);
         await admin.mutation(api.creators.updateStatus, { id: referrerId, status: 'active' });

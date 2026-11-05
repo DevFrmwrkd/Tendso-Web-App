@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yelo Halo-Halo · Pampanga</title>
+<meta name="description" content="Halo-halo and ice cream stand in Angeles, Pampanga. Ube, leche flan and shaved ice from ₱45.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--or:#ff7a00;--ube:#3c1580;--pink:#ff5aa0;--white:#fff;--sun:#ffe03d;--d:'Unbounded','Arial Black',sans-serif;--b:'DM Sans',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--b);background:var(--or);color:var(--ube);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.btn{display:inline-flex;align-items:center;gap:12px;background:var(--ube);color:var(--white);font-family:var(--d);font-weight:700;font-size:16px;padding:20px 30px;border-radius:999px;transition:transform .2s}
+.btn:hover{transform:translateY(-2px) rotate(-1deg)}
+
+.hero{height:100vh;min-height:680px;display:flex;flex-direction:column}
+nav{display:flex;justify-content:space-between;align-items:center;padding:22px 28px 14px}
+.logo{font-family:var(--d);font-weight:900;font-size:22px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.logo i{width:30px;height:30px;border-radius:50%;background:var(--ube);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:8px;top:8px;width:14px;height:14px;border-radius:50%;background:var(--pink)}
+nav .links{display:flex;gap:30px;font-weight:700;font-size:16px}
+nav .tel{font-weight:700;font-size:16px;border:2px solid var(--ube);padding:11px 20px;border-radius:999px}
+.stage{flex:1;display:grid;grid-template-columns:1fr 1.02fr;grid-template-rows:minmax(0,1.3fr) minmax(0,1fr);gap:16px;padding:0 16px 16px 28px;min-height:0}
+.left{grid-row:1/3;display:flex;flex-direction:column;justify-content:center;padding-right:10px}
+.tag{align-self:flex-start;background:var(--sun);font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;padding:10px 18px;border-radius:999px;margin-bottom:22px}
+h1{font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(54px,6.2vw,100px);line-height:.98;letter-spacing:-.045em}
+h1 span{color:var(--white)}
+.sub{font-size:clamp(18px,1.5vw,22px);font-weight:500;line-height:1.4;max-width:30ch;margin:24px 0 30px}
+.photo{grid-column:2;border-radius:44px;overflow:hidden;position:relative;transform:rotate(1.2deg);border:6px solid var(--white);box-shadow:0 24px 50px rgba(120,40,0,.35)}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.sticker{position:absolute;left:-4px;bottom:-4px;background:var(--pink);color:var(--ube);border-radius:0 44px 0 0;padding:22px 34px 18px 28px;font-family:var(--d);font-weight:900;font-size:clamp(34px,4.2vw,64px);line-height:1;letter-spacing:-.04em}
+.sticker small{display:block;font-family:var(--b);font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+.row2{grid-column:2;display:grid;grid-template-columns:.9fr 1.1fr;gap:16px}
+.blk{border-radius:40px;padding:clamp(22px,2.4vw,34px);position:relative;overflow:hidden}
+.b1{background:var(--pink);display:flex;flex-direction:column;justify-content:space-between}
+.b1 b{font-family:var(--d);font-weight:900;font-size:clamp(44px,5.2vw,84px);letter-spacing:-.05em;line-height:.9;display:block}
+.b1 p{font-weight:700;font-size:clamp(15px,1.3vw,19px);line-height:1.25}
+.b2,.blk.b2{background:var(--ube);color:#fff;padding:0;display:flex}
+.b2 img{width:100%;height:100%;object-fit:cover;object-position:30% 60%}
+.b2 .cap{position:absolute;left:14px;bottom:14px;background:var(--sun);color:var(--ube);font-weight:700;font-size:15px;padding:10px 16px;border-radius:999px}
+
+.marquee{background:var(--ube);color:var(--pink);overflow:hidden;white-space:nowrap;padding:14px 0}
+.marquee div{display:inline-flex;animation:slide 32s linear infinite}
+.marquee span{font-family:var(--d);font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:-.02em;padding:0 18px;display:flex;align-items:center;gap:36px}
+.marquee span:after{content:"";width:14px;height:14px;border-radius:50%;background:var(--sun)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* MENU */
+.menu{background:var(--ube);color:#fff;padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px);display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(30px,6vw,90px);align-items:center}
+.arch{border-radius:999px 999px 40px 40px;overflow:hidden;aspect-ratio:4/5;border:8px solid var(--pink);max-width:480px;width:100%;justify-self:center}
+.arch img{width:100%;height:100%;object-fit:cover;object-position:45% 30%}
+.menu h2,.build h2,.visit h2{font-family:var(--d);font-weight:900;text-transform:uppercase;font-size:clamp(40px,5.6vw,92px);line-height:1;letter-spacing:-.045em}
+.menu h2{margin-bottom:34px}
+.menu h2 em{font-style:normal;color:var(--pink)}
+.item{display:flex;align-items:baseline;gap:16px;padding:20px 0;border-top:2px dashed rgba(255,255,255,.35)}
+.item h3{font-family:var(--d);font-weight:700;font-size:clamp(20px,2vw,30px);letter-spacing:-.03em}
+.item p{font-size:16px;opacity:.85;margin-top:4px}
+.item .pr{margin-left:auto;font-family:var(--d);font-weight:900;font-size:clamp(30px,3.6vw,56px);letter-spacing:-.05em;color:var(--sun);white-space:nowrap}
+
+/* BUILD */
+.build{background:var(--pink);padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px);text-align:center}
+.build h2{margin-bottom:14px}
+.build p.s{font-size:clamp(18px,1.5vw,22px);font-weight:500;margin-bottom:44px}
+.chips{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:1100px;margin:0 auto}
+.chips span{font-family:var(--d);font-weight:700;font-size:clamp(16px,1.6vw,24px);letter-spacing:-.03em;padding:18px 28px;border-radius:999px;background:var(--ube);color:#fff}
+.chips span:nth-child(3n+2){background:var(--sun);color:var(--ube);transform:rotate(-3deg)}
+.chips span:nth-child(3n){background:#fff;color:var(--ube);transform:rotate(2.5deg)}
+.chips span:nth-child(4n){background:var(--or);color:var(--ube)}
+
+/* VISIT */
+.visit{background:var(--or);padding:clamp(70px,9vw,130px) clamp(20px,4vw,56px) 40px}
+.vtop{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,80px);align-items:center;margin-bottom:50px}
+.vtop .pic{border-radius:44px;overflow:hidden;aspect-ratio:4/5;max-height:620px;border:6px solid #fff;transform:rotate(-2.5deg);justify-self:center;width:min(100%,480px)}
+.vtop .pic img{width:100%;height:100%;object-fit:cover;object-position:52% 50%}
+.visit h2{margin-bottom:22px}
+.visit .q{font-size:clamp(18px,1.5vw,22px);line-height:1.5;max-width:36ch;margin-bottom:30px;font-weight:500}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px)}
+.cols h4{font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px}
+.cols p,.cols li{font-size:clamp(19px,1.7vw,25px);line-height:1.35;font-weight:500;list-style:none}
+.cols li{display:flex;justify-content:space-between;border-bottom:2px solid var(--ube);padding:9px 0;max-width:380px}
+.cols .big{font-family:var(--d);font-weight:900;font-size:clamp(28px,3vw,46px);letter-spacing:-.05em;line-height:1;display:block}
+footer{background:var(--ube);color:rgba(255,255,255,.8);padding:24px clamp(20px,4vw,56px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:15px}
+
+@media(max-width:900px){
+  nav{padding:16px 20px}
+  nav .links{display:none}
+  .logo{font-size:18px}.logo i{width:26px;height:26px}.logo i:after{left:7px;top:7px;width:12px;height:12px}
+  nav .tel{font-size:13px;padding:9px 14px}
+  .stage{display:flex;flex-direction:column;padding:0 14px 16px 20px;gap:14px}
+  .left{padding:0}
+  .tag{font-size:11px;padding:8px 14px;margin-bottom:14px}
+  .hero{height:auto;min-height:0}
+  h1{font-size:13.6vw}
+  .sub{font-size:16px;margin:14px 0 18px}
+  .btn{font-size:14px;padding:17px 24px;align-self:flex-start}
+  .photo{aspect-ratio:4/3;border-radius:32px}
+  .sticker{font-size:34px;padding:16px 24px 14px 20px;border-radius:0 32px 0 0}
+  .row2{grid-template-columns:1fr 1fr;height:210px}
+  .blk{border-radius:28px;padding:18px}
+  .marquee span{font-size:17px}
+  .menu{grid-template-columns:1fr}
+  .arch{max-width:340px}
+  .item{flex-wrap:nowrap}
+  .item .pr{font-size:30px}
+  .item p{font-size:14px}
+  .b2 .cap{font-size:12px;white-space:nowrap;padding:8px 12px;left:10px;bottom:10px}
+  .build{padding-inline:16px}
+  .chips span{padding:14px 20px}
+  .vtop{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <nav>
+    <a class="logo" href="#"><i></i>Yelo Halo-Halo</a>
+    <div class="links"><a href="#menu">Menu</a><a href="#build">Toppings</a><a href="#visit">Visit</a></div>
+    <a class="tel" href="tel:09175550187">0917 555 0187</a>
+  </nav>
+  <div class="stage">
+    <div class="left">
+      <span class="tag">Halo-halo &amp; ice cream · Pampanga</span>
+      <h1>Ice<br>cold.<br><span>Ube<br>sweet.</span></h1>
+      <p class="sub">Shaved fresh in front of you, topped with 7 sweet things. The Pampanga summer fix.</p>
+      <div><a class="btn" href="#visit">Find the stand →</a></div>
+    </div>
+    <div class="photo">
+      <img src="/v2/showcase/halohalo/img/halohalo-scoop.jpg" alt="Kuya Rommel scooping ube ice cream onto a halo-halo">
+      <div class="sticker">₱60<small>Halo-halo special</small></div>
+    </div>
+    <div class="row2">
+      <div class="blk b1"><b>7</b><p>toppings in every glass, from sweet beans to leche flan</p></div>
+      <div class="blk b2"><img src="/v2/showcase/halohalo/img/halohalo-kids.jpg" alt="Kids enjoying halo-halo at the stand"><span class="cap">Open daily 10 – 8</span></div>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true"><div>
+    <span>Halo-halo special ₱60</span><span>Mais con yelo ₱45</span><span>Ube ice cream ₱30</span><span>Leche flan cup ₱35</span><span>Shaved ice, never from a machine pack</span>
+    <span>Halo-halo special ₱60</span><span>Mais con yelo ₱45</span><span>Ube ice cream ₱30</span><span>Leche flan cup ₱35</span><span>Shaved ice, never from a machine pack</span>
+  </div></div>
+</header>
+
+<section class="menu" id="menu">
+  <div class="arch"><img src="/v2/showcase/halohalo/img/halohalo-owner.jpg" alt="Kuya Rommel holding a halo-halo"></div>
+  <div>
+    <h2>The <em>menu.</em></h2>
+    <div class="item"><div><h3>Halo-halo special</h3><p>7 toppings, shaved ice, ube ice cream, leche flan</p></div><span class="pr">₱60</span></div>
+    <div class="item"><div><h3>Mais con yelo</h3><p>Sweet corn, milk, shaved ice</p></div><span class="pr">₱45</span></div>
+    <div class="item"><div><h3>Buko pandan</h3><p>Young coconut, pandan jelly, cream</p></div><span class="pr">₱50</span></div>
+    <div class="item"><div><h3>Ube ice cream cup</h3><p>Two scoops, house-made</p></div><span class="pr">₱30</span></div>
+    <div class="item"><div><h3>Sago't gulaman</h3><p>Cold brown sugar drink, refills ₱15</p></div><span class="pr">₱25</span></div>
+  </div>
+</section>
+
+<section class="build" id="build">
+  <h2>Pick your<br>toppings</h2>
+  <p class="s">Seven come free in the special. Extra scoops are ₱5.</p>
+  <div class="chips">
+    <span>Sweet beans</span><span>Nata de coco</span><span>Macapuno</span><span>Saging</span><span>Langka</span><span>Leche flan</span><span>Ube halaya</span><span>Pinipig</span><span>Gulaman</span><span>Sago</span><span>Kaong</span><span>Ube ice cream</span><span>Cheese</span>
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <div class="vtop">
+    <div class="pic"><img src="/v2/showcase/halohalo/img/halohalo-scoop.jpg" alt="Kuya Rommel scooping ube ice cream onto a halo-halo"></div>
+    <div>
+      <h2>Kuya Rommel's<br>stand.</h2>
+      <p class="q">Rommel has made halo-halo by hand since 2012. Same corner by the plaza, same cold glass, still no shortcuts.</p>
+      <a class="btn" href="tel:09175550187">Call ahead</a>
+    </div>
+  </div>
+  <div class="cols">
+    <div><h4>Call or text</h4><a class="big" href="tel:09175550187">0917 555 0187</a></div>
+    <div><h4>Hours</h4><ul><li><span>Every day</span><span>10:00 am – 8:00 pm</span></li><li><span>Summer</span><span>until 9:00 pm</span></li></ul></div>
+    <div><h4>Find us</h4><p>Plaza corner, Brgy. Sto. Rosario<br>Angeles City, Pampanga<br>Look for the yellow shirt</p></div>
+  </div>
+</section>
+<footer><span>© Yelo Halo-Halo</span><span>Angeles City, Pampanga</span></footer>
+</body>
+</html>

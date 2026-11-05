@@ -1,0 +1,47 @@
+import type { ComponentProps } from "react";
+import type { SignIn } from "@clerk/nextjs";
+
+/** Local overrides for the installed Clerk 6 components; the global provider stays unchanged. */
+export const AUTH_CLERK_APPEARANCE = {
+    layout: { logoPlacement: "none", socialButtonsPlacement: "bottom", socialButtonsVariant: "blockButton" },
+    captcha: { theme: "light" },
+    variables: {
+        colorPrimary: "#e4f222", colorPrimaryForeground: "#0c0a08", colorForeground: "#0c0a08", colorNeutral: "#0c0a08",
+        colorMutedForeground: "#657155", colorMuted: "#f3f6ed", colorBackground: "#ffffff", colorInput: "#fafbf6",
+        colorInputForeground: "#0c0a08", colorBorder: "#dde4d1", colorRing: "#0c0a08", colorDanger: "#b42318",
+        fontFamily: "var(--font-onest), Onest, ui-sans-serif, system-ui, sans-serif", fontSize: "0.875rem", borderRadius: "0.9375rem",
+    },
+    elements: {
+        rootBox: { width: "100%" },
+        cardBox: { width: "100%", maxWidth: "none", border: "none", borderRadius: "0", boxShadow: "none" },
+        card: { width: "100%", padding: "0", gap: "20px", border: "none", borderRadius: "0", boxShadow: "none", backgroundColor: "transparent" },
+        headerTitle: { color: "#0c0a08", fontSize: "19px", fontWeight: 600, letterSpacing: "-.03em" },
+        headerSubtitle: { color: "#657155", fontSize: "13px", lineHeight: "1.6" },
+        main: { gap: "20px" }, form: { gap: "19px" },
+        button: { "&:focus-visible": { outline: "2px solid #0c0a08", outlineOffset: "3px" } },
+        input: { "&:focus-visible": { outline: "2px solid #0c0a08", outlineOffset: "3px" } },
+        formFieldLabel: { color: "#6e7860", fontSize: "12px", fontWeight: 500, marginBottom: "5px" },
+        formFieldInput: { height: "52px", border: "1px solid #dde4d1", borderRadius: "15px", backgroundColor: "#fafbf6", color: "#0c0a08",
+            fontSize: "16px", padding: "14px 15px", boxShadow: "none", "&::placeholder": { color: "#657155" },
+            "&:focus": { borderColor: "#8a9675", backgroundColor: "#fff", boxShadow: "none" }, "&:hover": { borderColor: "#bac6a7" } },
+        formFieldInput__error: { borderColor: "#b42318" },
+        formFieldInputShowPasswordButton: { color: "#657155", "&:hover": { backgroundColor: "transparent", color: "#0c0a08" } },
+        formFieldHintText: { color: "#657155", fontSize: "12px", lineHeight: "1.5" },
+        formFieldErrorText: { color: "#b42318", fontSize: "12px", lineHeight: "1.5" },
+        formFieldAction: { color: "#536641", fontWeight: 500, textDecoration: "underline", textUnderlineOffset: "3px" },
+        formButtonPrimary: { height: "49px", border: "none", borderRadius: "999px", backgroundColor: "#e4f222", backgroundImage: "none", color: "#0c0a08",
+            boxShadow: "none", fontSize: "14px", fontWeight: 600, textTransform: "none", "&:hover": { backgroundColor: "#d8e723" } },
+        socialButtons: { gridTemplateColumns: "minmax(0, 1fr)" },
+        socialButtonsBlockButton: { width: "100%", height: "49px", borderRadius: "999px", border: "1px solid #dde4d1", backgroundColor: "#fff", boxShadow: "none",
+            "&:hover": { backgroundColor: "#f5f8ef" } },
+        socialButtonsBlockButtonText: { color: "#0c0a08", fontSize: "14px", fontWeight: 600 },
+        dividerLine: { backgroundColor: "#e8ebe0" }, dividerText: { color: "#657155", fontSize: "12px" },
+        otpCodeFieldInput: { border: "1px solid #dde4d1", borderRadius: "12px", color: "#0c0a08", backgroundColor: "#fafbf6", boxShadow: "none", fontSize: "20px" },
+        formResendCodeLink: { color: "#536641", fontWeight: 500 },
+        identityPreview: { border: "1px solid #e8ebe0", borderRadius: "14px", boxShadow: "none", backgroundColor: "#fafbf6" },
+        identityPreviewText: { color: "#4e5b40" }, identityPreviewEditButton: { color: "#0c0a08" },
+        alert: { backgroundColor: "#fff3ee", border: "1px solid #f1d6ca", borderRadius: "14px", boxShadow: "none" },
+        alertText: { color: "#b42318", fontSize: "13px", lineHeight: "1.5" },
+        buttonArrowIcon: { display: "none" }, footer: { display: "none" }, footerAction: { display: "none" },
+    },
+} satisfies NonNullable<ComponentProps<typeof SignIn>["appearance"]>;

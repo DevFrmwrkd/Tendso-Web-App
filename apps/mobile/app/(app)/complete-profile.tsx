@@ -1,22 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useConvexAuth, useQuery, useMutation } from 'convex/react';
 import { Redirect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { api } from '@tendso/convex-client';
-import { Display, Body, Label, Door } from '../../components/ui/primitives';
-import { colors, fonts, radius } from '../../theme/tokens';
+import { Avatar, Banner, Button, Field, Loading, ScreenShell } from '../../components/v2';
+import { space } from '../../theme/v2';
 import { isCreatorAccount } from '../../../../lib/accounts';
 import { clearPendingSignupProfile, signupAccountHome } from '../../services/signupProfile';
 
@@ -25,7 +15,7 @@ import { clearPendingSignupProfile, signupAccountHome } from '../../services/sig
 const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
 
 /**
- * Complete-profile gate for existing creators missing a name.
+ * Complete-profile gate for existing field agents missing a name.
  *
  * Sign in with Apple returns the name only on a user's first-ever authorization,
  * so a re-installing (or "Hide My Email") user lands with a blank profile. Home
@@ -40,7 +30,6 @@ const PHONE_REGEX = /^(\+63|0)?9\d{9}$/;
  */
 export default function CompleteProfileScreen() {
   const router = useGuardedRouter();
-  const insets = useSafeAreaInsets();
   const { user } = useUser();
   const { isAuthenticated, isLoading } = useConvexAuth();
 
@@ -67,20 +56,17 @@ export default function CompleteProfileScreen() {
   const referralApplied = useRef(false);
 
   if (!isAuthenticated || isLoading || creator === undefined) {
-    return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </SafeAreaView>
-    );
+    return <Loading />;
   }
   if (!creator) return <Redirect href="/(app)/account-setup" />;
   if (!isCreatorAccount(creator)) return <Redirect href={signupAccountHome(creator.role)} />;
+  const showReferral = !creator.fieldAgentOnboardingCompletedAt && !creator.referredByCode && !creator.recruitedByCreatorId;
 
   const save = async () => {
     const first = firstName.trim();
     const last = lastName.trim();
     const rawPhone = phone.replace(/\s/g, '');
-    const code = referral.trim();
+    const code = showReferral ? referral.trim() : '';
 
     if (!first) {
       setError('Please enter your first name.');
@@ -131,151 +117,77 @@ export default function CompleteProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }} edges={['top']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: insets.bottom + 32 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={{ marginBottom: 6 }}>
-            <Label tracking={1.8}>ONE LAST STEP</Label>
-          </View>
-          <View style={{ marginBottom: 8 }}>
-            <Display size="md">Tell us your</Display>
-            <Display size="md" italic color={colors.accent}>name.</Display>
-          </View>
-          <Body size="sm" color={colors.ink3} style={{ marginBottom: 24 }}>
-            You're signed in — we just need a name for your profile. Phone and referral code are optional.
-          </Body>
-
-          {/* Email — locked, straight from the Apple sign-in */}
-          <FieldLabel>Email</FieldLabel>
-          <View style={[fieldBox, { backgroundColor: colors.paper2 }]}>
-            <Ionicons name="lock-closed-outline" size={17} color={colors.ink3} />
-            <Text
-              style={{ flex: 1, marginLeft: 10, fontSize: 15, color: colors.ink2, fontFamily: fonts.sans }}
-              numberOfLines={1}
-            >
-              {email || 'From your Apple ID'}
-            </Text>
-          </View>
-          <Body size="xs" color={colors.ink3} style={{ marginTop: 6, marginBottom: 18 }}>
-            From your Apple sign-in — can't be changed here.
-          </Body>
-
-          {/* First name — required */}
-          <FieldLabel>First name</FieldLabel>
-          <View style={fieldBox}>
-            <Ionicons name="person-outline" size={17} color={colors.ink3} />
-            <TextInput
-              style={inputStyle}
-              placeholder="First name"
-              placeholderTextColor={colors.ink3}
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-              editable={!saving}
-              autoFocus
-              accessibilityLabel="First name"
-            />
-          </View>
-
-          {/* Last name — optional */}
-          <FieldLabel style={{ marginTop: 16 }}>Last name</FieldLabel>
-          <View style={fieldBox}>
-            <Ionicons name="person-outline" size={17} color={colors.ink3} />
-            <TextInput
-              style={inputStyle}
-              placeholder="Last name (optional)"
-              placeholderTextColor={colors.ink3}
-              value={lastName}
-              onChangeText={setLastName}
-              autoCapitalize="words"
-              editable={!saving}
-              accessibilityLabel="Last name"
-            />
-          </View>
-
-          {/* Phone — optional, +63 */}
-          <FieldLabel style={{ marginTop: 16 }}>Phone (optional)</FieldLabel>
-          <View style={fieldBox}>
-            <Text style={{ fontFamily: fonts.monoMed, fontSize: 14, color: colors.ink2, letterSpacing: 0.5 }}>+63</Text>
-            <TextInput
-              style={[inputStyle, { marginLeft: 8 }]}
-              placeholder="9XX XXX XXXX"
-              placeholderTextColor={colors.ink3}
-              value={phone}
-              onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
-              keyboardType="number-pad"
-              maxLength={11}
-              editable={!saving}
-              accessibilityLabel="Phone number"
-            />
-          </View>
-
-          {/* Referral — optional */}
-          <FieldLabel style={{ marginTop: 16 }}>Referral code (optional)</FieldLabel>
-          <View style={fieldBox}>
-            <Ionicons name="gift-outline" size={17} color={colors.ink3} />
-            <TextInput
-              style={inputStyle}
-              placeholder="Enter a code if you have one"
-              placeholderTextColor={colors.ink3}
-              value={referral}
-              onChangeText={(v) => setReferral(v.toUpperCase())}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              editable={!saving}
-              accessibilityLabel="Referral code"
-            />
-          </View>
-
-          {error ? (
-            <Body size="sm" color={colors.danger} style={{ marginTop: 16 }}>
-              {error}
-            </Body>
-          ) : null}
-
-          <View style={{ marginTop: 28 }}>
-            <Door
-              caption={saving ? 'SAVING…' : 'CONTINUE'}
-              label="Save and continue"
-              variant="accent"
-              loading={saving}
-              disabled={saving}
-              onPress={save}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScreenShell
+        title="Your field agent profile"
+        subtitle="Shops see this when you visit."
+        footer={<Button title="Save and continue" loading={saving} disabled={saving} onPress={save} />}
+      >
+        <View style={styles.avatar}>
+          <Avatar uri={user?.imageUrl} name={firstName || user?.firstName || email} size={104} ring />
+        </View>
+        <View style={styles.stack}>
+          <Field
+            label="First name"
+            icon="person-outline"
+            placeholder="First name"
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            editable={!saving}
+            autoFocus
+            accessibilityLabel="First name"
+          />
+          <Field
+            label="Last name (optional)"
+            icon="person-outline"
+            placeholder="Last name"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            editable={!saving}
+            accessibilityLabel="Last name"
+          />
+          <Field
+            label="Mobile (optional)"
+            prefix="+63"
+            placeholder="9XX XXX XXXX"
+            value={phone}
+            onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, ''))}
+            keyboardType="number-pad"
+            maxLength={11}
+            editable={!saving}
+            accessibilityLabel="Phone number"
+          />
+          {showReferral ? <Field
+            label="Referral code (optional)"
+            icon="gift-outline"
+            placeholder="If you have one"
+            value={referral}
+            onChangeText={(v) => setReferral(v.toUpperCase())}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!saving}
+            accessibilityLabel="Referral code"
+          /> : null}
+          <Field
+            label="Email"
+            icon="lock-closed-outline"
+            value={email || 'From your Apple ID'}
+            editable={false}
+            accessibilityLabel="Email"
+            helper="From your sign-in. Can't be changed here."
+          />
+        </View>
+        {error ? <Banner tone="danger" body={error} style={styles.error} /> : null}
+      </ScreenShell>
+    </KeyboardAvoidingView>
   );
 }
 
-function FieldLabel({ children, style }: { children: React.ReactNode; style?: any }) {
-  return (
-    <Text style={[{ fontFamily: fonts.sansMed, fontSize: 13, color: colors.ink2, marginBottom: 8 }, style]}>
-      {children}
-    </Text>
-  );
-}
-
-const fieldBox = {
-  flexDirection: 'row' as const,
-  alignItems: 'center' as const,
-  backgroundColor: colors.paper3,
-  borderWidth: 1,
-  borderColor: colors.rule,
-  borderRadius: 14,
-  paddingHorizontal: 14,
-  height: 52,
-};
-
-const inputStyle = {
-  flex: 1,
-  marginLeft: 10,
-  fontSize: 15,
-  color: colors.ink,
-  fontFamily: fonts.sans,
-};
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  avatar: { alignItems: 'center', marginBottom: space.xl },
+  stack: { gap: space.md },
+  error: { marginTop: space.lg },
+});

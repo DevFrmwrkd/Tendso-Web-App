@@ -1,37 +1,35 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Share,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Share, StyleSheet, View } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { useQuery } from 'convex/react';
 import { api } from '@tendso/convex-client';
-import { useGuardedRouter } from '../../hooks/useGuardedRouter';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { REFERRAL_BONUS } from '@tendso/shared/pricing';
 import * as Clipboard from 'expo-clipboard';
+import { useGuardedRouter } from '../../hooks/useGuardedRouter';
 import { useNetwork } from '../../providers/NetworkProvider';
-import { OfflineBanner } from '../../components/OfflineBanner';
-import { colors, fonts, radius, space } from '../../theme/tokens';
-import { Display, Body, Label, Door, Card, Rule, Avatar } from '../../components/ui/primitives';
 import { useMobileAccount } from '../../hooks/useMobileAccount';
-import { REFERRAL_BONUS, formatPHP } from '../../../../packages/shared/pricing';
+import { AffiliateRecruits } from '../../components/affiliate/Recruits';
+import { colors, space } from '../../theme/v2';
+import {
+  Avatar,
+  Banner,
+  Button,
+  Card,
+  Chip,
+  Loading,
+  ScreenShell,
+  SectionLabel,
+  Text,
+  formatPeso,
+  type ChipTone,
+} from '../../components/v2';
 
-const HOW_IT_WORKS = [
-  { step: '01', title: 'Share your code', desc: 'Invite someone to become a Tendso creator.', icon: 'share-social-outline' as const, tintBg: colors.paper2, tintFg: colors.ink2 },
-  { step: '02', title: 'They sign up', desc: 'They choose a creator account and enter your referral code.', icon: 'person-add-outline' as const, tintBg: colors.businessBg, tintFg: colors.business },
-  { step: '03', title: 'You earn', desc: `Earn ${formatPHP(REFERRAL_BONUS)} when their first website is paid.`, icon: 'cash-outline' as const, tintBg: colors.accentBg, tintFg: colors.accent },
-];
-
-const STATUS_META: Record<string, { label: string; bg: string; ink: string; icon: any }> = {
-  pending:   { label: 'Signed up', bg: colors.businessBg, ink: colors.business,   icon: 'time-outline' },
-  qualified: { label: 'Qualified', bg: colors.accentBg,   ink: colors.accentInk,  icon: 'checkmark-circle' },
-  paid:      { label: 'Rewarded',  bg: colors.liveSoft,   ink: colors.live,       icon: 'gift' },
+const STATUS_META: Record<string, { label: string; tone: ChipTone }> = {
+  pending: { label: 'Signed up', tone: 'info' },
+  qualified: { label: 'Qualified', tone: 'ok' },
+  paid: { label: 'Rewarded', tone: 'ok' },
 };
+const referralBonus = formatPeso(REFERRAL_BONUS);
 
 function timeAgo(ts: number): string {
   const d = Math.floor((Date.now() - ts) / 86_400_000);
@@ -40,308 +38,293 @@ function timeAgo(ts: number): string {
   return `${d}d ago`;
 }
 
+function Count({ label, value }: { label: string; value: string }) {
+  return (
+    <Card style={styles.count} accessible accessibilityLabel={`${label}, ${value}`}>
+      <Text variant="title" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+        {value}
+      </Text>
+      <Text variant="label" tone="muted" numberOfLines={1}>
+        {label}
+      </Text>
+    </Card>
+  );
+}
+
 export default function ReferralsScreen() {
-  const insets = useSafeAreaInsets();
-  const router = useGuardedRouter();
   const { user } = useUser();
+  const { account, isAuthenticated, isPreview } = useMobileAccount();
+  return <ReferralDetails key={`${user?.id ?? 'signed-out'}:${account?.role ?? 'creator'}:${isPreview}`}
+    actorId={user?.id} authenticated={isAuthenticated && !isPreview} />;
+}
+
+function ReferralDetails({ actorId, authenticated }: { actorId?: string; authenticated: boolean }) {
+  const router = useGuardedRouter();
   const { isConnected } = useNetwork();
   const isOffline = isConnected === false;
-  const { account, isAuthenticated } = useMobileAccount();
-  const isAffiliate = account?.role === 'affiliate';
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [error, setError] = useState('');
+  const mounted = useRef(true);
+  const copyBusy = useRef(false);
+  const shareBusy = useRef(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const creator = useQuery(
-    api.creators.getByClerkId,
-    user ? { clerkId: user.id } : 'skip'
-  );
+  const result = useQuery(api.creators.getByClerkId, authenticated && actorId ? { clerkId: actorId } : 'skip');
+  const creator = result?.clerkId === actorId && actorId && authenticated ? result : undefined;
+  const isAffiliate = creator?.role === 'affiliate';
+  const eligible = !!creator && !creator.isDeleted && creator.status !== 'deleted'
+    && creator.status !== 'suspended' && (!creator.role || creator.role === 'creator' || isAffiliate)
+    && (!isAffiliate || creator.status === 'active');
+  const code = eligible ? creator.referralCode?.trim() ?? '' : '';
+  const live = useRef({ actorId, creatorId: creator?._id, code, eligible });
+  live.current = { actorId, creatorId: creator?._id, code, eligible };
+  const current = () => mounted.current && live.current.actorId === actorId
+    && live.current.creatorId === creator?._id && live.current.code === code && live.current.eligible && !!code;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+    };
+  }, []);
+  useEffect(() => {
+    setCopied(false);
+    setError('');
+    if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+  }, [code]);
 
   const creatorReferrals = useQuery(
     api.referrals.getByReferrer,
-    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
+    eligible && !isAffiliate ? { referrerId: creator!._id } : 'skip'
   );
   const creatorStats = useQuery(
     api.referrals.getStats,
-    creator?._id && !isAffiliate ? { referrerId: creator._id } : 'skip'
+    eligible && !isAffiliate ? { referrerId: creator!._id } : 'skip'
   );
-  const portal = useQuery(api.affiliates.portal, isAffiliate && isAuthenticated && !isOffline ? {} : 'skip');
+  const portal = useQuery(api.affiliates.portal, eligible && isAffiliate && !isOffline ? {} : 'skip');
   const referralList = isAffiliate ? portal?.referrals : creatorReferrals;
   const stats = isAffiliate ? portal?.referralStats : creatorStats;
 
   const handleCopy = async () => {
-    if (!creator?.referralCode) return;
-    await Clipboard.setStringAsync(creator.referralCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleShare = async () => {
-    if (!creator?.referralCode) return;
+    if (!current() || copyBusy.current || shareBusy.current) return;
+    copyBusy.current = true;
+    setCopying(true);
+    setError('');
     try {
-      await Share.share({
-        message: `Become a Tendso creator!\n\nUse my referral code: ${creator.referralCode}\n\nDownload the app and enter this code when signing up as a creator.`,
-        title: 'Join Tendso',
-      });
-    } catch (err) {
-      console.error(err);
+      await Clipboard.setStringAsync(code);
+      if (!current()) return;
+      setCopied(true);
+      if (copiedTimer.current !== null) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => { if (current()) setCopied(false); }, 2500);
+    } catch {
+      if (current()) setError('Could not copy your code. Please try again.');
+    } finally {
+      copyBusy.current = false;
+      if (mounted.current) setCopying(false);
     }
   };
 
-  const isLoading = !isOffline && (creator === undefined || referralList === undefined || stats === undefined);
+  const handleShare = async () => {
+    if (!current() || copyBusy.current || shareBusy.current) return;
+    shareBusy.current = true;
+    setSharing(true);
+    setError('');
+    try {
+      await Share.share({
+        message: `Become a Tendso field agent!\n\nUse my code: ${code}\n\nDownload the app and enter this code when you sign up as a field agent.`,
+        title: 'Join Tendso',
+      });
+    } catch {
+      if (current()) setError('Could not open sharing. Please try again.');
+    } finally {
+      shareBusy.current = false;
+      if (mounted.current) setSharing(false);
+    }
+  };
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
+  const isLoading = authenticated && !!actorId && !isOffline
+    && (result === undefined || (eligible && (referralList === undefined || stats === undefined)));
+
+  if (isLoading) return <Loading />;
+  if (!eligible) return (
+    <ScreenShell title="Invite field agents" onBack={() => router.back()}>
+      <Banner tone="warn" body={isOffline
+        ? 'Reconnect to load your account and invitation code.'
+        : 'Invitations are not available for this account.'} />
+    </ScreenShell>
+  );
 
   const qualifiedCount = (stats?.qualified ?? 0) + (stats?.paid ?? 0);
+  const people: any[] = referralList ?? [];
+
+  // Affiliate inviters earn a sales share; field-agent invites earn a one-time bonus.
+  const steps = isAffiliate
+    ? [
+        { title: 'Share your code', subtitle: 'Send it to someone who visits shops.' },
+        { title: 'They join with it', subtitle: 'They choose a field agent account and enter your code.' },
+        {
+          title: 'You earn 5% of their sales',
+          subtitle: 'For 12 months, one level only, paid once the shop has paid in full.',
+        },
+      ]
+    : [
+        { title: 'Share your code', subtitle: 'Send it to someone who visits shops.' },
+        { title: 'They join with it', subtitle: 'They choose a field agent account and enter your code.' },
+        {
+          title: `You earn ${referralBonus}`,
+          subtitle: 'Once their first website is fully paid, the one-time bonus is added to your Earn balance.',
+        },
+      ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.paper }}>
-      <OfflineBanner />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      >
-        {/* Editorial header */}
-        <View style={{
-          paddingTop: insets.top + 20,
-          paddingBottom: 20,
-          paddingHorizontal: 24,
-        }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={8}
-            accessibilityLabel="Back"
-            accessibilityRole="button"
-            style={{
-              width: 40, height: 40, borderRadius: radius.pill,
-              backgroundColor: colors.paper3, borderWidth: 1, borderColor: colors.rule,
-              alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-            }}
-          >
-            <Ionicons name="arrow-back" size={18} color={colors.ink} />
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Label tracking={1.8}>REFERRAL</Label>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' }}>
-            <Display size="md">Bring a </Display>
-            <Display size="md" italic color={colors.accent}>friend.</Display>
-          </View>
-          <Body size="md" color={colors.ink2} style={{ marginTop: 10, maxWidth: 320 }}>
-            Invite creators and earn {formatPHP(REFERRAL_BONUS)} on their first paid website.
-          </Body>
+    <ScreenShell
+      title="Invite field agents"
+      subtitle={isAffiliate ? 'They join with your code. You earn from their sales.' : `Earn ${referralBonus} when a friend’s first site is fully paid.`}
+      onBack={() => router.back()}
+      contentStyle={styles.content}
+    >
+      {isOffline ? <Banner tone="warn" icon="cloud-offline-outline" body="You're offline. Reconnect to see your list." /> : null}
+      {error ? <Banner tone="danger" body={error} /> : null}
+
+      {!isAffiliate ? <Card variant="tint" style={styles.bonusCard}>
+        <Text variant="title" accessibilityRole="header">{referralBonus} per friend</Text>
+        <Text tone="ink2">A one-time bonus when their first website is fully paid. It’s added to your Earn balance.</Text>
+      </Card> : null}
+
+      {/* Code card */}
+      <Card variant="lg" style={styles.codeCard}>
+        <View style={styles.codeHead}>
+          <Text variant="label" tone="muted">
+            Your code
+          </Text>
+          <Text variant="number" tabular numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} accessibilityLabel={`Your code is ${code || 'not ready'}`}>
+            {code || '———'}
+          </Text>
         </View>
+        <View style={styles.buttons}>
+          <Button
+            title="Share"
+            icon="share-social-outline"
+            onPress={handleShare}
+            disabled={!code || copying || sharing}
+            loading={sharing}
+            accessibilityLabel="Share referral code"
+          />
+          <Button
+            title={copied ? 'Copied' : 'Copy code'}
+            variant="ghost"
+            icon={copied ? 'checkmark' : 'copy-outline'}
+            onPress={handleCopy}
+            disabled={!code || copying || sharing}
+            loading={copying}
+            accessibilityLabel="Copy referral code"
+          />
+        </View>
+        {!code ? <Text variant="label" tone="muted">Your invitation code is not ready yet. Please try again later.</Text> : null}
+      </Card>
 
-        <Rule strong />
+      {isAffiliate && portal ? <AffiliateRecruits portal={portal} /> : null}
 
-        <View style={{ paddingHorizontal: 20, paddingTop: 20, gap: 20 }}>
-          {/* Referral code hero — paper magazine pull-quote */}
-          <Card large style={{ padding: 22, gap: 16 }}>
-            <View style={{ alignItems: 'center', gap: 4 }}>
-              <Label tracking={1.8}>YOUR CODE</Label>
-              <Text style={{
-                fontFamily: fonts.serif,
-                fontSize: 38,
-                lineHeight: 44,
-                color: colors.ink,
-                letterSpacing: 2,
-                marginTop: 4,
-              }}>
-                {creator?.referralCode ?? '———'}
-              </Text>
-              <Text style={{
-                fontFamily: fonts.mono,
-                fontSize: 10,
-                letterSpacing: 1.4,
-                color: copied ? colors.live : colors.ink3,
-                textTransform: 'uppercase',
-                marginTop: 2,
-              }}>
-                {copied ? '✓ Copied to clipboard' : 'Tap below to copy or share'}
-              </Text>
-            </View>
+      {isAffiliate && people.length > 0 ? <SectionLabel>Earlier ₱1,000 referrals</SectionLabel> : null}
+      {/* Earlier bonuses are not counted as new 5% recruits. */}
+      {!isAffiliate || people.length > 0 ? <>
+      <View style={styles.counts}>
+        <Count label="Invited" value={stats ? String(stats.total) : '—'} />
+        <Count label="Qualified" value={stats ? String(qualifiedCount) : '—'} />
+        {isAffiliate || (stats?.totalEarned ?? 0) > 0 ? <Count label="Earned" value={stats ? formatPeso(stats.totalEarned) : '—'} /> : null}
+      </View>
 
-            <View style={{ gap: 10 }}>
-              <Door
-                caption="SHARE"
-                label="Send your code"
-                variant="solid"
-                onPress={handleShare}
-                accessibilityLabel="Share referral code"
-                rightIcon={<Ionicons name="share-social-outline" size={18} color={colors.paper3} style={{ marginLeft: 12 }} />}
-              />
-              <Door
-                caption="COPY"
-                label={copied ? 'Copied!' : 'Copy to clipboard'}
-                variant="ghost"
-                onPress={handleCopy}
-                accessibilityLabel="Copy referral code"
-                rightIcon={
-                  <Ionicons
-                    name={copied ? 'checkmark' : 'copy-outline'}
-                    size={18}
-                    color={copied ? colors.live : colors.ink}
-                    style={{ marginLeft: 12 }}
-                  />
-                }
-              />
-            </View>
+      {/* People */}
+      <View style={styles.section}>
+        <SectionLabel>{isAffiliate ? 'Earlier invitations' : 'People you invited'}</SectionLabel>
+        {referralList === undefined ? (
+          <Card style={styles.empty}><Text tone="ink2">Reconnect to load your invitations.</Text></Card>
+        ) : people.length === 0 ? (
+          <Card style={styles.empty}>
+            <Text variant="heading">No one yet</Text>
+            <Text variant="body" tone="ink2">
+              Share your code to invite your first field agent.
+            </Text>
           </Card>
-
-          {/* Stats row */}
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            {[
-              { label: 'Referred',  value: String(stats?.total ?? 0),                                       icon: 'people-outline' as const,           tintBg: colors.businessBg, tintFg: colors.business },
-              { label: 'Qualified', value: String(qualifiedCount),                                          icon: 'checkmark-circle-outline' as const, tintBg: colors.accentBg,   tintFg: colors.accent },
-              { label: 'Earned',    value: `₱${(stats?.totalEarned ?? 0).toLocaleString('en-PH')}`,         icon: 'cash-outline' as const,             tintBg: colors.liveSoft,   tintFg: colors.live },
-            ].map((stat) => (
-              <Card key={stat.label} padded={false} style={{ flex: 1, paddingVertical: 16, paddingHorizontal: 10, alignItems: 'center', gap: 8 }}>
-                <View style={{
-                  width: 34, height: 34, borderRadius: 17,
-                  backgroundColor: stat.tintBg,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name={stat.icon} size={16} color={stat.tintFg} />
-                </View>
-                <Text style={{
-                  fontFamily: fonts.serif,
-                  fontSize: 22,
-                  lineHeight: 24,
-                  color: colors.ink,
-                  letterSpacing: -0.3,
-                }}>
-                  {stat.value}
-                </Text>
-                <Label tracking={1.4}>{stat.label}</Label>
-              </Card>
-            ))}
-          </View>
-
-          {/* Referred creators list */}
-          <View>
-            <View style={{ marginBottom: 12 }}>
-              <Display size="sm">People you referred</Display>
-            </View>
-
-            {(referralList?.length ?? 0) === 0 ? (
-              <Card large style={{ padding: 28, alignItems: 'center' }}>
-                <View style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  backgroundColor: colors.paper2,
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Ionicons name="people-outline" size={26} color={colors.ink3} />
-                </View>
-                <View style={{ marginTop: 10, alignItems: 'center' }}>
-                  <Display size="sm">No one</Display>
-                  <Display size="sm" italic color={colors.accent}>yet.</Display>
-                </View>
-                <Body size="sm" color={colors.ink3} style={{ textAlign: 'center', marginTop: 6, maxWidth: 260 }}>
-                  Share your code above to start earning referral rewards.
-                </Body>
-                <View style={{ width: '100%', marginTop: 16 }}>
-                  <Door
-                    label="Share your code"
-                    variant="solid"
-                    onPress={handleShare}
-                  />
-                </View>
-              </Card>
-            ) : (
-              <Card padded={false} large style={{ overflow: 'hidden' }}>
-                {(referralList ?? []).map((ref: any, idx: number) => {
-                  const meta = STATUS_META[ref.status] ?? STATUS_META.pending;
-                  const isLast = idx === (referralList ?? []).length - 1;
-                  return (
-                    <View key={ref._id}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 }}>
-                        <Avatar name={ref.referredName || 'U'} size={40} bg={colors.paper2} fg={colors.ink2} />
-                        <View style={{ flex: 1 }}>
-                          <Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>
-                            {ref.referredName || 'Unknown'}
-                          </Body>
-                          <Text style={{
-                            fontFamily: fonts.mono,
-                            fontSize: 10,
-                            letterSpacing: 1.0,
-                            color: colors.ink3,
-                            textTransform: 'uppercase',
-                            marginTop: 2,
-                          }}>
-                            Joined {timeAgo(ref.createdAt ?? ref._creationTime ?? 0)}
-                          </Text>
-                        </View>
-                        <View style={{
-                          flexDirection: 'row', alignItems: 'center', gap: 4,
-                          paddingHorizontal: 10, paddingVertical: 4,
-                          borderRadius: radius.pill,
-                          backgroundColor: meta.bg,
-                        }}>
-                          <Ionicons name={meta.icon} size={11} color={meta.ink} />
-                          <Text style={{
-                            fontFamily: fonts.monoMed,
-                            fontSize: 10,
-                            letterSpacing: 1.0,
-                            textTransform: 'uppercase',
-                            color: meta.ink,
-                          }}>
-                            {meta.label}
-                          </Text>
-                        </View>
-                      </View>
-                      {!isLast && <Rule style={{ marginHorizontal: 14 }} />}
-                    </View>
-                  );
-                })}
-              </Card>
-            )}
-          </View>
-
-          {/* How it works — editorial step list */}
-          <Card large style={{ padding: 18 }}>
-            <View style={{ marginBottom: 14 }}>
-              <Display size="sm">How it works</Display>
-            </View>
-            <View style={{ gap: 0 }}>
-              {HOW_IT_WORKS.map((item, idx) => (
-                <View key={item.title}>
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 12 }}>
-                    <View style={{ width: 36, alignItems: 'center', paddingTop: 4 }}>
-                      <Text style={{
-                        fontFamily: fonts.serif,
-                        fontSize: 22,
-                        lineHeight: 24,
-                        color: colors.ink3,
-                        letterSpacing: -0.4,
-                      }}>
-                        {item.step}
+        ) : (
+          <Card style={styles.list}>
+            {people.map((ref: any, idx: number) => {
+              const meta = STATUS_META[ref.status] ?? STATUS_META.pending;
+              const bonus = ref.status === 'pending' && (ref.bonusAmount ?? 0) > 0 ? ref.bonusAmount : 0;
+              const name = ref.referredName || 'Unknown';
+              return (
+                <View key={ref._id} style={[styles.person, idx < people.length - 1 ? styles.divider : null]}>
+                  <Avatar name={name} size={48} />
+                  <View style={styles.personText}>
+                    <Text variant="bodyLg" weight="semibold" numberOfLines={1}>
+                      {name}
+                    </Text>
+                    <Text variant="label" weight="medium" tone="muted">
+                      Joined {timeAgo(ref.createdAt ?? ref._creationTime ?? 0)}
+                    </Text>
+                    {bonus > 0 ? (
+                      <Text variant="label" weight="medium" tone="muted">
+                        {formatPeso(bonus)} bonus pending
                       </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <View style={{
-                          width: 32, height: 32, borderRadius: 16,
-                          backgroundColor: item.tintBg,
-                          alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <Ionicons name={item.icon} size={16} color={item.tintFg} />
-                        </View>
-                        <Body size="md" weight="bold" color={colors.ink}>{item.title}</Body>
-                      </View>
-                      <Body size="sm" color={colors.ink2} style={{ marginTop: 6 }}>{item.desc}</Body>
-                    </View>
+                    ) : null}
+                    {!isAffiliate ? <Text variant="label" weight="medium" tone="muted">
+                      {ref.status === 'qualified' || ref.status === 'paid'
+                        ? 'Bonus added to your Earn balance'
+                        : 'Waiting for their first fully paid site'}
+                    </Text> : null}
                   </View>
-                  {idx < HOW_IT_WORKS.length - 1 && <Rule />}
+                  <Chip label={meta.label} tone={meta.tone} />
                 </View>
-              ))}
-            </View>
+              );
+            })}
           </Card>
-        </View>
-      </ScrollView>
-    </View>
+        )}
+      </View>
+      </> : null}
+
+      {/* How it works */}
+      <View style={styles.section}>
+        <SectionLabel>How it works</SectionLabel>
+        <Card style={styles.steps}>
+          {steps.map((s, index) => (
+            <View key={s.title} accessible accessibilityLabel={`Step ${index + 1}. ${s.title}. ${s.subtitle}`}
+              style={[styles.step, index > 0 && styles.stepDivider]}>
+              <View style={styles.stepNumber} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <Text variant="label" weight="bold" align="center">{index + 1}</Text>
+              </View>
+              <View style={styles.stepText}>
+                <Text variant="label" weight="semibold">{s.title}</Text>
+                <Text variant="label" weight="medium" tone="muted">{s.subtitle}</Text>
+              </View>
+            </View>
+          ))}
+        </Card>
+      </View>
+    </ScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  content: { gap: space.lg },
+  bonusCard: { gap: space.sm },
+  codeCard: { gap: space.lg },
+  codeHead: { gap: space.xs },
+  buttons: { gap: space.sm },
+  counts: { flexDirection: 'row', gap: space.sm },
+  count: { flex: 1, gap: space.xs, paddingHorizontal: space.md },
+  section: { gap: space.md, marginTop: space.sm },
+  empty: { gap: space.xs },
+  list: { paddingVertical: space.xs, paddingHorizontal: space.md },
+  person: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md, paddingHorizontal: space.xs },
+  divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.rule },
+  personText: { flex: 1, minWidth: 0, gap: 2 },
+  steps: { paddingHorizontal: space.lg, paddingVertical: space.xs },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.lg },
+  stepDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.rule },
+  stepNumber: { minWidth: 32, minHeight: 32, paddingHorizontal: space.sm, paddingVertical: 6, borderRadius: 16,
+    flexShrink: 0, alignSelf: 'flex-start', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
+  stepText: { flex: 1, minWidth: 0, gap: space.xs },
+});

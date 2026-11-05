@@ -5,6 +5,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./knowledge": {
+      "types": "./knowledge.ts",
+      "default": "./knowledge.ts"
+    },
     "./pricing": {
       "types": "./pricing.ts",
       "default": "./pricing.ts"
