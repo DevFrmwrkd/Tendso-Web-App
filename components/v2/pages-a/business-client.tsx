@@ -4,47 +4,20 @@ import { ChevronsLeftRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import { ScrollPreview } from "./ScrollPreview";
+
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-/** The laptop capture glides as you scroll past it (mock: business.js hero). */
+/** A slow tour of the desktop site, beginning when the preview is visible. */
 export function LaptopView({ src, width, height, alt }: { src: string; width: number; height: number; alt: string }) {
-    const view = useRef<HTMLDivElement>(null);
-    const img = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (reduced() || !view.current || !img.current) return;
-        const v = view.current;
-        const el = img.current;
-        let travel = 0;
-        let cur = 0;
-        let raf = 0;
-        const measure = () => (travel = Math.max(0, el.offsetHeight - v.offsetHeight));
-        measure();
-        window.addEventListener("resize", measure);
-        const tick = () => {
-            const r = v.getBoundingClientRect();
-            // progress while the frame travels from 75% of the screen up to -60% of its own height
-            const start = window.innerHeight * 0.75;
-            const end = -r.height * 0.6;
-            const p = clamp((start - r.top) / (start - end), 0, 1);
-            const target = -easeInOut(p) * travel * 0.42;
-            cur += (target - cur) * 0.12;
-            if (Math.abs(target - cur) > 0.1) el.style.transform = `translate3d(0, ${cur.toFixed(1)}px, 0)`;
-            raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
-        return () => {
-            cancelAnimationFrame(raf);
-            window.removeEventListener("resize", measure);
-        };
-    }, []);
     return (
-        <div className="browser-view" ref={view}>
-            <div ref={img} style={{ willChange: "transform" }}>
+        <ScrollPreview className="browser-view" measureTravel>
+            <div className="scroll-capture">
                 <Image src={src} alt={alt} width={width} height={height} sizes="(max-width: 760px) 100vw, 1200px" priority style={{ width: "100%", height: "auto" }} />
             </div>
-        </div>
+        </ScrollPreview>
     );
 }
 

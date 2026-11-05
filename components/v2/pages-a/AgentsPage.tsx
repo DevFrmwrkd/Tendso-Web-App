@@ -1,8 +1,9 @@
-import { ArrowDown, Lock } from "lucide-react";
+import { ArrowDown, ClipboardList } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import { DISCORD_INVITE_URL } from "@/lib/contact";
+import { REFERRAL_BONUS } from "@/lib/pricing";
 import { Button, PhoneFrame } from "@/components/v2";
 
 import { EarnCalc, PaidCard, VisitStepper } from "./agents-client";
@@ -12,9 +13,10 @@ import { PageShell } from "./PageShell";
 
 const A = "/v2/pages-a";
 const rev = (i: number): CSSProperties => ({ ["--i" as string]: i });
+const referralBonus = `₱${REFERRAL_BONUS.toLocaleString("en-PH")}`;
 
 const FAQ: FaqItem[] = [
-    { q: "Do I need experience?", a: "No. The training takes about 20 minutes, and the app guides you through every visit." },
+    { q: "Do I need experience?", a: "No. Complete five short lessons and a quiz, then send your profile for team approval. The app guides you through each visit once you are approved." },
     { q: "What do I need?", a: "A phone (iPhone or Android) with the Tendso app, and an email for your Wise payouts." },
     { q: "Do I collect money from the shop?", a: "No. The shop pays Tendso directly. Your half lands in your wallet when their payment is confirmed." },
     { q: "How do I get paid?", a: "To your Wise email. Cash out any amount. You don't need a Wise account first: Wise emails you a link. Use it within 7 days." },
@@ -152,7 +154,7 @@ export function AgentsPage() {
                                 </figure>
                                 <div className="ag-g-copy">
                                     <h3 className="ag-h3">Short training first.</h3>
-                                    <p>5 short lessons, about 20 minutes. Then a quiz: get 4 of 5 right. Retake it any time.</p>
+                                    <p>Five short lessons, then a 5-question quiz. Get 4 right to pass, retake if needed, and send your profile for team approval.</p>
                                 </div>
                                 <div className="ag-lesson" aria-hidden="true">
                                     <span className="ag-lesson-t">Lesson 3 of 5</span>
@@ -164,8 +166,8 @@ export function AgentsPage() {
 
                             <article className="ag-g ag-g--coach" data-reveal="" style={rev(1)}>
                                 <div className="ag-g-copy">
-                                    <h3 className="ag-h3">A team, and a coach.</h3>
-                                    <p>Ask real people on Discord. Or ask Kuya Tendo, our AI coach, any time of day.</p>
+                                    <h3 className="ag-h3">Help in the app and on Discord.</h3>
+                                    <p>Ask Tendso in the app for guidance and source articles. Join the Tendso Discord to ask the community and team.</p>
                                 </div>
                                 <div className="ag-chat" aria-hidden="true">
                                     <div className="ag-chat-me">How do I get the owner talking?</div>
@@ -174,42 +176,38 @@ export function AgentsPage() {
                                             <Image src="/v2/brand/mark-ink-256.png" alt="" width={28} height={28} />
                                         </span>
                                         <div>
-                                            <b>Kuya Tendo</b>
+                                            <b>Ask Tendso</b>
                                             <p>Start easy: “How did you start the shop?” Then let them talk.</p>
                                         </div>
                                     </div>
                                 </div>
                             </article>
 
-                            <article className="ag-g ag-g--link" data-reveal="">
+                            <article className="ag-g ag-g--work" data-reveal="">
                                 <div className="ag-g-copy">
-                                    <h3 className="ag-h3">Your own page.</h3>
-                                    <p>One link to share. Shops see the sites you built and your price.</p>
+                                    <h3 className="ag-h3">Your work, in one place.</h3>
+                                    <p>Track your shop submissions, website progress and earnings in the app.</p>
                                 </div>
-                                <div className="ag-link" aria-hidden="true">
-                                    <span className="ag-link-url">
-                                        <Lock size={14} aria-hidden="true" />
-                                        tendso.com/a/mika
-                                    </span>
-                                    <div className="ag-link-card">
-                                        <Image src={`${A}/people/17-mika.jpg`} alt="" width={56} height={56} />
-                                        <div>
-                                            <b>Mika Santos</b>
-                                            <span>Field agent in Marikina</span>
-                                        </div>
+                                <div className="ag-work" aria-hidden="true">
+                                    <span className="ag-work-title"><ClipboardList size={18} />Your submissions</span>
+                                    <div className="ag-work-row">
+                                        <b>Forge Barbers</b><span>Review</span>
                                     </div>
+                                    <div className="ag-work-row">
+                                        <b>Rosal Bakeshop</b><span className="is-live">Live</span>
+                                    </div>
+                                    <small>Example submissions</small>
                                 </div>
                             </article>
 
-                            {/* TODO(Theo): the ₱1,000 friend bonus is replaced by the creator override for new recruits (CREATOR-PROGRAM.md); no figure is shown until the field-agent referral reward is decided. */}
                             <article className="ag-g ag-g--ref" data-reveal="" style={rev(1)}>
                                 <div className="ag-g-copy">
-                                    <h3 className="ag-h3">Bring a friend.</h3>
-                                    <p>Share your code. Your friend joins in the app, free.</p>
+                                    <h3 className="ag-h3">Invite a field agent.</h3>
+                                    <p>Share your referral code. Earn a one-time {referralBonus} bonus when your friend’s first website is fully paid.</p>
                                 </div>
                                 <div className="ag-code" aria-hidden="true">
-                                    <span className="ag-code-l">Your code</span>
-                                    <span className="ag-code-v">MIKA8K2Q</span>
+                                    <span className="ag-code-l">Example invite code</span>
+                                    <span className="ag-code-v">PAOLO8K2Q</span>
                                     <span className="ag-code-b">Share my code</span>
                                 </div>
                             </article>
@@ -278,10 +276,10 @@ export function AgentsPage() {
                                         <span>1</span>Get the app
                                     </li>
                                     <li>
-                                        <span>2</span>Train, about 20 minutes
+                                        <span>2</span>Complete the lessons and quiz
                                     </li>
                                     <li>
-                                        <span>3</span>Visit your first shop
+                                        <span>3</span>After approval, visit your first shop
                                     </li>
                                 </ol>
                                 <div className="ag-end-cta">
@@ -292,7 +290,7 @@ export function AgentsPage() {
                                 </div>
                             </div>
                             <figure className="ag-end-photo">
-                                <Image src={`${A}/people/10-scooter.jpg`} alt="A field agent rides his scooter to a visit" width={1024} height={688} sizes="(max-width: 900px) 90vw, 40vw" />
+                                <Image src={`${A}/people/10-scooter-safe.webp`} alt="A field agent wearing a helmet rides a scooter along a clear neighbourhood road" width={1536} height={1024} sizes="(max-width: 900px) 90vw, 40vw" />
                             </figure>
                         </div>
                     </div>

@@ -125,6 +125,7 @@
   position: absolute; right: clamp(20px, 5vw, 80px); bottom: clamp(-120px, -6vw, -40px);
   --pw: clamp(190px, 21vw, 300px);
 }
+.pa .bh-phone .v2-phone { --pw: inherit; }
 .pa .is-site .site-scroll { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; overflow: hidden; background: #fff; }
 .pa .is-site .site-scroll img { width: 390px; height: auto; display: block; will-change: transform; }
 .pa .url-pill {
@@ -347,7 +348,7 @@
 }
 @media (max-width: 760px) {
   .pa .bh-h { font-size: clamp(44px, 12.4vw, 64px); }
-  .pa .bh-stage { height: 560px; padding: 20px 16px 0; }
+  .pa .bh-stage { height: 610px; padding: 20px 16px 0; }
   .pa .bh-browser { width: 100%; }
   .pa .bh-phone { --pw: 236px; left: 50%; right: auto; top: 96px; bottom: auto; transform: translateX(-50%); }
   .pa .bh-caption { display: none; }
@@ -608,7 +609,7 @@
 .pa .ag-g-copy p { font-size: 18px; line-height: 1.45; color: var(--ink-2); max-width: 34ch; }
 .pa .ag-g--train { grid-column: span 7; }
 .pa .ag-g--coach { grid-column: span 5; }
-.pa .ag-g--link { grid-column: span 5; }
+.pa .ag-g--work { grid-column: span 5; }
 .pa .ag-g--ref { grid-column: span 7; }
 
 .pa .ag-g-photo { margin: 0; border-radius: 26px; overflow: hidden; aspect-ratio: 16 / 7.4; background: var(--line); }
@@ -633,16 +634,13 @@
 .pa .ag-chat-bot b { display: block; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
 .pa .ag-chat-bot p { font-size: 17px; line-height: 1.4; color: var(--ink); }
 
-.pa .ag-link { margin-top: auto; display: grid; gap: 12px; justify-items: start; }
-.pa .ag-link-url {
-  display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 20px; border-radius: var(--r-pill);
-  background: var(--canvas); box-shadow: 0 0 0 1px var(--line); font-size: 18px; font-weight: 500; letter-spacing: -0.01em;
-}
-.pa .ag-link-url svg { color: var(--muted); }
-.pa .ag-link-card { display: flex; align-items: center; gap: 14px; padding: 12px 22px 12px 12px; border-radius: 22px; background: var(--canvas); box-shadow: 0 1px 2px rgba(12,10,8,.05); }
-.pa .ag-link-card img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: 50% 22%; }
-.pa .ag-link-card b { display: block; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-.pa .ag-link-card span { display: block; font-size: 15px; color: var(--ink-2); }
+.pa .ag-work { margin-top: auto; display: grid; padding: 20px; border-radius: 24px; background: var(--canvas); }
+.pa .ag-work-title { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+.pa .ag-work-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 0; border-top: 1px solid var(--line); }
+.pa .ag-work-row b { min-width: 0; font-size: 17px; font-weight: 500; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.pa .ag-work-row span { flex: none; border-radius: var(--r-pill); padding: 6px 10px; background: var(--tile-quiet); font-size: 14px; font-weight: 500; }
+.pa .ag-work-row .is-live { background: var(--accent); }
+.pa .ag-work small { margin-top: 2px; color: var(--muted); font-size: 13px; }
 
 .pa .ag-g--ref { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: 32px; }
 .pa .ag-g--ref .ag-g-copy { align-self: start; }
@@ -723,7 +721,7 @@
   .pa .ag-calc { grid-template-columns: minmax(0, 1fr); }
   .pa .ag-calc-out { min-height: 0; }
   .pa .ag-out-l { margin-top: 24px; }
-  .pa .ag-g--train, .pa .ag-g--coach, .pa .ag-g--link, .pa .ag-g--ref { grid-column: span 6; }
+  .pa .ag-g--train, .pa .ag-g--coach, .pa .ag-g--work, .pa .ag-g--ref { grid-column: span 6; }
   .pa .ag-g--ref { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
   .pa .ag-g--ref .ag-code { margin-top: auto; }
 }
@@ -784,13 +782,13 @@
   .pa .ag-note { font-size: 16px; }
 
   .pa .ag-get { grid-template-columns: minmax(0, 1fr); }
-  .pa .ag-g--train, .pa .ag-g--coach, .pa .ag-g--link, .pa .ag-g--ref { grid-column: auto; }
+  .pa .ag-g--train, .pa .ag-g--coach, .pa .ag-g--work, .pa .ag-g--ref { grid-column: auto; }
   .pa .ag-g { min-height: 0; padding: 22px; gap: 20px; }
   .pa .ag-g-copy p { font-size: 17px; }
   .pa .ag-g-photo { aspect-ratio: 4 / 3; border-radius: 20px; }
   .pa .ag-lesson { top: 36px; left: 36px; width: 190px; padding: 12px 14px; }
   .pa .ag-chat { margin-top: 4px; }
-  .pa .ag-link { margin-top: 4px; }
+  .pa .ag-work { margin-top: 4px; }
   .pa .ag-code-v { font-size: 34px; }
 
   .pa .ag-trust { padding: 28px 22px 22px; }
@@ -963,6 +961,12 @@
 .pa .site-phone .v2-sb { background: #fff; }
 .pa .site-phone .site-scroll { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; overflow: hidden; background: #fff; }
 .pa .site-phone .site-scroll img { width: 390px; height: auto; display: block; will-change: transform; animation: pa-site-scroll 34s var(--ease-inout) infinite; }
+.pa .bh-stage .scroll-preview > .scroll-capture { animation: none; transform: translateY(0); will-change: transform; }
+.pa .bh-stage .scroll-preview.is-running > .scroll-capture { animation: pa-site-scroll 34s var(--ease-inout) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pa .site-phone .site-scroll img,
+  .pa .bh-stage .scroll-preview.is-running > .scroll-capture { animation: none; transform: none; will-change: auto; }
+}
 .pa .card-img { position: relative; }
 .pa .card-img--d img { width: 100%; height: 100%; }
 .pa .card-img--m img { height: auto; }

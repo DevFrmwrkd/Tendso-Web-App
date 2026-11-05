@@ -108,7 +108,7 @@ export function BusinessPage() {
                             <LaptopView src={`${A}/sites/forge-d-long-fixed.jpg`} width={1440} height={3200} alt="Forge Barbers' website on a laptop" />
                         </div>
                         <div className="bh-phone">
-                            <SitePhone src={`${A}/sites/forge-m-long-fixed.jpg`} width={780} height={5200} url="forge.sites.tendso.com" alt="Forge Barbers' website on a phone" priority />
+                            <SitePhone src={`${A}/sites/forge-m-long-fixed.jpg`} width={780} height={5200} url="forge.sites.tendso.com" alt="Forge Barbers' website on a phone" priority startWhenVisible />
                         </div>
                     </div>
                 </section>
