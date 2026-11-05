@@ -1,0 +1,8 @@
+/* Unlayered so page-specific link resets cannot hide the shared current-page state. */
+.links > a[aria-current="page"] {
+    color: var(--v2-ink);
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 7px;
+}

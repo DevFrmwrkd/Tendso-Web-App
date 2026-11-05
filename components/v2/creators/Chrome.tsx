@@ -9,7 +9,7 @@ export function ProgramNav() {
         <Nav
             primaryAction={
                 <Link className="btn btn--accent btn--sm" href="/affiliates/join">
-                    Apply now
+                    Apply as an affiliate
                 </Link>
             }
         />

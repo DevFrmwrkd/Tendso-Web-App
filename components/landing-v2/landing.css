@@ -465,7 +465,7 @@
 .lv2 .done-again { margin-top: 10px; }
 
 .lv2 .join-photo { position: relative; margin: 28px 0 24px; border-radius: var(--r-card); overflow: hidden; aspect-ratio: 4 / 3; background: var(--line); }
-.lv2 .join-photo img { object-fit: cover; }
+.lv2 .join-photo img { object-fit: cover; object-position: center top; }
 .lv2 .join { display: grid; }
 .lv2 .join-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; border-top: 1px solid color-mix(in oklab, var(--ink) 12%, transparent); }
 .lv2 .join-row:last-child { padding-bottom: 0; }
@@ -495,6 +495,11 @@
 
 /* the closing line under the footer actions */
 .lv2 .v2-foot { position: relative; z-index: 3; }
+
+/* Footer/nav calls to action target articles, so the global section[id]
+   anchor offset does not apply. Leave room for the fixed navigation. */
+.lv2 .path#download,
+.lv2 .path#hire { scroll-margin-top: calc(84px + env(safe-area-inset-top, 0px)); }
 
 /* reduced motion: loops show their end state, transitions are instant */
 @media (prefers-reduced-motion: reduce) {

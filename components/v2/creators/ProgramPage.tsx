@@ -45,7 +45,7 @@ export function ProgramPage() {
                     <div className="wrap ag-hero-in">
                         <div className="ag-hero-copy">
                             <p className="ag-eyebrow" data-reveal>
-                                For creators
+                                Creator affiliate program
                             </p>
                             <h1 className="ag-hero-h cp-hero-h" id="cp-hero-h" data-reveal style={{ "--i": 1 } as CSSProperties}>
                                 Share your link. Earn two ways.
@@ -55,7 +55,7 @@ export function ProgramPage() {
                             </p>
                             <div className="ag-hero-cta" data-reveal style={{ "--i": 3 } as CSSProperties}>
                                 <Link className="btn btn--accent ag-btn-lg" href="/affiliates/join">
-                                    Apply as a creator
+                                    Apply as an affiliate
                                 </Link>
                                 <a className="btn btn--line ag-btn-lg ag-btn-2" href="#calc">
                                     See what you could earn
@@ -461,7 +461,7 @@ export function ProgramPage() {
                                 </ol>
                                 <div className="ag-end-cta">
                                     <Link className="btn btn--ink ag-btn-lg" href="/affiliates/join">
-                                        Apply as a creator
+                                        Apply as an affiliate
                                     </Link>
                                     <a className="btn ag-btn-lg ag-btn-onaccent" href="#portal">
                                         See the portal

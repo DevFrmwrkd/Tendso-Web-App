@@ -1,0 +1,15 @@
+.footer {
+    isolation: isolate;
+}
+
+.top {
+    position: relative;
+    z-index: 1;
+}
+
+/* Oversized inline glyph boxes may reach above the visible wordmark. Decoration
+   must never become the hit target over the closing links. */
+.mark,
+.mark * {
+    pointer-events: none;
+}

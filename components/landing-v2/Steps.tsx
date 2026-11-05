@@ -50,8 +50,11 @@ export function Steps() {
             const pos = clamp(-r.top / span, 0, 0.9999) * STEPS.length;
             const idx = Math.floor(pos);
             const local = pos - idx;
-            // the next card starts entering in the last 35% of each step
-            const enter = reduced ? (local > 0.82 ? 1 : 0) : ease.out(prog(local, 0.65, 1));
+            // Only recede when another screen is entering. The last screen
+            // stays full-size and bright through the end of the pinned track.
+            const enter = idx === STEPS.length - 1
+                ? 0
+                : reduced ? (local > 0.82 ? 1 : 0) : ease.out(prog(local, 0.65, 1));
             layers.forEach((L, i) => {
                 let ty = 0, sc = 1, dim = 0, show = true;
                 if (i < idx) {
