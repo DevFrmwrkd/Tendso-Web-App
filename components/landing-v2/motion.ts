@@ -121,7 +121,7 @@ export function useInView<T extends Element>(fn: (isIn: boolean) => void, thresh
     useEffect(() => {
         const el = ref.current;
         if (!el) return;
-        const io = new IntersectionObserver((entries) => entries.forEach((e) => cb.current(e.isIntersecting)), { threshold });
+        const io = new IntersectionObserver((entries) => entries.forEach((e) => cb.current(e.isIntersecting && e.intersectionRatio >= threshold)), { threshold });
         io.observe(el);
         return () => io.disconnect();
     }, [threshold]);

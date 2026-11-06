@@ -35,7 +35,7 @@ jest.mock('convex/react', () => ({
 jest.mock('@/convex/_generated/api', () => ({ api: jest.requireActual('convex/server').anyApi }));
 jest.mock('next/link', () => {
     const React = jest.requireActual('../../apps/mobile/node_modules/react');
-    return ({ children, ...props }: { children?: ReactNode }) => React.createElement('a', props, children);
+    return function MockLink({ children, ...props }: { children?: ReactNode }) { return React.createElement('a', props, children); };
 });
 jest.mock('next/navigation', () => ({ useRouter: () => navigation, useSearchParams: () => ({ get: () => null }) }));
 jest.mock('@/app/auth/_components/AuthFrame', () => ({
@@ -69,7 +69,7 @@ interface TestRenderer {
     update(element: ReactNode): void;
     unmount(): void;
 }
-const { create, act } = require('../../apps/mobile/node_modules/react-test-renderer') as {
+const { create, act } = jest.requireActual('../../apps/mobile/node_modules/react-test-renderer') as {
     create(element: ReactNode): TestRenderer;
     act(callback: () => void | Promise<void>): Promise<void>;
 };
@@ -113,13 +113,17 @@ function availability(input: { handle?: string; code?: string }): Availability {
 function text(node: TestNode | string): string {
     return typeof node === 'string' ? node : node.children.map(text).join('');
 }
-function input(label = 'Your creator code'): TestNode {
-    const wrapper = renderer!.root.findAllByType('label').find(node => text(node).includes(label));
+function input(label?: string): TestNode {
+    // Signup uses affiliate wording; the existing portal keeps its creator-code label.
+    const codeLabels = ['Your creator code', 'Your affiliate code'];
+    const wrapper = renderer!.root.findAllByType('label').find(node => label
+        ? text(node).includes(label)
+        : codeLabels.includes(text(node).trim()));
     const controls = renderer!.root.findAllByType('input');
     const found = wrapper?.findAllByType('input')[0]
         ?? controls.find(node => wrapper?.props.htmlFor && node.props.id === wrapper.props.htmlFor)
-        ?? controls.find(node => node.props['aria-label'] === label);
-    if (!found) throw new Error(`Input not found: ${label}`);
+        ?? controls.find(node => label ? node.props['aria-label'] === label : codeLabels.includes(String(node.props['aria-label'])));
+    if (!found) throw new Error(`Input not found: ${label ?? codeLabels.join(' or ')}`);
     return found;
 }
 function button(label: string): TestNode {
@@ -133,7 +137,7 @@ async function mount(element: ReactNode = createElement(CreatorCodeSettings, { a
 async function rerender(element: ReactNode = createElement(CreatorCodeSettings, { account })) {
     await act(() => { renderer!.update(element); });
 }
-async function change(value: string, label = 'Your creator code') {
+async function change(value: string, label?: string) {
     await act(() => { (input(label).props.onChange as (event: { target: { value: string } }) => void)({ target: { value } }); });
 }
 async function settleDebounce() {

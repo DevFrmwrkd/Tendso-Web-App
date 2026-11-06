@@ -125,8 +125,6 @@ function SignupInner() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authLoaded, isSignedIn, application, router, returnTo]);
 
-    const signedInEmail = user?.primaryEmailAddress?.emailAddress ?? email;
-
     // ---- step 1: send the code ----
     async function sendCode(e?: FormEvent) {
         e?.preventDefault();
@@ -149,7 +147,7 @@ function SignupInner() {
                 started = true;
             } catch (err) {
                 if (clerkCode(err) !== "form_identifier_not_found") throw err;
-                if (loginOnly) throw new Error("We could not find that email. Apply as a creator first.");
+                if (loginOnly) throw new Error("We could not find that email. Apply as an affiliate first.");
             }
             if (!started) {
                 await signUp.create({ emailAddress: email.trim(), ...splitName(name) });
@@ -225,7 +223,7 @@ function SignupInner() {
 
     const { firstName: applicationFirstName, lastName: applicationLastName } = splitName(name || user?.fullName || user?.firstName || "");
     const applicationArgs = {
-        firstName: applicationFirstName || "Creator",
+        firstName: applicationFirstName || "Affiliate",
         lastName: applicationLastName,
         handle,
         code: creatorCode,
@@ -269,7 +267,7 @@ function SignupInner() {
             <SoloBar
                 right={
                     <>
-                        Already a creator?{" "}
+                        Already an affiliate?{" "}
                         <Link className="u" href="/affiliates/join?login=1">
                             Log in
                         </Link>
@@ -279,7 +277,7 @@ function SignupInner() {
             <main className="wrap su-wrap">
                 <aside className="su-aside" aria-label="What you get">
                     <figure className="su-photo">
-                        <Photo name="mika.jpg" alt="Mika Santos, a Tendso creator" sizes="(max-width: 900px) 0px, 40vw" position="50% 22%" priority />
+                        <Photo name="mika.jpg" alt="Mika Santos, a Tendso affiliate" sizes="(max-width: 900px) 0px, 40vw" position="50% 22%" priority />
                     </figure>
                     <div className="su-ways">
                         <div className="su-way su-way--now">
@@ -314,7 +312,7 @@ function SignupInner() {
                     {step === 1 && (
                         <form className="su-step is-on" onSubmit={sendCode} noValidate>
                             <h1 className="su-h" ref={headingRef} tabIndex={-1}>
-                                {loginOnly ? "Log in." : "Become a Tendso creator."}
+                                {loginOnly ? "Log in." : "Become a Tendso affiliate."}
                             </h1>
                             <p className="su-p">{loginOnly ? "We email you a code. No password." : "Free to join. No password: we email you a code."}</p>
                             <div className="su-fields">
@@ -485,7 +483,7 @@ function SignupInner() {
                             </label>
                             <p id="su-handle-status" className={`su-hint${handleProblem ? " is-bad" : ""}`} role="status" aria-live="polite">{handleProblem ?? (handle && handleOk && !checked ? "Checking page name…" : handleFree ? "This page name is available." : "")}</p>
                             <label className="su-f">
-                                <span>Your creator code</span>
+                                <span>Your affiliate code</span>
                                 <span className="su-in"><input type="text" value={creatorCode} disabled={busy} maxLength={CREATOR_CODE_MAX_LENGTH} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder="MIKA30" aria-describedby="su-creator-code-status su-creator-code-help" aria-invalid={!!codeProblem || !!codeChecked && !codeFree} onChange={event => { setCreatorCode(normalizeCreatorCode(event.target.value)); setError(null); }} /></span>
                             </label>
                             <p id="su-creator-code-help" className="su-hint">Use 4–16 letters or numbers. Every code gives {CODE_PERCENT_OFF}% off. Choose carefully. You cannot change this code later.</p>
@@ -510,7 +508,7 @@ function SignupInner() {
                                     {busy ? "Sending…" : !CREATORS_SAMPLE && !convexReady ? "Signing you in…" : "Send for review"}
                                 </button>
                                 <p className="su-note">
-                                    By sending, you agree to the <Link href="/terms-of-service">creator rules</Link>.
+                                    By sending, you agree to the <Link href="/terms-of-service">affiliate rules</Link>.
                                 </p>
                             </div>
                         </form>
@@ -534,7 +532,7 @@ function SignupInner() {
                             </ol>
                             <div className="su-go">
                                 <Link className="btn btn--line" href="/affiliates">
-                                    Back to Tendso for creators
+                                    Back to Tendso for affiliates
                                 </Link>
                                 {isSignedIn && !CREATORS_SAMPLE ? (
                                     <p className="su-note">
@@ -571,7 +569,7 @@ function TimelineItem({ state, title, note }: { state?: "done" | "now"; title: s
 function OtherAccount({ onSignOut }: { onSignOut: () => void }): ReactNode {
     return (
         <div className="su-error" role="alert">
-            This email already has another kind of Tendso account (a field agent, business or admin). Log out and use a different email to become a creator.{" "}
+            This email already has another kind of Tendso account (a field agent, business or admin). Log out and use a different email to become an affiliate.{" "}
             <button type="button" className="su-link-btn" onClick={onSignOut}>
                 Log out
             </button>

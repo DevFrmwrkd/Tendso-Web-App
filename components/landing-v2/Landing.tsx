@@ -1,4 +1,4 @@
-import { Button, Footer, Nav, V2Root, V2_ROUTES } from "@/components/v2";
+import { Button, Footer, Nav, V2Root } from "@/components/v2";
 import { AskTendsoLauncher } from "@/components/v2/chat/AskTendso";
 
 import { Grid } from "./Grid";
@@ -23,7 +23,7 @@ export function Landing() {
             <div id="lv2-root">
                 <Nav
                     secondaryAction={
-                        <Button href={V2_ROUTES.hire} variant="ghost" size="sm">
+                        <Button href="#hire" variant="ghost" size="sm">
                             Hire an agent
                         </Button>
                     }

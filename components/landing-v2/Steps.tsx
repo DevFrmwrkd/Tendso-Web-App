@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 
 import { Label, PhoneFrame } from "@/components/v2";
 
-import { clamp, ease, lerp, onFrame, prog, useReducedMotion } from "./motion";
+import { clamp, ease, lerp, prog, useReducedMotion } from "./motion";
 import { DesignPickerScreen, InterviewCamScreen, ShotGuideScreen, SiteBuildingScreen, SiteReadyScreen, WelcomeScreen, type ScreenProps } from "./screens";
 
 /*
@@ -25,6 +25,7 @@ const STEPS: { t: string; d: string; Screen: (p: ScreenProps) => ReactNode }[] =
 export function Steps() {
     const reduced = useReducedMotion();
     const track = useRef<HTMLDivElement>(null);
+    const pin = useRef<HTMLDivElement>(null);
     const [active, setActive] = useState(0);
     const [visible, setVisible] = useState(false);
     const [epoch, setEpoch] = useState(0);
@@ -33,10 +34,26 @@ export function Steps() {
         const tr = track.current;
         if (!tr) return;
         const layers = [...tr.querySelectorAll<HTMLElement>(".st-layer")];
+        const styles = layers.map(() => ({ transform: "", dim: "", visibility: "", willChange: "" }));
         let lastY = -1;
         let act = -1;
         let vis = false;
+        let span = 1;
+        let frame = 0;
+        let needsMeasure = false;
+        const promote = (i: number, moving: boolean) => {
+            const willChange = moving ? "transform" : "auto";
+            if (styles[i].willChange !== willChange) {
+                layers[i].style.willChange = willChange;
+                styles[i].willChange = willChange;
+            }
+        };
         const update = (force = false) => {
+            if (force) {
+                // CSS pins to 100svh. Using the actual pin avoids changing the
+                // step position whenever a mobile browser's toolbar moves.
+                span = Math.max(1, tr.offsetHeight - (pin.current?.clientHeight || innerHeight));
+            }
             const y = scrollY;
             if (y === lastY && !force) return;
             lastY = y;
@@ -46,7 +63,10 @@ export function Steps() {
                 vis = isVis;
                 setVisible(isVis);
             }
-            const span = tr.offsetHeight - innerHeight;
+            if (!isVis) {
+                layers.forEach((_, i) => promote(i, false));
+                return;
+            }
             const pos = clamp(-r.top / span, 0, 0.9999) * STEPS.length;
             const idx = Math.floor(pos);
             const local = pos - idx;
@@ -70,9 +90,17 @@ export function Steps() {
                     ty = 100;
                     show = false;
                 }
-                L.style.transform = `translate3d(0, ${ty.toFixed(2)}%, 0) scale(${sc.toFixed(4)})`;
-                L.style.setProperty("--dim", dim.toFixed(3));
-                L.style.visibility = show ? "visible" : "hidden";
+                const transform = `translate3d(0, ${ty.toFixed(2)}%, 0) scale(${sc.toFixed(4)})`;
+                const dimValue = dim.toFixed(3);
+                const visibility = show ? "visible" : "hidden";
+                const previous = styles[i];
+                if (previous.transform !== transform) L.style.transform = previous.transform = transform;
+                if (previous.dim !== dimValue) {
+                    L.style.setProperty("--dim", dimValue);
+                    previous.dim = dimValue;
+                }
+                if (previous.visibility !== visibility) L.style.visibility = previous.visibility = visibility;
+                promote(i, show && (i === idx || i === idx + 1));
             });
             const a = local > 0.82 && idx < STEPS.length - 1 ? idx + 1 : idx;
             if (a !== act) {
@@ -82,11 +110,25 @@ export function Steps() {
             }
         };
         update(true);
-        const onResize = () => update(true);
+        // Scroll-linked work runs once per changed frame, never in a permanent
+        // animation loop while the user is reading or this section is offscreen.
+        const schedule = (measure = false) => {
+            needsMeasure ||= measure;
+            if (frame) return;
+            frame = requestAnimationFrame(() => {
+                frame = 0;
+                const force = needsMeasure;
+                needsMeasure = false;
+                update(force);
+            });
+        };
+        const onScroll = () => schedule();
+        const onResize = () => schedule(true);
+        addEventListener("scroll", onScroll, { passive: true });
         addEventListener("resize", onResize);
-        const off = onFrame(() => update());
         return () => {
-            off();
+            if (frame) cancelAnimationFrame(frame);
+            removeEventListener("scroll", onScroll);
             removeEventListener("resize", onResize);
         };
     }, [reduced]);
@@ -95,7 +137,7 @@ export function Steps() {
         const tr = track.current;
         if (!tr) return;
         const top = tr.getBoundingClientRect().top + scrollY;
-        const span = tr.offsetHeight - innerHeight;
+        const span = Math.max(1, tr.offsetHeight - (pin.current?.clientHeight || innerHeight));
         scrollTo({ top: top + span * ((i + 0.5) / STEPS.length), behavior: reduced ? "auto" : "smooth" });
     };
 
@@ -110,7 +152,7 @@ export function Steps() {
                 </h2>
             </div>
             <div className="st-track" ref={track} style={{ "--n": STEPS.length } as CSSProperties}>
-                <div className="st-pin">
+                <div className="st-pin" ref={pin}>
                     <div className="v2-wrap st-grid">
                         <div className="st-rail" aria-hidden="true">
                             {STEPS.map((s, i) => (

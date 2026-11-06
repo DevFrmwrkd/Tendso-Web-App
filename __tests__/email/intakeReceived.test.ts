@@ -18,8 +18,8 @@ describe('owner-intake acknowledgement email', () => {
     it('acknowledges a held giveaway slot pending eligibility review', () => {
         const html = getIntakeReceivedEmailHtml({ ...application, giveawayApplication: true });
         const text = visibleText(html);
-        expect(html).toContain('src="https://tendso.com/email/giveaway-received.png"');
-        expect(html).toContain('alt="Salamat! Off the Record received your application."');
+        expect(html).toContain('class="t-email-heading"');
+        expect(text).toContain('Off the Record received your application.');
         expect(text).toContain('Awaiting review');
         expect(text).toContain('Your slot is held while Off the Record reviews your eligibility and poster photo.');
         expect(text).toContain('If your application qualifies, Off the Record approves it and Tendso builds your free website. You get an email at each step.');
@@ -64,7 +64,8 @@ describe('owner-intake acknowledgement email', () => {
     it('tells the owner OTR approved them and that the build has started, without a price or payment', () => {
         const html = getGiveawayApprovedEmailHtml({ businessName: 'Corner Studio', businessOwnerName: 'Sam' });
         const text = visibleText(html);
-        expect(html).toContain('src="https://tendso.com/email/giveaway-approved.png"');
+        expect(html).toContain('class="t-email-heading"');
+        expect(text).toContain('Approved by Off the Record.');
         expect(text).toContain('Good news, Sam ,');
         expect(text).toContain('Off the Record checked your poster photo and approved Corner Studio for a free website.');
         expect(text).toContain('Tendso is building it now');
@@ -87,9 +88,10 @@ describe('owner-intake acknowledgement email', () => {
             ...application, websiteUrl: 'https://corner.sites.tendso.com', creatorName: 'Tendso', giveawayApplication: true,
         });
         const text = visibleText(html);
-        expect(html).toContain('src="https://tendso.com/email/giveaway-live.png"');
+        expect(html).toContain('class="t-email-heading"');
+        expect(text).toContain('Your website is live.');
         expect(html).toContain('href="https://corner.sites.tendso.com"');
-        expect(text).toContain('OFF THE RECORD');
+        expect(text).toContain('Off the Record × Tendso');
         expect(text).toContain('A gift from Off the Record for Corner Studio. Built by Tendso.');
         expect(text).toContain('a free Tendso website');
         expect(text).toContain('There is nothing for you to pay.');

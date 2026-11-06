@@ -3,10 +3,9 @@
 /**
  * /field-agent/book — the native booking page for the 10-minute Field Agent call.
  *
- * THE DESIGN IS THE SPEC: Round 1, board BookCall. Three steps (Time, Details,
- * Done) under a funnel header; the calendar on the left with "Your call" beside
- * it, a two-field form, and a ticket-shaped confirmation. Colours, type and
- * controls are the shared Round 1 ones (app/round1.css, components/r1).
+ * Three steps (Time, Details, Done) in the current Tendso V2 frame: a day/time
+ * picker, a two-field form, and a confirmation ticket. Local booking controls
+ * share the public V2 fonts, ink/lime palette and pill actions.
  *
  * The flow behind it is ported from vonas-hr-pipeline. Both apps write to the
  * ONE tendso.hr Google Calendar, and that shared calendar — not this page — is
@@ -32,7 +31,7 @@ import { ArrowLeft, ArrowRight, Calendar, CalendarX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useAction } from "convex/react";
 
-import { Button, ButtonLink, EmptyState, ErrorState, Field, Icon, Input, bookingStatus } from "@/components/r1";
+import { Button, ButtonLink, EmptyState, ErrorState, Field, Icon, Input, bookingStatus } from "../_components/BookingUI";
 import { api } from "@/convex/_generated/api";
 import BookingShell from "../_components/BookingShell";
 import { ActionBar, CallFacts, CallTicket, Notice, PickedTime } from "../_components/CallCard";
@@ -189,12 +188,12 @@ export default function BookFieldAgentCallPage() {
         <BookingShell title={title} steps={STEPS} current={current} phoneBar={showPicker}>
             {error && step === "pick" && <Notice>{error}</Notice>}
 
-            {step === "pick" && loadFailed && <ErrorState what="Available times" onRetry={retryLoad} className="t-card" />}
+            {step === "pick" && loadFailed && <ErrorState what="Available times" onRetry={retryLoad} className="bk-card" />}
 
             {step === "pick" && !loadFailed && days?.length === 0 && fallbackUrl && (
-                <div className="t-card t-card-pad flex max-w-[560px] flex-col items-start gap-4">
-                    <span className="t-label">Calendar unavailable</span>
-                    <p className="t-body">
+                <div className="bk-card bk-card-pad flex max-w-[560px] flex-col items-start gap-4">
+                    <span className="bk-label">Calendar unavailable</span>
+                    <p className="bk-body">
                         We can&apos;t show times here right now. You can still book the same ten minutes on our backup page.
                     </p>
                     <ButtonLink variant="primary" href={fallbackUrl}>
@@ -205,7 +204,7 @@ export default function BookFieldAgentCallPage() {
 
             {step === "pick" && !loadFailed && days?.length === 0 && !fallbackUrl && (
                 <EmptyState
-                    className="t-card"
+                    className="bk-card"
                     icon={<Icon icon={CalendarX} size={18} />}
                     title="No times are open right now"
                     body="Please check back tomorrow."
@@ -232,19 +231,19 @@ export default function BookFieldAgentCallPage() {
                         />
                     )}
 
-                    <aside className="t-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Your call">
+                    <aside className="bk-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Your call">
                         <div className="flex flex-col gap-1">
-                            <h2 className="t-h2">Your call</h2>
-                            <p className="t-body">A short video call to get you started as a Tendso creator.</p>
+                            <h2 className="bk-h2">Your call</h2>
+                            <p className="bk-body">A short video call to get you started as a Tendso field agent.</p>
                         </div>
                         <CallFacts />
                         <div className="flex flex-col gap-5 max-lg:hidden">
-                            <hr className="t-divider" />
+                            <hr className="bk-divider" />
                             <PickedTime label="Your time" time={picked?.label} day={pickedDay} />
                             <div className="flex flex-col gap-2">
                                 {continueButton}
                                 {!picked && (
-                                    <p className="t-help" id="book-need-time">
+                                    <p className="bk-help" id="book-need-time">
                                         Pick a time to continue.
                                     </p>
                                 )}
@@ -261,12 +260,12 @@ export default function BookFieldAgentCallPage() {
 
             {step === "details" && picked && (
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
-                    <form className="t-card" onSubmit={confirm} noValidate aria-labelledby="book-who">
-                        <div className="flex flex-col gap-1 border-b border-r1-line p-5 sm:p-6">
-                            <h2 className="t-h2" id="book-who">
+                    <form className="bk-card" onSubmit={confirm} noValidate aria-labelledby="book-who">
+                        <div className="flex flex-col gap-1 border-b bk-border p-5 sm:p-6">
+                            <h2 className="bk-h2" id="book-who">
                                 Who is joining?
                             </h2>
-                            <p className="t-meta">We use this to send you the invite. Nothing else.</p>
+                            <p className="bk-meta">We use this to send you the invite. Nothing else.</p>
                         </div>
                         <div className="grid gap-5 p-5 sm:grid-cols-2 sm:gap-x-4 sm:p-6">
                             <Field label="Full name" required error={tried ? errors.name : null}>
@@ -305,11 +304,11 @@ export default function BookFieldAgentCallPage() {
                             />
                         </div>
                         {error && (
-                            <p className="t-error px-5 pb-5 sm:px-6 sm:pb-6" role="alert">
+                            <p className="bk-error px-5 pb-5 sm:px-6 sm:pb-6" role="alert">
                                 {error}
                             </p>
                         )}
-                        <div className="flex flex-col-reverse gap-3 border-t border-r1-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <div className="flex flex-col-reverse gap-3 border-t bk-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                             <Button onClick={() => setStep("pick")}>
                                 <Icon icon={ArrowLeft} />
                                 Change time
@@ -321,10 +320,10 @@ export default function BookFieldAgentCallPage() {
                     </form>
 
                     {/* First on a phone: what is being confirmed, then who for. */}
-                    <aside className="t-card flex flex-col gap-5 p-5 max-lg:order-first sm:p-6" aria-label="Your call">
-                        <h2 className="t-h2">Your call</h2>
+                    <aside className="bk-card flex flex-col gap-5 p-5 max-lg:order-first sm:p-6" aria-label="Your call">
+                        <h2 className="bk-h2">Your call</h2>
                         <PickedTime label="Your time" time={picked.label} day={pickedDay} />
-                        <hr className="t-divider" />
+                        <hr className="bk-divider" />
                         <CallFacts />
                     </aside>
                 </div>
@@ -354,7 +353,7 @@ export default function BookFieldAgentCallPage() {
                                 Book another call
                             </Button>
                         </div>
-                        <p className="t-meta">Need a different time? Use the Reschedule or Cancel link in your confirmation email.</p>
+                        <p className="bk-meta">Need a different time? Use the Reschedule or Cancel link in your confirmation email.</p>
                     </CallTicket>
                 </div>
             )}

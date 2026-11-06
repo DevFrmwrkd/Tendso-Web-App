@@ -30,7 +30,7 @@
 
 import { useId, useMemo } from "react";
 
-import { Loading, Skeleton, cx } from "@/components/r1";
+import { Loading, Skeleton } from "./BookingUI";
 
 export type Slot = { startMs: number; label: string; taken: boolean };
 export type Day = { dateKey: string; label: string; slots: Slot[] };
@@ -188,163 +188,51 @@ export default function SlotPicker({
     const groups = day ? groupsFor(day, windows, day.dateKey === todayKey) : [];
 
     return (
-        <div className="flex min-w-0 flex-col gap-8">
-            <section className="flex flex-col gap-3" aria-labelledby={`${ids}-day`}>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <h2 className="t-h2" id={`${ids}-day`}>
-                        Choose a day
-                    </h2>
-                    <span className="t-meta">{spanLabel(days)}</span>
-                </div>
-                <div className="grid grid-cols-5 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(60px,1fr))]">
+        <div className="bk-picker">
+            <section className="bk-day-panel" aria-labelledby={ids + '-day'}>
+                <div className="bk-picker-heading"><span className="bk-section-number" aria-hidden="true">01</span><div><h2 id={ids + '-day'}>Choose a day</h2><p>{spanLabel(days)}</p></div></div>
+                <div className="bk-days" role="group" aria-label="Available days">
                     {days.map((d) => {
                         const pressed = d.dateKey === activeDay;
                         const free = d.slots.filter((s) => !s.taken).length;
-                        return (
-                            <button
-                                key={d.dateKey}
-                                type="button"
-                                aria-pressed={pressed}
-                                aria-label={`${d.label}, ${free === 0 ? "full" : `${free} ${free === 1 ? "time" : "times"} open`}`}
-                                onClick={() => onSelectDay(d.dateKey)}
-                                className={cx(
-                                    "flex h-[76px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-r1 border px-1",
-                                    pressed ? "border-r1-ink bg-r1-ink text-r1-paper" : "border-r1-line bg-r1-paper text-r1-ink hover:bg-r1-fill",
-                                )}
-                            >
-                                <span className={cx("text-xs leading-4", pressed ? "text-r1-line-2" : "text-r1-ink-3")}>
-                                    {d.dateKey === todayKey ? "Today" : DOW[weekdayOf(d.dateKey)]}
-                                </span>
-                                <span className="text-xl font-semibold leading-6 tabular-nums">{parseKey(d.dateKey).d}</span>
-                                <span className={cx("text-xs leading-4 tabular-nums", pressed ? "text-r1-line-2" : "text-r1-ink-3")}>
-                                    {free === 0 ? "Full" : `${free} open`}
-                                </span>
-                            </button>
-                        );
+                        return <button key={d.dateKey} type="button" aria-pressed={pressed}
+                            aria-label={d.label + ', ' + (free === 0 ? 'full' : free + (free === 1 ? ' time open' : ' times open'))}
+                            disabled={disabled} onClick={() => onSelectDay(d.dateKey)} className="bk-day">
+                            <span className="bk-day-weekday">{d.dateKey === todayKey ? 'Today' : DOW[weekdayOf(d.dateKey)]}</span>
+                            <strong>{parseKey(d.dateKey).d}</strong><span className="bk-day-count">{free === 0 ? 'Full' : free + ' open'}</span>
+                        </button>;
                     })}
                 </div>
             </section>
-
-            <section className="flex flex-col gap-3" aria-labelledby={`${ids}-time`}>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                    <h2 className="t-h2" id={`${ids}-time`}>
-                        Pick a time
-                    </h2>
-                    {day && <span className="t-meta">{day.label}</span>}
+            <section className="bk-time-panel" aria-labelledby={ids + '-time'}>
+                <div className="bk-picker-heading"><span className="bk-section-number" aria-hidden="true">02</span><div><h2 id={ids + '-time'}>Choose a time</h2><p>{day?.label ?? 'Pick a day above to see its times.'}</p></div></div>
+                <div className="bk-time-legend"><span><i className="bk-legend-open" />Available</span><span><i className="bk-legend-taken" />Already booked</span></div>
+                <div className="bk-time-groups">
+                    {groups.map((g) => <div key={g.start} className="bk-time-group">
+                        <div className="bk-time-group-head"><h3>{g.title}</h3><span>{g.range}</span></div>
+                        {g.passed ? <p className="bk-passed">These times have passed for today. Pick a later time, or another day.</p> : <div className="bk-time-rows">
+                            {g.rows.map(row => <div key={row.hour} className="bk-time-row"><span className="bk-hour">{row.hour}</span><div className="bk-time-cells">
+                                {row.cells.map((c, i) => {
+                                    if (c === null) return <span key={i} aria-hidden="true" />;
+                                    const { slot, short } = c;
+                                    if (mine != null && slot.startMs === mine) return <span key={i} className="bk-time-mine" aria-label={slot.label + ', your current time'}><span>{short}</span><small>yours</small></span>;
+                                    if (slot.taken) return <span key={i} className="bk-time-taken">{short}<span className="sr-only">, already booked</span></span>;
+                                    return <button key={i} type="button" aria-pressed={slot.startMs === selected} aria-label={slot.label}
+                                        disabled={disabled} onClick={() => onSelect(slot)} className="bk-time">{short}</button>;
+                                })}
+                            </div></div>)}
+                        </div>}
+                    </div>)}
                 </div>
-                <div className="flex flex-col gap-6">
-                    {groups.map((g) => (
-                        <div key={g.start} className="flex flex-col gap-2">
-                            <div className="flex flex-wrap items-baseline gap-x-2">
-                                <h3 className="text-sm font-medium leading-5 text-r1-ink">{g.title}</h3>
-                                <span className="t-meta t-num">{g.range}</span>
-                            </div>
-                            {g.passed ? (
-                                <div className="flex min-h-12 items-center rounded-r1 bg-r1-fill-2 px-4 py-3">
-                                    <p className="t-meta">These times have passed for today. Pick a later time, or another day.</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col border-t border-r1-line">
-                                    {g.rows.map((row) => (
-                                        <div
-                                            key={row.hour}
-                                            className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2 border-b border-r1-line-3 py-2 sm:grid-cols-[56px_minmax(0,1fr)] sm:gap-4"
-                                        >
-                                            <span className="text-[11px] leading-4 text-r1-ink-3 tabular-nums sm:text-[13px] sm:leading-[18px]">
-                                                {row.hour}
-                                            </span>
-                                            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                                                {row.cells.map((c, i) => {
-                                                    if (c === null) return <span key={i} aria-hidden="true" />;
-                                                    const { slot, short } = c;
-                                                    if (mine != null && slot.startMs === mine) {
-                                                        return (
-                                                            <span
-                                                                key={i}
-                                                                className="flex h-10 flex-col items-center justify-center rounded-r1 border border-dashed border-r1-ink-4 text-xs leading-[14px] text-r1-ink-2 tabular-nums sm:flex-row sm:gap-1.5 sm:text-[13px]"
-                                                            >
-                                                                <span>{short}</span>
-                                                                <span>
-                                                                    <span className="max-sm:hidden">· </span>yours
-                                                                </span>
-                                                            </span>
-                                                        );
-                                                    }
-                                                    if (slot.taken) {
-                                                        return (
-                                                            <span
-                                                                key={i}
-                                                                className="flex h-10 items-center justify-center text-[13px] text-r1-ink-3 line-through tabular-nums sm:text-sm"
-                                                            >
-                                                                {short}
-                                                                <span className="sr-only">, already booked</span>
-                                                            </span>
-                                                        );
-                                                    }
-                                                    const pressed = slot.startMs === selected;
-                                                    return (
-                                                        <button
-                                                            key={i}
-                                                            type="button"
-                                                            aria-pressed={pressed}
-                                                            aria-label={slot.label}
-                                                            disabled={disabled}
-                                                            onClick={() => onSelect(slot)}
-                                                            className={cx(
-                                                                "h-10 min-w-0 rounded-r1 border text-[13px] font-medium tabular-nums disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm",
-                                                                pressed
-                                                                    ? "border-r1-ink bg-r1-ink text-r1-paper"
-                                                                    : "border-r1-line-2 bg-r1-paper text-r1-ink hover:border-[var(--r1-line-hover)] hover:bg-r1-fill",
-                                                            )}
-                                                        >
-                                                            {short}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-                <p className="t-meta">All times are Philippine time (GMT+8). Book up to two weeks ahead, and at least an hour before the call.</p>
+                <p className="bk-picker-note">All times are Philippine time (GMT+8). Book up to two weeks ahead, and at least an hour before the call.</p>
             </section>
         </div>
     );
 }
 
-/** The picker's shape while the times load: the day strip, then hour rows. */
 export function SlotPickerSkeleton() {
-    return (
-        <Loading label="Loading available times">
-            <div className="flex flex-col gap-8">
-                <div className="flex flex-col gap-3">
-                    <Skeleton width={120} height={16} />
-                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(60px,1fr))]">
-                        {Array.from({ length: 10 }, (_, i) => (
-                            <Skeleton key={i} height={76} className="rounded-r1" />
-                        ))}
-                    </div>
-                </div>
-                <div className="flex flex-col gap-3">
-                    <Skeleton width={100} height={16} />
-                    <Skeleton width={180} height={12} />
-                    <div className="flex flex-col border-t border-r1-line">
-                        {Array.from({ length: 6 }, (_, i) => (
-                            <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2 border-b border-r1-line-3 py-2 sm:grid-cols-[56px_minmax(0,1fr)] sm:gap-4">
-                                <Skeleton width={28} height={10} />
-                                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                                    {Array.from({ length: 4 }, (_, j) => (
-                                        <Skeleton key={j} height={40} className="rounded-r1" />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </Loading>
-    );
+    return <Loading label="Loading available times"><div className="bk-picker" aria-hidden="true">
+        <div className="bk-day-panel"><div className="bk-picker-heading"><Skeleton width={36} height={36} /><Skeleton width={190} height={22} /></div><div className="bk-days">{Array.from({ length: 10 }, (_, i) => <Skeleton key={i} height={96} />)}</div></div>
+        <div className="bk-time-panel"><div className="bk-picker-heading"><Skeleton width={36} height={36} /><Skeleton width={160} height={22} /></div><div className="bk-time-rows">{Array.from({ length: 5 }, (_, i) => <div key={i} className="bk-time-row"><Skeleton width={28} height={12} /><div className="bk-time-cells">{Array.from({ length: 4 }, (_, j) => <Skeleton key={j} height={44} />)}</div></div>)}</div></div>
+    </div></Loading>;
 }

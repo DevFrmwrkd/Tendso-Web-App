@@ -7,7 +7,7 @@ import { Button, PhoneFrame } from "@/components/v2";
 
 import { A, HERO_SITES, siteShot } from "./content";
 import { StoreStatus } from "./StoreStatus";
-import { clamp, ease, lerp, onFrame, prog, useReducedMotion } from "./motion";
+import { ease, lerp, onFrame, prog, useReducedMotion } from "./motion";
 import { InterviewCamScreen } from "./screens";
 
 /*
@@ -17,10 +17,8 @@ import { InterviewCamScreen } from "./screens";
  * finished site and four homepages slide out from behind it into a mirrored layout.
  * Loops every 16 s.
  *
- * Collapse: over the first 0.9 viewport heights of scroll the fixed stage shrinks
- * into the first grid tile (#slot-stage) and fades; the gallery in that tile
- * takes over. One progress value drives the stage box; the world inside keeps
- * its full-screen layout and is scaled to fit.
+ * The stage belongs to this section and scrolls away with it. The gallery below
+ * reveals independently; no fixed overlay or shared scroll geometry is needed.
  */
 
 const SAY = "Got it. I'll build your website.";
@@ -38,36 +36,56 @@ interface Slot {
 export function Hero() {
     const reduced = useReducedMotion();
     const heroRef = useRef<HTMLElement>(null);
+    const cameraOn = useRef(true);
     const [camEpoch, setCamEpoch] = useState(0);
-    const [docked, setDocked] = useState(false);
+    const [cameraPlaying, setCameraPlaying] = useState(true);
 
     useEffect(() => {
         const hero = heroRef.current;
         if (!hero) return;
-        const stage = hero.querySelector<HTMLElement>(".stage")!;
         const world = hero.querySelector<HTMLElement>(".world")!;
-        const copy = hero.querySelector<HTMLElement>(".hero-copy")!;
         const phoneEl = hero.querySelector<HTMLElement>(".hero-phone")!;
         const buddyEl = hero.querySelector<HTMLElement>(".buddy")!;
         const say = hero.querySelector<HTMLElement>(".buddy-say")!;
         const bar = hero.querySelector<HTMLElement>(".buddy-load i")!;
         const cards = [...hero.querySelectorAll<HTMLElement>(".site-card")].map((el) => ({ el, w: 0, h: 0, blur: -1 }));
-        const slot = document.getElementById("slot-stage");
-        const slotRadius = slot ? parseFloat(getComputedStyle(slot).borderTopLeftRadius) || 40 : 40;
+        let mobile = false;
 
         let W = 0, H = 0, pw = 0, ph = 0, cx = 0, cy = 0;
         let slots: Slot[] = [];
         let t0: number | null = null;
         let mx = 0, my = 0, tx = 0, ty = 0;
-        let siteOn = false;
+        let siteOn = phoneEl.classList.contains("is-site");
         let n = -1;
-        let isDocked = false;
-        let lastY = -1;
+        let visible = false;
+        let stopFrames: (() => void) | undefined;
+        let pausedAt: number | null = null;
+        let resizeFrame = 0;
+
+        function syncPlayback() {
+            const playing = !reduced && !document.hidden && visible;
+            hero!.classList.toggle("is-paused", !playing);
+            if (playing && !stopFrames) {
+                if (pausedAt !== null && t0 !== null) t0 += performance.now() - pausedAt;
+                pausedAt = null;
+                stopFrames = onFrame(frame);
+            } else if (!playing && stopFrames) {
+                stopFrames();
+                stopFrames = undefined;
+                pausedAt = performance.now();
+            }
+            const nextCamera = playing && !siteOn;
+            if (nextCamera !== cameraOn.current) {
+                cameraOn.current = nextCamera;
+                setCameraPlaying(nextCamera);
+            }
+        }
 
         function layout() {
-            W = innerWidth;
-            H = innerHeight;
-            const mobile = W < 760;
+            // Match the stable 100svh section, not Safari's changing toolbar viewport.
+            W = hero!.clientWidth;
+            H = hero!.clientHeight;
+            mobile = W < 760;
             world.style.width = `${W}px`;
             world.style.height = `${H}px`;
             pw = mobile ? Math.round(Math.min(W * 0.46, H * 0.28)) : Math.round(Math.min(280, Math.max(220, H * 0.3)));
@@ -94,7 +112,6 @@ export function Hero() {
             buddyEl.style.setProperty("--bs", `${mobile ? 72 : 104}px`);
             buddyEl.style.left = `${cx + pw / 2 - (mobile ? 34 : 30)}px`;
             buddyEl.style.top = `${cy + ph / 2 - (mobile ? 40 : 160)}px`;
-            lastY = -1;
             hero!.classList.add("is-ready");
         }
 
@@ -116,6 +133,7 @@ export function Hero() {
                 siteOn = on;
                 phoneEl.classList.toggle("is-site", on);
                 if (!on) setCamEpoch((e) => e + 1);
+                syncPlayback();
             }
 
             // buddy + bubble
@@ -142,7 +160,7 @@ export function Hero() {
                 const sc = lerp(0.55, s.s, p);
                 c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(${sc.toFixed(4)}) perspective(1400px) rotateY(${(s.ry * p).toFixed(2)}deg)`;
                 c.el.style.opacity = prog(p, 0.05, 0.5).toFixed(3);
-                const blur = Math.round((s.blur + (1 - p) * 12) * 2) / 2;
+                const blur = mobile ? 0 : Math.round((s.blur + (1 - p) * 12) * 2) / 2;
                 if (blur !== c.blur) {
                     c.el.style.filter = blur ? `blur(${blur}px)` : "none";
                     c.blur = blur;
@@ -151,78 +169,39 @@ export function Hero() {
             });
         }
 
-        // the world keeps its full-screen layout; in the tile it is scaled to fit, centred
-        function fitWorld(w: number, h: number, p: number) {
-            const s = Math.min(w / W, h / H) * lerp(1, 1.08, clamp(p, 0, 1));
-            world.style.transform = `translate3d(${((w - W * s) / 2).toFixed(1)}px, ${((h - H * s) / 2).toFixed(1)}px, 0) scale(${s.toFixed(4)})`;
-        }
-
-        function collapse() {
-            if (!slot || reduced) return;
-            const y = window.scrollY;
-            if (y === lastY) return;
-            lastY = y;
-            const raw = clamp(y / (H * 0.9), 0, 1);
-            const p = ease.out(raw);
-            const c = prog(raw, 0, 0.38);
-            copy.style.opacity = (1 - c).toFixed(3);
-            copy.style.filter = c > 0.01 ? `blur(${(c * 10).toFixed(1)}px)` : "none";
-            copy.style.transform = `translate3d(0, ${(-c * 24).toFixed(1)}px, 0)`;
-            copy.style.visibility = c >= 1 ? "hidden" : "visible";
-            slot.style.setProperty("--gal", prog(raw, 0.55, 1).toFixed(3));
-            const dock = raw >= 1;
-            if (dock !== isDocked) {
-                isDocked = dock;
-                stage.classList.toggle("is-docked", dock);
-                slot.classList.toggle("is-docked", dock);
-                setDocked(dock);
-            }
-            if (dock) return;
-            const r = slot.getBoundingClientRect();
-            const w = lerp(W, r.width, p), h = lerp(H, r.height, p);
-            stage.style.left = `${lerp(0, r.left, p).toFixed(1)}px`;
-            stage.style.top = `${lerp(0, r.top, p).toFixed(1)}px`;
-            stage.style.width = `${w.toFixed(1)}px`;
-            stage.style.height = `${h.toFixed(1)}px`;
-            stage.style.borderRadius = `${lerp(0, slotRadius, p).toFixed(1)}px`;
-            stage.style.opacity = (1 - 0.85 * prog(raw, 0.7, 1)).toFixed(3);
-            fitWorld(w, h, p);
-        }
-
         const onMove = (e: PointerEvent) => {
             if (e.pointerType !== "mouse") return;
             tx = (e.clientX / innerWidth - 0.5) * 2;
             ty = (e.clientY / innerHeight - 0.5) * 2;
         };
         const onResize = () => {
-            layout();
-            if (reduced) {
-                fitWorld(hero!.clientWidth, hero!.clientHeight, 0);
-                frame(performance.now());
-            }
-            collapse();
+            if (resizeFrame) return;
+            resizeFrame = requestAnimationFrame(() => {
+                resizeFrame = 0;
+                layout();
+                frame(pausedAt ?? performance.now());
+            });
         };
 
         layout();
-        if (reduced) {
-            hero.classList.add("is-static");
-            slot?.style.setProperty("--gal", "1");
-            fitWorld(hero.clientWidth, hero.clientHeight, 0);
-            frame(performance.now());
-        }
-        collapse();
+        hero.classList.toggle("is-static", reduced);
+        frame(performance.now());
+        const io = new IntersectionObserver(([entry]) => {
+            visible = entry.isIntersecting && entry.intersectionRatio >= 0.01;
+            syncPlayback();
+        }, { threshold: 0.01 });
+        io.observe(hero);
+        syncPlayback();
         addEventListener("resize", onResize);
         addEventListener("pointermove", onMove, { passive: true });
-        const off = reduced
-            ? () => {}
-            : onFrame((now) => {
-                  collapse();
-                  if (!isDocked) frame(now);
-              });
+        document.addEventListener("visibilitychange", syncPlayback);
         return () => {
-            off();
+            stopFrames?.();
+            io.disconnect();
+            if (resizeFrame) cancelAnimationFrame(resizeFrame);
             removeEventListener("resize", onResize);
             removeEventListener("pointermove", onMove);
+            document.removeEventListener("visibilitychange", syncPlayback);
         };
     }, [reduced]);
 
@@ -245,7 +224,7 @@ export function Hero() {
                         ))}
                         <div className="hero-phone">
                             <PhoneFrame size="md" theme="dark">
-                                <InterviewCamScreen playing={!docked} epoch={camEpoch} priority />
+                                <InterviewCamScreen playing={cameraPlaying} epoch={camEpoch} priority />
                                 <div className="hero-site">
                                     <Image src={`${A}/sites/forge-m-long.webp`} alt="" width={600} height={4000} sizes="300px" />
                                 </div>

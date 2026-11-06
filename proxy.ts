@@ -157,7 +157,10 @@ export default clerkMiddleware(async (auth, req) => {
         return NextResponse.rewrite(url, { request: { headers } });
     }
 
-    if (isPublicRoute(req)) {
+    // Fictional email previews are available on a phone/tunnel during local design review only.
+    const isEmailDesignReview = process.env.NODE_ENV === 'development'
+        && ['/design-review/emails', '/design-review/emails/proposals'].includes(req.nextUrl.pathname);
+    if (isPublicRoute(req) || isEmailDesignReview) {
         return;
     }
     // Next.js 16 renamed middleware→proxy. In the proxy runtime, a bare
