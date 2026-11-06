@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { FunnelFallback, FunnelFrame } from "@/app/training/_funnel/FunnelFrame";
+import { OnboardingLoading, OnboardingShell } from "@/components/field-agent-onboarding/OnboardingShell";
 import { api } from "@/convex/_generated/api";
 
 import { QuizStep } from "./_components/QuizStep";
@@ -27,11 +27,11 @@ export default function CertificationQuizPage() {
         if (creator && creator.role === "admin") router.push("/admin");
     }, [creator, router]);
 
-    if (!isLoaded || creator === undefined || creator?.role === "affiliate" || creator?.role === "staff" || creator?.role === "admin") return <FunnelFallback view={3} />;
+    if (!isLoaded || creator === undefined || creator?.role === "affiliate" || creator?.role === "staff" || creator?.role === "admin") return <OnboardingLoading stage="quiz" />;
 
     return (
-        <FunnelFrame view={3} creator={creator}>
-            <QuizStep creatorId={creator?._id} />
-        </FunnelFrame>
+        <OnboardingShell stage="quiz" creator={creator} title="Certification quiz" description="Five questions. Get four right to pass. You can try again as often as you need.">
+            <QuizStep key={creator?._id ?? "no-creator"} creatorId={creator?._id} />
+        </OnboardingShell>
     );
 }

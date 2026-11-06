@@ -1,63 +1,62 @@
 "use client";
 
 import { useMutation } from "convex/react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, RotateCw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCheck, CircleAlert, LoaderCircle, RotateCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
-import { FootActions, StepBody, StepCard } from "@/app/training/_funnel/FunnelFrame";
 import { LETTERS, PASS_MARK, QUIZ } from "@/app/training/_funnel/content";
-import { Button, ButtonLink, Icon, Status, cx } from "@/components/r1";
+import { Button } from "@/components/v2/Button";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import styles from "./Quiz.module.css";
 
-/**
- * Stage 3, the certification quiz (board Certification). The same five
- * questions, answers and pass mark (4 of 5) as before, one at a time: pick,
- * check, see the right answer, go on. A pass writes quizPassedAt; a fail
- * offers another try at once (no limit, as before) or the lessons.
- *
- * The certificate is no longer shown here. Passing is not approval: it is
- * shown when the Tendso team approves (the end of /pending) and on Account.
- */
+/** Passing saves quiz progress; certification is granted separately by the team. */
 export function QuizStep({ creatorId }: { creatorId?: Id<"creators"> }) {
     const router = useRouter();
-    // Passing the quiz now marks the creator as quiz-passed (awaiting admin
-    // approval), matching mobile — NOT auto-certified. Admin approves in
-    // /admin/pending-approvals, which sets certifiedAt and releases the gate.
     const markQuizPassed = useMutation(api.creators.markQuizPassed);
-
     const [qi, setQi] = useState(0);
     const [sel, setSel] = useState<number | null>(null);
     const [checked, setChecked] = useState(false);
     const [answers, setAnswers] = useState<number[]>([]);
     const [phase, setPhase] = useState<"quiz" | "pass" | "fail">("quiz");
-    const [certifying, setCertifying] = useState(false);
-
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [saveError, setSaveError] = useState("");
+    const savingRef = useRef(false);
     const questionId = useId();
-    const questionRef = useRef<HTMLParagraphElement>(null);
-    const resultRef = useRef<HTMLDivElement>(null);
-
+    const questionRef = useRef<HTMLHeadingElement>(null);
+    const resultRef = useRef<HTMLHeadingElement>(null);
     const q = QUIZ[qi];
     const last = qi === QUIZ.length - 1;
-    const score = answers.filter((a, i) => a === QUIZ[i].correct).length;
+    const score = answers.filter((answer, index) => answer === QUIZ[index]?.correct).length;
 
-    // Move focus to what just changed, after React has drawn it.
-    const focusSoon = (el: { current: HTMLElement | null }) => requestAnimationFrame(() => el.current?.focus());
+    const focusSoon = (ref: { current: HTMLElement | null }) => requestAnimationFrame(() => ref.current?.focus());
 
-    const pick = (i: number) => {
-        if (!checked) setSel(i);
-    };
+    async function savePass() {
+        if (savingRef.current || saved) return;
+        if (!creatorId) {
+            setSaveError("Sign in again before submitting your quiz result.");
+            return;
+        }
+        savingRef.current = true;
+        setSaving(true);
+        setSaveError("");
+        try {
+            await markQuizPassed({ id: creatorId });
+            setSaved(true);
+        } catch {
+            setSaveError("We couldn’t save your result. Check your connection and try again. Your answers are still here.");
+        } finally {
+            savingRef.current = false;
+            setSaving(false);
+        }
+    }
 
-    const check = () => {
-        if (sel !== null) setChecked(true);
-    };
-
-    const next = async () => {
-        if (sel === null || certifying) return;
-        const newAnswers = [...answers, sel];
-        setAnswers(newAnswers);
-
+    async function next() {
+        if (sel === null || !checked || savingRef.current) return;
+        const nextAnswers = [...answers, sel];
+        setAnswers(nextAnswers);
         if (!last) {
             setQi(qi + 1);
             setSel(null);
@@ -65,251 +64,99 @@ export function QuizStep({ creatorId }: { creatorId?: Id<"creators"> }) {
             focusSoon(questionRef);
             return;
         }
-
-        const finalScore = newAnswers.filter((a, i) => a === QUIZ[i].correct).length;
-        if (finalScore >= PASS_MARK) {
-            setCertifying(true);
-            try {
-                if (creatorId) await markQuizPassed({ id: creatorId });
-            } catch (e) {
-                console.error("Marking quiz passed failed:", e);
-            }
-            setCertifying(false);
-            setPhase("pass");
-        } else {
-            setPhase("fail");
-        }
+        const passed = nextAnswers.filter((answer, index) => answer === QUIZ[index].correct).length >= PASS_MARK;
+        setPhase(passed ? "pass" : "fail");
         focusSoon(resultRef);
-    };
+        if (passed) await savePass();
+    }
 
-    const retry = () => {
+    function retry() {
         setQi(0);
         setSel(null);
         setChecked(false);
         setAnswers([]);
+        setSaved(false);
+        setSaveError("");
         setPhase("quiz");
         focusSoon(questionRef);
-    };
-
-    const reviewMissed = () => {
-        const missed = QUIZ.findIndex((qq, i) => answers[i] !== qq.correct);
-        router.push(missed >= 0 ? `/training-lessons?lesson=${missed + 1}` : "/training-lessons");
-    };
-
-    const intro = `${QUIZ.length} questions from the lessons. Get ${PASS_MARK} right to pass. You can try again as often as you need.`;
-
-    // ── Result ──────────────────────────────────────────────────────────────
-    if (phase !== "quiz") {
-        const passed = phase === "pass";
-        const missed = QUIZ.filter((qq, i) => answers[i] !== qq.correct).map((qq) => qq.category);
-        return (
-            <StepCard
-                title="Certification quiz"
-                intro={intro}
-                foot={
-                    passed ? (
-                        <>
-                            <span className="t-meta">Nothing else to do after this.</span>
-                            <FootActions>
-                                <ButtonLink variant="primary" href="/pending">
-                                    Continue
-                                    <Icon icon={ArrowRight} />
-                                </ButtonLink>
-                            </FootActions>
-                        </>
-                    ) : (
-                        <>
-                            <span className="t-meta">{missed.length > 0 ? `Missed: ${missed.join(", ")}.` : ""}</span>
-                            <FootActions>
-                                <Button onClick={retry}>
-                                    <Icon icon={RotateCw} />
-                                    Try again
-                                </Button>
-                                <Button variant="primary" onClick={reviewMissed}>
-                                    <Icon icon={BookOpen} />
-                                    Review the lessons
-                                </Button>
-                            </FootActions>
-                        </>
-                    )
-                }
-            >
-                <StepBody>
-                    <div ref={resultRef} tabIndex={-1} className="flex items-center gap-4">
-                        <span className="t-figure">
-                            {score}/{QUIZ.length}
-                        </span>
-                        <div className="flex flex-col gap-1">
-                            {passed ? (
-                                <>
-                                    <Status tone="done" word="Passed" />
-                                    <p className="t-body">
-                                        The pass mark is {PASS_MARK} of {QUIZ.length}. Your application now goes to the Tendso team for approval.
-                                    </p>
-                                </>
-                            ) : (
-                                <>
-                                    <Status tone="bad" word="Not passed" />
-                                    <p className="t-body">
-                                        You need {PASS_MARK} of {QUIZ.length} to pass. Review the lessons you missed, then try again. There is no limit on
-                                        attempts.
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <div className="t-list overflow-hidden rounded-r1-card border border-r1-line">
-                        {QUIZ.map((qq, i) => {
-                            const ok = answers[i] === qq.correct;
-                            return (
-                                <div key={qq.question} className="t-row">
-                                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                        <span className="t-label">{qq.category}</span>
-                                        <span className="t-body">{qq.question}</span>
-                                    </div>
-                                    <Status tone={ok ? "done" : "bad"} word={ok ? "Right" : "Missed"} />
-                                </div>
-                            );
-                        })}
-                    </div>
-                </StepBody>
-            </StepCard>
-        );
     }
 
-    // ── Answering ───────────────────────────────────────────────────────────
-    return (
-        <StepCard
-            title="Certification quiz"
-            intro={intro}
-            foot={
-                <>
-                    <ButtonLink variant="ghost" href="/training-lessons" className="self-start">
-                        <Icon icon={ArrowLeft} />
-                        Back to lessons
-                    </ButtonLink>
-                    <FootActions>
-                        {!checked && sel === null && <span className="t-meta">Pick one answer</span>}
-                        {/* One button that changes job, so focus stays on it from "Check answer" to "Next". */}
-                        <Button
-                            variant="primary"
-                            onClick={checked ? next : check}
-                            disabled={(!checked && sel === null) || certifying}
-                            aria-busy={certifying}
-                        >
-                            {!checked ? (
-                                "Check answer"
-                            ) : certifying ? (
-                                "Saving…"
-                            ) : (
-                                <>
-                                    {last ? "See result" : "Next question"}
-                                    <Icon icon={ArrowRight} />
-                                </>
-                            )}
-                        </Button>
-                    </FootActions>
-                </>
-            }
-        >
-            <StepBody>
-                <div className="flex flex-col gap-2.5">
-                    <div className="flex justify-between gap-4">
-                        <span className="t-label t-num">
-                            Question {qi + 1} of {QUIZ.length}
-                        </span>
-                        <span className="t-label text-right">
-                            From lesson {qi + 1}: {q.category}
-                        </span>
-                    </div>
-                    <div className="flex gap-1" aria-hidden="true">
-                        {QUIZ.map((qq, i) => (
-                            <span
-                                key={qq.question}
-                                className={cx(
-                                    "h-1 flex-1 rounded-full",
-                                    i < qi || (i === qi && checked) ? "bg-r1-ink" : i === qi ? "bg-r1-ink-4" : "bg-r1-line",
-                                )}
-                            />
-                        ))}
-                    </div>
-                </div>
+    function reviewMissed() {
+        const missed = QUIZ.findIndex((question, index) => answers[index] !== question.correct);
+        router.push(missed >= 0 ? `/training-lessons?lesson=${missed + 1}` : "/training-lessons");
+    }
 
-                <p ref={questionRef} tabIndex={-1} id={questionId} className="text-xl font-semibold leading-7 tracking-[-0.01em] text-r1-ink">
-                    {q.question}
-                </p>
+    if (phase !== "quiz") {
+        const passed = phase === "pass";
+        return <section className={styles.results} aria-labelledby={questionId}>
+            <div className={styles.resultHero}>
+                <span className={`${styles.resultIcon} ${passed ? styles.passedIcon : ""}`} aria-hidden="true">{passed ? <Check size={36} strokeWidth={1.8} /> : <RotateCw size={32} strokeWidth={1.8} />}</span>
+                <p className={styles.eyebrow}>{passed ? "Quiz passed" : "Keep going"}</p>
+                <h2 id={questionId} ref={resultRef} tabIndex={-1} className={styles.resultTitle}>{passed ? "You passed the quiz." : "Let’s try that again."}</h2>
+                <p className={styles.score}>{score}<span> / {QUIZ.length}</span></p>
+                <p className={styles.resultDescription}>{passed
+                    ? "Nice work. The Tendso team checks your profile before you can start submitting shops."
+                    : `You need ${PASS_MARK} correct answers to pass. Review the topics below, then give it another go. You can try again as often as you need.`}</p>
+                {passed ? <div className={styles.saveStatus} aria-live="polite">
+                    {saving ? <p><LoaderCircle className={styles.spinner} size={18} aria-hidden="true" />Saving your result…</p> : saved ? <p><CheckCheck size={18} aria-hidden="true" />Your quiz pass is saved.</p> : null}
+                </div> : null}
+            </div>
 
-                {/* A radio group drawn as the board's option cards (the kit's "Radio
-                    cards"): the whole card is the target and arrow keys move between
-                    answers. Once checked, the answers lock. */}
-                <div role="radiogroup" aria-labelledby={questionId} className="flex flex-col gap-2">
-                    {q.options.map((option, i) => {
-                        const state = !checked ? (sel === i ? "picked" : "idle") : i === q.correct ? "right" : i === sel ? "wrong" : "idle";
-                        const inked = state === "picked" || state === "right";
-                        return (
-                            <label
-                                key={option}
-                                className={cx(
-                                    // relative: keeps the visually hidden radio inside its card, so focusing it never scrolls the page.
-                                    "relative flex min-h-14 w-full items-center gap-3 rounded-r1 border bg-r1-paper px-4 py-3 text-left text-sm leading-5 text-r1-ink",
-                                    "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-r1-gold",
-                                    checked ? "cursor-default" : "cursor-pointer hover:bg-r1-fill-row",
-                                    inked
-                                        ? "border-r1-ink shadow-[inset_0_0_0_1px_var(--r1-ink)]"
-                                        : state === "wrong"
-                                          ? "border-r1-red shadow-[inset_0_0_0_1px_var(--r1-red)]"
-                                          : "border-r1-line-2",
-                                )}
-                            >
-                                <input
-                                    type="radio"
-                                    name={`question-${qi}`}
-                                    value={i}
-                                    checked={sel === i}
-                                    disabled={checked && sel !== i}
-                                    aria-disabled={checked || undefined}
-                                    onChange={() => pick(i)}
-                                    className="sr-only"
-                                />
-                                <span
-                                    className={cx(
-                                        "inline-flex h-7 w-7 flex-none items-center justify-center rounded-full text-xs font-semibold",
-                                        inked ? "bg-r1-ink text-r1-paper" : state === "wrong" ? "bg-r1-red-bg text-r1-red" : "bg-r1-fill text-r1-ink-2",
-                                    )}
-                                >
-                                    {LETTERS[i]}
-                                </span>
-                                <span className="min-w-0 flex-1">{option}</span>
-                                {/* On a phone the icon carries the note (the words stay for screen
-                                    readers) and the line under the options says it in full. */}
-                                {state === "right" && (
-                                    <span className="flex flex-none items-center gap-1.5 text-[13px] leading-[18px] text-r1-ink">
-                                        <Icon icon={Check} />
-                                        <span className="max-sm:sr-only">Correct answer</span>
-                                    </span>
-                                )}
-                                {state === "wrong" && (
-                                    <span className="flex flex-none items-center gap-1.5 text-[13px] leading-[18px] text-r1-red">
-                                        <Icon icon={X} />
-                                        <span className="max-sm:sr-only">Your answer</span>
-                                    </span>
-                                )}
-                            </label>
-                        );
-                    })}
-                </div>
+            {saveError ? <div className={styles.error} role="alert"><CircleAlert size={21} aria-hidden="true" /><p>{saveError}</p></div> : null}
 
-                <div role="status">
-                    {checked &&
-                        (sel === q.correct ? (
-                            <Status tone="done" word="Correct." />
-                        ) : (
-                            <Status tone="bad" className="whitespace-normal">
-                                Not quite. The answer is {LETTERS[q.correct]}, “{q.options[q.correct]}.”
-                            </Status>
-                        ))}
-                </div>
-            </StepBody>
-        </StepCard>
-    );
+            <div className={styles.resultList}>
+                <div className={styles.listHeading}><h3>Your answers</h3><span>{score} correct · {QUIZ.length - score} to review</span></div>
+                <ul>{QUIZ.map((question, index) => {
+                    const correct = answers[index] === question.correct;
+                    return <li key={question.question}>
+                        <span className={`${styles.answerIcon} ${correct ? styles.answerCorrect : styles.answerMissed}`} aria-hidden="true">{correct ? <Check size={17} /> : <BookOpen size={17} />}</span>
+                        <div className={styles.answerSummary}><strong>{question.category}</strong><p>{question.question}</p></div>
+                        <span className={`${styles.resultLabel} ${correct ? styles.labelCorrect : styles.labelMissed}`}>{correct ? "Correct" : "Review"}</span>
+                    </li>;
+                })}</ul>
+            </div>
+
+            <div className={styles.resultActions}>
+                {passed ? saved ? <Button href="/pending" size="lg">Continue to review <ArrowRight size={18} aria-hidden="true" /></Button>
+                    : creatorId ? <Button size="lg" onClick={savePass} disabled={saving} aria-busy={saving}>{saving ? "Saving…" : "Retry saving result"}{!saving ? <RotateCw size={18} aria-hidden="true" /> : null}</Button>
+                        : <Button href="/login" size="lg">Sign in again <ArrowRight size={18} aria-hidden="true" /></Button>
+                    : <><Button size="lg" onClick={retry}>Try again <RotateCw size={18} aria-hidden="true" /></Button><Button variant="ghost" size="lg" onClick={reviewMissed}><BookOpen size={18} aria-hidden="true" />Review the lessons</Button></>}
+                {passed && saved ? <p>Approval is the next step. Your certificate appears after the team approves your profile.</p> : null}
+            </div>
+        </section>;
+    }
+
+    return <section className={styles.quiz} aria-labelledby={questionId}>
+        <div className={styles.progressHeader}><p>Question {qi + 1} <span>of {QUIZ.length}</span></p><span className={styles.topic}>{q.category}</span></div>
+        <div className={styles.progress} role="progressbar" aria-label="Quiz progress" aria-valuemin={0} aria-valuemax={QUIZ.length} aria-valuenow={qi + 1} aria-valuetext={`Question ${qi + 1} of ${QUIZ.length}`}>
+            {QUIZ.map((question, index) => <span key={question.question} data-state={index < qi ? "done" : index === qi ? "current" : "next"} />)}
+        </div>
+        <div className={styles.questionStage}>
+            <p className={styles.eyebrow}>From lesson {qi + 1}</p>
+            <h2 id={questionId} ref={questionRef} tabIndex={-1} className={styles.question}>{q.question}</h2>
+            <div role="radiogroup" aria-labelledby={questionId} className={styles.options}>
+                {q.options.map((option, index) => {
+                    const state = !checked ? sel === index ? "picked" : "idle" : index === q.correct ? "right" : index === sel ? "wrong" : "idle";
+                    return <label key={option} className={styles.option} data-state={state} data-locked={checked || undefined}>
+                        <input type="radio" name={`question-${qi}`} value={index} checked={sel === index} disabled={checked}
+                            onChange={() => { if (!checked) setSel(index); }} className={styles.radio} />
+                        <span className={styles.letter} aria-hidden="true">{LETTERS[index]}</span>
+                        <span className={styles.optionText}>{option}</span>
+                        {state === "right" ? <span className={styles.optionNote}><Check size={20} aria-hidden="true" /><span className={styles.srOnly}>Correct answer</span></span> : state === "wrong" ? <span className={styles.optionNote}><X size={20} aria-hidden="true" /><span className={styles.srOnly}>Your answer</span></span> : null}
+                    </label>;
+                })}
+            </div>
+            <div className={styles.feedback} role="status" aria-live="polite">
+                {checked ? sel === q.correct ? <p data-correct="true"><Check size={19} aria-hidden="true" />That’s right.</p>
+                    : <p><CircleAlert size={19} aria-hidden="true" /><span>Not quite. The correct answer is {LETTERS[q.correct]}: {q.options[q.correct]}.</span></p>
+                    : <p className={styles.chooseHint}>{sel === null ? "Choose one answer, then check it." : "Ready? Check your answer below."}</p>}
+            </div>
+        </div>
+        <div className={styles.actions}>
+            <Button variant="ghost" href="/training-lessons"><ArrowLeft size={17} aria-hidden="true" />Back to lessons</Button>
+            <Button size="lg" onClick={checked ? next : () => { if (sel !== null) setChecked(true); }} disabled={sel === null || saving} aria-busy={saving}>
+                {!checked ? "Check answer" : last ? "See result" : "Next question"}{checked ? <ArrowRight size={18} aria-hidden="true" /> : null}
+            </Button>
+        </div>
+    </section>;
 }

@@ -1,0 +1,42 @@
+.notice{display:flex;align-items:flex-start;gap:16px;padding:24px;border:1px solid #edcb9a;border-radius:24px;background:#fff3df;color:#653b13}
+.warningIcon{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;background:#fff;color:#ad570b}
+.eyebrow{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9c4d08}
+.notice h2,.savedQuiz h2,.card h2{margin:5px 0 0;font-size:20px;line-height:1.25;font-weight:650;letter-spacing:-.035em}
+.reason{margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.55}
+.notice small{font-size:12px;color:#8c663b}
+.savedQuiz{display:flex;align-items:center;gap:14px;margin-top:16px;padding:20px 24px;border:1px solid #e8e8e1;background:#fff;border-radius:22px}
+.savedQuiz h2{margin:0;font-size:16px}
+.savedQuiz p,.cardHead p{margin:5px 0 0;font-size:14px;line-height:1.5;color:#686a61}
+.checkIcon,.unfinishedIcon{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;background:#e4f326;color:#14150e}
+.unfinishedIcon{background:#efefea;color:#77796e}
+.card{margin-top:24px;padding:28px;background:#fff;border:1px solid #e8e8e1;border-radius:28px;box-shadow:0 10px 30px #30321c05}
+.cardHead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.card h2{margin:0;font-size:24px}
+.details{margin:0}
+.details>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px solid #efefea}
+.details dt{color:#73756c;font-size:14px}
+.details dd{margin:0;overflow-wrap:anywhere;font-size:15px;font-weight:550}
+.actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:26px}
+.support{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 8px;margin:24px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#6e7066}
+.support a{display:inline-flex;align-items:center;gap:4px;color:#11130c;text-decoration:underline;text-underline-offset:3px}
+.formFields{display:flex;flex-direction:column;gap:20px;margin:0;padding:0;border:0;min-width:0}
+.photoRow{display:flex;align-items:center;gap:16px}
+.avatar,.initials{flex:none;width:72px;height:72px;object-fit:cover;border-radius:50%;background:#f1f6c3}
+.initials{display:grid;place-items:center;font-size:24px;font-weight:600;color:#292c16}
+.nameFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.field{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0;font-size:14px;font-weight:550;color:#21231b}
+.field input{display:block;width:100%;min-height:52px;padding:12px 15px;border:1px solid #dfdfd6;border-radius:13px;background:#fafbf7;font:inherit;font-size:16px;color:#15170e;outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus-visible{border-color:#24271b;box-shadow:0 0 0 3px #e7f32f50;background:#fff}
+.field input[aria-invalid=true]{border-color:#be3e1f}
+.field input:disabled{opacity:.7}
+.optional{font-size:12px;font-weight:400;color:#818376}
+.fieldLabel{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.help{margin:7px 0 0;font-size:12px;font-weight:400;line-height:1.45;color:#74766d}
+.field .help{margin:0}
+.email{display:flex;align-items:flex-start;gap:12px;padding:15px 17px;border-radius:15px;background:#f5f5f0;color:#7a7c72}
+.email div{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:13px}
+.email strong{font-size:15px;font-weight:500;overflow-wrap:anywhere;color:#4c4e43}
+.email small{font-size:12px;color:#85877d}
+.error{margin:8px 0 0;font-size:13px;font-weight:450;line-height:1.45;color:#b3391b;overflow-wrap:anywhere}
+.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:600px){.notice{padding:20px 18px;gap:12px;border-radius:20px}.warningIcon{width:38px;height:38px}.notice h2{font-size:19px}.card{padding:22px 18px;border-radius:22px}.card h2{font-size:22px}.savedQuiz{padding:18px}.details>div{grid-template-columns:80px minmax(0,1fr);gap:12px}.nameFields{grid-template-columns:1fr}.actions>*{flex:1;min-width:140px}.photoRow{gap:12px}.avatar,.initials{width:64px;height:64px}}

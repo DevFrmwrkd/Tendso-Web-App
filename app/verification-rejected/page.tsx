@@ -1,101 +1,118 @@
 "use client";
 
-/**
- * Creator "application not approved" screen — the bounce target when an admin
- * sets rejectedAt. Shows the stored rejectionReason. Minimal by design (the
- * brief scopes resubmission as separate follow-up work); only escape is sign out
- * or contacting support. Auto-routes away if the admin later re-approves/clears.
- *
- * See docs/changes/CREATOR-PENDING-APPROVAL-PAGE.md.
- *
- * Round 1: the rejected state of the certification frame (board
- * Certification, stage 4 "Not approved"). Same guards, same reason.
- */
-
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
-import { ArrowRight } from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
+import { ArrowRight, Check, CircleHelp, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { FootActions, FunnelFallback, FunnelFrame, NoteBlock, StepBody, StepCard, useSignOutToLogin } from "@/app/training/_funnel/FunnelFrame";
-import { Button, ButtonLink, Icon, Status, creatorStatus } from "@/components/r1";
+import { OnboardingLoading, OnboardingShell } from "@/components/field-agent-onboarding/OnboardingShell";
+import { Button } from "@/components/v2/Button";
 import { api } from "@/convex/_generated/api";
-import { SUPPORT_EMAIL } from "@/lib/contact";
 import { isCreatorAccount } from "@/lib/accounts";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
+import { RejectedProfileForm } from "./_components/RejectedProfileForm";
+import styles from "./_components/ProfileReview.module.css";
+
+/** Rejection is a profile correction, not a request to repeat a passed quiz. */
 export default function VerificationRejectedPage() {
     const { user, isLoaded, isSignedIn } = useUser();
     const router = useRouter();
-    const signOut = useSignOutToLogin();
-
     const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
+    const requestRecertification = useMutation(api.creators.requestRecertification);
+    const [editing, setEditing] = useState(false);
+    const [finishing, setFinishing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const finishingRef = useRef(false);
+    const currentCreator = useRef(creator);
+    currentCreator.current = creator;
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) router.replace("/login");
     }, [isLoaded, isSignedIn, router]);
 
-    // If the admin re-approves or clears the rejection, route them onward.
     useEffect(() => {
-        if (creator === undefined || creator === null) return;
-        if (creator.role === "affiliate") {
-            router.replace("/affiliates/dashboard");
-            return;
-        }
-        if (creator.role === "staff") {
-            router.replace("/admin");
-            return;
-        }
-        if (creator.role === "admin" || creator.certifiedAt) {
-            router.replace("/dashboard");
-        } else if (!creator.rejectedAt) {
-            // Rejection cleared (admin reset) → back to the normal flow.
-            router.replace(creator.quizPassedAt ? "/pending" : "/training");
-        }
+        if (!creator) return;
+        if (creator.role === "affiliate") router.replace("/affiliates/dashboard");
+        else if (creator.role === "staff") router.replace("/admin");
+        else if (creator.role === "admin" || creator.certifiedAt) router.replace("/dashboard");
+        else if (!creator.rejectedAt) router.replace(creator.quizPassedAt ? "/pending" : "/training");
     }, [creator, router]);
 
-    const rejected = !!creator && isCreatorAccount(creator) && !!creator.rejectedAt;
+    const rejected = !!creator && isCreatorAccount(creator) && !!creator.rejectedAt && !creator.certifiedAt;
+    if (!isLoaded || !isSignedIn || !creator || !rejected) return <OnboardingLoading stage="changes" creator={creator} />;
 
-    if (!isLoaded || !isSignedIn || !creator || !rejected) return <FunnelFallback view="rejected" creator={creator} />;
+    const passed = !!creator.quizPassedAt;
+    const reviewedOn = new Date(creator.rejectedAt!).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+    const fullName = [creator.firstName, creator.lastName].filter(Boolean).join(" ") || "Name not added";
 
-    const firstName = creator.firstName?.trim();
-    const reason = creator.rejectionReason;
+    // Only legacy rejected accounts without a saved pass use the old reset.
+    const finishCertification = async () => {
+        if (creator.quizPassedAt || finishingRef.current) return;
+        const accountId = creator._id;
+        finishingRef.current = true;
+        setFinishing(true);
+        setError(null);
+        try {
+            await requestRecertification({ id: accountId });
+            if (currentCreator.current?._id === accountId && !currentCreator.current?.certifiedAt) router.replace("/training");
+        } catch (err) {
+            if (currentCreator.current?._id === accountId) setError(err instanceof Error ? err.message : "Could not continue. Please try again.");
+        } finally {
+            finishingRef.current = false;
+            setFinishing(false);
+        }
+    };
 
     return (
-        <FunnelFrame view="rejected" creator={creator}>
-            <StepCard
-                status={<Status {...creatorStatus(creator, "creator")} />}
-                title="Application not approved"
-                intro={`${firstName ? `${firstName}, we` : "We"} weren't able to approve your creator account this time.`}
-                foot={
-                    <>
-                        <Button variant="ghost" onClick={signOut} className="self-start">
-                            Sign out
-                        </Button>
-                        <FootActions>
-                            <ButtonLink variant="primary" href="/contact">
-                                Contact support
-                                <Icon icon={ArrowRight} />
-                            </ButtonLink>
-                        </FootActions>
-                    </>
-                }
-            >
-                <StepBody>
-                    {reason && (
-                        <NoteBlock label="Reason from the Tendso team">
-                            <p className="t-body">{reason}</p>
-                        </NoteBlock>
-                    )}
-                    <p className="t-body">
-                        Think this is a mistake? Contact us and we&apos;ll take another look. You can also email{" "}
-                        <a className="t-link font-medium" href={`mailto:${SUPPORT_EMAIL}`}>
-                            {SUPPORT_EMAIL}
-                        </a>
-                        .
-                    </p>
-                </StepBody>
-            </StepCard>
-        </FunnelFrame>
+        <OnboardingShell
+            stage="changes"
+            creator={creator}
+            title="Your profile needs an update"
+            description="Review the team's feedback and correct your details so we can take another look."
+        >
+            <section className={styles.notice} aria-labelledby="review-feedback-title">
+                <span className={styles.warningIcon}><TriangleAlert size={24} aria-hidden="true" /></span>
+                <div>
+                    <span className={styles.eyebrow}>Action needed</span>
+                    <h2 id="review-feedback-title">What needs fixing</h2>
+                    <p className={styles.reason}>{creator.rejectionReason?.trim() || "We couldn't verify your profile yet. Check your name, mobile number and photo, then send your profile for another review."}</p>
+                    <small>Reviewed {reviewedOn}</small>
+                </div>
+            </section>
+
+            <div className={styles.savedQuiz}>
+                <span className={passed ? styles.checkIcon : styles.unfinishedIcon}>{passed ? <Check size={20} aria-hidden="true" /> : <CircleHelp size={20} aria-hidden="true" />}</span>
+                <div><h2>Certification quiz</h2><p>{passed ? "Passed. You don't need to take it again." : "Complete the lessons and quiz before requesting another review."}</p></div>
+            </div>
+
+            {passed && editing ? (
+                <RejectedProfileForm
+                    key={creator._id}
+                    creator={creator}
+                    onCancel={() => setEditing(false)}
+                    onSubmitted={() => router.replace("/pending")}
+                />
+            ) : (
+                <section className={styles.card} aria-labelledby="profile-details-title">
+                    <div className={styles.cardHead}><div><h2 id="profile-details-title">Your profile</h2><p>These are the details the team checks.</p></div></div>
+                    <dl className={styles.details}>
+                        <div><dt>Full name</dt><dd>{fullName}</dd></div>
+                        <div><dt>Mobile</dt><dd>{creator.phone || "Not added"}</dd></div>
+                        <div><dt>Email</dt><dd>{creator.email}</dd></div>
+                    </dl>
+                    <div className={styles.actions}>
+                        {passed ? <Button onClick={() => setEditing(true)}>Fix and resend <ArrowRight size={17} aria-hidden="true" /></Button> : <>
+                            <Button href="/edit-profile" variant="ghost">Edit profile</Button>
+                            <Button onClick={finishCertification} disabled={finishing} aria-busy={finishing}>{finishing ? "Opening certification…" : "Finish certification"}<ArrowRight size={17} aria-hidden="true" /></Button>
+                        </>}
+                    </div>
+                    {error && <p className={styles.error} role="alert">{error}</p>}
+                </section>
+            )}
+
+            <p className={styles.support}>Need help with the feedback? <a href={`mailto:${SUPPORT_EMAIL}`}>Ask the Tendso team <ArrowRight size={14} aria-hidden="true" /></a></p>
+        </OnboardingShell>
     );
 }

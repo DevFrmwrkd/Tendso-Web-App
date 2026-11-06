@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { FunnelFallback } from "@/app/training/_funnel/FunnelFrame";
+import { OnboardingLoading } from "@/components/field-agent-onboarding/OnboardingShell";
 import { LearnPage } from "@/app/training/_funnel/LearnPage";
 
 /**
@@ -10,7 +10,7 @@ import { LearnPage } from "@/app/training/_funnel/LearnPage";
  */
 export default function TrainingLessonsPage() {
     return (
-        <Suspense fallback={<FunnelFallback view={2} />}>
+        <Suspense fallback={<OnboardingLoading stage="learn" />}>
             <LearnPage guarded={false} />
         </Suspense>
     );
