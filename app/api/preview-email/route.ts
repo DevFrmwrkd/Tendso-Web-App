@@ -4,6 +4,8 @@ import { fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
+import { publishPolicyFor } from '@/convex/lib/ownerApp'
+import { ownerPreviewReadyEmail } from '@/lib/email/ownerV2Templates'
 
 /**
  * Preview the email that was (or would be) sent to the client.
@@ -95,12 +97,19 @@ export async function GET(request: NextRequest) {
                     applyUrl: `${baseUrl.replace(/\/$/, '')}/100-pages-giveaway`,
                     platformEmail: process.env.WISE_EMAIL,
                 })
+        } else if (type === 'approval' && publishPolicyFor(submission) === 'pay_then_publish') {
+            // Match sendOwnerPreviewEmail: preview approval comes before billing.
+            html = ownerPreviewReadyEmail({
+                businessName: submission.businessName,
+                ownerName: submission.ownerName,
+                appUrl: `${request.nextUrl.origin}/my-business/${encodeURIComponent(submissionId)}`,
+                priceText: `₱${(submission.amount ?? 0).toLocaleString('en-PH')}`,
+            }).html
         } else if (type === 'approval') {
             // Render the SAME template that send-website-email actually sends (payment-link
             // email). Fetch the existing payment token if any so the preview mirrors the
             // real email; otherwise show placeholder values.
-            const submissionAny = submission as any
-            const customDomain = submissionAny.requestedDomain as string | undefined
+            const customDomain = submission.requestedDomain
 
             let referenceCode = submission.paymentReference || 'ND-XXXX-XXXX'
             try {
@@ -122,7 +131,7 @@ export async function GET(request: NextRequest) {
                 referenceCode,
                 platformEmail: process.env.WISE_EMAIL,
                 customDomain,
-                domainCostPHP: (submission as any).domainCostPHP || undefined,
+                domainCostPHP: submission.domainCostPHP || undefined,
                 domainChargedPHP: submission.domainChargedPHP,
                 websiteListPrice: submission.websiteListPrice,
             })
@@ -156,32 +165,29 @@ export async function GET(request: NextRequest) {
                 platformEmail: process.env.WISE_EMAIL,
             })
         } else if (type === 'domain_setup_progress') {
-            const submissionAny = submission as any
-            const customDomain = (submissionAny.requestedDomain as string | undefined) || 'your-domain.com'
+            const customDomain = submission.requestedDomain || 'your-domain.com'
             html = getDomainSetupInProgressEmailHtml({
                 businessName: submission.businessName,
                 businessOwnerName: submission.ownerName,
                 customDomain,
             })
         } else if (type === 'domain_renewal_reminder') {
-            const submissionAny = submission as any
-            const customDomain = (submissionAny.requestedDomain as string | undefined) || 'your-domain.com'
+            const customDomain = submission.requestedDomain || 'your-domain.com'
             html = getDomainRenewalReminderEmailHtml({
                 businessName: submission.businessName,
                 businessOwnerName: submission.ownerName,
                 customDomain,
-                expiresAt: submissionAny.domainExpiresAt || Date.now() + 365 * 24 * 60 * 60 * 1000,
+                expiresAt: submission.domainExpiresAt || Date.now() + 365 * 24 * 60 * 60 * 1000,
             })
         } else if (type === 'completed_website') {
             // Branches on requestedDomain — same logic as send-completed-website-email
-            const submissionAny = submission as any
-            const customDomain = submissionAny.requestedDomain as string | undefined
+            const customDomain = submission.requestedDomain
             if (customDomain) {
                 html = getDomainLiveEmailHtml({
                     businessName: submission.businessName,
                     businessOwnerName: submission.ownerName,
                     customDomain,
-                    expiresAt: submissionAny.domainExpiresAt || Date.now() + 365 * 24 * 60 * 60 * 1000,
+                    expiresAt: submission.domainExpiresAt || Date.now() + 365 * 24 * 60 * 60 * 1000,
                 })
             } else {
                 html = getPaymentConfirmationEmailHtml({
@@ -204,10 +210,10 @@ export async function GET(request: NextRequest) {
             headers: { 'Content-Type': 'text/html' },
         })
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Preview email error:', error)
         return NextResponse.json(
-            { error: error.message || 'Failed to generate email preview' },
+            { error: error instanceof Error ? error.message : 'Failed to generate email preview' },
             { status: 500 }
         )
     }

@@ -858,9 +858,9 @@
   .pa .ab-join-photo { min-height: 260px; }
 }
 
-/* hero earnings line (Theo 2026-10-21): "Earn ₱30,000+ a month", with the example math under it */
+/* Earnings illustration, with the fully-paid-shop calculation underneath. */
 .pa .ag-earn-pill { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 24px; }
-.pa .ag-earn-pill b { display: inline-flex; align-items: center; height: 52px; padding: 0 22px; border-radius: 14px; background: var(--accent); color: var(--on-accent, #0C0A08); font-size: clamp(22px, 2vw, 28px); font-weight: 600; letter-spacing: -0.03em; white-space: nowrap; }
+.pa .ag-earn-pill b { display: inline-flex; align-items: center; max-width: 100%; min-height: 52px; padding: 12px 22px; border-radius: 14px; background: var(--accent); color: var(--on-accent, #0C0A08); font-size: clamp(22px, 2vw, 28px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; }
 .pa .ag-earn-pill span { font-size: 15px; color: var(--ink-2); line-height: 1.35; padding-left: 2px; }
 
 

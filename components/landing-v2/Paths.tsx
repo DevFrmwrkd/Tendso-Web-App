@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/v2";
 
@@ -212,21 +212,23 @@ export function Paths() {
                     Pick your way in.
                 </h2>
                 <div className="paths-grid">
-                    <div className="path-cell" data-reveal="" style={{ "--i": 0 } as CSSProperties}>
-                        <article className="v2-tile path path--download" id="download">
-                            <h3 className="path-line">Talk, snap, done. On your phone.</h3>
-                            <div className="path-foot dl">
-                                <StoreStatus variant="badges" />
-                            </div>
-                        </article>
+                    <div className="path-stack">
+                        <div className="path-cell path-cell--download">
+                            <article className="v2-tile path path--download" id="download">
+                                <h3 className="path-line">Talk, snap, done. On your phone.</h3>
+                                <div className="path-foot dl">
+                                    <StoreStatus variant="badges" />
+                                </div>
+                            </article>
+                        </div>
+                        <div className="path-cell path-cell--hire">
+                            <article className="v2-tile path path--hire" id="hire">
+                                <h3 className="path-line">A field agent visits your shop. About 30 minutes.</h3>
+                                <HireForm />
+                            </article>
+                        </div>
                     </div>
-                    <div className="path-cell" data-reveal="" style={{ "--i": 1 } as CSSProperties}>
-                        <article className="v2-tile path path--hire" id="hire">
-                            <h3 className="path-line">A field agent visits your shop. About 30 minutes.</h3>
-                            <HireForm />
-                        </article>
-                    </div>
-                    <div className="path-cell" data-reveal="" style={{ "--i": 2 } as CSSProperties}>
+                    <div className="path-cell path-cell--join">
                         <article className="v2-tile v2-tile--quiet path path--join" id="join">
                             <h3 className="path-line">Work with Tendso. Near you or online.</h3>
                             <figure className="join-photo">

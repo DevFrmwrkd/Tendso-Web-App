@@ -14,7 +14,7 @@
  * instead of cancel-then-rebook.
  *
  * Wears the same frame and the same calendar as /field-agent/book, from the
- * same components (Round 1, board BookCall: "Your call", "New time", "Done").
+ * same current Tendso components ("Your call", "New time", "Done").
  * It is the same flow at a later moment, so it should not look like a
  * different product.
  */
@@ -24,7 +24,7 @@ import { Suspense, useCallback, useEffect, useState, type ReactNode } from "reac
 import { useSearchParams } from "next/navigation";
 import { useAction, useQuery } from "convex/react";
 
-import { Button, ButtonLink, ConfirmDialog, EmptyState, ErrorState, Icon, Loading, Skeleton, Status, bookingStatus } from "@/components/r1";
+import { Button, ButtonLink, ConfirmDialog, EmptyState, ErrorState, Icon, Loading, Skeleton, Status, bookingStatus } from "../_components/BookingUI";
 import { api } from "@/convex/_generated/api";
 import BookingShell from "../_components/BookingShell";
 import { ActionBar, CallTicket, Notice, PickedTime } from "../_components/CallCard";
@@ -37,7 +37,7 @@ const STEPS = ["Your call", "New time", "Done"];
 function MessageCard({ children, action }: { children: ReactNode; action?: boolean }) {
     return (
         <div className="mx-auto w-full max-w-[560px]">
-            <div className="t-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6">
+            <div className="bk-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6">
                 {children}
                 {action && (
                     <ButtonLink variant="primary" href="/field-agent/book">
@@ -147,7 +147,7 @@ function ManageFlow() {
         return (
             <BookingShell title="Your 10-minute call">
                 <MessageCard>
-                    <p className="t-body">This link is missing its code. Open the link from your confirmation email.</p>
+                    <p className="bk-body">This link is missing its code. Open the link from your confirmation email.</p>
                 </MessageCard>
             </BookingShell>
         );
@@ -157,14 +157,14 @@ function ManageFlow() {
         return (
             <BookingShell title="Your 10-minute call">
                 <Loading label="Loading your booking" className="mx-auto w-full max-w-[560px]">
-                    <div className="t-card flex flex-col gap-4 p-5 sm:p-6" aria-hidden="true">
+                    <div className="bk-card flex flex-col gap-4 p-5 sm:p-6" aria-hidden="true">
                         <div className="flex items-center justify-between gap-4">
                             <Skeleton width={150} height={12} />
                             <Skeleton width={64} height={12} />
                         </div>
                         <Skeleton width={140} height={32} />
                         <Skeleton width={200} height={16} />
-                        <hr className="t-divider" />
+                        <hr className="bk-divider" />
                         <div className="grid grid-cols-2 gap-4">
                             {Array.from({ length: 4 }, (_, i) => (
                                 <div key={i} className="flex flex-col gap-2">
@@ -183,7 +183,7 @@ function ManageFlow() {
         return (
             <BookingShell title="Your 10-minute call">
                 <MessageCard action>
-                    <p className="t-body">That link is no longer valid. If you still need a call, book a new one.</p>
+                    <p className="bk-body">That link is no longer valid. If you still need a call, book a new one.</p>
                 </MessageCard>
             </BookingShell>
         );
@@ -195,11 +195,11 @@ function ManageFlow() {
         return (
             <BookingShell title="Your call is cancelled" steps={STEPS} current={STEPS.length}>
                 <div className="mx-auto w-full max-w-[560px]">
-                    <article className="t-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6" aria-label="Cancelled booking">
+                    <article className="bk-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6" aria-label="Cancelled booking">
                         <Status {...bookingStatus({ status: "cancelled" })} />
                         <div className="flex flex-col gap-1">
-                            <span className="t-h2 t-num line-through decoration-r1-ink-4">{when}</span>
-                            <p className="t-body">
+                            <span className="bk-h2 bk-num line-through decoration-[var(--bk-muted)]">{when}</span>
+                            <p className="bk-body">
                                 That time is open again, and we emailed you a confirmation. Your Meet link no longer works.
                             </p>
                         </div>
@@ -218,7 +218,7 @@ function ManageFlow() {
         return (
             <BookingShell title="Your call has moved" steps={STEPS} current={STEPS.length}>
                 <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4">
-                    <p className="t-meta t-num">
+                    <p className="bk-meta bk-num">
                         Moved from {formatDayShort(moved.fromMs)} · {formatTime(moved.fromMs)}.
                     </p>
                     <CallTicket
@@ -229,7 +229,7 @@ function ManageFlow() {
                         name={booking.name}
                         email={maskEmail(booking.email)}
                     >
-                        <p className="t-body">
+                        <p className="bk-body">
                             Your Google Meet link is unchanged, so the one you already have still works. We emailed you the new time.
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
@@ -269,8 +269,8 @@ function ManageFlow() {
                 <MessageCard action>
                     {wasCancelled && <Status {...bookingStatus({ status: "cancelled" })} />}
                     <div className="flex flex-col gap-1">
-                        <span className={wasCancelled ? "t-h2 t-num line-through decoration-r1-ink-4" : "t-h2 t-num"}>{when}</span>
-                        <p className="t-body">
+                        <span className={wasCancelled ? "bk-h2 bk-num line-through decoration-[var(--bk-muted)]" : "bk-h2 bk-num"}>{when}</span>
+                        <p className="bk-body">
                             {wasCancelled
                                 ? "This call was cancelled, and that time is already open again."
                                 : "This call has passed. Bookings can only be changed before they start."}
@@ -298,10 +298,10 @@ function ManageFlow() {
                             setLoadFailed(false);
                             setDays(null); // the effect above loads them again
                         }}
-                        className="t-card"
+                        className="bk-card"
                     />
                 ) : days?.length === 0 ? (
-                    <EmptyState className="t-card" title="No times are open right now." />
+                    <EmptyState className="bk-card" title="No times are open right now." />
                 ) : (
                     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
                         {days === null ? (
@@ -324,18 +324,18 @@ function ManageFlow() {
                             />
                         )}
 
-                        <aside className="t-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Moving your call">
-                            <h2 className="t-h2">Moving your call</h2>
+                        <aside className="bk-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Moving your call">
+                            <h2 className="bk-h2">Moving your call</h2>
                             <div className="flex flex-col gap-1">
-                                <span className="t-label">Now</span>
-                                <span className="t-body t-num">
+                                <span className="bk-label">Now</span>
+                                <span className="bk-body bk-num">
                                     {formatDayShort(booking.startMs)} · {formatTime(booking.startMs)}
                                 </span>
                             </div>
                             <div className="max-lg:hidden">
                                 <PickedTime label="New time" time={picked?.label} day={pickedDay} />
                             </div>
-                            <p className="t-meta">Your Google Meet link stays the same, so anything you already saved keeps working.</p>
+                            <p className="bk-meta">Your Google Meet link stays the same, so anything you already saved keeps working.</p>
                             <div className="flex flex-col gap-2">
                                 <div className="flex flex-col max-lg:hidden">{moveButton}</div>
                                 <Button
@@ -399,7 +399,7 @@ function ManageFlow() {
                             Cancel this call
                         </Button>
                     </div>
-                    <p className="t-meta">Moving the call keeps the same Google Meet link.</p>
+                    <p className="bk-meta">Moving the call keeps the same Google Meet link.</p>
                 </CallTicket>
             </div>
 
@@ -414,11 +414,11 @@ function ManageFlow() {
                 title="Cancel this call?"
                 confirmLabel={busy ? "Cancelling…" : "Yes, cancel it"}
             >
-                <p className="t-num">
+                <p className="bk-num">
                     {formatDay(booking.startMs)} at {formatTime(booking.startMs)}. The time goes back on offer and your Google Meet link stops working.
                 </p>
                 {error && (
-                    <p className="t-error" role="alert">
+                    <p className="bk-error" role="alert">
                         {error}
                     </p>
                 )}

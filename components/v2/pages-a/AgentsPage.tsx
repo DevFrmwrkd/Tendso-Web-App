@@ -2,7 +2,6 @@ import { ArrowDown, ClipboardList } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
-import { DISCORD_INVITE_URL } from "@/lib/contact";
 import { REFERRAL_BONUS } from "@/lib/pricing";
 import { Button, PhoneFrame } from "@/components/v2";
 
@@ -37,11 +36,6 @@ export function AgentsPage() {
         <PageShell
             page="agents"
             nav={{
-                secondary: (
-                    <Button variant="ghost" size="sm" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
-                        Join the Discord
-                    </Button>
-                ),
                 primary: (
                     <Button size="sm" href="#start">
                         Become a field agent
@@ -64,8 +58,8 @@ export function AgentsPage() {
                                 One visit with the Tendso app, about 30 minutes. Set your price, keep 50%.
                             </p>
                             <div className="ag-earn-pill" data-reveal="hero" style={rev(2)}>
-                                <b>Earn ₱30,000+ a month</b>
-                                <span>Example: 5 shops a week at ₱2,999, you keep ₱1,500 each</span>
+                                <b>Earn up to ₱30,000 a month</b>
+                                <span>Example: 20 fully paid shops at ₱2,999. You keep ₱1,500 each. Actual earnings vary.</span>
                             </div>
                             <div className="ag-hero-cta" data-reveal="hero" style={rev(3)}>
                                 <Button size="lg" className="ag-btn-lg" href="#start">
@@ -166,8 +160,8 @@ export function AgentsPage() {
 
                             <article className="ag-g ag-g--coach" data-reveal="" style={rev(1)}>
                                 <div className="ag-g-copy">
-                                    <h3 className="ag-h3">Help in the app and on Discord.</h3>
-                                    <p>Ask Tendso in the app for guidance and source articles. Join the Tendso Discord to ask the community and team.</p>
+                                    <h3 className="ag-h3">Help in the app.</h3>
+                                    <p>Ask Tendso for guidance and source articles. In-app team chat is coming soon.</p>
                                 </div>
                                 <div className="ag-chat" aria-hidden="true">
                                     <div className="ag-chat-me">How do I get the owner talking?</div>
@@ -227,7 +221,7 @@ export function AgentsPage() {
                                 <ul className="ag-checks">
                                     <li>
                                         <i aria-hidden="true" />
-                                        Tendso never asks you for money. Not to join, not to send, not on Discord.
+                                        Tendso never asks you for money to join or submit a shop.
                                     </li>
                                     <li>
                                         <i aria-hidden="true" />
@@ -239,7 +233,7 @@ export function AgentsPage() {
                                     </li>
                                     <li>
                                         <i aria-hidden="true" />
-                                        Real people answer you on Discord.
+                                        Ask Tendso uses help articles for your account. In-app team chat is coming soon.
                                     </li>
                                 </ul>
                             </div>
@@ -284,9 +278,6 @@ export function AgentsPage() {
                                 </ol>
                                 <div className="ag-end-cta">
                                     <Stores />
-                                    <Button variant="ghost" size="lg" className="ag-btn-lg ag-btn-onaccent" href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">
-                                        Join the Discord
-                                    </Button>
                                 </div>
                             </div>
                             <figure className="ag-end-photo">

@@ -39,7 +39,7 @@ describe('the reminder email in the creator’s name', () => {
     it('says who asked for it, and drops the final-day deadline', () => {
         const html = getPaymentFollowUpEmailHtml({ ...base, fromCreator: 'Ana' });
         expect(html).toContain('A reminder from Ana');
-        expect(html).toContain('Ana, who made <strong style="color:#C89548;">Aling Nena Store</strong>');
+        expect(html.replace(/<[^>]*>/g, '')).toContain('Ana, who made Aling Nena Store');
         expect(html).not.toContain('Final reminder');
         expect(html).not.toContain('taken offline in about');
     });

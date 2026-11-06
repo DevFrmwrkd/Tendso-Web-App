@@ -87,6 +87,10 @@ async function build() {
       setup(builder) {
         builder.onResolve({ filter: /.*/ }, args => {
           if (aliases.has(args.path)) return { path: aliases.get(args.path) };
+          // Chrome also exports ProgramNav, whose shared Nav imports this hook.
+          // The offline page has no Next router or route; keep that web-only
+          // dependency out rather than embedding Next's environment reads.
+          if (args.path === 'next/navigation') return { path: 'creator-preview:navigation', namespace: 'creator-preview' };
           const relative = args.path.startsWith('.') ? path.resolve(args.resolveDir, args.path).replace(/\.[jt]sx?$/, '') : null;
           if (relative === path.join(root, 'components/v2/fonts')) return { path: path.join(preview, 'fonts.js') };
           if (/^(react|react-dom)(?:\/|$)/.test(args.path)) return { path: require.resolve(args.path, { paths: [root] }) };
@@ -95,8 +99,10 @@ async function build() {
             throw new Error(`Runtime data/tracking dependency is forbidden in a page preview: ${args.path}`);
           }
         });
-        builder.onLoad({ filter: /.*/, namespace: 'creator-preview' }, () => ({
-          contents: `const assets=${JSON.stringify(dynamicAssets)};export function previewAsset(value){return typeof value==='string'?(assets[value]||(value.startsWith('data:image/')||value.startsWith('https:')?value:'')):'';}`,
+        builder.onLoad({ filter: /.*/, namespace: 'creator-preview' }, args => ({
+          contents: args.path === 'creator-preview:navigation'
+            ? "export function usePathname(){return '/a/native-preview';}"
+            : `const assets=${JSON.stringify(dynamicAssets)};export function previewAsset(value){return typeof value==='string'?(assets[value]||(value.startsWith('data:image/')||value.startsWith('https:')?value:'')):'';}`,
           loader: 'js',
         }));
         builder.onLoad({ filter: /\.[jt]sx?$/ }, args => {
@@ -112,6 +118,9 @@ async function build() {
     }],
   });
 
+  if (Object.keys(result.metafile.inputs).some(input => /(?:^|[/\\])node_modules[/\\]next[/\\]/.test(input))) {
+    throw new Error('Preview contains a Next.js runtime dependency.');
+  }
   for (const input of Object.keys(result.metafile.inputs)) {
     if (input.startsWith('creator-preview:')) continue;
     read(path.resolve(root, input));

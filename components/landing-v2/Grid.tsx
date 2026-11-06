@@ -15,7 +15,7 @@ import { AgentsNearScreen, InterviewCamScreen, ShotGuideScreen, SiteReadyScreen 
  * The grid: what goes into a homepage (mock js/tiles.js). One living thing per
  * tile; each plays when 25% visible and pauses when out. Hover (or keyboard
  * focus) blurs the tile behind one line; click opens the step large.
- * The first cell (#slot-stage) receives the hero stage, then shows the gallery.
+ * The first cell reveals its gallery independently of the hero above it.
  */
 
 type TileKey = "words" | "images" | "cost" | "humans";
@@ -318,9 +318,11 @@ function HumansTile({ onOpen }: { onOpen: (k: TileKey) => void }) {
 
 // ---------------------------------------------------------------------------- gallery (first tile)
 function Gallery() {
+    const [visible, setVisible] = useState(false);
+    const ref = useInView<HTMLDivElement>(setVisible, 0.1);
     const cols = [0, 1, 2].map((c) => SHOWCASE.filter((_, i) => i % 3 === c));
     return (
-        <div className="gal">
+        <div ref={ref} className={`gal${visible ? " is-visible" : ""}`}>
             {cols.map((list, k) => (
                 <div key={k} className={`gal-col gal-col--${k}`}>
                     <div className="gal-track">
@@ -462,7 +464,7 @@ export function Grid() {
     return (
         <section className="grid-sec" id="grid" aria-label="What goes into your website">
             <div className="v2-wrap grid">
-                <div className="v2-tile tile--slot" id="slot-stage" role="region" aria-label="Sites made with the Tendso app">
+                <div className="v2-tile tile--slot" id="slot-stage" data-reveal="" role="region" aria-label="Sites made with the Tendso app">
                     <Gallery />
                 </div>
                 <WordsTile onOpen={open} />

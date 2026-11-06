@@ -9,7 +9,8 @@ import { getPaymentFollowUpEmailHtml, getPaymentLinkEmailHtml } from '@/lib/emai
  * (submissions.websiteListPrice); without one nothing is struck.
  */
 
-const STRUCK_4999 = 'text-decoration:line-through;color:#9ca3af;';
+// Assert the discount semantics without pinning the previous email palette.
+const struck4999 = /text-decoration:line-through;[^\"]*\">₱4,999<\/span>/;
 
 describe('pay page priceSplit', () => {
     it('finds the discount on a standard sale', () => {
@@ -53,17 +54,17 @@ const base = { businessName: 'Aling Nena Store', businessOwnerName: 'Nena', refe
 describe('payment link email', () => {
     it('uses the charged domain amount instead of later registrar cost in the website discount', () => {
         const html = getPaymentLinkEmailHtml({ ...base, amount: 2499, customDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 500, websiteListPrice: 4999 });
-        expect(html).toContain('margin-right:8px;">₱4,999</span>₱1,999');
+        expect(html).toMatch(/text-decoration:line-through;[^\"]*\">₱4,999<\/span>₱1,999/);
         expect(html).toContain('>60% off</span>');
         expect(html).not.toContain('₱1,779');
     });
 
-    it('strikes ₱4,999 above the total and puts the percentage under it', () => {
+    it('keeps the original list price struck beside the charged total and discount percentage', () => {
         const html = getPaymentLinkEmailHtml({ ...base, amount: 3999, websiteListPrice: 4999 });
-        expect(html).toContain(`${STRUCK_4999}">₱4,999</span>`);
+        expect(html).toMatch(struck4999);
         expect(html).toContain('>20% off</span>');
-        expect(html.indexOf('₱4,999')).toBeLessThan(html.indexOf('₱3,999'));
-        expect(html.indexOf('₱3,999')).toBeLessThan(html.indexOf('20% off'));
+        expect(html).toContain('₱3,999');
+        expect(html.indexOf('₱4,999')).toBeLessThan(html.indexOf('20% off'));
     });
 
     it('carries no peso amount off and no sentence about it', () => {
@@ -74,10 +75,10 @@ describe('payment link email', () => {
 
     it('strikes the website line, not the total, when a domain rides along', () => {
         const html = getPaymentLinkEmailHtml({ ...base, amount: 4719, customDomain: 'shop.com', domainCostPHP: 720, websiteListPrice: 4999 });
-        expect(html).toContain('margin-right:8px;">₱4,999</span>₱3,999');
-        expect(html).toContain('Website Package<br>');
+        expect(html).toMatch(/text-decoration:line-through;[^\"]*\">₱4,999<\/span>₱3,999/);
+        expect(html).toContain('Website package');
         expect(html).toContain('>20% off</span>');
-        expect(html).not.toContain('<p style="margin:0;font-size:20px;font-weight:700;">');
+        expect(html.indexOf('₱4,719')).toBeLessThan(html.indexOf('₱4,999'));
     });
 
     it('is unchanged for a sale with no frozen list price', () => {
@@ -90,21 +91,23 @@ describe('payment link email', () => {
 describe('payment follow-up email', () => {
     it('preserves the affiliate website price for a later uncharged domain upgrade', () => {
         const html = getPaymentFollowUpEmailHtml({ ...base, amount: 1999, customDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 0, websiteListPrice: 4999 });
-        expect(html).toContain(`Website <span style="${STRUCK_4999}margin-right:6px;">₱4,999</span>₱1,999 · `);
+        expect(html).toContain('Website package');
+        expect(html).toMatch(/text-decoration:line-through;[^\"]*\">₱4,999<\/span>₱1,999/);
         expect(html).toContain('>60% off</span>');
         expect(html).not.toContain('₱1,279');
     });
 
-    it('strikes ₱4,999 above the amount due and puts the percentage under it', () => {
+    it('keeps the original list price struck with the amount due and its percentage discount', () => {
         const html = getPaymentFollowUpEmailHtml({ ...base, amount: 2499, websiteListPrice: 4999 });
-        expect(html).toContain(`${STRUCK_4999}">₱4,999</span>`);
+        expect(html).toMatch(struck4999);
         expect(html).toContain('>50% off</span>');
         expect(html).not.toContain('₱2,500');
     });
 
     it('puts the website line under the total when a domain rides along', () => {
         const html = getPaymentFollowUpEmailHtml({ ...base, amount: 4719, customDomain: 'shop.com', domainCostPHP: 720, websiteListPrice: 4999 });
-        expect(html).toContain(`Website <span style="${STRUCK_4999}margin-right:6px;">₱4,999</span>₱3,999 · `);
+        expect(html).toContain('Website package');
+        expect(html).toMatch(/text-decoration:line-through;[^\"]*\">₱4,999<\/span>₱3,999/);
         expect(html).toContain('>20% off</span>');
     });
 

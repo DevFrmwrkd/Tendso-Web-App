@@ -20,12 +20,44 @@ export function Reveals() {
                 }),
             { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
         );
-        document.querySelectorAll(".lv2 [data-reveal]:not(.is-armed)").forEach((el) => {
-            if (reduced || el.getBoundingClientRect().top < innerHeight * 0.95) return;
+        const revealTarget = (hash: string) => {
+            let id: string;
+            try { id = decodeURIComponent(hash.slice(1)); } catch { return; }
+            if (!id) return;
+            const target = document.getElementById(id);
+            // Fragment navigation must never land inside an invisible reveal wrapper.
+            for (let el = target; el?.closest(".lv2"); el = el.parentElement) {
+                if (!el.matches("[data-reveal]")) continue;
+                el.classList.add("is-in");
+                io.unobserve(el);
+            }
+        };
+        const onHashChange = () => revealTarget(window.location.hash);
+        const onClick = (event: MouseEvent) => {
+            if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            const link = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+            if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+            let url: URL;
+            try { url = new URL(link.href, window.location.href); } catch { return; }
+            if (url.origin === window.location.origin && url.pathname === window.location.pathname && url.search === window.location.search) revealTarget(url.hash);
+        };
+        onHashChange();
+        // Re-observe armed elements after an effect remount (including Fast Refresh).
+        document.querySelectorAll<HTMLElement>(".lv2 [data-reveal]:not(.is-in)").forEach((el) => {
+            if (reduced || el.getBoundingClientRect().top < innerHeight * 0.95) {
+                el.classList.add("is-in");
+                return;
+            }
             el.classList.add("is-armed");
             io.observe(el);
         });
-        return () => io.disconnect();
+        window.addEventListener("hashchange", onHashChange);
+        document.addEventListener("click", onClick, true);
+        return () => {
+            io.disconnect();
+            window.removeEventListener("hashchange", onHashChange);
+            document.removeEventListener("click", onClick, true);
+        };
     }, []);
     return null;
 }

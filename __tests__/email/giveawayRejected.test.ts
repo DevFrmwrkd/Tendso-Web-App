@@ -17,6 +17,9 @@ describe('giveaway rejection email', () => {
         expect(text).toContain('Your held slot has been released.');
         expect(text).toContain('fix the issue above and apply again while slots remain.');
         expect(html).toContain(`href="${params.applyUrl}"`);
+        const action = html.indexOf('>Check slots and apply again</a>');
+        expect(action).toBeGreaterThan(html.indexOf(params.reason));
+        expect(action).toBeLessThan(html.indexOf('A photo that gets approved'));
         expect(text).not.toMatch(/payment instructions|payable|GCash|Maya|₱4,999|discount/i);
     });
     it('escapes names, reason, and URL rather than allowing owner or reviewer markup', () => {
