@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 import { api } from "@/convex/_generated/api";
 
-import { FunnelFallback, FunnelFrame } from "./FunnelFrame";
+import { OnboardingLoading, OnboardingShell } from "@/components/field-agent-onboarding/OnboardingShell";
 import { LearnStep } from "./LearnStep";
 
 /**
@@ -46,11 +46,11 @@ export function LearnPage({ guarded }: { guarded: boolean }) {
     // certified creator never saw the lessons on the way to /dashboard).
     // /training-lessons only needs the signed-in user, whose id keys the
     // lesson progress.
-    if (!isLoaded || !user || creator === undefined || creator?.role === "affiliate") return <FunnelFallback view={2} />;
+    if (!isLoaded || !user || creator === undefined || creator?.role === "affiliate") return <OnboardingLoading stage="learn" />;
 
     return (
-        <FunnelFrame view={2} creator={creator}>
+        <OnboardingShell stage="learn" creator={creator} title="Become a certified field agent" description="Five short lessons. Then a five-question quiz. We’ll guide you through it.">
             <LearnStep userId={user.id} />
-        </FunnelFrame>
+        </OnboardingShell>
     );
 }
