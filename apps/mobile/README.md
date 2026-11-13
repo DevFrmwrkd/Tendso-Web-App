@@ -87,10 +87,10 @@ Use the existing EAS project and signing credentials. The migration preserves
 the Android package, iOS bundle identifier, OAuth scheme, versions and profiles;
 do not initialize a replacement project or generate a replacement upload key.
 
-The current Android `production` profile produces an APK. Do not assume it
-produces an AAB for Google Play. See [BUILD_APK.md](BUILD_APK.md) for native build
-details. Cloud builds, submissions and store rollouts remain separate release
-actions; normal checks do not run them.
+The Android `production` profile produces an AAB for Google Play. The `preview`
+profile produces an APK for direct device installation. See
+[BUILD_APK.md](BUILD_APK.md) for native build details. Cloud builds, submissions
+and store rollouts are separate release actions.
 
 The repository-root `.easignore` controls monorepo Git uploads; nested ignore
 files are not combined with it. It excludes environment files, signing

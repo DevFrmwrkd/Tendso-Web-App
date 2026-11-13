@@ -43,8 +43,10 @@
     },
     "production": {
       "autoIncrement": true,
+      "distribution": "store",
+      "environment": "production",
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "resourceClass": "m1-medium"

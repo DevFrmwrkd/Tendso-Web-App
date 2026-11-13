@@ -17,11 +17,10 @@ cd apps/mobile
 npx eas-cli build --platform android --profile preview
 ```
 
-The existing `preview` and `production` profiles both select Android APK output.
-An APK is suitable for direct device installation; it is not a Play Store AAB.
-This migration does not change the profiles, remote version source or production
-auto-increment setting. Selecting a different release artifact/profile is a
-separate release decision.
+The `preview` profile produces an Android APK for direct device installation.
+The `production` profile produces an Android App Bundle (AAB) for Google Play.
+Production builds use the live services and EAS remote build numbers with
+automatic incrementing.
 
 Run EAS CLI from this directory so it reads the correct `app.json` and `eas.json`.
 The upload also needs the monorepo root manifest/lockfile and shared API package.
