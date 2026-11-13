@@ -20,6 +20,7 @@ web-build/
 build/
 out/
 /output/
+/design-artifacts/
 .kotlin/
 /apps/mobile/android/
 /apps/mobile/ios/

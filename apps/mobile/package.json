@@ -1,7 +1,7 @@
 {
   "name": "negosyo-digital-mobile",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -32,6 +32,7 @@
     "expo-apple-authentication": "~8.0.8",
     "expo-auth-session": "~7.0.10",
     "expo-av": "~16.0.8",
+    "expo-build-properties": "~1.0.10",
     "expo-camera": "^17.0.10",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
