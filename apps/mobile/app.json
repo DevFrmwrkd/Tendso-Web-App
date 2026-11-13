@@ -65,6 +65,16 @@
       "expo-font",
       "expo-apple-authentication",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ],
+      "./plugins/withAndroidOptimization",
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-mark.png",
