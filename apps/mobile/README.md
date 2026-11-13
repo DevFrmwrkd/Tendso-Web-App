@@ -83,8 +83,8 @@ cd apps/mobile
 npx eas-cli build --platform android --profile preview
 ```
 
-Use the existing EAS project and signing credentials. The migration preserves
-the Android package, iOS bundle identifier, OAuth scheme, versions and profiles;
+Use the existing EAS project and signing credentials. Store builds preserve
+the Android package, iOS bundle identifier and OAuth scheme;
 do not initialize a replacement project or generate a replacement upload key.
 
 The Android `production` profile produces an AAB for Google Play. The `preview`
