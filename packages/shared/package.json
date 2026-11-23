@@ -5,6 +5,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./contact": {
+      "types": "./contact.ts",
+      "default": "./contact.ts"
+    },
     "./knowledge": {
       "types": "./knowledge.ts",
       "default": "./knowledge.ts"

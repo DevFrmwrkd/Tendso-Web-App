@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SUPPORT_EMAIL } from '@tendso/shared/contact';
 import { LayoutAnimation, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
@@ -99,7 +100,7 @@ const TERMS_SECTIONS: TermsSection[] = [
     title: 'Contact Us',
     icon: 'mail-outline',
     content:
-      'If you have any questions about these Terms of Service, please contact us:\n\n• Email: frmwrkd.media@gmail.com\n• In-App: Profile > Help & FAQ\n\nWe aim to respond to all inquiries within 2-3 business days.',
+      `If you have any questions about these Terms of Service, please contact us:\n\n• Email: ${SUPPORT_EMAIL}\n• In-App: Profile > Help & FAQ\n\nWe aim to respond to all inquiries within 2-3 business days.`,
   },
 ];
 

@@ -1,5 +1,6 @@
 /** Pure email renderers. Sending and payment-state changes live in the service/backend. */
 import { getPaymentConfig } from '../payment/config'
+import { SUPPORT_EMAIL } from '../contact'
 import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '../pricing'
 import { escapeHtml } from './escape'
 import { EMAIL_COLORS, emailActions, emailDetails, emailFeature, emailFrame, emailPanel, emailParagraph, emailSchedule, emailSteps, emailTextLink } from './design'
@@ -14,7 +15,8 @@ export interface EmailPaymentDetails {
     bankName?: string
     wiseEmail?: string
 }
-function supportEmail(override?: string) { return override || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com' }
+/** Payment identity stays separate from the customer-support inbox. */
+function wiseRecipientEmail(override?: string) { return override || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com' }
 function hello(name: string) { return emailParagraph(`Hi <strong>${escapeHtml(name)}</strong>,`) }
 function heading(text: string) { return `<h2 style="margin:26px 0 14px;font-size:20px;line-height:1.3;font-weight:500;letter-spacing:-0.4px;color:${EMAIL_COLORS.ink};">${escapeHtml(text)}</h2>` }
 function dateLabel(value: number, time = false) {
@@ -60,7 +62,7 @@ function domainNote(domain: string) {
 export function getPaymentConfirmationEmailHtml(params: {
     businessName: string; businessOwnerName: string; websiteUrl: string; amount: number; wiseEmail?: string; customDomain?: string
 }): string {
-    return emailFrame({ variant: 'success', status: 'Payment confirmed', title: `Payment confirmed — ${params.businessName}`, eyebrow: 'Payment received', heading: 'Your site is live.', supportEmail: supportEmail(params.wiseEmail),
+    return emailFrame({ variant: 'success', status: 'Payment confirmed', title: `Payment confirmed — ${params.businessName}`, eyebrow: 'Payment received', heading: 'Your site is live.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, friendly: true,
         introHtml: emailParagraph(`We have received and confirmed your payment for <strong>${escapeHtml(params.businessName)}</strong>. Your website is now published and live.`),
         heroHtml: amountFeature('Amount paid', params.amount), heroActions: [{ href: params.websiteUrl, label: 'Visit my website', primary: true }],
@@ -75,7 +77,7 @@ export function getPromoWebsiteLiveEmailHtml(params: {
     businessName: string; businessOwnerName: string; websiteUrl: string; creatorName?: string; platformEmail?: string; giveawayApplication?: boolean
 }): string {
     if (params.giveawayApplication === true) return getGiveawayLiveEmailHtml(params)
-    return emailFrame({ variant: 'success', status: 'Free website', title: `${params.businessName} is live — free`, eyebrow: 'A website for your business', heading: 'Your site is live.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'success', status: 'Free website', title: `${params.businessName} is live — free`, eyebrow: 'A website for your business', heading: 'Your site is live.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, friendly: true,
         introHtml: emailParagraph(`${params.creatorName ? `<strong>${escapeHtml(params.creatorName)}</strong> chose` : 'We chose'} <strong>${escapeHtml(params.businessName)}</strong> for a free website under our current promo.`),
         heroHtml: emailFeature({ label: 'A gift for your business', value: 'Nothing to pay.', tone: 'white', detailHtml: 'There is nothing for you to pay. No invoice, no payment link, and no card on file.' }),
@@ -94,7 +96,7 @@ export function getPaymentLinkEmailHtml(params: {
 }): string {
     const { domainLine, websiteLine, discount } = websiteSplit(params.amount, params.customDomain ?? '', params.domainCostPHP, params.websiteListPrice, params.domainChargedPHP)
     const breakdown = params.customDomain ? orderBreakdown(params.customDomain, domainLine, websiteLine, discount) : ''
-    return emailFrame({ variant: 'payment', status: 'Payment due', title: `Payment instructions — ${params.businessName}`, eyebrow: 'Your website', heading: 'Your payment details.', supportEmail: supportEmail(params.paymentDetails?.wiseEmail ?? params.platformEmail),
+    return emailFrame({ variant: 'payment', status: 'Payment due', title: `Payment instructions — ${params.businessName}`, eyebrow: 'Your website', heading: 'Your payment details.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName,
         introHtml: emailParagraph(`The website for <strong>${escapeHtml(params.businessName)}</strong> is ready. Here are the payment details for your order.`),
         heroHtml: amountFeature('Total amount to pay', params.amount, params.customDomain ? null : discount),
@@ -112,8 +114,8 @@ export function getApprovalEmailHtml(params: {
     const reference = params.paymentReference || params.submissionId.substring(0, 8).toUpperCase()
     // Preserve the legal Wise payee name; changing the visual brand must not change payment routing.
     const accountName = params.paymentDetails?.accountName ?? process.env.WISE_ACCOUNT_NAME ?? 'Negosyo Digital'
-    const address = supportEmail(params.paymentDetails?.wiseEmail)
-    return emailFrame({ variant: 'payment', status: 'Ready to review', title: `Your website is ready — ${params.businessName}`, eyebrow: 'Ready to review', heading: 'Your website is ready.', supportEmail: address,
+    const address = wiseRecipientEmail(params.paymentDetails?.wiseEmail)
+    return emailFrame({ variant: 'payment', status: 'Ready to review', title: `Your website is ready — ${params.businessName}`, eyebrow: 'Ready to review', heading: 'Your website is ready.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, introHtml: emailParagraph(`Take a look at the website for <strong>${escapeHtml(params.businessName)}</strong>.`),
         heroHtml: amountFeature('Amount due', params.amount), heroActions: [{ href: params.websiteUrl, label: 'View my website', primary: true }],
         bodyHtml: hello(params.businessOwnerName) + emailDetails([
@@ -128,7 +130,7 @@ export function getApprovalEmailHtml(params: {
 export function getDomainLiveEmailHtml(params: {
     businessName: string; businessOwnerName: string; customDomain: string; expiresAt: number; platformEmail?: string
 }): string {
-    return emailFrame({ variant: 'success', status: 'Domain connected', title: `${params.customDomain} is live`, eyebrow: 'Custom domain', heading: 'Your address is live.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'success', status: 'Domain connected', title: `${params.customDomain} is live`, eyebrow: 'Custom domain', heading: 'Your address is live.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, friendly: true,
         introHtml: emailParagraph(`The custom domain for <strong>${escapeHtml(params.businessName)}</strong> is now registered and connected.`),
         heroHtml: emailFeature({ label: 'Your website address', value: params.customDomain, size: 'medium', tone: 'white', detailHtml: `Connected to ${escapeHtml(params.businessName)}` }),
@@ -143,7 +145,7 @@ export function getWithdrawalStatusEmailHtml(params: {
     creatorName: string; creatorEmail: string; amount: number; statusLabel: string; statusDescription: string; isFinal: boolean; referenceCode?: string; submittedAt: number; platformEmail?: string
 }): string {
     const confirmedSuccess = params.isFinal && /^(completed|complete|paid|sent|successful)$/i.test(params.statusLabel.trim())
-    return emailFrame({ variant: confirmedSuccess ? 'success' : params.isFinal ? 'standard' : 'payment', status: params.statusLabel, title: `Withdrawal update — ${params.statusLabel}`, eyebrow: 'Your payout', heading: 'Your payout update.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: confirmedSuccess ? 'success' : params.isFinal ? 'standard' : 'payment', status: params.statusLabel, title: `Withdrawal update — ${params.statusLabel}`, eyebrow: 'Your payout', heading: 'Your payout update.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.creatorName, friendly: confirmedSuccess,
         introHtml: emailParagraph('Here is the latest update on your withdrawal request.'),
         heroHtml: emailFeature({ label: params.statusLabel, value: formatPHP(params.amount), tone: 'white', detailHtml: escapeHtml(params.statusDescription) }),
@@ -157,7 +159,7 @@ export function getWithdrawalStatusEmailHtml(params: {
 export function getDomainSetupInProgressEmailHtml(params: {
     businessName: string; businessOwnerName: string; customDomain: string; platformEmail?: string
 }): string {
-    return emailFrame({ variant: 'standard', status: 'SSL being issued', title: `Setting up ${params.customDomain}`, eyebrow: 'Custom domain', heading: 'Your domain is being set up.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'standard', status: 'SSL being issued', title: `Setting up ${params.customDomain}`, eyebrow: 'Custom domain', heading: 'Your domain is being set up.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName,
         introHtml: emailParagraph(`We have registered <strong>${escapeHtml(params.customDomain)}</strong> for <strong>${escapeHtml(params.businessName)}</strong> and pointed it to our servers.`),
         heroHtml: emailFeature({ label: 'Your custom domain', value: params.customDomain, size: 'medium', tone: 'white', detailHtml: 'Secure connection in progress' }),
@@ -171,7 +173,7 @@ export function getDomainRenewalReminderEmailHtml(params: {
     businessName: string; businessOwnerName: string; customDomain: string; expiresAt: number; platformEmail?: string
 }): string {
     const daysRemaining = Math.max(0, Math.floor((params.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)))
-    return emailFrame({ variant: 'attention', status: daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Expires soon', title: `Renew ${params.customDomain}`, eyebrow: 'Domain renewal', heading: 'Your domain needs renewal.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'attention', status: daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Expires soon', title: `Renew ${params.customDomain}`, eyebrow: 'Domain renewal', heading: 'Your domain needs renewal.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName,
         introHtml: emailParagraph(`The custom domain for <strong>${escapeHtml(params.businessName)}</strong> is due for renewal.`),
         heroHtml: emailFeature({ label: 'Domain to renew', value: params.customDomain, size: 'medium', tone: 'white', detailHtml: `Expires ${dateLabel(params.expiresAt)}` }),
@@ -193,7 +195,7 @@ export function getPaymentFollowUpEmailHtml(params: {
         ? `<strong>${escapeHtml(params.fromCreator)}</strong>, who made <strong>${escapeHtml(params.businessName)}</strong>'s website with you, asked us to send a reminder.`
         : isManual ? `We are checking in on the website for <strong>${escapeHtml(params.businessName)}</strong>.`
         : `Your website for <strong>${escapeHtml(params.businessName)}</strong> will be taken offline in about <strong>${hoursLeft} hours</strong> if payment is not received.`
-    return emailFrame({ variant: isManual ? 'payment' : 'attention', status: isManual ? 'Payment reminder' : `${hoursLeft} hours left`, title: `${isManual ? 'Following up' : 'Final reminder'} — ${params.businessName}`, eyebrow: isManual ? 'Payment reminder' : 'Payment due', heading: params.fromCreator ? `A reminder from ${params.fromCreator}` : isManual ? 'A payment reminder.' : 'Your payment is due.', supportEmail: supportEmail(params.paymentDetails?.wiseEmail),
+    return emailFrame({ variant: isManual ? 'payment' : 'attention', status: isManual ? 'Payment reminder' : `${hoursLeft} hours left`, title: `${isManual ? 'Following up' : 'Final reminder'} — ${params.businessName}`, eyebrow: isManual ? 'Payment reminder' : 'Payment due', heading: params.fromCreator ? `A reminder from ${params.fromCreator}` : isManual ? 'A payment reminder.' : 'Your payment is due.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, introHtml: emailParagraph(intro),
         heroHtml: amountFeature('Amount due', params.amount, params.customDomain ? null : discount),
         heroActions: params.websiteUrl ? [{ href: params.websiteUrl, label: 'View my website', primary: true }] : [],
@@ -209,7 +211,7 @@ export function getIntakeReceivedEmailHtml(params: {
     businessName: string; businessOwnerName: string; amount: number; platformEmail?: string; giveawayApplication?: boolean
 }): string {
     if (params.giveawayApplication) return getGiveawayReceivedEmailHtml(params)
-    return emailFrame({ variant: 'standard', status: 'Building', title: `We got your details — ${params.businessName}`, eyebrow: 'Details received', heading: 'We have your details.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'standard', status: 'Building', title: `We got your details — ${params.businessName}`, eyebrow: 'Details received', heading: 'We have your details.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName,
         introHtml: emailParagraph(`Everything you sent for <strong>${escapeHtml(params.businessName)}</strong> arrived safely, and we have started building your website.`),
         heroHtml: emailFeature({ label: 'Your business', value: params.businessName, size: 'medium', tone: 'white', detailHtml: 'Building your website' }),
@@ -228,7 +230,7 @@ export function getWithdrawalRequestedEmailHtml(params: {
     const sender = params.wiseSenderName
         ? `It will show the sender as <strong>${escapeHtml(params.wiseSenderName)}</strong> — that is our registered company name, so it really is from us.`
         : 'It comes from <strong>noreply@wise.com</strong>, so check your spam folder if you do not see it.'
-    return emailFrame({ variant: 'payment', status: 'Requested', title: 'Withdrawal requested', eyebrow: 'Your payout', heading: 'Your cash out is requested.', supportEmail: supportEmail(params.platformEmail),
+    return emailFrame({ variant: 'payment', status: 'Requested', title: 'Withdrawal requested', eyebrow: 'Your payout', heading: 'Your cash out is requested.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.creatorName, introHtml: emailParagraph('We have your withdrawal request. Here is what happens next.'),
         heroHtml: emailFeature({ label: 'Requested amount', value: formatPHP(params.amount), tone: 'white', detailHtml: `To your Wise account at <strong>${escapeHtml(params.wiseEmail)}</strong>` }),
         bodyHtml: hello(params.creatorName) + heading('What happens next') + emailParagraph(`We send the money to Wise. Wise emails you directly. ${sender}`)
@@ -242,7 +244,7 @@ export function getWithdrawalRequestedEmailHtml(params: {
 
 export function getAnnouncementEmailHtml(params: { name: string; title: string; body: string; platformEmail?: string }): string {
     const paragraphs = escapeHtml(params.body).split(/\n\s*\n/).map(part => part.trim()).filter(Boolean).map(part => emailParagraph(part.replace(/\n/g, '<br>')))
-    return emailFrame({ variant: 'standard', title: params.title, eyebrow: 'From the Tendso team', heading: params.title, recipientName: params.name, supportEmail: supportEmail(params.platformEmail), introHtml: paragraphs[0] ?? '', bodyHtml: paragraphs.slice(1).join('') })
+    return emailFrame({ variant: 'standard', title: params.title, eyebrow: 'From the Tendso team', heading: params.title, recipientName: params.name, supportEmail: SUPPORT_EMAIL, introHtml: paragraphs[0] ?? '', bodyHtml: paragraphs.slice(1).join('') })
 }
 
 // Booking messages share the same shell and keep Philippine time and all manage links explicit.

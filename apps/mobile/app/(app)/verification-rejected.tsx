@@ -11,7 +11,7 @@ import { Button, ListRow, Loading, ScreenShell, Text } from '../../components/v2
 import { ProfileReviewNotice } from '../../components/profile/ProfileReviewNotice';
 import { colors, hit, radius, shadow, space } from '../../theme/v2';
 
-const SUPPORT_EMAIL = 'support@negosyo-digital.com';
+import { SUPPORT_EMAIL } from '@tendso/shared/contact';
 
 export default function VerificationRejectedScreen() {
   const router = useGuardedRouter();

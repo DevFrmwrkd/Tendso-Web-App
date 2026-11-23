@@ -14,10 +14,13 @@
  *   - RESEND_FROM_EMAIL  — optional. Default falls back to
  *     `Tendso <onboarding@resend.dev>` (Resend's test sender,
  *     works without DNS verification). Swap to a verified domain
- *     address by setting this env var only — no code redeploy needed.
+ *     address after verifying the domain. Environment changes on Vercel
+ *     require a new deployment to take effect.
  *   - RESEND_REPLY_TO    — optional. When set, every outgoing email
  *     gets a reply_to header so customer replies land in this inbox
  *     instead of bouncing off the unverified onboarding@ sender.
+ *
+ * Branded-mail activation and mailbox setup: docs/BRANDED_EMAIL_SETUP.md.
  *
  * Why we keep nodemailer in package.json for now: rollback insurance.
  * If Resend has an outage in the first week we can revert this single
