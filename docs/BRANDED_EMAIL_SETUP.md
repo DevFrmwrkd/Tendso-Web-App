@@ -14,11 +14,15 @@ mailbox or verify a sending domain.
   to Resend inbound, and DMARC is configured with monitoring policy `p=none`.
 - An internal message and reply were both received from
   `Tendso Support <support@tendso.com>`.
-- Vercel Production and Preview have the From and Reply-To values below saved;
-  a new deployment is required to activate them. The API key was unchanged.
-- Convex production `energetic-panther-693` and development
-  `diligent-ibex-454` also have From/Reply-To configured, but neither has
-  `RESEND_API_KEY`; direct owner notifications remain off until a key is added.
+- Vercel Production and Preview have the From and Reply-To values below saved
+  for new deployments. The existing Vercel API key was unchanged.
+- Convex production `energetic-panther-693` has From/Reply-To and
+  `RESEND_API_KEY` configured. Its new **Tendso owner emails — production** key
+  has Sending Access limited to `tendso.com`. A connection test using this key
+  and the branded sender was accepted with HTTP 200 and reached our own Support
+  inbox.
+- Convex development `diligent-ibex-454` has From/Reply-To configured but no
+  `RESEND_API_KEY`; direct owner notifications remain off in development.
 - External Gmail delivery has not been tested, and forwarding is not configured.
 
 ## Receiving and team replies
@@ -102,6 +106,13 @@ Owner invitations and build/preview/live notifications also send directly from
 environment from Vercel. It also requires `RESEND_API_KEY`; without a configured
 key, these messages are skipped. Vercel settings alone do not activate owner
 email delivery.
+
+Production `energetic-panther-693` now has all three settings. Use its
+`tendso.com`-restricted Sending Access key for owner emails; keep the key in
+Convex secret storage. The direct Resend API test was accepted with HTTP 200
+and reached our own Support inbox. This checks the sending key and sender configuration;
+it does not verify every owner journey trigger. Development
+`diligent-ibex-454` intentionally has no sending key yet.
 
 ## Verify before rollout
 
