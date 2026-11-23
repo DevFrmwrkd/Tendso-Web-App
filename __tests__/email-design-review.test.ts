@@ -63,7 +63,7 @@ it('keeps preview links and forms inert and forbids scripts or remote requests',
 it('uses the approved official brand shell in all25 actual email families', () => {
     for (const sample of getEmailPreviewSamples()) {
         for (const variant of sample.variants) {
-            expect(variant.html).toContain('https://tendso.com/v2/brand/mark-ink-256.png');
+            expect(variant.html).toContain('https://www.tendso.com/v2/brand/mark-email-white-256.png');
             expect(variant.html).toContain('Onest');
             expect(variant.html).toMatch(/tendso/i);
             expect(variant.html).toContain('https://tendso.com/fonts/onest-latin-400-normal.woff2');

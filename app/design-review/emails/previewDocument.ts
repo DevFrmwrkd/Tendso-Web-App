@@ -1,5 +1,6 @@
 /** Exact public assets that may be embedded by the development proposal board. */
 export const EMAIL_PREVIEW_BRAND_ASSETS = {
+    'https://www.tendso.com/v2/brand/mark-email-white-256.png': { path: 'v2/brand/mark-email-white-256.png', mime: 'image/png' },
     'https://tendso.com/v2/brand/mark-ink-256.png': { path: 'v2/brand/mark-ink-256.png', mime: 'image/png' },
     'https://tendso.com/v2/brand/buddy-email.png': { path: 'v2/brand/buddy-email.png', mime: 'image/png' },
     'https://tendso.com/fonts/onest-latin-400-normal.woff2': { path: 'fonts/onest-latin-400-normal.woff2', mime: 'font/woff2' },
