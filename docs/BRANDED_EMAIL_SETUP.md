@@ -14,8 +14,9 @@ mailbox or verify a sending domain.
   to Resend inbound, and DMARC is configured with monitoring policy `p=none`.
 - An internal message and reply were both received from
   `Tendso Support <support@tendso.com>`.
-- Vercel Production and Preview have the From and Reply-To values below saved
-  for new deployments. The existing Vercel API key was unchanged.
+- Vercel Production and Preview have the From and Reply-To values below
+  configured. The web contact changes are published; the existing Vercel API key
+  was unchanged.
 - Convex production `energetic-panther-693` has From/Reply-To and
   `RESEND_API_KEY` configured. Its new **Tendso owner emails — production** key
   has Sending Access limited to `tendso.com`. A connection test using this key
@@ -23,7 +24,9 @@ mailbox or verify a sending domain.
   inbox.
 - Convex development `diligent-ibex-454` has From/Reply-To configured but no
   `RESEND_API_KEY`; direct owner notifications remain off in development.
-- External Gmail delivery has not been tested, and forwarding is not configured.
+- Test owner invitations reached an external Gmail inbox, and a reply reached
+  the Support inbox on 23 November 2026. This verifies transport and replies,
+  not every automatic owner-email trigger. Forwarding is not configured.
 
 ## Receiving and team replies
 
@@ -107,11 +110,21 @@ environment from Vercel. It also requires `RESEND_API_KEY`; without a configured
 key, these messages are skipped. Vercel settings alone do not activate owner
 email delivery.
 
+Customer booking confirmations, reminders, reschedules and cancellations also
+use Resend with the existing Convex `RESEND_API_KEY`. Their From and Reply-To
+addresses use the shared `support@tendso.com` constant; the Calendar OAuth
+account remains separate and internal. Do not change the Calendar credentials
+to change the email sender. The booking transport change requires a Convex
+code deployment. Verify a booking test after that deployment;
+the owner-invitation test does not establish booking delivery.
+
 Production `energetic-panther-693` now has all three settings. Use its
 `tendso.com`-restricted Sending Access key for owner emails; keep the key in
 Convex secret storage. The direct Resend API test was accepted with HTTP 200
-and reached our own Support inbox. This checks the sending key and sender configuration;
-it does not verify every owner journey trigger. Development
+and reached our own Support inbox. Later owner-invitation tests reached an
+external Gmail inbox and its reply reached Support. These checks verify the
+sending key, sender configuration and reply route; they do not verify every
+owner journey trigger. Development
 `diligent-ibex-454` intentionally has no sending key yet.
 
 ## Verify before rollout
@@ -127,13 +140,18 @@ it does not verify every owner journey trigger. Development
 
 Tests under `__tests__/email/supportContact.test.ts` keep customer help links
 separate from Wise payment recipient fields and preserve payment-confirmation
-instructions and agent payout destinations.
+instructions and agent payout destinations. The legacy approval email now uses
+the same bank-transfer details and reference instructions as the modern payment
+emails, instead of displaying the old Wise email as an Email/ID. This changes
+the presentation only; `WISE_EMAIL`, `NEXT_PUBLIC_WISE_EMAIL`, payment processing
+and payout destinations must remain unchanged.
 
 ## Separate account identities
 
 This migration does not change `WISE_EMAIL`, `NEXT_PUBLIC_WISE_EMAIL`, Drive
-OAuth identity, booking/calendar OAuth identity (`tendso.hr@gmail.com`), or app
-store publishing accounts. Additional addresses such as `hello@tendso.com`,
+OAuth identity, the internal Calendar OAuth identity (`tendso.hr@gmail.com`), or
+app store publishing accounts. Customer booking mail uses Support independently
+of that Calendar identity. Additional addresses such as `hello@tendso.com`,
 `notifications@tendso.com` and `bookings@tendso.com` need their own setup and
 activation; they are not provisioned by these code changes.
 

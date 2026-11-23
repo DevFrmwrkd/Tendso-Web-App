@@ -201,6 +201,8 @@ describe('booking email actions', () => {
         expect(visibleText(html)).toContain('Philippine time (Asia/Manila)');
         expect(visibleText(html)).toContain(call.dayLabel);
         expect(visibleText(html)).toContain(call.timeLabel);
+        expect(links).toContain('mailto:support@tendso.com');
+        expect(html).not.toContain('tendso.hr@gmail.com');
     });
 
     it('makes the call time prominent and keeps reschedule/cancel as compact links', () => {
