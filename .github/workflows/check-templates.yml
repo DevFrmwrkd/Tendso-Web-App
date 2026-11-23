@@ -8,9 +8,8 @@ name: Templates
 # stale, so two fields it renders — a bouquet's price and a review's rating —
 # were invisible in the Content panel. This job would have failed that PR.
 #
-# Deliberately separate from deploy-vercel.yml: this needs no secrets, no Vercel
-# token and no build, so it stays green (and fast) independently of whatever the
-# deploy pipeline is doing.
+# These guards run independently of Vercel's automatic Git deployments.
+# They only read repository files, so this check stays fast and needs no secrets.
 
 on:
   pull_request:
