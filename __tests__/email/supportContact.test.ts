@@ -32,10 +32,18 @@ describe('support and payment contacts in customer emails', () => {
         expect(payment).not.toContain('href="mailto:custom-payments@example.com"');
 
         const approval = getApprovalEmailHtml({ ...owner, websiteUrl, amount: 4999, submissionId: 'submission-1' });
-        expect(visibleText(approval)).toContain('Email / ID payments@example.com');
+        expect(visibleText(approval)).toContain('VONAS, OPC');
+        expect(visibleText(approval)).toContain('2006436346');
+        expect(visibleText(approval)).toContain('Wise Pilipinas Inc. (via InstaPay)');
+        expect(approval).not.toContain('payments@example.com');
+        expect(approval).not.toContain('frmwrkd.media@gmail.com');
         expect(approval).toContain('href="mailto:support@tendso.com"');
-        const overridden = getApprovalEmailHtml({ ...owner, websiteUrl, amount: 4999, submissionId: 'submission-1', paymentDetails: bank });
-        expect(visibleText(overridden)).toContain('Email / ID custom-payments@example.com');
+        const overridden = getApprovalEmailHtml({ ...owner, websiteUrl, amount: 4999, submissionId: 'submission-1', paymentReference: 'ND-TEST-CODE', paymentDetails: bank });
+        for (const value of [bank.accountName, bank.accountNumber, bank.bankName, 'ND-TEST-CODE', '₱4,999']) {
+            expect(visibleText(overridden)).toContain(value);
+        }
+        expect(overridden).not.toContain(bank.wiseEmail);
+        expect(visibleText(overridden)).not.toContain('Email / ID');
         expect(overridden).toContain('href="mailto:support@tendso.com"');
     });
 

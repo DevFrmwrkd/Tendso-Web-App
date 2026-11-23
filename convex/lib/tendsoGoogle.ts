@@ -1,5 +1,8 @@
 "use node";
 
+import { SUPPORT_EMAIL } from "../../packages/shared/contact";
+import { escapeHtml } from "../../lib/email/escape";
+
 // Ported from the vonas-hr-pipeline repo, which owns the same tendso.hr Google
 // account. Both apps write to the ONE calendar on purpose — that shared
 // freebusy is what stops the two booking pages handing out the same slot.
@@ -74,26 +77,14 @@ export async function createTendsoGmailClient() {
   return google.gmail({ version: "v1", auth });
 }
 
+/** Internal calendar identity, kept separate from the customer-facing sender. */
 export const TENDSO_ADDRESS = "tendso.hr@gmail.com";
-export const TENDSO_FROM = `Tendso HR Team <${TENDSO_ADDRESS}>`;
-
-/** RFC 2047 encoded-word, so names like "Tuñacao" survive in a Subject. */
-function encodeHeader(value: string): string {
-  if (/^[\x00-\x7F]*$/.test(value)) return value;
-  return `=?UTF-8?B?${Buffer.from(value, "utf8").toString("base64")}?=`;
-}
+export const TENDSO_FROM = `Tendso <${SUPPORT_EMAIL}>`;
 
 /**
- * Send mail as tendso.hr@gmail.com through the Gmail API.
- *
- * Used for everything after a candidate is in the pipeline (booking
- * confirmations, call reminders), so replies land in the tendso.hr inbox
- * where the agent reads them. First-touch outreach still goes out via
- * Resend from hr@vonas-media.com — different mailbox, different purpose.
- *
- * Note: unlike Resend there is no bounce webhook here, so bounces are not
- * fed back into the bounced_emails table. The pre-send bounce check still
- * applies; only new bounce discovery is lost.
+ * Send booking confirmations and updates through the verified Support sender.
+ * Calendar and Meet operations continue using the shared Google account above.
+ * Failures propagate so the reminder caller can release its claim and retry.
  */
 export async function sendAsTendso(opts: {
   to: string;
@@ -102,42 +93,32 @@ export async function sendAsTendso(opts: {
   html?: string;
   inReplyTo?: string;
 }) {
-  const gmail = await createTendsoGmailClient();
-  const boundary = `b${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-  const html = opts.html ?? opts.text.replace(/\n/g, "<br>");
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY is not configured for booking emails.");
 
-  const headers = [
-    `From: ${TENDSO_FROM}`,
-    `To: ${opts.to}`,
-    `Subject: ${encodeHeader(opts.subject)}`,
-    "MIME-Version: 1.0",
-    ...(opts.inReplyTo
-      ? [`In-Reply-To: ${opts.inReplyTo}`, `References: ${opts.inReplyTo}`]
-      : []),
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-  ];
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: TENDSO_FROM,
+      to: [opts.to],
+      reply_to: SUPPORT_EMAIL,
+      subject: opts.subject,
+      text: opts.text,
+      html: opts.html ?? escapeHtml(opts.text).replace(/\r?\n/g, "<br>"),
+      ...(opts.inReplyTo ? {
+        headers: { "In-Reply-To": opts.inReplyTo, References: opts.inReplyTo },
+      } : {}),
+    }),
+  });
+  if (!response.ok) throw new Error(`Booking email send failed (Resend ${response.status}).`);
 
-  const body = [
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
-    "",
-    Buffer.from(opts.text, "utf8").toString("base64"),
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
-    "",
-    Buffer.from(html, "utf8").toString("base64"),
-    `--${boundary}--`,
-    "",
-  ];
-
-  const raw = Buffer.from([...headers, "", ...body].join("\r\n"), "utf8")
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const res = await gmail.users.messages.send({ userId: "me", requestBody: { raw } });
-  return res.data;
+  const result = await response.json() as { id?: unknown };
+  if (typeof result.id !== "string" || !result.id) {
+    throw new Error("Resend returned no booking email message id.");
+  }
+  return { id: result.id };
 }

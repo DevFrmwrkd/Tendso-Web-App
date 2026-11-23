@@ -1,5 +1,4 @@
 /** Pure email renderers. Sending and payment-state changes live in the service/backend. */
-import { getPaymentConfig } from '../payment/config'
 import { SUPPORT_EMAIL } from '../contact'
 import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '../pricing'
 import { escapeHtml } from './escape'
@@ -7,7 +6,6 @@ import { EMAIL_COLORS, emailActions, emailDetails, emailFeature, emailFrame, ema
 import { getGiveawayLiveEmailHtml, getGiveawayReceivedEmailHtml } from './giveawayTemplates'
 export { getGiveawayApprovedEmailHtml, getGiveawayRejectedEmailHtml } from './giveawayTemplates'
 
-const paymentConfig = getPaymentConfig()
 /** Optional presentation overrides let local previews use fictional payment details. */
 export interface EmailPaymentDetails {
     accountName?: string
@@ -15,8 +13,6 @@ export interface EmailPaymentDetails {
     bankName?: string
     wiseEmail?: string
 }
-/** Payment identity stays separate from the customer-support inbox. */
-function wiseRecipientEmail(override?: string) { return override || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com' }
 function hello(name: string) { return emailParagraph(`Hi <strong>${escapeHtml(name)}</strong>,`) }
 function heading(text: string) { return `<h2 style="margin:26px 0 14px;font-size:20px;line-height:1.3;font-weight:500;letter-spacing:-0.4px;color:${EMAIL_COLORS.ink};">${escapeHtml(text)}</h2>` }
 function dateLabel(value: number, time = false) {
@@ -112,18 +108,12 @@ export function getApprovalEmailHtml(params: {
     businessName: string; businessOwnerName: string; websiteUrl: string; amount: number; submissionId: string; paymentReference?: string; paymentDetails?: EmailPaymentDetails
 }): string {
     const reference = params.paymentReference || params.submissionId.substring(0, 8).toUpperCase()
-    // Preserve the legal Wise payee name; changing the visual brand must not change payment routing.
-    const accountName = params.paymentDetails?.accountName ?? process.env.WISE_ACCOUNT_NAME ?? 'Negosyo Digital'
-    const address = wiseRecipientEmail(params.paymentDetails?.wiseEmail)
     return emailFrame({ variant: 'payment', status: 'Ready to review', title: `Your website is ready — ${params.businessName}`, eyebrow: 'Ready to review', heading: 'Your website is ready.', supportEmail: SUPPORT_EMAIL,
         recipientName: params.businessOwnerName, introHtml: emailParagraph(`Take a look at the website for <strong>${escapeHtml(params.businessName)}</strong>.`),
         heroHtml: amountFeature('Amount due', params.amount), heroActions: [{ href: params.websiteUrl, label: 'View my website', primary: true }],
-        bodyHtml: hello(params.businessOwnerName) + emailDetails([
-                { label: 'Account name', valueHtml: escapeHtml(accountName) }, { label: 'Email / ID', valueHtml: escapeHtml(address) },
-                { label: 'Currency', valueHtml: 'PHP (Philippine Peso)' },
-            ]) + referencePanel(reference)
+        bodyHtml: hello(params.businessOwnerName) + bankDetails(params.paymentDetails) + referencePanel(reference)
             + emailPanel(emailParagraph('<strong>Action required within 3 days.</strong> This website preview is taken offline if payment is not received within 3 days of this email.'), 'warning')
-            + heading('What happens next') + emailParagraph('Send payment via Wise using the details above. Reply with your payment confirmation screenshot. We will verify the payment and activate your website.'),
+            + heading('What happens next') + emailParagraph('Send your payment to the bank account above and include your reference. Reply with your payment confirmation screenshot. We will verify the payment and activate your website.'),
     })
 }
 
@@ -270,7 +260,7 @@ function meetingActions(params: ManagedCall): CallAction[] {
     ]
 }
 function callFrame(title: string, status: string, params: CallDetails, introHtml: string, heroActions: CallAction[], body: string) {
-    return emailFrame({ variant: 'booking', status, title, eyebrow: 'Your Tendso call', heading: title, recipientName: params.firstName,
+    return emailFrame({ variant: 'booking', status, title, eyebrow: 'Your Tendso call', heading: title, recipientName: params.firstName, supportEmail: SUPPORT_EMAIL,
         introHtml, heroHtml: callSummary(params), heroActions,
         bodyHtml: (params.firstName ? hello(params.firstName) : '') + body,
         footerHtml: emailParagraph('This call is 10 minutes, on Google Meet, Philippine time.'),
