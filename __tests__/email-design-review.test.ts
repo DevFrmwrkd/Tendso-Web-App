@@ -39,12 +39,12 @@ it('renders actual template output rather than maintaining a separate mockup', (
     }));
 });
 
-it('uses fictional addresses and provides important review states', () => {
+it('uses fictional customer and payment addresses with branded Support and important review states', () => {
     const samples = getEmailPreviewSamples();
     const html = samples.flatMap(sample => sample.variants.map(variant => variant.html)).join('\n');
     const addresses = html.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi) ?? [];
     expect(addresses.length).toBeGreaterThan(0);
-    expect(addresses.every(address => address.endsWith('@example.com'))).toBe(true);
+    expect(addresses.every(address => address.endsWith('@example.com') || address === 'support@tendso.com')).toBe(true);
     expect(html).not.toMatch(/Negosyo Digital|frmwrkd|petalversion|poru\.fetaruvero/i);
     expect(samples.find(sample => sample.id === 'cashout-status')?.variants.map(variant => variant.id)).toEqual(['default', 'completed', 'failed']);
     expect(samples.find(sample => sample.id === 'owner-live')?.variants.find(variant => variant.id === 'balance')?.html).toContain('₱2,999');

@@ -1,4 +1,4 @@
-/** Fictional, local design-review fixtures. Pure rendering only: no mail transport or account reads. */
+/** Fictional customer/payment fixtures with Tendso's public Support contact. Pure rendering: no mail transport or account reads. */
 import {
     getAnnouncementEmailHtml, getApprovalEmailHtml, getCallBookedEmailHtml, getCallCancelledEmailHtml,
     getCallMovedEmailHtml, getCallOutOfHoursEmailHtml, getCallReminderEmailHtml, getDomainLiveEmailHtml,
@@ -50,7 +50,7 @@ function family(
         variants: [{ id: 'default', label: 'Default', html }, ...extras] };
 }
 
-/** Render the same exports used by transactional sends. Every destination and person is fictional. */
+/** Render the same exports used by transactional sends with fictional customers and payment destinations. */
 export function getEmailPreviewSamples(): EmailPreviewFamily[] {
     const invite = ownerInviteEmail({ ...owner, email: 'alex@example.com', appUrl });
     const building = ownerBuildingEmail({ ...owner, appUrl });

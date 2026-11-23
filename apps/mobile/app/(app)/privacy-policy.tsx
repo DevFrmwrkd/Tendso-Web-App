@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SUPPORT_EMAIL } from '@tendso/shared/contact';
 import { LayoutAnimation, Platform, Pressable, StyleSheet, UIManager, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useGuardedRouter } from '../../hooks/useGuardedRouter';
@@ -78,7 +79,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     title: 'Your Rights',
     icon: 'hand-left-outline',
     content:
-      'Under applicable data privacy laws (including the Philippine Data Privacy Act of 2012), you have the right to:\n\n• Access — Request a copy of the personal data we hold about you.\n• Correction — Request correction of inaccurate or incomplete data.\n• Erasure — Request deletion of your personal data (subject to legal retention requirements).\n• Portability — Request your data in a structured, commonly used format.\n• Objection — Object to certain processing of your personal data.\n• Withdrawal — Withdraw consent for data processing at any time.\n\nTo exercise any of these rights, contact us at frmwrkd.media@gmail.com. We will respond within 30 days.',
+      `Under applicable data privacy laws (including the Philippine Data Privacy Act of 2012), you have the right to:\n\n• Access — Request a copy of the personal data we hold about you.\n• Correction — Request correction of inaccurate or incomplete data.\n• Erasure — Request deletion of your personal data (subject to legal retention requirements).\n• Portability — Request your data in a structured, commonly used format.\n• Objection — Object to certain processing of your personal data.\n• Withdrawal — Withdraw consent for data processing at any time.\n\nTo exercise any of these rights, contact us at ${SUPPORT_EMAIL}. We will respond within 30 days.`,
   },
   {
     id: 10,
@@ -99,7 +100,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     title: 'Contact Us',
     icon: 'mail-outline',
     content:
-      'If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:\n\n• Email: frmwrkd.media@gmail.com\n• In-App: Profile > Help & FAQ\n\nFor data privacy concerns, you may also contact the National Privacy Commission (NPC) of the Philippines at complaints@privacy.gov.ph.\n\nWe aim to respond to all privacy-related inquiries within 30 days.',
+      `If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:\n\n• Email: ${SUPPORT_EMAIL}\n• In-App: Profile > Help & FAQ\n\nFor data privacy concerns, you may also contact the National Privacy Commission (NPC) of the Philippines at complaints@privacy.gov.ph.\n\nWe aim to respond to all privacy-related inquiries within 30 days.`,
   },
 ];
 

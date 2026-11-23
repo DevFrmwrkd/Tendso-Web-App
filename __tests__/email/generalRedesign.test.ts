@@ -42,13 +42,15 @@ describe('shared general email design', () => {
         expect(html).not.toMatch(/linear-gradient|#E4B05E|#C89548|background(?:-color)?:\s*#(?:0a0a0a|0f0f0f|1a1a1a)/i);
     });
 
-    it.each([templates.getPaymentLinkEmailHtml, templates.getPaymentFollowUpEmailHtml])('preserves real routing defaults and permits a fully fictional preview override', render => {
+    it.each([templates.getPaymentLinkEmailHtml, templates.getPaymentFollowUpEmailHtml])('preserves routing defaults and fictional preview bank details while keeping branded Support', render => {
         const real = render(basePayment);
         expect(real).toContain('VONAS, OPC');
         expect(real).toContain('2006436346');
         expect(real).toContain('Wise Pilipinas Inc. (via InstaPay)');
         const preview = render({ ...basePayment, paymentDetails: bank });
-        for (const value of Object.values(bank)) expect(preview).toContain(value);
+        for (const key of ['accountName', 'accountNumber', 'bankName'] as const) expect(preview).toContain(bank[key]);
+        expect(preview).toContain('href="mailto:support@tendso.com"');
+        expect(preview).not.toContain(`href="mailto:${bank.wiseEmail}"`);
         expect(preview).not.toMatch(/VONAS, OPC|2006436346|configured@example\.test/);
         expect(preview).toContain('ND-SAMPLE-CODE');
         expect(preview).toContain('team verification');

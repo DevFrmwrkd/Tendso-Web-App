@@ -2,7 +2,7 @@
  * How people reach Tendso. One place, so the footer, the Help Center's contact
  * card and the error state never disagree.
  */
-export const SUPPORT_EMAIL = "frmwrkd.media@gmail.com";
+export { SUPPORT_EMAIL } from "../packages/shared/contact";
 /** The registered company behind Tendso. */
 export const OPERATOR = "VONAS, OPC";
 /**

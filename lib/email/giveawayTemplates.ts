@@ -3,15 +3,15 @@
  * The campaign remains the gift giver; Tendso builds the websites. All runtime
  * content is escaped before entering the frame's trusted HTML slots.
  */
-import { getPaymentConfig } from '../payment/config'
+import { SUPPORT_EMAIL } from '../contact'
 import { escapeHtml } from './escape'
 import { EMAIL_COLORS, emailFeature, emailFrame, emailPanel, emailParagraph, emailSteps, emailTextLink, type EmailFrameOptions } from './design'
 
 const GIVER_LINE = 'A gift from Off the Record. Websites built by Tendso.'
 
 /** The frame escapes the support address itself; keep it plain until then. */
-function replyAddress(platformEmail?: string): string {
-    return platformEmail || getPaymentConfig().wiseEmail || 'frmwrkd.media@gmail.com'
+function replyAddress(): string {
+    return SUPPORT_EMAIL
 }
 
 function campaignFrame(title: string, preheader: string, heading: string, bodyHtml: string, supportEmail: string, options: Pick<EmailFrameOptions, 'variant' | 'status' | 'introHtml' | 'heroHtml' | 'heroActions' | 'friendly' | 'recipientName'> = {}): string {
@@ -70,7 +70,7 @@ export function getGiveawayReceivedEmailHtml(params: {
         ])
         + emailParagraph('<strong>If eligible, your website is free — nothing to pay.</strong> Your application is awaiting eligibility review.')
         + emailParagraph(`Spotted a mistake in your business name, address or phone number? Just reply to this email and we'll fix it before your website is built.`),
-        replyAddress(params.platformEmail),
+        replyAddress(),
         {
             status: 'Awaiting review', recipientName: params.businessOwnerName,
             introHtml: emailParagraph(`Thank you — Off the Record received your application for a free Tendso website for <strong>${businessName}</strong>. Your slot is held while Off the Record reviews your eligibility and poster photo.`),
@@ -100,7 +100,7 @@ export function getGiveawayApprovedEmailHtml(params: {
         ])
         + emailParagraph('<strong>Still free — nothing to pay.</strong> Keep the Off the Record poster up in your shop, and keep an eye on this inbox (check spam too).')
         + emailParagraph(`Want to change something before we build? Reply to this email with the new name, address, phone number or photo and we'll use it.`),
-        replyAddress(params.platformEmail),
+        replyAddress(),
         {
             variant: 'success', status: 'Approved by OTR', recipientName: params.businessOwnerName,
             introHtml: emailParagraph(`Off the Record checked your poster photo and approved <strong>${businessName}</strong> for a free website. <strong>Tendso is building it now</strong>, from the answers and photos you sent.`),
@@ -128,7 +128,7 @@ export function getGiveawayRejectedEmailHtml(params: {
         + check('The OTR poster is clearly visible')
         + check('Your sign or storefront is in the shot')
         + emailParagraph(`If anything is unclear, reply to this email and we'll help.`),
-        replyAddress(params.platformEmail),
+        replyAddress(),
         {
             variant: 'attention', status: 'Changes needed', recipientName: params.businessOwnerName,
             introHtml: emailParagraph(`Thank you for applying for a free Tendso website for <strong>${businessName}</strong> through Off the Record’s giveaway. Off the Record reviewed your application and couldn't accept it for this reason:`),
@@ -155,7 +155,7 @@ export function getGiveawayLiveEmailHtml(params: {
         + emailParagraph('If anyone contacts you asking for payment for this website, it did not come from us &mdash; reply to this email and we will confirm.')
         + emailParagraph(`Your business is now online for everyone to find. <strong>Free edits for your first year</strong> &mdash; new hours, new photos, a new price. Tell us what you want changed and we'll make it for you.`)
         + emailParagraph(`You're one of the businesses in <strong>Off the Record's 100 free websites</strong> giveaway.`),
-        replyAddress(params.platformEmail),
+        replyAddress(),
         {
             variant: 'success', status: 'Live · Free', recipientName: params.businessOwnerName, friendly: true,
             introHtml: emailParagraph(`<strong>A gift from Off the Record for ${businessName}. Built by Tendso.</strong>`),
